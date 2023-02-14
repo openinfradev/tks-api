@@ -1,0 +1,1081 @@
+basePath: /api/1.0/
+definitions:
+  handler.ApplicationJson:
+    properties:
+      clusterId:
+        type: string
+      created:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      statusDescription:
+        type: string
+      type:
+        type: string
+      updated:
+        type: string
+      workflowId:
+        type: string
+    type: object
+  handler.ClusterCapacity:
+    properties:
+      current:
+        type: integer
+      max:
+        type: integer
+    type: object
+  handler.ClusterConf:
+    properties:
+      machineType:
+        type: string
+      maxSizePerAz:
+        type: integer
+      minSizePerAz:
+        type: integer
+      numOfAz:
+        type: integer
+      region:
+        type: string
+      sshKeyName:
+        type: string
+    type: object
+  handler.ClusterJson:
+    properties:
+      conf:
+        $ref: "#/definitions/handler.ClusterConf"
+      created:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      infraProvider:
+        type: string
+      name:
+        type: string
+      projectId:
+        type: string
+      status:
+        type: string
+      statusDescription:
+        type: string
+      updated:
+        type: string
+    type: object
+  handler.ClusterKubeInfo:
+    properties:
+      cores:
+        $ref: "#/definitions/handler.ClusterCapacity"
+      memory:
+        $ref: "#/definitions/handler.ClusterCapacity"
+      namespaces:
+        type: integer
+      nodes:
+        type: integer
+      pods:
+        type: integer
+      services:
+        type: integer
+      totalResources:
+        type: integer
+      updated:
+        type: string
+      version:
+        type: string
+    type: object
+  handler.GroupJson:
+    properties:
+      created:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated:
+        type: string
+    type: object
+  handler.HistoryJson:
+    properties:
+      accountId:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      historyType:
+        type: string
+      id:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  handler.KubeEvent:
+    properties:
+      clusterId:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      namespace:
+        type: string
+      reason:
+        type: string
+      type:
+        type: string
+      updated:
+        type: string
+    type: object
+  handler.KubeInfoJson:
+    properties:
+      applicationId:
+        type: string
+      pods:
+        items:
+          $ref: "#/definitions/handler.PodJson"
+        type: array
+      services:
+        items:
+          $ref: "#/definitions/handler.ServiceJson"
+        type: array
+      type:
+        type: string
+    type: object
+  handler.Overview:
+    properties:
+      clusters:
+        type: integer
+      nodes:
+        type: integer
+      projects:
+        type: integer
+      users:
+        type: integer
+    type: object
+  handler.PodJson:
+    properties:
+      id:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      started:
+        type: string
+      status:
+        type: string
+    type: object
+  handler.PolicyJson:
+    properties:
+      created:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated:
+        type: string
+    type: object
+  handler.domain.Project:
+    properties:
+      availableService:
+        items:
+          type: string
+        type: array
+      clusterCnt:
+        type: integer
+      created:
+        type: string
+      creator:
+        type: string
+      cspIds:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      quota:
+        $ref: "#/definitions/handler.Quota"
+      status:
+        type: string
+      statusDescription:
+        type: string
+      updated:
+        type: string
+    type: object
+  handler.Quota:
+    properties:
+      cpu:
+        type: integer
+      memory:
+        type: integer
+    type: object
+  handler.ServiceJson:
+    properties:
+      clusterIp:
+        type: string
+      created:
+        type: string
+      externalIps:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      loadBalancerIps:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      namespace:
+        type: string
+      ports:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  handler.StackJson:
+    properties:
+      cluster:
+        $ref: "#/definitions/handler.ClusterJson"
+      id:
+        type: string
+      status:
+        type: string
+      statusDescription:
+        type: string
+    type: object
+  handler.UserJson:
+    properties:
+      accountId:
+        type: string
+      authorized:
+        type: boolean
+      createdAt:
+        type: string
+      expireTrialAt:
+        type: string
+      id:
+        type: string
+      initial:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      token:
+        type: string
+      tutorial:
+        type: boolean
+      updatedAt:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: taekyu.kang@sk.com
+    name: taekyu.kang@sk.com
+  description: This is backend api service for tks-api
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: tks-api backend API service
+  version: "1.0"
+paths:
+  /applications:
+    delete:
+      consumes:
+        - application/json
+      description: Uninstall application
+      parameters:
+        - description: body
+          in: body
+          name: object
+          required: true
+          schema:
+            type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Uninstall application
+      tags:
+        - Applications
+    get:
+      consumes:
+        - application/json
+      description: Get application list by giving params
+      parameters:
+        - description: clusterId
+          in: query
+          name: clusterId
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.ApplicationJson"
+            type: array
+      summary: Get application list
+      tags:
+        - Applications
+    post:
+      consumes:
+        - application/json
+      description: Install application
+      parameters:
+        - description: body
+          in: body
+          name: object
+          required: true
+          schema:
+            type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ApplicationJson"
+      summary: Install application
+      tags:
+        - Applications
+  /applications/{applicationId}:
+    get:
+      consumes:
+        - application/json
+      description: Get application detail by applicationId
+      parameters:
+        - description: applicationId
+          in: path
+          name: applicationId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ApplicationJson"
+      summary: Get application detail
+      tags:
+        - Applications
+  /applications/{applicationId}/kubeInfo:
+    get:
+      consumes:
+        - application/json
+      description: Get application kubernetes information by applicationId
+      parameters:
+        - description: applicationId
+          in: path
+          name: applicationId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.KubeInfoJson"
+      summary: Get application detail
+      tags:
+        - Applications
+  /clusters:
+    get:
+      consumes:
+        - application/json
+      description: Get cluster list
+      parameters:
+        - description: projectId
+          in: query
+          name: projectId
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.ClusterJson"
+            type: array
+      summary: Get clusters
+      tags:
+        - Clusters
+    post:
+      consumes:
+        - application/json
+      description: Create cluster
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Create cluster
+      tags:
+        - Clusters
+  /clusters/{clusterId}:
+    delete:
+      consumes:
+        - application/json
+      description: Delete cluster
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ClusterJson"
+      summary: Delete cluster
+      tags:
+        - Clusters
+    get:
+      consumes:
+        - application/json
+      description: Get cluster detail
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ClusterJson"
+      summary: Get cluster
+      tags:
+        - Clusters
+  /clusters/{clusterId}/applications:
+    get:
+      consumes:
+        - application/json
+      description: Get application list by clusterId
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.ApplicationJson"
+            type: array
+      summary: Get application list
+      tags:
+        - Clusters
+  /clusters/{clusterId}/kube-resources:
+    get:
+      consumes:
+        - application/json
+      description: Get kubernetes resources
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ClusterJson"
+      summary: Get kubernetes resources
+      tags:
+        - Clusters
+  /clusters/{clusterId}/kubeInfo:
+    get:
+      consumes:
+        - application/json
+      description: Get kubernetes info for cluster
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ClusterKubeInfo"
+      summary: Get kubernetes info
+      tags:
+        - Clusters
+  /clusters/{clusterId}/kubeconfig:
+    get:
+      consumes:
+        - application/json
+      description: Get kubernetes kubeconfig for cluster
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Get kubernetes kubeconfig
+      tags:
+        - Clusters
+  /dashboard:
+    get:
+      consumes:
+        - application/json
+      description: Get user based overview
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.Overview"
+      summary: Get overview for dashboard
+      tags:
+        - Dashboard
+  /dashboard/kube-info:
+    get:
+      consumes:
+        - application/json
+      description: Get kubernetes overview for user
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.ClusterKubeInfo"
+      summary: Get kubernetes overview
+      tags:
+        - Dashboard
+  /dashboard/kubeEvent:
+    get:
+      consumes:
+        - application/json
+      description: Get kubernetes events for cluster
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.KubeEvent"
+            type: array
+      summary: Get kubernetes events
+      tags:
+        - Dashboard
+  /dashboard/kubePods:
+    get:
+      consumes:
+        - application/json
+      description: Get kubernetes pods for cluster
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.PodJson"
+            type: array
+      summary: Get kubernetes pods
+      tags:
+        - Dashboard
+  /groups:
+    get:
+      consumes:
+        - application/json
+      description: Get group list
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.GroupJson"
+            type: array
+      summary: Get groups
+      tags:
+        - Groups
+    post:
+      consumes:
+        - application/json
+      description: Create group
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Create group
+      tags:
+        - Groups
+  /histories:
+    get:
+      consumes:
+        - application/json
+      description: Get histories
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.HistoryJson"
+      summary: Get histories
+      tags:
+        - Histories
+  /policies:
+    get:
+      consumes:
+        - application/json
+      description: Get policy list
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.PolicyJson"
+            type: array
+      summary: Get policies
+      tags:
+        - Policies
+    post:
+      consumes:
+        - application/json
+      description: Create policy
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Create policy
+      tags:
+        - Policies
+  /policies/{policyId}:
+    delete:
+      consumes:
+        - application/json
+      description: Delete policy
+      parameters:
+        - description: policyId
+          in: path
+          name: policyId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Delete policy
+      tags:
+        - Policies
+  /projects:
+    get:
+      consumes:
+        - application/json
+      description: Get project list
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.domain.Project"
+            type: array
+      summary: Get project list
+      tags:
+        - Projects
+    post:
+      consumes:
+        - application/json
+      description: Create project
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Create project
+      tags:
+        - Projects
+  /projects/{projectId}:
+    get:
+      consumes:
+        - application/json
+      description: Get project detail
+      parameters:
+        - description: projectId
+          in: path
+          name: projectId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.domain.Project"
+      summary: Get project detail
+      tags:
+        - Projects
+  /projects/{projectId}/user:
+    delete:
+      consumes:
+        - application/json
+      description: Remove user from project
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Remove user from project
+      tags:
+        - Projects
+    post:
+      consumes:
+        - application/json
+      description: Add user from project
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Add user from project
+      tags:
+        - Projects
+  /projects/users:
+    get:
+      consumes:
+        - application/json
+      description: Get project user list
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.UserJson"
+            type: array
+      summary: Get project users
+      tags:
+        - Projects
+  /signin:
+    post:
+      consumes:
+        - application/json
+      description: Sign in
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.UserJson"
+      summary: Sign in
+      tags:
+        - Auth
+  /signout:
+    post:
+      consumes:
+        - application/json
+      description: Sign out
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Sign out
+      tags:
+        - Auth
+  /stacks:
+    get:
+      consumes:
+        - application/json
+      description: Get tks stack list
+      parameters:
+        - description: projectId
+          in: query
+          name: projectId
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.StackJson"
+            type: array
+      summary: Get tks stacks
+      tags:
+        - Stacks
+    post:
+      consumes:
+        - application/json
+      description: Create tks service
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Create tks service
+      tags:
+        - Stacks
+  /stacks/{clusterId}:
+    delete:
+      consumes:
+        - application/json
+      description: Delete tks service
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Delete tks service
+      tags:
+        - Stacks
+    get:
+      consumes:
+        - application/json
+      description: Get tks service detail
+      parameters:
+        - description: clusterId
+          in: path
+          name: clusterId
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.StackJson"
+      summary: Get tks service
+      tags:
+        - Stacks
+  /token:
+    post:
+      consumes:
+        - application/json
+      description: Sign by token
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: Sign by token
+      tags:
+        - Auth
+  /users:
+    get:
+      consumes:
+        - application/json
+      description: Get user list
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/handler.UserJson"
+            type: array
+      summary: Get users
+      tags:
+        - Users
+  /users/{userId}/password:
+    put:
+      consumes:
+        - application/json
+      description: Sign in
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.UserJson"
+      summary: Sign in
+      tags:
+        - Auth
+  /users/{userId}/role:
+    put:
+      consumes:
+        - application/json
+      description: Update role
+      parameters:
+        - description: body
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/handler.UserJson"
+      summary: Update role
+      tags:
+        - Users
+swagger: "2.0"

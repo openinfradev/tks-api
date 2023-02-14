@@ -1,0 +1,37 @@
+package helper
+
+import (
+	"time"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/spf13/viper"
+
+	"github.com/openinfradev/tks-api/internal/repository"
+)
+
+func CreateJWT(user repository.User) (string, error) {
+	signingKey := []byte(viper.GetString("jwt-secret"))
+
+	aToken := jwt.New(jwt.SigningMethodHS256)
+	claims := aToken.Claims.(jwt.MapClaims)
+	claims["AccountId"] = user.AccountId
+	claims["Id"] = user.Id
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	tk, err := aToken.SignedString(signingKey)
+	if err != nil {
+		return "", err
+	}
+	return tk, nil
+}
+
+func VerifyToken(tokenString string) (*jwt.Token, error) {
+	signingKey := []byte(viper.GetString("jwt-secret"))
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return signingKey, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return token, err
+}
