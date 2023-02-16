@@ -4,6 +4,30 @@ import (
 	"time"
 )
 
+// enum
+type ClusterStatus int32
+
+const (
+	ClusterStatus_UNSPECIFIED ClusterStatus = iota
+	ClusterStatus_INSTALLING
+	ClusterStatus_RUNNING
+	ClusterStatus_DELETING
+	ClusterStatus_DELETED
+	ClusterStatus_ERROR
+)
+
+var cluseterStatus = [...]string{
+	"UNSPECIFIED",
+	"INSTALLING",
+	"RUNNING",
+	"DELETING",
+	"DELETED",
+	"ERROR",
+}
+
+func (m ClusterStatus) String() string { return cluseterStatus[(m)] }
+
+// model
 type Cluster = struct {
 	Id                string      `json:"id"`
 	ProjectId         string      `json:"projectId"`

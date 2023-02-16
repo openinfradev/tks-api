@@ -22,8 +22,9 @@ type IClusterUsecase interface {
 }
 
 type ClusterUsecase struct {
-	repo repository.IClusterRepository
-	argo argowf.ArgoClient
+	repo         repository.IClusterRepository
+	appGroupRepo repository.IAppGroupRepository
+	argo         argowf.ArgoClient
 }
 
 func NewClusterUsecase(r repository.IClusterRepository, argoClient argowf.ArgoClient) IClusterUsecase {
@@ -114,13 +115,15 @@ func (u *ClusterUsecase) Create(projectId string, templateId string, name string
 				"revision=" + viper.GetString("revision"),
 			},
 		})
-	log.Info("submited workflow: ", workflowId)
-
 	if err != nil {
 		log.Error("failed to submit argo workflow template. err : ", err)
 		return "", fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info("Successfully submited workflow: ", workflowId)
+
+	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_INSTALLING, workflowId); err != nil {
+		log.Error("Failed to update cluster status to 'INSTALLING'")
+	}
 
 	return clusterId, nil
 }
@@ -134,14 +137,44 @@ func (u *ClusterUsecase) Get(clusterId string) (out domain.Cluster, err error) {
 }
 
 func (u *ClusterUsecase) Delete(clusterId string) (err error) {
-	_, err = u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
 		return fmt.Errorf("No cluster for deletiing : %s", clusterId)
 	}
 
-	err = u.repo.Delete(clusterId)
+	if cluster.Status != domain.ClusterStatus_RUNNING.String() {
+		return fmt.Errorf("The cluster can not be deleted. cluster status : %s", cluster.Status)
+	}
+
+	resAppGroups, err := u.appGroupRepo.Fetch(clusterId)
 	if err != nil {
-		return fmt.Errorf("Fatiled to deleting cluster : %s", clusterId)
+		return fmt.Errorf("Failed to get appgroup : %s", err)
+	}
+
+	for _, resAppGroup := range resAppGroups {
+		if resAppGroup.Status != domain.AppGroupStatus_DELETED.String() {
+			return fmt.Errorf("Undeleted services remain. %s", resAppGroup.Id)
+		}
+	}
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		"tks-remove-usercluster",
+		argowf.SubmitOptions{
+			Parameters: []string{
+				"app_group=tks-cluster-aws",
+				"tks_info_host=tks-info.tks.svc",
+				"cluster_id=" + clusterId,
+			},
+		})
+	if err != nil {
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+
+	log.Debug("submited workflow name : ", workflowId)
+
+	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_INSTALLING, workflowId); err != nil {
+		log.Error("Failed to update cluster status to 'INSTALLING'")
 	}
 
 	return nil

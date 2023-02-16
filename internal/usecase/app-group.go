@@ -6,6 +6,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/repository"
+	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
+	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/spf13/viper"
 )
 
 type IAppGroupUsecase interface {
@@ -16,12 +19,16 @@ type IAppGroupUsecase interface {
 }
 
 type AppGroupUsecase struct {
-	repo repository.IAppGroupRepository
+	repo        repository.IAppGroupRepository
+	clusterRepo repository.IClusterRepository
+	argo        argowf.ArgoClient
 }
 
-func NewAppGroupUsecase(r repository.IAppGroupRepository) IAppGroupUsecase {
+func NewAppGroupUsecase(r repository.IAppGroupRepository, clusterRepo repository.IClusterRepository, argoClient argowf.ArgoClient) IAppGroupUsecase {
 	return &AppGroupUsecase{
-		repo: r,
+		repo:        r,
+		clusterRepo: clusterRepo,
+		argo:        argoClient,
 	}
 }
 
@@ -43,10 +50,70 @@ func (u *AppGroupUsecase) Create(clusterId string, name string, appGroupType str
 		}
 	}
 
+	// Check Cluster
+	_, err = u.clusterRepo.Get(clusterId)
+	if err != nil {
+		return "", fmt.Errorf("Failed to get cluster info err %s", err)
+	}
+
+	resAppGroups, err := u.repo.Fetch(clusterId)
+	if err != nil {
+		return "", fmt.Errorf("Failed to get appgroup info err %s", err)
+	}
+
+	for _, resAppGroup := range resAppGroups {
+		if resAppGroup.Name == name &&
+			resAppGroup.AppGroupType == appGroupType {
+			appGroupId = resAppGroup.Id
+			break
+		}
+	}
+
 	appGroupId, err = u.repo.Create(clusterId, name, appGroupType, creator, description)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create appGroup. err %s", err)
 	}
+
+	workflowTemplate := ""
+	opts := argowf.SubmitOptions{}
+	opts.Parameters = []string{
+		"site_name=" + clusterId,
+		"cluster_id=" + clusterId,
+		"github_account=" + viper.GetString("git-account"),
+		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
+		"revision=" + viper.GetString("revision"),
+		"app_group_id=" + appGroupId,
+	}
+
+	switch appGroupType {
+	case "LMA":
+		workflowTemplate = "tks-lma-federation"
+		opts.Parameters = append(opts.Parameters, "logging_component=loki")
+
+	case "LMA_EFK":
+		workflowTemplate = "tks-lma-federation"
+		opts.Parameters = append(opts.Parameters, "logging_component=efk")
+
+	case "SERVICE_MESH":
+		workflowTemplate = "tks-service-mesh"
+
+	default:
+		log.Error("invalid appGroup type ", appGroupType)
+		return "", fmt.Errorf("Invalid appGroup type. err %s", appGroupType)
+	}
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
+	if err != nil {
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+
+	log.Debug("submited workflow name : ", workflowId)
+
+	if err := u.repo.UpdateAppGroupStatus(appGroupId, domain.AppGroupStatus_INSTALLING, workflowId); err != nil {
+		log.Error("Failed to update appGroup status to 'INSTALLING'")
+	}
+
 	return appGroupId, nil
 }
 

@@ -35,7 +35,7 @@ func SetupRouter(db *gorm.DB, asset http.Handler, handler delivery.APIHandler) h
 	r.Use(loggingMiddleware)
 
 	// [TODO] Transaction
-	//r.Use(transactionMiddleware(db))
+	r.Use(transactionMiddleware(db))
 
 	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
@@ -116,7 +116,7 @@ func SetupRouter(db *gorm.DB, asset http.Handler, handler delivery.APIHandler) h
 	r.Handle("/api/1.0/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
 	r.Handle("/api/1.0/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
 
-	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repository.NewAppGroupRepository(db)))
+	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repository.NewAppGroupRepository(db), repository.NewClusterRepository(db), argoClient))
 	r.Handle("/api/1.0/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
 	r.Handle("/api/1.0/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
 	r.Handle("/api/1.0/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)

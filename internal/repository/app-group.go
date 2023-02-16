@@ -18,6 +18,7 @@ type IAppGroupRepository interface {
 	Get(id string) (domain.AppGroup, error)
 	Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
 	Delete(id string) error
+	UpdateAppGroupStatus(appGroupId string, status domain.AppGroupStatus, workflowId string) error
 }
 
 type AppGroupRepository struct {
@@ -31,28 +32,6 @@ func NewAppGroupRepository(db *gorm.DB) IAppGroupRepository {
 }
 
 // Models
-type AppGroupStatus int32
-
-const (
-	AppGroupStatus_UNSPECIFIED AppGroupStatus = iota
-	AppGroupStatus_INSTALLING
-	AppGroupStatus_RUNNING
-	AppGroupStatus_DELETING
-	AppGroupStatus_DELETED
-	AppGroupStatus_ERROR
-)
-
-var appGroupStatus = [...]string{
-	"UNSPECIFIED",
-	"INSTALLING",
-	"RUNNING",
-	"DELETING",
-	"DELETED",
-	"ERROR",
-}
-
-func (m AppGroupStatus) String() string { return appGroupStatus[(m)] }
-
 type AppGroup struct {
 	gorm.Model
 	ID           string `gorm:"primarykey"`
@@ -60,7 +39,7 @@ type AppGroup struct {
 	Name         string
 	ClusterId    string
 	WorkflowId   string
-	Status       AppGroupStatus
+	Status       domain.AppGroupStatus
 	StatusDesc   string
 	Creator      uuid.UUID
 	Description  string
@@ -93,7 +72,6 @@ func (r *AppGroupRepository) Get(id string) (domain.AppGroup, error) {
 	var appGroup AppGroup
 	res := r.db.First(&appGroup, "id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
-		log.Info(res.Error)
 		return domain.AppGroup{}, fmt.Errorf("Not found appGroup for %s", id)
 	}
 	resAppGroup := r.reflect(appGroup)
@@ -116,6 +94,18 @@ func (r *AppGroupRepository) Delete(appGroupId string) error {
 	if res.Error != nil {
 		return fmt.Errorf("could not delete appGroup %s", appGroupId)
 	}
+	return nil
+}
+
+func (r *AppGroupRepository) UpdateAppGroupStatus(appGroupId string, status domain.AppGroupStatus, workflowId string) error {
+	res := r.db.Model(&AppGroup{}).
+		Where("ID = ?", appGroupId).
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in appGroup with id %s", appGroupId)
+	}
+
 	return nil
 }
 

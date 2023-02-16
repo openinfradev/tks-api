@@ -20,10 +20,12 @@ type IClusterRepository interface {
 	Get(id string) (domain.Cluster, error)
 	Create(contractId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
 	Delete(id string) error
+	UpdateClusterStatus(clusterId string, status domain.ClusterStatus, workflowId string) error
 }
 
 type ClusterRepository struct {
 	db *gorm.DB
+	tx *gorm.DB // used only transaction
 }
 
 func NewClusterRepository(db *gorm.DB) IClusterRepository {
@@ -33,28 +35,6 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 }
 
 // Models
-type ClusterStatus int32
-
-const (
-	ClusterStatus_UNSPECIFIED ClusterStatus = iota
-	ClusterStatus_INSTALLING
-	ClusterStatus_RUNNING
-	ClusterStatus_DELETING
-	ClusterStatus_DELETED
-	ClusterStatus_ERROR
-)
-
-var cluseterStatus = [...]string{
-	"UNSPECIFIED",
-	"INSTALLING",
-	"RUNNING",
-	"DELETING",
-	"DELETED",
-	"ERROR",
-}
-
-func (m ClusterStatus) String() string { return cluseterStatus[(m)] }
-
 type Cluster struct {
 	gorm.Model
 	ID           string `gorm:"primarykey"`
@@ -62,7 +42,7 @@ type Cluster struct {
 	ContractId   string
 	TemplateId   string
 	WorkflowId   string
-	Status       ClusterStatus
+	Status       domain.ClusterStatus
 	StatusDesc   string
 	SshKeyName   string
 	Region       string
@@ -87,7 +67,7 @@ func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 		log.Info("Transaction Database not found")
 		return r
 	}
-	r.db = trxHandle
+	r.tx = trxHandle
 	return r
 }
 
@@ -154,6 +134,18 @@ func (r *ClusterRepository) Delete(clusterId string) error {
 	if res.Error != nil {
 		return fmt.Errorf("could not delete cluster for clusterId %s", clusterId)
 	}
+	return nil
+}
+
+func (r *ClusterRepository) UpdateClusterStatus(clusterId string, status domain.ClusterStatus, workflowId string) error {
+	res := r.db.Model(&Cluster{}).
+		Where("ID = ?", clusterId).
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in cluster with id %s", clusterId)
+	}
+
 	return nil
 }
 

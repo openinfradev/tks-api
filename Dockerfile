@@ -6,13 +6,13 @@ RUN wget https://github.com/swaggo/swag/releases/download/v1.7.1/swag_linux_amd6
 WORKDIR /app/backend
 COPY ./ .
 RUN go mod tidy
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./cmd/server/main.go ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/server ./cmd/server/main.go
 
 ENV TZ=Asia/Seoul
 
 EXPOSE 8080
 
-WORKDIR /app/backend/cmd/server
+WORKDIR /app/backend/bin
 
 ENTRYPOINT ["./server"]
 CMD ["-webroot","/app/backend/web"]
