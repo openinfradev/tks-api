@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"golang.org/x/crypto/ssh"
 )
 

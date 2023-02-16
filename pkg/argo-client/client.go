@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type ArgoClient interface {

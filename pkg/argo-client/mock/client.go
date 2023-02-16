@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	argowf "github.com/openinfradev/tks-common/pkg/argowf"
+	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 )
 
 // MockClient is a mock of Client interface.

@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type ClusterHandler struct {

@@ -5,17 +5,15 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/spf13/viper"
-
-	"github.com/openinfradev/tks-api/internal/repository"
 )
 
-func CreateJWT(user repository.User) (string, error) {
+func CreateJWT(accountId string, uId string) (string, error) {
 	signingKey := []byte(viper.GetString("jwt-secret"))
 
 	aToken := jwt.New(jwt.SigningMethodHS256)
 	claims := aToken.Claims.(jwt.MapClaims)
-	claims["AccountId"] = user.AccountId
-	claims["Id"] = user.Id
+	claims["AccountId"] = accountId
+	claims["Id"] = uId
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	tk, err := aToken.SignedString(signingKey)

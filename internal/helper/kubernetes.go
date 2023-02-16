@@ -12,7 +12,7 @@ import (
 
 	clientcmd "k8s.io/client-go/tools/clientcmd"
 
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 func getAdminConfig() (*rest.Config, error) {

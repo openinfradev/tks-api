@@ -8,7 +8,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
@@ -122,7 +122,7 @@ func (u *ClusterUsecase) Create(projectId string, templateId string, name string
 	log.Info("Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_INSTALLING, workflowId); err != nil {
-		log.Error("Failed to update cluster status to 'INSTALLING'")
+		return "", fmt.Errorf("Failed to update cluster status to 'INSTALLING'. err : %s", err)
 	}
 
 	return clusterId, nil
@@ -173,8 +173,8 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_INSTALLING, workflowId); err != nil {
-		log.Error("Failed to update cluster status to 'INSTALLING'")
+	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_DELETING, workflowId); err != nil {
+		return fmt.Errorf("Failed to update cluster status to 'DELETING'. err : %s", err)
 	}
 
 	return nil

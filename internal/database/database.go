@@ -51,12 +51,6 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func MigrateSchema(db *gorm.DB) error {
-	if err := db.AutoMigrate(&repository.User{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.ProjectUser{}); err != nil {
-		return err
-	}
 	if err := db.AutoMigrate(&repository.History{}); err != nil {
 		return err
 	}

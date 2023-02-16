@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/domain"
-	"github.com/openinfradev/tks-common/pkg/helper"
+	"github.com/openinfradev/tks-api/internal/helper"
 )
 
 // Interfaces
@@ -37,7 +37,6 @@ type Contract struct {
 }
 
 func (c *Contract) BeforeCreate(tx *gorm.DB) (err error) {
-	// [TODO] after migration tks-common
 	c.ID = helper.GenerateContractId()
 	return nil
 }

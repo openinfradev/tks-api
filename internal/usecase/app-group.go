@@ -7,7 +7,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
 )
 
@@ -111,7 +111,7 @@ func (u *AppGroupUsecase) Create(clusterId string, name string, appGroupType str
 	log.Debug("submited workflow name : ", workflowId)
 
 	if err := u.repo.UpdateAppGroupStatus(appGroupId, domain.AppGroupStatus_INSTALLING, workflowId); err != nil {
-		log.Error("Failed to update appGroup status to 'INSTALLING'")
+		return "", fmt.Errorf("Failed to update appGroup status to 'INSTALLING'. err : %s", err)
 	}
 
 	return appGroupId, nil
@@ -126,9 +126,47 @@ func (u *AppGroupUsecase) Get(appGroupId string) (out domain.AppGroup, err error
 }
 
 func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
-	_, err = u.repo.Get(appGroupId)
+	appGroup, err := u.repo.Get(appGroupId)
 	if err != nil {
 		return fmt.Errorf("No appGroup for deletiing : %s", appGroupId)
+	}
+
+	clusterId := appGroup.ClusterId
+
+	// Call argo workflow template
+	workflowTemplate := ""
+	appGroupName := ""
+
+	switch appGroup.AppGroupType {
+	case "LMA", "LMA_EFK":
+		workflowTemplate = "tks-remove-lma-federation"
+		appGroupName = "lma"
+
+	case "SERVICE_MESH":
+		workflowTemplate = "tks-remove-servicemesh"
+		appGroupName = "service-mesh"
+
+	default:
+		return fmt.Errorf("Invalid appGroup type %s", appGroup.AppGroupType)
+	}
+
+	opts := argowf.SubmitOptions{}
+	opts.Parameters = []string{
+		"app_group=" + appGroupName,
+		"github_account=" + viper.GetString("git-account"),
+		"cluster_id=" + clusterId,
+		"app_group_id=" + appGroupId,
+	}
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
+	if err != nil {
+		return fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+
+	log.Debug("submited workflow name : ", workflowId)
+
+	if err := u.repo.UpdateAppGroupStatus(appGroupId, domain.AppGroupStatus_DELETING, workflowId); err != nil {
+		return fmt.Errorf("Failed to update appGroup status to 'DELETING'. err : %s", err)
 	}
 
 	err = u.repo.Delete(appGroupId)

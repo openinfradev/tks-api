@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 
 	"github.com/swaggo/http-swagger"
@@ -16,7 +15,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type StatusRecorder struct {
@@ -29,7 +28,7 @@ func (r *StatusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-func SetupRouter(db *gorm.DB, asset http.Handler, handler delivery.APIHandler) http.Handler {
+func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) http.Handler {
 	r := mux.NewRouter()
 
 	r.Use(loggingMiddleware)
@@ -38,9 +37,6 @@ func SetupRouter(db *gorm.DB, asset http.Handler, handler delivery.APIHandler) h
 	r.Use(transactionMiddleware(db))
 
 	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
-
-	// for websocket
-	r.HandleFunc("/api/1.0/ws", handler.WsSsh).Methods(http.MethodGet)
 
 	/*
 		// 1.0
@@ -100,10 +96,6 @@ func SetupRouter(db *gorm.DB, asset http.Handler, handler delivery.APIHandler) h
 		r.Handle("/api/1.0/stacks/{clusterId}", authMiddleware(http.HandlerFunc(handler.GetStack))).Methods(http.MethodGet)
 		r.Handle("/api/1.0/stacks/{clusterId}", authMiddleware(http.HandlerFunc(handler.DeleteStack))).Methods(http.MethodDelete)
 	*/
-	argoClient, err := argowf.New(viper.GetString("argo-address"), viper.GetInt("argo-port"), false, "")
-	if err != nil {
-		log.Fatal("failed to create argowf client : ", err)
-	}
 
 	projectHandler := delivery.NewProjectHandler(usecase.NewContractUsecase(repository.NewContractRepository(db), argoClient))
 	r.Handle("/api/1.0/projects", authMiddleware(http.HandlerFunc(projectHandler.CreateProject))).Methods(http.MethodPost)

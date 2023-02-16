@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/domain"
-	"github.com/openinfradev/tks-common/pkg/helper"
-	"github.com/openinfradev/tks-common/pkg/log"
+	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
