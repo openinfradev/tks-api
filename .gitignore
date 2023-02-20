@@ -9,8 +9,6 @@
 *.sln
 *.sw?
 
-cmd/server/server
 web
-server
 main
 output
