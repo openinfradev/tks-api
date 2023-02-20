@@ -18,6 +18,11 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
+const (
+	API_VERSION = "/1.0"
+	API_PREFIX  = "/api"
+)
+
 type StatusRecorder struct {
 	http.ResponseWriter
 	Status int
@@ -34,7 +39,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	r.Use(loggingMiddleware)
 
 	// [TODO] Transaction
-	r.Use(transactionMiddleware(db))
+	//r.Use(transactionMiddleware(db))
 
 	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
@@ -98,24 +103,29 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	*/
 
 	projectHandler := delivery.NewProjectHandler(usecase.NewContractUsecase(repository.NewContractRepository(db), argoClient))
-	r.Handle("/api/1.0/projects", authMiddleware(http.HandlerFunc(projectHandler.CreateProject))).Methods(http.MethodPost)
-	r.Handle("/api/1.0/projects", authMiddleware(http.HandlerFunc(projectHandler.GetProjects))).Methods(http.MethodGet)
-	r.Handle("/api/1.0/projects/{projectId}", authMiddleware(http.HandlerFunc(projectHandler.GetProject))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/projects", authMiddleware(http.HandlerFunc(projectHandler.CreateProject))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/projects", authMiddleware(http.HandlerFunc(projectHandler.GetProjects))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/projects/{projectId}", authMiddleware(http.HandlerFunc(projectHandler.GetProject))).Methods(http.MethodGet)
 
 	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(repository.NewClusterRepository(db), argoClient))
-	r.Handle("/api/1.0/clusters", authMiddleware(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
-	r.Handle("/api/1.0/clusters", authMiddleware(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
-	r.Handle("/api/1.0/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
-	r.Handle("/api/1.0/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
 
 	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repository.NewAppGroupRepository(db), repository.NewClusterRepository(db), argoClient))
-	r.Handle("/api/1.0/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
-	r.Handle("/api/1.0/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
-	r.Handle("/api/1.0/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
-	r.Handle("/api/1.0/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.DeleteAppGroup))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.DeleteAppGroup))).Methods(http.MethodDelete)
+
+	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repository.NewAppServeAppRepository(db), argoClient))
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
 
 	historyHandler := delivery.NewHistoryHandler(usecase.NewHistoryUsecase(repository.NewHistoryRepository(db)))
-	r.Handle("/api/1.0/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories))).Methods(http.MethodGet)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)

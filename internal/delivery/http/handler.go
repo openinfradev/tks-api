@@ -20,8 +20,8 @@ func ErrorJSON(w http.ResponseWriter, message string, code int) {
 	ResponseJSON(w, out, code)
 }
 
-func InternalServerError(w http.ResponseWriter) {
-	ErrorJSON(w, "internal server error", http.StatusInternalServerError)
+func InternalServerError(w http.ResponseWriter, err error) {
+	ErrorJSON(w, fmt.Sprintf("internal server error. err : ", err.Error), http.StatusInternalServerError)
 }
 
 func ResponseJSON(w http.ResponseWriter, data interface{}, code int) {

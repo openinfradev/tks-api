@@ -38,8 +38,8 @@ type Cluster = struct {
 	StatusDescription string      `json:"statusDescription"`
 	Conf              ClusterConf `json:"conf"`
 	Creator           string      `json:"creator"`
-	CreatedAt         time.Time   `json:"created"`
-	UpdatedAt         time.Time   `json:"updated"`
+	CreatedAt         time.Time   `json:"createdAt"`
+	UpdatedAt         time.Time   `json:"updatedAt"`
 }
 
 type ClusterConf = struct {

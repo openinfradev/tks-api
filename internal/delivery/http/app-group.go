@@ -21,8 +21,8 @@ func NewAppGroupHandler(h usecase.IAppGroupUsecase) *AppGroupHandler {
 	}
 }
 
-// CreateappGroup godoc
-// @Tags appGroups
+// CreateAppGroup godoc
+// @Tags AppGroups
 // @Summary Install appGroup
 // @Description Install appGroup
 // @Accept json
@@ -55,8 +55,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 
 	appGroupId, err := h.usecase.Create(input.ClusterId, input.Name, input.Type, "", input.Description)
 	if err != nil {
-		log.Error("Failed to create appGroup err : ", err)
-		InternalServerError(w)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -120,7 +119,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 
 	appGroup, err := h.usecase.Get(appGroupId)
 	if err != nil {
-		InternalServerError(w)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -152,7 +151,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 	err := h.usecase.Delete(appGroupId)
 	if err != nil {
 		log.Error("Failed to create appGroup err : ", err)
-		InternalServerError(w)
+		InternalServerError(w, err)
 		return
 	}
 

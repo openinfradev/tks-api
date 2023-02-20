@@ -37,6 +37,6 @@ type AppGroup = struct {
 	Status            string    `json:"status"`
 	StatusDescription string    `json:"statusDescription"`
 	Creator           string    `json:"creator"`
-	CreatedAt         time.Time `json:"created"`
-	UpdatedAt         time.Time `json:"updated"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
