@@ -187,3 +187,30 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	ResponseJSON(w, out, http.StatusOK)
 }
+
+// DeleteAppServeApp godoc
+// @Tags AppServeApps
+// @Summary Uninstall appServeApp
+// @Description Uninstall appServeApp
+// @Accept json
+// @Produce json
+// @Param object body string true "body"
+// @Success 200 {object} object
+// @Router /app-serve-apps [delete]
+func (h *AppServeAppHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	appGroupId, ok := vars["id"]
+	if !ok {
+		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.usecase.Delete(appGroupId)
+	if err != nil {
+		log.Error("Failed to create appGroup err : ", err)
+		InternalServerError(w, err)
+		return
+	}
+
+	ResponseJSON(w, res, http.StatusOK)
+}

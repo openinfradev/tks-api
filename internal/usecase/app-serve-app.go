@@ -17,6 +17,7 @@ type IAppServeAppUsecase interface {
 	Fetch(projectId string, showAll bool) ([]*domain.AppServeApp, error)
 	Get(id string) (*domain.AppServeAppCombined, error)
 	Create(app *domain.CreateAppServeAppRequest) (ret string, err error)
+	Delete(id string) (res string, err error)
 }
 
 type AppServeAppUsecase struct {
@@ -168,5 +169,64 @@ func (u *AppServeAppUsecase) Create(app *domain.CreateAppServeAppRequest) (ret s
 
 	return fmt.Sprintf(`The app <%[1]s> is being deployed. 
 * App ID: %[2]s\n`, app.Name, app.ID), nil
+}
 
+func (u *AppServeAppUsecase) Delete(asaId string) (res string, err error) {
+	parsedId, err := uuid.Parse(asaId)
+	if err != nil {
+		return "", err
+	}
+
+	asaCombined, err := u.repo.Get(parsedId)
+	if err != nil {
+		return "", fmt.Errorf("Error while getting ASA Info from DB. Err: %s", err)
+	}
+
+	// Validate app status
+	if asaCombined.AppServeApp.Status == "WAIT_FOR_PROMOTE" ||
+		asaCombined.AppServeApp.Status == "BLUEGREEN_FAILED" {
+		return "", fmt.Errorf("The app is in blue-green related state. Promote or abort first before deleting!")
+	}
+
+	/********************
+	 * Start delete task *
+	 ********************/
+
+	asaTask := &domain.AppServeAppTask{
+		AppServeAppId: asaId,
+		Version:       "",
+		ArtifactUrl:   "",
+		ImageUrl:      "",
+		Status:        "DELETING",
+		Profile:       "",
+		Output:        "",
+	}
+
+	taskId, err := u.repo.Update(parsedId, asaTask)
+	if err != nil {
+		return "", fmt.Errorf("Failed to create delete task. Err: %s", err)
+	}
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl("delete-java-app", argowf.SubmitOptions{
+		Parameters: []string{
+			"type=" + asaCombined.AppServeApp.Type,
+			"target_cluster_id=" + asaCombined.AppServeApp.TargetClusterId,
+			"app_name=" + asaCombined.AppServeApp.Name,
+			"asa_id=" + asaId,
+			"asa_task_id=" + taskId.String(),
+			"artifact_url=" + "NA",
+			"image_url=" + "NA",
+			"port=" + "NA",
+			"profile=" + "NA",
+			"resource_spec=" + "NA",
+			"executable_path=" + "NA",
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("Failed to submit workflow. Err: %s", err)
+	}
+	log.Info("Successfully submited workflow: ", workflowId)
+
+	res_str := fmt.Sprintf("The app '%s' is being deleted. Confirm result by checking the app status after a while.", &asaCombined.AppServeApp.Name)
+	return res_str, nil
 }

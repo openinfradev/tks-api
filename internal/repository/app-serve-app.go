@@ -15,6 +15,7 @@ type IAppServeAppRepository interface {
 	Fetch(contractId string, showAll bool) ([]*domain.AppServeApp, error)
 	Get(id uuid.UUID) (*domain.AppServeAppCombined, error)
 	Create(contractId string, app *domain.AppServeApp, task *domain.AppServeAppTask) (asaId uuid.UUID, asaTaskId uuid.UUID, err error)
+	Update(appServeAppId uuid.UUID, task *domain.AppServeAppTask) (uuid.UUID, error)
 }
 
 type AppServeAppRepository struct {
