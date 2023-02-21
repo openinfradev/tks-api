@@ -8,7 +8,7 @@ import (
 
 var (
 	PREFIX_CLUSTER_ID           = "c"
-	PREFIX_CONTRACT_ID          = "p"
+	PREFIX_ORGANIZATION_ID      = "p"
 	PREFIX_APPLICATION_GROUP_ID = "a"
 	ID_LENGTH                   = 9
 )
@@ -19,8 +19,8 @@ func GenerateClusterId() string {
 	return PREFIX_CLUSTER_ID + randomString(ID_LENGTH-1)
 }
 
-func GenerateContractId() string {
-	return PREFIX_CONTRACT_ID + randomString(ID_LENGTH-1)
+func GenerateOrganizationId() string {
+	return PREFIX_ORGANIZATION_ID + randomString(ID_LENGTH-1)
 }
 
 func GenerateApplicaionGroupId() string {
@@ -34,8 +34,8 @@ func ValidateClusterId(id string) bool {
 	return validateId(id)
 }
 
-func ValidateContractId(id string) bool {
-	if !strings.HasPrefix(id, PREFIX_CONTRACT_ID) {
+func ValidateOrganizationId(id string) bool {
+	if !strings.HasPrefix(id, PREFIX_ORGANIZATION_ID) {
 		return false
 	}
 	return validateId(id)

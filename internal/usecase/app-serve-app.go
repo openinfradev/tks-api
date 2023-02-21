@@ -300,41 +300,39 @@ func (u *AppServeAppUsecase) Update(asaId string, app *domain.UpdateAppServeAppR
 		return "", fmt.Errorf("Failed to update app-serve application. Err: %s", err)
 	}
 
-	if false {
-		// Call argo workflow
-		workflowId, err := u.argo.SumbitWorkflowFromWftpl("serve-java-app", argowf.SubmitOptions{
-			Parameters: []string{
-				"type=" + resAsaInfo.AppServeApp.Type,
-				"strategy=" + app.Strategy,
-				"app_type=" + resAsaInfo.AppServeApp.AppType,
-				"target_cluster_id=" + resAsaInfo.AppServeApp.TargetClusterId,
-				"app_name=" + resAsaInfo.AppServeApp.Name,
-				"asa_id=" + app.ID,
-				"asa_task_id=" + taskId.String(),
-				"artifact_url=" + app.ArtifactUrl,
-				"image_url=" + app.ImageUrl,
-				"port=" + app.Port,
-				"profile=" + app.Profile,
-				"extra_env=" + app.ExtraEnv,
-				"app_config=" + app.AppConfig,
-				"app_secret=" + app.AppSecret,
-				"resource_spec=" + app.ResourceSpec,
-				"executable_path=" + app.ExecutablePath,
-				"git_repo_url=" + viper.GetString("git-repository-url"),
-				"harbor_pw_secret=" + viper.GetString("harbor-pw-secret"),
-				"pv_enabled=" + strconv.FormatBool(app.PvEnabled),
-				"pv_storage_class=" + app.PvStorageClass,
-				"pv_access_mode=" + app.PvAccessMode,
-				"pv_size=" + app.PvSize,
-				"pv_mount_path=" + app.PvMountPath,
-			},
-		})
-		if err != nil {
-			return "", fmt.Errorf("Failed to submit workflow. Err: %s", err)
-		}
-		log.Info("Successfully submited workflow: ", workflowId)
-
+	// Call argo workflow
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl("serve-java-app", argowf.SubmitOptions{
+		Parameters: []string{
+			"type=" + resAsaInfo.AppServeApp.Type,
+			"strategy=" + app.Strategy,
+			"app_type=" + resAsaInfo.AppServeApp.AppType,
+			"target_cluster_id=" + resAsaInfo.AppServeApp.TargetClusterId,
+			"app_name=" + resAsaInfo.AppServeApp.Name,
+			"asa_id=" + app.ID,
+			"asa_task_id=" + taskId.String(),
+			"artifact_url=" + app.ArtifactUrl,
+			"image_url=" + app.ImageUrl,
+			"port=" + app.Port,
+			"profile=" + app.Profile,
+			"extra_env=" + app.ExtraEnv,
+			"app_config=" + app.AppConfig,
+			"app_secret=" + app.AppSecret,
+			"resource_spec=" + app.ResourceSpec,
+			"executable_path=" + app.ExecutablePath,
+			"git_repo_url=" + viper.GetString("git-repository-url"),
+			"harbor_pw_secret=" + viper.GetString("harbor-pw-secret"),
+			"pv_enabled=" + strconv.FormatBool(app.PvEnabled),
+			"pv_storage_class=" + app.PvStorageClass,
+			"pv_access_mode=" + app.PvAccessMode,
+			"pv_size=" + app.PvSize,
+			"pv_mount_path=" + app.PvMountPath,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("Failed to submit workflow. Err: %s", err)
 	}
+	log.Info("Successfully submited workflow: ", workflowId)
+
 	return fmt.Sprintf("The app '%s' is being updated. Confirm result by checking the app status after a while.", resAsaInfo.AppServeApp.Name), nil
 }
 

@@ -54,7 +54,7 @@ func MigrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&repository.History{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.Contract{}); err != nil {
+	if err := db.AutoMigrate(&repository.Organization{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&repository.Cluster{}); err != nil {
