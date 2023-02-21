@@ -15,8 +15,8 @@ import (
 
 type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
-	Fetch(projectId string) ([]domain.Cluster, error)
-	Create(projectId string, templateId string, name string, conf domain.ClusterConf, creatorId string, description string) (clusterId string, err error)
+	Fetch(organizationId string) ([]domain.Cluster, error)
+	Create(organizationId string, templateId string, name string, conf domain.ClusterConf, creatorId string, description string) (clusterId string, err error)
 	Get(clusterId string) (out domain.Cluster, err error)
 	Delete(clusterId string) (err error)
 }
@@ -27,10 +27,11 @@ type ClusterUsecase struct {
 	argo         argowf.ArgoClient
 }
 
-func NewClusterUsecase(r repository.IClusterRepository, argoClient argowf.ArgoClient) IClusterUsecase {
+func NewClusterUsecase(r repository.IClusterRepository, appGroupRepo repository.IAppGroupRepository, argoClient argowf.ArgoClient) IClusterUsecase {
 	return &ClusterUsecase{
-		repo: r,
-		argo: argoClient,
+		repo:         r,
+		appGroupRepo: appGroupRepo,
+		argo:         argoClient,
 	}
 }
 
@@ -66,11 +67,11 @@ func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 	return u
 }
 
-func (u *ClusterUsecase) Fetch(projectId string) (out []domain.Cluster, err error) {
-	if projectId == "" {
+func (u *ClusterUsecase) Fetch(organizationId string) (out []domain.Cluster, err error) {
+	if organizationId == "" {
 		out, err = u.repo.Fetch()
 	} else {
-		out, err = u.repo.FetchByContractId(projectId)
+		out, err = u.repo.FetchByOrganizationId(organizationId)
 	}
 
 	if err != nil {
@@ -79,7 +80,7 @@ func (u *ClusterUsecase) Fetch(projectId string) (out []domain.Cluster, err erro
 	return out, nil
 }
 
-func (u *ClusterUsecase) Create(projectId string, templateId string, name string, conf domain.ClusterConf, creatorId string, description string) (clusterId string, err error) {
+func (u *ClusterUsecase) Create(organizationId string, templateId string, name string, conf domain.ClusterConf, creatorId string, description string) (clusterId string, err error) {
 	creator := uuid.Nil
 	if creatorId != "" {
 		creator, err = uuid.Parse(creatorId)
@@ -96,7 +97,7 @@ func (u *ClusterUsecase) Create(projectId string, templateId string, name string
 		return "", err
 	}
 
-	clusterId, err = u.repo.Create(projectId, templateId, name, clConf, creator, description)
+	clusterId, err = u.repo.Create(organizationId, templateId, name, clConf, creator, description)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create cluster")
 	}
@@ -106,7 +107,7 @@ func (u *ClusterUsecase) Create(projectId string, templateId string, name string
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
-				"contract_id=" + projectId,
+				"contract_id=" + organizationId,
 				"cluster_id=" + clusterId,
 				"site_name=" + clusterId,
 				"template_name=" + templateId,

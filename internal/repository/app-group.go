@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,6 +33,8 @@ func NewAppGroupRepository(db *gorm.DB) IAppGroupRepository {
 // Models
 type AppGroup struct {
 	gorm.Model
+	WorkflowStatus
+
 	ID           string `gorm:"primarykey"`
 	AppGroupType string
 	Name         string
@@ -43,8 +44,6 @@ type AppGroup struct {
 	StatusDesc   string
 	Creator      uuid.UUID
 	Description  string
-	UpdatedAt    time.Time
-	CreatedAt    time.Time
 }
 
 func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {

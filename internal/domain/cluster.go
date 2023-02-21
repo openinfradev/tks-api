@@ -30,7 +30,7 @@ func (m ClusterStatus) String() string { return cluseterStatus[(m)] }
 // model
 type Cluster = struct {
 	Id                string      `json:"id"`
-	ProjectId         string      `json:"projectId"`
+	OrganizationId    string      `json:"organizationId"`
 	Name              string      `json:"name"`
 	Description       string      `json:"description"`
 	WorkflowId        string      `json:"workflowId"`

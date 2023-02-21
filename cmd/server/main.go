@@ -19,7 +19,7 @@ import (
 func init() {
 	flag.Int("port", 8080, "service port")
 	flag.String("web-root", "../../web", "path of root path for web")
-	flag.String("argo-address", "argo-workflows-operator-server.argo.svc", "service address for argoworkflow")
+	flag.String("argo-address", "http://localhost", "service address for argoworkflow")
 	flag.Int("argo-port", 2746, "service port for argoworkflow")
 	flag.String("dbhost", "localhost", "host of postgreSQL")
 	flag.String("dbport", "5432", "port of postgreSQL")

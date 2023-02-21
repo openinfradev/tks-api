@@ -8,13 +8,13 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"github.com/spf13/viper"
 )
 
 type IOrganizationUsecase interface {
 	Fetch() ([]domain.Organization, error)
 	Get(organizationId string) (domain.Organization, error)
 	Create(domain.Organization) (organizationId string, err error)
+	Delete(organizationId string) (string, error)
 }
 
 type OrganizationUsecase struct {
@@ -53,11 +53,10 @@ func (u *OrganizationUsecase) Create(in domain.Organization) (organizationId str
 	log.Info("newly created Organization Id:", organizationId)
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-		"tks-create-organization-repo",
+		"tks-create-contract-repo",
 		argowf.SubmitOptions{
 			Parameters: []string{
-				"organization_id=" + organizationId,
-				"revision=" + viper.GetString("revision"),
+				"contract_id=" + organizationId,
 			},
 		})
 	if err != nil {
@@ -74,5 +73,22 @@ func (u *OrganizationUsecase) Get(organizationId string) (res domain.Organizatio
 	if err != nil {
 		return domain.Organization{}, err
 	}
+	return res, nil
+}
+
+func (u *OrganizationUsecase) Delete(organizationId string) (res string, err error) {
+	_, err = u.Get(organizationId)
+	if err != nil {
+		return "", err
+	}
+
+	// [TODO] validation
+	// cluster 나 appgroup 등이 삭제 되었는지 확인
+
+	res, err = u.repo.Delete(organizationId)
+	if err != nil {
+		return "", err
+	}
+
 	return res, nil
 }

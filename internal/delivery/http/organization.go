@@ -153,6 +153,32 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	ResponseJSON(w, out, http.StatusOK)
 }
 
+// DeleteOrganization godoc
+// @Tags Organizations
+// @Summary Delete organization
+// @Description Delete organization
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200 {object} domain.Organization
+// @Router /organizations/{organizationId} [delete]
+func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, fmt.Sprintf("Invalid input %s", organizationId), http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.usecase.Delete(organizationId)
+	if err != nil {
+		ErrorJSON(w, fmt.Sprintf("Failed to delete organization err : %s", err), http.StatusBadRequest)
+		return
+	}
+
+	ResponseJSON(w, res, http.StatusOK)
+}
+
 func (h *OrganizationHandler) reflectOrganization(out *domain.Organization, organization domain.Organization) {
 	out.Id = organization.Id
 	out.Name = organization.Name

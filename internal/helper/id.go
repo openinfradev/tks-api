@@ -8,7 +8,7 @@ import (
 
 var (
 	PREFIX_CLUSTER_ID           = "c"
-	PREFIX_ORGANIZATION_ID      = "p"
+	PREFIX_ORGANIZATION_ID      = "o"
 	PREFIX_APPLICATION_GROUP_ID = "a"
 	ID_LENGTH                   = 9
 )

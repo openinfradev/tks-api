@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -30,6 +29,7 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 
 // Models
 type AppServeApp struct {
+	gorm.Model
 	Id                 uuid.UUID `gorm:"primarykey;type:uuid"`
 	Name               string
 	ContractId         string
@@ -39,8 +39,6 @@ type AppServeApp struct {
 	PreviewEndpointUrl string
 	TargetClusterId    string
 	Status             string
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
 }
 
 func (c *AppServeApp) BeforeCreate(tx *gorm.DB) (err error) {
@@ -49,6 +47,7 @@ func (c *AppServeApp) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type AppServeAppTask struct {
+	gorm.Model
 	Id             uuid.UUID `gorm:"primarykey;type:uuid"`
 	AppServeAppId  uuid.UUID
 	Version        string
@@ -65,8 +64,6 @@ type AppServeAppTask struct {
 	ExtraEnv       string
 	Port           string
 	HelmRevision   int32
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
 }
 
 func (c *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {

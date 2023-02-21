@@ -15,6 +15,7 @@ type IOrganizationRepository interface {
 	Fetch() (res []domain.Organization, err error)
 	Get(organizationId string) (res domain.Organization, err error)
 	Create(name string, creator uuid.UUID, description string) (string, error)
+	Delete(organizationId string) (out string, err error)
 }
 
 type OrganizationRepository struct {
@@ -30,6 +31,8 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 // Models
 type Organization struct {
 	gorm.Model
+	WorkflowStatus
+
 	ID          string `gorm:"primarykey"`
 	Name        string `gorm:"uniqueIndex"`
 	Creator     uuid.UUID
@@ -80,15 +83,15 @@ func (r *OrganizationRepository) Create(name string, creator uuid.UUID, descript
 	return organization.ID, err
 }
 
-func (r *OrganizationRepository) Delete(organizationId string) error {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
+func (r *OrganizationRepository) Delete(organizationId string) (out string, err error) {
+	err = r.db.Transaction(func(tx *gorm.DB) error {
 		res := tx.Delete(&Organization{}, "id = ?", organizationId)
 		if res.Error != nil {
 			return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
 		}
 		return nil
 	})
-	return err
+	return "Delete organization successfuly", nil
 }
 
 func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {

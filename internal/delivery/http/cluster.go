@@ -28,19 +28,19 @@ func NewClusterHandler(h usecase.IClusterUsecase) *ClusterHandler {
 // @Description Get cluster list
 // @Accept json
 // @Produce json
-// @Param projectId query string false "projectId"
+// @Param organizationId query string false "organizationId"
 // @Success 200 {object} []ClusterJson
 // @Router /clusters [get]
 func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
-	projectId := urlParams.Get("projectId")
-	if projectId == "" {
+	organizationId := urlParams.Get("organizationId")
+	if organizationId == "" {
 		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
 		return
 	}
 
-	clusters, err := h.usecase.Fetch(projectId)
+	clusters, err := h.usecase.Fetch(organizationId)
 	if err != nil {
 		ErrorJSON(w, "Failed to get clusters", http.StatusBadRequest)
 		return
@@ -96,7 +96,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 // @Router /clusters [post]
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		ProjectId       string `json:"projectId"`
+		OrganizationId  string `json:"organizationId"`
 		TemplateId      string `json:"templateId"`
 		Name            string `json:"name"`
 		Description     string `json:"description"`
@@ -122,7 +122,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId, err := h.usecase.Create(
-		input.ProjectId,
+		input.OrganizationId,
 		input.TemplateId,
 		input.Name,
 		domain.ClusterConf{
@@ -416,7 +416,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		projectId := r.Header.Get("ProjectId")
+		organizationId := r.Header.Get("OrganizationId")
 
 		kubeconfig, err := helper.GetKubeConfig(clusterId)
 		if err != nil {
@@ -430,7 +430,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 
 		out.Kubeconfig = string(kubeconfig[:])
 
-		h.AddHistory(r, projectId, "cluster", fmt.Sprintf("클러스터 [%s]의 kubeconfig를 다운로드 하였습니다.", clusterId))
+		h.AddHistory(r, organizationId, "cluster", fmt.Sprintf("클러스터 [%s]의 kubeconfig를 다운로드 하였습니다.", clusterId))
 
 		ResponseJSON(w, out, http.StatusOK)
 	*/
@@ -676,7 +676,7 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		projectId := r.Header.Get("ProjectId")
+		organizationId := r.Header.Get("OrganizationId")
 
 		clientset, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
@@ -688,7 +688,7 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 		labelPatch := fmt.Sprintf(`[{"op":"add","path":"/metadata/labels/%s","value":"%s" }]`, "istio-injection", input.Value)
 		_, err = clientset.CoreV1().Namespaces().Patch(context.TODO(), namespace, types.JSONPatchType, []byte(labelPatch), metav1.PatchOptions{})
 
-		h.AddHistory(r, projectId, "cluster", fmt.Sprintf("클러스터 [%s]의 namespace[%s] 에 서비스메쉬 레이블 설정을 하였습니다.", clusterId, namespace))
+		h.AddHistory(r, organizationId, "cluster", fmt.Sprintf("클러스터 [%s]의 namespace[%s] 에 서비스메쉬 레이블 설정을 하였습니다.", clusterId, namespace))
 
 		var out struct {
 		}

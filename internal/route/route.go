@@ -106,20 +106,29 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganizations))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.DeleteOrganization))).Methods(http.MethodDelete)
 
-	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(repository.NewClusterRepository(db), argoClient))
+	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(
+		repository.NewClusterRepository(db),
+		repository.NewAppGroupRepository(db),
+		argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
 
-	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repository.NewAppGroupRepository(db), repository.NewClusterRepository(db), argoClient))
+	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(
+		repository.NewAppGroupRepository(db),
+		repository.NewClusterRepository(db),
+		argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.DeleteAppGroup))).Methods(http.MethodDelete)
 
-	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repository.NewAppServeAppRepository(db), argoClient))
+	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(
+		repository.NewAppServeAppRepository(db),
+		argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)

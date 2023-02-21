@@ -30,9 +30,9 @@ func New(host string, port int, ssl bool, token string) (ArgoClient, error) {
 		if token == "" {
 			return nil, fmt.Errorf("argo ssl enabled but token is empty.")
 		}
-		baseUrl = fmt.Sprintf("https://%s:%d", host, port)
+		baseUrl = fmt.Sprintf("%s:%d", host, port)
 	} else {
-		baseUrl = fmt.Sprintf("http://%s:%d", host, port)
+		baseUrl = fmt.Sprintf("%s:%d", host, port)
 	}
 	return &ArgoClientImpl{
 		client: &http.Client{
@@ -47,14 +47,16 @@ func New(host string, port int, ssl bool, token string) (ArgoClient, error) {
 
 func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTemplatesResponse, error) {
 	res, err := http.Get(fmt.Sprintf("%s/api/v1/workflow-templates/%s", c.url, namespace))
-	if err != nil || res == nil {
-		log.Error("error from get workflow-templats err: ", err)
+	if err != nil {
 		return nil, err
+	}
+	if res == nil {
+		return nil, fmt.Errorf("Failed to call argo workflow.")
 	}
 	if res.StatusCode != 200 {
-		log.Error("error from get workflow-templats return code: ", res.StatusCode)
-		return nil, err
+		return nil, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
 	}
+
 	defer func() {
 		if err := res.Body.Close(); err != nil {
 			log.Error("error closing http body")
@@ -76,14 +78,16 @@ func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTem
 
 func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Workflow, error) {
 	res, err := http.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s", c.url, namespace, workflowName))
-	if err != nil || res == nil {
-		log.Error("error from get workflow err: ", err)
+	if err != nil {
 		return nil, err
+	}
+	if res == nil {
+		return nil, fmt.Errorf("Failed to call argo workflow.")
 	}
 	if res.StatusCode != 200 {
-		log.Error("error from get workflow return code: ", res.StatusCode)
-		return nil, err
+		return nil, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
 	}
+
 	defer func() {
 		if err := res.Body.Close(); err != nil {
 			log.Error("error closing http body")
@@ -106,14 +110,16 @@ func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Wo
 
 func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, error) {
 	res, err := http.Get(fmt.Sprintf("%s/api/v1/workflows/%s", c.url, namespace))
-	if err != nil || res == nil {
-		log.Error("error from get workflow-templats err: ", err)
+	if err != nil {
 		return nil, err
+	}
+	if res == nil {
+		return nil, fmt.Errorf("Failed to call argo workflow.")
 	}
 	if res.StatusCode != 200 {
-		log.Error("error from get workflow-templats return code: ", res.StatusCode)
-		return nil, err
+		return nil, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
 	}
+
 	defer func() {
 		if err := res.Body.Close(); err != nil {
 			log.Error("error closing http body")
@@ -151,15 +157,15 @@ func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOp
 	buff := bytes.NewBuffer(reqBodyBytes)
 
 	res, err := http.Post(fmt.Sprintf("%s/api/v1/workflows/argo/submit", c.url), "application/json", buff)
-
-	// [TODO] timeout 처리
-	if err != nil || res == nil {
-		log.Error("error message ", err.Error())
+	if err != nil {
 		return "", err
 	}
+	if res == nil {
+		return "", fmt.Errorf("Failed to call argo workflow.")
+	}
+
 	if res.StatusCode != 200 {
-		log.Error("error from post workflow. return code: ", res.StatusCode)
-		return "", err
+		return "", fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
 	}
 
 	defer func() {

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -16,9 +15,9 @@ import (
 type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
 	Fetch() (res []domain.Cluster, err error)
-	FetchByContractId(contractId string) (res []domain.Cluster, err error)
+	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
 	Get(id string) (domain.Cluster, error)
-	Create(contractId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
+	Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
 	Delete(id string) error
 	UpdateClusterStatus(clusterId string, status domain.ClusterStatus, workflowId string) error
 }
@@ -31,29 +30,28 @@ type ClusterRepository struct {
 func NewClusterRepository(db *gorm.DB) IClusterRepository {
 	return &ClusterRepository{
 		db: db,
+		tx: db,
 	}
 }
 
 // Models
 type Cluster struct {
 	gorm.Model
-	ID           string `gorm:"primarykey"`
-	Name         string
-	ContractId   string
-	TemplateId   string
-	WorkflowId   string
-	Status       domain.ClusterStatus
-	StatusDesc   string
-	SshKeyName   string
-	Region       string
-	NumOfAz      int32
-	MachineType  string
-	MinSizePerAz int32
-	MaxSizePerAz int32
-	Creator      uuid.UUID
-	Description  string
-	UpdatedAt    time.Time
-	CreatedAt    time.Time
+	WorkflowStatus
+
+	ID             string `gorm:"primarykey"`
+	Name           string
+	OrganizationId string
+	TemplateId     string
+	Status         domain.ClusterStatus
+	SshKeyName     string
+	Region         string
+	NumOfAz        int32
+	MachineType    string
+	MinSizePerAz   int32
+	MaxSizePerAz   int32
+	Creator        uuid.UUID
+	Description    string
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -86,13 +84,13 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 	return out, nil
 }
 
-func (r *ClusterRepository) FetchByContractId(contractId string) (resClusters []domain.Cluster, err error) {
+func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (resClusters []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Find(&clusters, "contract_id = ?", contractId)
+	res := r.db.Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
-		return nil, fmt.Errorf("Error while finding clusters with contractID: %s", contractId)
+		return nil, fmt.Errorf("Error while finding clusters with organizationId: %s", organizationId)
 	}
 
 	if res.RowsAffected == 0 {
@@ -118,8 +116,8 @@ func (r *ClusterRepository) Get(id string) (domain.Cluster, error) {
 	return resCluster, nil
 }
 
-func (r *ClusterRepository) Create(contractId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (string, error) {
-	cluster := Cluster{ContractId: contractId, TemplateId: templateId, Name: name, Creator: creator, Description: description}
+func (r *ClusterRepository) Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (string, error) {
+	cluster := Cluster{OrganizationId: organizationId, TemplateId: templateId, Name: name, Creator: creator, Description: description}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
 		log.Error(res.Error)
@@ -152,15 +150,14 @@ func (r *ClusterRepository) UpdateClusterStatus(clusterId string, status domain.
 func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
 
 	return domain.Cluster{
-		Id:                cluster.ID,
-		ProjectId:         cluster.ContractId,
-		Name:              cluster.Name,
-		Description:       cluster.Description,
-		Status:            cluster.Status.String(),
-		StatusDescription: cluster.StatusDesc,
-		Creator:           cluster.Creator.String(),
-		CreatedAt:         cluster.CreatedAt,
-		UpdatedAt:         cluster.UpdatedAt,
+		Id:             cluster.ID,
+		OrganizationId: cluster.OrganizationId,
+		Name:           cluster.Name,
+		Description:    cluster.Description,
+		Status:         cluster.Status.String(),
+		Creator:        cluster.Creator.String(),
+		CreatedAt:      cluster.CreatedAt,
+		UpdatedAt:      cluster.UpdatedAt,
 		Conf: domain.ClusterConf{
 			SshKeyName:   cluster.SshKeyName,
 			Region:       cluster.Region,
