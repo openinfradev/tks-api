@@ -8,16 +8,14 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
-func ErrorJSON(w http.ResponseWriter, message string, code int) {
-	var out struct {
-		Message string `json:"message"`
-		Code    int    `json:"status_code"`
-	}
-	out.Message = message
-	out.Code = code
+type ResponseJson struct {
+	Code int         `json:"status_code"`
+	Data interface{} `json:"data"`
+}
 
+func ErrorJSON(w http.ResponseWriter, message string, code int) {
 	log.Error(fmt.Sprintf("[API_RESPONSE_ERROR] [%s]", message))
-	ResponseJSON(w, out, code)
+	ResponseJSON(w, message, code)
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
@@ -26,10 +24,16 @@ func InternalServerError(w http.ResponseWriter, err error) {
 
 func ResponseJSON(w http.ResponseWriter, data interface{}, code int) {
 	//time.Sleep(time.Second * 1) // for test
+
+	out := ResponseJson{
+		Code: code,
+		Data: data,
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", data))
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(out)
 }
 
 func GetSession(r *http.Request) (string, string) {

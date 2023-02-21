@@ -188,6 +188,52 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	ResponseJSON(w, out, http.StatusOK)
 }
 
+// UpdateAppServeApp godoc
+// @Tags AppServeApps
+// @Summary Update appServeApp
+// @Description Update appServeApp
+// @Accept json
+// @Produce json
+// @Param object body string true "body"
+// @Success 200 {object} object
+// @Router /app-serve-apps [put]
+func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	appServeAppId, ok := vars["appServeAppId"]
+	if !ok {
+		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		return
+	}
+
+	var app = domain.UpdateAppServeAppRequest{}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		ErrorJSON(w, fmt.Sprintf("Invalid json, err : %s", err), http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(body, &app)
+	if err != nil {
+		ErrorJSON(w, fmt.Sprintf("Invalid json, err : %s", err), http.StatusBadRequest)
+		return
+	}
+
+	res := ""
+	if app.Promote {
+		res, err = h.usecase.Promote(appServeAppId, &app)
+	} else if app.Abort {
+		res, err = h.usecase.Abort(appServeAppId, &app)
+	} else {
+		res, err = h.usecase.Update(appServeAppId, &app)
+	}
+
+	if err != nil {
+		ErrorJSON(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ResponseJSON(w, res, http.StatusOK)
+}
+
 // DeleteAppServeApp godoc
 // @Tags AppServeApps
 // @Summary Uninstall appServeApp
@@ -197,17 +243,17 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param object body string true "body"
 // @Success 200 {object} object
 // @Router /app-serve-apps [delete]
-func (h *AppServeAppHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
+func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	appGroupId, ok := vars["id"]
+	appServeAppId, ok := vars["appServeAppId"]
 	if !ok {
 		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
 		return
 	}
 
-	res, err := h.usecase.Delete(appGroupId)
+	res, err := h.usecase.Delete(appServeAppId)
 	if err != nil {
-		log.Error("Failed to create appGroup err : ", err)
+		log.Error("Failed to delete appServeAppId err : ", err)
 		InternalServerError(w, err)
 		return
 	}

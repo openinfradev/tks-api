@@ -18,6 +18,9 @@ type IAppServeAppUsecase interface {
 	Get(id string) (*domain.AppServeAppCombined, error)
 	Create(app *domain.CreateAppServeAppRequest) (ret string, err error)
 	Delete(id string) (res string, err error)
+	Update(id string, app *domain.UpdateAppServeAppRequest) (ret string, err error)
+	Promote(id string, app *domain.UpdateAppServeAppRequest) (ret string, err error)
+	Abort(id string, app *domain.UpdateAppServeAppRequest) (ret string, err error)
 }
 
 type AppServeAppUsecase struct {
@@ -227,6 +230,173 @@ func (u *AppServeAppUsecase) Delete(asaId string) (res string, err error) {
 	}
 	log.Info("Successfully submited workflow: ", workflowId)
 
-	res_str := fmt.Sprintf("The app '%s' is being deleted. Confirm result by checking the app status after a while.", &asaCombined.AppServeApp.Name)
-	return res_str, nil
+	return fmt.Sprintf("The app '%s' is being deleted. Confirm result by checking the app status after a while.", &asaCombined.AppServeApp.Name), nil
+}
+
+func (u *AppServeAppUsecase) Update(asaId string, app *domain.UpdateAppServeAppRequest) (ret string, err error) {
+	if asaId == "" || app == nil {
+		return "", fmt.Errorf("Invalid parameters. asaId: %s", asaId)
+	}
+
+	parsedId, err := uuid.Parse(asaId)
+	if err != nil {
+		return "", fmt.Errorf("Invalid uuid. err : %s", err)
+	}
+
+	log.Info("Starting normal update process..")
+
+	// TODO: for more strict validation, check if immutable fields are provided by user
+	// and those values are changed or not. (name, type, app_type, target_cluster)
+
+	// Validate 'strategy' param
+	if !(app.Strategy == "rolling-update" || app.Strategy == "blue-green" || app.Strategy == "canary") {
+		return "", fmt.Errorf(`Error: 'strategy' should be one of these values.
+		- rolling-update
+		- blue-green
+		- canary`)
+	}
+
+	resAsaInfo, err := u.repo.Get(parsedId)
+	if err != nil {
+		return "", fmt.Errorf("Error while getting ASA Info from DB. Err: %s", err)
+	}
+
+	if resAsaInfo.AppServeApp.Type != "deploy" {
+		// Construct imageUrl
+		imageUrl := viper.GetString("image-registry-url") + "/" + resAsaInfo.AppServeApp.Name + ":" + app.Version
+		app.ImageUrl = imageUrl
+
+		// Construct executable_path
+		if resAsaInfo.AppServeApp.AppType == "springboot" {
+			artiUrl := app.ArtifactUrl
+			tempArr := strings.Split(artiUrl, "/")
+			exeFilename := tempArr[len(tempArr)-1]
+
+			executablePath := "/usr/src/myapp/" + exeFilename
+			app.ExecutablePath = executablePath
+		}
+	}
+
+	asaTask := &domain.AppServeAppTask{
+		AppServeAppId:  app.ID,
+		Version:        app.Version,
+		Strategy:       app.Strategy,
+		ArtifactUrl:    app.ArtifactUrl,
+		ImageUrl:       app.ImageUrl,
+		ExecutablePath: app.ExecutablePath,
+		ResourceSpec:   app.ResourceSpec,
+		Status:         "PREPARING",
+		Profile:        app.Profile,
+		AppConfig:      app.AppConfig,
+		AppSecret:      app.AppSecret,
+		ExtraEnv:       app.ExtraEnv,
+		Port:           app.Port,
+		Output:         "",
+	}
+
+	// 'Update' GRPC only creates ASA Task record
+	taskId, err := u.repo.Update(parsedId, asaTask)
+	if err != nil {
+		return "", fmt.Errorf("Failed to update app-serve application. Err: %s", err)
+	}
+
+	if false {
+		// Call argo workflow
+		workflowId, err := u.argo.SumbitWorkflowFromWftpl("serve-java-app", argowf.SubmitOptions{
+			Parameters: []string{
+				"type=" + resAsaInfo.AppServeApp.Type,
+				"strategy=" + app.Strategy,
+				"app_type=" + resAsaInfo.AppServeApp.AppType,
+				"target_cluster_id=" + resAsaInfo.AppServeApp.TargetClusterId,
+				"app_name=" + resAsaInfo.AppServeApp.Name,
+				"asa_id=" + app.ID,
+				"asa_task_id=" + taskId.String(),
+				"artifact_url=" + app.ArtifactUrl,
+				"image_url=" + app.ImageUrl,
+				"port=" + app.Port,
+				"profile=" + app.Profile,
+				"extra_env=" + app.ExtraEnv,
+				"app_config=" + app.AppConfig,
+				"app_secret=" + app.AppSecret,
+				"resource_spec=" + app.ResourceSpec,
+				"executable_path=" + app.ExecutablePath,
+				"git_repo_url=" + viper.GetString("git-repository-url"),
+				"harbor_pw_secret=" + viper.GetString("harbor-pw-secret"),
+				"pv_enabled=" + strconv.FormatBool(app.PvEnabled),
+				"pv_storage_class=" + app.PvStorageClass,
+				"pv_access_mode=" + app.PvAccessMode,
+				"pv_size=" + app.PvSize,
+				"pv_mount_path=" + app.PvMountPath,
+			},
+		})
+		if err != nil {
+			return "", fmt.Errorf("Failed to submit workflow. Err: %s", err)
+		}
+		log.Info("Successfully submited workflow: ", workflowId)
+
+	}
+	return fmt.Sprintf("The app '%s' is being updated. Confirm result by checking the app status after a while.", resAsaInfo.AppServeApp.Name), nil
+}
+
+func (u *AppServeAppUsecase) Promote(asaId string, app *domain.UpdateAppServeAppRequest) (ret string, err error) {
+	resAsaInfo, err := u.Get(asaId)
+	if err != nil {
+		return "", fmt.Errorf("Error while getting ASA Info from DB. Err: %s", err)
+	}
+
+	if resAsaInfo.AppServeApp.Status != "WAIT_FOR_PROMOTE" {
+		return "", fmt.Errorf("The app is not in 'WAIT_FOR_PROMOTE' state. Exiting..")
+	}
+
+	// Get latest task ID so that the task status can be modified inside workflow once the promotion is done.
+	latestTaskId := resAsaInfo.Tasks[0].Id
+
+	// Call argo workflow
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl("promote-java-app", argowf.SubmitOptions{
+		Parameters: []string{
+			"target_cluster_id=" + resAsaInfo.AppServeApp.TargetClusterId,
+			"app_name=" + resAsaInfo.AppServeApp.Name,
+			"asa_id=" + asaId,
+			"asa_task_id=" + latestTaskId,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("Failed to submit workflow. Err: %s", err)
+	}
+	log.Info("Successfully submited workflow: ", workflowId)
+
+	return fmt.Sprintf("The app '%s' is being promoted. Confirm result by checking the app status after a while.", resAsaInfo.AppServeApp.Name), nil
+
+}
+
+func (u *AppServeAppUsecase) Abort(asaId string, app *domain.UpdateAppServeAppRequest) (ret string, err error) {
+	resAsaInfo, err := u.Get(asaId)
+	if err != nil {
+		return "", fmt.Errorf("Error while getting ASA Info from DB. Err: %s", err)
+	}
+
+	if resAsaInfo.AppServeApp.Status != "WAIT_FOR_PROMOTE" &&
+		resAsaInfo.AppServeApp.Status != "BLUEGREEN_FAILED" {
+		return "", fmt.Errorf("The app is not in blue-green related state. Exiting..")
+	}
+
+	// Get latest task ID so that the task status can be modified inside workflow once the promotion is done.
+	latestTaskId := resAsaInfo.Tasks[0].Id
+
+	// Call argo workflow
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl("abort-java-app", argowf.SubmitOptions{
+		Parameters: []string{
+			"target_cluster_id=" + resAsaInfo.AppServeApp.TargetClusterId,
+			"app_name=" + resAsaInfo.AppServeApp.Name,
+			"asa_id=" + asaId,
+			"asa_task_id=" + latestTaskId,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("Failed to submit workflow. Err: %s", err)
+	}
+	log.Info("Successfully submited workflow: ", workflowId)
+
+	return fmt.Sprintf("The app '%s' is being promoted. Confirm result by checking the app status after a while.", resAsaInfo.AppServeApp.Name), nil
+
 }

@@ -94,3 +94,30 @@ type CreateAppServeAppRequest = struct {
 	PvSize          string `json:"pv_size"`
 	PvMountPath     string `json:"pv_mount_path"`
 }
+
+type UpdateAppServeAppRequest = struct {
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	Type            string `json:"type"`
+	Strategy        string `json:"strategy"`
+	AppType         string `json:"app_type"`
+	Version         string `json:"version"`
+	ArtifactUrl     string `json:"artifact_url"`
+	ImageUrl        string `json:"image_url"`
+	Port            string `json:"port"`
+	ContractId      string `json:"contract_id"`
+	Profile         string `json:"profile"`
+	ExtraEnv        string `json:"extra_env"`
+	AppConfig       string `json:"app_config"`
+	AppSecret       string `json:"app_secret"`
+	TargetClusterId string `json:"target_cluster_id"`
+	ExecutablePath  string `json:"executable_path"`
+	ResourceSpec    string `json:"resource_spec"`
+	PvEnabled       bool   `json:"pv_enabled"`
+	PvStorageClass  string `json:"pv_storage_class"`
+	PvAccessMode    string `json:"pv_access_mode"`
+	PvSize          string `json:"pv_size"`
+	PvMountPath     string `json:"pv_mount_path"`
+	Promote         bool   `json:"promote"`
+	Abort           bool   `json:"abort"`
+}

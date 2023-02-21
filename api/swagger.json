@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is backend api service for tks-api",
+        "description": "This is backend api service for tks platform",
         "title": "tks-api backend API service",
         "contact": {
             "name": "taekyu.kang@sk.com",

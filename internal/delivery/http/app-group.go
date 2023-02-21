@@ -150,7 +150,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 
 	err := h.usecase.Delete(appGroupId)
 	if err != nil {
-		log.Error("Failed to create appGroup err : ", err)
+		log.Error("Failed to delete appGroup err : ", err)
 		InternalServerError(w, err)
 		return
 	}
