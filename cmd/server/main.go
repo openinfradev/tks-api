@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	_ "github.com/openinfradev/tks-api/api"
+	_ "github.com/openinfradev/tks-api/api/swagger"
 	"github.com/openinfradev/tks-api/internal/database"
 	"github.com/openinfradev/tks-api/internal/route"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"

@@ -113,7 +113,6 @@ func (u *ClusterUsecase) Create(organizationId string, templateId string, name s
 				"template_name=" + templateId,
 				"git_account=" + viper.GetString("git-account"),
 				"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
-				"revision=" + viper.GetString("revision"),
 			},
 		})
 	if err != nil {
