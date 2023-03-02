@@ -5,7 +5,7 @@ import (
 )
 
 type History = struct {
-	Id          string    `json:"id"`
+	ID          string    `json:"id"`
 	AccountId   string    `json:"accountId"`
 	HistoryType string    `json:"historyType"`
 	Description string    `json:"description"`

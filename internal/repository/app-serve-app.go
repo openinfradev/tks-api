@@ -30,7 +30,7 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 // Models
 type AppServeApp struct {
 	gorm.Model
-	Id                 uuid.UUID `gorm:"primarykey;type:uuid"`
+	ID                 uuid.UUID `gorm:"primarykey;type:uuid"`
 	Name               string
 	ContractId         string
 	Type               string
@@ -42,13 +42,13 @@ type AppServeApp struct {
 }
 
 func (c *AppServeApp) BeforeCreate(tx *gorm.DB) (err error) {
-	c.Id = uuid.New()
+	c.ID = uuid.New()
 	return nil
 }
 
 type AppServeAppTask struct {
 	gorm.Model
-	Id             uuid.UUID `gorm:"primarykey;type:uuid"`
+	ID             uuid.UUID `gorm:"primarykey;type:uuid"`
 	AppServeAppId  uuid.UUID
 	Version        string
 	Strategy       string
@@ -67,7 +67,7 @@ type AppServeAppTask struct {
 }
 
 func (c *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
-	c.Id = uuid.New()
+	c.ID = uuid.New()
 	return nil
 }
 
@@ -102,7 +102,7 @@ func (r *AppServeAppRepository) Create(contractId string, app *domain.AppServeAp
 		AppSecret:      task.AppSecret,
 		ExtraEnv:       task.ExtraEnv,
 		Port:           task.Port,
-		AppServeAppId:  asaModel.Id,
+		AppServeAppId:  asaModel.ID,
 	}
 
 	res = r.db.Create(&asaTaskModel)
@@ -110,7 +110,7 @@ func (r *AppServeAppRepository) Create(contractId string, app *domain.AppServeAp
 		return uuid.Nil, uuid.Nil, res.Error
 	}
 
-	return asaModel.Id, asaTaskModel.Id, nil
+	return asaModel.ID, asaTaskModel.ID, nil
 }
 
 // Update creates new appServeApp Task for existing appServeApp.
@@ -136,7 +136,7 @@ func (r *AppServeAppRepository) Update(appServeAppId uuid.UUID, task *domain.App
 		return uuid.Nil, res.Error
 	}
 
-	return asaTaskModel.Id, nil
+	return asaTaskModel.ID, nil
 }
 
 func (r *AppServeAppRepository) Fetch(contractId string, showAll bool) ([]*domain.AppServeApp, error) {
@@ -248,7 +248,7 @@ func (r *AppServeAppRepository) UpdateEndpoint(id uuid.UUID, taskId uuid.UUID, e
 
 func (r *AppServeAppRepository) ConvertToPbAppServeApp(asa AppServeApp) *domain.AppServeApp {
 	return &domain.AppServeApp{
-		Id:                 asa.Id.String(),
+		ID:                 asa.ID.String(),
 		Name:               asa.Name,
 		ContractId:         asa.ContractId,
 		Type:               asa.Type,
@@ -264,7 +264,7 @@ func (r *AppServeAppRepository) ConvertToPbAppServeApp(asa AppServeApp) *domain.
 
 func (r *AppServeAppRepository) ConvertToPbAppServeAppTask(task AppServeAppTask) *domain.AppServeAppTask {
 	return &domain.AppServeAppTask{
-		Id:             task.Id.String(),
+		ID:             task.ID.String(),
 		Version:        task.Version,
 		Strategy:       task.Strategy,
 		Status:         task.Status,

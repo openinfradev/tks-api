@@ -22,13 +22,14 @@ func init() {
 	flag.String("argo-address", "http://localhost", "service address for argoworkflow")
 	flag.Int("argo-port", 2746, "service port for argoworkflow")
 	flag.String("dbhost", "localhost", "host of postgreSQL")
+	flag.String("dbname", "tks", "name of releation")
 	flag.String("dbport", "5432", "port of postgreSQL")
 	flag.String("dbuser", "postgres", "postgreSQL user")
 	flag.String("dbpassword", "password", "password for postgreSQL user")
 	flag.String("kubeconfig-path", "/Users/1110640/.kube/config", "path of kubeconfig. used development only!")
 	flag.String("jwt-secret", "tks-api-secret", "secret value of jwt")
 	flag.String("git-base-url", "https://github.com", "git base url")
-	flag.String("git-account", "demo-decapod10", "git account of admin cluster")
+	flag.String("git-account", "decapod10", "git account of admin cluster")
 
 	// app-serve-apps
 	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")
@@ -38,6 +39,7 @@ func init() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
+
 }
 
 // @title tks-api service
@@ -50,6 +52,10 @@ func init() {
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @securitydefinitions.apikey  JWT
+// @in                          header
+// @name                        Authorization
 
 // @host localhost:8080
 // @BasePath /api/1.0/

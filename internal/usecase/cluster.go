@@ -153,7 +153,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 
 	for _, resAppGroup := range resAppGroups {
 		if resAppGroup.Status != domain.AppGroupStatus_DELETED.String() {
-			return fmt.Errorf("Undeleted services remain. %s", resAppGroup.Id)
+			return fmt.Errorf("Undeleted services remain. %s", resAppGroup.ID)
 		}
 	}
 

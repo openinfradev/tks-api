@@ -50,7 +50,7 @@ func (u *OrganizationUsecase) Create(in domain.Organization) (organizationId str
 	if err != nil {
 		return "", err
 	}
-	log.Info("newly created Organization Id:", organizationId)
+	log.Info("newly created Organization ID:", organizationId)
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"tks-create-contract-repo",

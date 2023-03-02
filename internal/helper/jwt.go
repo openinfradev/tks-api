@@ -13,7 +13,7 @@ func CreateJWT(accountId string, uId string) (string, error) {
 	aToken := jwt.New(jwt.SigningMethodHS256)
 	claims := aToken.Claims.(jwt.MapClaims)
 	claims["AccountId"] = accountId
-	claims["Id"] = uId
+	claims["ID"] = uId
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	tk, err := aToken.SignedString(signingKey)

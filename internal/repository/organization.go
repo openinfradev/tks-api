@@ -39,6 +39,17 @@ type Organization struct {
 	Description string
 }
 
+type OrganizationUser struct {
+	gorm.Model
+
+	OrganizationId string
+	Organization   Organization
+	UserId         uuid.UUID
+	User           User
+	Creator        uuid.UUID
+	Description    string
+}
+
 func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = helper.GenerateOrganizationId()
 	return nil
@@ -96,7 +107,7 @@ func (r *OrganizationRepository) Delete(organizationId string) (out string, err 
 
 func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {
 	return domain.Organization{
-		Id:          organization.ID,
+		ID:          organization.ID,
 		Name:        organization.Name,
 		Description: organization.Description,
 		Creator:     organization.Creator.String(),

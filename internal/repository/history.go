@@ -25,7 +25,7 @@ func NewHistoryRepository(db *gorm.DB) IHistoryRepository {
 // Models
 type History struct {
 	gorm.Model
-	Id          uuid.UUID `gorm:"primarykey;type:uuid;"`
+	ID          uuid.UUID `gorm:"primarykey;type:uuid;"`
 	UserId      uuid.UUID
 	HistoryType string
 	ProjectId   string
@@ -34,7 +34,7 @@ type History struct {
 
 type HistoryWithUser struct {
 	gorm.Model
-	Id          uuid.UUID `gorm:"primarykey;type:uuid;"`
+	ID          uuid.UUID `gorm:"primarykey;type:uuid;"`
 	UserId      uuid.UUID
 	AccountId   string
 	HistoryType string
@@ -43,7 +43,7 @@ type HistoryWithUser struct {
 }
 
 func (g *History) BeforeCreate(tx *gorm.DB) (err error) {
-	g.Id = uuid.New()
+	g.ID = uuid.New()
 	return nil
 }
 
@@ -64,7 +64,7 @@ func (r *HistoryRepository) Fetch() (res []domain.History, err error) {
 }
 
 func (u *HistoryRepository) reflect(out *domain.History, history History) {
-	out.Id = history.Id.String()
+	out.ID = history.ID.String()
 	out.Description = history.Description
 	out.HistoryType = history.HistoryType
 	out.CreatedAt = history.CreatedAt

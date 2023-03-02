@@ -32,6 +32,7 @@ func NewOrganizationHandler(h usecase.IOrganizationUsecase) *OrganizationHandler
 // @Param body body object true "body"
 // @Success 200 {object} object
 // @Router /organizations [post]
+// @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	userId, _ := GetSession(r)
 
@@ -98,6 +99,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Produce json
 // @Success 200 {object} []domain.Organization
 // @Router /organizations [get]
+// @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
 	log.Info("GetOrganization")
 	organizations, err := h.usecase.Fetch()
@@ -130,6 +132,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 // @Param organizationId path string true "organizationId"
 // @Success 200 {object} domain.Organization
 // @Router /organizations/{organizationId} [get]
+// @Security     JWT
 func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -162,6 +165,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 // @Param organizationId path string true "organizationId"
 // @Success 200 {object} domain.Organization
 // @Router /organizations/{organizationId} [delete]
+// @Security     JWT
 func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -180,7 +184,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 }
 
 func (h *OrganizationHandler) reflectOrganization(out *domain.Organization, organization domain.Organization) {
-	out.Id = organization.Id
+	out.ID = organization.ID
 	out.Name = organization.Name
 	out.Description = organization.Description
 	out.Status = "RUNNING"

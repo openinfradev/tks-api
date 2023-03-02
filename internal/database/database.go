@@ -18,8 +18,9 @@ var gormDB *gorm.DB
 func InitDB() (*gorm.DB, error) {
 	// Connect to gormDB
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s port=%d dbname=tks sslmode=disable TimeZone=Asia/Seoul",
+		"host=%s dbname=%s user=%s password=%s port=%d sslmode=disable TimeZone=Asia/Seoul",
 		viper.GetString("dbhost"),
+		viper.GetString("dbname"),
 		viper.GetString("dbuser"),
 		viper.GetString("dbpassword"),
 		viper.GetInt("dbport"),
@@ -43,23 +44,41 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := MigrateSchema(db); err != nil {
+	if err := migrateSchema(db); err != nil {
 		return nil, err
 	}
 
 	return db, nil
 }
 
-func MigrateSchema(db *gorm.DB) error {
+func migrateSchema(db *gorm.DB) error {
+	// Auth
+	if err := db.AutoMigrate(&repository.User{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&repository.Role{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&repository.Policy{}); err != nil {
+		return err
+	}
+
+	// History
 	if err := db.AutoMigrate(&repository.History{}); err != nil {
 		return err
 	}
+
+	// Organization
 	if err := db.AutoMigrate(&repository.Organization{}); err != nil {
 		return err
 	}
+
+	// Cluster
 	if err := db.AutoMigrate(&repository.Cluster{}); err != nil {
 		return err
 	}
+
+	// Services
 	if err := db.AutoMigrate(&repository.AppGroup{}); err != nil {
 		return err
 	}

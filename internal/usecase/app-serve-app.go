@@ -347,7 +347,7 @@ func (u *AppServeAppUsecase) Promote(asaId string, app *domain.UpdateAppServeApp
 	}
 
 	// Get latest task ID so that the task status can be modified inside workflow once the promotion is done.
-	latestTaskId := resAsaInfo.Tasks[0].Id
+	latestTaskId := resAsaInfo.Tasks[0].ID
 
 	// Call argo workflow
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl("promote-java-app", argowf.SubmitOptions{
@@ -379,7 +379,7 @@ func (u *AppServeAppUsecase) Abort(asaId string, app *domain.UpdateAppServeAppRe
 	}
 
 	// Get latest task ID so that the task status can be modified inside workflow once the promotion is done.
-	latestTaskId := resAsaInfo.Tasks[0].Id
+	latestTaskId := resAsaInfo.Tasks[0].ID
 
 	// Call argo workflow
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl("abort-java-app", argowf.SubmitOptions{

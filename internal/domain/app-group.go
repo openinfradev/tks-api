@@ -28,7 +28,7 @@ var appGroupStatus = [...]string{
 func (m AppGroupStatus) String() string { return appGroupStatus[(m)] }
 
 type AppGroup = struct {
-	Id                string    `json:"id"`
+	ID                string    `json:"id"`
 	Name              string    `json:"name"`
 	ClusterId         string    `json:"clusterId"`
 	AppGroupType      string    `json:"appGroupType"`

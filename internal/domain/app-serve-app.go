@@ -3,7 +3,7 @@ package domain
 import "time"
 
 type AppServeApp = struct {
-	Id string `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// application name
 	Name string `json:"name,omitempty"`
 	// contract_id is a contract ID which this app belongs to
@@ -27,7 +27,7 @@ type AppServeApp = struct {
 
 type AppServeAppTask = struct {
 	// task ID
-	Id string `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// ID for appServeApp that this task belongs to.
 	AppServeAppId string `json:"app_serve_app_id,omitempty"`
 	// application version

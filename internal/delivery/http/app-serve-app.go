@@ -33,6 +33,7 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 // @Param showAll query string false "show_all"
 // @Success 200 {object} []domain.AppServeApp
 // @Router /app-serve-apps [get]
+// @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
@@ -71,13 +72,14 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 }
 
 // GetAppServeApp godoc
-// @Tags AppServeApp
+// @Tags AppServeApps
 // @Summary Get appServeApp
 // @Description Get appServeApp by giving params
 // @Accept json
 // @Produce json
 // @Success 200 {object} domain.AppServeApp
 // @Router /app-serve-apps/{appServeAppId} [get]
+// @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	appServeAppId, ok := vars["appServeAppId"]
@@ -103,14 +105,15 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 }
 
 // CreateAppServeApp godoc
-// @Tags AppServeApp
+// @Tags AppServeApps
 // @Summary Install appServeApp
 // @Description Install appServeApp
 // @Accept json
 // @Produce json
 // @Param object body string true "body"
-// @Success 200 {object} appServeAppId
+// @Success 200 {object} string
 // @Router /app-serve-apps [post]
+// @Security     JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	var appObj = domain.CreateAppServeAppRequest{}
 	body, err := io.ReadAll(r.Body)
@@ -197,6 +200,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param object body string true "body"
 // @Success 200 {object} object
 // @Router /app-serve-apps [put]
+// @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	appServeAppId, ok := vars["appServeAppId"]
@@ -243,6 +247,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param object body string true "body"
 // @Success 200 {object} object
 // @Router /app-serve-apps [delete]
+// @Security     JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	appServeAppId, ok := vars["appServeAppId"]

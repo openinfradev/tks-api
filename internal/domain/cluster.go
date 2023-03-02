@@ -29,7 +29,7 @@ func (m ClusterStatus) String() string { return cluseterStatus[(m)] }
 
 // model
 type Cluster = struct {
-	Id                string      `json:"id"`
+	ID                string      `json:"id"`
 	OrganizationId    string      `json:"organizationId"`
 	Name              string      `json:"name"`
 	Description       string      `json:"description"`
@@ -70,7 +70,7 @@ type ClusterKubeInfo = struct {
 }
 
 type Event = struct {
-	Id        string    `json:"id"`
+	ID        string    `json:"id"`
 	Namespace string    `json:"namespace"`
 	Type      string    `json:"type"`
 	Reason    string    `json:"reason"`
@@ -79,7 +79,7 @@ type Event = struct {
 }
 
 type Node = struct {
-	Id           string    `json:"id"`
+	ID           string    `json:"id"`
 	Name         string    `json:"name"`
 	Status       string    `json:"status"`
 	InstanceType string    `json:"instanceType"`

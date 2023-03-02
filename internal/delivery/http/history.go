@@ -23,8 +23,9 @@ func NewHistoryHandler(h usecase.IHistoryUsecase) *HistoryHandler {
 // @Description Get histories
 // @Accept json
 // @Produce json
-// @Success 200 {object} HistoryJson
+// @Success 200 {object} domain.History
 // @Router /histories [get]
+// @Security     JWT
 func (h *HistoryHandler) GetHistories(w http.ResponseWriter, r *http.Request) {
 	var err error
 

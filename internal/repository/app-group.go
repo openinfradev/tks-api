@@ -111,7 +111,7 @@ func (r *AppGroupRepository) UpdateAppGroupStatus(appGroupId string, status doma
 func (r *AppGroupRepository) reflect(appGroup AppGroup) domain.AppGroup {
 
 	return domain.AppGroup{
-		Id:                appGroup.ID,
+		ID:                appGroup.ID,
 		ClusterId:         appGroup.ClusterId,
 		AppGroupType:      appGroup.AppGroupType,
 		Name:              appGroup.Name,

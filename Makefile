@@ -1,10 +1,10 @@
 .PHONY: docs
 docs:
-	swag init -g ./cmd/server/server.go
+	swag init -g ./cmd/server/main.go -o ./api/swagger
 
 .PHONY: build
 build:
-	go build -o output/tks-api ./cmd/server/server.go
+	go build -o output/tks-api ./cmd/server/main.go
 
 .PHONY: run
 run:
@@ -14,3 +14,8 @@ run:
 test:
 	go test -v ./...
 
+.PHONY: dev_run
+dev_run: 
+	swag init -g ./cmd/server/main.go -o ./api/swagger
+	go build ./cmd/server/main.go
+	./main

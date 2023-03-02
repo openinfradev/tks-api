@@ -64,7 +64,7 @@ func (u *AppGroupUsecase) Create(clusterId string, name string, appGroupType str
 	for _, resAppGroup := range resAppGroups {
 		if resAppGroup.Name == name &&
 			resAppGroup.AppGroupType == appGroupType {
-			appGroupId = resAppGroup.Id
+			appGroupId = resAppGroup.ID
 			break
 		}
 	}

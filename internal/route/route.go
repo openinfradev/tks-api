@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -12,6 +14,7 @@ import (
 	"github.com/swaggo/http-swagger"
 
 	delivery "github.com/openinfradev/tks-api/internal/delivery/http"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -102,6 +105,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 		r.Handle("/api/1.0/stacks/{clusterId}", authMiddleware(http.HandlerFunc(handler.DeleteStack))).Methods(http.MethodDelete)
 	*/
 
+	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db)))
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signin", authHandler.Signin).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
+
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganizations))).Methods(http.MethodGet)
@@ -145,7 +152,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	//withLog := handlers.LoggingHandler(os.Stdout, r)
 
 	credentials := handlers.AllowCredentials()
-	headersOk := handlers.AllowedHeaders([]string{"content-type", "Authorization", "OrganizationId"})
+	headersOk := handlers.AllowedHeaders([]string{"content-type", "Authorization", "Authorization-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 
@@ -154,7 +161,15 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		/*
+		// Possible values : "basic", "keycloak"
+		authType := r.Header.Get("Authorization-Type")
+
+		switch authType {
+		case "keycloak":
+			// [TODO] implementaion keycloak process
+
+		case "basic":
+		default:
 			tokenString := r.Header.Get("Authorization")
 			if len(tokenString) == 0 {
 				w.WriteHeader(http.StatusUnauthorized)
@@ -162,7 +177,7 @@ func authMiddleware(next http.Handler) http.Handler {
 				return
 			}
 			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-			token, err := helpers.VerifyToken(tokenString)
+			token, err := helper.VerifyToken(tokenString)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Error verifying JWT token: " + err.Error()))
@@ -175,7 +190,7 @@ func authMiddleware(next http.Handler) http.Handler {
 			id := token.Claims.(jwt.MapClaims)["Id"]
 			r.Header.Set("AccountId", fmt.Sprint(accountId))
 			r.Header.Set("Id", fmt.Sprint(id))
-		*/
+		}
 
 		next.ServeHTTP(w, r)
 	})

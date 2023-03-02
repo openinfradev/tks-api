@@ -28,8 +28,9 @@ func NewAppGroupHandler(h usecase.IAppGroupUsecase) *AppGroupHandler {
 // @Accept json
 // @Produce json
 // @Param object body string true "body"
-// @Success 200 {object} appGroupId
+// @Success 200 {object} string
 // @Router /app-groups [post]
+// @Security     JWT
 func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name        string `json:"name"`
@@ -76,6 +77,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 // @Param clusterId query string false "clusterId"
 // @Success 200 {object} []domain.AppGroup
 // @Router /app-groups [get]
+// @Security     JWT
 func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
@@ -109,6 +111,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 // @Param appGroupId path string true "appGroupId"
 // @Success 200 {object} []domain.AppGroup
 // @Router /app-groups/{appGroupId} [get]
+// @Security     JWT
 func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	appGroupId, ok := vars["appGroupId"]
@@ -140,6 +143,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 // @Param object body string true "body"
 // @Success 200 {object} object
 // @Router /app-groups [delete]
+// @Security     JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	appGroupId, ok := vars["appGroupId"]

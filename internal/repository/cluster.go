@@ -150,7 +150,7 @@ func (r *ClusterRepository) UpdateClusterStatus(clusterId string, status domain.
 func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
 
 	return domain.Cluster{
-		Id:             cluster.ID,
+		ID:             cluster.ID,
 		OrganizationId: cluster.OrganizationId,
 		Name:           cluster.Name,
 		Description:    cluster.Description,

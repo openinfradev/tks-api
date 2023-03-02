@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -19,7 +20,7 @@ func ErrorJSON(w http.ResponseWriter, message string, code int) {
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
-	ErrorJSON(w, fmt.Sprintf("internal server error. err : ", err.Error), http.StatusInternalServerError)
+	ErrorJSON(w, fmt.Sprintf("internal server error. err : %s", err), http.StatusInternalServerError)
 }
 
 func ResponseJSON(w http.ResponseWriter, data interface{}, code int) {
@@ -32,12 +33,12 @@ func ResponseJSON(w http.ResponseWriter, data interface{}, code int) {
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
-	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", data))
+	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(data)))
 	json.NewEncoder(w).Encode(out)
 }
 
 func GetSession(r *http.Request) (string, string) {
-	return r.Header.Get("Id"), r.Header.Get("AccountId")
+	return r.Header.Get("ID"), r.Header.Get("AccountId")
 }
 
 /*
@@ -72,7 +73,7 @@ func (h *APIHandler) GetKubernetesVserion() (string, error) {
 }
 
 func (h *APIHandler) GetSession(r *http.Request) (string, string) {
-	return r.Header.Get("Id"), r.Header.Get("AccountId")
+	return r.Header.Get("ID"), r.Header.Get("AccountId")
 }
 
 func (h *APIHandler) AddHistory(r *http.Request, projectId string, historyType string, description string) error {
