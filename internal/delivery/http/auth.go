@@ -8,7 +8,6 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type AuthHandler struct {
@@ -21,22 +20,22 @@ func NewAuthHandler(h usecase.IAuthUsecase) *AuthHandler {
 	}
 }
 
+type SignInRequest struct {
+	AccountId string `json:"accountId"`
+	Password  string `json:"password"`
+}
+
 // Signin godoc
 // @Tags Auth
 // @Summary signin
 // @Description signin
 // @Accept json
 // @Produce json
-// @Param body body SignInInput true "account info"
+// @Param body body SignInRequest true "account info"
 // @Success 200 {object} domain.User "user detail"
 // @Router /auth/signin [post]
-type SignInInput struct {
-	AccountId string `json:"accountId"`
-	Password  string `json:"password"`
-}
-
 func (h *AuthHandler) Signin(w http.ResponseWriter, r *http.Request) {
-	input := SignInInput{}
+	input := SignInRequest{}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -52,7 +51,6 @@ func (h *AuthHandler) Signin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Signin(input.AccountId, input.Password)
 	if err != nil {
-		log.Error(err)
 		InternalServerError(w, err)
 		return
 	}
@@ -69,21 +67,24 @@ func (h *AuthHandler) Signin(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type SignUpRequest struct {
+	AccountId string `json:"accountId"`
+	Password  string `json:"password"`
+	Name      string `json:"name"`
+}
+
 // Signup godoc
 // @Tags Auth
 // @Summary signup
 // @Description signup
 // @Accept json
 // @Produce json
+// @Param body body SignUpRequest true "account info"
 // @Success 200 {object} domain.User
 // @Router /auth/signup [post]
 // @Security     JWT
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		AccountId string `json:"accountId"`
-		Password  string `json:"password"`
-		Name      string `json:"name"`
-	}
+	input := SignUpRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
@@ -98,7 +99,7 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Register(input.AccountId, input.Password, input.Name)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Not found user. %s", err), http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 

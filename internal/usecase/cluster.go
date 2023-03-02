@@ -121,8 +121,8 @@ func (u *ClusterUsecase) Create(organizationId string, templateId string, name s
 	}
 	log.Info("Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_INSTALLING, workflowId); err != nil {
-		return "", fmt.Errorf("Failed to update cluster status to 'INSTALLING'. err : %s", err)
+	if err := u.repo.InitWorkflow(clusterId, workflowId); err != nil {
+		return "", fmt.Errorf("Failed to initialize status . err : %s", err)
 	}
 
 	return clusterId, nil
@@ -173,8 +173,8 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.UpdateClusterStatus(clusterId, domain.ClusterStatus_DELETING, workflowId); err != nil {
-		return fmt.Errorf("Failed to update cluster status to 'DELETING'. err : %s", err)
+	if err := u.repo.InitWorkflow(clusterId, workflowId); err != nil {
+		return fmt.Errorf("Failed to initialize cluster status. err : %s", err)
 	}
 
 	return nil

@@ -360,6 +360,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/signin": {
+            "post": {
+                "description": "signin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "signin",
+                "parameters": [
+                    {
+                        "description": "account info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.SignInRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "user detail",
+                        "schema": {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/signup": {
             "post": {
                 "security": [
@@ -378,6 +412,17 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "signup",
+                "parameters": [
+                    {
+                        "description": "account info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.SignUpRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -445,12 +490,12 @@ const docTemplate = `{
                 "summary": "Create cluster",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "create cluster request",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/http.CreateClusterRequest"
                         }
                     }
                 ],
@@ -613,12 +658,12 @@ const docTemplate = `{
                 "summary": "Create organization",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "create organization request",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/http.CreateOrganizationRequest"
                         }
                     }
                 ],
@@ -970,6 +1015,89 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.CreateClusterRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "machineReplicas": {
+                    "type": "integer"
+                },
+                "machineType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "numberOfAz": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.CreateOrganizationRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "githubToken": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "providers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "http.SignInRequest": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "http.SignUpRequest": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }

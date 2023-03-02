@@ -45,7 +45,6 @@ func (u *OrganizationUsecase) Create(in domain.Organization) (organizationId str
 			return "", err
 		}
 	}
-
 	organizationId, err = u.repo.Create(in.Name, creator, in.Description)
 	if err != nil {
 		return "", err
@@ -64,6 +63,10 @@ func (u *OrganizationUsecase) Create(in domain.Organization) (organizationId str
 		return "", fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info("submited workflow :", workflowId)
+
+	if err := u.repo.InitWorkflow(organizationId, workflowId); err != nil {
+		return "", fmt.Errorf("Failed to initialize organization status to 'CREATING'. err : %s", err)
+	}
 
 	return organizationId, nil
 }

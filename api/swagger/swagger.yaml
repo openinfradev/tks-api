@@ -179,6 +179,60 @@ definitions:
       updatedAt:
         type: string
     type: object
+  http.CreateClusterRequest:
+    properties:
+      description:
+        type: string
+      machineReplicas:
+        type: integer
+      machineType:
+        type: string
+      name:
+        type: string
+      numberOfAz:
+        type: string
+      organizationId:
+        type: string
+      region:
+        type: string
+      templateId:
+        type: string
+    type: object
+  http.CreateOrganizationRequest:
+    properties:
+      description:
+        type: string
+      githubToken:
+        type: string
+      githubUrl:
+        type: string
+      name:
+        type: string
+      providers:
+        items:
+          type: string
+        type: array
+      services:
+        items:
+          type: string
+        type: array
+    type: object
+  http.SignInRequest:
+    properties:
+      accountId:
+        type: string
+      password:
+        type: string
+    type: object
+  http.SignUpRequest:
+    properties:
+      accountId:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -400,11 +454,40 @@ paths:
       summary: Get appServeApp
       tags:
       - AppServeApps
+  /auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: signin
+      parameters:
+      - description: account info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user detail
+          schema:
+            $ref: '#/definitions/domain.User'
+      summary: signin
+      tags:
+      - Auth
   /auth/signup:
     post:
       consumes:
       - application/json
       description: signup
+      parameters:
+      - description: account info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/http.SignUpRequest'
       produces:
       - application/json
       responses:
@@ -446,12 +529,12 @@ paths:
       - application/json
       description: Create cluster
       parameters:
-      - description: body
+      - description: create cluster request
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/http.CreateClusterRequest'
       produces:
       - application/json
       responses:
@@ -550,12 +633,12 @@ paths:
       - application/json
       description: Create organization
       parameters:
-      - description: body
+      - description: create organization request
         in: body
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/http.CreateOrganizationRequest'
       produces:
       - application/json
       responses:

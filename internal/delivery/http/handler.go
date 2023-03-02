@@ -15,11 +15,11 @@ type ResponseJson struct {
 }
 
 func ErrorJSON(w http.ResponseWriter, message string, code int) {
-	log.Error(fmt.Sprintf("[API_RESPONSE_ERROR] [%s]", message))
 	ResponseJSON(w, message, code)
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
+	log.Error(fmt.Sprintf("[INTERNAL SERVER ERROR] [%s]", err.Error()))
 	ErrorJSON(w, fmt.Sprintf("internal server error. err : %s", err), http.StatusInternalServerError)
 }
 

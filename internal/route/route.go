@@ -167,7 +167,9 @@ func authMiddleware(next http.Handler) http.Handler {
 		switch authType {
 		case "keycloak":
 			// [TODO] implementaion keycloak process
-
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Need implementation for keycloak"))
+			return
 		case "basic":
 		default:
 			tokenString := r.Header.Get("Authorization")
@@ -187,9 +189,9 @@ func authMiddleware(next http.Handler) http.Handler {
 			log.Info("[authMiddleware] accountId : ", token.Claims.(jwt.MapClaims)["AccountId"])
 			log.Info("[authMiddleware] Id : ", token.Claims.(jwt.MapClaims)["Id"])
 			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
-			id := token.Claims.(jwt.MapClaims)["Id"]
+			id := token.Claims.(jwt.MapClaims)["ID"]
 			r.Header.Set("AccountId", fmt.Sprint(accountId))
-			r.Header.Set("Id", fmt.Sprint(id))
+			r.Header.Set("ID", fmt.Sprint(id))
 		}
 
 		next.ServeHTTP(w, r)

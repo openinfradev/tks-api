@@ -17,7 +17,7 @@ type IAppGroupRepository interface {
 	Get(id string) (domain.AppGroup, error)
 	Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
 	Delete(id string) error
-	UpdateAppGroupStatus(appGroupId string, status domain.AppGroupStatus, workflowId string) error
+	InitWorkflow(appGroupId string, workflowId string) error
 }
 
 type AppGroupRepository struct {
@@ -33,7 +33,6 @@ func NewAppGroupRepository(db *gorm.DB) IAppGroupRepository {
 // Models
 type AppGroup struct {
 	gorm.Model
-	WorkflowStatus
 
 	ID           string `gorm:"primarykey"`
 	AppGroupType string
@@ -44,6 +43,7 @@ type AppGroup struct {
 	StatusDesc   string
 	Creator      uuid.UUID
 	Description  string
+	Workflow     Workflow `gorm:"polymorphic:Ref;polymorphicValue:organization"`
 }
 
 func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
@@ -96,15 +96,17 @@ func (r *AppGroupRepository) Delete(appGroupId string) error {
 	return nil
 }
 
-func (r *AppGroupRepository) UpdateAppGroupStatus(appGroupId string, status domain.AppGroupStatus, workflowId string) error {
-	res := r.db.Model(&AppGroup{}).
-		Where("ID = ?", appGroupId).
-		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
-
-	if res.Error != nil || res.RowsAffected == 0 {
-		return fmt.Errorf("nothing updated in appGroup with id %s", appGroupId)
+func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
+	workflow := Workflow{
+		RefID:      appGroupId,
+		RefType:    "appgroup",
+		WorkflowId: workflowId,
+		StatusDesc: "INIT",
 	}
-
+	res := r.db.Create(&workflow)
+	if res.Error != nil {
+		return res.Error
+	}
 	return nil
 }
 

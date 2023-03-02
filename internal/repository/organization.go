@@ -16,6 +16,7 @@ type IOrganizationRepository interface {
 	Get(organizationId string) (res domain.Organization, err error)
 	Create(name string, creator uuid.UUID, description string) (string, error)
 	Delete(organizationId string) (out string, err error)
+	InitWorkflow(organizationId string, workflowId string) error
 }
 
 type OrganizationRepository struct {
@@ -31,12 +32,13 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 // Models
 type Organization struct {
 	gorm.Model
-	WorkflowStatus
 
 	ID          string `gorm:"primarykey"`
 	Name        string `gorm:"uniqueIndex"`
 	Creator     uuid.UUID
 	Description string
+	Workflow    Workflow `gorm:"polymorphic:Ref;polymorphicValue:organization"`
+	Status      string
 }
 
 type OrganizationUser struct {
@@ -73,7 +75,7 @@ func (r *OrganizationRepository) Fetch() (out []domain.Organization, err error) 
 
 func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 	var organization Organization
-	res := r.db.First(&organization, "id = ?", id)
+	res := r.db.Preload("Workflow").First(&organization, "id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
 		return domain.Organization{}, fmt.Errorf("Not found organization for %s", id)
 	}
@@ -105,11 +107,26 @@ func (r *OrganizationRepository) Delete(organizationId string) (out string, err 
 	return "Delete organization successfuly", nil
 }
 
+func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string) error {
+	workflow := Workflow{
+		RefID:      organizationId,
+		RefType:    "organization",
+		WorkflowId: workflowId,
+		StatusDesc: "INIT",
+	}
+	res := r.db.Create(&workflow)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
 func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {
 	return domain.Organization{
 		ID:          organization.ID,
 		Name:        organization.Name,
 		Description: organization.Description,
+		Status:      organization.Status,
 		Creator:     organization.Creator.String(),
 		CreatedAt:   organization.CreatedAt,
 		UpdatedAt:   organization.UpdatedAt,

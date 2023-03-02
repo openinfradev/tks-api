@@ -68,6 +68,11 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// Workflow
+	if err := db.AutoMigrate(&repository.Workflow{}); err != nil {
+		return err
+	}
+
 	// Organization
 	if err := db.AutoMigrate(&repository.Organization{}); err != nil {
 		return err

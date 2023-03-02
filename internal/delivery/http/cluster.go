@@ -43,7 +43,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 
 	clusters, err := h.usecase.Fetch(organizationId)
 	if err != nil {
-		ErrorJSON(w, "Failed to get clusters", http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -75,7 +75,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 
 	cluster, err := h.usecase.Get(clusterId)
 	if err != nil {
-		ErrorJSON(w, "Failed to get cluster", http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -87,27 +87,29 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, out, http.StatusOK)
 }
 
+type CreateClusterRequest struct {
+	OrganizationId  string `json:"organizationId"`
+	TemplateId      string `json:"templateId"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	NumberOfAz      string `json:"numberOfAz"`
+	MachineType     string `json:"machineType"`
+	Region          string `json:"region"`
+	MachineReplicas int    `json:"machineReplicas"`
+}
+
 // GetCluster godoc
 // @Tags Clusters
 // @Summary Create cluster
 // @Description Create cluster
 // @Accept json
 // @Produce json
-// @Param body body object true "body"
+// @Param body body CreateClusterRequest true "create cluster request"
 // @Success 200 {object} object
 // @Router /clusters [post]
 // @Security     JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		OrganizationId  string `json:"organizationId"`
-		TemplateId      string `json:"templateId"`
-		Name            string `json:"name"`
-		Description     string `json:"description"`
-		NumberOfAz      string `json:"numberOfAz"`
-		MachineType     string `json:"machineType"`
-		Region          string `json:"region"`
-		MachineReplicas int    `json:"machineReplicas"`
-	}
+	input := CreateClusterRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -141,7 +143,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Error("Create cluster error : ", err)
-		ErrorJSON(w, err.Error(), http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -175,7 +177,7 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 
 	err := h.usecase.Delete(clusterId)
 	if err != nil {
-		ErrorJSON(w, err.Error(), http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 

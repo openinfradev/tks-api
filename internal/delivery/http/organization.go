@@ -23,27 +23,29 @@ func NewOrganizationHandler(h usecase.IOrganizationUsecase) *OrganizationHandler
 	}
 }
 
+type CreateOrganizationRequest struct {
+	Name        string   `json:"name"`
+	Providers   []string `json:"providers"`
+	GithubUrl   string   `json:"githubUrl"`
+	GithubToken string   `json:"githubToken"`
+	Services    []string `json:"services"`
+	Description string   `json:"description"`
+}
+
 // CreateOrganization godoc
 // @Tags Organizations
 // @Summary Create organization
 // @Description Create organization
 // @Accept json
 // @Produce json
-// @Param body body object true "body"
+// @Param body body CreateOrganizationRequest true "create organization request"
 // @Success 200 {object} object
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	userId, _ := GetSession(r)
 
-	var input struct {
-		Name        string   `json:"name"`
-		Providers   []string `json:"providers"`
-		GithubUrl   string   `json:"githubUrl"`
-		GithubToken string   `json:"githubToken"`
-		Services    []string `json:"services"`
-		Description string   `json:"description"`
-	}
+	input := CreateOrganizationRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -64,7 +66,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
 		//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
-		ErrorJSON(w, fmt.Sprintf("Failed to create organization err : %s", err), http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -105,7 +107,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 	organizations, err := h.usecase.Fetch()
 	if err != nil {
 		log.Error("Failed to get organizations err : ", err)
-		ErrorJSON(w, err.Error(), http.StatusInternalServerError)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -113,12 +115,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 		Organizations []domain.Organization `json:"organizations"`
 	}
 
-	// Organization to Organization
-	for _, organization := range organizations {
-		outOrganization := domain.Organization{}
-		h.reflectOrganization(&outOrganization, organization)
-		out.Organizations = append(out.Organizations, outOrganization)
-	}
+	out.Organizations = organizations
 
 	ResponseJSON(w, out, http.StatusOK)
 }
@@ -143,7 +140,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 
 	organization, err := h.usecase.Get(organizationId)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Failed to get organization err : %s", err), http.StatusBadRequest)
+		InternalServerError(w, err)
 		return
 	}
 
@@ -151,7 +148,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		Organization domain.Organization `json:"organization"`
 	}
 
-	h.reflectOrganization(&out.Organization, organization)
+	out.Organization = organization
 
 	ResponseJSON(w, out, http.StatusOK)
 }
@@ -181,15 +178,4 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	}
 
 	ResponseJSON(w, res, http.StatusOK)
-}
-
-func (h *OrganizationHandler) reflectOrganization(out *domain.Organization, organization domain.Organization) {
-	out.ID = organization.ID
-	out.Name = organization.Name
-	out.Description = organization.Description
-	out.Status = "RUNNING"
-	out.StatusDescription = ""
-	out.Creator = organization.Creator
-	out.CreatedAt = organization.CreatedAt
-	out.UpdatedAt = organization.UpdatedAt
 }

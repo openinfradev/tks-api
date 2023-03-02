@@ -19,7 +19,7 @@ type IClusterRepository interface {
 	Get(id string) (domain.Cluster, error)
 	Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
 	Delete(id string) error
-	UpdateClusterStatus(clusterId string, status domain.ClusterStatus, workflowId string) error
+	InitWorkflow(clusterId string, workflowId string) error
 }
 
 type ClusterRepository struct {
@@ -37,7 +37,6 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 // Models
 type Cluster struct {
 	gorm.Model
-	WorkflowStatus
 
 	ID             string `gorm:"primarykey"`
 	Name           string
@@ -52,6 +51,7 @@ type Cluster struct {
 	MaxSizePerAz   int32
 	Creator        uuid.UUID
 	Description    string
+	Workflow       Workflow `gorm:"polymorphic:Ref;polymorphicValue:organization"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -135,15 +135,17 @@ func (r *ClusterRepository) Delete(clusterId string) error {
 	return nil
 }
 
-func (r *ClusterRepository) UpdateClusterStatus(clusterId string, status domain.ClusterStatus, workflowId string) error {
-	res := r.db.Model(&Cluster{}).
-		Where("ID = ?", clusterId).
-		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
-
-	if res.Error != nil || res.RowsAffected == 0 {
-		return fmt.Errorf("nothing updated in cluster with id %s", clusterId)
+func (r *ClusterRepository) InitWorkflow(clusterId string, workflowId string) error {
+	workflow := Workflow{
+		RefID:      clusterId,
+		RefType:    "cluster",
+		WorkflowId: workflowId,
+		StatusDesc: "INIT",
 	}
-
+	res := r.db.Create(&workflow)
+	if res.Error != nil {
+		return res.Error
+	}
 	return nil
 }
 
