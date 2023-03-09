@@ -5,6 +5,7 @@ docs:
 .PHONY: build
 build:
 	go build -o output/tks-api ./cmd/server/main.go
+	go build -o output/tks ./cmd/client/main.go
 
 .PHONY: run
 run:

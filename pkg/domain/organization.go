@@ -14,3 +14,9 @@ type Organization = struct {
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
+
+type CreateOrganizationRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Creator     string `json:"creator"`
+}

@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -67,7 +67,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	}
 	out.AppServeApps = appServeApps
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 
 }
 
@@ -100,7 +100,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	}
 	out.AppServeAppCombined = *res
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 
 }
 
@@ -188,7 +188,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 	out.AppServeAppId = appServeAppId
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // UpdateAppServeApp godoc
@@ -235,7 +235,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	ResponseJSON(w, res, http.StatusOK)
+	ResponseJSON(w, res, "", http.StatusOK)
 }
 
 // DeleteAppServeApp godoc
@@ -263,5 +263,5 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	ResponseJSON(w, res, http.StatusOK)
+	ResponseJSON(w, res, "", http.StatusOK)
 }

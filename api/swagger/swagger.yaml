@@ -101,6 +101,49 @@ definitions:
       sshKeyName:
         type: string
     type: object
+  domain.CreateAppGroupRequest:
+    properties:
+      clusterId:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.CreateClusterRequest:
+    properties:
+      creator:
+        type: string
+      description:
+        type: string
+      machineReplicas:
+        type: integer
+      machineType:
+        type: string
+      name:
+        type: string
+      numberOfAz:
+        type: integer
+      organizationId:
+        type: string
+      region:
+        type: string
+      templateId:
+        type: string
+    type: object
+  domain.CreateOrganizationRequest:
+    properties:
+      creator:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   domain.History:
     properties:
       accountId:
@@ -114,6 +157,13 @@ definitions:
       id:
         type: string
       updatedAt:
+        type: string
+    type: object
+  domain.LoginRequest:
+    properties:
+      accountId:
+        type: string
+      password:
         type: string
     type: object
   domain.Organization:
@@ -150,6 +200,15 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.SignUpRequest:
+    properties:
+      accountId:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
   domain.User:
     properties:
       accountId:
@@ -177,60 +236,6 @@ definitions:
       token:
         type: string
       updatedAt:
-        type: string
-    type: object
-  http.CreateClusterRequest:
-    properties:
-      description:
-        type: string
-      machineReplicas:
-        type: integer
-      machineType:
-        type: string
-      name:
-        type: string
-      numberOfAz:
-        type: string
-      organizationId:
-        type: string
-      region:
-        type: string
-      templateId:
-        type: string
-    type: object
-  http.CreateOrganizationRequest:
-    properties:
-      description:
-        type: string
-      githubToken:
-        type: string
-      githubUrl:
-        type: string
-      name:
-        type: string
-      providers:
-        items:
-          type: string
-        type: array
-      services:
-        items:
-          type: string
-        type: array
-    type: object
-  http.SignInRequest:
-    properties:
-      accountId:
-        type: string
-      password:
-        type: string
-    type: object
-  http.SignUpRequest:
-    properties:
-      accountId:
-        type: string
-      name:
-        type: string
-      password:
         type: string
     type: object
 host: localhost:8080
@@ -297,12 +302,12 @@ paths:
       - application/json
       description: Install appGroup
       parameters:
-      - description: body
+      - description: create appgroup request
         in: body
-        name: object
+        name: body
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/domain.CreateAppGroupRequest'
       produces:
       - application/json
       responses:
@@ -454,18 +459,18 @@ paths:
       summary: Get appServeApp
       tags:
       - AppServeApps
-  /auth/signin:
+  /auth/login:
     post:
       consumes:
       - application/json
-      description: signin
+      description: login
       parameters:
       - description: account info
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.SignInRequest'
+          $ref: '#/definitions/domain.LoginRequest'
       produces:
       - application/json
       responses:
@@ -473,7 +478,7 @@ paths:
           description: user detail
           schema:
             $ref: '#/definitions/domain.User'
-      summary: signin
+      summary: login
       tags:
       - Auth
   /auth/signup:
@@ -487,7 +492,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.SignUpRequest'
+          $ref: '#/definitions/domain.SignUpRequest'
       produces:
       - application/json
       responses:
@@ -534,7 +539,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.CreateClusterRequest'
+          $ref: '#/definitions/domain.CreateClusterRequest'
       produces:
       - application/json
       responses:
@@ -638,7 +643,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/http.CreateOrganizationRequest'
+          $ref: '#/definitions/domain.CreateOrganizationRequest'
       produces:
       - application/json
       responses:

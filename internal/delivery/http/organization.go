@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -23,34 +23,26 @@ func NewOrganizationHandler(h usecase.IOrganizationUsecase) *OrganizationHandler
 	}
 }
 
-type CreateOrganizationRequest struct {
-	Name        string   `json:"name"`
-	Providers   []string `json:"providers"`
-	GithubUrl   string   `json:"githubUrl"`
-	GithubToken string   `json:"githubToken"`
-	Services    []string `json:"services"`
-	Description string   `json:"description"`
-}
-
 // CreateOrganization godoc
 // @Tags Organizations
 // @Summary Create organization
 // @Description Create organization
 // @Accept json
 // @Produce json
-// @Param body body CreateOrganizationRequest true "create organization request"
+// @Param body body domain.CreateOrganizationRequest true "create organization request"
 // @Success 200 {object} object
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	userId, _ := GetSession(r)
 
-	input := CreateOrganizationRequest{}
+	input := domain.CreateOrganizationRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
 		return
 	}
+
 	err = json.Unmarshal(body, &input)
 	if err != nil {
 		log.Error(err)
@@ -89,7 +81,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하였습니다.", out.OrganizationId))
 
 	time.Sleep(time.Second * 5) // for test
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 
 }
 
@@ -117,7 +109,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 
 	out.Organizations = organizations
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // GetOrganization godoc
@@ -150,7 +142,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 
 	out.Organization = organization
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // DeleteOrganization godoc
@@ -177,5 +169,5 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	ResponseJSON(w, res, http.StatusOK)
+	ResponseJSON(w, res, "", http.StatusOK)
 }

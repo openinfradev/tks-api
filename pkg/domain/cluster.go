@@ -8,7 +8,7 @@ import (
 type ClusterStatus int32
 
 const (
-	ClusterStatus_UNSPECIFIED ClusterStatus = iota
+	ClusterStatus_PENDING ClusterStatus = iota
 	ClusterStatus_INSTALLING
 	ClusterStatus_RUNNING
 	ClusterStatus_DELETING
@@ -17,7 +17,7 @@ const (
 )
 
 var cluseterStatus = [...]string{
-	"UNSPECIFIED",
+	"PENDING",
 	"INSTALLING",
 	"RUNNING",
 	"DELETING",
@@ -85,4 +85,16 @@ type Node = struct {
 	InstanceType string    `json:"instanceType"`
 	Role         string    `json:"role"`
 	Updated      time.Time `json:"updated"`
+}
+
+type CreateClusterRequest struct {
+	OrganizationId  string `json:"organizationId"`
+	TemplateId      string `json:"templateId"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	NumberOfAz      int    `json:"numberOfAz"`
+	MachineType     string `json:"machineType"`
+	Region          string `json:"region"`
+	MachineReplicas int    `json:"machineReplicas"`
+	Creator         string `json:"creator"`
 }

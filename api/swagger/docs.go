@@ -80,12 +80,12 @@ const docTemplate = `{
                 "summary": "Install appGroup",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "object",
+                        "description": "create appgroup request",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.CreateAppGroupRequest"
                         }
                     }
                 ],
@@ -360,9 +360,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/signin": {
+        "/auth/login": {
             "post": {
-                "description": "signin",
+                "description": "login",
                 "consumes": [
                     "application/json"
                 ],
@@ -372,7 +372,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "signin",
+                "summary": "login",
                 "parameters": [
                     {
                         "description": "account info",
@@ -380,7 +380,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.SignInRequest"
+                            "$ref": "#/definitions/domain.LoginRequest"
                         }
                     }
                 ],
@@ -419,7 +419,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.SignUpRequest"
+                            "$ref": "#/definitions/domain.SignUpRequest"
                         }
                     }
                 ],
@@ -495,7 +495,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.CreateClusterRequest"
+                            "$ref": "#/definitions/domain.CreateClusterRequest"
                         }
                     }
                 ],
@@ -663,7 +663,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/http.CreateOrganizationRequest"
+                            "$ref": "#/definitions/domain.CreateOrganizationRequest"
                         }
                     }
                 ],
@@ -900,6 +900,72 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CreateAppGroupRequest": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateClusterRequest": {
+            "type": "object",
+            "properties": {
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "machineReplicas": {
+                    "type": "integer"
+                },
+                "machineType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "numberOfAz": {
+                    "type": "integer"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateOrganizationRequest": {
+            "type": "object",
+            "properties": {
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.History": {
             "type": "object",
             "properties": {
@@ -919,6 +985,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -975,6 +1052,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.SignUpRequest": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.User": {
             "type": "object",
             "properties": {
@@ -1015,89 +1106,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.CreateClusterRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "machineReplicas": {
-                    "type": "integer"
-                },
-                "machineType": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "numberOfAz": {
-                    "type": "string"
-                },
-                "organizationId": {
-                    "type": "string"
-                },
-                "region": {
-                    "type": "string"
-                },
-                "templateId": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.CreateOrganizationRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "githubToken": {
-                    "type": "string"
-                },
-                "githubUrl": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "providers": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "services": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "http.SignInRequest": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.SignUpRequest": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }

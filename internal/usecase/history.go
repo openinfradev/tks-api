@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type IHistoryUsecase interface {

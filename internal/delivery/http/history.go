@@ -3,8 +3,8 @@ package http
 import (
 	"net/http"
 
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type HistoryHandler struct {
@@ -50,5 +50,5 @@ func (h *HistoryHandler) GetHistories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }

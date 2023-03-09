@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/openinfradev/tks-api/internal/domain"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 // Interface

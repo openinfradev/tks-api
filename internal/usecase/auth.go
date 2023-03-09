@@ -3,14 +3,14 @@ package usecase
 import (
 	"fmt"
 
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IAuthUsecase interface {
-	Signin(accountId string, password string) (domain.User, error)
+	Login(accountId string, password string) (domain.User, error)
 	Register(accountId string, password string, name string) (domain.User, error)
 }
 
@@ -24,7 +24,7 @@ func NewAuthUsecase(r repository.IAuthRepository) IAuthUsecase {
 	}
 }
 
-func (r *AuthUsecase) Signin(accountId string, password string) (domain.User, error) {
+func (r *AuthUsecase) Login(accountId string, password string) (domain.User, error) {
 	user, err := r.repo.GetUserByAccountId(accountId)
 	if err != nil {
 		return domain.User{}, err

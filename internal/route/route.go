@@ -1,8 +1,11 @@
 package route
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -106,7 +109,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	*/
 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db)))
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signin", authHandler.Signin).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient))
@@ -186,8 +189,8 @@ func authMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
-			log.Info("[authMiddleware] accountId : ", token.Claims.(jwt.MapClaims)["AccountId"])
-			log.Info("[authMiddleware] Id : ", token.Claims.(jwt.MapClaims)["Id"])
+			log.Debug("[authMiddleware] accountId : ", token.Claims.(jwt.MapClaims)["AccountId"])
+			log.Debug("[authMiddleware] Id : ", token.Claims.(jwt.MapClaims)["Id"])
 			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
 			id := token.Claims.(jwt.MapClaims)["ID"]
 			r.Header.Set("AccountId", fmt.Sprint(accountId))
@@ -201,7 +204,15 @@ func authMiddleware(next http.Handler) http.Handler {
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Info(fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
+
+		body, err := io.ReadAll(r.Body)
+		if err == nil {
+			log.Info(fmt.Sprintf("body : %s", bytes.NewBuffer(body).String()))
+		}
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
 		next.ServeHTTP(w, r)
+
 		log.Info("***** END *****")
 	})
 }

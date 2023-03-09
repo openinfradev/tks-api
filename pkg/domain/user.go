@@ -42,3 +42,14 @@ type Policy = struct {
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
 }
+
+type LoginRequest struct {
+	AccountId string `json:"accountId"`
+	Password  string `json:"password"`
+}
+
+type SignUpRequest struct {
+	AccountId string `json:"accountId"`
+	Password  string `json:"password"`
+	Name      string `json:"name"`
+}

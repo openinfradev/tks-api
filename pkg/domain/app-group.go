@@ -8,7 +8,7 @@ import (
 type AppGroupStatus int32
 
 const (
-	AppGroupStatus_UNSPECIFIED AppGroupStatus = iota
+	AppGroupStatus_PENDING AppGroupStatus = iota
 	AppGroupStatus_INSTALLING
 	AppGroupStatus_RUNNING
 	AppGroupStatus_DELETING
@@ -17,7 +17,7 @@ const (
 )
 
 var appGroupStatus = [...]string{
-	"UNSPECIFIED",
+	"PENDING",
 	"INSTALLING",
 	"RUNNING",
 	"DELETING",
@@ -39,4 +39,12 @@ type AppGroup = struct {
 	Creator           string    `json:"creator"`
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
+}
+
+type CreateAppGroupRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ClusterId   string `json:"clusterId"`
+	Type        string `json:"type"`
+	Creator     string `json:"creator"`
 }

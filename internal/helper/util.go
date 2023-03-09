@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bytes"
 	"encoding/json"
 
 	"github.com/google/uuid"
@@ -26,4 +27,10 @@ func ModelToJson(in any) string {
 	n := len(a)        //Find the length of the byte array
 	s := string(a[:n]) //convert to string
 	return s
+}
+
+func Transcode(in, out interface{}) {
+	buf := new(bytes.Buffer)
+	json.NewEncoder(buf).Encode(in)
+	json.NewDecoder(buf).Decode(out)
 }

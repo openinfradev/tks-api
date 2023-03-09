@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -69,6 +69,7 @@ func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 
 func (u *ClusterUsecase) Fetch(organizationId string) (out []domain.Cluster, err error) {
 	if organizationId == "" {
+		// [TODO] 사용자가 속한 organization 리스트
 		out, err = u.repo.Fetch()
 	} else {
 		out, err = u.repo.FetchByOrganizationId(organizationId)

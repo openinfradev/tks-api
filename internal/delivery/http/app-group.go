@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -27,17 +27,12 @@ func NewAppGroupHandler(h usecase.IAppGroupUsecase) *AppGroupHandler {
 // @Description Install appGroup
 // @Accept json
 // @Produce json
-// @Param object body string true "body"
+// @Param body body domain.CreateAppGroupRequest true "create appgroup request"
 // @Success 200 {object} string
 // @Router /app-groups [post]
 // @Security     JWT
 func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		ClusterId   string `json:"clusterId"`
-		Type        string `json:"type"`
-	}
+	var input = domain.CreateAppGroupRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		ErrorJSON(w, "Invalid json", http.StatusBadRequest)
@@ -65,7 +60,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 	}
 	out.AppGroupId = appGroupId
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // GetAppGroups godoc
@@ -98,7 +93,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	}
 	out.AppGroups = appGroups
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 
 }
 
@@ -131,7 +126,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	out.AppGroup = appGroup
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // DeleteAppGroup godoc
@@ -159,5 +154,5 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	ResponseJSON(w, nil, http.StatusOK)
+	ResponseJSON(w, nil, "", http.StatusOK)
 }

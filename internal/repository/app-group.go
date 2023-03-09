@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -35,15 +35,15 @@ type AppGroup struct {
 	gorm.Model
 
 	ID           string `gorm:"primarykey"`
-	AppGroupType string
+	AppGroupType string `gorm:"uniqueIndex:idx_AppGroupType_ClusterId"`
+	ClusterId    string `gorm:"uniqueIndex:idx_AppGroupType_ClusterId"`
 	Name         string
-	ClusterId    string
 	WorkflowId   string
 	Status       domain.AppGroupStatus
 	StatusDesc   string
 	Creator      uuid.UUID
 	Description  string
-	Workflow     Workflow `gorm:"polymorphic:Ref;polymorphicValue:organization"`
+	Workflow     Workflow `gorm:"polymorphic:Ref;polymorphicValue:appgroup"`
 }
 
 func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
@@ -56,7 +56,7 @@ func (r *AppGroupRepository) Fetch(clusterId string) (out []domain.AppGroup, err
 	var appGroups []AppGroup
 	out = []domain.AppGroup{}
 
-	res := r.db.Find(&appGroups)
+	res := r.db.Find(&appGroups, "cluster_id = ?", clusterId)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -89,7 +89,7 @@ func (r *AppGroupRepository) Create(clusterId string, name string, appGroupType 
 }
 
 func (r *AppGroupRepository) Delete(appGroupId string) error {
-	res := r.db.Delete(&AppGroup{}, "id = ?", appGroupId)
+	res := r.db.Unscoped().Delete(&AppGroup{}, "id = ?", appGroupId)
 	if res.Error != nil {
 		return fmt.Errorf("could not delete appGroup %s", appGroupId)
 	}
@@ -97,16 +97,28 @@ func (r *AppGroupRepository) Delete(appGroupId string) error {
 }
 
 func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
-	workflow := Workflow{
-		RefID:      appGroupId,
-		RefType:    "appgroup",
-		WorkflowId: workflowId,
-		StatusDesc: "INIT",
-	}
-	res := r.db.Create(&workflow)
+	/*
+		workflow := Workflow{
+			RefID:      appGroupId,
+			RefType:    "appgroup",
+			WorkflowId: workflowId,
+			StatusDesc: "INIT",
+		}
+	*/
+	/*
+		res := r.db.Create(&workflow)
+		if res.Error != nil {
+			return res.Error
+		}
+	*/
+
+	res := r.db.Where(Workflow{RefID: appGroupId, RefType: "appgroup"}).
+		Assign(Workflow{RefID: appGroupId, RefType: "appgroup", WorkflowId: workflowId, StatusDesc: "INIT"}).
+		FirstOrCreate(&Workflow{})
 	if res.Error != nil {
 		return res.Error
 	}
+
 	return nil
 }
 

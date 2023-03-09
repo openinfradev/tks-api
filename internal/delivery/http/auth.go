@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type AuthHandler struct {
@@ -20,22 +20,17 @@ func NewAuthHandler(h usecase.IAuthUsecase) *AuthHandler {
 	}
 }
 
-type SignInRequest struct {
-	AccountId string `json:"accountId"`
-	Password  string `json:"password"`
-}
-
-// Signin godoc
+// Login godoc
 // @Tags Auth
-// @Summary signin
-// @Description signin
+// @Summary login
+// @Description login
 // @Accept json
 // @Produce json
-// @Param body body SignInRequest true "account info"
+// @Param body body domain.LoginRequest true "account info"
 // @Success 200 {object} domain.User "user detail"
-// @Router /auth/signin [post]
-func (h *AuthHandler) Signin(w http.ResponseWriter, r *http.Request) {
-	input := SignInRequest{}
+// @Router /auth/login [post]
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	input := domain.LoginRequest{}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -49,7 +44,7 @@ func (h *AuthHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.usecase.Signin(input.AccountId, input.Password)
+	user, err := h.usecase.Login(input.AccountId, input.Password)
 	if err != nil {
 		InternalServerError(w, err)
 		return
@@ -61,16 +56,10 @@ func (h *AuthHandler) Signin(w http.ResponseWriter, r *http.Request) {
 
 	out.User = user
 
-	//_ = h.Repository.AddHistory(user.ID.String(), "", "signin", fmt.Sprintf("[%s] 님이 로그인하였습니다.", input.AccountId))
+	//_ = h.Repository.AddHistory(user.ID.String(), "", "login", fmt.Sprintf("[%s] 님이 로그인하였습니다.", input.AccountId))
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 
-}
-
-type SignUpRequest struct {
-	AccountId string `json:"accountId"`
-	Password  string `json:"password"`
-	Name      string `json:"name"`
 }
 
 // Signup godoc
@@ -79,12 +68,12 @@ type SignUpRequest struct {
 // @Description signup
 // @Accept json
 // @Produce json
-// @Param body body SignUpRequest true "account info"
+// @Param body body domain.SignUpRequest true "account info"
 // @Success 200 {object} domain.User
 // @Router /auth/signup [post]
 // @Security     JWT
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
-	input := SignUpRequest{}
+	input := domain.SignUpRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
@@ -109,5 +98,5 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	out.User = user
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }

@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -36,11 +35,6 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
 	organizationId := urlParams.Get("organizationId")
-	if organizationId == "" {
-		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
-		return
-	}
-
 	clusters, err := h.usecase.Fetch(organizationId)
 	if err != nil {
 		InternalServerError(w, err)
@@ -52,7 +46,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	}
 	out.Clusters = clusters
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // GetCluster godoc
@@ -84,18 +78,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	}
 	out.Cluster = cluster
 
-	ResponseJSON(w, out, http.StatusOK)
-}
-
-type CreateClusterRequest struct {
-	OrganizationId  string `json:"organizationId"`
-	TemplateId      string `json:"templateId"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	NumberOfAz      string `json:"numberOfAz"`
-	MachineType     string `json:"machineType"`
-	Region          string `json:"region"`
-	MachineReplicas int    `json:"machineReplicas"`
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // GetCluster godoc
@@ -104,12 +87,12 @@ type CreateClusterRequest struct {
 // @Description Create cluster
 // @Accept json
 // @Produce json
-// @Param body body CreateClusterRequest true "create cluster request"
+// @Param body body domain.CreateClusterRequest true "create cluster request"
 // @Success 200 {object} object
 // @Router /clusters [post]
 // @Security     JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
-	input := CreateClusterRequest{}
+	input := domain.CreateClusterRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -122,7 +105,6 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	numberOfAz, _ := strconv.Atoi(input.NumberOfAz)
 	creator := ""
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
@@ -132,7 +114,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		input.Name,
 		domain.ClusterConf{
 			Region:          input.Region,
-			NumOfAz:         int(numberOfAz),
+			NumOfAz:         input.NumberOfAz,
 			SshKeyName:      "",
 			MachineType:     input.MachineType,
 			MachineReplicas: input.MachineReplicas,
@@ -154,7 +136,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 	out.ClusterId = clusterId
 
-	ResponseJSON(w, out, http.StatusOK)
+	ResponseJSON(w, out, "", http.StatusOK)
 }
 
 // DeleteCluster godoc
@@ -181,7 +163,7 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ResponseJSON(w, nil, http.StatusOK)
+	ResponseJSON(w, nil, "", http.StatusOK)
 }
 
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {
@@ -250,7 +232,7 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 			log.Error("Failed to get kubernetes version. err : ", err)
 		}
 
-		ResponseJSON(w, out, http.StatusOK)
+		ResponseJSON(w, out, "", http.StatusOK)
 	*/
 }
 
@@ -291,7 +273,7 @@ func (h *ClusterHandler) GetClusterApplications(w http.ResponseWriter, r *http.R
 			out.Applications = append(out.Applications, outApplication)
 		}
 
-		ResponseJSON(w, out, http.StatusOK)
+		ResponseJSON(w, out, "", http.StatusOK)
 	*/
 }
 
@@ -399,7 +381,7 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 			out.ApplicationKubeInfos = append(out.ApplicationKubeInfos, outKubeInfo)
 		}
 
-		ResponseJSON(w, out, http.StatusOK)
+		ResponseJSON(w, out, "", http.StatusOK)
 	*/
 }
 
@@ -438,7 +420,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 
 		h.AddHistory(r, organizationId, "cluster", fmt.Sprintf("클러스터 [%s]의 kubeconfig를 다운로드 하였습니다.", clusterId))
 
-		ResponseJSON(w, out, http.StatusOK)
+		ResponseJSON(w, out, "", http.StatusOK)
 	*/
 }
 
@@ -631,7 +613,7 @@ func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.
 			out.Nodes = append(out.Nodes, outNode)
 		}
 
-		ResponseJSON(w, out, http.StatusOK)
+		ResponseJSON(w, out, "", http.StatusOK)
 	*/
 }
 
@@ -699,6 +681,6 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 		var out struct {
 		}
 
-		ResponseJSON(w, out, http.StatusOK)
+		ResponseJSON(w, out, "", http.StatusOK)
 	*/
 }

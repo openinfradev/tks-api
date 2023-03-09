@@ -10,30 +10,33 @@ import (
 )
 
 type ResponseJson struct {
-	Code int         `json:"status_code"`
-	Data interface{} `json:"data"`
+	Code    int         `json:"status_code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
 
 func ErrorJSON(w http.ResponseWriter, message string, code int) {
-	ResponseJSON(w, message, code)
+	ResponseJSON(w, "", message, code)
 }
 
 func InternalServerError(w http.ResponseWriter, err error) {
 	log.Error(fmt.Sprintf("[INTERNAL SERVER ERROR] [%s]", err.Error()))
-	ErrorJSON(w, fmt.Sprintf("internal server error. err : %s", err), http.StatusInternalServerError)
+
+	ErrorJSON(w, err.Error(), http.StatusInternalServerError)
 }
 
-func ResponseJSON(w http.ResponseWriter, data interface{}, code int) {
+func ResponseJSON(w http.ResponseWriter, data interface{}, message string, code int) {
 	//time.Sleep(time.Second * 1) // for test
 
 	out := ResponseJson{
-		Code: code,
-		Data: data,
+		Code:    code,
+		Message: message,
+		Data:    data,
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
-	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(data)))
+	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(out)))
 	json.NewEncoder(w).Encode(out)
 }
 
