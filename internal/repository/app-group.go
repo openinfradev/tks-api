@@ -97,21 +97,6 @@ func (r *AppGroupRepository) Delete(appGroupId string) error {
 }
 
 func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
-	/*
-		workflow := Workflow{
-			RefID:      appGroupId,
-			RefType:    "appgroup",
-			WorkflowId: workflowId,
-			StatusDesc: "INIT",
-		}
-	*/
-	/*
-		res := r.db.Create(&workflow)
-		if res.Error != nil {
-			return res.Error
-		}
-	*/
-
 	res := r.db.Where(Workflow{RefID: appGroupId, RefType: "appgroup"}).
 		Assign(Workflow{RefID: appGroupId, RefType: "appgroup", WorkflowId: workflowId, StatusDesc: "INIT"}).
 		FirstOrCreate(&Workflow{})

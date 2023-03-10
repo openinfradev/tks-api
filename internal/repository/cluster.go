@@ -46,10 +46,10 @@ type Cluster struct {
 	Status         domain.ClusterStatus
 	SshKeyName     string
 	Region         string
-	NumOfAz        int32
+	NumOfAz        int
 	MachineType    string
-	MinSizePerAz   int32
-	MaxSizePerAz   int32
+	MinSizePerAz   int
+	MaxSizePerAz   int
 	Creator        uuid.UUID
 	Description    string
 	Workflow       Workflow `gorm:"polymorphic:Ref;polymorphicValue:cluster"`
@@ -118,7 +118,19 @@ func (r *ClusterRepository) Get(id string) (domain.Cluster, error) {
 }
 
 func (r *ClusterRepository) Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (string, error) {
-	cluster := Cluster{OrganizationId: organizationId, TemplateId: templateId, Name: name, Creator: creator, Description: description}
+	cluster := Cluster{
+		OrganizationId: organizationId,
+		TemplateId:     templateId,
+		Name:           name,
+		Creator:        creator,
+		Description:    description,
+		SshKeyName:     conf.SshKeyName,
+		Region:         conf.Region,
+		NumOfAz:        conf.NumOfAz,
+		MachineType:    conf.MachineType,
+		MinSizePerAz:   conf.MinSizePerAz,
+		MaxSizePerAz:   conf.MaxSizePerAz,
+	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
 		log.Error(res.Error)
@@ -137,17 +149,15 @@ func (r *ClusterRepository) Delete(clusterId string) error {
 }
 
 func (r *ClusterRepository) InitWorkflow(clusterId string, workflowId string) error {
-	workflow := Workflow{
-		RefID:      clusterId,
-		RefType:    "cluster",
-		WorkflowId: workflowId,
-		StatusDesc: "INIT",
-	}
-	res := r.db.Create(&workflow)
+	res := r.db.Where(Workflow{RefID: clusterId, RefType: "cluster"}).
+		Assign(Workflow{RefID: clusterId, RefType: "cluster", WorkflowId: workflowId, StatusDesc: "INIT"}).
+		FirstOrCreate(&Workflow{})
 	if res.Error != nil {
 		return res.Error
 	}
+
 	return nil
+
 }
 
 func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {

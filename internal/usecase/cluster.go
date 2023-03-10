@@ -9,7 +9,6 @@ import (
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -112,8 +111,8 @@ func (u *ClusterUsecase) Create(organizationId string, templateId string, name s
 				"cluster_id=" + clusterId,
 				"site_name=" + clusterId,
 				"template_name=" + templateId,
-				"git_account=" + viper.GetString("git-account"),
-				"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
+				//"git_account=" + viper.GetString("git-account"),
+				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
 	if err != nil {
