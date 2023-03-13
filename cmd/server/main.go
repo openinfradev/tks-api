@@ -30,6 +30,7 @@ func init() {
 	flag.String("jwt-secret", "tks-api-secret", "secret value of jwt")
 	flag.String("git-base-url", "https://github.com", "git base url")
 	flag.String("git-account", "decapod10", "git account of admin cluster")
+	flag.String("revision", "main", "revision")
 
 	// app-serve-apps
 	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")
