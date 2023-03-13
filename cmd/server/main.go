@@ -45,7 +45,7 @@ func init() {
 
 // @title tks-api service
 // @version 1.0
-// @description This is backend api service for tks
+// @description This is backend api service for tks platform
 
 // @contact.name taekyu.kang@sk.com
 // @contact.url
@@ -58,7 +58,7 @@ func init() {
 // @in                          header
 // @name                        Authorization
 
-// @host localhost:8080
+// @host tks-api-dev.taco-cat.xyz:9110
 // @BasePath /api/1.0/
 func main() {
 	log.Info("*** Arguments *** ")

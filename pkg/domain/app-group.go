@@ -27,6 +27,38 @@ var appGroupStatus = [...]string{
 
 func (m AppGroupStatus) String() string { return appGroupStatus[(m)] }
 
+type ApplicationType int32
+
+const (
+	ApplicationType_UNSPECIFIED ApplicationType = iota
+	ApplicationType_THANOS
+	ApplicationType_PROMETHEUS
+	ApplicationType_GRAFANA
+	ApplicationType_KIALI
+	ApplicationType_KIBANA
+	ApplicationType_ELASTICSERCH
+	ApplicationType_CLOUD_CONSOLE
+	ApplicationType_HORIZON
+	ApplicationType_JAEGER
+	ApplicationType_KUBERNETES_DASHBOARD
+)
+
+var applicationType = [...]string{
+	"EP_UNSPECIFIED",
+	"THANOS",
+	"PROMETHEUS",
+	"GRAFANA",
+	"KIALI",
+	"KIBANA",
+	"ELASTICSERCH",
+	"CLOUD_CONSOLE",
+	"HORIZON",
+	"JAEGER",
+	"KUBERNETES_DASHBOARD",
+}
+
+func (m ApplicationType) String() string { return applicationType[(m)] }
+
 type AppGroup = struct {
 	ID                string    `json:"id"`
 	Name              string    `json:"name"`

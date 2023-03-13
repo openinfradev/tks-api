@@ -238,12 +238,12 @@ definitions:
       updatedAt:
         type: string
     type: object
-host: localhost:8080
+host: tks-api-dev.taco-cat.xyz:9110
 info:
   contact:
     email: taekyu.kang@sk.com
     name: taekyu.kang@sk.com
-  description: This is backend api service for tks
+  description: This is backend api service for tks platform
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html

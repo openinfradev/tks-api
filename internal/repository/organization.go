@@ -34,7 +34,7 @@ type Organization struct {
 	gorm.Model
 
 	ID          string `gorm:"primarykey"`
-	Name        string `gorm:"uniqueIndex"`
+	Name        string
 	Creator     uuid.UUID
 	Description string
 	Workflow    Workflow `gorm:"polymorphic:Ref;polymorphicValue:organization"`

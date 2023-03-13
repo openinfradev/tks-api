@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is backend api service for tks",
+        "description": "This is backend api service for tks platform",
         "title": "tks-api service",
         "contact": {
             "name": "taekyu.kang@sk.com",
@@ -13,7 +13,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "tks-api-dev.taco-cat.xyz:9110",
     "basePath": "/api/1.0/",
     "paths": {
         "/app-groups": {

@@ -2,8 +2,10 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/helper"
@@ -48,6 +50,21 @@ type AppGroup struct {
 
 func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = helper.GenerateApplicaionGroupId()
+	return nil
+}
+
+type Application struct {
+	ID         uuid.UUID `gorm:"primarykey;type:uuid"`
+	Endpoint   string
+	Metadata   datatypes.JSON
+	Type       domain.AppGroupStatus
+	AppGroupId string
+	UpdatedAt  time.Time
+	CreatedAt  time.Time
+}
+
+func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
+	c.ID = uuid.New()
 	return nil
 }
 

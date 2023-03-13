@@ -33,7 +33,7 @@ type User struct {
 	gorm.Model
 
 	ID            uuid.UUID `gorm:"primarykey;type:uuid;"`
-	AccountId     string    `gorm:"uniqueIndex"`
+	AccountId     string
 	Name          string
 	Password      string
 	AuthType      string         `gorm:"authType"`

@@ -6,7 +6,7 @@ import "gorm.io/gorm"
 type Workflow struct {
 	gorm.Model
 
-	RefID      string `gorm:"uniqueIndex"`
+	RefID      string
 	RefType    string // cluster, organization, appgroup
 	WorkflowId string
 	StatusDesc string
