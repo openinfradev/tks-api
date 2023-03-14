@@ -78,7 +78,7 @@ func main() {
 
 	// Initialize external client
 
-	localDebug := false // IMPORTANT : IN PRODUCTION, THIS VALUE MUST BE "FALSE"
+	localDebug := true // IMPORTANT : IN PRODUCTION, THIS VALUE MUST BE "FALSE"
 	var argoClient argowf.ArgoClient
 	if !localDebug {
 		argoClient, err = argowf.New(viper.GetString("argo-address"), viper.GetInt("argo-port"), false, "")
