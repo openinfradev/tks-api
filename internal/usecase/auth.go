@@ -12,6 +12,7 @@ import (
 type IAuthUsecase interface {
 	Login(accountId string, password string) (domain.User, error)
 	Register(accountId string, password string, name string) (domain.User, error)
+	FetchRoles() (out []domain.Role, err error)
 }
 
 type AuthUsecase struct {
@@ -67,4 +68,12 @@ func (r *AuthUsecase) Register(accountId string, password string, name string) (
 	}
 
 	return resUser, nil
+}
+
+func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
 }

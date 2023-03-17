@@ -209,6 +209,17 @@ definitions:
       password:
         type: string
     type: object
+  domain.UpdateApplicationRequest:
+    properties:
+      appGroupId:
+        type: string
+      applicationType:
+        type: string
+      endpoint:
+        type: string
+      metadata:
+        type: string
+    type: object
   domain.User:
     properties:
       accountId:
@@ -345,6 +356,52 @@ paths:
       summary: Get appGroup detail
       tags:
       - AppGroups
+  /app-groups/{appGroupId}/applications:
+    get:
+      consumes:
+      - application/json
+      description: Get applications
+      parameters:
+      - description: appGroupId
+        in: path
+        name: appGroupId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Get applications
+      tags:
+      - AppGroups
+    post:
+      consumes:
+      - application/json
+      description: Update application
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update application
+      tags:
+      - AppGroups
   /app-serve-apps:
     delete:
       consumes:
@@ -479,6 +536,25 @@ paths:
           schema:
             $ref: '#/definitions/domain.User'
       summary: login
+      tags:
+      - Auth
+  /auth/roles:
+    get:
+      consumes:
+      - application/json
+      description: roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Role'
+            type: array
+      security:
+      - JWT: []
+      summary: roles
       tags:
       - Auth
   /auth/signup:

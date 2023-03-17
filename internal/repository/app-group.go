@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
@@ -19,6 +18,8 @@ type IAppGroupRepository interface {
 	Get(id string) (domain.AppGroup, error)
 	Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
 	Delete(id string) error
+	GetApplications(appGroupID string) (applications []domain.Application, err error)
+	UpsertApplication(appGroupID string, appType string, endpoint, metadata string) error
 	InitWorkflow(appGroupId string, workflowId string) error
 }
 
@@ -54,13 +55,13 @@ func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type Application struct {
+	gorm.Model
+
 	ID         uuid.UUID `gorm:"primarykey;type:uuid"`
+	AppGroupId string
 	Endpoint   string
 	Metadata   datatypes.JSON
-	Type       domain.AppGroupStatus
-	AppGroupId string
-	UpdatedAt  time.Time
-	CreatedAt  time.Time
+	Type       string
 }
 
 func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
@@ -113,6 +114,35 @@ func (r *AppGroupRepository) Delete(appGroupId string) error {
 	return nil
 }
 
+func (r *AppGroupRepository) GetApplications(appGroupId string) (out []domain.Application, err error) {
+	var applications []Application
+	res := r.db.Where("app_group_id = ?", appGroupId).Find(&applications)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	for _, application := range applications {
+		outApplication := r.reflectApplication(application)
+		out = append(out, outApplication)
+	}
+	return out, nil
+}
+
+func (r *AppGroupRepository) UpsertApplication(appGroupId string, appType string, endpoint, metadata string) error {
+	res := r.db.Where(Application{
+		AppGroupId: appGroupId,
+		Type:       appType,
+	}).
+		Assign(Application{
+			Endpoint: endpoint,
+			Metadata: datatypes.JSON([]byte(metadata))}).
+		FirstOrCreate(&Application{})
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil
+}
+
 func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
 	res := r.db.Where(Workflow{RefID: appGroupId, RefType: "appgroup"}).
 		Assign(Workflow{RefID: appGroupId, RefType: "appgroup", WorkflowId: workflowId, StatusDesc: "INIT"}).
@@ -137,5 +167,18 @@ func (r *AppGroupRepository) reflect(appGroup AppGroup) domain.AppGroup {
 		Creator:           appGroup.Creator.String(),
 		CreatedAt:         appGroup.CreatedAt,
 		UpdatedAt:         appGroup.UpdatedAt,
+	}
+}
+
+func (r *AppGroupRepository) reflectApplication(application Application) domain.Application {
+
+	return domain.Application{
+		ID:              application.ID.String(),
+		AppGroupId:      application.AppGroupId,
+		ApplicationType: application.Type,
+		Endpoint:        application.Endpoint,
+		Metadata:        application.Metadata.String(),
+		CreatedAt:       application.CreatedAt,
+		UpdatedAt:       application.UpdatedAt,
 	}
 }

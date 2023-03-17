@@ -15,6 +15,7 @@ type IAuthRepository interface {
 	GetUser(userId uuid.UUID) (domain.User, error)
 	GetUserByAccountId(accountId string) (domain.User, error)
 	Create(accountId string, password string, name string) (domain.User, error)
+	FetchRoles() (out []domain.Role, err error)
 	AssignRole(accountId string, roleName string) error
 }
 
@@ -89,7 +90,7 @@ type UserRole struct {
 
 // Public members
 func (r *AuthRepository) GetUser(userId uuid.UUID) (user domain.User, err error) {
-	return domain.User{}, nil
+	return domain.User{}, fmt.Errorf("NOT IMPLEMENTED")
 }
 
 func (r *AuthRepository) GetUserByAccountId(accountId string) (domain.User, error) {
@@ -149,6 +150,20 @@ func (r *AuthRepository) GetRoleByName(roleName string) (out domain.Role, err er
 		return domain.Role{}, err
 	}
 	return r.reflectRole(role), nil
+}
+
+func (r *AuthRepository) FetchRoles() (out []domain.Role, err error) {
+	var roles []Role
+	res := r.db.Find(&roles)
+	if res.RowsAffected == 0 || res.Error != nil {
+		return nil, fmt.Errorf("No role")
+	}
+
+	for _, role := range roles {
+		outRole := r.reflectRole(role)
+		out = append(out, outRole)
+	}
+	return
 }
 
 // private members

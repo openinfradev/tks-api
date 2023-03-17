@@ -16,6 +16,8 @@ type IAppGroupUsecase interface {
 	Create(clusterId string, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error)
 	Get(appGroupId string) (out domain.AppGroup, err error)
 	Delete(appGroupId string) (err error)
+	GetApplications(appGroupId string) (out []domain.Application, err error)
+	UpdateApplication(appGroupId string, input domain.UpdateApplicationRequest) (err error)
 }
 
 type AppGroupUsecase struct {
@@ -173,5 +175,21 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 		return fmt.Errorf("Fatiled to deleting appGroup : %s", appGroupId)
 	}
 
+	return nil
+}
+
+func (u *AppGroupUsecase) GetApplications(appGroupId string) (out []domain.Application, err error) {
+	out, err = u.repo.GetApplications(appGroupId)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+func (u *AppGroupUsecase) UpdateApplication(appGroupId string, input domain.UpdateApplicationRequest) (err error) {
+	err = u.repo.UpsertApplication(appGroupId, input.ApplicationType, input.Endpoint, input.Metadata)
+	if err != nil {
+		return err
+	}
 	return nil
 }

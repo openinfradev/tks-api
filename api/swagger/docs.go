@@ -176,6 +176,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/app-groups/{appGroupId}/applications": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get applications",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppGroups"
+                ],
+                "summary": "Get applications",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "appGroupId",
+                        "name": "appGroupId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppGroups"
+                ],
+                "summary": "Update application",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "object",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/app-serve-apps": {
             "get": {
                 "security": [
@@ -389,6 +463,37 @@ const docTemplate = `{
                         "description": "user detail",
                         "schema": {
                             "$ref": "#/definitions/domain.User"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/roles": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "roles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "roles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Role"
+                            }
                         }
                     }
                 }
@@ -1062,6 +1167,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateApplicationRequest": {
+            "type": "object",
+            "properties": {
+                "appGroupId": {
+                    "type": "string"
+                },
+                "applicationType": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "metadata": {
                     "type": "string"
                 }
             }

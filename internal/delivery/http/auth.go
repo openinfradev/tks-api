@@ -100,3 +100,27 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	ResponseJSON(w, out, "", http.StatusOK)
 }
+
+// GetRoles godoc
+// @Tags Auth
+// @Summary roles
+// @Description roles
+// @Accept json
+// @Produce json
+// @Success 200 {object} []domain.Role
+// @Router /auth/roles [get]
+// @Security     JWT
+func (h *AuthHandler) GetRoles(w http.ResponseWriter, r *http.Request) {
+	roles, err := h.usecase.FetchRoles()
+	if err != nil {
+		InternalServerError(w, err)
+		return
+	}
+
+	var out struct {
+		Roles []domain.Role
+	}
+	out.Roles = roles
+
+	ResponseJSON(w, out, "", http.StatusOK)
+}

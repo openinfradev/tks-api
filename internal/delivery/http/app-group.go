@@ -156,3 +156,76 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 
 	ResponseJSON(w, nil, "", http.StatusOK)
 }
+
+// GetApplications godoc
+// @Tags AppGroups
+// @Summary Get applications
+// @Description Get applications
+// @Accept json
+// @Produce json
+// @Param appGroupId path string true "appGroupId"
+// @Success 200 {object} object
+// @Router /app-groups/{appGroupId}/applications [get]
+// @Security     JWT
+func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	appGroupId, ok := vars["appGroupId"]
+	if !ok {
+		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		return
+	}
+
+	applications, err := h.usecase.GetApplications(appGroupId)
+	if err != nil {
+		log.Error("Failed to get application err : ", err)
+		InternalServerError(w, err)
+		return
+	}
+
+	var out struct {
+		Applications []domain.Application `json:"applications"`
+	}
+	out.Applications = applications
+
+	ResponseJSON(w, out, "", http.StatusOK)
+}
+
+// UpdateApplication godoc
+// @Tags AppGroups
+// @Summary Update application
+// @Description Update application
+// @Accept json
+// @Produce json
+// @Param object body domain.UpdateApplicationRequest true "body"
+// @Success 200 {object} object
+// @Router /app-groups/{appGroupId}/applications [post]
+// @Security     JWT
+func (h *AppGroupHandler) UpdateApplication(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	appGroupId, ok := vars["appGroupId"]
+	if !ok {
+		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		return
+	}
+
+	var input = domain.UpdateApplicationRequest{}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		ErrorJSON(w, "Invalid json", http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(body, &input)
+	if err != nil {
+		ErrorJSON(w, "Invalid json", http.StatusBadRequest)
+		return
+	}
+
+	err = h.usecase.UpdateApplication(appGroupId, input)
+	if err != nil {
+		log.Error("Failed to update application err : ", err)
+		InternalServerError(w, err)
+		return
+	}
+
+	ResponseJSON(w, nil, "", http.StatusOK)
+}

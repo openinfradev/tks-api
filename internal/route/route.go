@@ -111,6 +111,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db)))
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/roles", authHandler.GetRoles).Methods(http.MethodGet)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)
@@ -135,6 +136,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.DeleteAppGroup))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware(http.HandlerFunc(appGroupHandler.GetApplications))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware(http.HandlerFunc(appGroupHandler.UpdateApplication))).Methods(http.MethodPost)
 
 	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(
 		repository.NewAppServeAppRepository(db),

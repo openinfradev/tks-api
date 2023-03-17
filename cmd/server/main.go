@@ -78,19 +78,17 @@ func main() {
 
 	// Initialize external client
 
-	localDebug := true // IMPORTANT : IN PRODUCTION, THIS VALUE MUST BE "FALSE"
 	var argoClient argowf.ArgoClient
-	if !localDebug {
-		argoClient, err = argowf.New(viper.GetString("argo-address"), viper.GetInt("argo-port"), false, "")
-		if err != nil {
-			log.Fatal("failed to create argowf client : ", err)
-		}
-	} else {
+	if viper.GetString("argo-address") == "" || viper.GetInt("argo-port") == 0 {
 		argoClient, err = argowf.NewMock()
 		if err != nil {
 			log.Fatal("failed to create argowf client : ", err)
 		}
-
+	} else {
+		argoClient, err = argowf.New(viper.GetString("argo-address"), viper.GetInt("argo-port"), false, "")
+		if err != nil {
+			log.Fatal("failed to create argowf client : ", err)
+		}
 	}
 
 	route := route.SetupRouter(db, argoClient, asset)

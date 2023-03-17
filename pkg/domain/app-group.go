@@ -73,10 +73,28 @@ type AppGroup = struct {
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
+type Application = struct {
+	ID              string    `json:"id"`
+	AppGroupId      string    `json:"appGroupId"`
+	Endpoint        string    `json:"endpoint"`
+	Metadata        string    `json:"metadata"`
+	ApplicationType string    `json:"applicationType"`
+	Creator         string    `json:"creator"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+}
+
 type CreateAppGroupRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ClusterId   string `json:"clusterId"`
 	Type        string `json:"type"`
 	Creator     string `json:"creator"`
+}
+
+type UpdateApplicationRequest struct {
+	AppGroupId      string `json:"appGroupId"`
+	ApplicationType string `json:"applicationType"`
+	Endpoint        string `json:"endpoint"`
+	Metadata        string `json:"metadata"`
 }
