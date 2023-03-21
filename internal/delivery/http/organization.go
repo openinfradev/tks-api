@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"io"
 	"net/http"
 	"time"
@@ -50,11 +51,17 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
+	token, ok := request.TokenFrom(r.Context())
+	if !ok {
+		http.Error(w, "token not found", http.StatusBadRequest)
+		return
+	}
+
 	organizationId, err := h.usecase.Create(domain.Organization{
 		Name:        input.Name,
 		Creator:     userId,
 		Description: input.Description,
-	})
+	}, token)
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
 		//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
@@ -163,7 +170,13 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	res, err := h.usecase.Delete(organizationId)
+	token, ok := request.TokenFrom(r.Context())
+	if !ok {
+		http.Error(w, "token not found", http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.usecase.Delete(organizationId, token)
 	if err != nil {
 		ErrorJSON(w, fmt.Sprintf("Failed to delete organization err : %s", err), http.StatusBadRequest)
 		return

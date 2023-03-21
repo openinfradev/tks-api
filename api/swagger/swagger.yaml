@@ -163,6 +163,8 @@ definitions:
     properties:
       accountId:
         type: string
+      organizationName:
+        type: string
       password:
         type: string
     type: object
@@ -204,9 +206,19 @@ definitions:
     properties:
       accountId:
         type: string
+      department:
+        type: string
+      description:
+        type: string
+      emailAddress:
+        type: string
       name:
         type: string
+      organizationName:
+        type: string
       password:
+        type: string
+      role:
         type: string
     type: object
   domain.UpdateApplicationRequest:

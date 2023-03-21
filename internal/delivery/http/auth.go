@@ -2,14 +2,23 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
-
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
+	"io"
+	"net/http"
 )
 
+type IAuthHandler interface {
+	Login(w http.ResponseWriter, r *http.Request)
+	SingUp(w http.ResponseWriter, r *http.Request)
+	GetRole(w http.ResponseWriter, r *http.Request)
+
+	//Authenticate(next http.Handler) http.Handler
+}
 type AuthHandler struct {
 	usecase usecase.IAuthUsecase
 }
@@ -31,7 +40,6 @@ func NewAuthHandler(h usecase.IAuthUsecase) *AuthHandler {
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
@@ -44,7 +52,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.usecase.Login(input.AccountId, input.Password)
+	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationName)
 	if err != nil {
 		InternalServerError(w, err)
 		return
@@ -86,7 +94,13 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.usecase.Register(input.AccountId, input.Password, input.Name)
+	token, ok := request.TokenFrom(r.Context())
+	if !ok {
+		InternalServerError(w, errors.New("token not found"))
+		return
+	}
+	log.Info("Send signup request to keycloak")
+	user, err := h.usecase.Register(input.AccountId, input.Password, input.Name, input.OrganizationName, input.Role, token)
 	if err != nil {
 		InternalServerError(w, err)
 		return
