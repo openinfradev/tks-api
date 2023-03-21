@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	"io"
@@ -53,7 +54,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		http.Error(w, "token not found", http.StatusBadRequest)
+		InternalServerError(w, errors.New("token not found"))
 		return
 	}
 

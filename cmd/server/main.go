@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/keycloak"
 	"net/http"
 	"strconv"
 
@@ -12,6 +11,7 @@ import (
 
 	_ "github.com/openinfradev/tks-api/api/swagger"
 	"github.com/openinfradev/tks-api/internal/database"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/route"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
