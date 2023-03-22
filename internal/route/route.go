@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/auth/request"
+	user "github.com/openinfradev/tks-api/internal/auth/user"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	jwtWithouKey "github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -39,7 +43,7 @@ func (r *StatusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) http.Handler {
+func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, kc keycloak.IKeycloak) http.Handler {
 	r := mux.NewRouter()
 
 	r.Use(loggingMiddleware)
@@ -108,48 +112,49 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 		r.Handle("/api/1.0/stacks/{clusterId}", authMiddleware(http.HandlerFunc(handler.DeleteStack))).Methods(http.MethodDelete)
 	*/
 
-	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db)))
+	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db), kc))
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/auth/signup", authMiddleware(http.HandlerFunc(authHandler.Signup), kc)).Methods(http.MethodPost)
+	//r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/roles", authHandler.GetRoles).Methods(http.MethodGet)
 
-	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganizations))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.DeleteOrganization))).Methods(http.MethodDelete)
+	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient, kc))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganizations), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.DeleteOrganization), kc)).Methods(http.MethodDelete)
 
 	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(
 		repository.NewClusterRepository(db),
 		repository.NewAppGroupRepository(db),
 		argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.CreateCluster), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware(http.HandlerFunc(clusterHandler.GetClusters), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.GetCluster), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware(http.HandlerFunc(clusterHandler.DeleteCluster), kc)).Methods(http.MethodDelete)
 
 	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(
 		repository.NewAppGroupRepository(db),
 		repository.NewClusterRepository(db),
 		argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.DeleteAppGroup))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware(http.HandlerFunc(appGroupHandler.GetApplications))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware(http.HandlerFunc(appGroupHandler.UpdateApplication))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.CreateAppGroup), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroups), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.GetAppGroup), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware(http.HandlerFunc(appGroupHandler.DeleteAppGroup), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware(http.HandlerFunc(appGroupHandler.GetApplications), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware(http.HandlerFunc(appGroupHandler.UpdateApplication), kc)).Methods(http.MethodPost)
 
 	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(
 		repository.NewAppServeAppRepository(db),
 		argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.CreateAppServeApp), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApps), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp), kc)).Methods(http.MethodPut)
 
 	historyHandler := delivery.NewHistoryHandler(usecase.NewHistoryUsecase(repository.NewHistoryRepository(db)))
-	r.Handle(API_PREFIX+API_VERSION+"/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories), kc)).Methods(http.MethodGet)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
@@ -165,16 +170,92 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler) 
 	return handlers.CORS(credentials, headersOk, originsOk, methodsOk)(r)
 }
 
-func authMiddleware(next http.Handler) http.Handler {
+func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Possible values : "basic", "keycloak"
 		authType := r.Header.Get("Authorization-Type")
 
 		switch authType {
 		case "keycloak":
+
 			// [TODO] implementaion keycloak process
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Need implementation for keycloak"))
+			//vars := mux.Vars(r)
+			//organization, ok := vars["organizationId"]
+			//if !ok {
+			//	organization = "master"
+			//}
+
+			auth := strings.TrimSpace(r.Header.Get("Authorization"))
+			if auth == "" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			parts := strings.SplitN(auth, " ", 3)
+			if len(parts) < 2 || strings.ToLower(parts[0]) != "bearer" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			token := parts[1]
+
+			// Empty bearer tokens aren't valid
+			if len(token) == 0 {
+				// The space before the token case
+				if len(parts) == 3 {
+					log.Warn("the provided Authorization header contains extra space before the bearer token, and is ignored")
+				}
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			log.Info("token: ", token)
+
+			parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
+
+			log.Info("parsedToken: ", parsedToken)
+			if err != nil {
+				log.Error("failed to parse access token: ", err)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			organization := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+			log.Info("organization: ", organization)
+			if err := kc.VerifyAccessToken(token, organization); err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)
+			if err != nil {
+				log.Error("failed to parse access token: ", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			if jwtToken == nil || mapClaims == nil || mapClaims.Valid() != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			roleProjectMapping := make(map[string]string)
+			for _, role := range jwtToken.Claims.(jwt.MapClaims)["tks-role"].([]interface{}) {
+				slice := strings.Split(role.(string), "@")
+				if len(slice) != 2 {
+					log.Error("invalid role format: ", role)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				// key is projectName and value is roleName
+				roleProjectMapping[slice[1]] = slice[0]
+			}
+			userInfo := &user.DefaultInfo{
+				Organization:       jwtToken.Claims.(jwt.MapClaims)["organization"].(string),
+				RoleProjectMapping: roleProjectMapping,
+			}
+
+			r = r.WithContext(request.WithToken(r.Context(), token))
+			r = r.WithContext(request.WithUser(r.Context(), userInfo))
+
+			next.ServeHTTP(w, r)
+
+			//w.WriteHeader(http.StatusUnauthorized)
+			//w.Write([]byte("Need implementation for keycloak"))
 			return
 		case "basic":
 		default:

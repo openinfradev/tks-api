@@ -44,12 +44,18 @@ type Policy = struct {
 }
 
 type LoginRequest struct {
-	AccountId string `json:"accountId"`
-	Password  string `json:"password"`
+	AccountId        string `json:"accountId"`
+	Password         string `json:"password"`
+	OrganizationName string `json:"organizationName"`
 }
 
 type SignUpRequest struct {
-	AccountId string `json:"accountId"`
-	Password  string `json:"password"`
-	Name      string `json:"name"`
+	AccountId        string `json:"accountId"`
+	Password         string `json:"password"`
+	Name             string `json:"name"`
+	OrganizationName string `json:"organizationName"`
+	EmailAddress     string `json:"emailAddress"`
+	Department       string `json:"department"`
+	Role             string `json:"role"`
+	Description      string `json:"description"`
 }

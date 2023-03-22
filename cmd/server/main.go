@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/openinfradev/tks-api/api/swagger"
 	"github.com/openinfradev/tks-api/internal/database"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/route"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -36,6 +37,13 @@ func init() {
 	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")
 	flag.String("harbor-pw-secret", "harbor-core", "name of harbor password secret")
 	flag.String("git-repository-url", "github.com/openinfradev", "URL of git repository")
+
+	// keycloak
+	flag.String("keycloak-address", "http://localhost:8080", "URL of keycloak")
+	flag.String("keycloak-admin", "admin", "user of keycloak")
+	flag.String("keycloak-password", "admin", "password of keycloak")
+	flag.String("keycloak-realm", "tks", "realm of keycloak")
+	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
@@ -91,7 +99,20 @@ func main() {
 		}
 	}
 
-	route := route.SetupRouter(db, argoClient, asset)
+	keycloak := keycloak.New(&keycloak.Config{
+		Address:       viper.GetString("keycloak-address"),
+		AdminId:       viper.GetString("keycloak-admin"),
+		AdminPassword: viper.GetString("keycloak-password"),
+		ClientSecret:  viper.GetString("keycloak-client-secret"),
+		MasterRealm:   keycloak.DefaultMasterRealm,
+	})
+
+	err = keycloak.InitializeKeycloak()
+	if err != nil {
+		log.Fatal("failed to initialize keycloak : ", err)
+	}
+
+	route := route.SetupRouter(db, argoClient, asset, keycloak)
 
 	log.Info("Starting server on ", viper.GetInt("port"))
 	err = http.ListenAndServe("0.0.0.0:"+strconv.Itoa(viper.GetInt("port")), route)

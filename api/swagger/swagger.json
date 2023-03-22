@@ -1093,6 +1093,9 @@
                 "accountId": {
                     "type": "string"
                 },
+                "organizationName": {
+                    "type": "string"
+                },
                 "password": {
                     "type": "string"
                 }
@@ -1156,10 +1159,25 @@
                 "accountId": {
                     "type": "string"
                 },
+                "department": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "emailAddress": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
+                "organizationName": {
+                    "type": "string"
+                },
                 "password": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }

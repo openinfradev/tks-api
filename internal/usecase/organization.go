@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -13,19 +14,21 @@ import (
 type IOrganizationUsecase interface {
 	Fetch() ([]domain.Organization, error)
 	Get(organizationId string) (domain.Organization, error)
-	Create(domain.Organization) (organizationId string, err error)
-	Delete(organizationId string) (string, error)
+	Create(domain.Organization, string) (organizationId string, err error)
+	Delete(organizationId string, accessToken string) (string, error)
 }
 
 type OrganizationUsecase struct {
 	repo repository.IOrganizationRepository
 	argo argowf.ArgoClient
+	kc   keycloak.IKeycloak
 }
 
-func NewOrganizationUsecase(r repository.IOrganizationRepository, argoClient argowf.ArgoClient) IOrganizationUsecase {
+func NewOrganizationUsecase(r repository.IOrganizationRepository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
 		repo: r,
 		argo: argoClient,
+		kc:   kc,
 	}
 }
 
@@ -37,7 +40,12 @@ func (u *OrganizationUsecase) Fetch() (out []domain.Organization, err error) {
 	return organizations, nil
 }
 
-func (u *OrganizationUsecase) Create(in domain.Organization) (organizationId string, err error) {
+func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string) (organizationId string, err error) {
+	// Create realm in keycloak
+	if organizationId, err = u.kc.CreateRealm(in.Name, domain.Organization{}, accessToken); err != nil {
+		return "", err
+	}
+
 	creator := uuid.Nil
 	if in.Creator != "" {
 		creator, err = uuid.Parse(in.Creator)
@@ -79,9 +87,14 @@ func (u *OrganizationUsecase) Get(organizationId string) (res domain.Organizatio
 	return res, nil
 }
 
-func (u *OrganizationUsecase) Delete(organizationId string) (res string, err error) {
+func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) (res string, err error) {
 	_, err = u.Get(organizationId)
 	if err != nil {
+		return "", err
+	}
+
+	// Delete realm in keycloak
+	if err := u.kc.DeleteRealm(organizationId, accessToken); err != nil {
 		return "", err
 	}
 
