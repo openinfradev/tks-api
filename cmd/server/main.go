@@ -42,7 +42,6 @@ func init() {
 	flag.String("keycloak-address", "http://localhost:8080", "URL of keycloak")
 	flag.String("keycloak-admin", "admin", "user of keycloak")
 	flag.String("keycloak-password", "admin", "password of keycloak")
-	flag.String("keycloak-realm", "tks", "realm of keycloak")
 	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
@@ -104,7 +103,6 @@ func main() {
 		AdminId:       viper.GetString("keycloak-admin"),
 		AdminPassword: viper.GetString("keycloak-password"),
 		ClientSecret:  viper.GetString("keycloak-client-secret"),
-		MasterRealm:   keycloak.DefaultMasterRealm,
 	})
 
 	err = keycloak.InitializeKeycloak()

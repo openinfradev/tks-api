@@ -5,7 +5,6 @@ type Config struct {
 	ClientSecret  string
 	AdminId       string
 	AdminPassword string
-	MasterRealm   string
 }
 
 const (

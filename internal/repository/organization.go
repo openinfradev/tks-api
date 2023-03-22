@@ -33,7 +33,7 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 type Organization struct {
 	gorm.Model
 
-	ID          string `gorm:"primarykey"`
+	ID          string `gorm:"primarykey;type:varchar(36);not null"`
 	Name        string
 	Creator     uuid.UUID
 	Description string

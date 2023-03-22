@@ -112,11 +112,23 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 		r.Handle("/api/1.0/stacks/{clusterId}", authMiddleware(http.HandlerFunc(handler.DeleteStack))).Methods(http.MethodDelete)
 	*/
 
-	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db), kc))
+	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewUserRepository(db), kc))
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/auth/signup", authMiddleware(http.HandlerFunc(authHandler.Signup), kc)).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/logout", authHandler.Logout).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id", authHandler.FindId).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password", authHandler.FindPassword).Methods(http.MethodPost)
+
+	//r.Handle(API_PREFIX+API_VERSION+"/auth/signup", authMiddleware(http.HandlerFunc(authHandler.Signup), kc)).Methods(http.MethodPost)
 	//r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/roles", authHandler.GetRoles).Methods(http.MethodGet)
+	//r.HandleFunc(API_PREFIX+API_VERSION+"/auth/roles", authHandler.GetRoles).Methods(http.MethodGet)
+
+	userHandler := delivery.NewUserHandler(usecase.NewUserUsecase(repository.NewUserRepository(db), kc))
+	r.Handle(API_PREFIX+API_VERSION+"/users", authMiddleware(http.HandlerFunc(userHandler.Create), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/users", authMiddleware(http.HandlerFunc(userHandler.List), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Get), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Delete), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}/password", authMiddleware(http.HandlerFunc(userHandler.UpdatePassword), kc)).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.CheckId), kc)).Methods(http.MethodPost)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient, kc))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization), kc)).Methods(http.MethodPost)
