@@ -16,7 +16,7 @@ const (
 	ClusterStatus_ERROR
 )
 
-var cluseterStatus = [...]string{
+var clusterStatus = [...]string{
 	"PENDING",
 	"INSTALLING",
 	"RUNNING",
@@ -25,21 +25,28 @@ var cluseterStatus = [...]string{
 	"ERROR",
 }
 
-func (m ClusterStatus) String() string { return cluseterStatus[(m)] }
+func (m ClusterStatus) String() string { return clusterStatus[(m)] }
+func (m ClusterStatus) FromString(s string) ClusterStatus {
+	for _, v := range clusterStatus {
+		if v == s {
+			return ClusterStatus_ERROR
+		}
+	}
+	return ClusterStatus_ERROR
+}
 
 // model
 type Cluster = struct {
-	ID                string      `json:"id"`
-	OrganizationId    string      `json:"organizationId"`
-	Name              string      `json:"name"`
-	Description       string      `json:"description"`
-	WorkflowId        string      `json:"workflowId"`
-	Status            string      `json:"status"`
-	StatusDescription string      `json:"statusDescription"`
-	Conf              ClusterConf `json:"conf"`
-	Creator           string      `json:"creator"`
-	CreatedAt         time.Time   `json:"createdAt"`
-	UpdatedAt         time.Time   `json:"updatedAt"`
+	ID             string      `json:"id"`
+	OrganizationId string      `json:"organizationId"`
+	Name           string      `json:"name"`
+	Description    string      `json:"description"`
+	Status         string      `json:"status"`
+	StatusDesc     string      `json:"statusDesc"`
+	Conf           ClusterConf `json:"conf"`
+	Creator        string      `json:"creator"`
+	CreatedAt      time.Time   `json:"createdAt"`
+	UpdatedAt      time.Time   `json:"updatedAt"`
 }
 
 type ClusterConf = struct {

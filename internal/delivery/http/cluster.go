@@ -2,12 +2,14 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -37,7 +39,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	organizationId := urlParams.Get("organizationId")
 	clusters, err := h.usecase.Fetch(organizationId)
 	if err != nil {
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -46,7 +48,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	}
 	out.Clusters = clusters
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // GetCluster godoc
@@ -63,13 +65,13 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
 	if !ok {
-		ErrorJSON(w, "invalid json", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId")))
 		return
 	}
 
 	cluster, err := h.usecase.Get(clusterId)
 	if err != nil {
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -78,7 +80,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	}
 	out.Cluster = cluster
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // GetCluster godoc
@@ -100,8 +102,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(body, &input)
 	if err != nil {
-		log.Error(err)
-		ErrorJSON(w, "invalid json", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
@@ -124,8 +125,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		log.Error("Create cluster error : ", err)
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 	out.ClusterId = clusterId
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // DeleteCluster godoc
@@ -153,17 +153,17 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
 	if !ok {
-		ErrorJSON(w, "Invalid parameters", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId")))
 		return
 	}
 
 	err := h.usecase.Delete(clusterId)
 	if err != nil {
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
-	ResponseJSON(w, nil, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, nil)
 }
 
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +232,7 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 			log.Error("Failed to get kubernetes version. err : ", err)
 		}
 
-		ResponseJSON(w, out, "", http.StatusOK)
+		ResponseJSON(w, http.StatusOK, out)
 	*/
 }
 
@@ -273,7 +273,7 @@ func (h *ClusterHandler) GetClusterApplications(w http.ResponseWriter, r *http.R
 			out.Applications = append(out.Applications, outApplication)
 		}
 
-		ResponseJSON(w, out, "", http.StatusOK)
+		ResponseJSON(w, http.StatusOK, out)
 	*/
 }
 
@@ -381,7 +381,7 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 			out.ApplicationKubeInfos = append(out.ApplicationKubeInfos, outKubeInfo)
 		}
 
-		ResponseJSON(w, out, "", http.StatusOK)
+		ResponseJSON(w, http.StatusOK, out)
 	*/
 }
 
@@ -420,7 +420,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 
 		h.AddHistory(r, organizationId, "cluster", fmt.Sprintf("클러스터 [%s]의 kubeconfig를 다운로드 하였습니다.", clusterId))
 
-		ResponseJSON(w, out, "", http.StatusOK)
+		ResponseJSON(w, http.StatusOK, out)
 	*/
 }
 
@@ -613,7 +613,7 @@ func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.
 			out.Nodes = append(out.Nodes, outNode)
 		}
 
-		ResponseJSON(w, out, "", http.StatusOK)
+		ResponseJSON(w, http.StatusOK, out)
 	*/
 }
 
@@ -681,6 +681,6 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 		var out struct {
 		}
 
-		ResponseJSON(w, out, "", http.StatusOK)
+		ResponseJSON(w, http.StatusOK, out)
 	*/
 }

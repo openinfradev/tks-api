@@ -66,22 +66,10 @@ type FindPasswordRequest struct {
 	//TODO implement me
 }
 
-type SignUpRequest struct {
-	AccountId      string `json:"accountId"`
-	Password       string `json:"password"`
-	Name           string `json:"name"`
-	OrganizationId string `json:"organizationId"`
-	EmailAddress   string `json:"emailAddress"`
-	Department     string `json:"department"`
-	Role           string `json:"role"`
-	Description    string `json:"description"`
-}
-
 type CreateUserRequest struct {
-	AccountId string `json:"accountId"`
-	Password  string `json:"password"`
-	Name      string `json:"name"`
-	//Organization string `json:"organization"`
+	AccountId    string `json:"accountId"`
+	Password     string `json:"password"`
+	Name         string `json:"name"`
 	EmailAddress string `json:"emailAddress"`
 	Department   string `json:"department"`
 	Role         string `json:"role"`

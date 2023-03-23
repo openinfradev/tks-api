@@ -15,6 +15,7 @@ import (
 
 type IUserUsecase interface {
 	CreateAdmin(organizationId string) (*domain.User, error)
+	DeleteAdmin(organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
 	List(ctx context.Context) (*[]domain.User, error)
 	GetByAccountId(ctx context.Context, accountId string) (*domain.User, error)
@@ -26,6 +27,35 @@ type IUserUsecase interface {
 type UserUsecase struct {
 	repo repository.IUserRepository
 	kc   keycloak.IKeycloak
+}
+
+func (u *UserUsecase) DeleteAdmin(organizationId string) error {
+	token, err := u.kc.LoginAdmin()
+	if err != nil {
+		return errors.Wrap(err, "login admin failed")
+	}
+
+	user, err := u.kc.GetUser(organizationId, "admin", token)
+	if err != nil {
+		return errors.Wrap(err, "get user failed")
+	}
+
+	err = u.kc.DeleteUser(organizationId, "admin", token)
+	if err != nil {
+		return errors.Wrap(err, "delete user failed")
+	}
+
+	userUuid, err := uuid.Parse(*user.ID)
+	if err != nil {
+		return errors.Wrap(err, "parse user id failed")
+	}
+
+	err = u.repo.DeleteWithUuid(userUuid)
+	if err != nil {
+		return errors.Wrap(err, "delete user failed")
+	}
+
+	return nil
 }
 
 func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {

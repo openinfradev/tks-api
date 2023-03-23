@@ -43,7 +43,6 @@ type Cluster struct {
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
 	TemplateId     string
-	Status         domain.ClusterStatus
 	SshKeyName     string
 	Region         string
 	NumOfAz        int
@@ -52,7 +51,9 @@ type Cluster struct {
 	MaxSizePerAz   int
 	Creator        uuid.UUID
 	Description    string
-	Workflow       Workflow `gorm:"polymorphic:Ref;polymorphicValue:cluster"`
+	WorkflowId     string
+	Status         domain.ClusterStatus
+	StatusDesc     string
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -88,7 +89,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (resClusters []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Preload("Workflow").Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
 		return nil, fmt.Errorf("Error while finding clusters with organizationId: %s", organizationId)
@@ -108,7 +109,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (resClu
 
 func (r *ClusterRepository) Get(id string) (domain.Cluster, error) {
 	var cluster Cluster
-	res := r.db.Preload("Workflow").First(&cluster, "id = ?", id)
+	res := r.db.First(&cluster, "id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
 		log.Info(res.Error)
 		return domain.Cluster{}, fmt.Errorf("Not found cluster for %s", id)
@@ -149,11 +150,12 @@ func (r *ClusterRepository) Delete(clusterId string) error {
 }
 
 func (r *ClusterRepository) InitWorkflow(clusterId string, workflowId string) error {
-	res := r.db.Where(Workflow{RefID: clusterId, RefType: "cluster"}).
-		Assign(Workflow{RefID: clusterId, RefType: "cluster", WorkflowId: workflowId, StatusDesc: "INIT"}).
-		FirstOrCreate(&Workflow{})
-	if res.Error != nil {
-		return res.Error
+	res := r.db.Model(&Cluster{}).
+		Where("ID = ?", clusterId).
+		Updates(map[string]interface{}{"Status": domain.ClusterStatus_INSTALLING, "WorkflowId": workflowId})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in cluster with id %s", clusterId)
 	}
 
 	return nil
@@ -170,6 +172,7 @@ func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
 		Name:           cluster.Name,
 		Description:    cluster.Description,
 		Status:         cluster.Status.String(),
+		StatusDesc:     cluster.StatusDesc,
 		Creator:        cluster.Creator.String(),
 		CreatedAt:      cluster.CreatedAt,
 		UpdatedAt:      cluster.UpdatedAt,

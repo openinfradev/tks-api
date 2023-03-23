@@ -143,7 +143,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 		return fmt.Errorf("No cluster for deletiing : %s", clusterId)
 	}
 
-	if cluster.Status != domain.ClusterStatus_RUNNING.String() {
+	if cluster.Status != "RUNNING" {
 		return fmt.Errorf("The cluster can not be deleted. cluster status : %s", cluster.Status)
 	}
 
@@ -153,7 +153,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 	}
 
 	for _, resAppGroup := range resAppGroups {
-		if resAppGroup.Status != domain.AppGroupStatus_DELETED.String() {
+		if resAppGroup.Status != "DELETED" {
 			return fmt.Errorf("Undeleted services remain. %s", resAppGroup.ID)
 		}
 	}

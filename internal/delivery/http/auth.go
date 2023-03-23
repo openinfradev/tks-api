@@ -2,11 +2,12 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/openinfradev/tks-api/internal/usecase"
-	"github.com/openinfradev/tks-api/pkg/domain"
 	"io"
 	"net/http"
+
+	"github.com/openinfradev/tks-api/internal/usecase"
+	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 )
 
 type IAuthHandler interface {
@@ -15,8 +16,6 @@ type IAuthHandler interface {
 	FindId(w http.ResponseWriter, r *http.Request)
 	FindPassword(w http.ResponseWriter, r *http.Request)
 
-	//SingUp(w http.ResponseWriter, r *http.Request)
-	//GetRole(w http.ResponseWriter, r *http.Request)
 	//Authenticate(next http.Handler) http.Handler
 }
 type AuthHandler struct {
@@ -42,19 +41,19 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
 	err = json.Unmarshal(body, &input)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -66,28 +65,22 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	//_ = h.Repository.AddHistory(user.ID.String(), "", "login", fmt.Sprintf("[%s] 님이 로그인하였습니다.", input.AccountId))
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 
 }
 
+// Logout godoc
+// @Tags Auth
+// @Summary logout
+// @Description logout
+// @Accept json
+// @Produce json
+// @Success 200 {object} object
+// @Router /auth/logout [post]
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	input := domain.LogoutRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
-		return
-	}
-
-	err = json.Unmarshal(body, &input)
-	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
-		return
-	}
-
 	// Do nothing
 	// Token is not able to be expired manually. Therefore, nothing to do currently.
-
-	ResponseJSON(w, nil, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, nil)
 }
 
 func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
@@ -98,73 +91,4 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
-}
-
-//// Signup godoc
-//// @Tags Auth
-//// @Summary signup
-//// @Description signup
-//// @Accept json
-//// @Produce json
-//// @Param body body domain.SignUpRequest true "account info"
-//// @Success 200 {object} domain.User
-//// @Router /auth/signup [post]
-//// @Security     JWT
-//func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
-//	input := domain.SignUpRequest{}
-//	body, err := io.ReadAll(r.Body)
-//	if err != nil {
-//		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
-//		return
-//	}
-//
-//	err = json.Unmarshal(body, &input)
-//	if err != nil {
-//		ErrorJSON(w, fmt.Sprintf("Invalid request. %s", err), http.StatusBadRequest)
-//		return
-//	}
-//
-//	token, ok := request.TokenFrom(r.Context())
-//	if !ok {
-//		InternalServerError(w, errors.New("token not found"))
-//		return
-//	}
-//	log.Info("Send signup request to keycloak")
-//	user, err := h.organizationUsecase.Register(input.AccountId, input.Password, input.Name, input.OrganizationName, input.Role, token)
-//	if err != nil {
-//		InternalServerError(w, err)
-//		return
-//	}
-//
-//	var out struct {
-//		User domain.User
-//	}
-//
-//	out.User = user
-//
-//	ResponseJSON(w, out, "", http.StatusOK)
-//}
-
-// GetRoles godoc
-// @Tags Auth
-// @Summary roles
-// @Description roles
-// @Accept json
-// @Produce json
-// @Success 200 {object} []domain.Role
-// @Router /auth/roles [get]
-// @Security     JWT
-func (h *AuthHandler) GetRoles(w http.ResponseWriter, r *http.Request) {
-	roles, err := h.usecase.FetchRoles()
-	if err != nil {
-		InternalServerError(w, err)
-		return
-	}
-
-	var out struct {
-		Roles []domain.Role
-	}
-	out.Roles = roles
-
-	ResponseJSON(w, out, "", http.StatusOK)
 }

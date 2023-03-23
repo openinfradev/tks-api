@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 )
 
 type ApiClient interface {
@@ -19,12 +21,6 @@ type ApiClientImpl struct {
 	client *http.Client
 	url    string
 	token  string
-}
-
-type ResponseJson struct {
-	Code    int         `json:"status_code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
 }
 
 // New
@@ -55,29 +51,29 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 	if res == nil {
 		return nil, fmt.Errorf("Failed to call api server.")
 	}
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
-	}
-
-	defer func() {
-		res.Body.Close()
-	}()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		res.Body.Close()
+	}()
 
-	resJson := ResponseJson{}
+	if res.StatusCode != 200 {
+		restError := httpErrors.RestError{}
+		if err := json.Unmarshal(body, &restError); err != nil {
+			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
+		}
+		return restError, fmt.Errorf("Invalid http status (%d)", res.StatusCode)
+	}
+
+	var resJson interface{}
 	if err := json.Unmarshal(body, &resJson); err != nil {
 		return nil, err
 	}
 
-	if res.StatusCode != 200 || resJson.Code != 200 {
-		return nil, fmt.Errorf("Invalid http status (%d). message : %s", res.StatusCode, resJson.Message)
-	}
-
-	return resJson.Data, nil
+	return resJson, nil
 }
 
 func (c *ApiClientImpl) Post(path string, input interface{}) (out interface{}, err error) {
@@ -106,24 +102,27 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 		return nil, fmt.Errorf("Failed to call api server.")
 	}
 
-	defer func() {
-		res.Body.Close()
-	}()
-
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		res.Body.Close()
+	}()
 
-	resJson := ResponseJson{}
+	if res.StatusCode != 200 {
+		restError := httpErrors.RestError{}
+		if err := json.Unmarshal(body, &restError); err != nil {
+			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
+		}
+		return restError, fmt.Errorf("Invalid http status (%d)", res.StatusCode)
+	}
+
+	var resJson interface{}
 	if err := json.Unmarshal(body, &resJson); err != nil {
 		return nil, err
 	}
 
-	if res.StatusCode != 200 || resJson.Code != 200 {
-		return nil, fmt.Errorf("Invalid http status (%d). message : %s", res.StatusCode, resJson.Message)
-	}
-
-	return resJson.Data, nil
+	return resJson, nil
 
 }

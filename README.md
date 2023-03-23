@@ -3,13 +3,21 @@
 ### Run
 
 ```
-$ go run cmd/server/server.go
+$ go build -o server cmd/server/main.go
+$ ./server
 ```
 
 ### Generate swagger files
 
 ```
 $ make docs
+```
+
+### Dev run
+
+```
+# swagger build & build & run
+$ make dev_run
 ```
 
 ### Configuration kubernetes config

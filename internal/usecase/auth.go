@@ -1,17 +1,20 @@
 package usecase
 
 import (
+	"fmt"
+
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 )
 
 type IAuthUsecase interface {
 	Login(accountId string, password string, organizationName string) (domain.User, error)
-	//Register(accountId string, password string, name string, organizationName string, role string, token string) (domain.User, error)
+	Logout(token string) error
 	FetchRoles() (out []domain.Role, err error)
-	//AuthenticateToken(organization string, accessToken string) (*authenticator.Response, bool, error)
 }
 
 type AuthUsecase struct {
@@ -42,14 +45,15 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	user.Token = accountToken.Token
 
 	// Authentication with DB
-	//
-	//if !helper.CheckPasswordHash(user.Password, password) {
-	//	log.Debug(user.Password)
-	//	log.Debug(password)
-	//	return domain.User{}, fmt.Errorf("Invalid password")
-	//}
-	//
-	//user.Token, err = helper.CreateJWT(accountId, user.ID)
+
+	if !helper.CheckPasswordHash(user.Password, password) {
+		log.Debug(user.Password)
+		log.Debug(password)
+		return domain.User{}, fmt.Errorf("Invalid password")
+	}
+
+	// Replaced with Keycloak
+	//user.Token, err = helper.CreateJWT(accountId, user.ID, organizationId)
 	//if err != nil {
 	//	return domain.User{}, fmt.Errorf("failed to create token")
 	//}
@@ -57,56 +61,10 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	return user, nil
 }
 
-// Deprecated: Use UserCreate instead
-//func (r *AuthUsecase) Register(accountId string, password string, name string, organizationName string, role string, accessToken string) (domain.User, error) {
-//	// Validation check
-//	user, err := r.kc.GetUser(organizationName, accountId, accessToken)
-//	if err != nil {
-//		return domain.User{}, err
-//	}
-//	if user != nil {
-//		return domain.User{}, fmt.Errorf("Already existed user. %s", accountId)
-//	}
-//	_, err = r.repo.GetUserByAccountId(accountId)
-//	if err == nil {
-//		return domain.User{}, fmt.Errorf("Already existed user. %s", accountId)
-//	}
-//
-//	// Create user in keycloak
-//	groups := []string{fmt.Sprintf("%s@%s", role, organizationName)}
-//	err = r.kc.CreateUser(organizationName, &gocloak.User{
-//		Username: gocloak.StringP(accountId),
-//		Credentials: &[]gocloak.CredentialRepresentation{
-//			{
-//				Type:      gocloak.StringP("password"),
-//				Value:     gocloak.StringP(password),
-//				Temporary: gocloak.BoolP(false),
-//			},
-//		},
-//		Groups: &groups,
-//	}, accessToken)
-//	if err != nil {
-//		return domain.User{}, err
-//	}
-//
-//	hashedPassword, err := helper.HashPassword(password)
-//	if err != nil {
-//		return domain.User{}, err
-//	}
-//
-//	resUser, err := r.repo.Create(accountId, hashedPassword, name)
-//	if err != nil {
-//		return domain.User{}, err
-//	}
-//
-//	// [TODO] 임시로 tks-admin 으로 세팅한다.
-//	err = r.repo.AssignRole(accountId, "tks-admin")
-//	if err != nil {
-//		return domain.User{}, err
-//	}
-//
-//	return resUser, nil
-//}
+func (r *AuthUsecase) Logout(token string) error {
+	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
+	return nil
+}
 
 func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 	roles, err := u.repo.FetchRoles()
@@ -115,30 +73,3 @@ func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 	}
 	return roles, nil
 }
-
-//func (r *AuthUsecase) AuthenticateToken(organization string, accessToken string) (*authenticator.Response, bool, error) {
-//	if err := r.kc.VerifyAccessToken(accessToken, organization); err != nil {
-//		return nil, false, err
-//	}
-//	jwtToken, mapClaims, err := r.kc.ParseAccessToken(accessToken, organization)
-//	if jwtToken == nil || mapClaims == nil || mapClaims.Valid() != nil {
-//		return nil, false, err
-//	}
-//	roleProjectMapping := make(map[string]string)
-//	for _, role := range jwtToken.Claims.(jwt.MapClaims)["tks-role"].([]interface{}) {
-//		slice := strings.Split(role.(string), "@")
-//		if len(slice) != 2 {
-//			return nil, false, nil
-//		}
-//		// key is projectName and value is roleName
-//		roleProjectMapping[slice[1]] = slice[0]
-//	}
-//	log.Info("Valid Authentication")
-//
-//	return &authenticator.Response{
-//		User: &user.DefaultInfo{
-//			Organization:       jwtToken.Claims.(jwt.MapClaims)["organization"].(string),
-//			RoleProjectMapping: roleProjectMapping,
-//		},
-//	}, true, nil
-//}

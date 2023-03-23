@@ -17,6 +17,7 @@ type IAppGroupUsecase interface {
 	Get(appGroupId string) (out domain.AppGroup, err error)
 	Delete(appGroupId string) (err error)
 	GetApplications(appGroupId string) (out []domain.Application, err error)
+	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
 	UpdateApplication(appGroupId string, input domain.UpdateApplicationRequest) (err error)
 }
 
@@ -182,6 +183,14 @@ func (u *AppGroupUsecase) GetApplications(appGroupId string) (out []domain.Appli
 	out, err = u.repo.GetApplications(appGroupId)
 	if err != nil {
 		return nil, err
+	}
+	return
+}
+
+func (u *AppGroupUsecase) GetApplication(appGroupId string, applicationType string) (out domain.Application, err error) {
+	out, err = u.repo.GetApplication(appGroupId, applicationType)
+	if err != nil {
+		return out, err
 	}
 	return
 }

@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	PREFIX_USER_ID              = "u"
 	PREFIX_CLUSTER_ID           = "c"
 	PREFIX_ORGANIZATION_ID      = "o"
 	PREFIX_APPLICATION_GROUP_ID = "a"

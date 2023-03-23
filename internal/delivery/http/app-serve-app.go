@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -39,7 +40,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	cont_id := urlParams.Get("contract_id")
 	if cont_id == "" {
-		ErrorJSON(w, "Invalid contract_id", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid contract_id")))
 		return
 	}
 
@@ -51,14 +52,14 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	show_all, err := strconv.ParseBool(show_all_str)
 	if err != nil {
 		log.Error("Failed to convert show_all params. Err: ", err)
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
 	appServeApps, err := h.usecase.Fetch(cont_id, show_all)
 	if err != nil {
 		log.Error("Failed to get Failed to get app-serve-apps ", err)
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -67,7 +68,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	}
 	out.AppServeApps = appServeApps
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 
 }
 
@@ -84,14 +85,14 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	vars := mux.Vars(r)
 	appServeAppId, ok := vars["appServeAppId"]
 	if !ok {
-		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appServeAppId")))
 		return
 	}
 
 	res, err := h.usecase.Get(appServeAppId)
 	if err != nil {
 		log.Error("Failed to get Failed to get app-serve-app ", err)
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -100,7 +101,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	}
 	out.AppServeAppCombined = *res
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 
 }
 
@@ -118,12 +119,12 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	var appObj = domain.CreateAppServeAppRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid json, err : %s", err), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 	err = json.Unmarshal(body, &appObj)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid json, err : %s", err), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
@@ -132,54 +133,49 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	// Validate common params
 	if appObj.Name == "" || appObj.Type == "" || appObj.Version == "" ||
 		appObj.AppType == "" || appObj.ContractId == "" {
-		errMsg := fmt.Sprintf(`Error: The following params are always mandatory.
-- name
-- type
-- app_type
-- contract_id
-- version`)
-		ErrorJSON(w, errMsg, http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf(`Error: The following params are always mandatory.
+		- name
+		- type
+		- app_type
+		- contract_id
+		- version`)))
 		return
 	}
 
 	// Validate port param for springboot app
 	if appObj.AppType == "springboot" {
 		if appObj.Port == "" {
-			errMsg := fmt.Sprintf("Error: 'port' param is mandatory.")
-			ErrorJSON(w, errMsg, http.StatusBadRequest)
+			ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf(`Error: 'port' param is mandatory.`)))
 			return
 		}
 	}
 
 	// Validate 'type' param
 	if !(appObj.Type == "build" || appObj.Type == "deploy" || appObj.Type == "all") {
-		errMsg := fmt.Sprintf(`Error: 'type' should be one of these values.
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf(`Error: 'type' should be one of these values.
 - build
 - deploy
-- all`)
-		ErrorJSON(w, errMsg, http.StatusBadRequest)
+- all`)))
 		return
 	}
 
 	// Validate 'strategy' param
 	if appObj.Strategy != "rolling-update" {
-		errMsg := fmt.Sprintf("Error: 'strategy' should be 'rolling-update' on first deployment.")
-		ErrorJSON(w, errMsg, http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf(`Error: 'strategy' should be 'rolling-update' on first deployment.`)))
 		return
 	}
 
 	// Validate 'app_type' param
 	if !(appObj.AppType == "spring" || appObj.AppType == "springboot") {
-		errMsg := fmt.Sprintf(`Error: 'type' should be one of these values.
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf(`Error: 'type' should be one of these values.
 - string
-- stringboot`)
-		ErrorJSON(w, errMsg, http.StatusBadRequest)
+- stringboot`)))
 		return
 	}
 
 	appServeAppId, err := h.usecase.Create(&appObj)
 	if err != nil {
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -188,7 +184,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 	out.AppServeAppId = appServeAppId
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // UpdateAppServeApp godoc
@@ -205,19 +201,19 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	appServeAppId, ok := vars["appServeAppId"]
 	if !ok {
-		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appServeAppId")))
 		return
 	}
 
 	var app = domain.UpdateAppServeAppRequest{}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid json, err : %s", err), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 	err = json.Unmarshal(body, &app)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Invalid json, err : %s", err), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
@@ -231,11 +227,11 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 
 	if err != nil {
-		ErrorJSON(w, err.Error(), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	ResponseJSON(w, res, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, res)
 }
 
 // DeleteAppServeApp godoc
@@ -252,16 +248,16 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	appServeAppId, ok := vars["appServeAppId"]
 	if !ok {
-		ErrorJSON(w, "Invalid prameters", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appServeAppId")))
 		return
 	}
 
 	res, err := h.usecase.Delete(appServeAppId)
 	if err != nil {
 		log.Error("Failed to delete appServeAppId err : ", err)
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
-	ResponseJSON(w, res, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, res)
 }
