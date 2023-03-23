@@ -89,7 +89,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (resClusters []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Preload("Workflow").Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
 		return nil, fmt.Errorf("Error while finding clusters with organizationId: %s", organizationId)
@@ -109,7 +109,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (resClu
 
 func (r *ClusterRepository) Get(id string) (domain.Cluster, error) {
 	var cluster Cluster
-	res := r.db.Preload("Workflow").First(&cluster, "id = ?", id)
+	res := r.db.First(&cluster, "id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
 		log.Info(res.Error)
 		return domain.Cluster{}, fmt.Errorf("Not found cluster for %s", id)

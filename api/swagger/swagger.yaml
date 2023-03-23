@@ -173,12 +173,14 @@ definitions:
     type: object
   domain.CreateOrganizationRequest:
     properties:
-      creator:
-        type: string
       description:
         type: string
       name:
         type: string
+      phoneNumber:
+        type: string
+    required:
+    - name
     type: object
   domain.CreateUserRequest:
     properties:
@@ -234,6 +236,8 @@ definitions:
       id:
         type: string
       name:
+        type: string
+      phoneNumber:
         type: string
       status:
         type: string
@@ -898,6 +902,28 @@ paths:
       security:
       - JWT: []
       summary: Get organization detail
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Update organization detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Organization'
+      security:
+      - JWT: []
+      summary: Update organization detail
       tags:
       - Organizations
   /users:

@@ -937,6 +937,41 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update organization detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Update organization detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Organization"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -1309,14 +1344,17 @@ const docTemplate = `{
         },
         "domain.CreateOrganizationRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
-                "creator": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "phoneNumber": {
                     "type": "string"
                 }
             }
@@ -1403,6 +1441,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "phoneNumber": {
                     "type": "string"
                 },
                 "status": {

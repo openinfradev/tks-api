@@ -123,6 +123,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganizations), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.DeleteOrganization), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.UpdateOrganization), kc)).Methods(http.MethodPut)
 
 	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(
 		repository.NewClusterRepository(db),

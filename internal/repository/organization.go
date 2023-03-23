@@ -15,7 +15,8 @@ type IOrganizationRepository interface {
 	Fetch() (res []domain.Organization, err error)
 	Get(organizationId string) (res domain.Organization, err error)
 	Create(name string, creator uuid.UUID, description string) (string, error)
-	Delete(organizationId string) (out string, err error)
+	Delete(organizationId string) (err error)
+	Update(organizationId string, in domain.UpdateOrganizationRequest) (err error)
 	InitWorkflow(organizationId string, workflowId string) error
 }
 
@@ -35,22 +36,12 @@ type Organization struct {
 
 	ID          string `gorm:"primarykey"`
 	Name        string
-	Creator     uuid.UUID
 	Description string
+	PhoneNumber string
 	WorkflowId  string
 	Status      domain.OrganizationStatus
 	StatusDesc  string
-}
-
-type OrganizationUser struct {
-	gorm.Model
-
-	OrganizationId string
-	Organization   Organization
-	UserId         uuid.UUID
-	User           User
-	Creator        uuid.UUID
-	Description    string
+	Creator     uuid.UUID
 }
 
 func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
@@ -76,7 +67,7 @@ func (r *OrganizationRepository) Fetch() (out []domain.Organization, err error) 
 
 func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 	var organization Organization
-	res := r.db.Preload("Workflow").First(&organization, "id = ?", id)
+	res := r.db.First(&organization, "id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
 		return domain.Organization{}, fmt.Errorf("Not found organization for %s", id)
 	}
@@ -86,26 +77,29 @@ func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 
 func (r *OrganizationRepository) Create(name string, creator uuid.UUID, description string) (string, error) {
 	organization := Organization{Name: name, Creator: creator, Description: description}
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		res := tx.Create(&organization)
-		if res.Error != nil {
-			return res.Error
-		}
-		return nil
-	})
-
-	return organization.ID, err
+	res := r.db.Create(&organization)
+	if res.Error != nil {
+		return "", res.Error
+	}
+	return organization.ID, nil
 }
 
-func (r *OrganizationRepository) Delete(organizationId string) (out string, err error) {
-	err = r.db.Transaction(func(tx *gorm.DB) error {
-		res := tx.Delete(&Organization{}, "id = ?", organizationId)
-		if res.Error != nil {
-			return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
-		}
-		return nil
-	})
-	return "Delete organization successfuly", nil
+func (r *OrganizationRepository) Delete(organizationId string) (err error) {
+	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
+	if res.Error != nil {
+		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
+	}
+	return nil
+}
+
+func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (err error) {
+	res := r.db.Model(&Organization{}).
+		Where("id = ?", organizationId).
+		Updates(map[string]interface{}{"Description": in.Description, "PhoneNumber": in.PhoneNumber})
+	if res.Error != nil {
+		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
+	}
+	return nil
 }
 
 func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string) error {
@@ -124,6 +118,7 @@ func (r *OrganizationRepository) reflect(organization Organization) domain.Organ
 		ID:          organization.ID,
 		Name:        organization.Name,
 		Description: organization.Description,
+		PhoneNumber: organization.PhoneNumber,
 		Status:      organization.Status.String(),
 		Creator:     organization.Creator.String(),
 		CreatedAt:   organization.CreatedAt,
