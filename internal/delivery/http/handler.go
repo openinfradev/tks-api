@@ -3,8 +3,10 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -32,6 +34,26 @@ func GetSession(r *http.Request) (organizationId string, userId uuid.UUID, accou
 	}
 
 	return r.Header.Get("OrganizationId"), userId, r.Header.Get("AccountId")
+}
+
+func UnmarshalRequestInput(r *http.Request, in any) error {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, &in)
+	if err != nil {
+		return err
+	}
+
+	validate := validator.New()
+	err = validate.Struct(in)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
 
 /*

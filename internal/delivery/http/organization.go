@@ -3,11 +3,11 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-playground/validator"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/auth/request"
@@ -17,14 +17,14 @@ import (
 )
 
 type OrganizationHandler struct {
-	organizationUsecase usecase.IOrganizationUsecase
-	userUsecase         usecase.IUserUsecase
+	usecase     usecase.IOrganizationUsecase
+	userUsecase usecase.IUserUsecase
 }
 
 func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUsecase) *OrganizationHandler {
 	return &OrganizationHandler{
-		organizationUsecase: o,
-		userUsecase:         u,
+		usecase:     o,
+		userUsecase: u,
 	}
 }
 
@@ -42,39 +42,47 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	_, userId, _ := GetSession(r)
 
 	input := domain.CreateOrganizationRequest{}
-	body, err := io.ReadAll(r.Body)
+
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
+
 	}
 
-	err = json.Unmarshal(body, &input)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
+	/*
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			return
+		}
 
-	validate := validator.New()
-	err = validate.Struct(input)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
+		err = json.Unmarshal(body, &input)
+		if err != nil {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			return
+		}
+
+		err = validate.Struct(input)
+		if err != nil {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			return
+		}
+
+	*/
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
 		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("token not found")))
 		return
 	}
-
-	organizationId, err := h.organizationUsecase.Create(domain.Organization{
+	organizationId, err := h.usecase.Create(domain.Organization{
 		Name:        input.Name,
 		Creator:     userId.String(),
 		Description: input.Description,
 	}, token)
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
-		//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
 		ErrorJSON(w, err)
 		return
 	}
@@ -87,23 +95,11 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// add user to organizationUser
-	/*
-		err = h.Repository.AddUserInOrganization(userId, response.GetOrganizationId())
-		if err != nil {
-			h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
-			ErrorJSON(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	*/
-
 	var out struct {
-		OrganizationId string `json:"id"`
+		OrganizationId string `json:"organizationId"`
 	}
 
 	out.OrganizationId = organizationId
-
-	//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하였습니다.", out.OrganizationId))
 
 	time.Sleep(time.Second * 5) // for test
 	ResponseJSON(w, http.StatusOK, out)
@@ -121,9 +117,8 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
 	log.Info("GetOrganization")
-	organizations, err := h.organizationUsecase.Fetch()
+	organizations, err := h.usecase.Fetch()
 	if err != nil {
-		log.Error("Failed to get organizations err : ", err)
 		ErrorJSON(w, err)
 		return
 	}
@@ -155,7 +150,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	organization, err := h.organizationUsecase.Get(organizationId)
+	organization, err := h.usecase.Get(organizationId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -202,7 +197,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	// TODO: user 삭제
 
 	// organization 삭제
-	err = h.organizationUsecase.Delete(organizationId, token)
+	err = h.usecase.Delete(organizationId, token)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -242,11 +237,13 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.organizationUsecase.Update(organizationId, input)
+	err = h.usecase.Update(organizationId, input)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
+
+	log.Info(input)
 
 	ResponseJSON(w, http.StatusOK, nil)
 }

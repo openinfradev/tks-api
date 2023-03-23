@@ -4,11 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"time"
 )
 
 type IKeycloak interface {
@@ -57,7 +59,10 @@ func (c *Keycloak) InitializeKeycloak() error {
 	ctx := context.Background()
 	restyClient := c.client.RestyClient()
 	//for debugging
-	restyClient.SetDebug(true)
+
+	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+		restyClient.SetDebug(true)
+	}
 	restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 	log.Info("loginAdmin")

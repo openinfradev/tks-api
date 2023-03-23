@@ -498,37 +498,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/roles": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "roles",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "roles",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Role"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/cloud-settings": {
             "get": {
                 "security": [
@@ -1007,82 +976,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/users": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "GetUsers",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "GetUsers",
-                "parameters": [
-                    {
-                        "description": "user info",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.CreateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.User"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/:userId": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "GetUser",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "GetUser",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "user uid",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.User"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -1359,35 +1252,6 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateUserRequest": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "department": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "emailAddress": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organizationName": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "string"
-                }
-            }
-        },
         "domain.History": {
             "type": "object",
             "properties": {
@@ -1512,26 +1376,29 @@ const docTemplate = `{
                 "creator": {
                     "type": "string"
                 },
+                "department": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "emailAddress": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "organizations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Organization"
-                    }
+                "organization": {
+                    "$ref": "#/definitions/domain.Organization"
                 },
                 "password": {
                     "type": "string"
                 },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.Role"
-                    }
+                "role": {
+                    "$ref": "#/definitions/domain.Role"
                 },
                 "token": {
                     "type": "string"

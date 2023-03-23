@@ -193,7 +193,38 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 		authType := r.Header.Get("Authorization-Type")
 
 		switch authType {
+		case "basic":
+			tokenString := r.Header.Get("Authorization")
+			if len(tokenString) == 0 {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Missing Authorization Header"))
+				return
+			}
+			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+			token, err := helper.VerifyToken(tokenString)
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Error verifying JWT token: " + err.Error()))
+				return
+			}
+
+			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
+			organizationId := token.Claims.(jwt.MapClaims)["OrganizationId"]
+			id := token.Claims.(jwt.MapClaims)["ID"]
+
+			log.Debug("[authMiddleware] accountId : ", accountId)
+			log.Debug("[authMiddleware] Id : ", id)
+			log.Debug("[authMiddleware] organizationId : ", organizationId)
+
+			r.Header.Set("OrganizationId", fmt.Sprint(organizationId))
+			r.Header.Set("AccountId", fmt.Sprint(accountId))
+			r.Header.Set("ID", fmt.Sprint(id))
+
+			next.ServeHTTP(w, r)
+			return
+
 		case "keycloak":
+		default:
 
 			// [TODO] implementaion keycloak process
 			//vars := mux.Vars(r)
@@ -269,40 +300,8 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			r = r.WithContext(request.WithUser(r.Context(), userInfo))
 
 			next.ServeHTTP(w, r)
-
-			//w.WriteHeader(http.StatusUnauthorized)
-			//w.Write([]byte("Need implementation for keycloak"))
-			return
-		case "basic":
-		default:
-			tokenString := r.Header.Get("Authorization")
-			if len(tokenString) == 0 {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Missing Authorization Header"))
-				return
-			}
-			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-			token, err := helper.VerifyToken(tokenString)
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Error verifying JWT token: " + err.Error()))
-				return
-			}
-
-			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
-			organizationId := token.Claims.(jwt.MapClaims)["OrganizationId"]
-			id := token.Claims.(jwt.MapClaims)["ID"]
-
-			log.Debug("[authMiddleware] accountId : ", accountId)
-			log.Debug("[authMiddleware] Id : ", id)
-			log.Debug("[authMiddleware] organizationId : ", organizationId)
-
-			r.Header.Set("OrganizationId", fmt.Sprint(organizationId))
-			r.Header.Set("AccountId", fmt.Sprint(accountId))
-			r.Header.Set("ID", fmt.Sprint(id))
 		}
 
-		next.ServeHTTP(w, r)
 	})
 }
 

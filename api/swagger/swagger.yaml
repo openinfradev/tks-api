@@ -182,25 +182,6 @@ definitions:
     required:
     - name
     type: object
-  domain.CreateUserRequest:
-    properties:
-      accountId:
-        type: string
-      department:
-        type: string
-      description:
-        type: string
-      emailAddress:
-        type: string
-      name:
-        type: string
-      organizationName:
-        type: string
-      password:
-        type: string
-      role:
-        type: string
-    type: object
   domain.History:
     properties:
       accountId:
@@ -282,20 +263,22 @@ definitions:
         type: string
       creator:
         type: string
+      department:
+        type: string
+      description:
+        type: string
+      emailAddress:
+        type: string
       id:
         type: string
       name:
         type: string
-      organizations:
-        items:
-          $ref: '#/definitions/domain.Organization'
-        type: array
+      organization:
+        $ref: '#/definitions/domain.Organization'
       password:
         type: string
-      roles:
-        items:
-          $ref: '#/definitions/domain.Role'
-        type: array
+      role:
+        $ref: '#/definitions/domain.Role'
       token:
         type: string
       updatedAt:
@@ -610,25 +593,6 @@ paths:
       summary: logout
       tags:
       - Auth
-  /auth/roles:
-    get:
-      consumes:
-      - application/json
-      description: roles
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/domain.Role'
-            type: array
-      security:
-      - JWT: []
-      summary: roles
-      tags:
-      - Auth
   /cloud-settings:
     get:
       consumes:
@@ -926,53 +890,6 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
-  /users:
-    post:
-      consumes:
-      - application/json
-      description: GetUsers
-      parameters:
-      - description: user info
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.User'
-      security:
-      - JWT: []
-      summary: GetUsers
-      tags:
-      - Users
-  /users/:userId:
-    get:
-      consumes:
-      - application/json
-      description: GetUser
-      parameters:
-      - description: user uid
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.User'
-      security:
-      - JWT: []
-      summary: GetUser
-      tags:
-      - Users
 securityDefinitions:
   JWT:
     in: header
