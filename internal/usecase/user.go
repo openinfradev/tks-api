@@ -14,6 +14,7 @@ import (
 )
 
 type IUserUsecase interface {
+	CreateAdmin(organizationId string) (*domain.User, error)
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
 	List(ctx context.Context) (*[]domain.User, error)
 	GetByAccountId(ctx context.Context, accountId string) (*domain.User, error)
@@ -25,6 +26,94 @@ type IUserUsecase interface {
 type UserUsecase struct {
 	repo repository.IUserRepository
 	kc   keycloak.IKeycloak
+}
+
+func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
+	token, err := u.kc.LoginAdmin()
+	if err != nil {
+		return nil, errors.Wrap(err, "login admin failed")
+	}
+	user := domain.User{
+		AccountId: "admin",
+		Password:  "admin",
+		Role: domain.Role{
+			Name: "admin",
+		},
+		Organization: domain.Organization{
+			ID: orgainzationId,
+		},
+		Name: "admin",
+	}
+
+	keycloakUser, err := u.kc.GetUser(orgainzationId, user.AccountId, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting user from keycloak failed")
+	}
+	if keycloakUser != nil {
+		return nil, errors.Wrap(err, "already existed user in keycloak")
+	}
+
+	_, err = u.repo.GetUserByAccountId(user.AccountId, orgainzationId)
+	if err == nil {
+		return nil, errors.Wrap(err, "already existed user"+user.AccountId)
+	}
+
+	// Create user in keycloak
+	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, orgainzationId)}
+	err = u.kc.CreateUser(orgainzationId, &gocloak.User{
+		Username: gocloak.StringP(user.AccountId),
+		Credentials: &[]gocloak.CredentialRepresentation{
+			{
+				Type:      gocloak.StringP("password"),
+				Value:     gocloak.StringP(user.Password),
+				Temporary: gocloak.BoolP(false),
+			},
+		},
+		Groups: &groups,
+	}, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating user in keycloak failed")
+	}
+	keycloakUser, err = u.kc.GetUser(user.Organization.ID, user.AccountId, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting user from keycloak failed")
+	}
+
+	userUuid, err := uuid.Parse(*keycloakUser.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	hashedPassword, err := helper.HashPassword(user.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return nil, err
+	}
+	for _, role := range roles {
+		if role.Name == user.Role.Name {
+			user.Role.ID = role.ID
+		}
+	}
+	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return nil, err
+	}
+	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+		user.Department, user.Description, user.Organization.ID, roleUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	//err = u.repo.AssignRole(user.AccountId, user.Organization.ID, user.Role.Name)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	return &resUser, nil
 }
 
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, newPassword string) error {
@@ -188,25 +277,21 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	if ok == false {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
-	keycloakUser, err := u.kc.GetUser(user.Organization.Name, user.AccountId, token)
+	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting user from keycloak failed")
 	}
 	if keycloakUser != nil {
 		return nil, errors.Wrap(err, "already existed user in keycloak")
 	}
-	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
-		return nil, errors.Wrap(err, "user in the context is empty")
-	}
-	_, err = u.repo.GetUserByAccountId(user.AccountId, userInfo.GetOrganization())
+	_, err = u.repo.GetUserByAccountId(user.AccountId, user.Organization.ID)
 	if err == nil {
 		return nil, errors.Wrap(err, "already existed user"+user.AccountId)
 	}
 
 	// Create user in keycloak
-	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.Name)}
-	err = u.kc.CreateUser(user.Organization.Name, &gocloak.User{
+	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}
+	err = u.kc.CreateUser(user.Organization.ID, &gocloak.User{
 		Username: gocloak.StringP(user.AccountId),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
@@ -220,12 +305,12 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	if err != nil {
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
 	}
-	keycloakUser, err = u.kc.GetUser(user.Organization.Name, user.AccountId, token)
+	keycloakUser, err = u.kc.GetUser(user.Organization.ID, user.AccountId, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting user from keycloak failed")
 	}
 
-	uuid, err := uuid.Parse(*keycloakUser.ID)
+	userUuid, err := uuid.Parse(*keycloakUser.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -235,16 +320,30 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		return nil, err
 	}
 
-	resUser, err := u.repo.CreateWithUuid(uuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
-		user.Department, user.Description)
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return nil, err
+	}
+	for _, role := range roles {
+		if role.Name == user.Role.Name {
+			user.Role.ID = role.ID
+		}
+	}
+	roleUuid, err := uuid.Parse(user.Role.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = u.repo.AssignRole(user.AccountId, userInfo.GetOrganization(), user.Role.Name)
+	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
 	}
+
+	//err = u.repo.AssignRole(user.AccountId, userInfo.GetOrganization(), user.Role.Name)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return &resUser, nil
 }

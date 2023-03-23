@@ -14,6 +14,8 @@ import (
 type IKeycloak interface {
 	InitializeKeycloak() error
 
+	LoginAdmin() (string, error)
+
 	CreateRealm(organizationName string, organizationConfig domain.Organization, token string) (string, error)
 	GetRealm(organizationName string, token string) (*domain.Organization, error)
 	GetRealms(token string) ([]*domain.Organization, error)
@@ -34,6 +36,15 @@ type IKeycloak interface {
 type Keycloak struct {
 	config *Config
 	client *gocloak.GoCloak
+}
+
+func (c *Keycloak) LoginAdmin() (string, error) {
+	token, err := c.client.LoginAdmin(context.Background(), c.config.AdminId, c.config.AdminPassword, DefaultMasterRealm)
+	if err != nil {
+		return "", err
+	}
+
+	return token.AccessToken, nil
 }
 
 func New(config *Config) IKeycloak {

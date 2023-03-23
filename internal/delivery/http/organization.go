@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	"io"
@@ -16,12 +15,14 @@ import (
 )
 
 type OrganizationHandler struct {
-	usecase usecase.IOrganizationUsecase
+	organizationUsecase usecase.IOrganizationUsecase
+	userUsecase         usecase.IUserUsecase
 }
 
-func NewOrganizationHandler(h usecase.IOrganizationUsecase) *OrganizationHandler {
+func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUsecase) *OrganizationHandler {
 	return &OrganizationHandler{
-		usecase: h,
+		organizationUsecase: o,
+		userUsecase:         u,
 	}
 }
 
@@ -54,11 +55,11 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		InternalServerError(w, errors.New("token not found"))
+		ErrorJSON(w, "token not found", http.StatusInternalServerError)
 		return
 	}
 
-	organizationId, err := h.usecase.Create(domain.Organization{
+	organizationId, err := h.organizationUsecase.Create(domain.Organization{
 		Name:        input.Name,
 		Creator:     userId,
 		Description: input.Description,
@@ -66,7 +67,15 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
 		//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
-		InternalServerError(w, err)
+		ErrorJSON(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Admin user 생성
+	_, err = h.userUsecase.CreateAdmin(organizationId)
+	if err != nil {
+		log.Error("Failed to create user err : ", err)
+		ErrorJSON(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -104,7 +113,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
 	log.Info("GetOrganization")
-	organizations, err := h.usecase.Fetch()
+	organizations, err := h.organizationUsecase.Fetch()
 	if err != nil {
 		log.Error("Failed to get organizations err : ", err)
 		InternalServerError(w, err)
@@ -138,7 +147,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	organization, err := h.usecase.Get(organizationId)
+	organization, err := h.organizationUsecase.Get(organizationId)
 	if err != nil {
 		InternalServerError(w, err)
 		return
@@ -177,7 +186,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	res, err := h.usecase.Delete(organizationId, token)
+	res, err := h.organizationUsecase.Delete(organizationId, token)
 	if err != nil {
 		ErrorJSON(w, fmt.Sprintf("Failed to delete organization err : %s", err), http.StatusBadRequest)
 		return

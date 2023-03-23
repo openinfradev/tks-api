@@ -52,7 +52,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := input.ToUser()
 	user.Organization = domain.Organization{
-		Name: userInfo.GetOrganization(),
+		ID: userInfo.GetOrganization(),
 	}
 	user, err = u.usecase.Create(ctx, user)
 	if err != nil {
@@ -161,7 +161,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := input.ToUser()
 	user.Organization = domain.Organization{
-		Name: userInfo.GetOrganization(),
+		ID: userInfo.GetOrganization(),
 	}
 
 	originUser, err := u.usecase.GetByAccountId(ctx, userId)

@@ -130,7 +130,7 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 //		return
 //	}
 //	log.Info("Send signup request to keycloak")
-//	user, err := h.usecase.Register(input.AccountId, input.Password, input.Name, input.OrganizationName, input.Role, token)
+//	user, err := h.organizationUsecase.Register(input.AccountId, input.Password, input.Name, input.OrganizationName, input.Role, token)
 //	if err != nil {
 //		InternalServerError(w, err)
 //		return

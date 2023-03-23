@@ -1,7 +1,6 @@
 package usecase
 
 import (
-	"fmt"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
@@ -42,9 +41,6 @@ func (u *OrganizationUsecase) Fetch() (out []domain.Organization, err error) {
 
 func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string) (organizationId string, err error) {
 	// Create realm in keycloak
-	if organizationId, err = u.kc.CreateRealm(in.Name, domain.Organization{}, accessToken); err != nil {
-		return "", err
-	}
 
 	creator := uuid.Nil
 	if in.Creator != "" {
@@ -59,22 +55,27 @@ func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string)
 	}
 	log.Info("newly created Organization ID:", organizationId)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-		"tks-create-contract-repo",
-		argowf.SubmitOptions{
-			Parameters: []string{
-				"contract_id=" + organizationId,
-			},
-		})
-	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
-		return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+	if organizationId, err = u.kc.CreateRealm(organizationId, domain.Organization{}, accessToken); err != nil {
+		return "", err
 	}
-	log.Info("submited workflow :", workflowId)
 
-	if err := u.repo.InitWorkflow(organizationId, workflowId); err != nil {
-		return "", fmt.Errorf("Failed to initialize organization status to 'CREATING'. err : %s", err)
-	}
+	// UNCOMMENT Lines below when to push
+	//workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+	//	"tks-create-contract-repo",
+	//	argowf.SubmitOptions{
+	//		Parameters: []string{
+	//			"contract_id=" + organizationId,
+	//		},
+	//	})
+	//if err != nil {
+	//	log.Error("failed to submit argo workflow template. err : ", err)
+	//	return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+	//}
+	//log.Info("submited workflow :", workflowId)
+	//
+	//if err := u.repo.InitWorkflow(organizationId, workflowId); err != nil {
+	//	return "", fmt.Errorf("Failed to initialize organization status to 'CREATING'. err : %s", err)
+	//}
 
 	return organizationId, nil
 }

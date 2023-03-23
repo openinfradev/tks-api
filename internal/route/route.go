@@ -130,7 +130,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}/password", authMiddleware(http.HandlerFunc(userHandler.UpdatePassword), kc)).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.CheckId), kc)).Methods(http.MethodPost)
 
-	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient, kc))
+	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db),
+		argoClient, kc), usecase.NewUserUsecase(repository.NewUserRepository(db), kc))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.CreateOrganization), kc)).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganizations), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization), kc)).Methods(http.MethodGet)
@@ -219,20 +220,19 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
-			log.Info("token: ", token)
 
 			parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
 
-			log.Info("parsedToken: ", parsedToken)
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 			organization := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
-			log.Info("organization: ", organization)
 			if err := kc.VerifyAccessToken(token, organization); err != nil {
+				log.Error("failed to verify access token: ", err)
 				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("failed to verify access token: " + err.Error()))
 				return
 			}
 			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)

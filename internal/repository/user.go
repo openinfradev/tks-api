@@ -23,7 +23,7 @@ type IUserRepository interface {
 	AccountIdFilter(accountId string) FilterFunc
 	OrganizationFilter(organization string) FilterFunc
 	CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
-		department string, description string) (domain.User, error)
+		department string, description string, orgainzationId string, roleId uuid.UUID) (domain.User, error)
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
 		department string, description string) (domain.User, error)
 	DeleteWithUuid(uuid uuid.UUID) error
@@ -196,21 +196,24 @@ func (r *UserRepository) GetUserByAccountId(accountId string, organizationId str
 }
 
 func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
-	department string, description string) (domain.User, error) {
+	department string, description string, orgainzationId string, roleId uuid.UUID) (domain.User, error) {
 	_, err := r.GetUser(uuid)
 	if err == nil {
 		return domain.User{}, fmt.Errorf("Already existed user %s", accountId)
 	}
 
 	newUser := User{
-		ID:           uuid,
-		AccountId:    accountId,
-		Password:     password,
-		Name:         name,
-		EmailAddress: email,
-		Department:   department,
-		Description:  description,
+		ID:             uuid,
+		AccountId:      accountId,
+		Password:       password,
+		Name:           name,
+		EmailAddress:   email,
+		Department:     department,
+		Description:    description,
+		OrganizationId: orgainzationId,
+		RoleId:         roleId,
 	}
+	log.Info("newuser", newUser)
 	res := r.db.Create(&newUser)
 	if res.Error != nil {
 		return domain.User{}, res.Error
@@ -311,7 +314,7 @@ func (r *UserRepository) getUserByAccountId(accountId string, organizationId str
 	user := User{}
 	log.Info("account_id = ? AND organization_id = ?", accountId, organizationId)
 	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").
-		Find(&user, "account_id = ?", accountId)
+		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.RowsAffected == 0 || res.Error != nil {
 		return User{}, fmt.Errorf("Not found user. %s", res.Error)
 	}
