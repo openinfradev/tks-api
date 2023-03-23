@@ -52,7 +52,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationName)
+	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
 		InternalServerError(w, err)
 		return
