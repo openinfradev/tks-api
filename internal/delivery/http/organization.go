@@ -3,26 +3,28 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-playground/validator"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/go-playground/validator"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type OrganizationHandler struct {
-	usecase usecase.IOrganizationUsecase
+	organizationUsecase usecase.IOrganizationUsecase
+	userUsecase         usecase.IUserUsecase
 }
 
-func NewOrganizationHandler(h usecase.IOrganizationUsecase) *OrganizationHandler {
+func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUsecase) *OrganizationHandler {
 	return &OrganizationHandler{
-		usecase: h,
+		organizationUsecase: o,
+		userUsecase:         u,
 	}
 }
 
@@ -65,7 +67,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	organizationId, err := h.usecase.Create(domain.Organization{
+	organizationId, err := h.organizationUsecase.Create(domain.Organization{
 		Name:        input.Name,
 		Creator:     userId.String(),
 		Description: input.Description,
@@ -73,6 +75,14 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
 		//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
+		ErrorJSON(w, err)
+		return
+	}
+
+	// Admin user 생성
+	_, err = h.userUsecase.CreateAdmin(organizationId)
+	if err != nil {
+		log.Error("Failed to create user err : ", err)
 		ErrorJSON(w, err)
 		return
 	}
@@ -110,7 +120,8 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Router /organizations [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
-	organizations, err := h.usecase.Fetch()
+	log.Info("GetOrganization")
+	organizations, err := h.organizationUsecase.Fetch()
 	if err != nil {
 		log.Error("Failed to get organizations err : ", err)
 		ErrorJSON(w, err)
@@ -144,7 +155,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	organization, err := h.usecase.Get(organizationId)
+	organization, err := h.organizationUsecase.Get(organizationId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -183,7 +194,15 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err := h.usecase.Delete(organizationId, token)
+	// TODO : organization에 속한 user들도 삭제해야함(DB에는 남아있음)
+	// Admin user 삭제
+	err := h.userUsecase.DeleteAdmin(organizationId)
+	ResponseJSON(w, http.StatusOK, nil)
+
+	// TODO: user 삭제
+
+	// organization 삭제
+	err = h.organizationUsecase.Delete(organizationId, token)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -192,7 +211,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	ResponseJSON(w, http.StatusOK, nil)
 }
 
-// GetOrganization godoc
+// UpdateOrganization godoc
 // @Tags Organizations
 // @Summary Update organization detail
 // @Description Update organization detail
@@ -206,7 +225,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
 		return
 	}
 
@@ -223,7 +242,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.usecase.Update(organizationId, input)
+	err = h.organizationUsecase.Update(organizationId, input)
 	if err != nil {
 		ErrorJSON(w, err)
 		return

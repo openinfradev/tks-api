@@ -1,8 +1,6 @@
 package usecase_test
 
 import (
-	"context"
-	"errors"
 	"testing"
 )
 

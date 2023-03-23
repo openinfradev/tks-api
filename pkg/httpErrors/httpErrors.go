@@ -103,6 +103,15 @@ func NewNotFoundError(err error) IRestError {
 	}
 }
 
+func NewConflictError(err error) IRestError {
+	return RestError{
+		ErrStatus:  http.StatusConflict,
+		ErrCode:    "",
+		ErrMessage: err.Error(),
+		ErrCauses:  err,
+	}
+}
+
 /*
 func NewForbiddenError(causes interface{}) RestErr {
 	return ErrorJson{
