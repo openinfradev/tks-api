@@ -59,6 +59,27 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.CloudSetting:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      resource:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   domain.Cluster:
     properties:
       conf:
@@ -77,11 +98,9 @@ definitions:
         type: string
       status:
         type: string
-      statusDescription:
+      statusDesc:
         type: string
       updatedAt:
-        type: string
-      workflowId:
         type: string
     type: object
   domain.ClusterConf:
@@ -114,6 +133,23 @@ definitions:
       type:
         type: string
     type: object
+  domain.CreateCloudSettingRequest:
+    properties:
+      accessKey:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      secretKey:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   domain.CreateClusterRequest:
     properties:
       creator:
@@ -144,6 +180,25 @@ definitions:
       name:
         type: string
     type: object
+  domain.CreateUserRequest:
+    properties:
+      accountId:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      emailAddress:
+        type: string
+      name:
+        type: string
+      organizationName:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
   domain.History:
     properties:
       accountId:
@@ -163,7 +218,7 @@ definitions:
     properties:
       accountId:
         type: string
-      organizationName:
+      organizationId:
         type: string
       password:
         type: string
@@ -200,25 +255,6 @@ definitions:
       name:
         type: string
       updatedAt:
-        type: string
-    type: object
-  domain.SignUpRequest:
-    properties:
-      accountId:
-        type: string
-      department:
-        type: string
-      description:
-        type: string
-      emailAddress:
-        type: string
-      name:
-        type: string
-      organizationName:
-        type: string
-      password:
-        type: string
-      role:
         type: string
     type: object
   domain.UpdateApplicationRequest:
@@ -372,11 +408,16 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get applications
+      description: Get application
       parameters:
       - description: appGroupId
         in: path
         name: appGroupId
+        required: true
+        type: string
+      - description: applicationType
+        in: query
+        name: applicationType
         required: true
         type: string
       produces:
@@ -388,7 +429,7 @@ paths:
             type: object
       security:
       - JWT: []
-      summary: Get applications
+      summary: Get application
       tags:
       - AppGroups
     post:
@@ -550,6 +591,21 @@ paths:
       summary: login
       tags:
       - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: logout
+      tags:
+      - Auth
   /auth/roles:
     get:
       consumes:
@@ -569,30 +625,85 @@ paths:
       summary: roles
       tags:
       - Auth
-  /auth/signup:
-    post:
+  /cloud-settings:
+    get:
       consumes:
       - application/json
-      description: signup
-      parameters:
-      - description: account info
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.SignUpRequest'
+      description: Get CloudSetting
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/domain.CloudSetting'
       security:
       - JWT: []
-      summary: signup
+      summary: Get CloudSetting
       tags:
-      - Auth
+      - CloudSettings
+    post:
+      consumes:
+      - application/json
+      description: Create CloudSetting
+      parameters:
+      - description: create cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCloudSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Create CloudSetting
+      tags:
+      - CloudSettings
+  /cloud-settings/{cloudSettingId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete CloudSetting
+      parameters:
+      - description: cloudSettingId
+        in: path
+        name: cloudSettingId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CloudSetting'
+      security:
+      - JWT: []
+      summary: Delete CloudSetting
+      tags:
+      - CloudSettings
+    get:
+      consumes:
+      - application/json
+      description: Get cloudSetting by cloudSettingId
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CloudSetting'
+      security:
+      - JWT: []
+      summary: Get cloudSetting by cloudSettingId
+      tags:
+      - CloudSettings
   /clusters:
     get:
       consumes:
@@ -789,6 +900,53 @@ paths:
       summary: Get organization detail
       tags:
       - Organizations
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: GetUsers
+      parameters:
+      - description: user info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+      security:
+      - JWT: []
+      summary: GetUsers
+      tags:
+      - Users
+  /users/:userId:
+    get:
+      consumes:
+      - application/json
+      description: GetUser
+      parameters:
+      - description: user uid
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+      security:
+      - JWT: []
+      summary: GetUser
+      tags:
+      - Users
 securityDefinitions:
   JWT:
     in: header

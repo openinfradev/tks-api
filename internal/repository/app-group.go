@@ -19,6 +19,7 @@ type IAppGroupRepository interface {
 	Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
 	Delete(id string) error
 	GetApplications(appGroupID string) (applications []domain.Application, err error)
+	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
 	UpsertApplication(appGroupID string, appType string, endpoint, metadata string) error
 	InitWorkflow(appGroupId string, workflowId string) error
 }
@@ -41,12 +42,11 @@ type AppGroup struct {
 	AppGroupType string `gorm:"uniqueIndex:idx_AppGroupType_ClusterId"`
 	ClusterId    string `gorm:"uniqueIndex:idx_AppGroupType_ClusterId"`
 	Name         string
-	WorkflowId   string
-	Status       domain.AppGroupStatus
-	StatusDesc   string
 	Creator      uuid.UUID
 	Description  string
-	Workflow     Workflow `gorm:"polymorphic:Ref;polymorphicValue:appgroup"`
+	WorkflowId   string
+	Status       string // INIT, RUNNING, COMPLETED, FAILED, ERROR
+	StatusDesc   string
 }
 
 func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
@@ -127,6 +127,15 @@ func (r *AppGroupRepository) GetApplications(appGroupId string) (out []domain.Ap
 	return out, nil
 }
 
+func (r *AppGroupRepository) GetApplication(appGroupId string, applicationType string) (out domain.Application, err error) {
+	var application Application
+	res := r.db.Where("app_group_id = ? AND type = ?", appGroupId, applicationType).First(&application)
+	if res.Error != nil {
+		return domain.Application{}, res.Error
+	}
+	return r.reflectApplication(application), nil
+}
+
 func (r *AppGroupRepository) UpsertApplication(appGroupId string, appType string, endpoint, metadata string) error {
 	res := r.db.Where(Application{
 		AppGroupId: appGroupId,
@@ -144,11 +153,12 @@ func (r *AppGroupRepository) UpsertApplication(appGroupId string, appType string
 }
 
 func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
-	res := r.db.Where(Workflow{RefID: appGroupId, RefType: "appgroup"}).
-		Assign(Workflow{RefID: appGroupId, RefType: "appgroup", WorkflowId: workflowId, StatusDesc: "INIT"}).
-		FirstOrCreate(&Workflow{})
-	if res.Error != nil {
-		return res.Error
+	res := r.db.Model(&AppGroup{}).
+		Where("ID = ?", appGroupId).
+		Updates(map[string]interface{}{"Status": "INIT", "WorkflowId": workflowId})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in appgroup with id %s", appGroupId)
 	}
 
 	return nil
@@ -162,7 +172,7 @@ func (r *AppGroupRepository) reflect(appGroup AppGroup) domain.AppGroup {
 		AppGroupType:      appGroup.AppGroupType,
 		Name:              appGroup.Name,
 		Description:       appGroup.Description,
-		Status:            appGroup.Status.String(),
+		Status:            appGroup.Status,
 		StatusDescription: appGroup.StatusDesc,
 		Creator:           appGroup.Creator.String(),
 		CreatedAt:         appGroup.CreatedAt,

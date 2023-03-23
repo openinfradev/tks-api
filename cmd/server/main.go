@@ -21,7 +21,7 @@ func init() {
 	flag.Int("port", 8080, "service port")
 	flag.String("web-root", "../../web", "path of root path for web")
 	flag.String("argo-address", "http://localhost", "service address for argoworkflow")
-	flag.Int("argo-port", 2746, "service port for argoworkflow")
+	flag.Int("argo-port", 0, "service port for argoworkflow")
 	flag.String("dbhost", "localhost", "host of postgreSQL")
 	flag.String("dbname", "tks", "name of releation")
 	flag.String("dbport", "5432", "port of postgreSQL")
@@ -39,7 +39,7 @@ func init() {
 	flag.String("git-repository-url", "github.com/openinfradev", "URL of git repository")
 
 	// keycloak
-	flag.String("keycloak-address", "http://localhost:8080", "URL of keycloak")
+	flag.String("keycloak-address", "https://keycloak-kyuho.taco-cat.xyz/auth", "URL of keycloak")
 	flag.String("keycloak-admin", "admin", "user of keycloak")
 	flag.String("keycloak-password", "admin", "password of keycloak")
 	flag.String("keycloak-realm", "tks", "realm of keycloak")
@@ -85,7 +85,6 @@ func main() {
 	}
 
 	// Initialize external client
-
 	var argoClient argowf.ArgoClient
 	if viper.GetString("argo-address") == "" || viper.GetInt("argo-port") == 0 {
 		argoClient, err = argowf.NewMock()

@@ -36,6 +36,9 @@ type User struct {
 	ID            uuid.UUID `gorm:"primarykey;type:uuid;"`
 	AccountId     string
 	Name          string
+	Email         string
+	department    string
+	Description   string
 	Password      string
 	AuthType      string         `gorm:"authType"`
 	Roles         []Role         `gorm:"many2many:user_roles"`
@@ -69,6 +72,7 @@ type Policy struct {
 	RoleId           uuid.UUID
 	Role             Role `gorm:"references:ID"`
 	Name             string
+	Resource         string
 	Description      string
 	Create           bool `gorm:"column:c"`
 	CreatePriviledge string

@@ -7,13 +7,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-func CreateJWT(accountId string, uId string) (string, error) {
+func CreateJWT(accountId string, uId string, organizationId string) (string, error) {
 	signingKey := []byte(viper.GetString("jwt-secret"))
 
 	aToken := jwt.New(jwt.SigningMethodHS256)
 	claims := aToken.Claims.(jwt.MapClaims)
 	claims["AccountId"] = accountId
 	claims["ID"] = uId
+	claims["OrganizationId"] = organizationId
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	tk, err := aToken.SignedString(signingKey)

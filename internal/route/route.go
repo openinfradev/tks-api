@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/auth/request"
-	user "github.com/openinfradev/tks-api/internal/auth/user"
-	"github.com/openinfradev/tks-api/internal/keycloak"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
+	"github.com/openinfradev/tks-api/internal/auth/request"
+	user "github.com/openinfradev/tks-api/internal/auth/user"
+	"github.com/openinfradev/tks-api/internal/keycloak"
+
 	jwtWithouKey "github.com/dgrijalva/jwt-go"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -114,8 +115,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repository.NewAuthRepository(db), kc))
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/auth/signup", authMiddleware(http.HandlerFunc(authHandler.Signup), kc)).Methods(http.MethodPost)
-	//r.HandleFunc(API_PREFIX+API_VERSION+"/auth/signup", authHandler.Signup).Methods(http.MethodPost)
+
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/roles", authHandler.GetRoles).Methods(http.MethodGet)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db), argoClient, kc))
@@ -155,6 +155,12 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 
 	historyHandler := delivery.NewHistoryHandler(usecase.NewHistoryUsecase(repository.NewHistoryRepository(db)))
 	r.Handle(API_PREFIX+API_VERSION+"/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories), kc)).Methods(http.MethodGet)
+
+	cloudSettingHandler := delivery.NewCloudSettingHandler(usecase.NewCloudSettingUsecase(repository.NewCloudSettingRepository(db), argoClient))
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSetting), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.CreateCloudSetting), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSettingById), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.DeleteCloudSetting), kc)).Methods(http.MethodDelete)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
@@ -273,10 +279,15 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				return
 			}
 
-			log.Debug("[authMiddleware] accountId : ", token.Claims.(jwt.MapClaims)["AccountId"])
-			log.Debug("[authMiddleware] Id : ", token.Claims.(jwt.MapClaims)["Id"])
 			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
+			organizationId := token.Claims.(jwt.MapClaims)["OrganizationId"]
 			id := token.Claims.(jwt.MapClaims)["ID"]
+
+			log.Debug("[authMiddleware] accountId : ", accountId)
+			log.Debug("[authMiddleware] Id : ", id)
+			log.Debug("[authMiddleware] organizationId : ", organizationId)
+
+			r.Header.Set("OrganizationId", fmt.Sprint(organizationId))
 			r.Header.Set("AccountId", fmt.Sprint(accountId))
 			r.Header.Set("ID", fmt.Sprint(id))
 		}

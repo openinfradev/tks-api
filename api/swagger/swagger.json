@@ -176,7 +176,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Get applications",
+                "description": "Get application",
                 "consumes": [
                     "application/json"
                 ],
@@ -186,13 +186,20 @@
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "Get applications",
+                "summary": "Get application",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "appGroupId",
                         "name": "appGroupId",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "applicationType",
+                        "name": "applicationType",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -461,6 +468,29 @@
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "description": "logout",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/roles": {
             "get": {
                 "security": [
@@ -492,14 +522,14 @@
                 }
             }
         },
-        "/auth/signup": {
-            "post": {
+        "/cloud-settings": {
+            "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "signup",
+                "description": "Get CloudSetting",
                 "consumes": [
                     "application/json"
                 ],
@@ -507,17 +537,43 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "CloudSettings"
                 ],
-                "summary": "signup",
+                "summary": "Get CloudSetting",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CloudSetting"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create CloudSetting",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudSettings"
+                ],
+                "summary": "Create CloudSetting",
                 "parameters": [
                     {
-                        "description": "account info",
+                        "description": "create cloud setting request",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.SignUpRequest"
+                            "$ref": "#/definitions/domain.CreateCloudSettingRequest"
                         }
                     }
                 ],
@@ -525,7 +581,70 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.User"
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/cloud-settings/{cloudSettingId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get cloudSetting by cloudSettingId",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudSettings"
+                ],
+                "summary": "Get cloudSetting by cloudSettingId",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CloudSetting"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete CloudSetting",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudSettings"
+                ],
+                "summary": "Delete CloudSetting",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cloudSettingId",
+                        "name": "cloudSettingId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CloudSetting"
                         }
                     }
                 }
@@ -846,6 +965,82 @@
                     }
                 }
             }
+        },
+        "/users": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "GetUsers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "GetUsers",
+                "parameters": [
+                    {
+                        "description": "user info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/:userId": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "GetUser",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "GetUser",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "user uid",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -934,6 +1129,38 @@
                 }
             }
         },
+        "domain.CloudSetting": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.Cluster": {
             "type": "object",
             "properties": {
@@ -961,13 +1188,10 @@
                 "status": {
                     "type": "string"
                 },
-                "statusDescription": {
+                "statusDesc": {
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                },
-                "workflowId": {
                     "type": "string"
                 }
             }
@@ -1018,6 +1242,32 @@
                 }
             }
         },
+        "domain.CreateCloudSettingRequest": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secretKey": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.CreateClusterRequest": {
             "type": "object",
             "properties": {
@@ -1064,6 +1314,35 @@
                 }
             }
         },
+        "domain.CreateUserRequest": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "emailAddress": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationName": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.History": {
             "type": "object",
             "properties": {
@@ -1093,7 +1372,7 @@
                 "accountId": {
                     "type": "string"
                 },
-                "organizationName": {
+                "organizationId": {
                     "type": "string"
                 },
                 "password": {
@@ -1149,35 +1428,6 @@
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.SignUpRequest": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "department": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "emailAddress": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organizationName": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "role": {
                     "type": "string"
                 }
             }

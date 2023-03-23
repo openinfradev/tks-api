@@ -5,43 +5,33 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
-type ResponseJson struct {
-	Code    int         `json:"status_code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+func ErrorJSON(w http.ResponseWriter, err error) {
+	errorResponse, status := httpErrors.ErrorResponse(err)
+	ResponseJSON(w, status, errorResponse)
 }
 
-func ErrorJSON(w http.ResponseWriter, message string, code int) {
-	ResponseJSON(w, "", message, code)
-}
-
-func InternalServerError(w http.ResponseWriter, err error) {
-	log.Error(fmt.Sprintf("[INTERNAL SERVER ERROR] [%s]", err.Error()))
-
-	ErrorJSON(w, err.Error(), http.StatusInternalServerError)
-}
-
-func ResponseJSON(w http.ResponseWriter, data interface{}, message string, code int) {
-	//time.Sleep(time.Second * 1) // for test
-
-	out := ResponseJson{
-		Code:    code,
-		Message: message,
-		Data:    data,
-	}
+func ResponseJSON(w http.ResponseWriter, httpStatus int, data interface{}) {
+	out := data
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(code)
+	w.WriteHeader(httpStatus)
 	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(out)))
 	json.NewEncoder(w).Encode(out)
 }
 
-func GetSession(r *http.Request) (string, string) {
-	return r.Header.Get("ID"), r.Header.Get("AccountId")
+func GetSession(r *http.Request) (organizationId string, userId uuid.UUID, accountId string) {
+	userId, err := uuid.Parse(r.Header.Get("ID"))
+	if err != nil {
+		userId = uuid.Nil
+	}
+
+	return r.Header.Get("OrganizationId"), userId, r.Header.Get("AccountId")
 }
 
 /*

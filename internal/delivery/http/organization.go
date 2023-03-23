@@ -2,17 +2,19 @@ package http
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"io"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/pkg/errors"
 )
 
 type OrganizationHandler struct {
@@ -36,7 +38,7 @@ func NewOrganizationHandler(h usecase.IOrganizationUsecase) *OrganizationHandler
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
-	userId, _ := GetSession(r)
+	_, userId, _ := GetSession(r)
 
 	input := domain.CreateOrganizationRequest{}
 	body, err := io.ReadAll(r.Body)
@@ -47,26 +49,25 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	err = json.Unmarshal(body, &input)
 	if err != nil {
-		log.Error(err)
-		ErrorJSON(w, "invalid json", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		InternalServerError(w, errors.New("token not found"))
+		ErrorJSON(w, errors.New("token not found"))
 		return
 	}
 
 	organizationId, err := h.usecase.Create(domain.Organization{
 		Name:        input.Name,
-		Creator:     userId,
+		Creator:     userId.String(),
 		Description: input.Description,
 	}, token)
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
 		//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하는데 실패했습니다.", input.Name))
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -89,7 +90,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	//h.AddHistory(r, response.GetOrganizationId(), "organization", fmt.Sprintf("프로젝트 [%s]를 생성하였습니다.", out.OrganizationId))
 
 	time.Sleep(time.Second * 5) // for test
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 
 }
 
@@ -103,11 +104,22 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Router /organizations [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
-	log.Info("GetOrganization")
+	status := domain.OrganizationStatus_DELETING
+	fmt.Println(status)
+
+	log.Info(reflect.TypeOf(status.FromString("DELETING")))
+	log.Info(status.FromString("DELETING"))
+
+	/*
+		restErr := httpErrors.NewBadRequestError(fmt.Errorf("ASDF"))
+		ErrorJSON2(w, httpErrors.ErrorResponse(restErr))
+		return
+	*/
+
 	organizations, err := h.usecase.Fetch()
 	if err != nil {
 		log.Error("Failed to get organizations err : ", err)
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -117,7 +129,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 
 	out.Organizations = organizations
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // GetOrganization godoc
@@ -134,13 +146,13 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, fmt.Sprintf("Invalid input"), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
 
 	organization, err := h.usecase.Get(organizationId)
 	if err != nil {
-		InternalServerError(w, err)
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -150,7 +162,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 
 	out.Organization = organization
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // DeleteOrganization godoc
@@ -167,21 +179,21 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, fmt.Sprintf("Invalid input %s", organizationId), http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		http.Error(w, "token not found", http.StatusBadRequest)
+		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token")))
 		return
 	}
 
 	res, err := h.usecase.Delete(organizationId, token)
 	if err != nil {
-		ErrorJSON(w, fmt.Sprintf("Failed to delete organization err : %s", err), http.StatusBadRequest)
+		ErrorJSON(w, err)
 		return
 	}
 
-	ResponseJSON(w, res, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, res)
 }

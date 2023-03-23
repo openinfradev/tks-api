@@ -1,10 +1,12 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 )
 
 type HistoryHandler struct {
@@ -29,7 +31,7 @@ func NewHistoryHandler(h usecase.IHistoryUsecase) *HistoryHandler {
 func (h *HistoryHandler) GetHistories(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	userId, _ := GetSession(r)
+	_, userId, _ := GetSession(r)
 	urlParams := r.URL.Query()
 
 	userId = userId
@@ -37,7 +39,7 @@ func (h *HistoryHandler) GetHistories(w http.ResponseWriter, r *http.Request) {
 
 	projectId := urlParams.Get("projectId")
 	if projectId == "" {
-		ErrorJSON(w, "Invalid projectId", http.StatusOK)
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId")))
 		return
 	}
 
@@ -46,9 +48,9 @@ func (h *HistoryHandler) GetHistories(w http.ResponseWriter, r *http.Request) {
 	}
 	out.Histories, err = h.usecase.Fetch()
 	if err != nil {
-		ErrorJSON(w, "failed to fetch histories", http.StatusOK)
+		ErrorJSON(w, err)
 		return
 	}
 
-	ResponseJSON(w, out, "", http.StatusOK)
+	ResponseJSON(w, http.StatusOK, out)
 }

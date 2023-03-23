@@ -2,16 +2,19 @@ package usecase
 
 import (
 	"fmt"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IAuthUsecase interface {
 	Login(accountId string, password string, organizationName string) (domain.User, error)
 	Register(accountId string, password string, name string, organizationName string, role string, token string) (domain.User, error)
+	Logout(token string) error
 	FetchRoles() (out []domain.Role, err error)
 	//AuthenticateToken(organization string, accessToken string) (*authenticator.Response, bool, error)
 }
@@ -34,29 +37,35 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationName 
 		return domain.User{}, err
 	}
 
-	// Authentication with Keycloak
-	accountToken, err := r.kc.GetAccessTokenByIdPassword(accountId, password, organizationName)
-	if err != nil {
-		return domain.User{}, err
-	}
+	/*
+		accountToken, err := r.kc.GetAccessTokenByIdPassword(accountId, password, organizationName)
+		if err != nil {
+			return domain.User{}, err
+		}
 
-	// Insert token
-	user.Token = accountToken.Token
+		// Insert token
+		user.Token = accountToken.Token
+	*/
 
 	// Authentication with DB
-	//
-	//if !helper.CheckPasswordHash(user.Password, password) {
-	//	log.Debug(user.Password)
-	//	log.Debug(password)
-	//	return domain.User{}, fmt.Errorf("Invalid password")
-	//}
-	//
-	//user.Token, err = helper.CreateJWT(accountId, user.ID)
-	//if err != nil {
-	//	return domain.User{}, fmt.Errorf("failed to create token")
-	//}
+
+	if !helper.CheckPasswordHash(user.Password, password) {
+		log.Debug(user.Password)
+		log.Debug(password)
+		return domain.User{}, fmt.Errorf("Invalid password")
+	}
+
+	user.Token, err = helper.CreateJWT(accountId, user.ID, organizationName)
+	if err != nil {
+		return domain.User{}, fmt.Errorf("failed to create token")
+	}
 
 	return user, nil
+}
+
+func (r *AuthUsecase) Logout(token string) error {
+	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
+	return nil
 }
 
 func (r *AuthUsecase) Register(accountId string, password string, name string, organizationName string, role string, accessToken string) (domain.User, error) {

@@ -37,8 +37,9 @@ type Organization struct {
 	Name        string
 	Creator     uuid.UUID
 	Description string
-	Workflow    Workflow `gorm:"polymorphic:Ref;polymorphicValue:organization"`
-	Status      string
+	WorkflowId  string
+	Status      domain.OrganizationStatus
+	StatusDesc  string
 }
 
 type OrganizationUser struct {
@@ -108,15 +109,12 @@ func (r *OrganizationRepository) Delete(organizationId string) (out string, err 
 }
 
 func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string) error {
-	workflow := Workflow{
-		RefID:      organizationId,
-		RefType:    "organization",
-		WorkflowId: workflowId,
-		StatusDesc: "INIT",
-	}
-	res := r.db.Create(&workflow)
-	if res.Error != nil {
-		return res.Error
+	res := r.db.Model(&Organization{}).
+		Where("ID = ?", organizationId).
+		Updates(map[string]interface{}{"Status": domain.OrganizationStatus_PENDING, "WorkflowId": workflowId})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in organization with id %s", organizationId)
 	}
 	return nil
 }
@@ -126,7 +124,7 @@ func (r *OrganizationRepository) reflect(organization Organization) domain.Organ
 		ID:          organization.ID,
 		Name:        organization.Name,
 		Description: organization.Description,
-		Status:      organization.Status,
+		Status:      organization.Status.String(),
 		Creator:     organization.Creator.String(),
 		CreatedAt:   organization.CreatedAt,
 		UpdatedAt:   organization.UpdatedAt,
