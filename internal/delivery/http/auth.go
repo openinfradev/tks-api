@@ -53,7 +53,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
