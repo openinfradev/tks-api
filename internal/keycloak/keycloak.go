@@ -123,7 +123,7 @@ func (k *Keycloak) CreateRealm(organizationName string, organizationConfig domai
 	realmConfig := gocloak.RealmRepresentation{
 		Realm:               &organizationName,
 		Enabled:             gocloak.BoolP(true),
-		AccessTokenLifespan: gocloak.IntP(60),
+		AccessTokenLifespan: gocloak.IntP(60 * 60 * 24),
 	}
 	realmUUID, err := k.client.CreateRealm(ctx, accessToken, realmConfig)
 	if err != nil {
