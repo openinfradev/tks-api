@@ -1,9 +1,6 @@
 package usecase
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -14,29 +11,28 @@ import (
 
 type ICloudSettingUsecase interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
-	GetByOrganizationId(organizationId string) (domain.CloudSetting, error)
-	Create(organizationId string, in domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
+	Fetch(organizationId string) ([]domain.CloudSetting, error)
+	Create(organizationId string, in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
+	Update(cloudSettingId uuid.UUID, in domain.UpdateCloudSettingRequest, updator uuid.UUID) (err error)
 	Delete(cloudSettingId uuid.UUID) error
 }
 
 type CloudSettingUsecase struct {
-	repo repository.ICloudSettingRepository
-	argo argowf.ArgoClient
+	repo        repository.ICloudSettingRepository
+	clusterRepo repository.IClusterRepository
+	argo        argowf.ArgoClient
 }
 
-func NewCloudSettingUsecase(r repository.ICloudSettingRepository, argoClient argowf.ArgoClient) ICloudSettingUsecase {
+func NewCloudSettingUsecase(r repository.ICloudSettingRepository, cr repository.IClusterRepository, argoClient argowf.ArgoClient) ICloudSettingUsecase {
 	return &CloudSettingUsecase{
-		repo: r,
-		argo: argoClient,
+		repo:        r,
+		clusterRepo: cr,
+		argo:        argoClient,
 	}
 }
 
-func (u *CloudSettingUsecase) Create(organizationId string, in domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
-	_, err = u.repo.GetByOrganizationId(organizationId)
-	if err == nil {
-		return uuid.Nil, httpErrors.NewRestError(http.StatusForbidden, "", fmt.Errorf("Already exist cloudSetting for organization"))
-	}
-
+func (u *CloudSettingUsecase) Create(organizationId string, in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
+	resource := "TODO server result or additional information"
 	cloudSettingId, err = u.repo.Create(organizationId, in, resource, creator)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err)
@@ -64,18 +60,35 @@ func (u *CloudSettingUsecase) Create(organizationId string, in domain.CreateClou
 	return cloudSettingId, nil
 }
 
+func (u *CloudSettingUsecase) Update(cloudSettingId uuid.UUID, in domain.UpdateCloudSettingRequest, updator uuid.UUID) (err error) {
+	resource := "TODO server result or additional information"
+	err = u.repo.Update(cloudSettingId, in, resource, updator)
+	if err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
+	return nil
+}
+
 func (u *CloudSettingUsecase) Get(cloudSettingId uuid.UUID) (res domain.CloudSetting, err error) {
 	res, err = u.repo.Get(cloudSettingId)
 	if err != nil {
 		return domain.CloudSetting{}, err
 	}
+
+	/*
+		res, err = u.clusterRepo.Get(cloudSettingId)
+		if err != nil {
+			return domain.CloudSetting{}, err
+		}
+	*/
+
 	return res, nil
 }
 
-func (u *CloudSettingUsecase) GetByOrganizationId(organizationId string) (res domain.CloudSetting, err error) {
-	res, err = u.repo.GetByOrganizationId(organizationId)
+func (u *CloudSettingUsecase) Fetch(organizationId string) (res []domain.CloudSetting, err error) {
+	res, err = u.repo.Fetch(organizationId)
 	if err != nil {
-		return domain.CloudSetting{}, err
+		return nil, err
 	}
 	return res, nil
 }

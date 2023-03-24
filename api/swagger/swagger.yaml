@@ -61,6 +61,8 @@ definitions:
     type: object
   domain.CloudSetting:
     properties:
+      clusters:
+        type: integer
       createdAt:
         type: string
       creator:
@@ -78,6 +80,8 @@ definitions:
       type:
         type: string
       updatedAt:
+        type: string
+      updator:
         type: string
     type: object
   domain.Cluster:
@@ -135,20 +139,24 @@ definitions:
     type: object
   domain.CreateCloudSettingRequest:
     properties:
-      accessKey:
-        type: string
-      createdAt:
-        type: string
       description:
         type: string
       name:
         type: string
       secretKey:
         type: string
+      secretKeyId:
+        type: string
       type:
+        enum:
+        - AWS
+        - AZZURE
+        - GCP
         type: string
-      updatedAt:
-        type: string
+    required:
+    - name
+    - secretKey
+    - secretKeyId
     type: object
   domain.CreateClusterRequest:
     properties:
@@ -249,6 +257,15 @@ definitions:
       endpoint:
         type: string
       metadata:
+        type: string
+    type: object
+  domain.UpdateCloudSettingRequest:
+    properties:
+      description:
+        type: string
+      secretKey:
+        type: string
+      secretKeyId:
         type: string
     type: object
   domain.User:
@@ -595,17 +612,19 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get CloudSetting
+      description: Get CloudSettings
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CloudSetting'
+            items:
+              $ref: '#/definitions/domain.CloudSetting'
+            type: array
       security:
       - JWT: []
-      summary: Get CloudSetting
+      summary: Get CloudSettings
       tags:
       - CloudSettings
     post:
@@ -657,7 +676,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get cloudSetting by cloudSettingId
+      description: Get CloudSetting
       produces:
       - application/json
       responses:
@@ -667,7 +686,30 @@ paths:
             $ref: '#/definitions/domain.CloudSetting'
       security:
       - JWT: []
-      summary: Get cloudSetting by cloudSettingId
+      summary: Get CloudSetting
+      tags:
+      - CloudSettings
+    put:
+      consumes:
+      - application/json
+      description: Update CloudSetting
+      parameters:
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCloudSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update CloudSetting
       tags:
       - CloudSettings
   /clusters:

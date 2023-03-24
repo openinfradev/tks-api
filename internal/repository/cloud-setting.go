@@ -7,13 +7,15 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 )
 
 // Interfaces
 type ICloudSettingRepository interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
-	GetByOrganizationId(organizationId string) (domain.CloudSetting, error)
+	Fetch(organizationId string) ([]domain.CloudSetting, error)
 	Create(organizationId string, input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
+	Update(cloudSettingId uuid.UUID, input domain.UpdateCloudSettingRequest, resource string, updator uuid.UUID) (err error)
 	Delete(cloudSettingId uuid.UUID) (err error)
 }
 
@@ -39,6 +41,7 @@ type CloudSetting struct {
 	Resource       string
 	Type           domain.CloudType
 	Creator        uuid.UUID
+	Updator        uuid.UUID
 }
 
 func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
@@ -47,24 +50,30 @@ func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // Logics
-func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error) {
+func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.CloudSetting, err error) {
 	var cloudSetting CloudSetting
 	res := r.db.First(&cloudSetting, "id = ?", cloudSettingId)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.CloudSetting{}, fmt.Errorf("Not found cloudSetting for %s", cloudSettingId)
+	if res.Error != nil {
+		return domain.CloudSetting{}, res.Error
 	}
-	resCloudSetting := r.reflect(cloudSetting)
-	return resCloudSetting, nil
+	out = r.reflect(cloudSetting)
+	return
 }
 
-func (r *CloudSettingRepository) GetByOrganizationId(organizationId string) (domain.CloudSetting, error) {
-	var cloudSetting CloudSetting
-	res := r.db.First(&cloudSetting, "organization_id = ?", organizationId)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.CloudSetting{}, fmt.Errorf("Not found cloudSetting for organizationId %s", organizationId)
+func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.CloudSetting, err error) {
+	var cloudSettings []CloudSetting
+	res := r.db.Find(&cloudSettings, "organization_id = ?", organizationId)
+	if res.RowsAffected == 0 {
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("No data found"))
 	}
-	resCloudSetting := r.reflect(cloudSetting)
-	return resCloudSetting, nil
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	for _, cloudSetting := range cloudSettings {
+		out = append(out, r.reflect(cloudSetting))
+	}
+	return
 }
 
 func (r *CloudSettingRepository) Create(organizationId string, input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
@@ -72,6 +81,7 @@ func (r *CloudSettingRepository) Create(organizationId string, input domain.Crea
 		OrganizationId: organizationId,
 		Name:           input.Name,
 		Description:    input.Description,
+		Type:           input.Type,
 		Resource:       resource,
 		Creator:        creator}
 	res := r.db.Create(&cloudSetting)
@@ -81,10 +91,20 @@ func (r *CloudSettingRepository) Create(organizationId string, input domain.Crea
 	return cloudSetting.ID, nil
 }
 
+func (r *CloudSettingRepository) Update(cloudSettingId uuid.UUID, in domain.UpdateCloudSettingRequest, resource string, updator uuid.UUID) (err error) {
+	res := r.db.Model(&CloudSetting{}).
+		Where("id = ?", cloudSettingId).
+		Updates(map[string]interface{}{"Description": in.Description, "Resource": resource, "Updator": updator})
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
 func (r *CloudSettingRepository) Delete(cloudSettingId uuid.UUID) (err error) {
 	res := r.db.Delete(&CloudSetting{}, "id = ?", cloudSettingId)
 	if res.Error != nil {
-		return fmt.Errorf("could not delete cloudSetting for cloudSettingId %s", cloudSettingId)
+		return res.Error
 	}
 	return nil
 }
@@ -96,7 +116,9 @@ func (r *CloudSettingRepository) reflect(cloudSetting CloudSetting) domain.Cloud
 		Name:           cloudSetting.Name,
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
+		Type:           cloudSetting.Type,
 		Creator:        cloudSetting.Creator.String(),
+		Updator:        cloudSetting.Updator.String(),
 		CreatedAt:      cloudSetting.CreatedAt,
 		UpdatedAt:      cloudSetting.UpdatedAt,
 	}

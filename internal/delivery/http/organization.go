@@ -39,7 +39,6 @@ func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUseca
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
-	_, userId, _ := GetSession(r)
 
 	input := domain.CreateOrganizationRequest{}
 
@@ -47,7 +46,6 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
-
 	}
 
 	/*
@@ -78,7 +76,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 	organizationId, err := h.usecase.Create(domain.Organization{
 		Name:        input.Name,
-		Creator:     userId.String(),
+		Creator:     "",
 		Description: input.Description,
 	}, token)
 	if err != nil {

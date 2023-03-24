@@ -3,14 +3,15 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"io"
-	"net/http"
 )
 
 type IUserHandler interface {
@@ -53,7 +54,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := input.ToUser()
 	user.Organization = domain.Organization{
-		ID: userInfo.GetOrganization(),
+		ID: userInfo.GetOrganizationId(),
 	}
 	user, err = u.usecase.Create(ctx, user)
 	if err != nil {
@@ -161,7 +162,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := input.ToUser()
 	user.Organization = domain.Organization{
-		ID: userInfo.GetOrganization(),
+		ID: userInfo.GetOrganizationId(),
 	}
 
 	originUser, err := u.usecase.GetByAccountId(ctx, userId)

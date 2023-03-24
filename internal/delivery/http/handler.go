@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator"
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -27,15 +26,6 @@ func ResponseJSON(w http.ResponseWriter, httpStatus int, data interface{}) {
 	json.NewEncoder(w).Encode(out)
 }
 
-func GetSession(r *http.Request) (organizationId string, userId uuid.UUID, accountId string) {
-	userId, err := uuid.Parse(r.Header.Get("ID"))
-	if err != nil {
-		userId = uuid.Nil
-	}
-
-	return r.Header.Get("OrganizationId"), userId, r.Header.Get("AccountId")
-}
-
 func UnmarshalRequestInput(r *http.Request, in any) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -50,7 +40,6 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 	validate := validator.New()
 	err = validate.Struct(in)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil

@@ -351,7 +351,7 @@ func (k *Keycloak) VerifyAccessToken(token string, organizationName string) erro
 
 	//TODO implement me
 	ctx := context.Background()
-	log.Info(token)
+	//log.Info(token)
 	rptResult, err := k.client.RetrospectToken(ctx, token, DefaultClientID, DefaultClientSecret, organizationName)
 	if err != nil {
 		return err

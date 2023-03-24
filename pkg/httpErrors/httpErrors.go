@@ -1,8 +1,10 @@
 package httpErrors
 
 import (
-	"errors"
 	"net/http"
+	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -128,10 +130,20 @@ func reflectVariableName(interface{}) string {
 */
 
 func parseErrors(err error) IRestError {
-	if restErr, ok := err.(IRestError); ok {
-		return restErr
+
+	switch {
+	case strings.Contains(err.Error(), "SQLSTATE"):
+		return parseSqlError(err)
+	default:
+		if restErr, ok := err.(IRestError); ok {
+			return restErr
+		}
+		return NewInternalServerError(err)
 	}
-	return NewInternalServerError(err)
+}
+
+func parseSqlError(err error) IRestError {
+	return NewInternalServerError(errors.Wrap(err, "SQL ERROR"))
 }
 
 func ErrorResponse(err error) (IRestError, int) {
