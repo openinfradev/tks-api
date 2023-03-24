@@ -12,5 +12,5 @@ insert into policies ( role_id, name, description, c, create_priviledge, u, upda
 insert into policies ( role_id, name, description, c, create_priviledge, u, update_priviledge, r, read_priviledge, d, delete_priviledge, creator, created_at, updated_at ) values ( '2ea4415c-9748-493f-91ba-4a64506b7be8', 'service', 'service', 't', '', 't', '', 't', '', 't', '', '', now(), now() );
 insert into policies ( role_id, name, description, c, create_priviledge, u, update_priviledge, r, read_priviledge, d, delete_priviledge, creator, created_at, updated_at ) values ( '2ea4415c-9748-493f-91ba-4a64506b7be8', 'k8s_resources', 'resources of k8s', 'f', '', 'f', '', 'f', '', 'f', '', '', now(), now() );
 
-insert into organizations ( id, name, description, created_at, updated_at ) values ( 'master', 'master', 'tks', now(), now() );
+insert into organizations ( id, name, description, created_at, updated_at ) values ( 'master', 'Team TKS', 'tks', now(), now() );
 insert into users ( id, account_id, name, password, organization_id, role_id, created_at, updated_at  ) values ( 'bf67de40-ce15-4dc0-b6c2-17f053ca504f', 'admin', 'admin', '$2a$10$Akf03nbLHk93sTtozm35XuINXkJeNX7A1T9o/Pxpg9R2B2PToBPOO', 'master', 'b2b689f0-ceeb-46c2-b280-0bc06896acd1', now(), now() );
