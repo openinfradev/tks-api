@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
@@ -44,10 +43,10 @@ type Organization struct {
 	Creator     uuid.UUID
 }
 
-func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = helper.GenerateOrganizationId()
-	return nil
-}
+//func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+//	c.ID = helper.GenerateOrganizationId()
+//	return nil
+//}
 
 // Logics
 func (r *OrganizationRepository) Fetch() (out []domain.Organization, err error) {

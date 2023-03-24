@@ -130,10 +130,10 @@ type User struct {
 	Description    string
 }
 
-func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
-	g.ID = uuid.New()
-	return nil
-}
+//func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
+//	g.ID = uuid.New()
+//	return nil
+//}
 
 type Role struct {
 	gorm.Model
