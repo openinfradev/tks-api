@@ -1230,9 +1230,6 @@
         },
         "domain.CreateOrganizationRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -1240,7 +1237,7 @@
                 "name": {
                     "type": "string"
                 },
-                "phoneNumber": {
+                "phone": {
                     "type": "string"
                 }
             }
@@ -1300,7 +1297,7 @@
                 "name": {
                     "type": "string"
                 },
-                "phoneNumber": {
+                "phone": {
                     "type": "string"
                 },
                 "status": {
@@ -1375,7 +1372,7 @@
                 "description": {
                     "type": "string"
                 },
-                "emailAddress": {
+                "email": {
                     "type": "string"
                 },
                 "id": {
