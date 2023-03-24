@@ -10,7 +10,6 @@ type User = struct {
 	Password     string       `json:"password"`
 	Name         string       `json:"name"`
 	Token        string       `json:"token"`
-	Authorized   bool         `json:"authorized"`
 	Role         Role         `json:"role"`
 	Organization Organization `json:"organization"`
 	Creator      string       `json:"creator"`
@@ -83,7 +82,6 @@ func (r *CreateUserRequest) ToUser() *User {
 		Password:     r.Password,
 		Name:         r.Name,
 		Token:        "",
-		Authorized:   false,
 		Role:         Role{Name: r.Role},
 		Organization: Organization{},
 		Creator:      "",
@@ -112,7 +110,6 @@ func (r *UpdateUserRequest) ToUser() *User {
 		Password:     r.Password,
 		Name:         r.Name,
 		Token:        "",
-		Authorized:   false,
 		Role:         Role{Name: r.Role},
 		Organization: Organization{},
 		Creator:      "",
