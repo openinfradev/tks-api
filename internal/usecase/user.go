@@ -132,7 +132,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	_, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+	_, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
@@ -252,7 +252,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 	originPassword := (*users)[0].Password
 
-	*user, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, originPassword, user.EmailAddress,
+	*user, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, originPassword, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -364,7 +364,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		return nil, err
 	}
 
-	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err

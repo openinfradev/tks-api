@@ -43,7 +43,7 @@ type Organization = struct {
 	ID                string    `json:"id"`
 	Name              string    `json:"name"`
 	Description       string    `json:"description"`
-	PhoneNumber       string    `json:"phoneNumber"`
+	Phone             string    `json:"phone"`
 	Status            string    `json:"status"`
 	StatusDescription string    `json:"statusDescription"`
 	Creator           string    `json:"creator"`
@@ -52,12 +52,12 @@ type Organization = struct {
 }
 
 type CreateOrganizationRequest struct {
-	Name        string `json:"name" validate:"required"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
-	PhoneNumber string `json:"phoneNumber"`
+	Phone       string `json:"phone"`
 }
 
 type UpdateOrganizationRequest struct {
 	Description string `json:"description"`
-	PhoneNumber string `json:"phoneNumber"`
+	Phone       string `json:"phone"`
 }
