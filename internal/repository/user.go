@@ -196,7 +196,7 @@ func (r *UserRepository) GetUserByAccountId(accountId string, organizationId str
 }
 
 func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
-	department string, description string, orgainzationId string, roleId uuid.UUID) (domain.User, error) {
+	department string, description string, organizationId string, roleId uuid.UUID) (domain.User, error) {
 	_, err := r.GetUser(uuid)
 	if err == nil {
 		return domain.User{}, fmt.Errorf("Already existed user %s", accountId)
@@ -210,7 +210,7 @@ func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name s
 		Email:          email,
 		Department:     department,
 		Description:    description,
-		OrganizationId: orgainzationId,
+		OrganizationId: organizationId,
 		RoleId:         roleId,
 	}
 	log.Info("newuser", newUser)

@@ -275,9 +275,6 @@ func (k *Keycloak) DeleteRealm(organizationName string, accessToken string) erro
 
 func (k *Keycloak) CreateUser(organizationName string, user *gocloak.User, accessToken string) error {
 	ctx := context.Background()
-	//gocloakUser := k.reflectUserRepresentation(user)
-	//gocloakUser.Enabled = gocloak.BoolP(true)
-	//_, err := k.client.CreateUser(ctx, accessToken, organizationName, *gocloakUser)
 	user.Enabled = gocloak.BoolP(true)
 	_, err := k.client.CreateUser(ctx, accessToken, organizationName, *user)
 	if err != nil {
