@@ -177,10 +177,8 @@ definitions:
         type: string
       name:
         type: string
-      phoneNumber:
+      phone:
         type: string
-    required:
-    - name
     type: object
   domain.History:
     properties:
@@ -218,7 +216,7 @@ definitions:
         type: string
       name:
         type: string
-      phoneNumber:
+      phone:
         type: string
       status:
         type: string
@@ -267,7 +265,7 @@ definitions:
         type: string
       description:
         type: string
-      emailAddress:
+      email:
         type: string
       id:
         type: string

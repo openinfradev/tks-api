@@ -48,12 +48,12 @@ func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
 func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string, department string, description string) (domain.User, error) {
 	var user User
 	res := r.db.Model(&User{}).Where("id = ?", uuid).Updates(User{
-		AccountId:    accountId,
-		Name:         name,
-		Password:     password,
-		EmailAddress: email,
-		Department:   department,
-		Description:  description,
+		AccountId:   accountId,
+		Name:        name,
+		Password:    password,
+		Email:       email,
+		Department:  department,
+		Description: description,
 	})
 	if res.RowsAffected == 0 || res.Error != nil {
 		return domain.User{}, fmt.Errorf("Not found user. %s", res.Error)
@@ -125,7 +125,7 @@ type User struct {
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId;references:ID"`
 	Creator        uuid.UUID
-	EmailAddress   string
+	Email          string
 	Department     string
 	Description    string
 }
@@ -207,7 +207,7 @@ func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name s
 		AccountId:      accountId,
 		Password:       password,
 		Name:           name,
-		EmailAddress:   email,
+		Email:          email,
 		Department:     department,
 		Description:    description,
 		OrganizationId: orgainzationId,

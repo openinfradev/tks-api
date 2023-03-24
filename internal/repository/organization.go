@@ -37,7 +37,7 @@ type Organization struct {
 	ID          string `gorm:"primarykey;type:varchar(36);not null"`
 	Name        string
 	Description string
-	PhoneNumber string
+	Phone       string
 	WorkflowId  string
 	Status      domain.OrganizationStatus
 	StatusDesc  string
@@ -95,7 +95,7 @@ func (r *OrganizationRepository) Delete(organizationId string) (err error) {
 func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (err error) {
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
-		Updates(map[string]interface{}{"Description": in.Description, "PhoneNumber": in.PhoneNumber})
+		Updates(map[string]interface{}{"Description": in.Description, "Phone": in.Phone})
 	if res.Error != nil {
 		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
 	}
@@ -118,7 +118,7 @@ func (r *OrganizationRepository) reflect(organization Organization) domain.Organ
 		ID:          organization.ID,
 		Name:        organization.Name,
 		Description: organization.Description,
-		PhoneNumber: organization.PhoneNumber,
+		Phone:       organization.Phone,
 		Status:      organization.Status.String(),
 		Creator:     organization.Creator.String(),
 		CreatedAt:   organization.CreatedAt,

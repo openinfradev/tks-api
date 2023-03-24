@@ -17,9 +17,9 @@ type User = struct {
 	CreatedAt    time.Time    `json:"createdAt"`
 	UpdatedAt    time.Time    `json:"updatedAt"`
 
-	EmailAddress string `json:"emailAddress"`
-	Department   string `json:"department"`
-	Description  string `json:"description"`
+	Email       string `json:"email"`
+	Department  string `json:"department"`
+	Description string `json:"description"`
 }
 
 type Role = struct {
@@ -67,13 +67,13 @@ type FindPasswordRequest struct {
 }
 
 type CreateUserRequest struct {
-	AccountId    string `json:"accountId"`
-	Password     string `json:"password"`
-	Name         string `json:"name"`
-	EmailAddress string `json:"emailAddress"`
-	Department   string `json:"department"`
-	Role         string `json:"role"`
-	Description  string `json:"description"`
+	AccountId   string `json:"accountId"`
+	Password    string `json:"password"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Department  string `json:"department"`
+	Role        string `json:"role"`
+	Description string `json:"description"`
 }
 
 func (r *CreateUserRequest) ToUser() *User {
@@ -89,20 +89,20 @@ func (r *CreateUserRequest) ToUser() *User {
 		Creator:      "",
 		CreatedAt:    time.Time{},
 		UpdatedAt:    time.Time{},
-		EmailAddress: r.EmailAddress,
+		Email:        r.Email,
 		Department:   r.Department,
 		Description:  r.Description,
 	}
 }
 
 type UpdateUserRequest struct {
-	AccountId    string `json:"accountId"`
-	Password     string `json:"password"`
-	Name         string `json:"name"`
-	EmailAddress string `json:"emailAddress"`
-	Department   string `json:"department"`
-	Role         string `json:"role"`
-	Description  string `json:"description"`
+	AccountId   string `json:"accountId"`
+	Password    string `json:"password"`
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Department  string `json:"department"`
+	Role        string `json:"role"`
+	Description string `json:"description"`
 }
 
 func (r *UpdateUserRequest) ToUser() *User {
@@ -118,7 +118,7 @@ func (r *UpdateUserRequest) ToUser() *User {
 		Creator:      "",
 		CreatedAt:    time.Time{},
 		UpdatedAt:    time.Time{},
-		EmailAddress: r.EmailAddress,
+		Email:        r.Email,
 		Department:   r.Department,
 		Description:  r.Description,
 	}
