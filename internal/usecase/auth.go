@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"fmt"
-
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -30,9 +29,15 @@ func NewAuthUsecase(r repository.IUserRepository, kc keycloak.IKeycloak) IAuthUs
 }
 
 func (r *AuthUsecase) Login(accountId string, password string, organizationId string) (domain.User, error) {
+	// Authentication with DB
 	user, err := r.repo.GetUserByAccountId(accountId, organizationId)
 	if err != nil {
 		return domain.User{}, errors.Wrap(err, "getting user from repository failed")
+	}
+	if !helper.CheckPasswordHash(user.Password, password) {
+		log.Debug(user.Password)
+		log.Debug(password)
+		return domain.User{}, fmt.Errorf("Invalid password")
 	}
 
 	// Authentication with Keycloak
@@ -44,13 +49,8 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Insert token
 	user.Token = accountToken.Token
 
-	// Authentication with DB
-
-	if !helper.CheckPasswordHash(user.Password, password) {
-		log.Debug(user.Password)
-		log.Debug(password)
-		return domain.User{}, fmt.Errorf("Invalid password")
-	}
+	// Remove password in user
+	user.Password = ""
 
 	// Replaced with Keycloak
 	//user.Token, err = helper.CreateJWT(accountId, user.ID, organizationId)
