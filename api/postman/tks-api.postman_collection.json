@@ -1,0 +1,467 @@
+{
+	"info": {
+		"_postman_id": "dd788ffc-50b3-4e5e-85d5-fb5727bedcbb",
+		"name": "tks-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "organization",
+			"item": [
+				{
+					"name": "GetOrganizations",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/organizations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"organizations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetOrganization",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/organizations/pxoh0ppe5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"organizations",
+								"pxoh0ppe5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteOrganization",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/organizations/pxoh0ppe5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"organizations",
+								"pxoh0ppe5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateOrganization",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\" : \"test4\",\n    \"description\" : \"test_description\",\n    \"create\" : \"\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/organizations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"organizations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "cluster",
+			"item": [
+				{
+					"name": "GetCluster",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/clusters/cz8gss19p",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"clusters",
+								"cz8gss19p"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateCluster",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"projectId\" : \"psqks36lu\",\n    \"templateId\" : \"aws-standard\",\n    \"name\" : \"test\",\n    \"description\" : \"test_description\",\n    \"region\": \"ap-northeast-2\",\n    \"creator\" : \"\"\n\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/clusters",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"clusters"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteCluster",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"projectId\" : \"pId\",\n    \"templateId\" : \"aws-standard\",\n    \"name\" : \"test\",\n    \"description\" : \"test_description\",\n    \"creator\" : \"\"\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/clusters/c88ohg7og",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"clusters",
+								"c88ohg7og"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "appGroup",
+			"item": [
+				{
+					"name": "GetAppGroup",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-groups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAppGroups",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-groups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateAppGroup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"clusterId\" : \"cId\",\n    \"name\" : \"test\",\n    \"type\" : \"LMA\",\n    \"description\" : \"test_description\",\n    \"creator\" : \"\"\n\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-groups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteAppGroup",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-groups/an4jbv7yu",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-groups",
+								"an4jbv7yu"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "appServeApp",
+			"item": [
+				{
+					"name": "GetAppServeApps",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-groups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetAppServeApp",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-serve-apps/CID",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-serve-apps",
+								"CID"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateAppServeApp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\"  : \"name\",\n\t\"type\"   : \"all\",\n\t\"strategy\" : \"rolling-update\",\n\t\"app_type\" : \"springboot\",\n\t\"version\" : \"v1\",\n\t\"artifact_url\" : \"\",\n\t\"image_url\": \"harbor-dev.taco-cat.xyz/appserving/pet6:v1\",\n\t\"port\" : \"8080\",\n\t\"contract_id\" : \"PID\",\n\t\"profile\" : \"dev\",\n\t\"extra_env\" : \"\",\n\t\"app_config\" : \"\",\n\t\"app_secret\" : \"\",\n\t\"target_cluster_id\" : \"CID\",\n\t\"executable_path\" : \"\",\n\t\"resource_spec\" : \"\",\n\t\"pv_enabled\" : false,\n\t\"pv_storage_class\" : \"\",\n\t\"pv_access_mode\" : \"\",\n\t\"pv_size\" : \"\",\n\t\"pv_mount_path\" : \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-serve-apps",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-serve-apps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateAppServeApp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\"  : \"name\",\n\t\"type\"   : \"all\",\n\t\"strategy\" : \"rolling-update\",\n\t\"app_type\" : \"springboot\",\n\t\"version\" : \"v1\",\n\t\"artifact_url\" : \"\",\n\t\"image_url\": \"harbor-dev.taco-cat.xyz/appserving/pet6:v1\",\n\t\"port\" : \"8080\",\n\t\"contract_id\" : \"PID\",\n\t\"profile\" : \"dev\",\n\t\"extra_env\" : \"\",\n\t\"app_config\" : \"\",\n\t\"app_secret\" : \"\",\n\t\"target_cluster_id\" : \"CID\",\n\t\"executable_path\" : \"\",\n\t\"resource_spec\" : \"\",\n\t\"pv_enabled\" : false,\n\t\"pv_storage_class\" : \"\",\n\t\"pv_access_mode\" : \"\",\n\t\"pv_size\" : \"\",\n\t\"pv_mount_path\" : \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-serve-apps",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-serve-apps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteAppServeApp",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/1.0/app-groups/an4jbv7yu",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"1.0",
+								"app-groups",
+								"an4jbv7yu"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

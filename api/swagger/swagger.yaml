@@ -1,0 +1,898 @@
+basePath: /api/1.0/
+definitions:
+  domain.AppGroup:
+    properties:
+      appGroupType:
+        type: string
+      clusterId:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      statusDescription:
+        type: string
+      updatedAt:
+        type: string
+      workflowId:
+        type: string
+    type: object
+  domain.AppServeApp:
+    properties:
+      app_type:
+        description: app_type (spring/springboot)
+        type: string
+      contract_id:
+        description: contract_id is a contract ID which this app belongs to
+        type: string
+      createdAt:
+        description: created_at is a creatioin timestamp for the application
+        type: string
+      endpoint_url:
+        description: endpoint URL of deployed app
+        type: string
+      id:
+        type: string
+      name:
+        description: application name
+        type: string
+      preview_endpoint_url:
+        description: preview svc endpoint URL in B/G deployment
+        type: string
+      status:
+        description: status is status of deployed app
+        type: string
+      target_cluster_id:
+        description: target cluster to which the app is deployed
+        type: string
+      type:
+        description: type (build/deploy/all)
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.CloudSetting:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      resource:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.Cluster:
+    properties:
+      conf:
+        $ref: '#/definitions/domain.ClusterConf'
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      status:
+        type: string
+      statusDesc:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.ClusterConf:
+    properties:
+      machineReplicas:
+        type: integer
+      machineType:
+        type: string
+      maxSizePerAz:
+        type: integer
+      minSizePerAz:
+        type: integer
+      numOfAz:
+        type: integer
+      region:
+        type: string
+      sshKeyName:
+        type: string
+    type: object
+  domain.CreateAppGroupRequest:
+    properties:
+      clusterId:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  domain.CreateCloudSettingRequest:
+    properties:
+      accessKey:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      secretKey:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.CreateClusterRequest:
+    properties:
+      creator:
+        type: string
+      description:
+        type: string
+      machineReplicas:
+        type: integer
+      machineType:
+        type: string
+      name:
+        type: string
+      numberOfAz:
+        type: integer
+      organizationId:
+        type: string
+      region:
+        type: string
+      templateId:
+        type: string
+    type: object
+  domain.CreateOrganizationRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+    required:
+    - name
+    type: object
+  domain.History:
+    properties:
+      accountId:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      historyType:
+        type: string
+      id:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.LoginRequest:
+    properties:
+      accountId:
+        type: string
+      organizationId:
+        type: string
+      password:
+        type: string
+    type: object
+  domain.Organization:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phoneNumber:
+        type: string
+      status:
+        type: string
+      statusDescription:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.Role:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.UpdateApplicationRequest:
+    properties:
+      appGroupId:
+        type: string
+      applicationType:
+        type: string
+      endpoint:
+        type: string
+      metadata:
+        type: string
+    type: object
+  domain.User:
+    properties:
+      accountId:
+        type: string
+      authorized:
+        type: boolean
+      createdAt:
+        type: string
+      creator:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      emailAddress:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization:
+        $ref: '#/definitions/domain.Organization'
+      password:
+        type: string
+      role:
+        $ref: '#/definitions/domain.Role'
+      token:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: tks-api-dev.taco-cat.xyz:9110
+info:
+  contact:
+    email: taekyu.kang@sk.com
+    name: taekyu.kang@sk.com
+  description: This is backend api service for tks platform
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: tks-api service
+  version: "1.0"
+paths:
+  /app-groups:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appGroup
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Uninstall appGroup
+      tags:
+      - AppGroups
+    get:
+      consumes:
+      - application/json
+      description: Get appGroup list by giving params
+      parameters:
+      - description: clusterId
+        in: query
+        name: clusterId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppGroup'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appGroup list
+      tags:
+      - AppGroups
+    post:
+      consumes:
+      - application/json
+      description: Install appGroup
+      parameters:
+      - description: create appgroup request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateAppGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Install appGroup
+      tags:
+      - AppGroups
+  /app-groups/{appGroupId}:
+    get:
+      consumes:
+      - application/json
+      description: Get appGroup detail by appGroupId
+      parameters:
+      - description: appGroupId
+        in: path
+        name: appGroupId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppGroup'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appGroup detail
+      tags:
+      - AppGroups
+  /app-groups/{appGroupId}/applications:
+    get:
+      consumes:
+      - application/json
+      description: Get application
+      parameters:
+      - description: appGroupId
+        in: path
+        name: appGroupId
+        required: true
+        type: string
+      - description: applicationType
+        in: query
+        name: applicationType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Get application
+      tags:
+      - AppGroups
+    post:
+      consumes:
+      - application/json
+      description: Update application
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update application
+      tags:
+      - AppGroups
+  /app-serve-apps:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appServeApp
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Uninstall appServeApp
+      tags:
+      - AppServeApps
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp list by giving params
+      parameters:
+      - description: project_id
+        in: query
+        name: projectId
+        type: string
+      - description: show_all
+        in: query
+        name: showAll
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppServeApp'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appServeApp list
+      tags:
+      - AppServeApps
+    post:
+      consumes:
+      - application/json
+      description: Install appServeApp
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Install appServeApp
+      tags:
+      - AppServeApps
+    put:
+      consumes:
+      - application/json
+      description: Update appServeApp
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update appServeApp
+      tags:
+      - AppServeApps
+  /app-serve-apps/{appServeAppId}:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AppServeApp'
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: login
+      parameters:
+      - description: account info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user detail
+          schema:
+            $ref: '#/definitions/domain.User'
+      summary: login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      summary: logout
+      tags:
+      - Auth
+  /cloud-settings:
+    get:
+      consumes:
+      - application/json
+      description: Get CloudSetting
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CloudSetting'
+      security:
+      - JWT: []
+      summary: Get CloudSetting
+      tags:
+      - CloudSettings
+    post:
+      consumes:
+      - application/json
+      description: Create CloudSetting
+      parameters:
+      - description: create cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCloudSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Create CloudSetting
+      tags:
+      - CloudSettings
+  /cloud-settings/{cloudSettingId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete CloudSetting
+      parameters:
+      - description: cloudSettingId
+        in: path
+        name: cloudSettingId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CloudSetting'
+      security:
+      - JWT: []
+      summary: Delete CloudSetting
+      tags:
+      - CloudSettings
+    get:
+      consumes:
+      - application/json
+      description: Get cloudSetting by cloudSettingId
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CloudSetting'
+      security:
+      - JWT: []
+      summary: Get cloudSetting by cloudSettingId
+      tags:
+      - CloudSettings
+  /clusters:
+    get:
+      consumes:
+      - application/json
+      description: Get cluster list
+      parameters:
+      - description: organizationId
+        in: query
+        name: organizationId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Cluster'
+            type: array
+      security:
+      - JWT: []
+      summary: Get clusters
+      tags:
+      - Clusters
+    post:
+      consumes:
+      - application/json
+      description: Create cluster
+      parameters:
+      - description: create cluster request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Create cluster
+      tags:
+      - Clusters
+  /clusters/{clusterId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete cluster
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cluster'
+      security:
+      - JWT: []
+      summary: Delete cluster
+      tags:
+      - Clusters
+    get:
+      consumes:
+      - application/json
+      description: Get cluster detail
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cluster'
+      security:
+      - JWT: []
+      summary: Get cluster
+      tags:
+      - Clusters
+  /histories:
+    get:
+      consumes:
+      - application/json
+      description: Get histories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.History'
+      security:
+      - JWT: []
+      summary: Get histories
+      tags:
+      - Histories
+  /organizations:
+    get:
+      consumes:
+      - application/json
+      description: Get organization list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Organization'
+            type: array
+      security:
+      - JWT: []
+      summary: Get organization list
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Create organization
+      parameters:
+      - description: create organization request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateOrganizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Create organization
+      tags:
+      - Organizations
+  /organizations/{organizationId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete organization
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Organization'
+      security:
+      - JWT: []
+      summary: Delete organization
+      tags:
+      - Organizations
+    get:
+      consumes:
+      - application/json
+      description: Get organization detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Organization'
+      security:
+      - JWT: []
+      summary: Get organization detail
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Update organization detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Organization'
+      security:
+      - JWT: []
+      summary: Update organization detail
+      tags:
+      - Organizations
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
