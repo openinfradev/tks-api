@@ -63,11 +63,11 @@ func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.Cloud
 func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.CloudSetting, err error) {
 	var cloudSettings []CloudSetting
 	res := r.db.Find(&cloudSettings, "organization_id = ?", organizationId)
-	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(fmt.Errorf("No data found"))
-	}
 	if res.Error != nil {
 		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("No data found"))
 	}
 
 	for _, cloudSetting := range cloudSettings {

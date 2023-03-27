@@ -75,14 +75,9 @@ func (u *CloudSettingUsecase) Get(cloudSettingId uuid.UUID) (res domain.CloudSet
 		return domain.CloudSetting{}, err
 	}
 
-	/*
-		res, err = u.clusterRepo.Get(cloudSettingId)
-		if err != nil {
-			return domain.CloudSetting{}, err
-		}
-	*/
+	res.Clusters = u.getClusterCnt(cloudSettingId)
 
-	return res, nil
+	return
 }
 
 func (u *CloudSettingUsecase) Fetch(organizationId string) (res []domain.CloudSetting, err error) {
@@ -105,4 +100,22 @@ func (u *CloudSettingUsecase) Delete(cloudSettingId uuid.UUID) (err error) {
 	}
 
 	return nil
+}
+
+func (u *CloudSettingUsecase) getClusterCnt(cloudSettingId uuid.UUID) (cnt int) {
+	cnt = 0
+
+	clusters, err := u.clusterRepo.FetchByCloudSettingId(cloudSettingId)
+	if err != nil {
+		log.Error("Failed to get clusters by cloudSettingId. err : ", err)
+		return cnt
+	}
+
+	for _, cluster := range clusters {
+		if cluster.Status != "DELETED" {
+			cnt++
+		}
+	}
+
+	return cnt
 }

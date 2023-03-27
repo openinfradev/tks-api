@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
@@ -30,7 +31,6 @@ type IUserRepository interface {
 	AssignRoleWithUuid(uuid uuid.UUID, roleName string) error
 }
 
-type FilterFunc func(user *gorm.DB) *gorm.DB
 type UserRepository struct {
 	db *gorm.DB
 }
