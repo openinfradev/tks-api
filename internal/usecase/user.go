@@ -37,12 +37,12 @@ func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) erro
 	if err != nil {
 		return err
 	}
+	token, ok := request.TokenFrom(ctx)
+	if ok == false {
+		return httpErrors.NewInternalServerError(fmt.Errorf("token in the context is empty"))
+	}
 	for _, user := range *users {
 		// Delete user in keycloak
-		token, ok := request.TokenFrom(ctx)
-		if ok == false {
-			return httpErrors.NewInternalServerError(fmt.Errorf("token in the context is empty"))
-		}
 
 		err = u.kc.DeleteUser(organizationId, user.AccountId, token)
 		if err != nil {
