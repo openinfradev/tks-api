@@ -20,6 +20,7 @@ type IUserRepository interface {
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
 		department string, description string) (domain.User, error)
 	DeleteWithUuid(uuid uuid.UUID) error
+	Flush(organizationId string) error
 
 	FetchRoles() (out *[]domain.Role, err error)
 	AssignRole(accountId string, organizationId string, roleName string) error
@@ -30,6 +31,15 @@ type IUserRepository interface {
 
 type UserRepository struct {
 	db *gorm.DB
+}
+
+func (r *UserRepository) Flush(organizationId string) error {
+	res := r.db.Where("organization_id = ?", organizationId).Delete(&User{})
+	if res.Error != nil {
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+	return nil
 }
 
 func NewUserRepository(db *gorm.DB) IUserRepository {
@@ -71,7 +81,7 @@ func (r *UserRepository) Create(accountId string, organizationId string, passwor
 	}
 	res := r.db.Create(&newUser)
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.User{}, res.Error
 	}
 
@@ -128,7 +138,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -155,7 +165,7 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
 
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -178,7 +188,7 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 	//	return domain.User{}, fmt.Errorf("Not found user. %s", res.Error)
 	//}
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.User{}, res.Error
 	}
 	res = r.db.Model(&User{}).Where("id = ?", uuid).Find(&user)
@@ -253,7 +263,7 @@ func (r *UserRepository) AssignRoleWithUuid(uuid uuid.UUID, roleName string) err
 	}
 	res := r.db.Create(&newRole)
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -277,7 +287,7 @@ func (r *UserRepository) AssignRole(accountId string, organizationId string, rol
 	}
 	res := r.db.Create(&newRole)
 	if res.Error != nil {
-		log.Info("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -301,7 +311,7 @@ func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
 	res := r.db.Find(&roles)
 
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 
@@ -324,7 +334,7 @@ func (r *UserRepository) getUserByAccountId(accountId string, organizationId str
 	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -338,7 +348,7 @@ func (r *UserRepository) getRoleByName(roleName string) (Role, error) {
 	role := Role{}
 	res := r.db.First(&role, "name = ?", roleName)
 	if res.Error != nil {
-		log.Error("error is :", res.Error.Error())
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return Role{}, res.Error
 	}
 	if res.RowsAffected == 0 {

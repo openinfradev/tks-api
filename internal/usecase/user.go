@@ -10,9 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type IUserUsecase interface {
@@ -33,36 +31,30 @@ type UserUsecase struct {
 }
 
 func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) error {
-	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId))
+	// TODO: implement me as transaction
+	//users, err := u.repo.List(u.repo.OrganizationFilter(organizationId))
+	//if err != nil {
+	//	return err
+	//}
+	//token, ok := request.TokenFrom(ctx)
+	//if ok == false {
+	//	return httpErrors.NewInternalServerError(fmt.Errorf("token in the context is empty"))
+	//}
+	//for _, user := range *users {
+	//	// Delete user in keycloak
+	//
+	//	err = u.kc.DeleteUser(organizationId, user.AccountId, token)
+	//	if err != nil {
+	//		if _, statusCode := httpErrors.ErrorResponse(err); statusCode == http.StatusNotFound {
+	//			continue
+	//		}
+	//		return err
+	//	}
+	//}
+	//
+	err := u.repo.Flush(organizationId)
 	if err != nil {
 		return err
-	}
-	token, ok := request.TokenFrom(ctx)
-	if ok == false {
-		return httpErrors.NewInternalServerError(fmt.Errorf("token in the context is empty"))
-	}
-	for _, user := range *users {
-		// Delete user in keycloak
-
-		err = u.kc.DeleteUser(organizationId, user.AccountId, token)
-		if err != nil {
-			if _, statusCode := httpErrors.ErrorResponse(err); statusCode == http.StatusNotFound {
-				continue
-			}
-			return err
-		}
-
-		uuid, err := uuid.Parse(user.ID)
-		if err != nil {
-			return err
-		}
-		err = u.repo.DeleteWithUuid(uuid)
-		if err != nil {
-			if _, statusCode := httpErrors.ErrorResponse(err); statusCode == http.StatusNotFound {
-				continue
-			}
-			return err
-		}
 	}
 
 	return nil

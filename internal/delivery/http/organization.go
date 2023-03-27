@@ -162,8 +162,6 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// TODO : organization에 속한 user들도 삭제해야함(DB에는 남아있음)
-	// Admin user 삭제
 	err := h.userUsecase.DeleteAll(r.Context(), organizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
