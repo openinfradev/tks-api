@@ -280,7 +280,7 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte(err.Error()))
 				return
 			}
@@ -295,7 +295,7 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				slice := strings.Split(role.(string), "@")
 				if len(slice) != 2 {
 					log.Error("invalid role format: ", role)
-					w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(http.StatusBadRequest)
 					w.Write([]byte(fmt.Sprintf("invalid role format: %s", role)))
 					return
 				}
