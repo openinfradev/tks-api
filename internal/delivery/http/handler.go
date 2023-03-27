@@ -48,7 +48,7 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 /*
 func (h *APIHandler) GetClientFromClusterId(clusterId string) (*kubernetes.Clientset, error) {
 	const prefix = "CACHE_KEY_KUBE_CLIENT_"
-	value, found := h.Cache.GetByUuid(prefix + clusterId)
+	value, found := h.Cache.Get(prefix + clusterId)
 	if found {
 		return value.(*kubernetes.Clientset), nil
 	}
@@ -63,7 +63,7 @@ func (h *APIHandler) GetClientFromClusterId(clusterId string) (*kubernetes.Clien
 
 func (h *APIHandler) GetKubernetesVserion() (string, error) {
 	const prefix = "CACHE_KEY_KUBE_VERSION_"
-	value, found := h.Cache.GetByUuid(prefix)
+	value, found := h.Cache.Get(prefix)
 	if found {
 		return value.(string), nil
 	}
@@ -77,7 +77,7 @@ func (h *APIHandler) GetKubernetesVserion() (string, error) {
 }
 
 func (h *APIHandler) GetSession(r *http.Request) (string, string) {
-	return r.Header.GetByUuid("ID"), r.Header.GetByUuid("AccountId")
+	return r.Header.Get("ID"), r.Header.Get("AccountId")
 }
 
 func (h *APIHandler) AddHistory(r *http.Request, projectId string, historyType string, description string) error {

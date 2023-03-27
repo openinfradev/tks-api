@@ -340,7 +340,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: GetByUuid appGroup list by giving params
+      description: Get appGroup list by giving params
       parameters:
       - description: clusterId
         in: query
@@ -357,7 +357,7 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: GetByUuid appGroup list
+      summary: Get appGroup list
       tags:
       - AppGroups
     post:
@@ -387,7 +387,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: GetByUuid appGroup detail by appGroupId
+      description: Get appGroup detail by appGroupId
       parameters:
       - description: appGroupId
         in: path
@@ -405,14 +405,14 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: GetByUuid appGroup detail
+      summary: Get appGroup detail
       tags:
       - AppGroups
   /app-groups/{appGroupId}/applications:
     get:
       consumes:
       - application/json
-      description: GetByUuid application
+      description: Get application
       parameters:
       - description: appGroupId
         in: path
@@ -433,7 +433,7 @@ paths:
             type: object
       security:
       - JWT: []
-      summary: GetByUuid application
+      summary: Get application
       tags:
       - AppGroups
     post:
@@ -486,7 +486,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: GetByUuid appServeApp list by giving params
+      description: Get appServeApp list by giving params
       parameters:
       - description: project_id
         in: query
@@ -507,7 +507,7 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: GetByUuid appServeApp list
+      summary: Get appServeApp list
       tags:
       - AppServeApps
     post:
@@ -560,7 +560,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: GetByUuid appServeApp by giving params
+      description: Get appServeApp by giving params
       produces:
       - application/json
       responses:
@@ -570,7 +570,7 @@ paths:
             $ref: '#/definitions/domain.AppServeApp'
       security:
       - JWT: []
-      summary: GetByUuid appServeApp
+      summary: Get appServeApp
       tags:
       - AppServeApps
   /auth/login:
@@ -718,7 +718,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: GetByUuid cluster list
+      description: Get cluster list
       parameters:
       - description: organizationId
         in: query
@@ -735,7 +735,7 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: GetByUuid clusters
+      summary: Get clusters
       tags:
       - Clusters
     post:
@@ -787,7 +787,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: GetByUuid cluster detail
+      description: Get cluster detail
       parameters:
       - description: clusterId
         in: path
@@ -803,14 +803,14 @@ paths:
             $ref: '#/definitions/domain.Cluster'
       security:
       - JWT: []
-      summary: GetByUuid cluster
+      summary: Get cluster
       tags:
       - Clusters
   /histories:
     get:
       consumes:
       - application/json
-      description: GetByUuid histories
+      description: Get histories
       produces:
       - application/json
       responses:
@@ -820,7 +820,7 @@ paths:
             $ref: '#/definitions/domain.History'
       security:
       - JWT: []
-      summary: GetByUuid histories
+      summary: Get histories
       tags:
       - Histories
   /organizations:

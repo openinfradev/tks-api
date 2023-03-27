@@ -24,8 +24,8 @@ func NewClusterHandler(h usecase.IClusterUsecase) *ClusterHandler {
 
 // GetClusters godoc
 // @Tags Clusters
-// @Summary GetByUuid clusters
-// @Description GetByUuid cluster list
+// @Summary Get clusters
+// @Description Get cluster list
 // @Accept json
 // @Produce json
 // @Param organizationId query string false "organizationId"
@@ -52,8 +52,8 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 
 // GetCluster godoc
 // @Tags Clusters
-// @Summary GetByUuid cluster
-// @Description GetByUuid cluster detail
+// @Summary Get cluster
+// @Description Get cluster detail
 // @Accept json
 // @Produce json
 // @Param clusterId path string true "clusterId"
@@ -153,8 +153,8 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {
 	// GetKubernetesInfo godoc
 	// @Tags Clusters
-	// @Summary GetByUuid kubernetes info
-	// @Description GetByUuid kubernetes info for cluster
+	// @Summary Get kubernetes info
+	// @Description Get kubernetes info for cluster
 	// @Accept json
 	// @Produce json
 	// @Param clusterId path string true "clusterId"
@@ -223,8 +223,8 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 func (h *ClusterHandler) GetClusterApplications(w http.ResponseWriter, r *http.Request) {
 	// GetClusterApplications godoc
 	// @Tags Clusters
-	// @Summary GetByUuid application list
-	// @Description GetByUuid application list by clusterId
+	// @Summary Get application list
+	// @Description Get application list by clusterId
 	// @Accept json
 	// @Produce json
 	// @Param clusterId path string false "clusterId"
@@ -372,8 +372,8 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Request) {
 	// GetClusterKubeConfig godoc
 	// @Tags Clusters
-	// @Summary GetByUuid kubernetes kubeconfig
-	// @Description GetByUuid kubernetes kubeconfig for cluster
+	// @Summary Get kubernetes kubeconfig
+	// @Description Get kubernetes kubeconfig for cluster
 	// @Accept json
 	// @Produce json
 	// @Param clusterId path string true "clusterId"
@@ -388,7 +388,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		organizationId := r.Header.GetByUuid("OrganizationId")
+		organizationId := r.Header.Get("OrganizationId")
 
 		kubeconfig, err := helper.GetKubeConfig(clusterId)
 		if err != nil {
@@ -411,8 +411,8 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.Request) {
 	// GetClusterKubeResources godoc
 	// @Tags Clusters
-	// @Summary GetByUuid kubernetes resources
-	// @Description GetByUuid kubernetes resources
+	// @Summary Get kubernetes resources
+	// @Description Get kubernetes resources
 	// @Accept json
 	// @Produce json
 	// @Param clusterId path string true "clusterId"
@@ -648,7 +648,7 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		organizationId := r.Header.GetByUuid("OrganizationId")
+		organizationId := r.Header.Get("OrganizationId")
 
 		clientset, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {

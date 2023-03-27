@@ -29,7 +29,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid appGroup list by giving params",
+                "description": "Get appGroup list by giving params",
                 "consumes": [
                     "application/json"
                 ],
@@ -39,7 +39,7 @@ const docTemplate = `{
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "GetByUuid appGroup list",
+                "summary": "Get appGroup list",
                 "parameters": [
                     {
                         "type": "string",
@@ -142,7 +142,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid appGroup detail by appGroupId",
+                "description": "Get appGroup detail by appGroupId",
                 "consumes": [
                     "application/json"
                 ],
@@ -152,7 +152,7 @@ const docTemplate = `{
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "GetByUuid appGroup detail",
+                "summary": "Get appGroup detail",
                 "parameters": [
                     {
                         "type": "string",
@@ -182,7 +182,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid application",
+                "description": "Get application",
                 "consumes": [
                     "application/json"
                 ],
@@ -192,7 +192,7 @@ const docTemplate = `{
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "GetByUuid application",
+                "summary": "Get application",
                 "parameters": [
                     {
                         "type": "string",
@@ -263,7 +263,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid appServeApp list by giving params",
+                "description": "Get appServeApp list by giving params",
                 "consumes": [
                     "application/json"
                 ],
@@ -273,7 +273,7 @@ const docTemplate = `{
                 "tags": [
                     "AppServeApps"
                 ],
-                "summary": "GetByUuid appServeApp list",
+                "summary": "Get appServeApp list",
                 "parameters": [
                     {
                         "type": "string",
@@ -419,7 +419,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid appServeApp by giving params",
+                "description": "Get appServeApp by giving params",
                 "consumes": [
                     "application/json"
                 ],
@@ -429,7 +429,7 @@ const docTemplate = `{
                 "tags": [
                     "AppServeApps"
                 ],
-                "summary": "GetByUuid appServeApp",
+                "summary": "Get appServeApp",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -672,7 +672,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid cluster list",
+                "description": "Get cluster list",
                 "consumes": [
                     "application/json"
                 ],
@@ -682,7 +682,7 @@ const docTemplate = `{
                 "tags": [
                     "Clusters"
                 ],
-                "summary": "GetByUuid clusters",
+                "summary": "Get clusters",
                 "parameters": [
                     {
                         "type": "string",
@@ -748,7 +748,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid cluster detail",
+                "description": "Get cluster detail",
                 "consumes": [
                     "application/json"
                 ],
@@ -758,7 +758,7 @@ const docTemplate = `{
                 "tags": [
                     "Clusters"
                 ],
-                "summary": "GetByUuid cluster",
+                "summary": "Get cluster",
                 "parameters": [
                     {
                         "type": "string",
@@ -820,7 +820,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "GetByUuid histories",
+                "description": "Get histories",
                 "consumes": [
                     "application/json"
                 ],
@@ -830,7 +830,7 @@ const docTemplate = `{
                 "tags": [
                     "Histories"
                 ],
-                "summary": "GetByUuid histories",
+                "summary": "Get histories",
                 "responses": {
                     "200": {
                         "description": "OK",
