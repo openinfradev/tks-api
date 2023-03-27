@@ -37,16 +37,17 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 
 // model
 type Cluster = struct {
-	ID             string      `json:"id"`
-	OrganizationId string      `json:"organizationId"`
-	Name           string      `json:"name"`
-	Description    string      `json:"description"`
-	Status         string      `json:"status"`
-	StatusDesc     string      `json:"statusDesc"`
-	Conf           ClusterConf `json:"conf"`
-	Creator        string      `json:"creator"`
-	CreatedAt      time.Time   `json:"createdAt"`
-	UpdatedAt      time.Time   `json:"updatedAt"`
+	ID             string       `json:"id"`
+	OrganizationId string       `json:"organizationId"`
+	Name           string       `json:"name"`
+	Description    string       `json:"description"`
+	CloudSetting   CloudSetting `json:"cloudSetting"`
+	Status         string       `json:"status"`
+	StatusDesc     string       `json:"statusDesc"`
+	Conf           ClusterConf  `json:"conf"`
+	Creator        string       `json:"creator"`
+	CreatedAt      time.Time    `json:"createdAt"`
+	UpdatedAt      time.Time    `json:"updatedAt"`
 }
 
 type ClusterConf = struct {
@@ -99,6 +100,7 @@ type CreateClusterRequest struct {
 	TemplateId      string `json:"templateId"`
 	Name            string `json:"name"`
 	Description     string `json:"description"`
+	CloudSettingId  string `json:"cloudSettingId"`
 	NumberOfAz      int    `json:"numberOfAz"`
 	MachineType     string `json:"machineType"`
 	Region          string `json:"region"`

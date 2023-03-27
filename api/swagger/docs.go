@@ -1145,6 +1145,9 @@ const docTemplate = `{
         "domain.Cluster": {
             "type": "object",
             "properties": {
+                "cloudSetting": {
+                    "$ref": "#/definitions/domain.CloudSetting"
+                },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConf"
                 },
@@ -1256,6 +1259,9 @@ const docTemplate = `{
         "domain.CreateClusterRequest": {
             "type": "object",
             "properties": {
+                "cloudSettingId": {
+                    "type": "string"
+                },
                 "creator": {
                     "type": "string"
                 },

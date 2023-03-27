@@ -5,10 +5,13 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/auth/user"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
@@ -17,7 +20,7 @@ type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
 	Fetch(organizationId string) ([]domain.Cluster, error)
 	FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error)
-	Create(organizationId string, templateId string, name string, conf domain.ClusterConf, creatorId string, description string) (clusterId string, err error)
+	Create(user user.Info, in domain.CreateClusterRequest) (clusterId string, err error)
 	Get(clusterId string) (out domain.Cluster, err error)
 	Delete(clusterId string) (err error)
 }
@@ -87,32 +90,38 @@ func (u *ClusterUsecase) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []
 		return nil, fmt.Errorf("Invalid cloudSettingId")
 	}
 
+	out, err = u.repo.Fetch()
+
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (u *ClusterUsecase) Create(organizationId string, templateId string, name string, conf domain.ClusterConf, creatorId string, description string) (clusterId string, err error) {
-	creator := uuid.Nil
-	if creatorId != "" {
-		creator, err = uuid.Parse(creatorId)
-		if err != nil {
-			return "", fmt.Errorf("Invalid Creator ID %s", creatorId)
-		}
-	}
-
+func (u *ClusterUsecase) Create(session user.Info, in domain.CreateClusterRequest) (clusterId string, err error) {
 	/***************************
 	 * Pre-process cluster conf *
 	 ***************************/
-	clConf, err := u.constructClusterConf(&conf)
+	clConf, err := u.constructClusterConf(&domain.ClusterConf{
+		Region:          in.Region,
+		NumOfAz:         in.NumberOfAz,
+		SshKeyName:      "",
+		MachineType:     in.MachineType,
+		MachineReplicas: in.MachineReplicas,
+	},
+	)
 	if err != nil {
 		return "", err
 	}
 
-	clusterId, err = u.repo.Create(organizationId, templateId, name, clConf, creator, description)
+	parsedCloudSettingId, err := uuid.Parse(in.CloudSettingId)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create cluster")
+		return "", errors.Wrap(err, "Invalid UUID cloudSettingId")
+	}
+
+	clusterId, err = u.repo.Create(in.OrganizationId, in.TemplateId, in.Name, parsedCloudSettingId, clConf, session.GetUserId(), in.Description)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
 	// Call argo workflow
@@ -120,22 +129,22 @@ func (u *ClusterUsecase) Create(organizationId string, templateId string, name s
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
-				"contract_id=" + organizationId,
+				"contract_id=" + in.OrganizationId,
 				"cluster_id=" + clusterId,
 				"site_name=" + clusterId,
-				"template_name=" + templateId,
+				"template_name=" + in.TemplateId,
 				"git_account=" + viper.GetString("git-account"),
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
 	if err != nil {
 		log.Error("failed to submit argo workflow template. err : ", err)
-		return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+		return "", err
 	}
 	log.Info("Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.InitWorkflow(clusterId, workflowId); err != nil {
-		return "", fmt.Errorf("Failed to initialize status . err : %s", err)
+		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
 	return clusterId, nil
@@ -152,7 +161,7 @@ func (u *ClusterUsecase) Get(clusterId string) (out domain.Cluster, err error) {
 func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
-		return fmt.Errorf("No cluster for deletiing : %s", clusterId)
+		return httpErrors.NewNotFoundError(err)
 	}
 
 	if cluster.Status != "RUNNING" {
@@ -161,7 +170,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 
 	resAppGroups, err := u.appGroupRepo.Fetch(clusterId)
 	if err != nil {
-		return fmt.Errorf("Failed to get appgroup : %s", err)
+		return errors.Wrap(err, "Failed to get appgroup")
 	}
 
 	for _, resAppGroup := range resAppGroups {
@@ -181,13 +190,13 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 		})
 	if err != nil {
 		log.Error("failed to submit argo workflow template. err : ", err)
-		return fmt.Errorf("Failed to call argo workflow : %s", err)
+		return errors.Wrap(err, "Failed to call argo workflow")
 	}
 
 	log.Debug("submited workflow name : ", workflowId)
 
 	if err := u.repo.InitWorkflow(clusterId, workflowId); err != nil {
-		return fmt.Errorf("Failed to initialize cluster status. err : %s", err)
+		return errors.Wrap(err, "Failed to initialize status")
 	}
 
 	return nil

@@ -1,12 +1,11 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -94,36 +93,21 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 // @Router /clusters [post]
 // @Security     JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
-	input := domain.CreateClusterRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Error(err)
+	user, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
 		return
 	}
-	err = json.Unmarshal(body, &input)
+
+	input := domain.CreateClusterRequest{}
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	creator := ""
-
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
-	clusterId, err := h.usecase.Create(
-		input.OrganizationId,
-		input.TemplateId,
-		input.Name,
-		domain.ClusterConf{
-			Region:          input.Region,
-			NumOfAz:         input.NumberOfAz,
-			SshKeyName:      "",
-			MachineType:     input.MachineType,
-			MachineReplicas: input.MachineReplicas,
-		},
-		creator,
-		input.Description,
-	)
-
+	clusterId, err := h.usecase.Create(user, input)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
