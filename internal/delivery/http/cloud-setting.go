@@ -1,13 +1,12 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -36,22 +35,20 @@ func NewCloudSettingHandler(h usecase.ICloudSettingUsecase) *CloudSettingHandler
 // @Router /cloud-settings [post]
 // @Security     JWT
 func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.Request) {
-	organizationId, userId, _ := GetSession(r)
-
-	input := domain.CreateCloudSettingRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Error(err)
+	user, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
 		return
 	}
-	err = json.Unmarshal(body, &input)
+
+	input := domain.CreateCloudSettingRequest{}
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	resource := ""
-	cloudSettingId, err := h.usecase.Create(organizationId, input, resource, userId)
+	cloudSettingId, err := h.usecase.Create(user.GetOrganizationId(), input, user.GetUserId())
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -65,7 +62,37 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 	out.CloudSettingId = cloudSettingId.String()
 
 	ResponseJSON(w, http.StatusOK, out)
+}
 
+// GetCloudSetting godoc
+// @Tags CloudSettings
+// @Summary Get CloudSettings
+// @Description Get CloudSettings
+// @Accept json
+// @Produce json
+// @Success 200 {object} []domain.CloudSetting
+// @Router /cloud-settings [get]
+// @Security     JWT
+func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Request) {
+	user, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		return
+	}
+
+	cloudSettings, err := h.usecase.Fetch(user.GetOrganizationId())
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out struct {
+		CloudSettings []domain.CloudSetting `json:"cloudSettings"`
+	}
+
+	out.CloudSettings = cloudSettings
+
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // GetCloudSetting godoc
@@ -75,12 +102,23 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Success 200 {object} domain.CloudSetting
-// @Router /cloud-settings [get]
+// @Router /cloud-settings/{cloudSettingId} [get]
 // @Security     JWT
 func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Request) {
-	organizationId, _, _ := GetSession(r)
+	vars := mux.Vars(r)
+	cloudSettingId, ok := vars["cloudSettingId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudSettingId")))
+		return
+	}
 
-	cloudSetting, err := h.usecase.GetByOrganizationId(organizationId)
+	parsedUuid, err := uuid.Parse(cloudSettingId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
+		return
+	}
+
+	cloudSetting, err := h.usecase.Get(parsedUuid)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -95,16 +133,17 @@ func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Req
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// GetCloudSettingById godoc
+// UpdateCloudSetting godoc
 // @Tags CloudSettings
-// @Summary Get cloudSetting by cloudSettingId
-// @Description Get cloudSetting by cloudSettingId
+// @Summary Update CloudSetting
+// @Description Update CloudSetting
 // @Accept json
 // @Produce json
-// @Success 200 {object} domain.CloudSetting
-// @Router /cloud-settings/{cloudSettingId} [get]
+// @Param body body domain.UpdateCloudSettingRequest true "Update cloud setting request"
+// @Success 200 {object} object
+// @Router /cloud-settings/{cloudSettingId} [put]
 // @Security     JWT
-func (h *CloudSettingHandler) GetCloudSettingById(w http.ResponseWriter, r *http.Request) {
+func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cloudSettingId, ok := vars["cloudSettingId"]
 	if !ok {
@@ -112,25 +151,32 @@ func (h *CloudSettingHandler) GetCloudSettingById(w http.ResponseWriter, r *http
 		return
 	}
 
-	parsedId, err := uuid.Parse(cloudSettingId)
+	parsedUuid, err := uuid.Parse(cloudSettingId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.WithMessage(err, "Failed to parse uuid")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
 		return
 	}
 
-	cloudSetting, err := h.usecase.Get(parsedId)
+	user, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		return
+	}
+
+	input := domain.UpdateCloudSettingRequest{}
+	err = UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	err = h.usecase.Update(parsedUuid, input, user.GetUserId())
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		CloudSetting domain.CloudSetting `json:"cloudSetting"`
-	}
-
-	out.CloudSetting = cloudSetting
-
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, http.StatusOK, nil)
 }
 
 // DeleteCloudSetting godoc
@@ -153,7 +199,7 @@ func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.
 
 	parsedId, err := uuid.Parse(cloudSettingId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.WithMessage(err, "Failed to parse uuid")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid")))
 		return
 	}
 

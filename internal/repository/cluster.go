@@ -16,6 +16,7 @@ type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
 	Fetch() (res []domain.Cluster, err error)
 	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
+	FetchByCloudSettingId(cloudSettingId uuid.UUID) (res []domain.Cluster, err error)
 	Get(id string) (domain.Cluster, error)
 	Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
 	Delete(id string) error
@@ -54,6 +55,8 @@ type Cluster struct {
 	WorkflowId     string
 	Status         domain.ClusterStatus
 	StatusDesc     string
+	CloudSettingId uuid.UUID
+	CloudSetting   CloudSetting `gorm:"foreignKey:CloudSettingId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -86,25 +89,47 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 	return out, nil
 }
 
-func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (resClusters []domain.Cluster, err error) {
+// [TODO] Need refactoring about filters and pagination
+func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 
 	res := r.db.Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
-		return nil, fmt.Errorf("Error while finding clusters with organizationId: %s", organizationId)
+		return nil, res.Error
 	}
 
 	if res.RowsAffected == 0 {
-		return resClusters, nil
+		return out, nil
 	}
 
 	for _, cluster := range clusters {
 		outCluster := r.reflect(cluster)
-		resClusters = append(resClusters, outCluster)
+		out = append(out, outCluster)
 	}
 
-	return resClusters, nil
+	return
+}
+
+func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error) {
+	var clusters []Cluster
+
+	res := r.db.Find(&clusters, "cloud_setting_id = ?", cloudSettingId)
+
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return out, nil
+	}
+
+	for _, cluster := range clusters {
+		outCluster := r.reflect(cluster)
+		out = append(out, outCluster)
+	}
+
+	return
 }
 
 func (r *ClusterRepository) Get(id string) (domain.Cluster, error) {
