@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -59,23 +60,23 @@ func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string)
 	if organizationId, err = u.kc.CreateRealm(organizationId, domain.Organization{}, accessToken); err != nil {
 		return "", err
 	}
-	//
-	//workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-	//	"tks-create-contract-repo",
-	//	argowf.SubmitOptions{
-	//		Parameters: []string{
-	//			"contract_id=" + organizationId,
-	//		},
-	//	})
-	//if err != nil {
-	//	log.Error("failed to submit argo workflow template. err : ", err)
-	//	return "", fmt.Errorf("Failed to call argo workflow : %s", err)
-	//}
-	//log.Info("submited workflow :", workflowId)
-	//
-	//if err := u.repo.InitWorkflow(organizationId, workflowId); err != nil {
-	//	return "", fmt.Errorf("Failed to initialize organization status to 'CREATING'. err : %s", err)
-	//}
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		"tks-create-contract-repo",
+		argowf.SubmitOptions{
+			Parameters: []string{
+				"contract_id=" + organizationId,
+			},
+		})
+	if err != nil {
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return "", errors.Wrap(err, "Failed to call argo workflow")
+	}
+	log.Info("submited workflow :", workflowId)
+
+	if err := u.repo.InitWorkflow(organizationId, workflowId); err != nil {
+		return "", errors.Wrap(err, "Failed to init workflow")
+	}
 
 	return organizationId, nil
 }

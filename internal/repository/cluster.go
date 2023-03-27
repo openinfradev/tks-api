@@ -18,7 +18,7 @@ type IClusterRepository interface {
 	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
 	FetchByCloudSettingId(cloudSettingId uuid.UUID) (res []domain.Cluster, err error)
 	Get(id string) (domain.Cluster, error)
-	Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
+	Create(organizationId string, templateId string, name string, cloudSettingId uuid.UUID, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
 	Delete(id string) error
 	InitWorkflow(clusterId string, workflowId string) error
 }
@@ -78,7 +78,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 	var clusters []Cluster
 	out = []domain.Cluster{}
 
-	res := r.db.Find(&clusters)
+	res := r.db.Preload("CloudSetting").Find(&clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -93,7 +93,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Preload("CloudSetting").Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -114,7 +114,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []
 func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Find(&clusters, "cloud_setting_id = ?", cloudSettingId)
+	res := r.db.Preload("CloudSetting").Find(&clusters, "cloud_setting_id = ?", cloudSettingId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -143,13 +143,14 @@ func (r *ClusterRepository) Get(id string) (domain.Cluster, error) {
 	return resCluster, nil
 }
 
-func (r *ClusterRepository) Create(organizationId string, templateId string, name string, conf *domain.ClusterConf, creator uuid.UUID, description string) (string, error) {
+func (r *ClusterRepository) Create(organizationId string, templateId string, name string, cloudSettingId uuid.UUID, conf *domain.ClusterConf, creator uuid.UUID, description string) (string, error) {
 	cluster := Cluster{
 		OrganizationId: organizationId,
 		TemplateId:     templateId,
 		Name:           name,
-		Creator:        creator,
 		Description:    description,
+		CloudSettingId: cloudSettingId,
+		Creator:        creator,
 		SshKeyName:     conf.SshKeyName,
 		Region:         conf.Region,
 		NumOfAz:        conf.NumOfAz,
@@ -188,14 +189,12 @@ func (r *ClusterRepository) InitWorkflow(clusterId string, workflowId string) er
 }
 
 func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
-
-	log.Info(helper.ModelToJson(cluster))
-
 	return domain.Cluster{
 		ID:             cluster.ID,
 		OrganizationId: cluster.OrganizationId,
 		Name:           cluster.Name,
 		Description:    cluster.Description,
+		CloudSetting:   r.reflectCloudSetting(cluster.CloudSetting),
 		Status:         cluster.Status.String(),
 		StatusDesc:     cluster.StatusDesc,
 		Creator:        cluster.Creator.String(),
@@ -209,5 +208,20 @@ func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
 			MinSizePerAz: int(cluster.MinSizePerAz),
 			MaxSizePerAz: int(cluster.MaxSizePerAz),
 		},
+	}
+}
+
+func (r *ClusterRepository) reflectCloudSetting(cloudSetting CloudSetting) domain.CloudSetting {
+	return domain.CloudSetting{
+		ID:             cloudSetting.ID.String(),
+		OrganizationId: cloudSetting.OrganizationId,
+		Name:           cloudSetting.Name,
+		Description:    cloudSetting.Description,
+		Resource:       cloudSetting.Resource,
+		Type:           cloudSetting.Type,
+		Creator:        cloudSetting.Creator.String(),
+		Updator:        cloudSetting.Updator.String(),
+		CreatedAt:      cloudSetting.CreatedAt,
+		UpdatedAt:      cloudSetting.UpdatedAt,
 	}
 }
