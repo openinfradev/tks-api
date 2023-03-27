@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"gorm.io/gorm"

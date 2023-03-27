@@ -11,7 +11,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"net/http"
 )
@@ -329,7 +328,6 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	if ok == false {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
-
 
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}

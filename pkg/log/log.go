@@ -60,6 +60,10 @@ func Error(v ...interface{}) {
 	logger.Error(v...)
 }
 
+func Errorf(format string, v ...interface{}) {
+	logger.Errorf(format, v...)
+}
+
 // Fatal logs in FatalLevel
 func Fatal(v ...interface{}) {
 	logger.Fatal(v...)

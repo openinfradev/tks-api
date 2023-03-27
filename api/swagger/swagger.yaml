@@ -276,8 +276,6 @@ definitions:
     properties:
       accountId:
         type: string
-      authorized:
-        type: boolean
       createdAt:
         type: string
       creator:
@@ -342,7 +340,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get appGroup list by giving params
+      description: GetByUuid appGroup list by giving params
       parameters:
       - description: clusterId
         in: query
@@ -359,7 +357,7 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: Get appGroup list
+      summary: GetByUuid appGroup list
       tags:
       - AppGroups
     post:
@@ -389,7 +387,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get appGroup detail by appGroupId
+      description: GetByUuid appGroup detail by appGroupId
       parameters:
       - description: appGroupId
         in: path
@@ -407,14 +405,14 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: Get appGroup detail
+      summary: GetByUuid appGroup detail
       tags:
       - AppGroups
   /app-groups/{appGroupId}/applications:
     get:
       consumes:
       - application/json
-      description: Get application
+      description: GetByUuid application
       parameters:
       - description: appGroupId
         in: path
@@ -435,7 +433,7 @@ paths:
             type: object
       security:
       - JWT: []
-      summary: Get application
+      summary: GetByUuid application
       tags:
       - AppGroups
     post:
@@ -488,7 +486,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get appServeApp list by giving params
+      description: GetByUuid appServeApp list by giving params
       parameters:
       - description: project_id
         in: query
@@ -509,7 +507,7 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: Get appServeApp list
+      summary: GetByUuid appServeApp list
       tags:
       - AppServeApps
     post:
@@ -562,7 +560,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get appServeApp by giving params
+      description: GetByUuid appServeApp by giving params
       produces:
       - application/json
       responses:
@@ -572,7 +570,7 @@ paths:
             $ref: '#/definitions/domain.AppServeApp'
       security:
       - JWT: []
-      summary: Get appServeApp
+      summary: GetByUuid appServeApp
       tags:
       - AppServeApps
   /auth/login:
@@ -720,7 +718,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get cluster list
+      description: GetByUuid cluster list
       parameters:
       - description: organizationId
         in: query
@@ -737,7 +735,7 @@ paths:
             type: array
       security:
       - JWT: []
-      summary: Get clusters
+      summary: GetByUuid clusters
       tags:
       - Clusters
     post:
@@ -789,7 +787,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get cluster detail
+      description: GetByUuid cluster detail
       parameters:
       - description: clusterId
         in: path
@@ -805,14 +803,14 @@ paths:
             $ref: '#/definitions/domain.Cluster'
       security:
       - JWT: []
-      summary: Get cluster
+      summary: GetByUuid cluster
       tags:
       - Clusters
   /histories:
     get:
       consumes:
       - application/json
-      description: Get histories
+      description: GetByUuid histories
       produces:
       - application/json
       responses:
@@ -822,7 +820,7 @@ paths:
             $ref: '#/definitions/domain.History'
       security:
       - JWT: []
-      summary: Get histories
+      summary: GetByUuid histories
       tags:
       - Histories
   /organizations:
