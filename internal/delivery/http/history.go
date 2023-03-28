@@ -18,8 +18,8 @@ func NewHistoryHandler(h usecase.IHistoryUsecase) *HistoryHandler {
 
 // GetHistories godoc
 // @Tags Histories
-// @Summary Get histories
-// @Description Get histories
+// @Summary GetByUuid histories
+// @Description GetByUuid histories
 // @Accept json
 // @Produce json
 // @Success 200 {object} domain.History

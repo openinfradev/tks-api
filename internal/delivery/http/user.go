@@ -82,16 +82,18 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.usecase.GetByAccountId(r.Context(), userId)
 	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status != 0 {
+			ResponseJSON(w, http.StatusNotFound, nil)
+			return
+		}
 		ErrorJSON(w, httpErrors.NewInternalServerError(err))
 		return
-	}
-	if user == nil {
-		ResponseJSON(w, http.StatusNotFound, nil)
 	}
 
 	var out struct {
 		User domain.User
 	}
+	user.Password = ""
 	out.User = *user
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -100,16 +102,21 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	users, err := u.usecase.List(r.Context())
 	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status != 0 {
+			ResponseJSON(w, http.StatusNotFound, nil)
+			return
+		}
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 	}
 	if users == nil {
-		ResponseJSON(w, http.StatusNotFound, nil)
+		users = &[]domain.User{}
 	}
 
 	var out struct {
 		Users []domain.User
 	}
 	for _, user := range *users {
+		user.Password = ""
 		out.Users = append(out.Users, user)
 	}
 
@@ -126,6 +133,10 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err := u.usecase.DeleteByAccountId(r.Context(), userId)
 	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status != 0 {
+			ResponseJSON(w, http.StatusNotFound, nil)
+			return
+		}
 		ErrorJSON(w, httpErrors.NewInternalServerError(err))
 		return
 	}
@@ -165,21 +176,12 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		ID: userInfo.GetOrganizationId(),
 	}
 
-	originUser, err := u.usecase.GetByAccountId(ctx, userId)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
-		return
-	}
-	if originUser == nil {
-		user, err = u.usecase.Create(ctx, user)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewInternalServerError(err))
-			return
-		}
-	}
-
 	user, err = u.usecase.UpdateByAccountId(ctx, userId, user)
 	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status != 0 {
+			ResponseJSON(w, http.StatusNotFound, nil)
+			return
+		}
 		ErrorJSON(w, httpErrors.NewInternalServerError(err))
 		return
 	}
@@ -233,8 +235,10 @@ func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.usecase.GetByAccountId(r.Context(), userId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
-		return
+		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err))
+			return
+		}
 	}
 
 	if user != nil {

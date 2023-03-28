@@ -26,8 +26,8 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 
 // GetAppServeApps godoc
 // @Tags AppServeApps
-// @Summary Get appServeApp list
-// @Description Get appServeApp list by giving params
+// @Summary GetByUuid appServeApp list
+// @Description GetByUuid appServeApp list by giving params
 // @Accept json
 // @Produce json
 // @Param projectId query string false "project_id"
@@ -74,8 +74,8 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 // GetAppServeApp godoc
 // @Tags AppServeApps
-// @Summary Get appServeApp
-// @Description Get appServeApp by giving params
+// @Summary GetByUuid appServeApp
+// @Description GetByUuid appServeApp by giving params
 // @Accept json
 // @Produce json
 // @Success 200 {object} domain.AppServeApp

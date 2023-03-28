@@ -346,7 +346,7 @@ func (u *AppServeAppUsecase) Promote(asaId string, app *domain.UpdateAppServeApp
 		return "", fmt.Errorf("The app is not in 'WAIT_FOR_PROMOTE' state. Exiting..")
 	}
 
-	// Get latest task ID so that the task status can be modified inside workflow once the promotion is done.
+	// GetByUuid latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := resAsaInfo.Tasks[0].ID
 
 	// Call argo workflow
@@ -378,7 +378,7 @@ func (u *AppServeAppUsecase) Abort(asaId string, app *domain.UpdateAppServeAppRe
 		return "", fmt.Errorf("The app is not in blue-green related state. Exiting..")
 	}
 
-	// Get latest task ID so that the task status can be modified inside workflow once the promotion is done.
+	// GetByUuid latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := resAsaInfo.Tasks[0].ID
 
 	// Call argo workflow

@@ -67,8 +67,8 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 
 // GetAppGroups godoc
 // @Tags AppGroups
-// @Summary Get appGroup list
-// @Description Get appGroup list by giving params
+// @Summary GetByUuid appGroup list
+// @Description GetByUuid appGroup list by giving params
 // @Accept json
 // @Produce json
 // @Param clusterId query string false "clusterId"
@@ -101,8 +101,8 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 
 // GetAppGroup godoc
 // @Tags AppGroups
-// @Summary Get appGroup detail
-// @Description Get appGroup detail by appGroupId
+// @Summary GetByUuid appGroup detail
+// @Description GetByUuid appGroup detail by appGroupId
 // @Accept json
 // @Produce json
 // @Param appGroupId path string true "appGroupId"
@@ -161,8 +161,8 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 
 // GetApplications godoc
 // @Tags AppGroups
-// @Summary Get applications
-// @Description Get applications
+// @Summary GetByUuid applications
+// @Description GetByUuid applications
 // @Accept json
 // @Produce json
 // @Param appGroupId path string true "appGroupId"
@@ -194,8 +194,8 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 
 // GetApplication godoc
 // @Tags AppGroups
-// @Summary Get application
-// @Description Get application
+// @Summary GetByUuid application
+// @Description GetByUuid application
 // @Accept json
 // @Produce json
 // @Param appGroupId path string true "appGroupId"

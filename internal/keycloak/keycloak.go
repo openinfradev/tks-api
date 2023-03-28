@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"os"
 	"time"
 
@@ -63,6 +64,8 @@ func (c *Keycloak) InitializeKeycloak() error {
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
 		restyClient.SetDebug(true)
 	}
+	//restyClient.SetDebug(true)
+
 	restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 	log.Info("loginAdmin")
@@ -127,6 +130,7 @@ func (k *Keycloak) CreateRealm(organizationName string, organizationConfig domai
 	}
 	realmUUID, err := k.client.CreateRealm(ctx, accessToken, realmConfig)
 	if err != nil {
+		log.Info("CreateRealm", "err", err)
 		return realmUUID, err
 	}
 	// After Create Realm, accesstoken got changed so that old token doesn't work properly.
@@ -137,7 +141,7 @@ func (k *Keycloak) CreateRealm(organizationName string, organizationConfig domai
 	accessToken = token.AccessToken
 
 	log.Info("CreateRealm", "realmUUID", realmUUID)
-
+	log.Info("CreateRealm", "organizationName", organizationName)
 	time.Sleep(time.Second * 3)
 	clientUUID, err := k.createDefaultClient(context.Background(), accessToken, organizationName, DefaultClientID, DefaultClientSecret)
 	if err != nil {
@@ -293,7 +297,7 @@ func (k *Keycloak) GetUser(organizationName string, accountId string, accessToke
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, nil
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("user %s not found", accountId))
 	}
 	return users[0], nil
 }
@@ -304,6 +308,9 @@ func (k *Keycloak) GetUsers(organizationName string, accessToken string) ([]*goc
 	users, err := k.client.GetUsers(ctx, accessToken, organizationName, gocloak.GetUsersParams{})
 	if err != nil {
 		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("users not found"))
 	}
 
 	return users, nil
@@ -323,7 +330,8 @@ func (k *Keycloak) DeleteUser(organizationName string, userAccountId string, acc
 	ctx := context.Background()
 	u, err := k.GetUser(organizationName, userAccountId, accessToken)
 	if err != nil {
-		return err
+		log.Error("error is :%s(%T)", err.Error(), err)
+		return httpErrors.NewNotFoundError(err)
 	}
 	err = k.client.DeleteUser(ctx, accessToken, organizationName, *u.ID)
 	if err != nil {

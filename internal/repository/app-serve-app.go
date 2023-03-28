@@ -194,7 +194,7 @@ func (r *AppServeAppRepository) UpdateStatus(taskId uuid.UUID, status string, ou
 		return fmt.Errorf("UpdateStatus: nothing updated in AppServeAppTask with ID %s", taskId)
 	}
 
-	// Get Asa ID which this task belongs to.
+	// GetByUuid Asa ID which this task belongs to.
 	var appServeAppTask AppServeAppTask
 	res = r.db.First(&appServeAppTask, "id = ?", taskId)
 	if res.RowsAffected == 0 || res.Error != nil {

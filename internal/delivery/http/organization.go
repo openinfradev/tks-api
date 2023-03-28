@@ -48,37 +48,11 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	/*
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
+	ctx := r.Context()
+	organization := input.ToOrganization()
+	organization.Creator = ""
 
-		err = json.Unmarshal(body, &input)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
-
-		err = validate.Struct(input)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
-
-	*/
-
-	token, ok := request.TokenFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("token not found")))
-		return
-	}
-	organizationId, err := h.usecase.Create(domain.Organization{
-		Name:        input.Name,
-		Creator:     "",
-		Description: input.Description,
-	}, token)
+	organizationId, err := h.usecase.Create(ctx, organization)
 	if err != nil {
 		log.Error("Failed to create organization err : ", err)
 		ErrorJSON(w, err)
@@ -125,7 +99,9 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 		Organizations []domain.Organization `json:"organizations"`
 	}
 
-	out.Organizations = organizations
+	for _, organization := range *organizations {
+		out.Organizations = append(out.Organizations, organization)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -189,14 +165,17 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 
 	// TODO : organization에 속한 user들도 삭제해야함(DB에는 남아있음)
 	// Admin user 삭제
-	err := h.userUsecase.DeleteAdmin(organizationId)
-	ResponseJSON(w, http.StatusOK, nil)
-
-	// TODO: user 삭제
+	err := h.userUsecase.DeleteAll(r.Context(), organizationId)
+	if err != nil {
+		log.Error("%v", err)
+		ErrorJSON(w, err)
+		return
+	}
 
 	// organization 삭제
 	err = h.usecase.Delete(organizationId, token)
 	if err != nil {
+		log.Error("%v", err)
 		ErrorJSON(w, err)
 		return
 	}

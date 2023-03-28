@@ -57,7 +57,35 @@ type CreateOrganizationRequest struct {
 	Phone       string `json:"phone"`
 }
 
+func (r *CreateOrganizationRequest) ToOrganization() *Organization {
+	return &Organization{
+		ID:                "",
+		Name:              r.Name,
+		Description:       r.Description,
+		Phone:             r.Phone,
+		Status:            OrganizationStatus_CREATED.String(),
+		StatusDescription: "",
+		Creator:           "",
+		CreatedAt:         time.Time{},
+		UpdatedAt:         time.Time{},
+	}
+}
+
 type UpdateOrganizationRequest struct {
 	Description string `json:"description"`
 	Phone       string `json:"phone"`
+}
+
+func (r *UpdateOrganizationRequest) ToOrganization() *Organization {
+	return &Organization{
+		ID:                "",
+		Name:              "",
+		Description:       r.Description,
+		Phone:             r.Phone,
+		Status:            "",
+		StatusDescription: "",
+		Creator:           "",
+		CreatedAt:         time.Time{},
+		UpdatedAt:         time.Time{},
+	}
 }

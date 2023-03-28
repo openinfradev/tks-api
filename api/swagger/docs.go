@@ -505,7 +505,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Get CloudSettings",
+                "description": "Get CloudSetting",
                 "consumes": [
                     "application/json"
                 ],
@@ -515,7 +515,7 @@ const docTemplate = `{
                 "tags": [
                     "CloudSettings"
                 ],
-                "summary": "Get CloudSettings",
+                "summary": "Get CloudSetting",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -573,7 +573,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Get CloudSetting",
+                "description": "Get cloudSetting by cloudSettingId",
                 "consumes": [
                     "application/json"
                 ],
@@ -583,7 +583,7 @@ const docTemplate = `{
                 "tags": [
                     "CloudSettings"
                 ],
-                "summary": "Get CloudSetting",
+                "summary": "Get cloudSetting by cloudSettingId",
                 "responses": {
                     "200": {
                         "description": "OK",
