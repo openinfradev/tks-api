@@ -1,8 +1,7 @@
 package http
 
 import (
-	"encoding/json"
-	"io"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
 
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -39,13 +38,7 @@ func NewAuthHandler(h usecase.IAuthUsecase) IAuthHandler {
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
-
-	err = json.Unmarshal(body, &input)
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
@@ -53,6 +46,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
+		log.Error("error is :%s(%T)", err.Error(), err)
+
 		ErrorJSON(w, err)
 		return
 	}

@@ -1,6 +1,10 @@
 package usecase
 
 import (
+	"context"
+	"fmt"
+	"github.com/openinfradev/tks-api/internal/auth/request"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/pkg/errors"
@@ -13,11 +17,11 @@ import (
 )
 
 type IOrganizationUsecase interface {
-	Fetch() ([]domain.Organization, error)
+	Create(context.Context, *domain.Organization) (organizationId string, err error)
+	Fetch() (*[]domain.Organization, error)
 	Get(organizationId string) (domain.Organization, error)
-	Create(domain.Organization, string) (organizationId string, err error)
-	Delete(organizationId string, accessToken string) error
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (err error)
+	Delete(organizationId string, accessToken string) error
 }
 
 type OrganizationUsecase struct {
@@ -34,15 +38,7 @@ func NewOrganizationUsecase(r repository.IOrganizationRepository, argoClient arg
 	}
 }
 
-func (u *OrganizationUsecase) Fetch() (out []domain.Organization, err error) {
-	organizations, err := u.repo.Fetch()
-	if err != nil {
-		return nil, err
-	}
-	return organizations, nil
-}
-
-func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string) (organizationId string, err error) {
+func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organization) (organizationId string, err error) {
 	creator := uuid.Nil
 	if in.Creator != "" {
 		creator, err = uuid.Parse(in.Creator)
@@ -50,16 +46,21 @@ func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string)
 			return "", err
 		}
 	}
-	organizationId, err = u.repo.Create(in.Name, creator, in.Description)
+	token, ok := request.TokenFrom(ctx)
+	if ok == false {
+		return "", fmt.Errorf("token in the context is empty")
+	}
+
+	// Create realm in keycloak
+	if organizationId, err = u.kc.CreateRealm(helper.GenerateOrganizationId(), domain.Organization{}, token); err != nil {
+		return "", err
+	}
+
+	_, err = u.repo.Create(organizationId, in.Name, creator, in.Phone, in.Description)
 	if err != nil {
 		return "", err
 	}
 	log.Info("newly created Organization ID:", organizationId)
-
-	// Create realm in keycloak
-	if organizationId, err = u.kc.CreateRealm(organizationId, domain.Organization{}, accessToken); err != nil {
-		return "", err
-	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"tks-create-contract-repo",
@@ -80,7 +81,13 @@ func (u *OrganizationUsecase) Create(in domain.Organization, accessToken string)
 
 	return organizationId, nil
 }
-
+func (u *OrganizationUsecase) Fetch() (out *[]domain.Organization, err error) {
+	organizations, err := u.repo.Fetch()
+	if err != nil {
+		return nil, err
+	}
+	return organizations, nil
+}
 func (u *OrganizationUsecase) Get(organizationId string) (res domain.Organization, err error) {
 	res, err = u.repo.Get(organizationId)
 	if err != nil {
@@ -116,7 +123,7 @@ func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrga
 		return httpErrors.NewNotFoundError(err)
 	}
 
-	err = u.repo.Update(organizationId, in)
+	_, err = u.repo.Update(organizationId, in)
 	if err != nil {
 		return err
 	}

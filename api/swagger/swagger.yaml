@@ -276,8 +276,6 @@ definitions:
     properties:
       accountId:
         type: string
-      authorized:
-        type: boolean
       createdAt:
         type: string
       creator:

@@ -1,22 +1,22 @@
 package repository
 
 import (
-	"fmt"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/log"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 // Interfaces
 type IOrganizationRepository interface {
-	Fetch() (res []domain.Organization, err error)
+	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (domain.Organization, error)
+	Fetch() (res *[]domain.Organization, err error)
 	Get(organizationId string) (res domain.Organization, err error)
-	Create(name string, creator uuid.UUID, description string) (string, error)
+	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
 	Delete(organizationId string) (err error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (err error)
 	InitWorkflow(organizationId string, workflowId string) error
 }
 
@@ -44,61 +44,84 @@ type Organization struct {
 	Creator     uuid.UUID
 }
 
-func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = helper.GenerateOrganizationId()
-	return nil
+//func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+//	c.ID = helper.GenerateOrganizationId()
+//	return nil
+//}
+
+func (r *OrganizationRepository) Create(organizationId string, name string, creator uuid.UUID, phone string,
+	description string) (domain.Organization, error) {
+	organization := Organization{
+		ID:          organizationId,
+		Name:        name,
+		Creator:     creator,
+		Phone:       phone,
+		Description: description,
+	}
+	res := r.db.Create(&organization)
+	if res.Error != nil {
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
+	}
+
+	return r.reflect(organization), nil
 }
 
-// Logics
-func (r *OrganizationRepository) Fetch() (out []domain.Organization, err error) {
+func (r *OrganizationRepository) Fetch() (*[]domain.Organization, error) {
 	var organizations []Organization
-	out = []domain.Organization{}
+	var out []domain.Organization
 
 	res := r.db.Find(&organizations)
 	if res.Error != nil {
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	for _, organization := range organizations {
 		outOrganization := r.reflect(organization)
 		out = append(out, outOrganization)
 	}
-	return out, nil
+	return &out, nil
 }
 
 func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 	var organization Organization
 	res := r.db.First(&organization, "id = ?", id)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.Organization{}, fmt.Errorf("Not found organization for %s", id)
-	}
-	resOrganization := r.reflect(organization)
-	return resOrganization, nil
-}
-
-func (r *OrganizationRepository) Create(name string, creator uuid.UUID, description string) (string, error) {
-	organization := Organization{Name: name, Creator: creator, Description: description}
-	res := r.db.Create(&organization)
 	if res.Error != nil {
-		return "", res.Error
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
 	}
-	return organization.ID, nil
+
+	return r.reflect(organization), nil
 }
 
-func (r *OrganizationRepository) Delete(organizationId string) (err error) {
-	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
-	if res.Error != nil {
-		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
-	}
-	return nil
-}
-
-func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (err error) {
+func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
+	var organization Organization
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
-		Updates(map[string]interface{}{"Description": in.Description, "Phone": in.Phone})
+		Updates(Organization{
+			Description: in.Description,
+			Phone:       in.Phone,
+		})
 	if res.Error != nil {
-		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
 	}
+	res = r.db.Model(&Organization{}).Where("id = ?", organizationId).Find(&organization)
+	if res.Error != nil {
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
+	}
+
+	return r.reflect(organization), nil
+}
+
+func (r *OrganizationRepository) Delete(organizationId string) error {
+	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
+	if res.Error != nil {
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+
 	return nil
 }
 
@@ -106,10 +129,18 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 	res := r.db.Model(&Organization{}).
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": domain.OrganizationStatus_PENDING, "WorkflowId": workflowId})
-
-	if res.Error != nil || res.RowsAffected == 0 {
-		return fmt.Errorf("nothing updated in organization with id %s", organizationId)
+	if res.Error != nil {
+		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
 	}
+	if res.RowsAffected == 0 {
+		return httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+
+	//if res.Error != nil || res.RowsAffected == 0 {
+	//	return fmt.Errorf("nothing updated in organization with id %s", organizationId)
+	//}
+	
 	return nil
 }
 

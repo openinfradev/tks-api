@@ -10,7 +10,6 @@ type User = struct {
 	Password     string       `json:"password"`
 	Name         string       `json:"name"`
 	Token        string       `json:"token"`
-	Authorized   bool         `json:"authorized"`
 	Role         Role         `json:"role"`
 	Organization Organization `json:"organization"`
 	Creator      string       `json:"creator"`
@@ -83,7 +82,6 @@ func (r *CreateUserRequest) ToUser() *User {
 		Password:     r.Password,
 		Name:         r.Name,
 		Token:        "",
-		Authorized:   false,
 		Role:         Role{Name: r.Role},
 		Organization: Organization{},
 		Creator:      "",
@@ -96,8 +94,6 @@ func (r *CreateUserRequest) ToUser() *User {
 }
 
 type UpdateUserRequest struct {
-	AccountId   string `json:"accountId"`
-	Password    string `json:"password"`
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	Department  string `json:"department"`
@@ -108,11 +104,10 @@ type UpdateUserRequest struct {
 func (r *UpdateUserRequest) ToUser() *User {
 	return &User{
 		ID:           "",
-		AccountId:    r.AccountId,
-		Password:     r.Password,
+		AccountId:    "",
+		Password:     "",
 		Name:         r.Name,
 		Token:        "",
-		Authorized:   false,
 		Role:         Role{Name: r.Role},
 		Organization: Organization{},
 		Creator:      "",
