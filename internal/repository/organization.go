@@ -34,14 +34,15 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 type Organization struct {
 	gorm.Model
 
-	ID          string `gorm:"primarykey;type:varchar(36);not null"`
-	Name        string
-	Description string
-	Phone       string
-	WorkflowId  string
-	Status      domain.OrganizationStatus
-	StatusDesc  string
-	Creator     uuid.UUID
+	ID               string `gorm:"primarykey;type:varchar(36);not null"`
+	Name             string
+	Description      string
+	Phone            string
+	WorkflowId       string
+	Status           domain.OrganizationStatus
+	StatusDesc       string
+	Creator          uuid.UUID
+	PrimaryClusterId string // allow null
 }
 
 //func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
@@ -99,8 +100,9 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
 		Updates(Organization{
-			Description: in.Description,
-			Phone:       in.Phone,
+			Description:      in.Description,
+			Phone:            in.Phone,
+			PrimaryClusterId: in.PrimaryClusterId,
 		})
 	if res.Error != nil {
 		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -140,19 +142,20 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 	//if res.Error != nil || res.RowsAffected == 0 {
 	//	return fmt.Errorf("nothing updated in organization with id %s", organizationId)
 	//}
-	
+
 	return nil
 }
 
 func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {
 	return domain.Organization{
-		ID:          organization.ID,
-		Name:        organization.Name,
-		Description: organization.Description,
-		Phone:       organization.Phone,
-		Status:      organization.Status.String(),
-		Creator:     organization.Creator.String(),
-		CreatedAt:   organization.CreatedAt,
-		UpdatedAt:   organization.UpdatedAt,
+		ID:               organization.ID,
+		Name:             organization.Name,
+		Description:      organization.Description,
+		Phone:            organization.Phone,
+		PrimaryClusterId: organization.PrimaryClusterId,
+		Status:           organization.Status.String(),
+		Creator:          organization.Creator.String(),
+		CreatedAt:        organization.CreatedAt,
+		UpdatedAt:        organization.UpdatedAt,
 	}
 }
