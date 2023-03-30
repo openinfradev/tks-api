@@ -84,6 +84,31 @@ definitions:
       updator:
         type: string
     type: object
+  domain.CloudSettingResponse:
+    properties:
+      clusters:
+        type: integer
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      resource:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        type: string
+    type: object
   domain.Cluster:
     properties:
       cloudSetting:
@@ -145,6 +170,8 @@ definitions:
         type: string
       name:
         type: string
+      organizationId:
+        type: string
       secretKey:
         type: string
       secretKeyId:
@@ -159,6 +186,11 @@ definitions:
     - name
     - secretKey
     - secretKeyId
+    type: object
+  domain.CreateCloudSettingsResponse:
+    properties:
+      cloudSettingId:
+        type: string
     type: object
   domain.CreateClusterRequest:
     properties:
@@ -191,6 +223,13 @@ definitions:
         type: string
       phone:
         type: string
+    type: object
+  domain.GetCloudSettingsResponse:
+    properties:
+      cloudSettings:
+        items:
+          $ref: '#/definitions/domain.CloudSettingResponse'
+        type: array
     type: object
   domain.History:
     properties:
@@ -621,9 +660,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.CloudSetting'
-            type: array
+            $ref: '#/definitions/domain.GetCloudSettingsResponse'
       security:
       - JWT: []
       summary: Get CloudSettings
@@ -646,7 +683,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.CreateCloudSettingsResponse'
       security:
       - JWT: []
       summary: Create CloudSetting
@@ -668,8 +705,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/domain.CloudSetting'
       security:
       - JWT: []
       summary: Delete CloudSetting
@@ -679,13 +714,19 @@ paths:
       consumes:
       - application/json
       description: Get CloudSetting
+      parameters:
+      - description: cloudSettingId
+        in: path
+        name: cloudSettingId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CloudSetting'
+            $ref: '#/definitions/domain.CloudSettingResponse'
       security:
       - JWT: []
       summary: Get CloudSetting
@@ -707,8 +748,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: object
       security:
       - JWT: []
       summary: Update CloudSetting

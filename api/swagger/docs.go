@@ -519,10 +519,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.CloudSetting"
-                            }
+                            "$ref": "#/definitions/domain.GetCloudSettingsResponse"
                         }
                     }
                 }
@@ -559,7 +556,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.CreateCloudSettingsResponse"
                         }
                     }
                 }
@@ -583,11 +580,20 @@ const docTemplate = `{
                     "CloudSettings"
                 ],
                 "summary": "Get CloudSetting",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cloudSettingId",
+                        "name": "cloudSettingId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CloudSetting"
+                            "$ref": "#/definitions/domain.CloudSettingResponse"
                         }
                     }
                 }
@@ -622,10 +628,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "description": "OK"
                     }
                 }
             },
@@ -657,10 +660,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.CloudSetting"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -1141,6 +1141,44 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CloudSettingResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.Cluster": {
             "type": "object",
             "properties": {
@@ -1239,6 +1277,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "organizationId": {
+                    "type": "string"
+                },
                 "secretKey": {
                     "type": "string"
                 },
@@ -1252,6 +1293,14 @@ const docTemplate = `{
                         "AZZURE",
                         "GCP"
                     ]
+                }
+            }
+        },
+        "domain.CreateCloudSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSettingId": {
+                    "type": "string"
                 }
             }
         },
@@ -1301,6 +1350,17 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.GetCloudSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSettings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CloudSettingResponse"
+                    }
                 }
             }
         },
