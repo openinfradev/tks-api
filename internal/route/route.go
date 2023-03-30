@@ -125,8 +125,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/users", authMiddleware(http.HandlerFunc(userHandler.List), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Get), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Delete), kc)).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Update), kc)).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}/password", authMiddleware(http.HandlerFunc(userHandler.UpdatePassword), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}/password", authMiddleware(http.HandlerFunc(userHandler.UpdatePassword), kc)).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.CheckId), kc)).Methods(http.MethodPost)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repository.NewOrganizationRepository(db),
@@ -136,6 +135,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.DeleteOrganization), kc)).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.UpdateOrganization), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/primary-cluster", authMiddleware(http.HandlerFunc(organizationHandler.UpdatePrimaryCluster), kc)).Methods(http.MethodPatch)
 
 	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(
 		repository.NewClusterRepository(db),
@@ -280,7 +280,7 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
-				w.WriteHeader(http.StatusUnauthorized)
+				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
 				return
 			}
@@ -295,7 +295,7 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				slice := strings.Split(role.(string), "@")
 				if len(slice) != 2 {
 					log.Error("invalid role format: ", role)
-					w.WriteHeader(http.StatusBadRequest)
+					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte(fmt.Sprintf("invalid role format: %s", role)))
 					return
 				}

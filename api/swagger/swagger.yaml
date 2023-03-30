@@ -230,6 +230,8 @@ definitions:
         type: string
       phone:
         type: string
+      primaryClusterId:
+        type: string
       status:
         type: string
       statusDescription:
@@ -930,6 +932,27 @@ paths:
       security:
       - JWT: []
       summary: Update organization detail
+      tags:
+      - Organizations
+  /organizations/{organizationId}/primary-cluster:
+    put:
+      consumes:
+      - application/json
+      description: Update primary cluster
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update primary cluster
       tags:
       - Organizations
 securityDefinitions:

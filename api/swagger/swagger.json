@@ -1009,6 +1009,40 @@
                     }
                 }
             }
+        },
+        "/organizations/{organizationId}/primary-cluster": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update primary cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Update primary cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1354,6 +1388,9 @@
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "primaryClusterId": {
                     "type": "string"
                 },
                 "status": {

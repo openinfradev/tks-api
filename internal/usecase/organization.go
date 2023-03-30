@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -21,6 +22,7 @@ type IOrganizationUsecase interface {
 	Fetch() (*[]domain.Organization, error)
 	Get(organizationId string) (domain.Organization, error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (err error)
+	UpdatePrimaryClusterId(organizationId string, clusterId string) (err error)
 	Delete(organizationId string, accessToken string) error
 }
 
@@ -121,6 +123,30 @@ func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrga
 	_, err = u.Get(organizationId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err)
+	}
+
+	_, err = u.repo.Update(organizationId, in)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clusterId string) (err error) {
+	if !helper.ValidateClusterId(clusterId) {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"))
+	}
+
+	organization, err := u.Get(organizationId)
+	if err != nil {
+		return httpErrors.NewNotFoundError(err)
+	}
+
+	// [TODO] need refactoring about reflect
+	in := domain.UpdateOrganizationRequest{
+		Description:      organization.Description,
+		Phone:            organization.Phone,
+		PrimaryClusterId: clusterId,
 	}
 
 	_, err = u.repo.Update(organizationId, in)

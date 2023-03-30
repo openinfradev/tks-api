@@ -2,8 +2,9 @@ package http
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"net/http"
+
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/auth/request"
@@ -211,6 +212,42 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
+		ErrorJSON(w, err)
+		return
+	}
+
+	log.Info(input)
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
+// UpdatePrimaryCluster godoc
+// @Tags Organizations
+// @Summary Update primary cluster
+// @Description Update primary cluster
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/primary-cluster [put]
+// @Security     JWT
+func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
+	input := domain.UpdatePrimaryClusterRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	err = h.usecase.UpdatePrimaryClusterId(organizationId, input.PrimaryClusterId)
+	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
