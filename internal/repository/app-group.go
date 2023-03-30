@@ -45,7 +45,7 @@ type AppGroup struct {
 	Creator      uuid.UUID
 	Description  string
 	WorkflowId   string
-	Status       string // INIT, RUNNING, COMPLETED, FAILED, ERROR
+	Status       domain.AppGroupStatus
 	StatusDesc   string
 }
 
@@ -155,7 +155,7 @@ func (r *AppGroupRepository) UpsertApplication(appGroupId string, appType string
 func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
 	res := r.db.Model(&AppGroup{}).
 		Where("ID = ?", appGroupId).
-		Updates(map[string]interface{}{"Status": "INIT", "WorkflowId": workflowId})
+		Updates(map[string]interface{}{"Status": domain.AppGroupStatus_INSTALLING, "WorkflowId": workflowId})
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("nothing updated in appgroup with id %s", appGroupId)
@@ -172,7 +172,7 @@ func (r *AppGroupRepository) reflect(appGroup AppGroup) domain.AppGroup {
 		AppGroupType:      appGroup.AppGroupType,
 		Name:              appGroup.Name,
 		Description:       appGroup.Description,
-		Status:            appGroup.Status,
+		Status:            appGroup.Status.String(),
 		StatusDescription: appGroup.StatusDesc,
 		Creator:           appGroup.Creator.String(),
 		CreatedAt:         appGroup.CreatedAt,
