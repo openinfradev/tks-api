@@ -1,8 +1,9 @@
-package domain
+package repository
 
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"reflect"
 )
 
@@ -37,8 +38,7 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 					return err
 				}
 			} else {
-				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
-				if converter, ok := converterMap[converterKey]; ok {
+				if converter, ok := converterMap[compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}]; ok {
 					if converted, err := converter(srcField.Interface()); err != nil {
 						return err
 					} else {
@@ -55,24 +55,18 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 }
 func Map(src interface{}, dst interface{}) error {
 	return recursiveMap(src, dst, ConverterMap{
-		{srcType: reflect.TypeOf((*uuid.UUID)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+		{srcType: reflect.TypeOf((*uuid.UUID)(nil)), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
 			return i.(uuid.UUID).String(), nil
 		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*uuid.UUID)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*uuid.UUID)(nil))}: func(i interface{}) (interface{}, error) {
 			val, _ := uuid.Parse(i.(string))
 			return val, nil
 		},
-		{srcType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return string(i.(OrganizationStatus)), nil
+		{srcType: reflect.TypeOf((*domain.OrganizationStatus)(nil)), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return string(i.(domain.OrganizationStatus)), nil
 		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return i.(OrganizationStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf((*Role)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(Role).Name, nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*Role)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return Role{Name: i.(string)}, nil
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*domain.OrganizationStatus)(nil))}: func(i interface{}) (interface{}, error) {
+			return i.(domain.OrganizationStatus).String(), nil
 		},
 	})
 }

@@ -36,7 +36,7 @@ type UserRepository struct {
 func (r *UserRepository) Flush(organizationId string) error {
 	res := r.db.Where("organization_id = ?", organizationId).Delete(&User{})
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -81,7 +81,7 @@ func (r *UserRepository) Create(accountId string, organizationId string, passwor
 	}
 	res := r.db.Create(&newUser)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.User{}, res.Error
 	}
 
@@ -106,8 +106,12 @@ func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name s
 		log.Error(res.Error.Error())
 		return domain.User{}, res.Error
 	}
+	user, err := r.getUserByAccountId(accountId, organizationId)
+	if err != nil {
+		return domain.User{}, err
+	}
 
-	return r.reflect(newUser), nil
+	return r.reflect(user), nil
 }
 func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
 	return func(user *gorm.DB) *gorm.DB {
@@ -138,7 +142,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -165,7 +169,7 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
 
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -184,14 +188,14 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 		Department:  department,
 		Description: description,
 	})
-	//if res.RowsAffected == 0 || res.Error != nil {
-	//	return domain.User{}, fmt.Errorf("Not found user. %s", res.Error)
-	//}
+	if res.RowsAffected == 0 || res.Error != nil {
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.User{}, res.Error
 	}
-	res = r.db.Model(&User{}).Where("id = ?", uuid).Find(&user)
+	res = r.db.Model(&User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
 	if res.Error != nil {
 		return domain.User{}, res.Error
 	}
@@ -200,7 +204,7 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
 	res := r.db.Unscoped().Delete(&User{}, "id = ?", uuid)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -263,7 +267,7 @@ func (r *UserRepository) AssignRoleWithUuid(uuid uuid.UUID, roleName string) err
 	}
 	res := r.db.Create(&newRole)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -287,7 +291,7 @@ func (r *UserRepository) AssignRole(accountId string, organizationId string, rol
 	}
 	res := r.db.Create(&newRole)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -311,7 +315,7 @@ func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
 	res := r.db.Find(&roles)
 
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 
@@ -334,7 +338,7 @@ func (r *UserRepository) getUserByAccountId(accountId string, organizationId str
 	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -348,7 +352,7 @@ func (r *UserRepository) getRoleByName(roleName string) (Role, error) {
 	role := Role{}
 	res := r.db.First(&role, "name = ?", roleName)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return Role{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -384,12 +388,15 @@ func (r *UserRepository) reflect(user User) domain.User {
 	//}
 
 	organization := domain.Organization{
-		ID:          user.Organization.ID,
-		Name:        user.Organization.Name,
-		Description: user.Organization.Description,
-		Creator:     user.Organization.Creator.String(),
-		CreatedAt:   user.Organization.CreatedAt,
-		UpdatedAt:   user.Organization.UpdatedAt,
+		ID:                user.Organization.ID,
+		Name:              user.Organization.Name,
+		Description:       user.Organization.Description,
+		Phone:             user.Organization.Phone,
+		Status:            user.Organization.Status,
+		StatusDescription: user.Organization.StatusDesc,
+		Creator:           user.Organization.Creator.String(),
+		CreatedAt:         user.Organization.CreatedAt,
+		UpdatedAt:         user.Organization.UpdatedAt,
 	}
 	//for _, organization := range user.Organizations {
 	//	outOrganization := domain.Organization{
@@ -413,6 +420,9 @@ func (r *UserRepository) reflect(user User) domain.User {
 		Creator:      user.Creator.String(),
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
+		Email:        user.Email,
+		Department:   user.Department,
+		Description:  user.Description,
 	}
 }
 

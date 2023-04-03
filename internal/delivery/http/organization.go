@@ -46,16 +46,16 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	ctx := r.Context()
-	organization := input.ToOrganization()
-	organization.Creator = ""
+	var organization domain.Organization
+	err = domain.Map(input, &organization)
 
-	organizationId, err := h.usecase.Create(ctx, organization)
+	organizationId, err := h.usecase.Create(ctx, &organization)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, err)
 		return
 	}
-
+	organization.ID = organizationId
 	// Admin user 생성
 	_, err = h.userUsecase.CreateAdmin(organizationId)
 	if err != nil {
@@ -64,13 +64,9 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var out struct {
-		OrganizationId string `json:"organizationId"`
-	}
+	var out domain.CreateOrganizationResponse
+	domain.Map(organization, &out)
 
-	out.OrganizationId = organizationId
-
-	//time.Sleep(time.Second * 5) // for test
 	ResponseJSON(w, http.StatusOK, out)
 }
 
@@ -80,11 +76,10 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Description Get organization list
 // @Accept json
 // @Produce json
-// @Success 200 {object} []domain.Organization
+// @Success 200 {object} []domain.ListOrganizationBody
 // @Router /organizations [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
-	log.Info("GetOrganization")
 	organizations, err := h.usecase.Fetch()
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -93,12 +88,11 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var out struct {
-		Organizations []domain.Organization `json:"organizations"`
-	}
+	var out domain.ListOrganizationResponse
+	out.Organizations = make([]domain.ListOrganizationBody, len(*organizations))
 
-	for _, organization := range *organizations {
-		out.Organizations = append(out.Organizations, organization)
+	for i, organization := range *organizations {
+		domain.Map(organization, &out.Organizations[i])
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -111,7 +105,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Success 200 {object} domain.Organization
+// @Success 200 {object} domain.GetOrganizationResponse
 // @Router /organizations/{organizationId} [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Request) {
@@ -130,11 +124,8 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var out struct {
-		Organization domain.Organization `json:"organization"`
-	}
-
-	out.Organization = organization
+	var out domain.GetOrganizationResponse
+	domain.Map(organization, &out.Organization)
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -190,7 +181,8 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Success 200 {object} domain.Organization
+// @Param body body domain.UpdateOrganizationRequest true "update organization request"
+// @Success 200 {object} domain.UpdateOrganizationResponse
 // @Router /organizations/{organizationId} [put]
 // @Security     JWT
 func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
@@ -208,7 +200,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.usecase.Update(organizationId, input)
+	organization, err := h.usecase.Update(organizationId, input)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
@@ -216,9 +208,10 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	log.Info(input)
+	var out domain.UpdateOrganizationResponse
+	domain.Map(organization, &out)
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // UpdatePrimaryCluster godoc
@@ -252,8 +245,6 @@ func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *htt
 		ErrorJSON(w, err)
 		return
 	}
-
-	log.Info(input)
 
 	ResponseJSON(w, http.StatusOK, nil)
 }
