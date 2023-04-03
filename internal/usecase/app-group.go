@@ -112,7 +112,7 @@ func (u *AppGroupUsecase) Create(clusterId string, name string, appGroupType str
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(appGroupId, workflowId); err != nil {
+	if err := u.repo.InitWorkflow(appGroupId, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
 		return "", fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
 	}
 
@@ -167,7 +167,7 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(appGroupId, workflowId); err != nil {
+	if err := u.repo.InitWorkflow(appGroupId, workflowId, domain.AppGroupStatus_DELETING); err != nil {
 		return fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
 	}
 

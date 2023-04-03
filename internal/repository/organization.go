@@ -16,7 +16,7 @@ type IOrganizationRepository interface {
 	Get(organizationId string) (res domain.Organization, err error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
 	Delete(organizationId string) (err error)
-	InitWorkflow(organizationId string, workflowId string) error
+	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
 
 type OrganizationRepository struct {
@@ -57,6 +57,7 @@ func (r *OrganizationRepository) Create(organizationId string, name string, crea
 		Creator:     creator,
 		Phone:       phone,
 		Description: description,
+		Status:      domain.OrganizationStatus_PENDING,
 	}
 	res := r.db.Create(&organization)
 	if res.Error != nil {
@@ -126,10 +127,10 @@ func (r *OrganizationRepository) Delete(organizationId string) error {
 	return nil
 }
 
-func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string) error {
+func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error {
 	res := r.db.Model(&Organization{}).
 		Where("ID = ?", organizationId).
-		Updates(map[string]interface{}{"Status": domain.OrganizationStatus_PENDING, "WorkflowId": workflowId})
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {
 		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error

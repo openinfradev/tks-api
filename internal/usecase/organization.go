@@ -77,7 +77,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 	}
 	log.Info("submited workflow :", workflowId)
 
-	if err := u.repo.InitWorkflow(organizationId, workflowId); err != nil {
+	if err := u.repo.InitWorkflow(organizationId, workflowId, domain.OrganizationStatus_CREATING); err != nil {
 		return "", errors.Wrap(err, "Failed to init workflow")
 	}
 
