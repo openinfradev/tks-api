@@ -7,7 +7,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IAuthUsecase interface {
@@ -35,8 +34,6 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 		return domain.User{}, err
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		log.Debug(user.Password)
-		log.Debug(password)
 		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf("password is not correct"))
 	}
 
@@ -49,15 +46,6 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 
 	// Insert token
 	user.Token = accountToken.Token
-
-	// Remove password in user
-	user.Password = ""
-
-	// Replaced with Keycloak
-	//user.Token, err = helper.CreateJWT(accountId, user.ID, organizationId)
-	//if err != nil {
-	//	return domain.User{}, fmt.Errorf("failed to create token")
-	//}
 
 	return user, nil
 }

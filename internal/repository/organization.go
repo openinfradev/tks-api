@@ -61,7 +61,7 @@ func (r *OrganizationRepository) Create(organizationId string, name string, crea
 	}
 	res := r.db.Create(&organization)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error
 	}
 
@@ -74,7 +74,7 @@ func (r *OrganizationRepository) Fetch() (*[]domain.Organization, error) {
 
 	res := r.db.Find(&organizations)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	for _, organization := range organizations {
@@ -88,7 +88,7 @@ func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 	var organization Organization
 	res := r.db.First(&organization, "id = ?", id)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error
 	}
 
@@ -105,12 +105,12 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 			PrimaryClusterId: in.PrimaryClusterId,
 		})
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error
 	}
 	res = r.db.Model(&Organization{}).Where("id = ?", organizationId).Find(&organization)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error
 	}
 
@@ -120,7 +120,7 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 func (r *OrganizationRepository) Delete(organizationId string) error {
 	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -132,7 +132,7 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {
-		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -145,7 +145,7 @@ func (r *OrganizationRepository) reflect(organization Organization) domain.Organ
 		Description:      organization.Description,
 		Phone:            organization.Phone,
 		PrimaryClusterId: organization.PrimaryClusterId,
-		Status:           organization.Status.String(),
+		Status:           organization.Status,
 		Creator:          organization.Creator.String(),
 		CreatedAt:        organization.CreatedAt,
 		UpdatedAt:        organization.UpdatedAt,
