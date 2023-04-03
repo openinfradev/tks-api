@@ -228,8 +228,9 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param body body domain.UpdatePrimaryClusterRequest true "update primary cluster request"
 // @Success 200 {object} nil
-// @Router /organizations/{organizationId}/primary-cluster [put]
+// @Router /organizations/{organizationId}/primary-cluster [patch]
 // @Security     JWT
 func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

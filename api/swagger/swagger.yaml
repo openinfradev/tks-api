@@ -274,6 +274,11 @@ definitions:
       secretKeyId:
         type: string
     type: object
+  domain.UpdatePrimaryClusterRequest:
+    properties:
+      primaryClusterId:
+        type: string
+    type: object
   domain.User:
     properties:
       accountId:
@@ -935,7 +940,7 @@ paths:
       tags:
       - Organizations
   /organizations/{organizationId}/primary-cluster:
-    put:
+    patch:
       consumes:
       - application/json
       description: Update primary cluster
@@ -945,6 +950,12 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: update primary cluster request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePrimaryClusterRequest'
       produces:
       - application/json
       responses:

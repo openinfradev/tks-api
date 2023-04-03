@@ -1011,7 +1011,7 @@
             }
         },
         "/organizations/{organizationId}/primary-cluster": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "JWT": []
@@ -1035,6 +1035,15 @@
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "update primary cluster request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdatePrimaryClusterRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1454,6 +1463,14 @@
                     "type": "string"
                 },
                 "secretKeyId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdatePrimaryClusterRequest": {
+            "type": "object",
+            "properties": {
+                "primaryClusterId": {
                     "type": "string"
                 }
             }

@@ -1018,7 +1018,7 @@ const docTemplate = `{
             }
         },
         "/organizations/{organizationId}/primary-cluster": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "JWT": []
@@ -1042,6 +1042,15 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "update primary cluster request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdatePrimaryClusterRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1461,6 +1470,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secretKeyId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdatePrimaryClusterRequest": {
+            "type": "object",
+            "properties": {
+                "primaryClusterId": {
                     "type": "string"
                 }
             }
