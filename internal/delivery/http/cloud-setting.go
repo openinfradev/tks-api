@@ -31,7 +31,7 @@ func NewCloudSettingHandler(h usecase.ICloudSettingUsecase) *CloudSettingHandler
 // @Accept json
 // @Produce json
 // @Param body body domain.CreateCloudSettingRequest true "create cloud setting request"
-// @Success 200 {object} object
+// @Success 200 {object} domain.CreateCloudSettingsResponse
 // @Router /cloud-settings [post]
 // @Security     JWT
 func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +48,7 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	cloudSettingId, err := h.usecase.Create(user.GetOrganizationId(), input, user.GetUserId())
+	cloudSettingId, err := h.usecase.Create(input, user.GetUserId())
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -56,10 +56,9 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 
 	log.Info("Newly created cloud setting : ", cloudSettingId)
 
-	var out struct {
-		CloudSettingId string `json:"cloudSettingId"`
+	out := domain.CreateCloudSettingsResponse{
+		CloudSettingId: cloudSettingId.String(),
 	}
-	out.CloudSettingId = cloudSettingId.String()
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -70,7 +69,7 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 // @Description Get CloudSettings
 // @Accept json
 // @Produce json
-// @Success 200 {object} []domain.CloudSetting
+// @Success 200 {object} domain.GetCloudSettingsResponse
 // @Router /cloud-settings [get]
 // @Security     JWT
 func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Request) {
@@ -86,11 +85,14 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var out struct {
-		CloudSettings []domain.CloudSetting `json:"cloudSettings"`
+	var res []domain.CloudSettingResponse
+	for _, cloudSetting := range cloudSettings {
+		res = append(res, domain.NewCloudSettingResponse(cloudSetting))
 	}
 
-	out.CloudSettings = cloudSettings
+	out := domain.GetCloudSettingsResponse{
+		CloudSettings: res,
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -101,7 +103,8 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 // @Description Get CloudSetting
 // @Accept json
 // @Produce json
-// @Success 200 {object} domain.CloudSetting
+// @Param cloudSettingId path string true "cloudSettingId"
+// @Success 200 {object} domain.CloudSettingResponse
 // @Router /cloud-settings/{cloudSettingId} [get]
 // @Security     JWT
 func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Request) {
@@ -124,11 +127,9 @@ func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var out struct {
-		CloudSetting domain.CloudSetting `json:"cloudSetting"`
+	out := domain.GetCloudSettingResponse{
+		CloudSetting: domain.NewCloudSettingResponse(cloudSetting),
 	}
-
-	out.CloudSetting = cloudSetting
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -140,7 +141,7 @@ func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Req
 // @Accept json
 // @Produce json
 // @Param body body domain.UpdateCloudSettingRequest true "Update cloud setting request"
-// @Success 200 {object} object
+// @Success 200 {object} nil
 // @Router /cloud-settings/{cloudSettingId} [put]
 // @Security     JWT
 func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.Request) {
@@ -186,7 +187,7 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Param cloudSettingId path string true "cloudSettingId"
-// @Success 200 {object} domain.CloudSetting
+// @Success 200 {object} nil
 // @Router /cloud-settings/{cloudSettingId} [delete]
 // @Security     JWT
 func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.Request) {
