@@ -64,44 +64,38 @@ func (c *Keycloak) InitializeKeycloak() error {
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
 		restyClient.SetDebug(true)
 	}
-	//restyClient.SetDebug(true)
 
 	restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
-	log.Info("loginAdmin")
 	token, err := c.loginAdmin(ctx)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 
-	log.Info("Add Group")
 	group, err := c.ensureGroupByName(ctx, token, DefaultMasterRealm, "tks-admin@master")
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 
-	log.Info("Add user")
 	user, err := c.ensureUserByName(ctx, token, DefaultMasterRealm, c.config.AdminId, c.config.AdminPassword)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 
-	log.Info("Add user to group")
 	if err := c.addUserToGroup(ctx, token, DefaultMasterRealm, *user.ID, *group.ID); err != nil {
 		log.Fatal(err)
 		return err
 	}
-	log.Info("ensureClient")
+
 	keycloakClient, err := c.ensureClient(ctx, token, DefaultMasterRealm, DefaultClientID, DefaultClientSecret)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 
-	log.Info("ensureClientProtocolMappers")
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if err := c.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *keycloakClient.ClientID, "openid", defaultMapper); err != nil {
 			log.Fatal(err)
@@ -109,7 +103,6 @@ func (c *Keycloak) InitializeKeycloak() error {
 		}
 	}
 
-	log.Info("LoginClient")
 	if _, err := c.client.Login(ctx, DefaultClientID, DefaultClientSecret, DefaultMasterRealm,
 		c.config.AdminId, c.config.AdminPassword); err != nil {
 		log.Fatal(err)
@@ -130,7 +123,6 @@ func (k *Keycloak) CreateRealm(organizationName string, organizationConfig domai
 	}
 	realmUUID, err := k.client.CreateRealm(ctx, accessToken, realmConfig)
 	if err != nil {
-		log.Info("CreateRealm", "err", err)
 		return realmUUID, err
 	}
 	// After Create Realm, accesstoken got changed so that old token doesn't work properly.
@@ -140,8 +132,6 @@ func (k *Keycloak) CreateRealm(organizationName string, organizationConfig domai
 	}
 	accessToken = token.AccessToken
 
-	log.Info("CreateRealm", "realmUUID", realmUUID)
-	log.Info("CreateRealm", "organizationName", organizationName)
 	time.Sleep(time.Second * 3)
 	clientUUID, err := k.createDefaultClient(context.Background(), accessToken, organizationName, DefaultClientID, DefaultClientSecret)
 	if err != nil {
@@ -171,11 +161,9 @@ func (k *Keycloak) CreateRealm(organizationName string, organizationConfig domai
 		}
 	}
 	adminGroupUuid, err := k.createGroup(ctx, accessToken, organizationName, "admin@"+organizationName)
-	log.Info("adminGroupUuid", adminGroupUuid)
-	g, _ := k.client.GetGroups(ctx, accessToken, organizationName, gocloak.GetGroupsParams{
-		Search: gocloak.StringP("admin@" + organizationName),
-	})
-	log.Info("GetGroups g[0].ID", g[0].ID)
+	if err != nil {
+		return realmUUID, err
+	}
 
 	token, err = k.loginAdmin(ctx)
 	if err != nil {

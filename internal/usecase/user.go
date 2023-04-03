@@ -10,7 +10,10 @@ import (
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
+	"net/http"
 )
 
 type IUserUsecase interface {
@@ -32,26 +35,8 @@ type UserUsecase struct {
 
 func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) error {
 	// TODO: implement me as transaction
-	//users, err := u.repo.List(u.repo.OrganizationFilter(organizationId))
-	//if err != nil {
-	//	return err
-	//}
-	//token, ok := request.TokenFrom(ctx)
-	//if ok == false {
-	//	return httpErrors.NewInternalServerError(fmt.Errorf("token in the context is empty"))
-	//}
-	//for _, user := range *users {
-	//	// Delete user in keycloak
-	//
-	//	err = u.kc.DeleteUser(organizationId, user.AccountId, token)
-	//	if err != nil {
-	//		if _, statusCode := httpErrors.ErrorResponse(err); statusCode == http.StatusNotFound {
-	//			continue
-	//		}
-	//		return err
-	//	}
-	//}
-	//
+	// TODO: clean users in keycloak
+
 	err := u.repo.Flush(organizationId)
 	if err != nil {
 		return err
@@ -156,11 +141,6 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 		return nil, err
 	}
 
-	//err = u.repo.AssignRole(user.AccountId, user.Organization.ID, user.Role.Name)
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	return &resUser, nil
 }
 
@@ -226,7 +206,7 @@ func (u *UserUsecase) List(ctx context.Context) (*[]domain.User, error) {
 
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()))
 	if err != nil {
-		return nil, errors.Wrap(err, "getting users from repository failed")
+		return nil, err
 	}
 
 	return users, nil
@@ -252,10 +232,17 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if ok == false {
 		return nil, fmt.Errorf("user in the context is empty")
 	}
+	token, ok := request.TokenFrom(ctx)
+	if ok == false {
+		return nil, fmt.Errorf("token in the context is empty")
+	}
 
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+		}
 		return nil, errors.Wrap(err, "getting users from repository failed")
 	}
 	if len(*users) == 0 {
@@ -264,14 +251,25 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, fmt.Errorf("multiple users found")
 	}
 
-	uuid, err := uuid.Parse((*users)[0].ID)
+	if user.Role.Name != (*users)[0].Role.Name {
+		groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())}
+		if err := u.kc.UpdateUser(userInfo.GetOrganizationId(), &gocloak.User{
+			ID:     &(*users)[0].ID,
+			Groups: &groups,
+		}, token); err != nil {
+			log.Errorf("updating user in keycloak failed: %v", err)
+			return nil, httpErrors.NewInternalServerError(err)
+		}
+	}
+
+	userUuid, err := uuid.Parse((*users)[0].ID)
 	if err != nil {
 		return nil, err
 	}
 
 	originPassword := (*users)[0].Password
 
-	*user, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, originPassword, user.Email,
+	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -288,7 +286,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) e
 
 	user, err := u.repo.Get(accountId, userInfo.GetOrganizationId())
 	if err != nil {
-		return errors.Wrap(err, "getting users from repository failed")
+		return err
 	}
 
 	uuid, err := uuid.Parse(user.ID)
@@ -297,7 +295,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) e
 	}
 	err = u.repo.DeleteWithUuid(uuid)
 	if err != nil {
-		return errors.Wrap(err, "deleting user in repository failed")
+		return err
 	}
 
 	// Delete user in keycloak
@@ -307,7 +305,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) e
 	}
 	err = u.kc.DeleteUser(userInfo.GetOrganizationId(), accountId, token)
 	if err != nil {
-		return errors.Wrap(err, "deleting user in keycloak failed")
+		return err
 	}
 
 	return nil
@@ -335,6 +333,10 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		Groups: &groups,
 	}, token)
 	if err != nil {
+		if _, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token); err == nil {
+			return nil, httpErrors.NewConflictError(errors.New("user already exists"))
+		}
+
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
 	}
 	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)

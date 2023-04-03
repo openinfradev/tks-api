@@ -34,7 +34,7 @@ func NewAuthHandler(h usecase.IAuthUsecase) IAuthHandler {
 // @Accept json
 // @Produce json
 // @Param body body domain.LoginRequest true "account info"
-// @Success 200 {object} domain.User "user detail"
+// @Success 200 {object} domain.LoginResponse "user detail"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
@@ -52,13 +52,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out struct {
-		User domain.User `json:"user"`
-	}
-
-	out.User = user
-
-	//_ = h.Repository.AddHistory(user.ID.String(), "", "login", fmt.Sprintf("[%s] 님이 로그인하였습니다.", input.AccountId))
+	var out domain.LoginResponse
+	domain.Map(user, &out)
 
 	ResponseJSON(w, http.StatusOK, out)
 
@@ -80,10 +75,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }

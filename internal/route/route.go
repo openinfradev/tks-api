@@ -231,14 +231,6 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 
 		case "keycloak":
 		default:
-
-			// [TODO] implementaion keycloak process
-			//vars := mux.Vars(r)
-			//organization, ok := vars["organizationId"]
-			//if !ok {
-			//	organization = "master"
-			//}
-
 			auth := strings.TrimSpace(r.Header.Get("Authorization"))
 			if auth == "" {
 				w.WriteHeader(http.StatusUnauthorized)

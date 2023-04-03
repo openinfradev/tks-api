@@ -218,11 +218,69 @@ definitions:
   domain.CreateOrganizationRequest:
     properties:
       description:
+        maxLength: 100
+        minLength: 0
         type: string
       name:
+        maxLength: 20
+        minLength: 3
         type: string
       phone:
         type: string
+    required:
+    - name
+    type: object
+  domain.CreateUserRequest:
+    properties:
+      accountId:
+        type: string
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      password:
+        type: string
+      role:
+        enum:
+        - admin
+        - user
+        type: string
+    required:
+    - accountId
+    - password
+    - role
+    type: object
+  domain.CreateUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
     type: object
   domain.GetCloudSettingsResponse:
     properties:
@@ -230,6 +288,58 @@ definitions:
         items:
           $ref: '#/definitions/domain.CloudSettingResponse'
         type: array
+    type: object
+  domain.GetOrganizationResponse:
+    properties:
+      organization:
+        properties:
+          createdAt:
+            type: string
+          creator:
+            type: string
+          description:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          phone:
+            type: string
+          status:
+            $ref: '#/definitions/domain.OrganizationStatus'
+          statusDescription:
+            type: string
+          updatedAt:
+            type: string
+        type: object
+    type: object
+  domain.GetUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          createdAt:
+            type: string
+          creator:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          updatedAt:
+            type: string
+        type: object
     type: object
   domain.History:
     properties:
@@ -246,6 +356,44 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.ListOrganizationBody:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      status:
+        $ref: '#/definitions/domain.OrganizationStatus'
+    type: object
+  domain.ListUserBody:
+    properties:
+      accountId:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization:
+        $ref: '#/definitions/domain.Organization'
+      role:
+        $ref: '#/definitions/domain.Role'
+      updatedAt:
+        type: string
+    type: object
   domain.LoginRequest:
     properties:
       accountId:
@@ -253,6 +401,17 @@ definitions:
       organizationId:
         type: string
       password:
+        type: string
+    required:
+    - accountId
+    - organizationId
+    - password
+    type: object
+  domain.LoginResponse:
+    properties:
+      accountId:
+        type: string
+      token:
         type: string
     type: object
   domain.Organization:
@@ -272,12 +431,32 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        type: string
+        $ref: '#/definitions/domain.OrganizationStatus'
       statusDescription:
         type: string
       updatedAt:
         type: string
     type: object
+  domain.OrganizationStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    type: integer
+    x-enum-varnames:
+    - OrganizationStatus_PENDING
+    - OrganizationStatus_CREATE
+    - OrganizationStatus_CREATING
+    - OrganizationStatus_CREATED
+    - OrganizationStatus_DELETE
+    - OrganizationStatus_DELETING
+    - OrganizationStatus_DELETED
+    - OrganizationStatus_ERROR
   domain.Role:
     properties:
       createdAt:
@@ -313,10 +492,83 @@ definitions:
       secretKeyId:
         type: string
     type: object
+  domain.UpdateOrganizationRequest:
+    properties:
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      phone:
+        type: string
+      primaryClusterId:
+        type: string
+    type: object
+  domain.UpdateOrganizationResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+    type: object
+  domain.UpdatePasswordRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  domain.UpdatePasswordResponse:
+    type: object
   domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
         type: string
+    type: object
+  domain.UpdateUserRequest:
+    properties:
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      role:
+        enum:
+        - admin
+        - user
+        type: string
+    type: object
+  domain.UpdateUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
     type: object
   domain.User:
     properties:
@@ -637,7 +889,7 @@ paths:
         "200":
           description: user detail
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/domain.LoginResponse'
       summary: login
       tags:
       - Auth
@@ -886,7 +1138,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Organization'
+              $ref: '#/definitions/domain.ListOrganizationBody'
             type: array
       security:
       - JWT: []
@@ -955,7 +1207,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Organization'
+            $ref: '#/definitions/domain.GetOrganizationResponse'
       security:
       - JWT: []
       summary: Get organization detail
@@ -971,13 +1223,19 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: update organization request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateOrganizationRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Organization'
+            $ref: '#/definitions/domain.UpdateOrganizationResponse'
       security:
       - JWT: []
       summary: Update organization detail
@@ -1010,6 +1268,172 @@ paths:
       summary: Update primary cluster
       tags:
       - Organizations
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get user list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ListUserBody'
+            type: array
+      security:
+      - JWT: []
+      summary: Get user list
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: create user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: create user response
+          schema:
+            $ref: '#/definitions/domain.CreateUserResponse'
+      security:
+      - JWT: []
+      summary: Create user
+      tags:
+      - Users
+  /users/{userId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+      security:
+      - JWT: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get user detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetUserResponse'
+      security:
+      - JWT: []
+      summary: Get user detail
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "409":
+          description: Conflict
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update user detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserResponse'
+      security:
+      - JWT: []
+      summary: Update user detail
+      tags:
+      - Users
+  /users/{userId}/password:
+    put:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: update user password request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdatePasswordResponse'
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - Users
 securityDefinitions:
   JWT:
     in: header
