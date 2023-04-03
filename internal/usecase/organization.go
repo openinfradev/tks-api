@@ -122,7 +122,7 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrganizationRequest) (err error) {
 	_, err = u.Get(organizationId)
 	if err != nil {
-		return httpErrors.NewNoContentError(err)
+		return httpErrors.NewNotFoundError(err)
 	}
 
 	_, err = u.repo.Update(organizationId, in)
@@ -139,7 +139,7 @@ func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clus
 
 	organization, err := u.Get(organizationId)
 	if err != nil {
-		return httpErrors.NewNoContentError(err)
+		return httpErrors.NewNotFoundError(err)
 	}
 
 	// [TODO] need refactoring about reflect
