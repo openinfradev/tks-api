@@ -12,7 +12,7 @@ import (
 type ICloudSettingUsecase interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
 	Fetch(organizationId string) ([]domain.CloudSetting, error)
-	Create(organizationId string, in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
+	Create(in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
 	Update(cloudSettingId uuid.UUID, in domain.UpdateCloudSettingRequest, updator uuid.UUID) (err error)
 	Delete(cloudSettingId uuid.UUID) error
 }
@@ -31,9 +31,9 @@ func NewCloudSettingUsecase(r repository.ICloudSettingRepository, cr repository.
 	}
 }
 
-func (u *CloudSettingUsecase) Create(organizationId string, in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
+func (u *CloudSettingUsecase) Create(in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
 	resource := "TODO server result or additional information"
-	cloudSettingId, err = u.repo.Create(organizationId, in, resource, creator)
+	cloudSettingId, err = u.repo.Create(in, resource, creator)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err)
 	}

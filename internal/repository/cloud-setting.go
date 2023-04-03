@@ -14,7 +14,7 @@ import (
 type ICloudSettingRepository interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
 	Fetch(organizationId string) ([]domain.CloudSetting, error)
-	Create(organizationId string, input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
+	Create(input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
 	Update(cloudSettingId uuid.UUID, input domain.UpdateCloudSettingRequest, resource string, updator uuid.UUID) (err error)
 	Delete(cloudSettingId uuid.UUID) (err error)
 }
@@ -76,9 +76,9 @@ func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.Clou
 	return
 }
 
-func (r *CloudSettingRepository) Create(organizationId string, input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
+func (r *CloudSettingRepository) Create(input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
 	cloudSetting := CloudSetting{
-		OrganizationId: organizationId,
+		OrganizationId: input.OrganizationId,
 		Name:           input.Name,
 		Description:    input.Description,
 		Type:           input.Type,

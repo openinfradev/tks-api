@@ -513,10 +513,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.CloudSetting"
-                            }
+                            "$ref": "#/definitions/domain.GetCloudSettingsResponse"
                         }
                     }
                 }
@@ -553,7 +550,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.CreateCloudSettingsResponse"
                         }
                     }
                 }
@@ -577,11 +574,20 @@
                     "CloudSettings"
                 ],
                 "summary": "Get CloudSetting",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cloudSettingId",
+                        "name": "cloudSettingId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CloudSetting"
+                            "$ref": "#/definitions/domain.CloudSettingResponse"
                         }
                     }
                 }
@@ -616,10 +622,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "description": "OK"
                     }
                 }
             },
@@ -651,10 +654,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.CloudSetting"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -1178,6 +1178,44 @@
                 }
             }
         },
+        "domain.CloudSettingResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.Cluster": {
             "type": "object",
             "properties": {
@@ -1276,6 +1314,9 @@
                 "name": {
                     "type": "string"
                 },
+                "organizationId": {
+                    "type": "string"
+                },
                 "secretKey": {
                     "type": "string"
                 },
@@ -1289,6 +1330,14 @@
                         "AZZURE",
                         "GCP"
                     ]
+                }
+            }
+        },
+        "domain.CreateCloudSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSettingId": {
+                    "type": "string"
                 }
             }
         },
@@ -1338,6 +1387,17 @@
                 },
                 "phone": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.GetCloudSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSettings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CloudSettingResponse"
+                    }
                 }
             }
         },
