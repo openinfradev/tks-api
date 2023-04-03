@@ -44,7 +44,7 @@ type Organization = struct {
 	Name              string    `json:"name"`
 	Description       string    `json:"description"`
 	Phone             string    `json:"phone"`
-	PrimaryClusterId  string    `json:"primaryClusterId,omitempty"`
+	PrimaryClusterId  string    `json:"primaryClusterId"`
 	Status            string    `json:"status"`
 	StatusDescription string    `json:"statusDescription"`
 	Creator           string    `json:"creator"`
@@ -75,7 +75,7 @@ func (r *CreateOrganizationRequest) ToOrganization() *Organization {
 type UpdateOrganizationRequest struct {
 	Description      string `json:"description"`
 	Phone            string `json:"phone"`
-	PrimaryClusterId string `json:"primaryClusterId,omitempty"`
+	PrimaryClusterId string `json:"primaryClusterId"`
 }
 
 func (r *UpdateOrganizationRequest) ToOrganization() *Organization {
@@ -94,5 +94,5 @@ func (r *UpdateOrganizationRequest) ToOrganization() *Organization {
 }
 
 type UpdatePrimaryClusterRequest struct {
-	PrimaryClusterId string `json:"primaryClusterId,omitempty"`
+	PrimaryClusterId string `json:"primaryClusterId"`
 }
