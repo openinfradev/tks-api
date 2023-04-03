@@ -28,6 +28,7 @@ var (
 	InvalidJWTClaims      = errors.New("Invalid JWT claims")
 	NotAllowedImageHeader = errors.New("Not allowed image header")
 	NoCookie              = errors.New("not found cookie header")
+	DuplicateResource     = errors.New("Duplicate Resource")
 )
 
 type IRestError interface {

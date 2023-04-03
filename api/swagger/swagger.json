@@ -176,7 +176,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Get application",
+                "description": "Get applications",
                 "consumes": [
                     "application/json"
                 ],
@@ -186,7 +186,7 @@
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "Get application",
+                "summary": "Get applications",
                 "parameters": [
                     {
                         "type": "string",
@@ -652,6 +652,15 @@
                 ],
                 "summary": "Delete CloudSetting",
                 "parameters": [
+                    {
+                        "description": "Delete cloud setting request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.DeleteCloudSettingRequest"
+                        }
+                    },
                     {
                         "type": "string",
                         "description": "cloudSettingId",
@@ -1618,7 +1627,7 @@
         "domain.CreateCloudSettingsResponse": {
             "type": "object",
             "properties": {
-                "cloudSettingId": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -1754,6 +1763,21 @@
                 }
             }
         },
+        "domain.DeleteCloudSettingRequest": {
+            "type": "object",
+            "required": [
+                "secretKey",
+                "secretKeyId"
+            ],
+            "properties": {
+                "secretKey": {
+                    "type": "string"
+                },
+                "secretKeyId": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.GetCloudSettingsResponse": {
             "type": "object",
             "properties": {
@@ -1790,7 +1814,7 @@
                             "type": "string"
                         },
                         "status": {
-                            "$ref": "#/definitions/domain.OrganizationStatus"
+                            "type": "integer"
                         },
                         "statusDescription": {
                             "type": "string"
@@ -1884,7 +1908,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.OrganizationStatus"
+                    "type": "integer"
                 }
             }
         },
@@ -1981,7 +2005,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.OrganizationStatus"
+                    "type": "integer"
                 },
                 "statusDescription": {
                     "type": "string"
@@ -1990,29 +2014,6 @@
                     "type": "string"
                 }
             }
-        },
-        "domain.OrganizationStatus": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "x-enum-varnames": [
-                "OrganizationStatus_PENDING",
-                "OrganizationStatus_CREATE",
-                "OrganizationStatus_CREATING",
-                "OrganizationStatus_CREATED",
-                "OrganizationStatus_DELETE",
-                "OrganizationStatus_DELETING",
-                "OrganizationStatus_DELETED",
-                "OrganizationStatus_ERROR"
-            ]
         },
         "domain.Role": {
             "type": "object",
@@ -2058,12 +2059,6 @@
             "type": "object",
             "properties": {
                 "description": {
-                    "type": "string"
-                },
-                "secretKey": {
-                    "type": "string"
-                },
-                "secretKeyId": {
                     "type": "string"
                 }
             }

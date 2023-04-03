@@ -166,6 +166,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param appGroupId path string true "appGroupId"
+// @Param applicationType query string true "applicationType"
 // @Success 200 {object} object
 // @Router /app-groups/{appGroupId}/applications [get]
 // @Security     JWT
@@ -177,7 +178,15 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	applications, err := h.usecase.GetApplications(appGroupId)
+	urlParams := r.URL.Query()
+	applicationType := urlParams.Get("applicationType")
+	if applicationType == "" {
+		applicationType = "PROMETHEUS" // by default
+	}
+
+	log.Debug(applicationType)
+
+	applications, err := h.usecase.GetApplications(appGroupId, applicationType)
 	if err != nil {
 		log.Error("Failed to get applications err : ", err)
 		ErrorJSON(w, err)
@@ -188,47 +197,6 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 		Applications []domain.Application `json:"applications"`
 	}
 	out.Applications = applications
-
-	ResponseJSON(w, http.StatusOK, out)
-}
-
-// GetApplication godoc
-// @Tags AppGroups
-// @Summary Get application
-// @Description Get application
-// @Accept json
-// @Produce json
-// @Param appGroupId path string true "appGroupId"
-// @Param applicationType query string true "applicationType"
-// @Success 200 {object} object
-// @Router /app-groups/{appGroupId}/applications [get]
-// @Security     JWT
-func (h *AppGroupHandler) GetApplication(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	appGroupId, ok := vars["appGroupId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId")))
-		return
-	}
-	urlParams := r.URL.Query()
-	applicationType := urlParams.Get("applicationType")
-	if applicationType == "" {
-		applicationType = "PROMETHEUS" // by default
-	}
-
-	log.Info(applicationType)
-
-	application, err := h.usecase.GetApplication(appGroupId, applicationType)
-	if err != nil {
-		log.Error("Failed to get application err : ", err)
-		ErrorJSON(w, err)
-		return
-	}
-
-	var out struct {
-		Application domain.Application `json:"application"`
-	}
-	out.Application = application
 
 	ResponseJSON(w, http.StatusOK, out)
 }

@@ -1,8 +1,6 @@
 package user
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 )
 
@@ -11,7 +9,6 @@ type Info interface {
 	GetUserId() uuid.UUID
 	GetOrganizationId() string
 	GetRoleProjectMapping() map[string]string
-	IsMaster() bool
 }
 
 // DefaultInfo provides a simple user information exchange object
@@ -33,11 +30,6 @@ func (i *DefaultInfo) GetOrganizationId() string {
 // GetRoleGroupMapping key is project name, value is role name
 func (i *DefaultInfo) GetRoleProjectMapping() map[string]string {
 	return i.RoleProjectMapping
-}
-
-func (i *DefaultInfo) IsMaster() bool {
-	fmt.Println(i)
-	return true
 }
 
 // well-known user and group names

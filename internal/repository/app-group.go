@@ -18,7 +18,7 @@ type IAppGroupRepository interface {
 	Get(id string) (domain.AppGroup, error)
 	Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
 	Delete(id string) error
-	GetApplications(appGroupID string) (applications []domain.Application, err error)
+	GetApplications(appGroupID string, applicationType string) (applications []domain.Application, err error)
 	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
 	UpsertApplication(appGroupID string, appType string, endpoint, metadata string) error
 	InitWorkflow(appGroupId string, workflowId string, status domain.AppGroupStatus) error
@@ -39,8 +39,8 @@ type AppGroup struct {
 	gorm.Model
 
 	ID           string `gorm:"primarykey"`
-	AppGroupType string `gorm:"uniqueIndex:idx_AppGroupType_ClusterId"`
-	ClusterId    string `gorm:"uniqueIndex:idx_AppGroupType_ClusterId"`
+	AppGroupType string
+	ClusterId    string
 	Name         string
 	Creator      uuid.UUID
 	Description  string
@@ -121,9 +121,9 @@ func (r *AppGroupRepository) Delete(appGroupId string) error {
 	return nil
 }
 
-func (r *AppGroupRepository) GetApplications(appGroupId string) (out []domain.Application, err error) {
+func (r *AppGroupRepository) GetApplications(appGroupId string, applicationType string) (out []domain.Application, err error) {
 	var applications []Application
-	res := r.db.Where("app_group_id = ?", appGroupId).Find(&applications)
+	res := r.db.Where("app_group_id = ? AND type = ?", appGroupId, applicationType).Find(&applications)
 	if res.Error != nil {
 		return nil, res.Error
 	}

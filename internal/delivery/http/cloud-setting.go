@@ -35,12 +35,6 @@ func NewCloudSettingHandler(h usecase.ICloudSettingUsecase) *CloudSettingHandler
 // @Router /cloud-settings [post]
 // @Security     JWT
 func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.Request) {
-	user, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
-		return
-	}
-
 	input := domain.CreateCloudSettingRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
@@ -48,7 +42,13 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	cloudSettingId, err := h.usecase.Create(input, user.GetUserId())
+	var dto domain.CloudSetting
+	if err = domain.Map(input, &dto); err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	cloudSettingId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -56,9 +56,8 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 
 	log.Info("Newly created cloud setting : ", cloudSettingId)
 
-	out := domain.CreateCloudSettingsResponse{
-		CloudSettingId: cloudSettingId.String(),
-	}
+	var out domain.CreateCloudSettingsResponse
+	out.ID = cloudSettingId.String()
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -84,7 +83,7 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 	showAll := urlParams.Get("all")
 
 	// [TODO REFACTORING] Privileges and Filtering
-	if showAll == "true" && !user.IsMaster() {
+	if showAll == "true" {
 		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Your token does not have permission to see all organizations.")))
 		return
 	}
@@ -95,13 +94,12 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var res []domain.CloudSettingResponse
-	for _, cloudSetting := range cloudSettings {
-		res = append(res, domain.NewCloudSettingResponse(cloudSetting))
-	}
-
-	out := domain.GetCloudSettingsResponse{
-		CloudSettings: res,
+	var out domain.GetCloudSettingsResponse
+	out.CloudSettings = make([]domain.CloudSettingResponse, len(cloudSettings))
+	for i, cloudSetting := range cloudSettings {
+		if err := domain.Map(cloudSetting, &out.CloudSettings[i]); err != nil {
+			continue
+		}
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -137,8 +135,10 @@ func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	out := domain.GetCloudSettingResponse{
-		CloudSetting: domain.NewCloudSettingResponse(cloudSetting),
+	var out domain.GetCloudSettingResponse
+	if err := domain.Map(cloudSetting, &out.CloudSetting); err != nil {
+		ErrorJSON(w, err)
+		return
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -168,12 +168,6 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	user, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
-		return
-	}
-
 	input := domain.UpdateCloudSettingRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
@@ -181,7 +175,14 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.usecase.Update(parsedUuid, input, user.GetUserId())
+	var dto domain.CloudSetting
+	if err = domain.Map(input, &dto); err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+	dto.ID = parsedUuid
+
+	err = h.usecase.Update(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -196,6 +197,7 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 // @Description Delete CloudSetting
 // @Accept json
 // @Produce json
+// @Param body body domain.DeleteCloudSettingRequest true "Delete cloud setting request"
 // @Param cloudSettingId path string true "cloudSettingId"
 // @Success 200 {object} nil
 // @Router /cloud-settings/{cloudSettingId} [delete]
@@ -214,7 +216,21 @@ func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err = h.usecase.Delete(parsedId)
+	input := domain.DeleteCloudSettingRequest{}
+	err = UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	var dto domain.CloudSetting
+	if err = domain.Map(input, &dto); err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+	dto.ID = parsedId
+
+	err = h.usecase.Delete(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
