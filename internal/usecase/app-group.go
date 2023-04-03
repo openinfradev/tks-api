@@ -171,10 +171,12 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 		return fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
 	}
 
-	err = u.repo.Delete(appGroupId)
-	if err != nil {
-		return fmt.Errorf("Fatiled to deleting appGroup : %s", appGroupId)
-	}
+	/*
+		err = u.repo.Delete(appGroupId)
+		if err != nil {
+			return fmt.Errorf("Fatiled to deleting appGroup : %s", appGroupId)
+		}
+	*/
 
 	return nil
 }
