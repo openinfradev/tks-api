@@ -142,7 +142,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+		return nil, httpErrors.NewNoContentError(httpErrors.NoContent)
 	}
 
 	var out []domain.User
@@ -316,7 +316,7 @@ func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
 	}
 
 	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+		return nil, httpErrors.NewNoContentError(httpErrors.NoContent)
 	}
 
 	var out []domain.Role

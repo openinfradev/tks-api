@@ -69,6 +69,7 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 // @Description Get CloudSettings
 // @Accept json
 // @Produce json
+// @Param all query string false "show all organizations"
 // @Success 200 {object} domain.GetCloudSettingsResponse
 // @Router /cloud-settings [get]
 // @Security     JWT
@@ -76,6 +77,15 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	showAll := urlParams.Get("all")
+
+	// [TODO REFACTORING] Privileges and Filtering
+	if showAll == "true" && !user.IsMaster() {
+		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Your token does not have permission to see all organizations.")))
 		return
 	}
 

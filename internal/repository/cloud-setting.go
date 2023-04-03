@@ -67,7 +67,7 @@ func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.Clou
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(fmt.Errorf("No data found"))
+		return nil, httpErrors.NewNoContentError(fmt.Errorf("No data found"))
 	}
 
 	for _, cloudSetting := range cloudSettings {

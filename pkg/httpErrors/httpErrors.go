@@ -12,6 +12,7 @@ var (
 	AlreadyExists         = errors.New("Already Existed")
 	WrongCredentials      = errors.New("Wrong Credentials")
 	NotFound              = errors.New("Not Found")
+	NoContent             = errors.New("No Content")
 	Unauthorized          = errors.New("Unauthorized")
 	Forbidden             = errors.New("Forbidden")
 	PermissionDenied      = errors.New("Permission Denied")
@@ -99,6 +100,15 @@ func NewInternalServerError(err error) IRestError {
 func NewNotFoundError(err error) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusNotFound,
+		ErrCode:    "",
+		ErrMessage: err.Error(),
+		ErrCauses:  err,
+	}
+}
+
+func NewNoContentError(err error) IRestError {
+	return RestError{
+		ErrStatus:  http.StatusNoContent,
 		ErrCode:    "",
 		ErrMessage: err.Error(),
 		ErrCauses:  err,

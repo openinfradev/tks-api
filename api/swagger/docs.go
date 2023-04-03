@@ -516,6 +516,14 @@ const docTemplate = `{
                     "CloudSettings"
                 ],
                 "summary": "Get CloudSettings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "show all organizations",
+                        "name": "all",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

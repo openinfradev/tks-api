@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 
 	"github.com/google/uuid"
@@ -135,14 +134,6 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 		log.Error("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
-	if res.RowsAffected == 0 {
-		return httpErrors.NewNotFoundError(httpErrors.NotFound)
-	}
-
-	//if res.Error != nil || res.RowsAffected == 0 {
-	//	return fmt.Errorf("nothing updated in organization with id %s", organizationId)
-	//}
-
 	return nil
 }
 

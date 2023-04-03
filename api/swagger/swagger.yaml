@@ -661,6 +661,11 @@ paths:
       consumes:
       - application/json
       description: Get CloudSettings
+      parameters:
+      - description: show all organizations
+        in: query
+        name: all
+        type: string
       produces:
       - application/json
       responses:
