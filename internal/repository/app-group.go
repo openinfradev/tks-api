@@ -21,7 +21,7 @@ type IAppGroupRepository interface {
 	GetApplications(appGroupID string) (applications []domain.Application, err error)
 	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
 	UpsertApplication(appGroupID string, appType string, endpoint, metadata string) error
-	InitWorkflow(appGroupId string, workflowId string) error
+	InitWorkflow(appGroupId string, workflowId string, status domain.AppGroupStatus) error
 }
 
 type AppGroupRepository struct {
@@ -96,7 +96,14 @@ func (r *AppGroupRepository) Get(id string) (domain.AppGroup, error) {
 }
 
 func (r *AppGroupRepository) Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error) {
-	appGroup := AppGroup{ClusterId: clusterId, AppGroupType: appGroupType, Name: name, Creator: creator, Description: description}
+	appGroup := AppGroup{
+		ClusterId:    clusterId,
+		AppGroupType: appGroupType,
+		Name:         name,
+		Creator:      creator,
+		Description:  description,
+		Status:       domain.AppGroupStatus_PENDING,
+	}
 	res := r.db.Create(&appGroup)
 	if res.Error != nil {
 		log.Error(res.Error)
@@ -152,10 +159,10 @@ func (r *AppGroupRepository) UpsertApplication(appGroupId string, appType string
 	return nil
 }
 
-func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string) error {
+func (r *AppGroupRepository) InitWorkflow(appGroupId string, workflowId string, status domain.AppGroupStatus) error {
 	res := r.db.Model(&AppGroup{}).
 		Where("ID = ?", appGroupId).
-		Updates(map[string]interface{}{"Status": domain.AppGroupStatus_INSTALLING, "WorkflowId": workflowId})
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("nothing updated in appgroup with id %s", appGroupId)

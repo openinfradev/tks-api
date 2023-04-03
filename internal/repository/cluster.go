@@ -20,7 +20,7 @@ type IClusterRepository interface {
 	Get(id string) (domain.Cluster, error)
 	Create(organizationId string, templateId string, name string, cloudSettingId uuid.UUID, conf *domain.ClusterConf, creator uuid.UUID, description string) (clusterId string, err error)
 	Delete(id string) error
-	InitWorkflow(clusterId string, workflowId string) error
+	InitWorkflow(clusterId string, workflowId string, status domain.ClusterStatus) error
 }
 
 type ClusterRepository struct {
@@ -157,6 +157,7 @@ func (r *ClusterRepository) Create(organizationId string, templateId string, nam
 		MachineType:    conf.MachineType,
 		MinSizePerAz:   conf.MinSizePerAz,
 		MaxSizePerAz:   conf.MaxSizePerAz,
+		Status:         domain.ClusterStatus_PENDING,
 	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
@@ -175,10 +176,10 @@ func (r *ClusterRepository) Delete(clusterId string) error {
 	return nil
 }
 
-func (r *ClusterRepository) InitWorkflow(clusterId string, workflowId string) error {
+func (r *ClusterRepository) InitWorkflow(clusterId string, workflowId string, status domain.ClusterStatus) error {
 	res := r.db.Model(&Cluster{}).
 		Where("ID = ?", clusterId).
-		Updates(map[string]interface{}{"Status": domain.ClusterStatus_INSTALLING, "WorkflowId": workflowId})
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("nothing updated in cluster with id %s", clusterId)

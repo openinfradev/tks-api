@@ -143,7 +143,7 @@ func (u *ClusterUsecase) Create(session user.Info, in domain.CreateClusterReques
 	}
 	log.Info("Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId); err != nil {
+	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -195,7 +195,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId); err != nil {
+	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
