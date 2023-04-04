@@ -1612,6 +1612,14 @@ const docTemplate = `{
                 "secretKeyId"
             ],
             "properties": {
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "AZZURE",
+                        "GCP"
+                    ]
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1626,14 +1634,6 @@ const docTemplate = `{
                 },
                 "secretKeyId": {
                     "type": "string"
-                },
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "AWS",
-                        "AZZURE",
-                        "GCP"
-                    ]
                 }
             }
         },

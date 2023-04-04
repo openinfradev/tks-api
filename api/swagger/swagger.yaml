@@ -170,6 +170,12 @@ definitions:
     type: object
   domain.CreateCloudSettingRequest:
     properties:
+      cloudService:
+        enum:
+        - AWS
+        - AZZURE
+        - GCP
+        type: string
       description:
         type: string
       name:
@@ -179,12 +185,6 @@ definitions:
       secretKey:
         type: string
       secretKeyId:
-        type: string
-      type:
-        enum:
-        - AWS
-        - AZZURE
-        - GCP
         type: string
     required:
     - name
