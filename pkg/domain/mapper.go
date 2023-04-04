@@ -2,8 +2,9 @@ package domain
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"reflect"
+
+	"github.com/google/uuid"
 )
 
 type ConverterMap map[compositeKey]func(interface{}) (interface{}, error)
@@ -73,6 +74,18 @@ func Map(src interface{}, dst interface{}) error {
 		},
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*Role)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
 			return Role{Name: i.(string)}, nil
+		},
+		{srcType: reflect.TypeOf((*ClusterStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(ClusterStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ClusterStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return i.(ClusterStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf((*AppGroupStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(AppGroupStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AppGroupStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return i.(AppGroupStatus).String(), nil
 		},
 	})
 }

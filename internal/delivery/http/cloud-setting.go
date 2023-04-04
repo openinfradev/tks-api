@@ -44,8 +44,7 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 
 	var dto domain.CloudSetting
 	if err = domain.Map(input, &dto); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
+		log.Info(err)
 	}
 
 	cloudSettingId, err := h.usecase.Create(r.Context(), dto)
@@ -98,6 +97,7 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 	out.CloudSettings = make([]domain.CloudSettingResponse, len(cloudSettings))
 	for i, cloudSetting := range cloudSettings {
 		if err := domain.Map(cloudSetting, &out.CloudSettings[i]); err != nil {
+			log.Info(err)
 			continue
 		}
 	}
@@ -137,8 +137,7 @@ func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Req
 
 	var out domain.GetCloudSettingResponse
 	if err := domain.Map(cloudSetting, &out.CloudSetting); err != nil {
-		ErrorJSON(w, err)
-		return
+		log.Info(err)
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -177,8 +176,7 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 
 	var dto domain.CloudSetting
 	if err = domain.Map(input, &dto); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
+		log.Info(err)
 	}
 	dto.ID = parsedUuid
 
@@ -225,8 +223,7 @@ func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.
 
 	var dto domain.CloudSetting
 	if err = domain.Map(input, &dto); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
+		log.Info(err)
 	}
 	dto.ID = parsedId
 

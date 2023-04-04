@@ -14,9 +14,9 @@ import (
 
 // Interfaces
 type IAppGroupRepository interface {
-	Fetch(clusterId string) (res []domain.AppGroup, err error)
+	Fetch(clusterId domain.ClusterId) (res []domain.AppGroup, err error)
 	Get(id string) (domain.AppGroup, error)
-	Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
+	Create(clusterId domain.ClusterId, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error)
 	Delete(id string) error
 	GetApplications(appGroupID string, applicationType string) (applications []domain.Application, err error)
 	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
@@ -40,7 +40,7 @@ type AppGroup struct {
 
 	ID           string `gorm:"primarykey"`
 	AppGroupType string
-	ClusterId    string
+	ClusterId    domain.ClusterId
 	Name         string
 	Creator      uuid.UUID
 	Description  string
@@ -70,7 +70,7 @@ func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // Logics
-func (r *AppGroupRepository) Fetch(clusterId string) (out []domain.AppGroup, err error) {
+func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
 	var appGroups []AppGroup
 	out = []domain.AppGroup{}
 
@@ -95,7 +95,7 @@ func (r *AppGroupRepository) Get(id string) (domain.AppGroup, error) {
 	return resAppGroup, nil
 }
 
-func (r *AppGroupRepository) Create(clusterId string, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error) {
+func (r *AppGroupRepository) Create(clusterId domain.ClusterId, name string, appGroupType string, creator uuid.UUID, description string) (appGroupId string, err error) {
 	appGroup := AppGroup{
 		ClusterId:    clusterId,
 		AppGroupType: appGroupType,

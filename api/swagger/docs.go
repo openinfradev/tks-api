@@ -713,10 +713,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Cluster"
-                            }
+                            "$ref": "#/definitions/domain.GetClustersResponse"
                         }
                     }
                 }
@@ -753,7 +750,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.CreateClusterResponse"
                         }
                     }
                 }
@@ -1526,6 +1523,9 @@ const docTemplate = `{
                 "cloudSetting": {
                     "$ref": "#/definitions/domain.CloudSetting"
                 },
+                "cloudSettingId": {
+                    "type": "string"
+                },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConf"
                 },
@@ -1533,6 +1533,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "creatorId": {
                     "type": "string"
                 },
                 "description": {
@@ -1548,12 +1551,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "statusDesc": {
                     "type": "string"
                 },
+                "templateId": {
+                    "type": "string"
+                },
                 "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "updatorId": {
                     "type": "string"
                 }
             }
@@ -1580,6 +1592,70 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sshKeyName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ClusterConfResponse": {
+            "type": "object",
+            "properties": {
+                "machineReplicas": {
+                    "type": "integer"
+                },
+                "machineType": {
+                    "type": "string"
+                },
+                "maxSizePerAz": {
+                    "type": "integer"
+                },
+                "minSizePerAz": {
+                    "type": "integer"
+                },
+                "numOfAz": {
+                    "type": "integer"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "sshKeyName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ClusterResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSetting": {
+                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                },
+                "conf": {
+                    "$ref": "#/definitions/domain.ClusterConfResponse"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -1651,9 +1727,6 @@ const docTemplate = `{
                 "cloudSettingId": {
                     "type": "string"
                 },
-                "creator": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -1666,7 +1739,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "numberOfAz": {
+                "numOfAz": {
                     "type": "integer"
                 },
                 "organizationId": {
@@ -1676,6 +1749,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateClusterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -1798,6 +1879,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.CloudSettingResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetClustersResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ClusterResponse"
                     }
                 }
             }

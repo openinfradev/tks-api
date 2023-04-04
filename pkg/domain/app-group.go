@@ -62,7 +62,7 @@ func (m ApplicationType) String() string { return applicationType[(m)] }
 type AppGroup = struct {
 	ID                string    `json:"id"`
 	Name              string    `json:"name"`
-	ClusterId         string    `json:"clusterId"`
+	ClusterId         ClusterId `json:"clusterId"`
 	AppGroupType      string    `json:"appGroupType"`
 	Description       string    `json:"description"`
 	WorkflowId        string    `json:"workflowId"`
@@ -85,11 +85,11 @@ type Application = struct {
 }
 
 type CreateAppGroupRequest struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	ClusterId   string `json:"clusterId"`
-	Type        string `json:"type"`
-	Creator     string `json:"creator"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	ClusterId   ClusterId `json:"clusterId"`
+	Type        string    `json:"type"`
+	Creator     string    `json:"creator"`
 }
 
 type UpdateApplicationRequest struct {

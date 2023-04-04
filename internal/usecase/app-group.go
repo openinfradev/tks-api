@@ -12,8 +12,8 @@ import (
 )
 
 type IAppGroupUsecase interface {
-	Fetch(clusterId string) ([]domain.AppGroup, error)
-	Create(clusterId string, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error)
+	Fetch(clusterId domain.ClusterId) ([]domain.AppGroup, error)
+	Create(clusterId domain.ClusterId, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error)
 	Get(appGroupId string) (out domain.AppGroup, err error)
 	Delete(appGroupId string) (err error)
 	GetApplications(appGroupId string, applicationType string) (out []domain.Application, err error)
@@ -35,7 +35,7 @@ func NewAppGroupUsecase(r repository.IAppGroupRepository, clusterRepo repository
 	}
 }
 
-func (u *AppGroupUsecase) Fetch(clusterId string) (out []domain.AppGroup, err error) {
+func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
 	out, err = u.repo.Fetch(clusterId)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (u *AppGroupUsecase) Fetch(clusterId string) (out []domain.AppGroup, err er
 	return
 }
 
-func (u *AppGroupUsecase) Create(clusterId string, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error) {
+func (u *AppGroupUsecase) Create(clusterId domain.ClusterId, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error) {
 	creator := uuid.Nil
 	if creatorId != "" {
 		creator, err = uuid.Parse(creatorId)
@@ -79,10 +79,10 @@ func (u *AppGroupUsecase) Create(clusterId string, name string, appGroupType str
 	workflowTemplate := ""
 	opts := argowf.SubmitOptions{}
 	opts.Parameters = []string{
-		"site_name=" + clusterId,
-		"cluster_id=" + clusterId,
+		"site_name=" + clusterId.String(),
+		"cluster_id=" + clusterId.String(),
 		"github_account=" + viper.GetString("git-account"),
-		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
+		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId.String() + "-manifests",
 		"revision=" + viper.GetString("revision"),
 		"app_group_id=" + appGroupId,
 	}
@@ -156,7 +156,7 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 	opts.Parameters = []string{
 		"app_group=" + appGroupName,
 		"github_account=" + viper.GetString("git-account"),
-		"cluster_id=" + clusterId,
+		"cluster_id=" + clusterId.String(),
 		"app_group_id=" + appGroupId,
 	}
 

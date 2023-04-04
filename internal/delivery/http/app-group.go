@@ -84,7 +84,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appGroups, err := h.usecase.Fetch(clusterId)
+	appGroups, err := h.usecase.Fetch(domain.ClusterId(clusterId))
 	if err != nil {
 		ErrorJSON(w, err)
 		return

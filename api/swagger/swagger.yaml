@@ -117,11 +117,15 @@ definitions:
     properties:
       cloudSetting:
         $ref: '#/definitions/domain.CloudSetting'
+      cloudSettingId:
+        type: string
       conf:
         $ref: '#/definitions/domain.ClusterConf'
       createdAt:
         type: string
       creator:
+        $ref: '#/definitions/domain.User'
+      creatorId:
         type: string
       description:
         type: string
@@ -132,10 +136,16 @@ definitions:
       organizationId:
         type: string
       status:
-        type: string
+        type: integer
       statusDesc:
         type: string
+      templateId:
+        type: string
       updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.User'
+      updatorId:
         type: string
     type: object
   domain.ClusterConf:
@@ -153,6 +163,48 @@ definitions:
       region:
         type: string
       sshKeyName:
+        type: string
+    type: object
+  domain.ClusterConfResponse:
+    properties:
+      machineReplicas:
+        type: integer
+      machineType:
+        type: string
+      maxSizePerAz:
+        type: integer
+      minSizePerAz:
+        type: integer
+      numOfAz:
+        type: integer
+      region:
+        type: string
+      sshKeyName:
+        type: string
+    type: object
+  domain.ClusterResponse:
+    properties:
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSettingResponse'
+      conf:
+        $ref: '#/definitions/domain.ClusterConfResponse'
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      status:
+        type: string
+      statusDesc:
+        type: string
+      updatedAt:
         type: string
     type: object
   domain.CreateAppGroupRequest:
@@ -200,8 +252,6 @@ definitions:
     properties:
       cloudSettingId:
         type: string
-      creator:
-        type: string
       description:
         type: string
       machineReplicas:
@@ -210,13 +260,18 @@ definitions:
         type: string
       name:
         type: string
-      numberOfAz:
+      numOfAz:
         type: integer
       organizationId:
         type: string
       region:
         type: string
       templateId:
+        type: string
+    type: object
+  domain.CreateClusterResponse:
+    properties:
+      id:
         type: string
     type: object
   domain.CreateOrganizationRequest:
@@ -301,6 +356,13 @@ definitions:
       cloudSettings:
         items:
           $ref: '#/definitions/domain.CloudSettingResponse'
+        type: array
+    type: object
+  domain.GetClustersResponse:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/domain.ClusterResponse'
         type: array
     type: object
   domain.GetOrganizationResponse:
@@ -1047,9 +1109,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Cluster'
-            type: array
+            $ref: '#/definitions/domain.GetClustersResponse'
       security:
       - JWT: []
       summary: Get clusters
@@ -1072,7 +1132,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.CreateClusterResponse'
       security:
       - JWT: []
       summary: Create cluster
