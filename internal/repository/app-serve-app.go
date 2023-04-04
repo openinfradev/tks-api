@@ -2,8 +2,9 @@ package repository
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/pkg/domain"
 	"gorm.io/gorm"
+
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type IAppServeAppRepository interface {
