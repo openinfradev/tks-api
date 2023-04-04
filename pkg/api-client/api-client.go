@@ -61,11 +61,12 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 	}()
 
 	if res.StatusCode != 200 {
-		restError := httpErrors.RestError{}
+		var restError httpErrors.RestError
 		if err := json.Unmarshal(body, &restError); err != nil {
 			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
 		}
-		return restError, fmt.Errorf("Invalid http status (%d)", res.StatusCode)
+
+		return restError, fmt.Errorf("HTTP status [%d] message [%s]", res.StatusCode, restError.ErrMessage)
 	}
 
 	var resJson interface{}
@@ -111,11 +112,11 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 	}()
 
 	if res.StatusCode != 200 {
-		restError := httpErrors.RestError{}
+		var restError httpErrors.RestError
 		if err := json.Unmarshal(body, &restError); err != nil {
 			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
 		}
-		return restError, fmt.Errorf("Invalid http status (%d)", res.StatusCode)
+		return restError, fmt.Errorf("HTTP status [%d] message [%s]", res.StatusCode, restError.ErrMessage)
 	}
 
 	var resJson interface{}
