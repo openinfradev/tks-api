@@ -53,8 +53,13 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccountId string `json:"accountId"`
-	Token     string `json:"token"`
+	User struct {
+		AccountId    string       `json:"accountId"`
+		Name         string       `json:"name"`
+		Token        string       `json:"token"`
+		Role         Role         `json:"role"`
+		Organization Organization `json:"organization"`
+	} `json:"user"`
 }
 
 type LogoutRequest struct {
