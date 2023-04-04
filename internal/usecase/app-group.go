@@ -16,7 +16,7 @@ type IAppGroupUsecase interface {
 	Create(clusterId string, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error)
 	Get(appGroupId string) (out domain.AppGroup, err error)
 	Delete(appGroupId string) (err error)
-	GetApplications(appGroupId string) (out []domain.Application, err error)
+	GetApplications(appGroupId string, applicationType string) (out []domain.Application, err error)
 	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
 	UpdateApplication(appGroupId string, input domain.UpdateApplicationRequest) (err error)
 }
@@ -181,8 +181,8 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 	return nil
 }
 
-func (u *AppGroupUsecase) GetApplications(appGroupId string) (out []domain.Application, err error) {
-	out, err = u.repo.GetApplications(appGroupId)
+func (u *AppGroupUsecase) GetApplications(appGroupId string, applicationType string) (out []domain.Application, err error) {
+	out, err = u.repo.GetApplications(appGroupId, applicationType)
 	if err != nil {
 		return nil, err
 	}

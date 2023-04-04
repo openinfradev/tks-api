@@ -214,14 +214,14 @@ func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
 
 func (r *ClusterRepository) reflectCloudSetting(cloudSetting CloudSetting) domain.CloudSetting {
 	return domain.CloudSetting{
-		ID:             cloudSetting.ID.String(),
+		ID:             cloudSetting.ID,
 		OrganizationId: cloudSetting.OrganizationId,
 		Name:           cloudSetting.Name,
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
 		Type:           cloudSetting.Type,
-		Creator:        cloudSetting.Creator.String(),
-		Updator:        cloudSetting.Updator.String(),
+		Creator:        cloudSetting.Creator,
+		Updator:        cloudSetting.Updator,
 		CreatedAt:      cloudSetting.CreatedAt,
 		UpdatedAt:      cloudSetting.UpdatedAt,
 	}

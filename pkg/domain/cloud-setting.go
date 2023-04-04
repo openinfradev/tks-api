@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // enum
@@ -16,15 +18,15 @@ const (
 
 // 내부
 type CloudSetting struct {
-	ID             string
+	ID             uuid.UUID
 	OrganizationId string
 	Name           string
 	Description    string
 	Type           CloudType
 	Resource       string
 	Clusters       int
-	Creator        string
-	Updator        string
+	Creator        uuid.UUID
+	Updator        uuid.UUID
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -41,26 +43,6 @@ type CloudSettingResponse struct {
 	Updator        string    `json:"updator"`
 	CreatedAt      time.Time `json:"createdAt"`
 	UpdatedAt      time.Time `json:"updatedAt"`
-}
-
-func (c *CloudSettingResponse) From(s CloudSetting) {
-	c.ID = s.ID
-	c.OrganizationId = s.OrganizationId
-	c.Name = s.Name
-	c.Description = s.Description
-	c.Type = s.Type
-	c.Resource = s.Resource
-	c.Clusters = s.Clusters
-	c.Creator = s.Creator
-	c.Updator = s.Updator
-	c.CreatedAt = s.CreatedAt
-	c.UpdatedAt = s.UpdatedAt
-}
-
-func NewCloudSettingResponse(s CloudSetting) CloudSettingResponse {
-	var r CloudSettingResponse
-	r.From(s)
-	return r
 }
 
 type GetCloudSettingsResponse struct {
@@ -81,11 +63,14 @@ type CreateCloudSettingRequest struct {
 }
 
 type CreateCloudSettingsResponse struct {
-	CloudSettingId string `json:"cloudSettingId"`
+	ID string `json:"id"`
 }
 
 type UpdateCloudSettingRequest struct {
 	Description string `json:"description"`
-	SecretKeyId string `json:"secretKeyId"`
-	SecretKey   string `json:"secretKey"`
+}
+
+type DeleteCloudSettingRequest struct {
+	SecretKeyId string `json:"secretKeyId" validate:"required"`
+	SecretKey   string `json:"secretKey" validate:"required"`
 }

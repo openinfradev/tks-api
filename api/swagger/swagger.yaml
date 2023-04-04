@@ -189,7 +189,7 @@ definitions:
     type: object
   domain.CreateCloudSettingsResponse:
     properties:
-      cloudSettingId:
+      id:
         type: string
     type: object
   domain.CreateClusterRequest:
@@ -282,6 +282,16 @@ definitions:
             $ref: '#/definitions/domain.Role'
         type: object
     type: object
+  domain.DeleteCloudSettingRequest:
+    properties:
+      secretKey:
+        type: string
+      secretKeyId:
+        type: string
+    required:
+    - secretKey
+    - secretKeyId
+    type: object
   domain.GetCloudSettingsResponse:
     properties:
       cloudSettings:
@@ -306,7 +316,7 @@ definitions:
           phone:
             type: string
           status:
-            $ref: '#/definitions/domain.OrganizationStatus'
+            type: integer
           statusDescription:
             type: string
           updatedAt:
@@ -367,7 +377,7 @@ definitions:
       phone:
         type: string
       status:
-        $ref: '#/definitions/domain.OrganizationStatus'
+        type: integer
     type: object
   domain.ListUserBody:
     properties:
@@ -431,32 +441,12 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        $ref: '#/definitions/domain.OrganizationStatus'
+        type: integer
       statusDescription:
         type: string
       updatedAt:
         type: string
     type: object
-  domain.OrganizationStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    type: integer
-    x-enum-varnames:
-    - OrganizationStatus_PENDING
-    - OrganizationStatus_CREATE
-    - OrganizationStatus_CREATING
-    - OrganizationStatus_CREATED
-    - OrganizationStatus_DELETE
-    - OrganizationStatus_DELETING
-    - OrganizationStatus_DELETED
-    - OrganizationStatus_ERROR
   domain.Role:
     properties:
       createdAt:
@@ -486,10 +476,6 @@ definitions:
   domain.UpdateCloudSettingRequest:
     properties:
       description:
-        type: string
-      secretKey:
-        type: string
-      secretKeyId:
         type: string
     type: object
   domain.UpdateOrganizationRequest:
@@ -710,7 +696,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get application
+      description: Get applications
       parameters:
       - description: appGroupId
         in: path
@@ -731,7 +717,7 @@ paths:
             type: object
       security:
       - JWT: []
-      summary: Get application
+      summary: Get applications
       tags:
       - AppGroups
     post:
@@ -959,6 +945,12 @@ paths:
       - application/json
       description: Delete CloudSetting
       parameters:
+      - description: Delete cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteCloudSettingRequest'
       - description: cloudSettingId
         in: path
         name: cloudSettingId

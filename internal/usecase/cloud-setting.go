@@ -1,7 +1,11 @@
 package usecase
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -12,9 +16,9 @@ import (
 type ICloudSettingUsecase interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
 	Fetch(organizationId string) ([]domain.CloudSetting, error)
-	Create(in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
-	Update(cloudSettingId uuid.UUID, in domain.UpdateCloudSettingRequest, updator uuid.UUID) (err error)
-	Delete(cloudSettingId uuid.UUID) error
+	Create(ctx context.Context, dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error)
+	Update(ctx context.Context, dto domain.CloudSetting) error
+	Delete(ctx context.Context, dto domain.CloudSetting) error
 }
 
 type CloudSettingUsecase struct {
@@ -31,9 +35,15 @@ func NewCloudSettingUsecase(r repository.ICloudSettingRepository, cr repository.
 	}
 }
 
-func (u *CloudSettingUsecase) Create(in domain.CreateCloudSettingRequest, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
-	resource := "TODO server result or additional information"
-	cloudSettingId, err = u.repo.Create(in, resource, creator)
+func (u *CloudSettingUsecase) Create(ctx context.Context, dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+
+	dto.Resource = "TODO server result or additional information"
+	dto.Creator = user.GetUserId()
+	cloudSettingId, err = u.repo.Create(dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err)
 	}
@@ -60,9 +70,15 @@ func (u *CloudSettingUsecase) Create(in domain.CreateCloudSettingRequest, creato
 	return cloudSettingId, nil
 }
 
-func (u *CloudSettingUsecase) Update(cloudSettingId uuid.UUID, in domain.UpdateCloudSettingRequest, updator uuid.UUID) (err error) {
-	resource := "TODO server result or additional information"
-	err = u.repo.Update(cloudSettingId, in, resource, updator)
+func (u *CloudSettingUsecase) Update(ctx context.Context, dto domain.CloudSetting) error {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+
+	dto.Resource = "TODO server result or additional information"
+	dto.Updator = user.GetUserId()
+	err := u.repo.Update(dto)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err)
 	}
@@ -88,13 +104,20 @@ func (u *CloudSettingUsecase) Fetch(organizationId string) (res []domain.CloudSe
 	return res, nil
 }
 
-func (u *CloudSettingUsecase) Delete(cloudSettingId uuid.UUID) (err error) {
-	_, err = u.Get(cloudSettingId)
+func (u *CloudSettingUsecase) Delete(ctx context.Context, dto domain.CloudSetting) (err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+
+	_, err = u.Get(dto.ID)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err)
 	}
 
-	err = u.repo.Delete(cloudSettingId)
+	dto.Updator = user.GetUserId()
+
+	err = u.repo.Delete(dto)
 	if err != nil {
 		return err
 	}
