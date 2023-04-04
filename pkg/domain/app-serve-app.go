@@ -85,17 +85,17 @@ func (t *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-type CreateAppServeAppRequest = struct {
+type CreateAppServeAppRequest struct {
 	// App
-	Name            string `json:"name"`
-	OrganizationId  string `json:"organization_id"`
-	Type            string `json:"type"`
-	AppType         string `json:"app_type"`
-	TargetClusterId string `json:"target_cluster_id"`
+	Name            string `json:"name" validate:"required"`
+	OrganizationId  string `json:"organization_id" validate:"required"`
+	Type            string `json:"type" validate:"oneof=build deploy all"`
+	AppType         string `json:"app_type" validate:"oneof=spring springboot"`
+	TargetClusterId string `json:"target_cluster_id" validate:"required"`
 
 	// AppType
 	Version        string `json:"version"`
-	Strategy       string `json:"strategy"`
+	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
 	ArtifactUrl    string `json:"artifact_url"`
 	ImageUrl       string `json:"image_url"`
 	ExecutablePath string `json:"executable_path"`
@@ -112,7 +112,12 @@ type CreateAppServeAppRequest = struct {
 	PvMountPath    string `json:"pv_mount_path"`
 }
 
-type UpdateAppServeAppRequest = struct {
+type CreateAppServeAppResponse struct {
+	ID   string `json:"app_id"`
+	Name string `json:"app_name"`
+}
+
+type UpdateAppServeAppRequest struct {
 	// App
 	ID              string `json:"id"`
 	Name            string `json:"name"`
@@ -123,7 +128,7 @@ type UpdateAppServeAppRequest = struct {
 
 	// AppType
 	Version        string `json:"version"`
-	Strategy       string `json:"strategy"`
+	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
 	ArtifactUrl    string `json:"artifact_url"`
 	ImageUrl       string `json:"image_url"`
 	ExecutablePath string `json:"executable_path"`
@@ -142,4 +147,12 @@ type UpdateAppServeAppRequest = struct {
 	// Update Strategy
 	Promote bool `json:"promote"`
 	Abort   bool `json:"abort"`
+}
+
+type GetAppServeAppsResponse struct {
+	AppServeApps []AppServeApp `json:"app_serve_apps"`
+}
+
+type GetAppServeAppResponse struct {
+	AppServeApp AppServeApp `json:"app_serve_app"`
 }

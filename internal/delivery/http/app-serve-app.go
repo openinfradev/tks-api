@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -31,61 +30,41 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 // @Description Install appServeApp
 // @Accept json
 // @Produce json
-// @Param object body string true "body"
+// @Param object body domain.CreateAppServeAppRequest true "create appserve request"
 // @Success 200 {object} string
 // @Router /app-serve-apps [post]
 // @Security     JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
-	var appReq domain.CreateAppServeAppRequest
+	appReq := domain.CreateAppServeAppRequest{}
+	err := UnmarshalRequestInput(r, &appReq)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
 	var app domain.AppServeApp
-	if err := json.NewDecoder(r.Body).Decode(&appReq); err != nil {
+	if err = domain.Map(appReq, &app); err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
 	now := time.Now()
-	app = domain.AppServeApp{
-		Name:               appReq.Name,
-		OrganizationId:     appReq.OrganizationId,
-		Type:               appReq.Type,
-		AppType:            appReq.AppType,
-		TargetClusterId:    appReq.TargetClusterId,
-		EndpointUrl:        "N/A",
-		PreviewEndpointUrl: "N/A",
-		Status:             "PREPARING",
-		CreatedAt:          now,
-	}
-	task := domain.AppServeAppTask{
-		Version:        appReq.Version,
-		Strategy:       appReq.Strategy,
-		ArtifactUrl:    appReq.ArtifactUrl,
-		ImageUrl:       appReq.ImageUrl,
-		ExecutablePath: appReq.ExecutablePath,
-		ResourceSpec:   appReq.ResourceSpec,
-		Status:         "PREPARING",
-		Profile:        appReq.Profile,
-		AppConfig:      appReq.AppConfig,
-		AppSecret:      appReq.AppSecret,
-		ExtraEnv:       appReq.ExtraEnv,
-		Port:           appReq.Port,
-		Output:         "",
-		PvEnabled:      appReq.PvEnabled,
-		PvStorageClass: appReq.PvStorageClass,
-		PvAccessMode:   appReq.PvAccessMode,
-		PvSize:         appReq.PvSize,
-		PvMountPath:    appReq.PvMountPath,
-		CreatedAt:      now,
-	}
-	app.AppServeAppTasks = append(app.AppServeAppTasks, task)
+	app.EndpointUrl = "N/A"
+	app.PreviewEndpointUrl = "N/A"
+	app.Status = "PREPARING"
+	app.CreatedAt = now
 
-	// Validate common params
-	if app.Name == "" || app.Type == "" || app.AppServeAppTasks[0].Version == "" ||
-		app.AppType == "" || app.OrganizationId == "" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(
-			fmt.Errorf("Error: The following params are always mandatory."+
-				"\n\t- name\n\t- type\n\t- app_type\n\t- organization_id\n\t- version")))
+	var task domain.AppServeAppTask
+	if err = domain.Map(appReq, &task); err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
+
+	task.Status = "PREPARING"
+	task.Output = ""
+	task.CreatedAt = now
+
+	app.AppServeAppTasks = append(app.AppServeAppTasks, task)
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
@@ -95,13 +74,6 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	// Validate 'type' param
-	if !(app.Type == "build" || app.Type == "deploy" || app.Type == "all") {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Error: 'type' should be one of these values."+
-			"\n\t- build\n\t- deploy\n\t- all")))
-		return
-	}
-
 	// Validate 'strategy' param
 	if app.AppServeAppTasks[0].Strategy != "rolling-update" {
 		ErrorJSON(w, httpErrors.NewBadRequestError(
@@ -109,26 +81,17 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Validate 'app_type' param
-	if !(app.AppType == "spring" || app.AppType == "springboot") {
-		ErrorJSON(w, httpErrors.NewBadRequestError(
-			fmt.Errorf("Error: 'type' should be one of these values."+
-				"\n\t- string\n\t- stringboot")))
-		return
-	}
-
-	appId, appName, err := h.usecase.CreateAppServeApp(&app)
+	_, _, err = h.usecase.CreateAppServeApp(&app)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		AppId   string `json:"app_serve_app_id"`
-		AppName string `json:"app_serve_app_name"`
+	var out domain.CreateAppServeAppResponse
+	if err = domain.Map(app, &out); err != nil {
+		ErrorJSON(w, err)
+		return
 	}
-	out.AppId = appId
-	out.AppName = appName
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -139,7 +102,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Description Get appServeApp list by giving params
 // @Accept json
 // @Produce json
-// @Param projectId query string false "project_id"
+// @Param organization_Id query string false "organization_Id"
 // @Param showAll query string false "show_all"
 // @Success 200 {object} []domain.AppServeApp
 // @Router /app-serve-apps [get]
@@ -172,9 +135,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var out struct {
-		AppServeApps []domain.AppServeApp `json:"app_serve_apps"`
-	}
+	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = apps
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -200,9 +161,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	}
 	app, _ := h.usecase.GetAppServeAppById(appId)
 
-	var out struct {
-		AppServeApp domain.AppServeApp `json:"app_serve_app"`
-	}
+	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -214,7 +173,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Description Update appServeApp
 // @Accept json
 // @Produce json
-// @Param object body string true "body"
+// @Param object body domain.UpdateAppServeAppRequest true "update appserve request"
 // @Success 200 {object} object
 // @Router /app-serve-apps [put]
 // @Security     JWT
@@ -226,47 +185,31 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var appReq domain.UpdateAppServeAppRequest
-	if err := json.NewDecoder(r.Body).Decode(&appReq); err != nil {
+	appReq := domain.UpdateAppServeAppRequest{}
+	err := UnmarshalRequestInput(r, &appReq)
+	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	appTask := &domain.AppServeAppTask{
-		AppServeAppId:  appId,
-		Version:        appReq.Version,
-		Strategy:       appReq.Strategy,
-		ArtifactUrl:    appReq.ArtifactUrl,
-		ImageUrl:       appReq.ImageUrl,
-		ExecutablePath: appReq.ExecutablePath,
-		ResourceSpec:   appReq.ResourceSpec,
-		Status:         "PREPARING",
-		Profile:        appReq.Profile,
-		AppConfig:      appReq.AppConfig,
-		AppSecret:      appReq.AppSecret,
-		ExtraEnv:       appReq.ExtraEnv,
-		Port:           appReq.Port,
-		Output:         "",
-		CreatedAt:      time.Now(),
+	var task domain.AppServeAppTask
+	if err = domain.Map(appReq, &task); err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
 	}
 
+	task.AppServeAppId = appId
+	task.Status = "PREPARING"
+	task.Output = ""
+	task.CreatedAt = time.Now()
+
 	var res string
-	var err error
 	if appReq.Promote {
 		res, err = h.usecase.PromoteAppServeApp(appId)
 	} else if appReq.Abort {
 		res, err = h.usecase.AbortAppServeApp(appId)
 	} else {
-		// Validate 'strategy' param
-		if !(appReq.Strategy == "rolling-update" || appReq.Strategy == "blue-green" || appReq.Strategy == "canary") {
-			errMsg := fmt.Sprintf("Error: 'strategy' should be one of these values." +
-				"\n\t- rolling-update\n\t- blue-green\n\t- canary")
-			log.Error(errMsg)
-			ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf(errMsg)))
-			return
-		}
-
-		res, err = h.usecase.UpdateAppServeApp(appTask)
+		res, err = h.usecase.UpdateAppServeApp(&task)
 	}
 
 	if err != nil {
