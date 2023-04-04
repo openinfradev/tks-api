@@ -66,6 +66,8 @@ definitions:
       createdAt:
         type: string
       creator:
+        $ref: '#/definitions/domain.User'
+      creatorId:
         type: string
       description:
         type: string
@@ -82,16 +84,20 @@ definitions:
       updatedAt:
         type: string
       updator:
+        $ref: '#/definitions/domain.User'
+      updatorId:
         type: string
     type: object
   domain.CloudSettingResponse:
     properties:
+      cloudService:
+        type: string
       clusters:
         type: integer
       createdAt:
         type: string
       creator:
-        type: string
+        $ref: '#/definitions/domain.SimpleUserResponse'
       description:
         type: string
       id:
@@ -102,12 +108,10 @@ definitions:
         type: string
       resource:
         type: string
-      type:
-        type: string
       updatedAt:
         type: string
       updator:
-        type: string
+        $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
   domain.Cluster:
     properties:
@@ -419,10 +423,19 @@ definitions:
     type: object
   domain.LoginResponse:
     properties:
-      accountId:
-        type: string
-      token:
-        type: string
+      user:
+        properties:
+          accountId:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          token:
+            type: string
+        type: object
     type: object
   domain.Organization:
     properties:
@@ -460,6 +473,15 @@ definitions:
       name:
         type: string
       updatedAt:
+        type: string
+    type: object
+  domain.SimpleUserResponse:
+    properties:
+      accountId:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
   domain.UpdateApplicationRequest:

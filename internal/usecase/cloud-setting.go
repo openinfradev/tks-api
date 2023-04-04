@@ -42,7 +42,7 @@ func (u *CloudSettingUsecase) Create(ctx context.Context, dto domain.CloudSettin
 	}
 
 	dto.Resource = "TODO server result or additional information"
-	dto.Creator = user.GetUserId()
+	dto.CreatorId = user.GetUserId()
 	cloudSettingId, err = u.repo.Create(dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err)
@@ -77,7 +77,7 @@ func (u *CloudSettingUsecase) Update(ctx context.Context, dto domain.CloudSettin
 	}
 
 	dto.Resource = "TODO server result or additional information"
-	dto.Updator = user.GetUserId()
+	dto.UpdatorId = user.GetUserId()
 	err := u.repo.Update(dto)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err)
@@ -115,7 +115,7 @@ func (u *CloudSettingUsecase) Delete(ctx context.Context, dto domain.CloudSettin
 		return httpErrors.NewNotFoundError(err)
 	}
 
-	dto.Updator = user.GetUserId()
+	dto.UpdatorId = user.GetUserId()
 
 	err = u.repo.Delete(dto)
 	if err != nil {

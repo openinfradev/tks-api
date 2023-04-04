@@ -85,6 +85,12 @@ type CreateUserRequest struct {
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }
 
+type SimpleUserResponse struct {
+	ID        string `json:"id"`
+	AccountId string `json:"accountId"`
+	Name      string `json:"name"`
+}
+
 type CreateUserResponse struct {
 	User struct {
 		ID           string       `json:"id"`

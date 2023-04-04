@@ -1448,6 +1448,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "creatorId": {
                     "type": "string"
                 },
                 "description": {
@@ -1472,6 +1475,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "updatorId": {
                     "type": "string"
                 }
             }
@@ -1479,6 +1485,9 @@ const docTemplate = `{
         "domain.CloudSettingResponse": {
             "type": "object",
             "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
                 "clusters": {
                     "type": "integer"
                 },
@@ -1486,7 +1495,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -1503,14 +1512,11 @@ const docTemplate = `{
                 "resource": {
                     "type": "string"
                 },
-                "type": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "type": "string"
                 },
                 "updator": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
         },
@@ -1979,11 +1985,25 @@ const docTemplate = `{
         "domain.LoginResponse": {
             "type": "object",
             "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/domain.Role"
+                        },
+                        "token": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -2041,6 +2061,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SimpleUserResponse": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

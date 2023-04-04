@@ -1441,6 +1441,9 @@
                     "type": "string"
                 },
                 "creator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "creatorId": {
                     "type": "string"
                 },
                 "description": {
@@ -1465,6 +1468,9 @@
                     "type": "string"
                 },
                 "updator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "updatorId": {
                     "type": "string"
                 }
             }
@@ -1472,6 +1478,9 @@
         "domain.CloudSettingResponse": {
             "type": "object",
             "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
                 "clusters": {
                     "type": "integer"
                 },
@@ -1479,7 +1488,7 @@
                     "type": "string"
                 },
                 "creator": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -1496,14 +1505,11 @@
                 "resource": {
                     "type": "string"
                 },
-                "type": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "type": "string"
                 },
                 "updator": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
         },
@@ -1972,11 +1978,25 @@
         "domain.LoginResponse": {
             "type": "object",
             "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/domain.Role"
+                        },
+                        "token": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -2034,6 +2054,20 @@
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SimpleUserResponse": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

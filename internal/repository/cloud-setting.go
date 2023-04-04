@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
@@ -37,8 +38,10 @@ type CloudSetting struct {
 	Description    string
 	Resource       string
 	Type           domain.CloudType
-	Creator        uuid.UUID
-	Updator        uuid.UUID
+	CreatorId      *uuid.UUID `gorm:"type:uuid"`
+	Creator        User       `gorm:"foreignKey:CreatorId"`
+	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
+	Updator        User       `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
@@ -49,7 +52,7 @@ func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
 // Logics
 func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.CloudSetting, err error) {
 	var cloudSetting CloudSetting
-	res := r.db.First(&cloudSetting, "id = ?", cloudSettingId)
+	res := r.db.Preload(clause.Associations).First(&cloudSetting, "id = ?", cloudSettingId)
 	if res.Error != nil {
 		return domain.CloudSetting{}, res.Error
 	}
@@ -59,7 +62,7 @@ func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.Cloud
 
 func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.CloudSetting, err error) {
 	var cloudSettings []CloudSetting
-	res := r.db.Find(&cloudSettings, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Find(&cloudSettings, "organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -77,7 +80,7 @@ func (r *CloudSettingRepository) Create(dto domain.CloudSetting) (cloudSettingId
 		Description:    dto.Description,
 		Type:           dto.Type,
 		Resource:       dto.Resource,
-		Creator:        dto.Creator}
+		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudSetting)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
@@ -88,7 +91,7 @@ func (r *CloudSettingRepository) Create(dto domain.CloudSetting) (cloudSettingId
 func (r *CloudSettingRepository) Update(dto domain.CloudSetting) (err error) {
 	res := r.db.Model(&CloudSetting{}).
 		Where("id = ?", dto.ID).
-		Updates(map[string]interface{}{"Description": dto.Description, "Resource": dto.Resource, "Updator": dto.Updator})
+		Updates(map[string]interface{}{"Description": dto.Description, "Resource": dto.Resource, "UpdatorId": dto.UpdatorId})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -111,9 +114,22 @@ func (r *CloudSettingRepository) reflect(cloudSetting CloudSetting) domain.Cloud
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
 		Type:           cloudSetting.Type,
-		Creator:        cloudSetting.Creator,
-		Updator:        cloudSetting.Updator,
+		Creator:        r.reflectUser(cloudSetting.Creator),
+		Updator:        r.reflectUser(cloudSetting.Updator),
 		CreatedAt:      cloudSetting.CreatedAt,
 		UpdatedAt:      cloudSetting.UpdatedAt,
+	}
+}
+
+func (r *CloudSettingRepository) reflectUser(user User) domain.User {
+	return domain.User{
+		ID:          user.ID.String(),
+		AccountId:   user.AccountId,
+		Name:        user.Name,
+		Email:       user.Email,
+		Department:  user.Department,
+		Description: user.Description,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
 	}
 }

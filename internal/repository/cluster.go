@@ -220,8 +220,6 @@ func (r *ClusterRepository) reflectCloudSetting(cloudSetting CloudSetting) domai
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
 		Type:           cloudSetting.Type,
-		Creator:        cloudSetting.Creator,
-		Updator:        cloudSetting.Updator,
 		CreatedAt:      cloudSetting.CreatedAt,
 		UpdatedAt:      cloudSetting.UpdatedAt,
 	}
