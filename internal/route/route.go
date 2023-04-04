@@ -163,8 +163,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.CreateAppServeApp), kc)).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApps), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp), kc)).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp), kc)).Methods(http.MethodPut)
 
 	historyHandler := delivery.NewHistoryHandler(usecase.NewHistoryUsecase(repository.NewHistoryRepository(db)))
 	r.Handle(API_PREFIX+API_VERSION+"/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories), kc)).Methods(http.MethodGet)

@@ -2,19 +2,17 @@ package repository
 
 import (
 	"fmt"
-
-	"github.com/google/uuid"
-	"gorm.io/gorm"
-
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"gorm.io/gorm"
 )
 
-// Interfaces
 type IAppServeAppRepository interface {
-	Fetch(contractId string, showAll bool) ([]*domain.AppServeApp, error)
-	Get(id uuid.UUID) (*domain.AppServeAppCombined, error)
-	Create(contractId string, app *domain.AppServeApp, task *domain.AppServeAppTask) (asaId uuid.UUID, asaTaskId uuid.UUID, err error)
-	Update(appServeAppId uuid.UUID, task *domain.AppServeAppTask) (uuid.UUID, error)
+	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
+	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
+	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
+	UpdateStatus(taskId string, status string, output string) error
+	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
 }
 
 type AppServeAppRepository struct {
@@ -27,259 +25,141 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 	}
 }
 
-// Models
-type AppServeApp struct {
-	gorm.Model
-	ID                 uuid.UUID `gorm:"primarykey;type:uuid"`
-	Name               string
-	ContractId         string
-	Type               string
-	AppType            string
-	EndpointUrl        string
-	PreviewEndpointUrl string
-	TargetClusterId    string
-	Status             string
-}
+func (r *AppServeAppRepository) CreateAppServeApp(
+	app *domain.AppServeApp) (appId string, taskId string, err error) {
 
-func (c *AppServeApp) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
-type AppServeAppTask struct {
-	gorm.Model
-	ID             uuid.UUID `gorm:"primarykey;type:uuid"`
-	AppServeAppId  uuid.UUID
-	Version        string
-	Strategy       string
-	Status         string
-	Output         string
-	ArtifactUrl    string
-	ImageUrl       string
-	ExecutablePath string
-	ResourceSpec   string
-	Profile        string
-	AppConfig      string
-	AppSecret      string
-	ExtraEnv       string
-	Port           string
-	HelmRevision   int32
-}
-
-func (c *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
-// Logics
-func (r *AppServeAppRepository) Create(contractId string, app *domain.AppServeApp, task *domain.AppServeAppTask) (asaId uuid.UUID, asaTaskId uuid.UUID, err error) {
-	// TODO: should I set initial status field here?
-	asaModel := AppServeApp{
-		Name:               app.Name,
-		ContractId:         contractId,
-		Type:               app.Type,
-		AppType:            app.AppType,
-		EndpointUrl:        "N/A",
-		PreviewEndpointUrl: "N/A",
-		TargetClusterId:    app.TargetClusterId,
-	}
-
-	res := r.db.Create(&asaModel)
+	res := r.db.Create(&app)
 	if res.Error != nil {
-		return uuid.Nil, uuid.Nil, res.Error
+		return "", "", res.Error
 	}
 
-	asaTaskModel := AppServeAppTask{
-		Version:        task.Version,
-		Strategy:       task.Strategy,
-		Status:         task.Status,
-		ArtifactUrl:    task.ArtifactUrl,
-		ImageUrl:       task.ImageUrl,
-		ExecutablePath: task.ExecutablePath,
-		ResourceSpec:   task.ResourceSpec,
-		Profile:        task.Profile,
-		AppConfig:      task.AppConfig,
-		AppSecret:      task.AppSecret,
-		ExtraEnv:       task.ExtraEnv,
-		Port:           task.Port,
-		AppServeAppId:  asaModel.ID,
-	}
-
-	res = r.db.Create(&asaTaskModel)
-	if res.Error != nil {
-		return uuid.Nil, uuid.Nil, res.Error
-	}
-
-	return asaModel.ID, asaTaskModel.ID, nil
+	return app.ID, app.AppServeAppTasks[0].ID, nil
 }
 
 // Update creates new appServeApp Task for existing appServeApp.
-func (r *AppServeAppRepository) Update(appServeAppId uuid.UUID, task *domain.AppServeAppTask) (uuid.UUID, error) {
-	asaTaskModel := AppServeAppTask{
-		Version:        task.Version,
-		Strategy:       task.Strategy,
-		Status:         task.Status,
-		ArtifactUrl:    task.ArtifactUrl,
-		ImageUrl:       task.ImageUrl,
-		ExecutablePath: task.ExecutablePath,
-		ResourceSpec:   task.ResourceSpec,
-		Profile:        task.Profile,
-		AppConfig:      task.AppConfig,
-		AppSecret:      task.AppSecret,
-		ExtraEnv:       task.ExtraEnv,
-		Port:           task.Port,
-		AppServeAppId:  appServeAppId,
-	}
+func (r *AppServeAppRepository) CreateTask(
+	task *domain.AppServeAppTask) (string, error) {
 
-	res := r.db.Create(&asaTaskModel)
+	res := r.db.Create(task)
 	if res.Error != nil {
-		return uuid.Nil, res.Error
+		return "", res.Error
 	}
 
-	return asaTaskModel.ID, nil
+	return task.ID, nil
 }
 
-func (r *AppServeAppRepository) Fetch(contractId string, showAll bool) ([]*domain.AppServeApp, error) {
-	var appServeApps []AppServeApp
-	pbAppServeApps := []*domain.AppServeApp{}
+func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error) {
+	var apps []domain.AppServeApp
 
-	queryStr := fmt.Sprintf("contract_id = '%s' AND status <> 'DELETE_SUCCESS'", contractId)
+	queryStr := fmt.Sprintf("organization_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId)
 	if showAll {
-		queryStr = fmt.Sprintf("contract_id = '%s'", contractId)
+		queryStr = fmt.Sprintf("organization_id = '%s'", organizationId)
 	}
-	res := r.db.Order("created_at desc").Find(&appServeApps, queryStr)
+	res := r.db.Order("created_at desc").Find(&apps, queryStr)
 	if res.Error != nil {
-		return nil, fmt.Errorf("Error while finding appServeApps with contractID: %s", contractId)
+		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
 	}
 
 	// If no record is found, just return empty array.
 	if res.RowsAffected == 0 {
-		return pbAppServeApps, nil
+		return apps, nil
 	}
 
-	for _, asa := range appServeApps {
-		pbAppServeApps = append(pbAppServeApps, r.ConvertToPbAppServeApp(asa))
-	}
-	return pbAppServeApps, nil
+	return apps, nil
 }
 
-func (r *AppServeAppRepository) Get(id uuid.UUID) (*domain.AppServeAppCombined, error) {
-	var appServeApp AppServeApp
-	var appServeAppTasks []AppServeAppTask
-	pbAppServeAppCombined := &domain.AppServeAppCombined{}
+func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
+	var app domain.AppServeApp
 
-	res := r.db.First(&appServeApp, "id = ?", id)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return nil, fmt.Errorf("Could not find AppServeApp with ID: %s", id)
-	}
-	pbAppServeAppCombined.AppServeApp = r.ConvertToPbAppServeApp(appServeApp)
-
-	res = r.db.Order("created_at desc").Find(&appServeAppTasks, "app_serve_app_id = ?", id)
-	if res.Error != nil {
-		return nil, fmt.Errorf("Error while finding appServeAppTasks with appServeApp ID %s. Err: %s", id, res.Error)
+	if err := r.db.Where("id = ?", appId).First(&app).Error; err != nil {
+		return nil, fmt.Errorf("could not find AppServeApp with ID: %s", appId)
 	}
 
-	for _, task := range appServeAppTasks {
-		pbAppServeAppCombined.Tasks = append(pbAppServeAppCombined.Tasks, r.ConvertToPbAppServeAppTask(task))
+	err := r.db.Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks)
+	if err != nil {
+		return nil, err
 	}
 
-	return pbAppServeAppCombined, nil
+	//res := r.db.Order("app_serve_app_tasks.created_at asc").
+	//	Joins("Join app_serve_app_tasks On app_serve_app_tasks.app_serve_app_id = app_serve_apps.id").
+	//	First(&repoApp, "app_serve_apps.id = ?", appId)
+	//if res.RowsAffected == 0 || res.Error != nil {
+	//	return nil, fmt.Errorf("could not find AppServeApp with ID: %s", appId)
+	//}
+
+	return &app, nil
 }
 
-func (r *AppServeAppRepository) UpdateStatus(taskId uuid.UUID, status string, output string) error {
+func (r *AppServeAppRepository) UpdateStatus(taskId string, status string, output string) error {
 	// Update task status
-	res := r.db.Model(&AppServeAppTask{}).Where("ID = ?", taskId).Updates(AppServeAppTask{Status: status, Output: output})
+	res := r.db.Model(&domain.AppServeAppTask{}).
+		Where("ID = ?", taskId).
+		Updates(domain.AppServeAppTask{Status: status, Output: output})
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("UpdateStatus: nothing updated in AppServeAppTask with ID %s", taskId)
 	}
 
-	// GetByUuid Asa ID which this task belongs to.
-	var appServeAppTask AppServeAppTask
-	res = r.db.First(&appServeAppTask, "id = ?", taskId)
+	// Get Asa ID which this task belongs to.
+	var appTask domain.AppServeAppTask
+	res = r.db.First(&appTask, "id = ?", taskId)
+
 	if res.RowsAffected == 0 || res.Error != nil {
-		return fmt.Errorf("Could not find AppServeAppTask with ID: %s", taskId)
+		return fmt.Errorf("could not find AppServeAppTask with ID: %s", taskId)
 	}
-	asaId := appServeAppTask.AppServeAppId
+	appId := appTask.AppServeAppId
 
 	// Update status of the Asa.
-	res = r.db.Model(&AppServeApp{}).Where("ID = ?", asaId).Update("Status", status)
+	res = r.db.Model(&domain.AppServeApp{}).
+		Where("ID = ?", appId).
+		Update("Status", status)
 	if res.Error != nil || res.RowsAffected == 0 {
-		return fmt.Errorf("UpdateStatus: nothing updated in AppServeApp with id %s", asaId)
+		return fmt.Errorf("UpdateStatus: nothing updated in AppServeApp with id %s", appId)
 	}
 
 	return nil
 }
 
-func (r *AppServeAppRepository) UpdateEndpoint(id uuid.UUID, taskId uuid.UUID, endpoint string, previewEndpoint string, helmRevision int32) error {
+func (r *AppServeAppRepository) UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error {
 	if endpoint != "" && previewEndpoint != "" {
 		// Both endpoints are valid
-		res := r.db.Model(&AppServeApp{}).Where("ID = ?", id).Updates(AppServeApp{EndpointUrl: endpoint, PreviewEndpointUrl: previewEndpoint})
+		res := r.db.Model(&domain.AppServeApp{}).
+			Where("ID = ?", appId).
+			Updates(domain.AppServeApp{EndpointUrl: endpoint, PreviewEndpointUrl: previewEndpoint})
 		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", id)
+			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
 		}
 	} else if endpoint != "" {
 		// endpoint-only case
-		res := r.db.Model(&AppServeApp{}).Where("ID = ?", id).Update("EndpointUrl", endpoint)
+		res := r.db.Model(&domain.AppServeApp{}).
+			Where("ID = ?", appId).
+			Update("EndpointUrl", endpoint)
 		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", id)
+			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
 		}
 	} else if previewEndpoint != "" {
 		// previewEndpoint-only case
-		res := r.db.Model(&AppServeApp{}).Where("ID = ?", id).Update("PreviewEndpointUrl", previewEndpoint)
+		res := r.db.Model(&domain.AppServeApp{}).
+			Where("ID = ?", appId).Update("PreviewEndpointUrl", previewEndpoint)
 		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", id)
+			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
 		}
 	} else {
-		return fmt.Errorf("UpdateEndpoint: No endpoint provided. At least one of [endpoint, preview_endpoint] should be provided.")
+		return fmt.Errorf("updateEndpoint: No endpoint provided. " +
+			"At least one of [endpoint, preview_endpoint] should be provided")
 	}
 
 	// Update helm revision
 	// Ignore if the value is less than 0
 	if helmRevision > 0 {
-		res := r.db.Model(&AppServeAppTask{}).Where("ID = ?", taskId).Update("HelmRevision", helmRevision)
+		res := r.db.Model(&domain.AppServeAppTask{}).
+			Where("ID = ?", taskId).
+			Update("HelmRevision", helmRevision)
 		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: helm revision was not updated for AppServeAppTask with task ID %s", taskId)
+			return fmt.Errorf("UpdateEndpoint: "+
+				"helm revision was not updated for AppServeAppTask with task ID %s", taskId)
 		}
 	}
 
 	return nil
-}
-
-func (r *AppServeAppRepository) ConvertToPbAppServeApp(asa AppServeApp) *domain.AppServeApp {
-	return &domain.AppServeApp{
-		ID:                 asa.ID.String(),
-		Name:               asa.Name,
-		ContractId:         asa.ContractId,
-		Type:               asa.Type,
-		AppType:            asa.AppType,
-		Status:             asa.Status,
-		EndpointUrl:        asa.EndpointUrl,
-		PreviewEndpointUrl: asa.PreviewEndpointUrl,
-		TargetClusterId:    asa.TargetClusterId,
-		CreatedAt:          asa.CreatedAt,
-		UpdatedAt:          asa.UpdatedAt,
-	}
-}
-
-func (r *AppServeAppRepository) ConvertToPbAppServeAppTask(task AppServeAppTask) *domain.AppServeAppTask {
-	return &domain.AppServeAppTask{
-		ID:             task.ID.String(),
-		Version:        task.Version,
-		Strategy:       task.Strategy,
-		Status:         task.Status,
-		Output:         task.Output,
-		ImageUrl:       task.ImageUrl,
-		ArtifactUrl:    task.ArtifactUrl,
-		ResourceSpec:   task.ResourceSpec,
-		ExecutablePath: task.ExecutablePath,
-		Profile:        task.Profile,
-		AppConfig:      task.AppConfig,
-		AppSecret:      task.AppSecret,
-		ExtraEnv:       task.ExtraEnv,
-		Port:           task.Port,
-		HelmRevision:   task.HelmRevision,
-		CreatedAt:      task.CreatedAt,
-		UpdatedAt:      task.UpdatedAt,
-	}
 }
