@@ -53,7 +53,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.LoginResponse
-	domain.Map(user, &out)
+	domain.Map(user, &out.User)
 
 	ResponseJSON(w, http.StatusOK, out)
 
