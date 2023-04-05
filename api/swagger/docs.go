@@ -1826,6 +1826,9 @@ const docTemplate = `{
                         "phone": {
                             "type": "string"
                         },
+                        "primaryClusterId": {
+                            "type": "string"
+                        },
                         "status": {
                             "type": "integer"
                         },
@@ -1918,6 +1921,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "primaryClusterId": {
                     "type": "string"
                 },
                 "status": {

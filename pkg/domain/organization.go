@@ -68,6 +68,7 @@ type GetOrganizationResponse struct {
 		Name              string             `json:"name"`
 		Description       string             `json:"description"`
 		Phone             string             `json:"phone"`
+		PrimaryClusterId  string             `json:"primaryClusterId"`
 		Status            OrganizationStatus `json:"status"`
 		StatusDescription string             `json:"statusDescription"`
 		Creator           string             `json:"creator"`
@@ -79,11 +80,12 @@ type ListOrganizationResponse struct {
 	Organizations []ListOrganizationBody `json:"organizations"`
 }
 type ListOrganizationBody struct {
-	ID          string             `json:"id"`
-	Name        string             `json:"name"`
-	Description string             `json:"description"`
-	Phone       string             `json:"phone"`
-	Status      OrganizationStatus `json:"status"`
+	ID               string             `json:"id"`
+	Name             string             `json:"name"`
+	Description      string             `json:"description"`
+	Phone            string             `json:"phone"`
+	PrimaryClusterId string             `json:"primaryClusterId"`
+	Status           OrganizationStatus `json:"status"`
 }
 
 type UpdateOrganizationRequest struct {

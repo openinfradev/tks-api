@@ -1819,6 +1819,9 @@
                         "phone": {
                             "type": "string"
                         },
+                        "primaryClusterId": {
+                            "type": "string"
+                        },
                         "status": {
                             "type": "integer"
                         },
@@ -1911,6 +1914,9 @@
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "primaryClusterId": {
                     "type": "string"
                 },
                 "status": {
