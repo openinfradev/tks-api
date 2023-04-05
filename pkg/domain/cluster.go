@@ -4,12 +4,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/helper"
 )
 
 type ClusterId string
 
 func (c ClusterId) String() string {
 	return string(c)
+}
+
+func (c ClusterId) Validate() bool {
+	return helper.ValidateClusterId(c.String())
 }
 
 // enum
@@ -35,9 +40,9 @@ var clusterStatus = [...]string{
 
 func (m ClusterStatus) String() string { return clusterStatus[(m)] }
 func (m ClusterStatus) FromString(s string) ClusterStatus {
-	for _, v := range clusterStatus {
+	for i, v := range clusterStatus {
 		if v == s {
-			return ClusterStatus_ERROR
+			return ClusterStatus(i)
 		}
 	}
 	return ClusterStatus_ERROR

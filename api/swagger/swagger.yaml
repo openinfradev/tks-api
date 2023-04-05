@@ -1,14 +1,14 @@
 basePath: /api/1.0/
 definitions:
-  domain.AppGroup:
+  domain.AppGroupResponse:
     properties:
       appGroupType:
-        type: string
+        type: integer
       clusterId:
         type: string
       createdAt:
         type: string
-      creator:
+      creatorId:
         type: string
       description:
         type: string
@@ -17,7 +17,7 @@ definitions:
       name:
         type: string
       status:
-        type: string
+        type: integer
       statusDescription:
         type: string
       updatedAt:
@@ -55,6 +55,23 @@ definitions:
         type: string
       type:
         description: type (build/deploy/all)
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.ApplicationResponse:
+    properties:
+      appGroupId:
+        type: string
+      applicationType:
+        type: integer
+      createdAt:
+        type: string
+      endpoint:
+        type: string
+      id:
+        type: string
+      metadata:
         type: string
       updatedAt:
         type: string
@@ -211,13 +228,22 @@ definitions:
     properties:
       clusterId:
         type: string
-      creator:
-        type: string
       description:
         type: string
       name:
         type: string
       type:
+        enum:
+        - LMA
+        - SERVICE_MESH
+        type: string
+    required:
+    - clusterId
+    - name
+    type: object
+  domain.CreateAppGroupResponse:
+    properties:
+      id:
         type: string
     type: object
   domain.CreateCloudSettingRequest:
@@ -350,6 +376,25 @@ definitions:
     required:
     - secretKey
     - secretKeyId
+    type: object
+  domain.GetAppGroupResponse:
+    properties:
+      appGroup:
+        $ref: '#/definitions/domain.AppGroupResponse'
+    type: object
+  domain.GetAppGroupsResponse:
+    properties:
+      appGroups:
+        items:
+          $ref: '#/definitions/domain.AppGroupResponse'
+        type: array
+    type: object
+  domain.GetApplicationsResponse:
+    properties:
+      applications:
+        items:
+          $ref: '#/definitions/domain.ApplicationResponse'
+        type: array
     type: object
   domain.GetCloudSettingsResponse:
     properties:
@@ -698,8 +743,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: object
       security:
       - JWT: []
       summary: Uninstall appGroup
@@ -720,9 +763,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.AppGroup'
-            type: array
+            $ref: '#/definitions/domain.GetAppGroupsResponse'
       security:
       - JWT: []
       summary: Get appGroup list
@@ -745,7 +786,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/domain.CreateAppGroupResponse'
       security:
       - JWT: []
       summary: Install appGroup
@@ -768,9 +809,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.AppGroup'
-            type: array
+            $ref: '#/definitions/domain.GetAppGroupResponse'
       security:
       - JWT: []
       summary: Get appGroup detail
@@ -798,7 +837,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.GetApplicationsResponse'
       security:
       - JWT: []
       summary: Get applications
@@ -820,8 +859,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: object
       security:
       - JWT: []
       summary: Update application

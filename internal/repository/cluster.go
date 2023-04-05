@@ -85,7 +85,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 		return nil, res.Error
 	}
 	for _, cluster := range clusters {
-		outCluster := r.reflect(cluster)
+		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
 	return out, nil
@@ -106,7 +106,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []
 	}
 
 	for _, cluster := range clusters {
-		outCluster := r.reflect(cluster)
+		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
 
@@ -127,7 +127,7 @@ func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out
 	}
 
 	for _, cluster := range clusters {
-		outCluster := r.reflect(cluster)
+		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
 
@@ -141,7 +141,7 @@ func (r *ClusterRepository) Get(id domain.ClusterId) (domain.Cluster, error) {
 		log.Info(res.Error)
 		return domain.Cluster{}, fmt.Errorf("Not found cluster for %s", id)
 	}
-	resCluster := r.reflect(cluster)
+	resCluster := reflectCluster(cluster)
 	return resCluster, nil
 }
 
@@ -192,7 +192,7 @@ func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId 
 
 }
 
-func (r *ClusterRepository) reflect(cluster Cluster) domain.Cluster {
+func reflectCluster(cluster Cluster) domain.Cluster {
 	return domain.Cluster{
 		ID:             cluster.ID,
 		OrganizationId: cluster.OrganizationId,

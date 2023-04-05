@@ -53,10 +53,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.AppGroup"
-                            }
+                            "$ref": "#/definitions/domain.GetAppGroupsResponse"
                         }
                     }
                 }
@@ -93,7 +90,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.CreateAppGroupResponse"
                         }
                     }
                 }
@@ -128,10 +125,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -167,10 +161,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.AppGroup"
-                            }
+                            "$ref": "#/definitions/domain.GetAppGroupResponse"
                         }
                     }
                 }
@@ -214,7 +205,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.GetApplicationsResponse"
                         }
                     }
                 }
@@ -249,10 +240,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -1350,11 +1338,11 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.AppGroup": {
+        "domain.AppGroupResponse": {
             "type": "object",
             "properties": {
                 "appGroupType": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "clusterId": {
                     "type": "string"
@@ -1362,7 +1350,7 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "creator": {
+                "creatorId": {
                     "type": "string"
                 },
                 "description": {
@@ -1375,7 +1363,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "statusDescription": {
                     "type": "string"
@@ -1428,6 +1416,32 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "type (build/deploy/all)",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ApplicationResponse": {
+            "type": "object",
+            "properties": {
+                "appGroupId": {
+                    "type": "string"
+                },
+                "applicationType": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -1662,11 +1676,12 @@ const docTemplate = `{
         },
         "domain.CreateAppGroupRequest": {
             "type": "object",
+            "required": [
+                "clusterId",
+                "name"
+            ],
             "properties": {
                 "clusterId": {
-                    "type": "string"
-                },
-                "creator": {
                     "type": "string"
                 },
                 "description": {
@@ -1676,6 +1691,18 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string",
+                    "enum": [
+                        "LMA",
+                        "SERVICE_MESH"
+                    ]
+                }
+            }
+        },
+        "domain.CreateAppGroupResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -1869,6 +1896,36 @@ const docTemplate = `{
                 },
                 "secretKeyId": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.GetAppGroupResponse": {
+            "type": "object",
+            "properties": {
+                "appGroup": {
+                    "$ref": "#/definitions/domain.AppGroupResponse"
+                }
+            }
+        },
+        "domain.GetAppGroupsResponse": {
+            "type": "object",
+            "properties": {
+                "appGroups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AppGroupResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetApplicationsResponse": {
+            "type": "object",
+            "properties": {
+                "applications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ApplicationResponse"
+                    }
                 }
             }
         },

@@ -3,7 +3,6 @@ package usecase
 import (
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -13,12 +12,11 @@ import (
 
 type IAppGroupUsecase interface {
 	Fetch(clusterId domain.ClusterId) ([]domain.AppGroup, error)
-	Create(clusterId domain.ClusterId, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error)
-	Get(appGroupId string) (out domain.AppGroup, err error)
-	Delete(appGroupId string) (err error)
-	GetApplications(appGroupId string, applicationType string) (out []domain.Application, err error)
-	GetApplication(appGroupId string, applicationType string) (out domain.Application, err error)
-	UpdateApplication(appGroupId string, input domain.UpdateApplicationRequest) (err error)
+	Create(dto domain.AppGroup) (id domain.AppGroupId, err error)
+	Get(id domain.AppGroupId) (out domain.AppGroup, err error)
+	Delete(id domain.AppGroupId) (err error)
+	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
+	UpdateApplication(dto domain.Application) (err error)
 }
 
 type AppGroupUsecase struct {
@@ -43,35 +41,27 @@ func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGro
 	return
 }
 
-func (u *AppGroupUsecase) Create(clusterId domain.ClusterId, name string, appGroupType string, creatorId string, description string) (appGroupId string, err error) {
-	creator := uuid.Nil
-	if creatorId != "" {
-		creator, err = uuid.Parse(creatorId)
-		if err != nil {
-			return "", fmt.Errorf("Invalid Creator ID %s", creatorId)
-		}
-	}
-
+func (u *AppGroupUsecase) Create(dto domain.AppGroup) (id domain.AppGroupId, err error) {
 	// Check Cluster
-	_, err = u.clusterRepo.Get(clusterId)
+	_, err = u.clusterRepo.Get(dto.ClusterId)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get cluster info err %s", err)
 	}
 
-	resAppGroups, err := u.repo.Fetch(clusterId)
+	resAppGroups, err := u.repo.Fetch(dto.ClusterId)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get appgroup info err %s", err)
 	}
 
 	for _, resAppGroup := range resAppGroups {
-		if resAppGroup.Name == name &&
-			resAppGroup.AppGroupType == appGroupType {
-			appGroupId = resAppGroup.ID
+		if resAppGroup.Name == dto.Name &&
+			resAppGroup.AppGroupType == dto.AppGroupType {
+			dto.ID = resAppGroup.ID
 			break
 		}
 	}
 
-	appGroupId, err = u.repo.Create(clusterId, name, appGroupType, creator, description)
+	dto.ID, err = u.repo.Create(dto)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create appGroup. err %s", err)
 	}
@@ -79,29 +69,25 @@ func (u *AppGroupUsecase) Create(clusterId domain.ClusterId, name string, appGro
 	workflowTemplate := ""
 	opts := argowf.SubmitOptions{}
 	opts.Parameters = []string{
-		"site_name=" + clusterId.String(),
-		"cluster_id=" + clusterId.String(),
+		"site_name=" + dto.ClusterId.String(),
+		"cluster_id=" + dto.ClusterId.String(),
 		"github_account=" + viper.GetString("git-account"),
-		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId.String() + "-manifests",
+		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + dto.ClusterId.String() + "-manifests",
 		"revision=" + viper.GetString("revision"),
-		"app_group_id=" + appGroupId,
+		"app_group_id=" + dto.ID.String(),
 	}
 
-	switch appGroupType {
-	case "LMA":
+	switch dto.AppGroupType {
+	case domain.AppGroupType_LMA:
 		workflowTemplate = "tks-lma-federation"
 		opts.Parameters = append(opts.Parameters, "logging_component=loki")
 
-	case "LMA_EFK":
-		workflowTemplate = "tks-lma-federation"
-		opts.Parameters = append(opts.Parameters, "logging_component=efk")
-
-	case "SERVICE_MESH":
+	case domain.AppGroupType_SERVICE_MESH:
 		workflowTemplate = "tks-service-mesh"
 
 	default:
-		log.Error("invalid appGroup type ", appGroupType)
-		return "", fmt.Errorf("Invalid appGroup type. err %s", appGroupType)
+		log.Error("invalid appGroup type ", dto.AppGroupType)
+		return "", fmt.Errorf("Invalid appGroup type. err %s", dto.AppGroupType)
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
@@ -112,25 +98,25 @@ func (u *AppGroupUsecase) Create(clusterId domain.ClusterId, name string, appGro
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(appGroupId, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
 		return "", fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
 	}
 
-	return appGroupId, nil
+	return dto.ID, nil
 }
 
-func (u *AppGroupUsecase) Get(appGroupId string) (out domain.AppGroup, err error) {
-	appGroup, err := u.repo.Get(appGroupId)
+func (u *AppGroupUsecase) Get(id domain.AppGroupId) (out domain.AppGroup, err error) {
+	appGroup, err := u.repo.Get(id)
 	if err != nil {
 		return domain.AppGroup{}, err
 	}
 	return appGroup, nil
 }
 
-func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
-	appGroup, err := u.repo.Get(appGroupId)
+func (u *AppGroupUsecase) Delete(id domain.AppGroupId) (err error) {
+	appGroup, err := u.repo.Get(id)
 	if err != nil {
-		return fmt.Errorf("No appGroup for deletiing : %s", appGroupId)
+		return fmt.Errorf("No appGroup for deletiing : %s", id)
 	}
 
 	clusterId := appGroup.ClusterId
@@ -140,11 +126,11 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 	appGroupName := ""
 
 	switch appGroup.AppGroupType {
-	case "LMA", "LMA_EFK":
+	case domain.AppGroupType_LMA:
 		workflowTemplate = "tks-remove-lma-federation"
 		appGroupName = "lma"
 
-	case "SERVICE_MESH":
+	case domain.AppGroupType_SERVICE_MESH:
 		workflowTemplate = "tks-remove-servicemesh"
 		appGroupName = "service-mesh"
 
@@ -157,7 +143,7 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 		"app_group=" + appGroupName,
 		"github_account=" + viper.GetString("git-account"),
 		"cluster_id=" + clusterId.String(),
-		"app_group_id=" + appGroupId,
+		"app_group_id=" + id.String(),
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
@@ -167,7 +153,7 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 
 	log.Debug("submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(appGroupId, workflowId, domain.AppGroupStatus_DELETING); err != nil {
+	if err := u.repo.InitWorkflow(id, workflowId, domain.AppGroupStatus_DELETING); err != nil {
 		return fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
 	}
 
@@ -181,24 +167,16 @@ func (u *AppGroupUsecase) Delete(appGroupId string) (err error) {
 	return nil
 }
 
-func (u *AppGroupUsecase) GetApplications(appGroupId string, applicationType string) (out []domain.Application, err error) {
-	out, err = u.repo.GetApplications(appGroupId, applicationType)
+func (u *AppGroupUsecase) GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error) {
+	out, err = u.repo.GetApplications(id, applicationType)
 	if err != nil {
 		return nil, err
 	}
 	return
 }
 
-func (u *AppGroupUsecase) GetApplication(appGroupId string, applicationType string) (out domain.Application, err error) {
-	out, err = u.repo.GetApplication(appGroupId, applicationType)
-	if err != nil {
-		return out, err
-	}
-	return
-}
-
-func (u *AppGroupUsecase) UpdateApplication(appGroupId string, input domain.UpdateApplicationRequest) (err error) {
-	err = u.repo.UpsertApplication(appGroupId, input.ApplicationType, input.Endpoint, input.Metadata)
+func (u *AppGroupUsecase) UpdateApplication(dto domain.Application) (err error) {
+	err = u.repo.UpsertApplication(dto)
 	if err != nil {
 		return err
 	}
