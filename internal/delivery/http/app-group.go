@@ -45,7 +45,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 		log.Info(err)
 	}
 
-	appGroupId, err := h.usecase.Create(dto)
+	appGroupId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return

@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"os"
 	"time"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -61,9 +60,9 @@ func (c *Keycloak) InitializeKeycloak() error {
 	restyClient := c.client.RestyClient()
 	//for debugging
 
-	if os.Getenv("LOG_LEVEL") == "DEBUG" {
-		restyClient.SetDebug(true)
-	}
+	//if os.Getenv("LOG_LEVEL") == "DEBUG" {
+	//	restyClient.SetDebug(true)
+	//}
 
 	restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 

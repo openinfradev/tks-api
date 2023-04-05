@@ -8,8 +8,8 @@ definitions:
         type: string
       createdAt:
         type: string
-      creatorId:
-        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
       description:
         type: string
       id:
@@ -22,6 +22,8 @@ definitions:
         type: string
       updatedAt:
         type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
       workflowId:
         type: string
     type: object
@@ -226,16 +228,16 @@ definitions:
     type: object
   domain.CreateAppGroupRequest:
     properties:
+      appGroupType:
+        enum:
+        - LMA
+        - SERVICE_MESH
+        type: string
       clusterId:
         type: string
       description:
         type: string
       name:
-        type: string
-      type:
-        enum:
-        - LMA
-        - SERVICE_MESH
         type: string
     required:
     - clusterId
@@ -426,6 +428,8 @@ definitions:
             type: string
           phone:
             type: string
+          primaryClusterId:
+            type: string
           status:
             type: integer
           statusDescription:
@@ -486,6 +490,8 @@ definitions:
       name:
         type: string
       phone:
+        type: string
+      primaryClusterId:
         type: string
       status:
         type: integer
@@ -727,27 +733,6 @@ info:
   version: "1.0"
 paths:
   /app-groups:
-    delete:
-      consumes:
-      - application/json
-      description: Uninstall appGroup
-      parameters:
-      - description: body
-        in: body
-        name: object
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Uninstall appGroup
-      tags:
-      - AppGroups
     get:
       consumes:
       - application/json
@@ -1352,6 +1337,28 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/app-groups:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appGroup
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Uninstall appGroup
+      tags:
+      - AppGroups
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:

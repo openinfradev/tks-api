@@ -124,7 +124,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/users", authMiddleware(http.HandlerFunc(userHandler.Create), kc)).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/users", authMiddleware(http.HandlerFunc(userHandler.List), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Get), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Delete), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organization/{organizationId}/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Delete), kc)).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}/password", authMiddleware(http.HandlerFunc(userHandler.UpdatePassword), kc)).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.CheckId), kc)).Methods(http.MethodPost)
 
@@ -294,7 +294,7 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				// key is projectName and value is roleName
 				roleProjectMapping[slice[1]] = slice[0]
 			}
-			userId, err := uuid.Parse(jwtToken.Claims.(jwt.MapClaims)["sid"].(string))
+			userId, err := uuid.Parse(jwtToken.Claims.(jwt.MapClaims)["sub"].(string))
 			if err != nil {
 				userId = uuid.Nil
 			}

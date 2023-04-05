@@ -17,6 +17,7 @@ type IAppGroupRepository interface {
 	Fetch(clusterId domain.ClusterId) (res []domain.AppGroup, err error)
 	Get(id domain.AppGroupId) (domain.AppGroup, error)
 	Create(dto domain.AppGroup) (id domain.AppGroupId, err error)
+	Update(dto domain.AppGroup) (err error)
 	Delete(id domain.AppGroupId) error
 	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (applications []domain.Application, err error)
 	UpsertApplication(dto domain.Application) error
@@ -104,7 +105,7 @@ func (r *AppGroupRepository) Create(dto domain.AppGroup) (appGroupId domain.AppG
 		Name:         dto.Name,
 		Description:  dto.Description,
 		Status:       domain.AppGroupStatus_PENDING,
-		CreatorId:    &dto.CreatorId,
+		CreatorId:    dto.CreatorId,
 		UpdatorId:    nil,
 	}
 	res := r.db.Create(&appGroup)
@@ -114,6 +115,22 @@ func (r *AppGroupRepository) Create(dto domain.AppGroup) (appGroupId domain.AppG
 	}
 
 	return appGroup.ID, nil
+}
+
+func (r *AppGroupRepository) Update(dto domain.AppGroup) (err error) {
+	res := r.db.Model(&AppGroup{}).
+		Where("id = ?", dto.ID).
+		Updates(map[string]interface{}{
+			"ClusterId":    dto.ClusterId,
+			"AppGroupType": dto.AppGroupType,
+			"Name":         dto.Name,
+			"Description":  dto.Description,
+			"Status":       domain.AppGroupStatus_PENDING,
+			"UpdatorId":    dto.UpdatorId})
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
 }
 
 func (r *AppGroupRepository) Delete(id domain.AppGroupId) error {
@@ -176,9 +193,9 @@ func reflectAppGroup(appGroup AppGroup) domain.AppGroup {
 		StatusDescription: appGroup.StatusDesc,
 		CreatedAt:         appGroup.CreatedAt,
 		UpdatedAt:         appGroup.UpdatedAt,
-		CreatorId:         *appGroup.CreatorId,
+		CreatorId:         appGroup.CreatorId,
 		Creator:           reflectUser(appGroup.Creator),
-		UpdatorId:         *appGroup.UpdatorId,
+		UpdatorId:         appGroup.UpdatorId,
 		Updator:           reflectUser(appGroup.Updator),
 	}
 }

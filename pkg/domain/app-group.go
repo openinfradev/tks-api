@@ -39,6 +39,14 @@ var appGroupStatus = [...]string{
 }
 
 func (m AppGroupStatus) String() string { return appGroupStatus[(m)] }
+func (m AppGroupStatus) FromString(s string) AppGroupStatus {
+	for i, v := range appGroupStatus {
+		if v == s {
+			return AppGroupStatus(i)
+		}
+	}
+	return AppGroupStatus_PENDING
+}
 
 type ApplicationType int32
 
@@ -95,6 +103,14 @@ var appGroupType = [...]string{
 }
 
 func (m AppGroupType) String() string { return appGroupType[(m)] }
+func (m AppGroupType) FromString(s string) AppGroupType {
+	for i, v := range appGroupType {
+		if v == s {
+			return AppGroupType(i)
+		}
+	}
+	return AppGroupType_UNSPECIFIED
+}
 
 type AppGroup = struct {
 	ID                AppGroupId
@@ -105,9 +121,9 @@ type AppGroup = struct {
 	WorkflowId        string
 	Status            AppGroupStatus
 	StatusDescription string
-	CreatorId         uuid.UUID
+	CreatorId         *uuid.UUID
 	Creator           User
-	UpdatorId         uuid.UUID
+	UpdatorId         *uuid.UUID
 	Updator           User
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
@@ -124,17 +140,18 @@ type Application = struct {
 }
 
 type AppGroupResponse = struct {
-	ID                AppGroupId     `json:"id"`
-	Name              string         `json:"name"`
-	ClusterId         ClusterId      `json:"clusterId"`
-	AppGroupType      AppGroupType   `json:"appGroupType"`
-	Description       string         `json:"description"`
-	WorkflowId        string         `json:"workflowId"`
-	Status            AppGroupStatus `json:"status"`
-	StatusDescription string         `json:"statusDescription"`
-	CreatorId         uuid.UUID      `json:"creatorId"`
-	CreatedAt         time.Time      `json:"createdAt"`
-	UpdatedAt         time.Time      `json:"updatedAt"`
+	ID                AppGroupId         `json:"id"`
+	Name              string             `json:"name"`
+	ClusterId         ClusterId          `json:"clusterId"`
+	AppGroupType      AppGroupType       `json:"appGroupType"`
+	Description       string             `json:"description"`
+	WorkflowId        string             `json:"workflowId"`
+	Status            AppGroupStatus     `json:"status"`
+	StatusDescription string             `json:"statusDescription"`
+	Creator           SimpleUserResponse `json:"creator"`
+	Updator           SimpleUserResponse `json:"updator"`
+	CreatedAt         time.Time          `json:"createdAt"`
+	UpdatedAt         time.Time          `json:"updatedAt"`
 }
 
 type ApplicationResponse = struct {
@@ -148,10 +165,10 @@ type ApplicationResponse = struct {
 }
 
 type CreateAppGroupRequest struct {
-	Name        string    `json:"name" validate:"required"`
-	Description string    `json:"description"`
-	ClusterId   ClusterId `json:"clusterId" validate:"required"`
-	Type        string    `json:"type" validate:"oneof=LMA SERVICE_MESH"`
+	Name         string    `json:"name" validate:"required"`
+	Description  string    `json:"description"`
+	ClusterId    ClusterId `json:"clusterId" validate:"required"`
+	AppGroupType string    `json:"appGroupType" validate:"oneof=LMA SERVICE_MESH"`
 }
 
 type CreateAppGroupResponse struct {

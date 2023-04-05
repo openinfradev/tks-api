@@ -94,40 +94,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Uninstall appGroup",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "AppGroups"
-                ],
-                "summary": "Uninstall appGroup",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "object",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
             }
         },
         "/app-groups/{appGroupId}": {
@@ -1028,6 +994,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/app-groups": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Uninstall appGroup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppGroups"
+                ],
+                "summary": "Uninstall appGroup",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "object",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/primary-cluster": {
             "patch": {
                 "security": [
@@ -1350,8 +1352,8 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "creatorId": {
-                    "type": "string"
+                "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -1370,6 +1372,9 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "workflowId": {
                     "type": "string"
@@ -1681,6 +1686,13 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "appGroupType": {
+                    "type": "string",
+                    "enum": [
+                        "LMA",
+                        "SERVICE_MESH"
+                    ]
+                },
                 "clusterId": {
                     "type": "string"
                 },
@@ -1689,13 +1701,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "type": {
-                    "type": "string",
-                    "enum": [
-                        "LMA",
-                        "SERVICE_MESH"
-                    ]
                 }
             }
         },
@@ -1975,6 +1980,9 @@ const docTemplate = `{
                         "phone": {
                             "type": "string"
                         },
+                        "primaryClusterId": {
+                            "type": "string"
+                        },
                         "status": {
                             "type": "integer"
                         },
@@ -2067,6 +2075,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "primaryClusterId": {
                     "type": "string"
                 },
                 "status": {

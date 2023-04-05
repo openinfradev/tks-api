@@ -1,18 +1,22 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
 type IAppGroupUsecase interface {
 	Fetch(clusterId domain.ClusterId) ([]domain.AppGroup, error)
-	Create(dto domain.AppGroup) (id domain.AppGroupId, err error)
+	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Get(id domain.AppGroupId) (out domain.AppGroup, err error)
 	Delete(id domain.AppGroupId) (err error)
 	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
@@ -41,29 +45,41 @@ func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGro
 	return
 }
 
-func (u *AppGroupUsecase) Create(dto domain.AppGroup) (id domain.AppGroupId, err error) {
-	// Check Cluster
+func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+	userId := user.GetUserId()
+	dto.CreatorId = &userId
+
 	_, err = u.clusterRepo.Get(dto.ClusterId)
 	if err != nil {
-		return "", fmt.Errorf("Failed to get cluster info err %s", err)
+		return "", errors.Wrap(err, "Failed to get cluster info")
 	}
 
 	resAppGroups, err := u.repo.Fetch(dto.ClusterId)
 	if err != nil {
-		return "", fmt.Errorf("Failed to get appgroup info err %s", err)
+		return "", errors.Wrap(err, "Failed to get appgroups")
 	}
 
 	for _, resAppGroup := range resAppGroups {
-		if resAppGroup.Name == dto.Name &&
-			resAppGroup.AppGroupType == dto.AppGroupType {
+		if resAppGroup.AppGroupType == dto.AppGroupType {
+			if resAppGroup.Status == domain.AppGroupStatus_INSTALLING ||
+				resAppGroup.Status == domain.AppGroupStatus_DELETING {
+				return "", fmt.Errorf("In progress appgroup status [%s]", resAppGroup.Status.String())
+			}
 			dto.ID = resAppGroup.ID
-			break
 		}
 	}
 
-	dto.ID, err = u.repo.Create(dto)
+	if dto.ID == "" {
+		dto.ID, err = u.repo.Create(dto)
+	} else {
+		err = u.repo.Update(dto)
+	}
 	if err != nil {
-		return "", fmt.Errorf("Failed to create appGroup. err %s", err)
+		return "", errors.Wrap(err, "Failed to create appGroup.")
 	}
 
 	workflowTemplate := ""
@@ -86,20 +102,18 @@ func (u *AppGroupUsecase) Create(dto domain.AppGroup) (id domain.AppGroupId, err
 		workflowTemplate = "tks-service-mesh"
 
 	default:
-		log.Error("invalid appGroup type ", dto.AppGroupType)
-		return "", fmt.Errorf("Invalid appGroup type. err %s", dto.AppGroupType)
+		log.Error("invalid appGroup type ", dto.AppGroupType.String())
+		return "", errors.Wrap(err, fmt.Sprintf("Invalid appGroup type. %s", dto.AppGroupType.String()))
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
 	if err != nil {
 		log.Error("failed to submit argo workflow template. err : ", err)
-		return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+		return "", errors.Wrap(err, "Failed to call argo workflow")
 	}
 
-	log.Debug("submited workflow name : ", workflowId)
-
 	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
-		return "", fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
+		return "", errors.Wrap(err, "Failed to initialize appGroup status")
 	}
 
 	return dto.ID, nil
