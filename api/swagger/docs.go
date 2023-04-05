@@ -94,6 +94,40 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Uninstall appGroup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppGroups"
+                ],
+                "summary": "Uninstall appGroup",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "object",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
             }
         },
         "/app-groups/{appGroupId}": {
@@ -519,7 +553,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudSettingsResponse"
+                            "$ref": "#/definitions/domain.CreateCloudSettingResponse"
                         }
                     }
                 }
@@ -556,7 +590,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CloudSettingResponse"
+                            "$ref": "#/definitions/domain.GetCloudSettingResponse"
                         }
                     }
                 }
@@ -994,42 +1028,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/app-groups": {
-            "delete": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Uninstall appGroup",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "AppGroups"
-                ],
-                "summary": "Uninstall appGroup",
-                "parameters": [
-                    {
-                        "description": "body",
-                        "name": "object",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/organizations/{organizationId}/primary-cluster": {
             "patch": {
                 "security": [
@@ -1064,6 +1062,174 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.UpdatePrimaryClusterRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/stack-templates": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get StackTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get StackTemplates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackTemplatesResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Create StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "description": "create stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateStackTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateStackTemplateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stack-templates/{stackTemplateId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get StackTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackTemplateResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Update StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "description": "Update stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateStackTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Delete StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1457,6 +1623,9 @@ const docTemplate = `{
         "domain.CloudSetting": {
             "type": "object",
             "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
                 "clusters": {
                     "type": "integer"
                 },
@@ -1482,9 +1651,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "resource": {
-                    "type": "string"
-                },
-                "type": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -1745,7 +1911,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateCloudSettingsResponse": {
+        "domain.CreateCloudSettingResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1810,6 +1976,52 @@ const docTemplate = `{
                     "minLength": 3
                 },
                 "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateStackTemplateRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "organizationId",
+                "platform",
+                "template",
+                "version"
+            ],
+            "properties": {
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "AZZURE",
+                        "GCP"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateStackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -1934,6 +2146,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetCloudSettingResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSetting": {
+                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                }
+            }
+        },
         "domain.GetCloudSettingsResponse": {
             "type": "object",
             "properties": {
@@ -1992,6 +2212,25 @@ const docTemplate = `{
                         "updatedAt": {
                             "type": "string"
                         }
+                    }
+                }
+            }
+        },
+        "domain.GetStackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "stackTemplate": {
+                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                }
+            }
+        },
+        "domain.GetStackTemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "stackTemplates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateResponse"
                     }
                 }
             }
@@ -2239,6 +2478,47 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.StackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.UpdateApplicationRequest": {
             "type": "object",
             "properties": {
@@ -2312,6 +2592,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "primaryClusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateStackTemplateRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
                     "type": "string"
                 }
             }

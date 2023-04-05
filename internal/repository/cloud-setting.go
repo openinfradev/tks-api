@@ -37,7 +37,7 @@ type CloudSetting struct {
 	Name           string
 	Description    string
 	Resource       string
-	Type           domain.CloudType
+	CloudService   string
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -78,7 +78,7 @@ func (r *CloudSettingRepository) Create(dto domain.CloudSetting) (cloudSettingId
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
 		Description:    dto.Description,
-		Type:           dto.Type,
+		CloudService:   dto.CloudService,
 		Resource:       dto.Resource,
 		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudSetting)
@@ -113,7 +113,7 @@ func reflectCloudSetting(cloudSetting CloudSetting) domain.CloudSetting {
 		Name:           cloudSetting.Name,
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
-		Type:           cloudSetting.Type,
+		CloudService:   cloudSetting.CloudService,
 		Creator:        reflectUser(cloudSetting.Creator),
 		Updator:        reflectUser(cloudSetting.Updator),
 		CreatedAt:      cloudSetting.CreatedAt,

@@ -6,22 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	CloudService_UNDEFINED = "UNDEFINED"
-	CloudService_AWS       = "AWS"
-	CloudService_AZURE     = "AZZURE"
-	CloudService_GCP       = "GCP"
-)
-
 // 내부
-type CloudSetting struct {
+type StackTemplate struct {
 	ID             uuid.UUID
 	OrganizationId string
 	Name           string
 	Description    string
+	Version        string
 	CloudService   string
-	Resource       string
-	Clusters       int
+	Platform       string
+	Template       string
 	CreatorId      uuid.UUID
 	Creator        User
 	UpdatorId      uuid.UUID
@@ -30,46 +24,43 @@ type CloudSetting struct {
 	UpdatedAt      time.Time
 }
 
-type CloudSettingResponse struct {
+type StackTemplateResponse struct {
 	ID             string             `json:"id"`
 	OrganizationId string             `json:"organizationId"`
 	Name           string             `json:"name"`
 	Description    string             `json:"description"`
 	CloudService   string             `json:"cloudService"`
-	Resource       string             `json:"resource"`
-	Clusters       int                `json:"clusters"`
+	Version        string             `json:"version"`
+	Platform       string             `json:"platform"`
+	Template       string             `json:"template"`
 	Creator        SimpleUserResponse `json:"creator"`
 	Updator        SimpleUserResponse `json:"updator"`
 	CreatedAt      time.Time          `json:"createdAt"`
 	UpdatedAt      time.Time          `json:"updatedAt"`
 }
 
-type GetCloudSettingsResponse struct {
-	CloudSettings []CloudSettingResponse `json:"cloudSettings"`
+type GetStackTemplatesResponse struct {
+	StackTemplates []StackTemplateResponse `json:"stackTemplates"`
 }
 
-type GetCloudSettingResponse struct {
-	CloudSetting CloudSettingResponse `json:"cloudSetting"`
+type GetStackTemplateResponse struct {
+	StackTemplate StackTemplateResponse `json:"stackTemplate"`
 }
 
-type CreateCloudSettingRequest struct {
-	OrganizationId string `json:"organizationId"`
+type CreateStackTemplateRequest struct {
+	OrganizationId string `json:"organizationId" validate:"required"`
 	Name           string `json:"name" validate:"required"`
 	Description    string `json:"description"`
 	CloudService   string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
-	SecretKeyId    string `json:"secretKeyId" validate:"required"`
-	SecretKey      string `json:"secretKey" validate:"required"`
+	Version        string `json:"version" validate:"required"`
+	Platform       string `json:"platform" validate:"required"`
+	Template       string `json:"template" validate:"required"`
 }
 
-type CreateCloudSettingResponse struct {
+type CreateStackTemplateResponse struct {
 	ID string `json:"id"`
 }
 
-type UpdateCloudSettingRequest struct {
+type UpdateStackTemplateRequest struct {
 	Description string `json:"description"`
-}
-
-type DeleteCloudSettingRequest struct {
-	SecretKeyId string `json:"secretKeyId" validate:"required"`
-	SecretKey   string `json:"secretKey" validate:"required"`
 }

@@ -179,6 +179,14 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.UpdateCloudSetting), kc)).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.DeleteCloudSetting), kc)).Methods(http.MethodDelete)
 
+	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(
+		repository.NewStackTemplateRepository(db)))
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware(http.HandlerFunc(stackTemplateHandler.GetStackTemplates), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware(http.HandlerFunc(stackTemplateHandler.CreateStackTemplate), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.GetStackTemplate), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate), kc)).Methods(http.MethodDelete)
+
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
 	r.PathPrefix("/").Handler(asset).Methods(http.MethodGet)

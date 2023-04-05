@@ -31,7 +31,7 @@ func NewCloudSettingHandler(h usecase.ICloudSettingUsecase) *CloudSettingHandler
 // @Accept json
 // @Produce json
 // @Param body body domain.CreateCloudSettingRequest true "create cloud setting request"
-// @Success 200 {object} domain.CreateCloudSettingsResponse
+// @Success 200 {object} domain.CreateCloudSettingResponse
 // @Router /cloud-settings [post]
 // @Security     JWT
 func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.Request) {
@@ -53,9 +53,7 @@ func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	log.Info("Newly created cloud setting : ", cloudSettingId)
-
-	var out domain.CreateCloudSettingsResponse
+	var out domain.CreateCloudSettingResponse
 	out.ID = cloudSettingId.String()
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -112,24 +110,24 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param cloudSettingId path string true "cloudSettingId"
-// @Success 200 {object} domain.CloudSettingResponse
+// @Success 200 {object} domain.GetCloudSettingResponse
 // @Router /cloud-settings/{cloudSettingId} [get]
 // @Security     JWT
 func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	cloudSettingId, ok := vars["cloudSettingId"]
+	strId, ok := vars["cloudSettingId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudSettingId")))
 		return
 	}
 
-	parsedUuid, err := uuid.Parse(cloudSettingId)
+	cloudSettingId, err := uuid.Parse(strId)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
 		return
 	}
 
-	cloudSetting, err := h.usecase.Get(parsedUuid)
+	cloudSetting, err := h.usecase.Get(cloudSettingId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return

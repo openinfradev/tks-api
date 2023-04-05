@@ -80,6 +80,8 @@ definitions:
     type: object
   domain.CloudSetting:
     properties:
+      cloudService:
+        type: string
       clusters:
         type: integer
       createdAt:
@@ -97,8 +99,6 @@ definitions:
       organizationId:
         type: string
       resource:
-        type: string
-      type:
         type: string
       updatedAt:
         type: string
@@ -271,7 +271,7 @@ definitions:
     - secretKey
     - secretKeyId
     type: object
-  domain.CreateCloudSettingsResponse:
+  domain.CreateCloudSettingResponse:
     properties:
       id:
         type: string
@@ -316,6 +316,38 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  domain.CreateStackTemplateRequest:
+    properties:
+      cloudService:
+        enum:
+        - AWS
+        - AZZURE
+        - GCP
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      platform:
+        type: string
+      template:
+        type: string
+      version:
+        type: string
+    required:
+    - name
+    - organizationId
+    - platform
+    - template
+    - version
+    type: object
+  domain.CreateStackTemplateResponse:
+    properties:
+      id:
+        type: string
     type: object
   domain.CreateUserRequest:
     properties:
@@ -398,6 +430,11 @@ definitions:
           $ref: '#/definitions/domain.ApplicationResponse'
         type: array
     type: object
+  domain.GetCloudSettingResponse:
+    properties:
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSettingResponse'
+    type: object
   domain.GetCloudSettingsResponse:
     properties:
       cloudSettings:
@@ -437,6 +474,18 @@ definitions:
           updatedAt:
             type: string
         type: object
+    type: object
+  domain.GetStackTemplateResponse:
+    properties:
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplateResponse'
+    type: object
+  domain.GetStackTemplatesResponse:
+    properties:
+      stackTemplates:
+        items:
+          $ref: '#/definitions/domain.StackTemplateResponse'
+        type: array
     type: object
   domain.GetUserResponse:
     properties:
@@ -597,6 +646,33 @@ definitions:
       name:
         type: string
     type: object
+  domain.StackTemplateResponse:
+    properties:
+      cloudService:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      platform:
+        type: string
+      template:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      version:
+        type: string
+    type: object
   domain.UpdateApplicationRequest:
     properties:
       appGroupId:
@@ -645,6 +721,11 @@ definitions:
   domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
+        type: string
+    type: object
+  domain.UpdateStackTemplateRequest:
+    properties:
+      description:
         type: string
     type: object
   domain.UpdateUserRequest:
@@ -733,6 +814,27 @@ info:
   version: "1.0"
 paths:
   /app-groups:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appGroup
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Uninstall appGroup
+      tags:
+      - AppGroups
     get:
       consumes:
       - application/json
@@ -1039,7 +1141,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CreateCloudSettingsResponse'
+            $ref: '#/definitions/domain.CreateCloudSettingResponse'
       security:
       - JWT: []
       summary: Create CloudSetting
@@ -1088,7 +1190,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CloudSettingResponse'
+            $ref: '#/definitions/domain.GetCloudSettingResponse'
       security:
       - JWT: []
       summary: Get CloudSetting
@@ -1337,28 +1439,6 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
-  /organizations/{organizationId}/app-groups:
-    delete:
-      consumes:
-      - application/json
-      description: Uninstall appGroup
-      parameters:
-      - description: body
-        in: body
-        name: object
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Uninstall appGroup
-      tags:
-      - AppGroups
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:
@@ -1386,6 +1466,110 @@ paths:
       summary: Update primary cluster
       tags:
       - Organizations
+  /stack-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get StackTemplates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get StackTemplates
+      tags:
+      - StackTemplates
+    post:
+      consumes:
+      - application/json
+      description: Create StackTemplate
+      parameters:
+      - description: create stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateStackTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Create StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+  /stack-templates/{stackTemplateId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete StackTemplate
+      parameters:
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+    get:
+      consumes:
+      - application/json
+      description: Get StackTemplate
+      parameters:
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get StackTemplate
+      tags:
+      - StackTemplates
+    put:
+      consumes:
+      - application/json
+      description: Update StackTemplate
+      parameters:
+      - description: Update stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateStackTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
   /users:
     get:
       consumes:
