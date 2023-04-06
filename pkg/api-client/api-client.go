@@ -15,6 +15,8 @@ type ApiClient interface {
 	Get(path string) (out interface{}, err error)
 	Post(path string, input interface{}) (out interface{}, err error)
 	Delete(path string, input interface{}) (out interface{}, err error)
+	Put(path string, input interface{}) (out interface{}, err error)
+	Patch(path string, input interface{}) (out interface{}, err error)
 }
 
 type ApiClientImpl struct {
@@ -83,6 +85,14 @@ func (c *ApiClientImpl) Post(path string, input interface{}) (out interface{}, e
 
 func (c *ApiClientImpl) Delete(path string, input interface{}) (out interface{}, err error) {
 	return c.callWithBody("DELETE", path, input)
+}
+
+func (c *ApiClientImpl) Put(path string, input interface{}) (out interface{}, err error) {
+	return c.callWithBody("PUT", path, input)
+}
+
+func (c *ApiClientImpl) Patch(path string, input interface{}) (out interface{}, err error) {
+	return c.callWithBody("PATCH", path, input)
 }
 
 func (c *ApiClientImpl) callWithBody(method string, path string, input interface{}) (out interface{}, err error) {
