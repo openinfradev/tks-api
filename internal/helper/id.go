@@ -61,8 +61,8 @@ func validateId(id string) bool {
 func randomString(n int) string {
 	b := make([]byte, n)
 	for i := range b {
-		rand.New(rand.NewSource(time.Now().UnixNano()))
-		b[i] = LETTERS_FOR_ID[rand.Int63()%int64(len(LETTERS_FOR_ID))]
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		b[i] = LETTERS_FOR_ID[r.Int63()%int64(len(LETTERS_FOR_ID))]
 	}
 	return string(b)
 }
