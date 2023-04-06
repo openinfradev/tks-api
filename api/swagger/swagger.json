@@ -1937,6 +1937,9 @@
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
         },

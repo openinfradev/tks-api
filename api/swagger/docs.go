@@ -1944,6 +1944,9 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
         },

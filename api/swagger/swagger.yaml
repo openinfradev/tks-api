@@ -298,6 +298,8 @@ definitions:
         type: string
       updatedAt:
         type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
   domain.CreateAppGroupRequest:
     properties:

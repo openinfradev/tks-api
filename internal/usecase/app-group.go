@@ -53,7 +53,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 
-	_, err = u.clusterRepo.Get(dto.ClusterId)
+	cluster, err := u.clusterRepo.Get(dto.ClusterId)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to get cluster info")
 	}
@@ -85,6 +85,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 	workflowTemplate := ""
 	opts := argowf.SubmitOptions{}
 	opts.Parameters = []string{
+		"organization_id=" + cluster.OrganizationId,
 		"site_name=" + dto.ClusterId.String(),
 		"cluster_id=" + dto.ClusterId.String(),
 		"github_account=" + viper.GetString("git-account"),
