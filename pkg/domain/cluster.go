@@ -139,7 +139,7 @@ type ClusterResponse struct {
 	StatusDesc     string               `json:"statusDesc"`
 	Conf           ClusterConfResponse  `json:"conf"`
 	Creator        SimpleUserResponse   `json:"creator"`
-	Updator        SimpleUserResponse   `json:"creator"`
+	Updator        SimpleUserResponse   `json:"updator"`
 	CreatedAt      time.Time            `json:"createdAt"`
 	UpdatedAt      time.Time            `json:"updatedAt"`
 }

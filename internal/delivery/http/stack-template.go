@@ -36,7 +36,6 @@ func NewStackTemplateHandler(h usecase.IStackTemplateUsecase) *StackTemplateHand
 // @Security     JWT
 func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, fmt.Errorf("Need implentation"))
-	return
 }
 
 // GetStackTemplate godoc
@@ -131,7 +130,6 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 	}
 
 	ErrorJSON(w, fmt.Errorf("Need implentation"))
-	return
 }
 
 // DeleteStackTemplate godoc
@@ -153,5 +151,4 @@ func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *htt
 	}
 
 	ErrorJSON(w, fmt.Errorf("Need implentation"))
-	return
 }

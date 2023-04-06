@@ -33,7 +33,6 @@ func getAdminConfig() (*rest.Config, error) {
 		}
 		return config, nil
 	}
-	return nil, nil
 }
 
 func GetClientAdminCluster() (*kubernetes.Clientset, error) {

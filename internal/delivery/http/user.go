@@ -2,8 +2,9 @@ package http
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
+
+	"github.com/openinfradev/tks-api/pkg/log"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/auth/request"
@@ -55,7 +56,9 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user domain.User
-	domain.Map(input, &user)
+	if err = domain.Map(input, &user); err != nil {
+		log.Error(err)
+	}
 	user.Organization = domain.Organization{
 		ID: userInfo.GetOrganizationId(),
 	}
@@ -72,7 +75,9 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.CreateUserResponse
-	domain.Map(*resUser, &out.User)
+	if err = domain.Map(*resUser, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusCreated, out)
 
@@ -105,7 +110,9 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetUserResponse
-	domain.Map(*user, &out.User)
+	if err = domain.Map(*user, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -135,7 +142,9 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	var out domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		domain.Map(user, &out.Users[i])
+		if err = domain.Map(user, &out.Users[i]); err != nil {
+			log.Error(err)
+		}
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -210,7 +219,9 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user domain.User
-	domain.Map(input, &user)
+	if err = domain.Map(input, &user); err != nil {
+		log.Error(err)
+	}
 	user.Organization = domain.Organization{
 		ID: userInfo.GetOrganizationId(),
 	}
@@ -225,7 +236,9 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateUserResponse
-	domain.Map(*resUser, &out.User)
+	if err = domain.Map(*resUser, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }

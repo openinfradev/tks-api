@@ -174,7 +174,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 
 	taskId, err := u.repo.CreateTask(appTask)
 	if err != nil {
-		log.Info("taskId = [%s]", taskId)
+		log.Info("taskId = ", taskId)
 		log.Error("Failed to create delete task. Err:", err)
 		return "", fmt.Errorf("failed to create delete task. Err: %s", err)
 	}
@@ -247,7 +247,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 	// 'Update' GRPC only creates ASA Task record
 	taskId, err := u.repo.CreateTask(appTask)
 	if err != nil {
-		log.Info("taskId = [%s]", taskId)
+		log.Info("taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
 	}
 

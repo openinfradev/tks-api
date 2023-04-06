@@ -14,8 +14,6 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
-var gormDB *gorm.DB
-
 func InitDB() (*gorm.DB, error) {
 	// Connect to gormDB
 	dsn := fmt.Sprintf(

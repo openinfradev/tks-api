@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 func Contains(s []string, str string) bool {
@@ -31,6 +32,10 @@ func ModelToJson(in any) string {
 
 func Transcode(in, out interface{}) {
 	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(in)
-	json.NewDecoder(buf).Decode(out)
+	if err := json.NewEncoder(buf).Encode(in); err != nil {
+		log.Error(err)
+	}
+	if err := json.NewDecoder(buf).Decode(out); err != nil {
+		log.Error(err)
+	}
 }

@@ -19,5 +19,6 @@ insert into cloud_settings ( id, name, description, organization_id, type, resou
 values ( 'ce9e0387-01cb-4f37-a22a-fb91b6338434', 'aws', 'aws_description', 'master', 'aws', 'result', now(), now() );
 
 insert into stack_templates ( id, organization_id, name, description, version, cloud_service, platform, template, created_at, updated_at )
-values ( '49901092-be76-4d4f-94e9-b84525f560b5', 'master', 'AWS Standard', 'included LMA over AWS', "v1", "AWS", "x86 | arm", "aws-reference", now(), now() )
-
+values ( '49901092-be76-4d4f-94e9-b84525f560b5', 'master', 'AWS Standard', 'included LMA over AWS', 'v1', 'AWS', 'x86 | arm', 'aws-reference', now(), now() );
+insert into stack_templates ( id, organization_id, name, description, version, cloud_service, platform, template, created_at, updated_at )
+values ( '63639420-f823-4b7d-a8ba-da0a4eaeff73', 'master', 'AWS MSA Standard', 'included LMA, SERVICE_MESH over AWS', 'v1', 'AWS', 'x86 | arm', 'aws-msa-reference', now(), now() );

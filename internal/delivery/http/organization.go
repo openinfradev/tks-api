@@ -47,7 +47,9 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	ctx := r.Context()
 	var organization domain.Organization
-	err = domain.Map(input, &organization)
+	if err = domain.Map(input, &organization); err != nil {
+		log.Error(err)
+	}
 
 	organizationId, err := h.usecase.Create(ctx, &organization)
 	if err != nil {
@@ -65,7 +67,9 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	var out domain.CreateOrganizationResponse
-	domain.Map(organization, &out)
+	if err = domain.Map(organization, &out); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -92,7 +96,9 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 	out.Organizations = make([]domain.ListOrganizationBody, len(*organizations))
 
 	for i, organization := range *organizations {
-		domain.Map(organization, &out.Organizations[i])
+		if err = domain.Map(organization, &out.Organizations[i]); err != nil {
+			log.Error(err)
+		}
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -125,7 +131,9 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	}
 
 	var out domain.GetOrganizationResponse
-	domain.Map(organization, &out.Organization)
+	if err = domain.Map(organization, &out.Organization); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -209,7 +217,9 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	var out domain.UpdateOrganizationResponse
-	domain.Map(organization, &out)
+	if err = domain.Map(organization, &out); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }

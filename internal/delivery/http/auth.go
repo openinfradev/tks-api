@@ -1,8 +1,9 @@
 package http
 
 import (
-	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
+
+	"github.com/openinfradev/tks-api/pkg/log"
 
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -46,14 +47,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
-		log.Error("error is :%s(%T)", err.Error(), err)
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, err)
 		return
 	}
 
 	var out domain.LoginResponse
-	domain.Map(user, &out.User)
+	if err = domain.Map(user, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 

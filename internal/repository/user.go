@@ -137,8 +137,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 				return user
 			}
 		}
-		var cFunc FilterFunc
-		cFunc = combinedFilter(filters...)
+		cFunc := combinedFilter(filters...)
 		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 	if res.Error != nil {
@@ -304,10 +303,7 @@ func (r *UserRepository) GetRoleByName(roleName string) (domain.Role, error) {
 		return domain.Role{}, err
 	}
 
-	var outRole domain.Role
-	outRole = r.reflectRole(role)
-
-	return outRole, nil
+	return r.reflectRole(role), nil
 }
 
 func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {

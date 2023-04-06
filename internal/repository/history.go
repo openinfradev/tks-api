@@ -62,11 +62,3 @@ func (r *HistoryRepository) Fetch() (res []domain.History, err error) {
 
 	return nil, nil
 }
-
-func (u *HistoryRepository) reflect(out *domain.History, history History) {
-	out.ID = history.ID.String()
-	out.Description = history.Description
-	out.HistoryType = history.HistoryType
-	out.CreatedAt = history.CreatedAt
-	out.UpdatedAt = history.UpdatedAt
-}

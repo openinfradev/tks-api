@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/auth/request"
@@ -13,7 +15,6 @@ import (
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type IUserUsecase interface {
@@ -147,12 +148,12 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, newPassword string) error {
 
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("token in the context is empty")
 	}
 
 	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("user in the context is empty")
 	}
 
@@ -200,7 +201,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 
 func (u *UserUsecase) List(ctx context.Context) (*[]domain.User, error) {
 	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("user in the context is empty")
 	}
 
@@ -214,7 +215,7 @@ func (u *UserUsecase) List(ctx context.Context) (*[]domain.User, error) {
 
 func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string) (*domain.User, error) {
 	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("user in the context is empty")
 	}
 
@@ -229,11 +230,11 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string) (*do
 
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
 	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("user in the context is empty")
 	}
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
 
@@ -280,7 +281,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) error {
 	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("user in the context is empty")
 	}
 
@@ -300,7 +301,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) e
 
 	// Delete user in keycloak
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("token in the context is empty")
 	}
 	err = u.kc.DeleteUser(userInfo.GetOrganizationId(), accountId, token)
@@ -315,7 +316,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	// Validation check
 
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
 

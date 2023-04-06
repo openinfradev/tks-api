@@ -2,7 +2,6 @@ package route
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -212,14 +211,19 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			tokenString := r.Header.Get("Authorization")
 			if len(tokenString) == 0 {
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Missing Authorization Header"))
+				if _, err := w.Write([]byte("Missing Authorization Header")); err != nil {
+					log.Error(err)
+				}
+
 				return
 			}
 			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 			token, err := helper.VerifyToken(tokenString)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Error verifying JWT token: " + err.Error()))
+				if _, err := w.Write([]byte("Error verifying JWT token: " + err.Error())); err != nil {
+					log.Error(err)
+				}
 				return
 			}
 
@@ -268,27 +272,35 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(err.Error()))
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					log.Error(err)
+				}
 				return
 			}
 			organization := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
 			if err := kc.VerifyAccessToken(token, organization); err != nil {
 				log.Error("failed to verify access token: ", err)
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("failed to verify access token: " + err.Error()))
+				if _, err := w.Write([]byte("failed to verify access token: " + err.Error())); err != nil {
+					log.Error(err)
+				}
 				return
 			}
 			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					log.Error(err)
+				}
 				return
 			}
 
 			if jwtToken == nil || mapClaims == nil || mapClaims.Valid() != nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte("Error message TODO"))
+				if _, err := w.Write([]byte("Error message TODO")); err != nil {
+					log.Error(err)
+				}
 				return
 			}
 			roleProjectMapping := make(map[string]string)
@@ -297,7 +309,9 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				if len(slice) != 2 {
 					log.Error("invalid role format: ", role)
 					w.WriteHeader(http.StatusInternalServerError)
-					w.Write([]byte(fmt.Sprintf("invalid role format: %s", role)))
+					if _, err := w.Write([]byte(fmt.Sprintf("invalid role format: %s", role))); err != nil {
+						log.Error(err)
+					}
 					return
 				}
 				// key is projectName and value is roleName
@@ -339,6 +353,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+/*
 func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -382,3 +397,4 @@ func StatusInList(status int, statusList []int) bool {
 	}
 	return false
 }
+*/

@@ -46,7 +46,9 @@ func init() {
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
-	viper.BindPFlags(pflag.CommandLine)
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Error(err)
+	}
 
 }
 
