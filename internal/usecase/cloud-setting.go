@@ -135,7 +135,7 @@ func (u *CloudSettingUsecase) getClusterCnt(cloudSettingId uuid.UUID) (cnt int) 
 	}
 
 	for _, cluster := range clusters {
-		if cluster.Status != "DELETED" {
+		if cluster.Status != domain.ClusterStatus_DELETED {
 			cnt++
 		}
 	}

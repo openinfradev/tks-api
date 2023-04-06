@@ -37,7 +37,7 @@ type CloudSetting struct {
 	Name           string
 	Description    string
 	Resource       string
-	Type           domain.CloudType
+	CloudService   string
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -56,7 +56,7 @@ func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.Cloud
 	if res.Error != nil {
 		return domain.CloudSetting{}, res.Error
 	}
-	out = r.reflect(cloudSetting)
+	out = reflectCloudSetting(cloudSetting)
 	return
 }
 
@@ -68,7 +68,7 @@ func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.Clou
 	}
 
 	for _, cloudSetting := range cloudSettings {
-		out = append(out, r.reflect(cloudSetting))
+		out = append(out, reflectCloudSetting(cloudSetting))
 	}
 	return
 }
@@ -78,7 +78,7 @@ func (r *CloudSettingRepository) Create(dto domain.CloudSetting) (cloudSettingId
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
 		Description:    dto.Description,
-		Type:           dto.Type,
+		CloudService:   dto.CloudService,
 		Resource:       dto.Resource,
 		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudSetting)
@@ -106,22 +106,22 @@ func (r *CloudSettingRepository) Delete(dto domain.CloudSetting) (err error) {
 	return nil
 }
 
-func (r *CloudSettingRepository) reflect(cloudSetting CloudSetting) domain.CloudSetting {
+func reflectCloudSetting(cloudSetting CloudSetting) domain.CloudSetting {
 	return domain.CloudSetting{
 		ID:             cloudSetting.ID,
 		OrganizationId: cloudSetting.OrganizationId,
 		Name:           cloudSetting.Name,
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
-		Type:           cloudSetting.Type,
-		Creator:        r.reflectUser(cloudSetting.Creator),
-		Updator:        r.reflectUser(cloudSetting.Updator),
+		CloudService:   cloudSetting.CloudService,
+		Creator:        reflectUser(cloudSetting.Creator),
+		Updator:        reflectUser(cloudSetting.Updator),
 		CreatedAt:      cloudSetting.CreatedAt,
 		UpdatedAt:      cloudSetting.UpdatedAt,
 	}
 }
 
-func (r *CloudSettingRepository) reflectUser(user User) domain.User {
+func reflectUser(user User) domain.User {
 	return domain.User{
 		ID:          user.ID.String(),
 		AccountId:   user.AccountId,

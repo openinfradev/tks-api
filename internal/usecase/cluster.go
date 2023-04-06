@@ -1,11 +1,12 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/auth/user"
+	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -20,9 +21,9 @@ type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
 	Fetch(organizationId string) ([]domain.Cluster, error)
 	FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error)
-	Create(user user.Info, in domain.CreateClusterRequest) (clusterId string, err error)
-	Get(clusterId string) (out domain.Cluster, err error)
-	Delete(clusterId string) (err error)
+	Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
+	Get(clusterId domain.ClusterId) (out domain.Cluster, err error)
+	Delete(clusterId domain.ClusterId) (err error)
 }
 
 type ClusterUsecase struct {
@@ -98,28 +99,32 @@ func (u *ClusterUsecase) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []
 	return out, nil
 }
 
-func (u *ClusterUsecase) Create(session user.Info, in domain.CreateClusterRequest) (clusterId string, err error) {
+func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+
 	/***************************
 	 * Pre-process cluster conf *
 	 ***************************/
 	clConf, err := u.constructClusterConf(&domain.ClusterConf{
-		Region:          in.Region,
-		NumOfAz:         in.NumberOfAz,
+		Region:          dto.Conf.Region,
+		NumOfAz:         dto.Conf.NumOfAz,
 		SshKeyName:      "",
-		MachineType:     in.MachineType,
-		MachineReplicas: in.MachineReplicas,
+		MachineType:     dto.Conf.MachineType,
+		MachineReplicas: dto.Conf.MachineReplicas,
 	},
 	)
 	if err != nil {
 		return "", err
 	}
 
-	parsedCloudSettingId, err := uuid.Parse(in.CloudSettingId)
-	if err != nil {
-		return "", errors.Wrap(err, "Invalid UUID cloudSettingId")
-	}
+	userId := user.GetUserId()
+	dto.CreatorId = &userId
+	dto.Conf = *clConf
 
-	clusterId, err = u.repo.Create(in.OrganizationId, in.TemplateId, in.Name, parsedCloudSettingId, clConf, session.GetUserId(), in.Description)
+	clusterId, err = u.repo.Create(dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
@@ -129,10 +134,10 @@ func (u *ClusterUsecase) Create(session user.Info, in domain.CreateClusterReques
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
-				"contract_id=" + in.OrganizationId,
-				"cluster_id=" + clusterId,
-				"site_name=" + clusterId,
-				"template_name=" + in.TemplateId,
+				"contract_id=" + dto.OrganizationId,
+				"cluster_id=" + clusterId.String(),
+				"site_name=" + clusterId.String(),
+				"template_name=" + dto.TemplateId,
 				"git_account=" + viper.GetString("git-account"),
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
@@ -150,7 +155,7 @@ func (u *ClusterUsecase) Create(session user.Info, in domain.CreateClusterReques
 	return clusterId, nil
 }
 
-func (u *ClusterUsecase) Get(clusterId string) (out domain.Cluster, err error) {
+func (u *ClusterUsecase) Get(clusterId domain.ClusterId) (out domain.Cluster, err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
 		return domain.Cluster{}, err
@@ -158,13 +163,13 @@ func (u *ClusterUsecase) Get(clusterId string) (out domain.Cluster, err error) {
 	return cluster, nil
 }
 
-func (u *ClusterUsecase) Delete(clusterId string) (err error) {
+func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err)
 	}
 
-	if cluster.Status != "RUNNING" {
+	if cluster.Status != domain.ClusterStatus_RUNNING {
 		return fmt.Errorf("The cluster can not be deleted. cluster status : %s", cluster.Status)
 	}
 
@@ -174,7 +179,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 	}
 
 	for _, resAppGroup := range resAppGroups {
-		if resAppGroup.Status != "DELETED" {
+		if resAppGroup.Status != domain.AppGroupStatus_DELETED {
 			return fmt.Errorf("Undeleted services remain. %s", resAppGroup.ID)
 		}
 	}
@@ -185,7 +190,7 @@ func (u *ClusterUsecase) Delete(clusterId string) (err error) {
 			Parameters: []string{
 				"app_group=tks-cluster-aws",
 				"tks_info_host=http://tks-api.tks.svc:9110",
-				"cluster_id=" + clusterId,
+				"cluster_id=" + clusterId.String(),
 			},
 		})
 	if err != nil {

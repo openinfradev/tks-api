@@ -53,10 +53,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.AppGroup"
-                            }
+                            "$ref": "#/definitions/domain.GetAppGroupsResponse"
                         }
                     }
                 }
@@ -93,7 +90,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.CreateAppGroupResponse"
                         }
                     }
                 }
@@ -128,10 +125,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -167,10 +161,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.AppGroup"
-                            }
+                            "$ref": "#/definitions/domain.GetAppGroupResponse"
                         }
                     }
                 }
@@ -214,7 +205,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.GetApplicationsResponse"
                         }
                     }
                 }
@@ -249,10 +240,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -278,8 +266,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "project_id",
-                        "name": "projectId",
+                        "description": "organization_Id",
+                        "name": "organization_Id",
                         "in": "query"
                     },
                     {
@@ -320,12 +308,12 @@ const docTemplate = `{
                 "summary": "Update appServeApp",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "update appserve request",
                         "name": "object",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.UpdateAppServeAppRequest"
                         }
                     }
                 ],
@@ -357,12 +345,12 @@ const docTemplate = `{
                 "summary": "Install appServeApp",
                 "parameters": [
                     {
-                        "description": "body",
+                        "description": "create appserve request",
                         "name": "object",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.CreateAppServeAppRequest"
                         }
                     }
                 ],
@@ -565,7 +553,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudSettingsResponse"
+                            "$ref": "#/definitions/domain.CreateCloudSettingResponse"
                         }
                     }
                 }
@@ -602,7 +590,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CloudSettingResponse"
+                            "$ref": "#/definitions/domain.GetCloudSettingResponse"
                         }
                     }
                 }
@@ -713,10 +701,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.Cluster"
-                            }
+                            "$ref": "#/definitions/domain.GetClustersResponse"
                         }
                     }
                 }
@@ -753,7 +738,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.CreateClusterResponse"
                         }
                     }
                 }
@@ -1086,6 +1071,174 @@ const docTemplate = `{
                 }
             }
         },
+        "/stack-templates": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get StackTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get StackTemplates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackTemplatesResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Create StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "description": "create stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateStackTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateStackTemplateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stack-templates/{stackTemplateId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get StackTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackTemplateResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Update StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "description": "Update stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateStackTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Delete StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -1353,11 +1506,11 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.AppGroup": {
+        "domain.AppGroupResponse": {
             "type": "object",
             "properties": {
                 "appGroupType": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "clusterId": {
                     "type": "string"
@@ -1366,7 +1519,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -1378,13 +1531,16 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "statusDescription": {
                     "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "workflowId": {
                     "type": "string"
@@ -1394,16 +1550,21 @@ const docTemplate = `{
         "domain.AppServeApp": {
             "type": "object",
             "properties": {
+                "app_serve_app_tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AppServeAppTask"
+                    }
+                },
                 "app_type": {
                     "description": "app_type (spring/springboot)",
                     "type": "string"
                 },
-                "contract_id": {
-                    "description": "contract_id is a contract ID which this app belongs to",
+                "created_at": {
+                    "description": "created_at is a creatioin timestamp for the application",
                     "type": "string"
                 },
-                "createdAt": {
-                    "description": "created_at is a creatioin timestamp for the application",
+                "deleted_at": {
                     "type": "string"
                 },
                 "endpoint_url": {
@@ -1415,6 +1576,10 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "application name",
+                    "type": "string"
+                },
+                "organization_id": {
+                    "description": "contract_id is a contract ID which this app belongs to",
                     "type": "string"
                 },
                 "preview_endpoint_url": {
@@ -1433,6 +1598,125 @@ const docTemplate = `{
                     "description": "type (build/deploy/all)",
                     "type": "string"
                 },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.AppServeAppTask": {
+            "type": "object",
+            "properties": {
+                "app_config": {
+                    "description": "java app config",
+                    "type": "string"
+                },
+                "app_secret": {
+                    "description": "java app secret",
+                    "type": "string"
+                },
+                "app_serve_app_id": {
+                    "description": "ID for appServeApp that this task belongs to.",
+                    "type": "string"
+                },
+                "artifact_url": {
+                    "description": "URL of java app artifact (Eg, Jar)",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "created_at is  a creation timestamp for the application",
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "executable_path": {
+                    "description": "Executable path of app image",
+                    "type": "string"
+                },
+                "extra_env": {
+                    "description": "env variable list for java app",
+                    "type": "string"
+                },
+                "helm_revision": {
+                    "description": "revision of deployed helm release",
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "description": "URL of built image for app",
+                    "type": "string"
+                },
+                "output": {
+                    "description": "output for task result",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "java app port",
+                    "type": "string"
+                },
+                "profile": {
+                    "description": "java app profile",
+                    "type": "string"
+                },
+                "pv_access_mode": {
+                    "type": "string"
+                },
+                "pv_enabled": {
+                    "type": "boolean"
+                },
+                "pv_mount_path": {
+                    "type": "string"
+                },
+                "pv_size": {
+                    "type": "string"
+                },
+                "pv_storage_class": {
+                    "type": "string"
+                },
+                "resource_spec": {
+                    "description": "resource spec of app pod",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "status is app status",
+                    "type": "string"
+                },
+                "strategy": {
+                    "description": "deployment strategy (eg, rolling-update)",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "version": {
+                    "description": "application version",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ApplicationResponse": {
+            "type": "object",
+            "properties": {
+                "appGroupId": {
+                    "type": "string"
+                },
+                "applicationType": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -1441,6 +1725,9 @@ const docTemplate = `{
         "domain.CloudSetting": {
             "type": "object",
             "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
                 "clusters": {
                     "type": "integer"
                 },
@@ -1466,9 +1753,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "resource": {
-                    "type": "string"
-                },
-                "type": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -1526,6 +1810,9 @@ const docTemplate = `{
                 "cloudSetting": {
                     "$ref": "#/definitions/domain.CloudSetting"
                 },
+                "cloudSettingId": {
+                    "type": "string"
+                },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConf"
                 },
@@ -1533,6 +1820,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "creatorId": {
                     "type": "string"
                 },
                 "description": {
@@ -1548,12 +1838,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "statusDesc": {
                     "type": "string"
                 },
+                "templateId": {
+                    "type": "string"
+                },
                 "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "updatorId": {
                     "type": "string"
                 }
             }
@@ -1584,13 +1883,85 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateAppGroupRequest": {
+        "domain.ClusterConfResponse": {
             "type": "object",
             "properties": {
-                "clusterId": {
+                "machineReplicas": {
+                    "type": "integer"
+                },
+                "machineType": {
+                    "type": "string"
+                },
+                "maxSizePerAz": {
+                    "type": "integer"
+                },
+                "minSizePerAz": {
+                    "type": "integer"
+                },
+                "numOfAz": {
+                    "type": "integer"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "sshKeyName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ClusterResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSetting": {
+                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                },
+                "conf": {
+                    "$ref": "#/definitions/domain.ClusterConfResponse"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateAppGroupRequest": {
+            "type": "object",
+            "required": [
+                "clusterId",
+                "name"
+            ],
+            "properties": {
+                "appGroupType": {
+                    "type": "string",
+                    "enum": [
+                        "LMA",
+                        "SERVICE_MESH"
+                    ]
+                },
+                "clusterId": {
                     "type": "string"
                 },
                 "description": {
@@ -1598,8 +1969,102 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.CreateAppGroupResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateAppServeAppRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "organization_id",
+                "target_cluster_id"
+            ],
+            "properties": {
+                "app_config": {
+                    "type": "string"
+                },
+                "app_secret": {
+                    "type": "string"
+                },
+                "app_type": {
+                    "type": "string",
+                    "enum": [
+                        "spring",
+                        "springboot"
+                    ]
+                },
+                "artifact_url": {
+                    "type": "string"
+                },
+                "executable_path": {
+                    "type": "string"
+                },
+                "extra_env": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "App",
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "pv_access_mode": {
+                    "type": "string"
+                },
+                "pv_enabled": {
+                    "type": "boolean"
+                },
+                "pv_mount_path": {
+                    "type": "string"
+                },
+                "pv_size": {
+                    "type": "string"
+                },
+                "pv_storage_class": {
+                    "type": "string"
+                },
+                "resource_spec": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "type": "string",
+                    "enum": [
+                        "rolling-update",
+                        "blue-green",
+                        "canary"
+                    ]
+                },
+                "target_cluster_id": {
+                    "type": "string"
                 },
                 "type": {
+                    "type": "string",
+                    "enum": [
+                        "build",
+                        "deploy",
+                        "all"
+                    ]
+                },
+                "version": {
+                    "description": "AppType",
                     "type": "string"
                 }
             }
@@ -1637,7 +2102,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateCloudSettingsResponse": {
+        "domain.CreateCloudSettingResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1649,9 +2114,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "cloudSettingId": {
-                    "type": "string"
-                },
-                "creator": {
                     "type": "string"
                 },
                 "description": {
@@ -1666,7 +2128,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "numberOfAz": {
+                "numOfAz": {
                     "type": "integer"
                 },
                 "organizationId": {
@@ -1676,6 +2138,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "templateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateClusterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -1697,6 +2167,52 @@ const docTemplate = `{
                     "minLength": 3
                 },
                 "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateStackTemplateRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "organizationId",
+                "platform",
+                "template",
+                "version"
+            ],
+            "properties": {
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "AZZURE",
+                        "GCP"
+                    ]
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateStackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }
@@ -1791,6 +2307,44 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetAppGroupResponse": {
+            "type": "object",
+            "properties": {
+                "appGroup": {
+                    "$ref": "#/definitions/domain.AppGroupResponse"
+                }
+            }
+        },
+        "domain.GetAppGroupsResponse": {
+            "type": "object",
+            "properties": {
+                "appGroups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AppGroupResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetApplicationsResponse": {
+            "type": "object",
+            "properties": {
+                "applications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ApplicationResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetCloudSettingResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSetting": {
+                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                }
+            }
+        },
         "domain.GetCloudSettingsResponse": {
             "type": "object",
             "properties": {
@@ -1798,6 +2352,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.CloudSettingResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetClustersResponse": {
+            "type": "object",
+            "properties": {
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ClusterResponse"
                     }
                 }
             }
@@ -1838,6 +2403,25 @@ const docTemplate = `{
                         "updatedAt": {
                             "type": "string"
                         }
+                    }
+                }
+            }
+        },
+        "domain.GetStackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "stackTemplate": {
+                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                }
+            }
+        },
+        "domain.GetStackTemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "stackTemplates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateResponse"
                     }
                 }
             }
@@ -2085,6 +2669,132 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.StackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateAppServeAppRequest": {
+            "type": "object",
+            "properties": {
+                "abort": {
+                    "type": "boolean"
+                },
+                "app_config": {
+                    "type": "string"
+                },
+                "app_secret": {
+                    "type": "string"
+                },
+                "app_type": {
+                    "type": "string"
+                },
+                "artifact_url": {
+                    "type": "string"
+                },
+                "executable_path": {
+                    "type": "string"
+                },
+                "extra_env": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "App",
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organization_id": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "promote": {
+                    "description": "Update Strategy",
+                    "type": "boolean"
+                },
+                "pv_access_mode": {
+                    "type": "string"
+                },
+                "pv_enabled": {
+                    "type": "boolean"
+                },
+                "pv_mount_path": {
+                    "type": "string"
+                },
+                "pv_size": {
+                    "type": "string"
+                },
+                "pv_storage_class": {
+                    "type": "string"
+                },
+                "resource_spec": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "type": "string",
+                    "enum": [
+                        "rolling-update",
+                        "blue-green",
+                        "canary"
+                    ]
+                },
+                "target_cluster_id": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "version": {
+                    "description": "AppType",
+                    "type": "string"
+                }
+            }
+        },
         "domain.UpdateApplicationRequest": {
             "type": "object",
             "properties": {
@@ -2158,6 +2868,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "primaryClusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateStackTemplateRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
                     "type": "string"
                 }
             }

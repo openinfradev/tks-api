@@ -79,6 +79,11 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// StackTemplate
+	if err := db.AutoMigrate(&repository.StackTemplate{}); err != nil {
+		return err
+	}
+
 	// Cluster
 	if err := db.AutoMigrate(&repository.Cluster{}); err != nil {
 		return err
