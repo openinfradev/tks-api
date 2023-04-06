@@ -1,10 +1,9 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
@@ -12,9 +11,10 @@ import (
 // Interfaces
 type ICloudSettingRepository interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
-	GetByOrganizationId(organizationId string) (domain.CloudSetting, error)
-	Create(organizationId string, input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error)
-	Delete(cloudSettingId uuid.UUID) (err error)
+	Fetch(organizationId string) ([]domain.CloudSetting, error)
+	Create(dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error)
+	Update(dto domain.CloudSetting) (err error)
+	Delete(dto domain.CloudSetting) (err error)
 }
 
 type CloudSettingRepository struct {
@@ -37,8 +37,11 @@ type CloudSetting struct {
 	Name           string
 	Description    string
 	Resource       string
-	Type           domain.CloudType
-	Creator        uuid.UUID
+	CloudService   string
+	CreatorId      *uuid.UUID `gorm:"type:uuid"`
+	Creator        User       `gorm:"foreignKey:CreatorId"`
+	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
+	Updator        User       `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
@@ -47,33 +50,37 @@ func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // Logics
-func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error) {
+func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.CloudSetting, err error) {
 	var cloudSetting CloudSetting
-	res := r.db.First(&cloudSetting, "id = ?", cloudSettingId)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.CloudSetting{}, fmt.Errorf("Not found cloudSetting for %s", cloudSettingId)
+	res := r.db.Preload(clause.Associations).First(&cloudSetting, "id = ?", cloudSettingId)
+	if res.Error != nil {
+		return domain.CloudSetting{}, res.Error
 	}
-	resCloudSetting := r.reflect(cloudSetting)
-	return resCloudSetting, nil
+	out = reflectCloudSetting(cloudSetting)
+	return
 }
 
-func (r *CloudSettingRepository) GetByOrganizationId(organizationId string) (domain.CloudSetting, error) {
-	var cloudSetting CloudSetting
-	res := r.db.First(&cloudSetting, "organization_id = ?", organizationId)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.CloudSetting{}, fmt.Errorf("Not found cloudSetting for organizationId %s", organizationId)
+func (r *CloudSettingRepository) Fetch(organizationId string) (out []domain.CloudSetting, err error) {
+	var cloudSettings []CloudSetting
+	res := r.db.Preload(clause.Associations).Find(&cloudSettings, "organization_id = ?", organizationId)
+	if res.Error != nil {
+		return nil, res.Error
 	}
-	resCloudSetting := r.reflect(cloudSetting)
-	return resCloudSetting, nil
+
+	for _, cloudSetting := range cloudSettings {
+		out = append(out, reflectCloudSetting(cloudSetting))
+	}
+	return
 }
 
-func (r *CloudSettingRepository) Create(organizationId string, input domain.CreateCloudSettingRequest, resource string, creator uuid.UUID) (cloudSettingId uuid.UUID, err error) {
+func (r *CloudSettingRepository) Create(dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error) {
 	cloudSetting := CloudSetting{
-		OrganizationId: organizationId,
-		Name:           input.Name,
-		Description:    input.Description,
-		Resource:       resource,
-		Creator:        creator}
+		OrganizationId: dto.OrganizationId,
+		Name:           dto.Name,
+		Description:    dto.Description,
+		CloudService:   dto.CloudService,
+		Resource:       dto.Resource,
+		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudSetting)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
@@ -81,23 +88,48 @@ func (r *CloudSettingRepository) Create(organizationId string, input domain.Crea
 	return cloudSetting.ID, nil
 }
 
-func (r *CloudSettingRepository) Delete(cloudSettingId uuid.UUID) (err error) {
-	res := r.db.Delete(&CloudSetting{}, "id = ?", cloudSettingId)
+func (r *CloudSettingRepository) Update(dto domain.CloudSetting) (err error) {
+	res := r.db.Model(&CloudSetting{}).
+		Where("id = ?", dto.ID).
+		Updates(map[string]interface{}{"Description": dto.Description, "Resource": dto.Resource, "UpdatorId": dto.UpdatorId})
 	if res.Error != nil {
-		return fmt.Errorf("could not delete cloudSetting for cloudSettingId %s", cloudSettingId)
+		return res.Error
 	}
 	return nil
 }
 
-func (r *CloudSettingRepository) reflect(cloudSetting CloudSetting) domain.CloudSetting {
+func (r *CloudSettingRepository) Delete(dto domain.CloudSetting) (err error) {
+	res := r.db.Delete(&CloudSetting{}, "id = ?", dto.ID)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
+func reflectCloudSetting(cloudSetting CloudSetting) domain.CloudSetting {
 	return domain.CloudSetting{
-		ID:             cloudSetting.ID.String(),
+		ID:             cloudSetting.ID,
 		OrganizationId: cloudSetting.OrganizationId,
 		Name:           cloudSetting.Name,
 		Description:    cloudSetting.Description,
 		Resource:       cloudSetting.Resource,
-		Creator:        cloudSetting.Creator.String(),
+		CloudService:   cloudSetting.CloudService,
+		Creator:        reflectUser(cloudSetting.Creator),
+		Updator:        reflectUser(cloudSetting.Updator),
 		CreatedAt:      cloudSetting.CreatedAt,
 		UpdatedAt:      cloudSetting.UpdatedAt,
+	}
+}
+
+func reflectUser(user User) domain.User {
+	return domain.User{
+		ID:          user.ID.String(),
+		AccountId:   user.AccountId,
+		Name:        user.Name,
+		Email:       user.Email,
+		Department:  user.Department,
+		Description: user.Description,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
 	}
 }

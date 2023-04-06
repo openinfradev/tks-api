@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	user "github.com/openinfradev/tks-api/internal/auth/user"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -124,6 +125,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/users", authMiddleware(http.HandlerFunc(userHandler.List), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Get), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Delete), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.Update), kc)).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}/password", authMiddleware(http.HandlerFunc(userHandler.UpdatePassword), kc)).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/users/{userId}", authMiddleware(http.HandlerFunc(userHandler.CheckId), kc)).Methods(http.MethodPost)
 
@@ -134,6 +136,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.GetOrganization), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.DeleteOrganization), kc)).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", authMiddleware(http.HandlerFunc(organizationHandler.UpdateOrganization), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/primary-cluster", authMiddleware(http.HandlerFunc(organizationHandler.UpdatePrimaryCluster), kc)).Methods(http.MethodPatch)
 
 	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(
 		repository.NewClusterRepository(db),
@@ -160,18 +163,30 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 		argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.CreateAppServeApp), kc)).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApps), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp), kc)).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appServeAppId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp), kc)).Methods(http.MethodPut)
 
 	historyHandler := delivery.NewHistoryHandler(usecase.NewHistoryUsecase(repository.NewHistoryRepository(db)))
 	r.Handle(API_PREFIX+API_VERSION+"/histories", authMiddleware(http.HandlerFunc(historyHandler.GetHistories), kc)).Methods(http.MethodGet)
 
-	cloudSettingHandler := delivery.NewCloudSettingHandler(usecase.NewCloudSettingUsecase(repository.NewCloudSettingRepository(db), argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSetting), kc)).Methods(http.MethodGet)
+	cloudSettingHandler := delivery.NewCloudSettingHandler(usecase.NewCloudSettingUsecase(
+		repository.NewCloudSettingRepository(db),
+		repository.NewClusterRepository(db),
+		argoClient))
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSettings), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.CreateCloudSetting), kc)).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSettingById), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSetting), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.UpdateCloudSetting), kc)).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.DeleteCloudSetting), kc)).Methods(http.MethodDelete)
+
+	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(
+		repository.NewStackTemplateRepository(db)))
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware(http.HandlerFunc(stackTemplateHandler.GetStackTemplates), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware(http.HandlerFunc(stackTemplateHandler.CreateStackTemplate), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.GetStackTemplate), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate), kc)).Methods(http.MethodDelete)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
@@ -225,14 +240,6 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 
 		case "keycloak":
 		default:
-
-			// [TODO] implementaion keycloak process
-			//vars := mux.Vars(r)
-			//organization, ok := vars["organizationId"]
-			//if !ok {
-			//	organization = "master"
-			//}
-
 			auth := strings.TrimSpace(r.Header.Get("Authorization"))
 			if auth == "" {
 				w.WriteHeader(http.StatusUnauthorized)
@@ -261,6 +268,7 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
 				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte(err.Error()))
 				return
 			}
 			organization := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
@@ -274,10 +282,13 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 			if err != nil {
 				log.Error("failed to parse access token: ", err)
 				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 				return
 			}
+
 			if jwtToken == nil || mapClaims == nil || mapClaims.Valid() != nil {
 				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Error message TODO"))
 				return
 			}
 			roleProjectMapping := make(map[string]string)
@@ -286,13 +297,20 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				if len(slice) != 2 {
 					log.Error("invalid role format: ", role)
 					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte(fmt.Sprintf("invalid role format: %s", role)))
 					return
 				}
 				// key is projectName and value is roleName
 				roleProjectMapping[slice[1]] = slice[0]
 			}
+			userId, err := uuid.Parse(jwtToken.Claims.(jwt.MapClaims)["sub"].(string))
+			if err != nil {
+				userId = uuid.Nil
+			}
+
 			userInfo := &user.DefaultInfo{
-				Organization:       jwtToken.Claims.(jwt.MapClaims)["organization"].(string),
+				OrganizationId:     jwtToken.Claims.(jwt.MapClaims)["organization"].(string),
+				UserId:             userId,
 				RoleProjectMapping: roleProjectMapping,
 			}
 

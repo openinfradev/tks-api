@@ -1,15 +1,15 @@
 basePath: /api/1.0/
 definitions:
-  domain.AppGroup:
+  domain.AppGroupResponse:
     properties:
       appGroupType:
-        type: string
+        type: integer
       clusterId:
         type: string
       createdAt:
         type: string
       creator:
-        type: string
+        $ref: '#/definitions/domain.SimpleUserResponse'
       description:
         type: string
       id:
@@ -17,24 +17,29 @@ definitions:
       name:
         type: string
       status:
-        type: string
+        type: integer
       statusDescription:
         type: string
       updatedAt:
         type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
       workflowId:
         type: string
     type: object
   domain.AppServeApp:
     properties:
+      app_serve_app_tasks:
+        items:
+          $ref: '#/definitions/domain.AppServeAppTask'
+        type: array
       app_type:
         description: app_type (spring/springboot)
         type: string
-      contract_id:
-        description: contract_id is a contract ID which this app belongs to
-        type: string
-      createdAt:
+      created_at:
         description: created_at is a creatioin timestamp for the application
+        type: string
+      deleted_at:
         type: string
       endpoint_url:
         description: endpoint URL of deployed app
@@ -43,6 +48,9 @@ definitions:
         type: string
       name:
         description: application name
+        type: string
+      organization_id:
+        description: contract_id is a contract ID which this app belongs to
         type: string
       preview_endpoint_url:
         description: preview svc endpoint URL in B/G deployment
@@ -56,14 +64,104 @@ definitions:
       type:
         description: type (build/deploy/all)
         type: string
+      updated_at:
+        type: string
+    type: object
+  domain.AppServeAppTask:
+    properties:
+      app_config:
+        description: java app config
+        type: string
+      app_secret:
+        description: java app secret
+        type: string
+      app_serve_app_id:
+        description: ID for appServeApp that this task belongs to.
+        type: string
+      artifact_url:
+        description: URL of java app artifact (Eg, Jar)
+        type: string
+      created_at:
+        description: created_at is  a creation timestamp for the application
+        type: string
+      deleted_at:
+        type: string
+      executable_path:
+        description: Executable path of app image
+        type: string
+      extra_env:
+        description: env variable list for java app
+        type: string
+      helm_revision:
+        description: revision of deployed helm release
+        type: integer
+      id:
+        type: string
+      image_url:
+        description: URL of built image for app
+        type: string
+      output:
+        description: output for task result
+        type: string
+      port:
+        description: java app port
+        type: string
+      profile:
+        description: java app profile
+        type: string
+      pv_access_mode:
+        type: string
+      pv_enabled:
+        type: boolean
+      pv_mount_path:
+        type: string
+      pv_size:
+        type: string
+      pv_storage_class:
+        type: string
+      resource_spec:
+        description: resource spec of app pod
+        type: string
+      status:
+        description: status is app status
+        type: string
+      strategy:
+        description: deployment strategy (eg, rolling-update)
+        type: string
+      updated_at:
+        type: string
+      version:
+        description: application version
+        type: string
+    type: object
+  domain.ApplicationResponse:
+    properties:
+      appGroupId:
+        type: string
+      applicationType:
+        type: integer
+      createdAt:
+        type: string
+      endpoint:
+        type: string
+      id:
+        type: string
+      metadata:
+        type: string
       updatedAt:
         type: string
     type: object
   domain.CloudSetting:
     properties:
+      cloudService:
+        type: string
+      clusters:
+        type: integer
       createdAt:
         type: string
       creator:
+        $ref: '#/definitions/domain.User'
+      creatorId:
         type: string
       description:
         type: string
@@ -75,18 +173,51 @@ definitions:
         type: string
       resource:
         type: string
-      type:
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.User'
+      updatorId:
+        type: string
+    type: object
+  domain.CloudSettingResponse:
+    properties:
+      cloudService:
+        type: string
+      clusters:
+        type: integer
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      resource:
         type: string
       updatedAt:
         type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
   domain.Cluster:
     properties:
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSetting'
+      cloudSettingId:
+        type: string
       conf:
         $ref: '#/definitions/domain.ClusterConf'
       createdAt:
         type: string
       creator:
+        $ref: '#/definitions/domain.User'
+      creatorId:
         type: string
       description:
         type: string
@@ -97,10 +228,16 @@ definitions:
       organizationId:
         type: string
       status:
-        type: string
+        type: integer
       statusDesc:
         type: string
+      templateId:
+        type: string
       updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.User'
+      updatorId:
         type: string
     type: object
   domain.ClusterConf:
@@ -120,39 +257,163 @@ definitions:
       sshKeyName:
         type: string
     type: object
-  domain.CreateAppGroupRequest:
+  domain.ClusterConfResponse:
     properties:
-      clusterId:
+      machineReplicas:
+        type: integer
+      machineType:
         type: string
-      creator:
+      maxSizePerAz:
+        type: integer
+      minSizePerAz:
+        type: integer
+      numOfAz:
+        type: integer
+      region:
         type: string
-      description:
-        type: string
-      name:
-        type: string
-      type:
+      sshKeyName:
         type: string
     type: object
-  domain.CreateCloudSettingRequest:
+  domain.ClusterResponse:
     properties:
-      accessKey:
-        type: string
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSettingResponse'
+      conf:
+        $ref: '#/definitions/domain.ClusterConfResponse'
       createdAt:
         type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
       description:
+        type: string
+      id:
         type: string
       name:
         type: string
-      secretKey:
+      organizationId:
         type: string
-      type:
+      status:
+        type: string
+      statusDesc:
         type: string
       updatedAt:
         type: string
     type: object
+  domain.CreateAppGroupRequest:
+    properties:
+      appGroupType:
+        enum:
+        - LMA
+        - SERVICE_MESH
+        type: string
+      clusterId:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - clusterId
+    - name
+    type: object
+  domain.CreateAppGroupResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  domain.CreateAppServeAppRequest:
+    properties:
+      app_config:
+        type: string
+      app_secret:
+        type: string
+      app_type:
+        enum:
+        - spring
+        - springboot
+        type: string
+      artifact_url:
+        type: string
+      executable_path:
+        type: string
+      extra_env:
+        type: string
+      image_url:
+        type: string
+      name:
+        description: App
+        type: string
+      organization_id:
+        type: string
+      port:
+        type: string
+      profile:
+        type: string
+      pv_access_mode:
+        type: string
+      pv_enabled:
+        type: boolean
+      pv_mount_path:
+        type: string
+      pv_size:
+        type: string
+      pv_storage_class:
+        type: string
+      resource_spec:
+        type: string
+      strategy:
+        enum:
+        - rolling-update
+        - blue-green
+        - canary
+        type: string
+      target_cluster_id:
+        type: string
+      type:
+        enum:
+        - build
+        - deploy
+        - all
+        type: string
+      version:
+        description: AppType
+        type: string
+    required:
+    - name
+    - organization_id
+    - target_cluster_id
+    type: object
+  domain.CreateCloudSettingRequest:
+    properties:
+      cloudService:
+        enum:
+        - AWS
+        - AZZURE
+        - GCP
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      secretKey:
+        type: string
+      secretKeyId:
+        type: string
+    required:
+    - name
+    - secretKey
+    - secretKeyId
+    type: object
+  domain.CreateCloudSettingResponse:
+    properties:
+      id:
+        type: string
+    type: object
   domain.CreateClusterRequest:
     properties:
-      creator:
+      cloudSettingId:
         type: string
       description:
         type: string
@@ -162,7 +423,7 @@ definitions:
         type: string
       name:
         type: string
-      numberOfAz:
+      numOfAz:
         type: integer
       organizationId:
         type: string
@@ -171,16 +432,223 @@ definitions:
       templateId:
         type: string
     type: object
+  domain.CreateClusterResponse:
+    properties:
+      id:
+        type: string
+    type: object
   domain.CreateOrganizationRequest:
     properties:
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      name:
+        maxLength: 20
+        minLength: 3
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    type: object
+  domain.CreateStackTemplateRequest:
+    properties:
+      cloudService:
+        enum:
+        - AWS
+        - AZZURE
+        - GCP
+        type: string
       description:
         type: string
       name:
         type: string
-      phoneNumber:
+      organizationId:
+        type: string
+      platform:
+        type: string
+      template:
+        type: string
+      version:
         type: string
     required:
     - name
+    - organizationId
+    - platform
+    - template
+    - version
+    type: object
+  domain.CreateStackTemplateResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  domain.CreateUserRequest:
+    properties:
+      accountId:
+        type: string
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      password:
+        type: string
+      role:
+        enum:
+        - admin
+        - user
+        type: string
+    required:
+    - accountId
+    - password
+    - role
+    type: object
+  domain.CreateUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
+    type: object
+  domain.DeleteCloudSettingRequest:
+    properties:
+      secretKey:
+        type: string
+      secretKeyId:
+        type: string
+    required:
+    - secretKey
+    - secretKeyId
+    type: object
+  domain.GetAppGroupResponse:
+    properties:
+      appGroup:
+        $ref: '#/definitions/domain.AppGroupResponse'
+    type: object
+  domain.GetAppGroupsResponse:
+    properties:
+      appGroups:
+        items:
+          $ref: '#/definitions/domain.AppGroupResponse'
+        type: array
+    type: object
+  domain.GetApplicationsResponse:
+    properties:
+      applications:
+        items:
+          $ref: '#/definitions/domain.ApplicationResponse'
+        type: array
+    type: object
+  domain.GetCloudSettingResponse:
+    properties:
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSettingResponse'
+    type: object
+  domain.GetCloudSettingsResponse:
+    properties:
+      cloudSettings:
+        items:
+          $ref: '#/definitions/domain.CloudSettingResponse'
+        type: array
+    type: object
+  domain.GetClustersResponse:
+    properties:
+      clusters:
+        items:
+          $ref: '#/definitions/domain.ClusterResponse'
+        type: array
+    type: object
+  domain.GetOrganizationResponse:
+    properties:
+      organization:
+        properties:
+          createdAt:
+            type: string
+          creator:
+            type: string
+          description:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          phone:
+            type: string
+          primaryClusterId:
+            type: string
+          status:
+            type: integer
+          statusDescription:
+            type: string
+          updatedAt:
+            type: string
+        type: object
+    type: object
+  domain.GetStackTemplateResponse:
+    properties:
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplateResponse'
+    type: object
+  domain.GetStackTemplatesResponse:
+    properties:
+      stackTemplates:
+        items:
+          $ref: '#/definitions/domain.StackTemplateResponse'
+        type: array
+    type: object
+  domain.GetUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          createdAt:
+            type: string
+          creator:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          updatedAt:
+            type: string
+        type: object
     type: object
   domain.History:
     properties:
@@ -197,6 +665,46 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.ListOrganizationBody:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      primaryClusterId:
+        type: string
+      status:
+        type: integer
+    type: object
+  domain.ListUserBody:
+    properties:
+      accountId:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        type: string
+      department:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organization:
+        $ref: '#/definitions/domain.Organization'
+      role:
+        $ref: '#/definitions/domain.Role'
+      updatedAt:
+        type: string
+    type: object
   domain.LoginRequest:
     properties:
       accountId:
@@ -205,6 +713,26 @@ definitions:
         type: string
       password:
         type: string
+    required:
+    - accountId
+    - organizationId
+    - password
+    type: object
+  domain.LoginResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          token:
+            type: string
+        type: object
     type: object
   domain.Organization:
     properties:
@@ -218,10 +746,12 @@ definitions:
         type: string
       name:
         type: string
-      phoneNumber:
+      phone:
+        type: string
+      primaryClusterId:
         type: string
       status:
-        type: string
+        type: integer
       statusDescription:
         type: string
       updatedAt:
@@ -242,6 +772,100 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.SimpleUserResponse:
+    properties:
+      accountId:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  domain.StackTemplateResponse:
+    properties:
+      cloudService:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      platform:
+        type: string
+      template:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      version:
+        type: string
+    type: object
+  domain.UpdateAppServeAppRequest:
+    properties:
+      abort:
+        type: boolean
+      app_config:
+        type: string
+      app_secret:
+        type: string
+      app_type:
+        type: string
+      artifact_url:
+        type: string
+      executable_path:
+        type: string
+      extra_env:
+        type: string
+      id:
+        description: App
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      organization_id:
+        type: string
+      port:
+        type: string
+      profile:
+        type: string
+      promote:
+        description: Update Strategy
+        type: boolean
+      pv_access_mode:
+        type: string
+      pv_enabled:
+        type: boolean
+      pv_mount_path:
+        type: string
+      pv_size:
+        type: string
+      pv_storage_class:
+        type: string
+      resource_spec:
+        type: string
+      strategy:
+        enum:
+        - rolling-update
+        - blue-green
+        - canary
+        type: string
+      target_cluster_id:
+        type: string
+      type:
+        type: string
+      version:
+        description: AppType
+        type: string
+    type: object
   domain.UpdateApplicationRequest:
     properties:
       appGroupId:
@@ -253,12 +877,98 @@ definitions:
       metadata:
         type: string
     type: object
+  domain.UpdateCloudSettingRequest:
+    properties:
+      description:
+        type: string
+    type: object
+  domain.UpdateOrganizationRequest:
+    properties:
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      phone:
+        type: string
+      primaryClusterId:
+        type: string
+    type: object
+  domain.UpdateOrganizationResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+    type: object
+  domain.UpdatePasswordRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  domain.UpdatePasswordResponse:
+    type: object
+  domain.UpdatePrimaryClusterRequest:
+    properties:
+      primaryClusterId:
+        type: string
+    type: object
+  domain.UpdateStackTemplateRequest:
+    properties:
+      description:
+        type: string
+    type: object
+  domain.UpdateUserRequest:
+    properties:
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      role:
+        enum:
+        - admin
+        - user
+        type: string
+    type: object
+  domain.UpdateUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
+    type: object
   domain.User:
     properties:
       accountId:
         type: string
-      authorized:
-        type: boolean
       createdAt:
         type: string
       creator:
@@ -267,7 +977,7 @@ definitions:
         type: string
       description:
         type: string
-      emailAddress:
+      email:
         type: string
       id:
         type: string
@@ -313,8 +1023,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: object
       security:
       - JWT: []
       summary: Uninstall appGroup
@@ -335,9 +1043,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.AppGroup'
-            type: array
+            $ref: '#/definitions/domain.GetAppGroupsResponse'
       security:
       - JWT: []
       summary: Get appGroup list
@@ -360,7 +1066,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/domain.CreateAppGroupResponse'
       security:
       - JWT: []
       summary: Install appGroup
@@ -383,9 +1089,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.AppGroup'
-            type: array
+            $ref: '#/definitions/domain.GetAppGroupResponse'
       security:
       - JWT: []
       summary: Get appGroup detail
@@ -395,7 +1099,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get application
+      description: Get applications
       parameters:
       - description: appGroupId
         in: path
@@ -413,10 +1117,10 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.GetApplicationsResponse'
       security:
       - JWT: []
-      summary: Get application
+      summary: Get applications
       tags:
       - AppGroups
     post:
@@ -435,8 +1139,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: object
       security:
       - JWT: []
       summary: Update application
@@ -471,9 +1173,9 @@ paths:
       - application/json
       description: Get appServeApp list by giving params
       parameters:
-      - description: project_id
+      - description: organization_Id
         in: query
-        name: projectId
+        name: organization_Id
         type: string
       - description: show_all
         in: query
@@ -498,12 +1200,12 @@ paths:
       - application/json
       description: Install appServeApp
       parameters:
-      - description: body
+      - description: create appserve request
         in: body
         name: object
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/domain.CreateAppServeAppRequest'
       produces:
       - application/json
       responses:
@@ -521,12 +1223,12 @@ paths:
       - application/json
       description: Update appServeApp
       parameters:
-      - description: body
+      - description: update appserve request
         in: body
         name: object
         required: true
         schema:
-          type: string
+          $ref: '#/definitions/domain.UpdateAppServeAppRequest'
       produces:
       - application/json
       responses:
@@ -574,7 +1276,7 @@ paths:
         "200":
           description: user detail
           schema:
-            $ref: '#/definitions/domain.User'
+            $ref: '#/definitions/domain.LoginResponse'
       summary: login
       tags:
       - Auth
@@ -597,17 +1299,22 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get CloudSetting
+      description: Get CloudSettings
+      parameters:
+      - description: show all organizations
+        in: query
+        name: all
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CloudSetting'
+            $ref: '#/definitions/domain.GetCloudSettingsResponse'
       security:
       - JWT: []
-      summary: Get CloudSetting
+      summary: Get CloudSettings
       tags:
       - CloudSettings
     post:
@@ -627,7 +1334,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.CreateCloudSettingResponse'
       security:
       - JWT: []
       summary: Create CloudSetting
@@ -638,6 +1345,32 @@ paths:
       consumes:
       - application/json
       description: Delete CloudSetting
+      parameters:
+      - description: Delete cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteCloudSettingRequest'
+      - description: cloudSettingId
+        in: path
+        name: cloudSettingId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete CloudSetting
+      tags:
+      - CloudSettings
+    get:
+      consumes:
+      - application/json
+      description: Get CloudSetting
       parameters:
       - description: cloudSettingId
         in: path
@@ -650,26 +1383,31 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CloudSetting'
+            $ref: '#/definitions/domain.GetCloudSettingResponse'
       security:
       - JWT: []
-      summary: Delete CloudSetting
+      summary: Get CloudSetting
       tags:
       - CloudSettings
-    get:
+    put:
       consumes:
       - application/json
-      description: Get cloudSetting by cloudSettingId
+      description: Update CloudSetting
+      parameters:
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCloudSettingRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/domain.CloudSetting'
       security:
       - JWT: []
-      summary: Get cloudSetting by cloudSettingId
+      summary: Update CloudSetting
       tags:
       - CloudSettings
   /clusters:
@@ -688,9 +1426,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/domain.Cluster'
-            type: array
+            $ref: '#/definitions/domain.GetClustersResponse'
       security:
       - JWT: []
       summary: Get clusters
@@ -713,7 +1449,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.CreateClusterResponse'
       security:
       - JWT: []
       summary: Create cluster
@@ -793,7 +1529,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/domain.Organization'
+              $ref: '#/definitions/domain.ListOrganizationBody'
             type: array
       security:
       - JWT: []
@@ -862,7 +1598,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Organization'
+            $ref: '#/definitions/domain.GetOrganizationResponse'
       security:
       - JWT: []
       summary: Get organization detail
@@ -878,18 +1614,321 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: update organization request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateOrganizationRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Organization'
+            $ref: '#/definitions/domain.UpdateOrganizationResponse'
       security:
       - JWT: []
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/primary-cluster:
+    patch:
+      consumes:
+      - application/json
+      description: Update primary cluster
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: update primary cluster request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePrimaryClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update primary cluster
+      tags:
+      - Organizations
+  /stack-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get StackTemplates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get StackTemplates
+      tags:
+      - StackTemplates
+    post:
+      consumes:
+      - application/json
+      description: Create StackTemplate
+      parameters:
+      - description: create stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateStackTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Create StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+  /stack-templates/{stackTemplateId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete StackTemplate
+      parameters:
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+    get:
+      consumes:
+      - application/json
+      description: Get StackTemplate
+      parameters:
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get StackTemplate
+      tags:
+      - StackTemplates
+    put:
+      consumes:
+      - application/json
+      description: Update StackTemplate
+      parameters:
+      - description: Update stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateStackTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get user list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ListUserBody'
+            type: array
+      security:
+      - JWT: []
+      summary: Get user list
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: create user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: create user response
+          schema:
+            $ref: '#/definitions/domain.CreateUserResponse'
+      security:
+      - JWT: []
+      summary: Create user
+      tags:
+      - Users
+  /users/{userId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+      security:
+      - JWT: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get user detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetUserResponse'
+      security:
+      - JWT: []
+      summary: Get user detail
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "409":
+          description: Conflict
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update user detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserResponse'
+      security:
+      - JWT: []
+      summary: Update user detail
+      tags:
+      - Users
+  /users/{userId}/password:
+    put:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: update user password request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdatePasswordResponse'
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - Users
 securityDefinitions:
   JWT:
     in: header

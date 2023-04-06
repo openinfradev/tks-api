@@ -2,7 +2,20 @@ package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/helper"
 )
+
+type ClusterId string
+
+func (c ClusterId) String() string {
+	return string(c)
+}
+
+func (c ClusterId) Validate() bool {
+	return helper.ValidateClusterId(c.String())
+}
 
 // enum
 type ClusterStatus int32
@@ -27,9 +40,9 @@ var clusterStatus = [...]string{
 
 func (m ClusterStatus) String() string { return clusterStatus[(m)] }
 func (m ClusterStatus) FromString(s string) ClusterStatus {
-	for _, v := range clusterStatus {
+	for i, v := range clusterStatus {
 		if v == s {
-			return ClusterStatus_ERROR
+			return ClusterStatus(i)
 		}
 	}
 	return ClusterStatus_ERROR
@@ -37,26 +50,32 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 
 // model
 type Cluster = struct {
-	ID             string      `json:"id"`
-	OrganizationId string      `json:"organizationId"`
-	Name           string      `json:"name"`
-	Description    string      `json:"description"`
-	Status         string      `json:"status"`
-	StatusDesc     string      `json:"statusDesc"`
-	Conf           ClusterConf `json:"conf"`
-	Creator        string      `json:"creator"`
-	CreatedAt      time.Time   `json:"createdAt"`
-	UpdatedAt      time.Time   `json:"updatedAt"`
+	ID             ClusterId
+	OrganizationId string
+	Name           string
+	Description    string
+	CloudSettingId uuid.UUID
+	CloudSetting   CloudSetting
+	Status         ClusterStatus
+	StatusDesc     string
+	Conf           ClusterConf
+	TemplateId     string
+	CreatorId      *uuid.UUID
+	Creator        User
+	UpdatorId      *uuid.UUID
+	Updator        User
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type ClusterConf = struct {
-	SshKeyName      string `json:"sshKeyName"`
-	Region          string `json:"region"`
-	MachineType     string `json:"machineType"`
-	NumOfAz         int    `json:"numOfAz"`
-	MinSizePerAz    int    `json:"minSizePerAz"`
-	MaxSizePerAz    int    `json:"maxSizePerAz"`
-	MachineReplicas int    `json:"machineReplicas"`
+	SshKeyName      string
+	Region          string
+	MachineType     string
+	NumOfAz         int
+	MinSizePerAz    int
+	MaxSizePerAz    int
+	MachineReplicas int
 }
 
 type ClusterCapacity = struct {
@@ -99,9 +118,46 @@ type CreateClusterRequest struct {
 	TemplateId      string `json:"templateId"`
 	Name            string `json:"name"`
 	Description     string `json:"description"`
-	NumberOfAz      int    `json:"numberOfAz"`
+	CloudSettingId  string `json:"cloudSettingId"`
+	NumOfAz         int    `json:"numOfAz"`
 	MachineType     string `json:"machineType"`
 	Region          string `json:"region"`
 	MachineReplicas int    `json:"machineReplicas"`
-	Creator         string `json:"creator"`
+}
+
+type CreateClusterResponse struct {
+	ID string `json:"id"`
+}
+
+type ClusterResponse struct {
+	ID             ClusterId            `json:"id"`
+	OrganizationId string               `json:"organizationId"`
+	Name           string               `json:"name"`
+	Description    string               `json:"description"`
+	CloudSetting   CloudSettingResponse `json:"cloudSetting"`
+	Status         string               `json:"status"`
+	StatusDesc     string               `json:"statusDesc"`
+	Conf           ClusterConfResponse  `json:"conf"`
+	Creator        SimpleUserResponse   `json:"creator"`
+	Updator        SimpleUserResponse   `json:"creator"`
+	CreatedAt      time.Time            `json:"createdAt"`
+	UpdatedAt      time.Time            `json:"updatedAt"`
+}
+
+type ClusterConfResponse struct {
+	SshKeyName      string `json:"sshKeyName"`
+	Region          string `json:"region"`
+	MachineType     string `json:"machineType"`
+	NumOfAz         int    `json:"numOfAz"`
+	MinSizePerAz    int    `json:"minSizePerAz"`
+	MaxSizePerAz    int    `json:"maxSizePerAz"`
+	MachineReplicas int    `json:"machineReplicas"`
+}
+
+type GetClustersResponse struct {
+	Clusters []ClusterResponse `json:"clusters"`
+}
+
+type GetClusterResponse struct {
+	Cluster ClusterResponse `json:"cluster"`
 }

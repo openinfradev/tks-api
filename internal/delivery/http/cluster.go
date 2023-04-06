@@ -1,9 +1,7 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -30,7 +28,7 @@ func NewClusterHandler(h usecase.IClusterUsecase) *ClusterHandler {
 // @Accept json
 // @Produce json
 // @Param organizationId query string false "organizationId"
-// @Success 200 {object} []domain.Cluster
+// @Success 200 {object} domain.GetClustersResponse
 // @Router /clusters [get]
 // @Security     JWT
 func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
@@ -43,10 +41,14 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out struct {
-		Clusters []domain.Cluster `json:"clusters"`
+	var out domain.GetClustersResponse
+	out.Clusters = make([]domain.ClusterResponse, len(clusters))
+	for i, cluster := range clusters {
+		if err := domain.Map(cluster, &out.Clusters[i]); err != nil {
+			log.Info(err)
+			continue
+		}
 	}
-	out.Clusters = clusters
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -69,16 +71,16 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cluster, err := h.usecase.Get(clusterId)
+	cluster, err := h.usecase.Get(domain.ClusterId(clusterId))
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		Cluster domain.Cluster `json:"cluster"`
+	var out domain.GetClusterResponse
+	if err := domain.Map(cluster, &out.Cluster); err != nil {
+		log.Info(err)
 	}
-	out.Cluster = cluster
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -90,51 +92,31 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param body body domain.CreateClusterRequest true "create cluster request"
-// @Success 200 {object} object
+// @Success 200 {object} domain.CreateClusterResponse
 // @Router /clusters [post]
 // @Security     JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateClusterRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	err = json.Unmarshal(body, &input)
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	creator := ""
+	var dto domain.Cluster
+	if err = domain.Map(input, &dto); err != nil {
+		log.Info(err)
+	}
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
-	clusterId, err := h.usecase.Create(
-		input.OrganizationId,
-		input.TemplateId,
-		input.Name,
-		domain.ClusterConf{
-			Region:          input.Region,
-			NumOfAz:         input.NumberOfAz,
-			SshKeyName:      "",
-			MachineType:     input.MachineType,
-			MachineReplicas: input.MachineReplicas,
-		},
-		creator,
-		input.Description,
-	)
-
+	clusterId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	log.Info("Newly created clusterId : ", clusterId)
-
-	var out struct {
-		ClusterId string `json:"clusterId"`
-	}
-	out.ClusterId = clusterId
+	var out domain.CreateClusterResponse
+	out.ID = clusterId.String()
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -157,7 +139,7 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.usecase.Delete(clusterId)
+	err := h.usecase.Delete(domain.ClusterId(clusterId))
 	if err != nil {
 		ErrorJSON(w, err)
 		return

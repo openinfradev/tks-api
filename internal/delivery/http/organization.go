@@ -1,11 +1,8 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"time"
 
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 
@@ -39,71 +36,38 @@ func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUseca
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
-	_, userId, _ := GetSession(r)
-
 	input := domain.CreateOrganizationRequest{}
 
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
-
 	}
 
-	/*
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
+	ctx := r.Context()
+	var organization domain.Organization
+	err = domain.Map(input, &organization)
 
-		err = json.Unmarshal(body, &input)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
-
-		err = validate.Struct(input)
-		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
-
-	*/
-
-	token, ok := request.TokenFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("token not found")))
-		return
-	}
-	organizationId, err := h.usecase.Create(domain.Organization{
-		Name:        input.Name,
-		Creator:     userId.String(),
-		Description: input.Description,
-	}, token)
+	organizationId, err := h.usecase.Create(ctx, &organization)
 	if err != nil {
-		log.Error("Failed to create organization err : ", err)
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, err)
 		return
 	}
-
+	organization.ID = organizationId
 	// Admin user 생성
 	_, err = h.userUsecase.CreateAdmin(organizationId)
 	if err != nil {
-		log.Error("Failed to create user err : ", err)
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		OrganizationId string `json:"organizationId"`
-	}
+	var out domain.CreateOrganizationResponse
+	domain.Map(organization, &out)
 
-	out.OrganizationId = organizationId
-
-	time.Sleep(time.Second * 5) // for test
 	ResponseJSON(w, http.StatusOK, out)
-
 }
 
 // GetOrganizations godoc
@@ -112,22 +76,24 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Description Get organization list
 // @Accept json
 // @Produce json
-// @Success 200 {object} []domain.Organization
+// @Success 200 {object} []domain.ListOrganizationBody
 // @Router /organizations [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
-	log.Info("GetOrganization")
 	organizations, err := h.usecase.Fetch()
 	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		Organizations []domain.Organization `json:"organizations"`
-	}
+	var out domain.ListOrganizationResponse
+	out.Organizations = make([]domain.ListOrganizationBody, len(*organizations))
 
-	out.Organizations = organizations
+	for i, organization := range *organizations {
+		domain.Map(organization, &out.Organizations[i])
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -139,7 +105,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Success 200 {object} domain.Organization
+// @Success 200 {object} domain.GetOrganizationResponse
 // @Router /organizations/{organizationId} [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Request) {
@@ -152,15 +118,14 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 
 	organization, err := h.usecase.Get(organizationId)
 	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		Organization domain.Organization `json:"organization"`
-	}
-
-	out.Organization = organization
+	var out domain.GetOrganizationResponse
+	domain.Map(organization, &out.Organization)
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -189,16 +154,19 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// TODO : organization에 속한 user들도 삭제해야함(DB에는 남아있음)
-	// Admin user 삭제
-	err := h.userUsecase.DeleteAdmin(organizationId)
-	ResponseJSON(w, http.StatusOK, nil)
+	err := h.userUsecase.DeleteAll(r.Context(), organizationId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-	// TODO: user 삭제
+		ErrorJSON(w, err)
+		return
+	}
 
 	// organization 삭제
 	err = h.usecase.Delete(organizationId, token)
 	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
 		ErrorJSON(w, err)
 		return
 	}
@@ -213,7 +181,8 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Success 200 {object} domain.Organization
+// @Param body body domain.UpdateOrganizationRequest true "update organization request"
+// @Success 200 {object} domain.UpdateOrganizationResponse
 // @Router /organizations/{organizationId} [put]
 // @Security     JWT
 func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
@@ -225,25 +194,57 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	input := domain.UpdateOrganizationRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	err = json.Unmarshal(body, &input)
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	err = h.usecase.Update(organizationId, input)
+	organization, err := h.usecase.Update(organizationId, input)
 	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
 		ErrorJSON(w, err)
 		return
 	}
 
-	log.Info(input)
+	var out domain.UpdateOrganizationResponse
+	domain.Map(organization, &out)
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// UpdatePrimaryCluster godoc
+// @Tags Organizations
+// @Summary Update primary cluster
+// @Description Update primary cluster
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param body body domain.UpdatePrimaryClusterRequest true "update primary cluster request"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/primary-cluster [patch]
+// @Security     JWT
+func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
+	input := domain.UpdatePrimaryClusterRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	err = h.usecase.UpdatePrimaryClusterId(organizationId, input.PrimaryClusterId)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
 
 	ResponseJSON(w, http.StatusOK, nil)
 }

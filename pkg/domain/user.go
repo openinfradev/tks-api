@@ -10,16 +10,15 @@ type User = struct {
 	Password     string       `json:"password"`
 	Name         string       `json:"name"`
 	Token        string       `json:"token"`
-	Authorized   bool         `json:"authorized"`
 	Role         Role         `json:"role"`
 	Organization Organization `json:"organization"`
 	Creator      string       `json:"creator"`
 	CreatedAt    time.Time    `json:"createdAt"`
 	UpdatedAt    time.Time    `json:"updatedAt"`
 
-	EmailAddress string `json:"emailAddress"`
-	Department   string `json:"department"`
-	Description  string `json:"description"`
+	Email       string `json:"email"`
+	Department  string `json:"department"`
+	Description string `json:"description"`
 }
 
 type Role = struct {
@@ -48,9 +47,19 @@ type Policy = struct {
 }
 
 type LoginRequest struct {
-	AccountId      string `json:"accountId"`
-	Password       string `json:"password"`
-	OrganizationId string `json:"organizationId"`
+	AccountId      string `json:"accountId" validate:"required"`
+	Password       string `json:"password" validate:"required"`
+	OrganizationId string `json:"organizationId" validate:"required"`
+}
+
+type LoginResponse struct {
+	User struct {
+		AccountId    string       `json:"accountId"`
+		Name         string       `json:"name"`
+		Token        string       `json:"token"`
+		Role         Role         `json:"role"`
+		Organization Organization `json:"organization"`
+	} `json:"user"`
 }
 
 type LogoutRequest struct {
@@ -67,73 +76,98 @@ type FindPasswordRequest struct {
 }
 
 type CreateUserRequest struct {
-	AccountId    string `json:"accountId"`
-	Password     string `json:"password"`
-	Name         string `json:"name"`
-	EmailAddress string `json:"emailAddress"`
-	Department   string `json:"department"`
-	Role         string `json:"role"`
-	Description  string `json:"description"`
+	AccountId   string `json:"accountId" validate:"required"`
+	Password    string `json:"password" validate:"required"`
+	Name        string `json:"name" validate:"omitempty,min=0,max=20"`
+	Email       string `json:"email" validate:"omitempty,email"`
+	Department  string `json:"department" validate:"omitempty,min=0,max=20"`
+	Role        string `json:"role" validate:"required,oneof=admin user"`
+	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }
 
-func (r *CreateUserRequest) ToUser() *User {
-	return &User{
-		ID:           "",
-		AccountId:    r.AccountId,
-		Password:     r.Password,
-		Name:         r.Name,
-		Token:        "",
-		Authorized:   false,
-		Role:         Role{Name: r.Role},
-		Organization: Organization{},
-		Creator:      "",
-		CreatedAt:    time.Time{},
-		UpdatedAt:    time.Time{},
-		EmailAddress: r.EmailAddress,
-		Department:   r.Department,
-		Description:  r.Description,
-	}
+type SimpleUserResponse struct {
+	ID        string `json:"id"`
+	AccountId string `json:"accountId"`
+	Name      string `json:"name"`
+}
+
+type CreateUserResponse struct {
+	User struct {
+		ID           string       `json:"id"`
+		AccountId    string       `json:"accountId"`
+		Name         string       `json:"name"`
+		Role         Role         `json:"role"`
+		Organization Organization `json:"organization"`
+		Email        string       `json:"email"`
+		Department   string       `json:"department"`
+		Description  string       `json:"description"`
+	} `json:"user"`
+}
+
+type GetUserResponse struct {
+	User struct {
+		ID           string       `json:"id"`
+		AccountId    string       `json:"accountId"`
+		Name         string       `json:"name"`
+		Role         Role         `json:"role"`
+		Organization Organization `json:"organization"`
+		Email        string       `json:"email"`
+		Department   string       `json:"department"`
+		Description  string       `json:"description"`
+		Creator      string       `json:"creator"`
+		CreatedAt    time.Time    `json:"createdAt"`
+		UpdatedAt    time.Time    `json:"updatedAt"`
+	} `json:"user"`
+}
+
+type ListUserResponse struct {
+	Users []ListUserBody `json:"users"`
+}
+type ListUserBody struct {
+	ID           string       `json:"id"`
+	AccountId    string       `json:"accountId"`
+	Name         string       `json:"name"`
+	Role         Role         `json:"role"`
+	Organization Organization `json:"organization"`
+	Email        string       `json:"email"`
+	Department   string       `json:"department"`
+	Description  string       `json:"description"`
+	Creator      string       `json:"creator"`
+	CreatedAt    time.Time    `json:"createdAt"`
+	UpdatedAt    time.Time    `json:"updatedAt"`
 }
 
 type UpdateUserRequest struct {
-	AccountId    string `json:"accountId"`
-	Password     string `json:"password"`
-	Name         string `json:"name"`
-	EmailAddress string `json:"emailAddress"`
-	Department   string `json:"department"`
-	Role         string `json:"role"`
-	Description  string `json:"description"`
+	Name        string `json:"name" validate:"omitempty,min=0,max=20"`
+	Role        string `json:"role" validate:"oneof=admin user"`
+	Email       string `json:"email" validate:"omitempty,email"`
+	Department  string `json:"department" validate:"omitempty,min=0,max=20"`
+	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }
 
-func (r *UpdateUserRequest) ToUser() *User {
-	return &User{
-		ID:           "",
-		AccountId:    r.AccountId,
-		Password:     r.Password,
-		Name:         r.Name,
-		Token:        "",
-		Authorized:   false,
-		Role:         Role{Name: r.Role},
-		Organization: Organization{},
-		Creator:      "",
-		CreatedAt:    time.Time{},
-		UpdatedAt:    time.Time{},
-		EmailAddress: r.EmailAddress,
-		Department:   r.Department,
-		Description:  r.Description,
-	}
+type UpdateUserResponse struct {
+	User struct {
+		ID           string       `json:"id"`
+		AccountId    string       `json:"accountId"`
+		Name         string       `json:"name"`
+		Role         Role         `json:"role"`
+		Organization Organization `json:"organization"`
+		Email        string       `json:"email"`
+		Department   string       `json:"department"`
+		Description  string       `json:"description"`
+	} `json:"user"`
 }
 
 type UpdatePasswordRequest struct {
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 }
 
-func (u *UpdatePasswordRequest) ToUser() *User {
-	return &User{
-		Password: u.Password,
-	}
+type UpdatePasswordResponse struct {
 }
 
 type CheckDuplicatedIdRequest struct {
-	AccountId string `json:"accountId"`
+	AccountId string `json:"accountId" validate:"required"`
+}
+
+type CheckDuplicatedIdResponse struct {
 }

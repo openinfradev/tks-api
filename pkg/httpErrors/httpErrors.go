@@ -1,8 +1,10 @@
 package httpErrors
 
 import (
-	"errors"
 	"net/http"
+	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -10,6 +12,7 @@ var (
 	AlreadyExists         = errors.New("Already Existed")
 	WrongCredentials      = errors.New("Wrong Credentials")
 	NotFound              = errors.New("Not Found")
+	NoContent             = errors.New("No Content")
 	Unauthorized          = errors.New("Unauthorized")
 	Forbidden             = errors.New("Forbidden")
 	PermissionDenied      = errors.New("Permission Denied")
@@ -25,6 +28,7 @@ var (
 	InvalidJWTClaims      = errors.New("Invalid JWT claims")
 	NotAllowedImageHeader = errors.New("Not allowed image header")
 	NoCookie              = errors.New("not found cookie header")
+	DuplicateResource     = errors.New("Duplicate Resource")
 )
 
 type IRestError interface {
@@ -103,6 +107,15 @@ func NewNotFoundError(err error) IRestError {
 	}
 }
 
+func NewNoContentError(err error) IRestError {
+	return RestError{
+		ErrStatus:  http.StatusNoContent,
+		ErrCode:    "",
+		ErrMessage: err.Error(),
+		ErrCauses:  err,
+	}
+}
+
 func NewConflictError(err error) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusConflict,
@@ -128,10 +141,20 @@ func reflectVariableName(interface{}) string {
 */
 
 func parseErrors(err error) IRestError {
-	if restErr, ok := err.(IRestError); ok {
-		return restErr
+
+	switch {
+	case strings.Contains(err.Error(), "SQLSTATE"):
+		return parseSqlError(err)
+	default:
+		if restErr, ok := err.(IRestError); ok {
+			return restErr
+		}
+		return NewInternalServerError(err)
 	}
-	return NewInternalServerError(err)
+}
+
+func parseSqlError(err error) IRestError {
+	return NewInternalServerError(errors.Wrap(err, "SQL ERROR"))
 }
 
 func ErrorResponse(err error) (IRestError, int) {

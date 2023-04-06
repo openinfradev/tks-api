@@ -1,8 +1,7 @@
 package http
 
 import (
-	"encoding/json"
-	"io"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
 
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -35,17 +34,11 @@ func NewAuthHandler(h usecase.IAuthUsecase) IAuthHandler {
 // @Accept json
 // @Produce json
 // @Param body body domain.LoginRequest true "account info"
-// @Success 200 {object} domain.User "user detail"
+// @Success 200 {object} domain.LoginResponse "user detail"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
-
-	err = json.Unmarshal(body, &input)
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
@@ -53,17 +46,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
+		log.Error("error is :%s(%T)", err.Error(), err)
+
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out struct {
-		User domain.User `json:"user"`
-	}
-
-	out.User = user
-
-	//_ = h.Repository.AddHistory(user.ID.String(), "", "login", fmt.Sprintf("[%s] 님이 로그인하였습니다.", input.AccountId))
+	var out domain.LoginResponse
+	domain.Map(user, &out.User)
 
 	ResponseJSON(w, http.StatusOK, out)
 
@@ -85,10 +75,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }

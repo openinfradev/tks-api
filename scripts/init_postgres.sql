@@ -14,3 +14,10 @@ insert into policies ( role_id, name, description, c, create_priviledge, u, upda
 
 insert into organizations ( id, name, description, created_at, updated_at ) values ( 'master', 'master', 'tks', now(), now() );
 insert into users ( id, account_id, name, password, organization_id, role_id, created_at, updated_at  ) values ( 'bf67de40-ce15-4dc0-b6c2-17f053ca504f', 'admin', 'admin', '$2a$10$Akf03nbLHk93sTtozm35XuINXkJeNX7A1T9o/Pxpg9R2B2PToBPOO', 'master', 'b2b689f0-ceeb-46c2-b280-0bc06896acd1', now(), now() );
+
+insert into cloud_settings ( id, name, description, organization_id, type, resource, created_at, updated_at ) 
+values ( 'ce9e0387-01cb-4f37-a22a-fb91b6338434', 'aws', 'aws_description', 'master', 'aws', 'result', now(), now() );
+
+insert into stack_templates ( id, organization_id, name, description, version, cloud_service, platform, template, created_at, updated_at )
+values ( '49901092-be76-4d4f-94e9-b84525f560b5', 'master', 'AWS Standard', 'included LMA over AWS', "v1", "AWS", "x86 | arm", "aws-reference", now(), now() )
+

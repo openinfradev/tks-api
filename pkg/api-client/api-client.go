@@ -15,6 +15,8 @@ type ApiClient interface {
 	Get(path string) (out interface{}, err error)
 	Post(path string, input interface{}) (out interface{}, err error)
 	Delete(path string, input interface{}) (out interface{}, err error)
+	Put(path string, input interface{}) (out interface{}, err error)
+	Patch(path string, input interface{}) (out interface{}, err error)
 }
 
 type ApiClientImpl struct {
@@ -61,11 +63,12 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 	}()
 
 	if res.StatusCode != 200 {
-		restError := httpErrors.RestError{}
+		var restError httpErrors.RestError
 		if err := json.Unmarshal(body, &restError); err != nil {
 			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
 		}
-		return restError, fmt.Errorf("Invalid http status (%d)", res.StatusCode)
+
+		return restError, fmt.Errorf("HTTP status [%d] message [%s]", res.StatusCode, restError.ErrMessage)
 	}
 
 	var resJson interface{}
@@ -82,6 +85,14 @@ func (c *ApiClientImpl) Post(path string, input interface{}) (out interface{}, e
 
 func (c *ApiClientImpl) Delete(path string, input interface{}) (out interface{}, err error) {
 	return c.callWithBody("DELETE", path, input)
+}
+
+func (c *ApiClientImpl) Put(path string, input interface{}) (out interface{}, err error) {
+	return c.callWithBody("PUT", path, input)
+}
+
+func (c *ApiClientImpl) Patch(path string, input interface{}) (out interface{}, err error) {
+	return c.callWithBody("PATCH", path, input)
 }
 
 func (c *ApiClientImpl) callWithBody(method string, path string, input interface{}) (out interface{}, err error) {
@@ -111,11 +122,11 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 	}()
 
 	if res.StatusCode != 200 {
-		restError := httpErrors.RestError{}
+		var restError httpErrors.RestError
 		if err := json.Unmarshal(body, &restError); err != nil {
 			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
 		}
-		return restError, fmt.Errorf("Invalid http status (%d)", res.StatusCode)
+		return restError, fmt.Errorf("HTTP status [%d] message [%s]", res.StatusCode, restError.ErrMessage)
 	}
 
 	var resJson interface{}

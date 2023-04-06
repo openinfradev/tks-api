@@ -1,13 +1,18 @@
 package domain
 
-import "time"
+import (
+	"time"
 
-type AppServeApp = struct {
-	ID string `json:"id,omitempty"`
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type AppServeApp struct {
+	ID string `gorm:"primarykey" json:"id,omitempty"`
 	// application name
 	Name string `json:"name,omitempty"`
 	// contract_id is a contract ID which this app belongs to
-	ContractId string `json:"contract_id,omitempty"`
+	OrganizationId string `json:"organization_id,omitempty"`
 	// type (build/deploy/all)
 	Type string `json:"type,omitempty"`
 	// app_type (spring/springboot)
@@ -21,15 +26,16 @@ type AppServeApp = struct {
 	// status is status of deployed app
 	Status string `json:"status,omitempty"`
 	// created_at is a creatioin timestamp for the application
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	CreatedAt        time.Time         `gorm:"autoCreateTime:false" json:"created_at" `
+	UpdatedAt        *time.Time        `gorm:"autoUpdateTime:false" json:"updated_at"`
+	DeletedAt        *time.Time        `json:"deleted_at"`
+	AppServeAppTasks []AppServeAppTask `gorm:"foreignKey:AppServeAppId" json:"app_serve_app_tasks"`
 }
 
-type AppServeAppTask = struct {
-	// task ID
-	ID string `json:"id,omitempty"`
+type AppServeAppTask struct {
+	ID string `gorm:"primarykey" json:"id,omitempty"`
 	// ID for appServeApp that this task belongs to.
-	AppServeAppId string `json:"app_serve_app_id,omitempty"`
+	AppServeAppId string `gorm:"not null" json:"app_serve_app_id,omitempty"`
 	// application version
 	Version string `json:"version,omitempty"`
 	// status is app status
@@ -57,67 +63,96 @@ type AppServeAppTask = struct {
 	// revision of deployed helm release
 	HelmRevision int32 `json:"helm_revision,omitempty"`
 	// deployment strategy (eg, rolling-update)
-	Strategy string `json:"strategy,omitempty"`
-	// created_at is  a creatioin timestamp for the application
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	Strategy       string `json:"strategy,omitempty"`
+	PvEnabled      bool   `json:"pv_enabled"`
+	PvStorageClass string `json:"pv_storage_class"`
+	PvAccessMode   string `json:"pv_access_mode"`
+	PvSize         string `json:"pv_size"`
+	PvMountPath    string `json:"pv_mount_path"`
+	// created_at is  a creation timestamp for the application
+	CreatedAt time.Time  `gorm:"autoCreateTime:false" json:"created_at"`
+	UpdatedAt *time.Time `gorm:"autoUpdateTime:false" json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
-type AppServeAppCombined = struct {
-	// app_serve_app represent basic ASA info.
-	AppServeApp *AppServeApp `json:"app_serve_app,omitempty"`
-	// tasks is a list of tasks that belongs to this ASA.
-	Tasks []*AppServeAppTask `json:"tasks,omitempty"`
+func (a *AppServeApp) BeforeCreate(tx *gorm.DB) (err error) {
+	a.ID = uuid.New().String()
+	return nil
 }
 
-type CreateAppServeAppRequest = struct {
+func (t *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
+	t.ID = uuid.New().String()
+	return nil
+}
+
+type CreateAppServeAppRequest struct {
+	// App
+	Name            string `json:"name" validate:"required"`
+	OrganizationId  string `json:"organization_id" validate:"required"`
+	Type            string `json:"type" validate:"oneof=build deploy all"`
+	AppType         string `json:"app_type" validate:"oneof=spring springboot"`
+	TargetClusterId string `json:"target_cluster_id" validate:"required"`
+
+	// AppType
+	Version        string `json:"version"`
+	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
+	ArtifactUrl    string `json:"artifact_url"`
+	ImageUrl       string `json:"image_url"`
+	ExecutablePath string `json:"executable_path"`
+	ResourceSpec   string `json:"resource_spec"`
+	Profile        string `json:"profile"`
+	AppConfig      string `json:"app_config"`
+	AppSecret      string `json:"app_secret"`
+	ExtraEnv       string `json:"extra_env"`
+	Port           string `json:"port"`
+	PvEnabled      bool   `json:"pv_enabled"`
+	PvStorageClass string `json:"pv_storage_class"`
+	PvAccessMode   string `json:"pv_access_mode"`
+	PvSize         string `json:"pv_size"`
+	PvMountPath    string `json:"pv_mount_path"`
+}
+
+type CreateAppServeAppResponse struct {
+	ID   string `json:"app_id"`
+	Name string `json:"app_name"`
+}
+
+type UpdateAppServeAppRequest struct {
+	// App
 	ID              string `json:"id"`
 	Name            string `json:"name"`
+	OrganizationId  string `json:"organization_id"`
 	Type            string `json:"type"`
-	Strategy        string `json:"strategy"`
 	AppType         string `json:"app_type"`
-	Version         string `json:"version"`
-	ArtifactUrl     string `json:"artifact_url"`
-	ImageUrl        string `json:"image_url"`
-	Port            string `json:"port"`
-	ContractId      string `json:"contract_id"`
-	Profile         string `json:"profile"`
-	ExtraEnv        string `json:"extra_env"`
-	AppConfig       string `json:"app_config"`
-	AppSecret       string `json:"app_secret"`
 	TargetClusterId string `json:"target_cluster_id"`
-	ExecutablePath  string `json:"executable_path"`
-	ResourceSpec    string `json:"resource_spec"`
-	PvEnabled       bool   `json:"pv_enabled"`
-	PvStorageClass  string `json:"pv_storage_class"`
-	PvAccessMode    string `json:"pv_access_mode"`
-	PvSize          string `json:"pv_size"`
-	PvMountPath     string `json:"pv_mount_path"`
+
+	// AppType
+	Version        string `json:"version"`
+	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
+	ArtifactUrl    string `json:"artifact_url"`
+	ImageUrl       string `json:"image_url"`
+	ExecutablePath string `json:"executable_path"`
+	ResourceSpec   string `json:"resource_spec"`
+	Profile        string `json:"profile"`
+	AppConfig      string `json:"app_config"`
+	AppSecret      string `json:"app_secret"`
+	ExtraEnv       string `json:"extra_env"`
+	Port           string `json:"port"`
+	PvEnabled      bool   `json:"pv_enabled"`
+	PvStorageClass string `json:"pv_storage_class"`
+	PvAccessMode   string `json:"pv_access_mode"`
+	PvSize         string `json:"pv_size"`
+	PvMountPath    string `json:"pv_mount_path"`
+
+	// Update Strategy
+	Promote bool `json:"promote"`
+	Abort   bool `json:"abort"`
 }
 
-type UpdateAppServeAppRequest = struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	Type            string `json:"type"`
-	Strategy        string `json:"strategy"`
-	AppType         string `json:"app_type"`
-	Version         string `json:"version"`
-	ArtifactUrl     string `json:"artifact_url"`
-	ImageUrl        string `json:"image_url"`
-	Port            string `json:"port"`
-	ContractId      string `json:"contract_id"`
-	Profile         string `json:"profile"`
-	ExtraEnv        string `json:"extra_env"`
-	AppConfig       string `json:"app_config"`
-	AppSecret       string `json:"app_secret"`
-	TargetClusterId string `json:"target_cluster_id"`
-	ExecutablePath  string `json:"executable_path"`
-	ResourceSpec    string `json:"resource_spec"`
-	PvEnabled       bool   `json:"pv_enabled"`
-	PvStorageClass  string `json:"pv_storage_class"`
-	PvAccessMode    string `json:"pv_access_mode"`
-	PvSize          string `json:"pv_size"`
-	PvMountPath     string `json:"pv_mount_path"`
-	Promote         bool   `json:"promote"`
-	Abort           bool   `json:"abort"`
+type GetAppServeAppsResponse struct {
+	AppServeApps []AppServeApp `json:"app_serve_apps"`
+}
+
+type GetAppServeAppResponse struct {
+	AppServeApp AppServeApp `json:"app_serve_app"`
 }

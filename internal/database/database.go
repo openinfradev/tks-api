@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 var gormDB *gorm.DB
@@ -78,6 +79,11 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// StackTemplate
+	if err := db.AutoMigrate(&repository.StackTemplate{}); err != nil {
+		return err
+	}
+
 	// Cluster
 	if err := db.AutoMigrate(&repository.Cluster{}); err != nil {
 		return err
@@ -90,10 +96,12 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&repository.Application{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.AppServeApp{}); err != nil {
+
+	// AppServe
+	if err := db.AutoMigrate(&domain.AppServeApp{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.AppServeAppTask{}); err != nil {
+	if err := db.AutoMigrate(&domain.AppServeAppTask{}); err != nil {
 		return err
 	}
 	return nil

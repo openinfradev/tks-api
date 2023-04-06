@@ -1,10 +1,8 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
-
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -13,96 +11,35 @@ import (
 
 // Interface
 type IUserRepository interface {
-	GetUser(userId uuid.UUID) (domain.User, error)
-	GetUserByAccountId(accountId string, organizationId string) (domain.User, error)
 	Create(accountId string, organizationId string, paasword string, name string) (domain.User, error)
-	FetchRoles() (out []domain.Role, err error)
-	AssignRole(accountId string, organizationId string, roleName string) error
-
-	List(...FilterFunc) (out *[]domain.User, err error)
-	AccountIdFilter(accountId string) FilterFunc
-	OrganizationFilter(organization string) FilterFunc
 	CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
 		department string, description string, orgainzationId string, roleId uuid.UUID) (domain.User, error)
+	List(...FilterFunc) (out *[]domain.User, err error)
+	Get(accountId string, organizationId string) (domain.User, error)
+	GetByUuid(userId uuid.UUID) (domain.User, error)
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
 		department string, description string) (domain.User, error)
 	DeleteWithUuid(uuid uuid.UUID) error
+	Flush(organizationId string) error
+
+	FetchRoles() (out *[]domain.Role, err error)
+	AssignRole(accountId string, organizationId string, roleName string) error
+	AccountIdFilter(accountId string) FilterFunc
+	OrganizationFilter(organization string) FilterFunc
 	AssignRoleWithUuid(uuid uuid.UUID, roleName string) error
 }
 
-type FilterFunc func(user *gorm.DB) *gorm.DB
 type UserRepository struct {
 	db *gorm.DB
 }
 
-func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
-	res := r.db.Unscoped().Delete(&User{}, "id = ?", uuid)
-
-	if res.RowsAffected == 0 || res.Error != nil {
-		return fmt.Errorf("Not found user. %s", res.Error)
+func (r *UserRepository) Flush(organizationId string) error {
+	res := r.db.Where("organization_id = ?", organizationId).Delete(&User{})
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
 	}
-
 	return nil
-}
-
-func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string, department string, description string) (domain.User, error) {
-	var user User
-	res := r.db.Model(&User{}).Where("id = ?", uuid).Updates(User{
-		AccountId:    accountId,
-		Name:         name,
-		Password:     password,
-		EmailAddress: email,
-		Department:   department,
-		Description:  description,
-	})
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.User{}, fmt.Errorf("Not found user. %s", res.Error)
-	}
-	res = r.db.Model(&User{}).Where("id = ?", uuid).Find(&user)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.User{}, fmt.Errorf("Not found user. %s", res.Error)
-	}
-	return r.reflect(user), nil
-}
-
-func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
-	return func(user *gorm.DB) *gorm.DB {
-		return user.Where("account_id = ?", accountId)
-	}
-}
-
-func (r *UserRepository) OrganizationFilter(organization string) FilterFunc {
-	return func(user *gorm.DB) *gorm.DB {
-		return user.Where("organization = ?", organization)
-	}
-}
-func (r *UserRepository) List(filters ...FilterFunc) (out *[]domain.User, err error) {
-	var users []User
-	var res *gorm.DB
-	if filters == nil {
-		res = r.db.Model(&User{}).Preload("Organizations").Preload("Roles").Find(&users)
-	} else {
-		combinedFilter := func(filters ...FilterFunc) FilterFunc {
-			return func(user *gorm.DB) *gorm.DB {
-				for _, f := range filters {
-					user = f(user)
-				}
-				return user
-			}
-		}
-		var cFunc FilterFunc
-		cFunc = combinedFilter(filters...)
-		res = cFunc(r.db.Model(&User{}).Preload("Organizations").Preload("Roles")).Find(&users)
-	}
-
-	if res.RowsAffected == 0 || res.Error != nil {
-		return nil, fmt.Errorf("Not found user. %s", res.Error)
-	}
-	for _, user := range users {
-		*out = append(*out, r.reflect(user))
-	}
-
-	return out, nil
 }
 
 func NewUserRepository(db *gorm.DB) IUserRepository {
@@ -125,13 +62,151 @@ type User struct {
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId;references:ID"`
 	Creator        uuid.UUID
-	EmailAddress   string
+	Email          string
 	Department     string
 	Description    string
 }
 
-func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
-	g.ID = uuid.New()
+//func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
+//	g.ID = uuid.New()
+//	return nil
+//}
+
+func (r *UserRepository) Create(accountId string, organizationId string, password string, name string) (domain.User, error) {
+	newUser := User{
+		AccountId:      accountId,
+		Password:       password,
+		OrganizationId: organizationId,
+		Name:           name,
+	}
+	res := r.db.Create(&newUser)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.User{}, res.Error
+	}
+
+	return r.reflect(newUser), nil
+}
+func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
+	department string, description string, organizationId string, roleId uuid.UUID) (domain.User, error) {
+
+	newUser := User{
+		ID:             uuid,
+		AccountId:      accountId,
+		Password:       password,
+		Name:           name,
+		Email:          email,
+		Department:     department,
+		Description:    description,
+		OrganizationId: organizationId,
+		RoleId:         roleId,
+	}
+	res := r.db.Create(&newUser)
+	if res.Error != nil {
+		log.Error(res.Error.Error())
+		return domain.User{}, res.Error
+	}
+	user, err := r.getUserByAccountId(accountId, organizationId)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return r.reflect(user), nil
+}
+func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("account_id = ?", accountId)
+	}
+}
+func (r *UserRepository) OrganizationFilter(organization string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("organization_id = ?", organization)
+	}
+}
+func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
+	var users []User
+	var res *gorm.DB
+	if filters == nil {
+		res = r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&users)
+	} else {
+		combinedFilter := func(filters ...FilterFunc) FilterFunc {
+			return func(user *gorm.DB) *gorm.DB {
+				for _, f := range filters {
+					user = f(user)
+				}
+				return user
+			}
+		}
+		var cFunc FilterFunc
+		cFunc = combinedFilter(filters...)
+		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
+	}
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+
+	var out []domain.User
+	for _, user := range users {
+		out = append(out, r.reflect(user))
+	}
+
+	return &out, nil
+}
+func (r *UserRepository) Get(accountId string, organizationId string) (domain.User, error) {
+	user, err := r.getUserByAccountId(accountId, organizationId)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return r.reflect(user), nil
+}
+func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err error) {
+	user := User{}
+	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
+
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.User{}, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+
+	return r.reflect(user), nil
+}
+func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string, department string, description string) (domain.User, error) {
+	var user User
+	res := r.db.Model(&User{}).Where("id = ?", uuid).Updates(User{
+		AccountId:   accountId,
+		Name:        name,
+		Password:    password,
+		Email:       email,
+		Department:  department,
+		Description: description,
+	})
+	if res.RowsAffected == 0 || res.Error != nil {
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.User{}, res.Error
+	}
+	res = r.db.Model(&User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
+	if res.Error != nil {
+		return domain.User{}, res.Error
+	}
+	return r.reflect(user), nil
+}
+func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
+	res := r.db.Unscoped().Delete(&User{}, "id = ?", uuid)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
 	return nil
 }
 
@@ -175,81 +250,15 @@ type UserRole struct {
 	Role   Role
 }
 
-// Public members
-func (r *UserRepository) GetUser(userId uuid.UUID) (respUser domain.User, err error) {
-	user := User{}
-	res := r.db.Model(&User{}).Preload("Organizations").Preload("Roles").Find(&user, "id = ?", userId)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.User{}, fmt.Errorf("Not found user. %s", res.Error)
-	}
-
-	return r.reflect(user), nil
-}
-
-func (r *UserRepository) GetUserByAccountId(accountId string, organizationId string) (domain.User, error) {
-	user, err := r.getUserByAccountId(accountId, organizationId)
-	if err != nil {
-		return domain.User{}, err
-	}
-
-	return r.reflect(user), nil
-}
-
-func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
-	department string, description string, orgainzationId string, roleId uuid.UUID) (domain.User, error) {
-	_, err := r.GetUser(uuid)
-	if err == nil {
-		return domain.User{}, fmt.Errorf("Already existed user %s", accountId)
-	}
-
-	newUser := User{
-		ID:             uuid,
-		AccountId:      accountId,
-		Password:       password,
-		Name:           name,
-		EmailAddress:   email,
-		Department:     department,
-		Description:    description,
-		OrganizationId: orgainzationId,
-		RoleId:         roleId,
-	}
-	log.Info("newuser", newUser)
-	res := r.db.Create(&newUser)
-	if res.Error != nil {
-		return domain.User{}, res.Error
-	}
-
-	return r.reflect(newUser), nil
-}
-
-func (r *UserRepository) Create(accountId string, organizationId string, password string, name string) (domain.User, error) {
-	_, err := r.GetUserByAccountId(accountId, organizationId)
-	if err == nil {
-		return domain.User{}, fmt.Errorf("Already existed user %s", accountId)
-	}
-
-	newUser := User{
-		AccountId: accountId,
-		Password:  password,
-		Name:      name,
-	}
-	res := r.db.Create(&newUser)
-	if res.Error != nil {
-		return domain.User{}, res.Error
-	}
-
-	return r.reflect(newUser), nil
-}
-
 func (r *UserRepository) AssignRoleWithUuid(uuid uuid.UUID, roleName string) error {
-	_, err := r.GetUser(uuid)
+	_, err := r.GetByUuid(uuid)
 	if err != nil {
-		return errors.Wrap(err, "Failed to get user with uuid "+uuid.String())
+		return err
 	}
 
 	role, err := r.getRoleByName(roleName)
 	if err != nil {
-		return fmt.Errorf("Failed to get role %s", roleName)
+		return err
 	}
 
 	newRole := UserRole{
@@ -258,6 +267,7 @@ func (r *UserRepository) AssignRoleWithUuid(uuid uuid.UUID, roleName string) err
 	}
 	res := r.db.Create(&newRole)
 	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -267,12 +277,12 @@ func (r *UserRepository) AssignRoleWithUuid(uuid uuid.UUID, roleName string) err
 func (r *UserRepository) AssignRole(accountId string, organizationId string, roleName string) error {
 	user, err := r.getUserByAccountId(accountId, organizationId)
 	if err != nil {
-		return fmt.Errorf("Failed to get user %s", accountId)
+		return err
 	}
 
 	role, err := r.getRoleByName(roleName)
 	if err != nil {
-		return fmt.Errorf("Failed to get role %s", roleName)
+		return err
 	}
 
 	newRole := UserRole{
@@ -281,61 +291,77 @@ func (r *UserRepository) AssignRole(accountId string, organizationId string, rol
 	}
 	res := r.db.Create(&newRole)
 	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
 	return nil
 }
 
-func (r *UserRepository) GetRoleByName(roleName string) (out domain.Role, err error) {
+func (r *UserRepository) GetRoleByName(roleName string) (domain.Role, error) {
 	role, err := r.getRoleByName(roleName)
 	if err != nil {
 		return domain.Role{}, err
 	}
-	return r.reflectRole(role), nil
+
+	var outRole domain.Role
+	outRole = r.reflectRole(role)
+
+	return outRole, nil
 }
 
-func (r *UserRepository) FetchRoles() (out []domain.Role, err error) {
+func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
 	var roles []Role
 	res := r.db.Find(&roles)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return nil, fmt.Errorf("No role")
+
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return nil, res.Error
 	}
 
+	if res.RowsAffected == 0 {
+		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+
+	var out []domain.Role
 	for _, role := range roles {
 		outRole := r.reflectRole(role)
 		out = append(out, outRole)
 	}
-	return
+
+	return &out, nil
 }
 
 // private members
 func (r *UserRepository) getUserByAccountId(accountId string, organizationId string) (User, error) {
 	user := User{}
-	log.Info("account_id = ? AND organization_id = ?", accountId, organizationId)
 	res := r.db.Model(&User{}).Preload("Organization").Preload("Role").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return User{}, fmt.Errorf("Not found user. %s", res.Error)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return User{}, res.Error
 	}
-
-	////FixMe: organization_id have to include in query instead of filtering
-	//for _, user := range users {
-	//	if user.Organization.ID == organizationId {
-	//		return user, nil
-	//	}
-	//}
+	if res.RowsAffected == 0 {
+		return User{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
 
 	return user, nil
 }
 
-func (r *UserRepository) getRoleByName(roleName string) (out Role, err error) {
+func (r *UserRepository) getRoleByName(roleName string) (Role, error) {
 	role := Role{}
 	res := r.db.First(&role, "name = ?", roleName)
-	if res.RowsAffected == 0 || res.Error != nil {
-		log.Info(res.Error)
-		return Role{}, fmt.Errorf("Not found role for %s", roleName)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return Role{}, res.Error
 	}
+	if res.RowsAffected == 0 {
+		return Role{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+
+	//if res.RowsAffected == 0 {
+	//	return Role{}, nil
+	//}
 
 	return role, nil
 }
@@ -362,12 +388,15 @@ func (r *UserRepository) reflect(user User) domain.User {
 	//}
 
 	organization := domain.Organization{
-		ID:          user.Organization.ID,
-		Name:        user.Organization.Name,
-		Description: user.Organization.Description,
-		Creator:     user.Organization.Creator.String(),
-		CreatedAt:   user.Organization.CreatedAt,
-		UpdatedAt:   user.Organization.UpdatedAt,
+		ID:                user.Organization.ID,
+		Name:              user.Organization.Name,
+		Description:       user.Organization.Description,
+		Phone:             user.Organization.Phone,
+		Status:            user.Organization.Status,
+		StatusDescription: user.Organization.StatusDesc,
+		Creator:           user.Organization.Creator.String(),
+		CreatedAt:         user.Organization.CreatedAt,
+		UpdatedAt:         user.Organization.UpdatedAt,
 	}
 	//for _, organization := range user.Organizations {
 	//	outOrganization := domain.Organization{
@@ -391,6 +420,9 @@ func (r *UserRepository) reflect(user User) domain.User {
 		Creator:      user.Creator.String(),
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
+		Email:        user.Email,
+		Department:   user.Department,
+		Description:  user.Description,
 	}
 }
 

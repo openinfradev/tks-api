@@ -1,23 +1,22 @@
 package repository
 
 import (
-	"fmt"
+	"github.com/openinfradev/tks-api/pkg/log"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 // Interfaces
 type IOrganizationRepository interface {
-	Fetch() (res []domain.Organization, err error)
+	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (domain.Organization, error)
+	Fetch() (res *[]domain.Organization, err error)
 	Get(organizationId string) (res domain.Organization, err error)
-	Create(name string, creator uuid.UUID, description string) (string, error)
+	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
 	Delete(organizationId string) (err error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (err error)
-	InitWorkflow(organizationId string, workflowId string) error
+	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
 
 type OrganizationRepository struct {
@@ -34,94 +33,121 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 type Organization struct {
 	gorm.Model
 
-	ID          string `gorm:"primarykey;type:varchar(36);not null"`
-	Name        string
-	Description string
-	PhoneNumber string
-	WorkflowId  string
-	Status      domain.OrganizationStatus
-	StatusDesc  string
-	Creator     uuid.UUID
+	ID               string `gorm:"primarykey;type:varchar(36);not null"`
+	Name             string
+	Description      string
+	Phone            string
+	WorkflowId       string
+	Status           domain.OrganizationStatus
+	StatusDesc       string
+	Creator          uuid.UUID
+	PrimaryClusterId string // allow null
 }
 
-func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = helper.GenerateOrganizationId()
-	return nil
+//func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+//	c.ID = helper.GenerateOrganizationId()
+//	return nil
+//}
+
+func (r *OrganizationRepository) Create(organizationId string, name string, creator uuid.UUID, phone string,
+	description string) (domain.Organization, error) {
+	organization := Organization{
+		ID:          organizationId,
+		Name:        name,
+		Creator:     creator,
+		Phone:       phone,
+		Description: description,
+		Status:      domain.OrganizationStatus_PENDING,
+	}
+	res := r.db.Create(&organization)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
+	}
+
+	return r.reflect(organization), nil
 }
 
-// Logics
-func (r *OrganizationRepository) Fetch() (out []domain.Organization, err error) {
+func (r *OrganizationRepository) Fetch() (*[]domain.Organization, error) {
 	var organizations []Organization
-	out = []domain.Organization{}
+	var out []domain.Organization
 
 	res := r.db.Find(&organizations)
 	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	for _, organization := range organizations {
 		outOrganization := r.reflect(organization)
 		out = append(out, outOrganization)
 	}
-	return out, nil
+	return &out, nil
 }
 
 func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 	var organization Organization
 	res := r.db.First(&organization, "id = ?", id)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.Organization{}, fmt.Errorf("Not found organization for %s", id)
-	}
-	resOrganization := r.reflect(organization)
-	return resOrganization, nil
-}
-
-func (r *OrganizationRepository) Create(name string, creator uuid.UUID, description string) (string, error) {
-	organization := Organization{Name: name, Creator: creator, Description: description}
-	res := r.db.Create(&organization)
 	if res.Error != nil {
-		return "", res.Error
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
 	}
-	return organization.ID, nil
+
+	return r.reflect(organization), nil
 }
 
-func (r *OrganizationRepository) Delete(organizationId string) (err error) {
-	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
-	if res.Error != nil {
-		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
-	}
-	return nil
-}
-
-func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (err error) {
+func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
+	var organization Organization
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
-		Updates(map[string]interface{}{"Description": in.Description, "PhoneNumber": in.PhoneNumber})
+		Updates(Organization{
+			Description:      in.Description,
+			Phone:            in.Phone,
+			PrimaryClusterId: in.PrimaryClusterId,
+		})
 	if res.Error != nil {
-		return fmt.Errorf("could not delete organization for organizationId %s", organizationId)
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
 	}
+	res = r.db.Model(&Organization{}).Where("id = ?", organizationId).Find(&organization)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return domain.Organization{}, res.Error
+	}
+
+	return r.reflect(organization), nil
+}
+
+func (r *OrganizationRepository) Delete(organizationId string) error {
+	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+
 	return nil
 }
 
-func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string) error {
+func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error {
 	res := r.db.Model(&Organization{}).
 		Where("ID = ?", organizationId).
-		Updates(map[string]interface{}{"Status": domain.OrganizationStatus_PENDING, "WorkflowId": workflowId})
-
-	if res.Error != nil || res.RowsAffected == 0 {
-		return fmt.Errorf("nothing updated in organization with id %s", organizationId)
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
 	}
 	return nil
 }
 
 func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {
 	return domain.Organization{
-		ID:          organization.ID,
-		Name:        organization.Name,
-		Description: organization.Description,
-		PhoneNumber: organization.PhoneNumber,
-		Status:      organization.Status.String(),
-		Creator:     organization.Creator.String(),
-		CreatedAt:   organization.CreatedAt,
-		UpdatedAt:   organization.UpdatedAt,
+		ID:               organization.ID,
+		Name:             organization.Name,
+		Description:      organization.Description,
+		Phone:            organization.Phone,
+		PrimaryClusterId: organization.PrimaryClusterId,
+		Status:           organization.Status,
+		Creator:          organization.Creator.String(),
+		CreatedAt:        organization.CreatedAt,
+		UpdatedAt:        organization.UpdatedAt,
 	}
 }

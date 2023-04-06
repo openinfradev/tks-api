@@ -10,12 +10,16 @@ import (
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
+	"net/http"
 )
 
 type IUserUsecase interface {
 	CreateAdmin(organizationId string) (*domain.User, error)
 	DeleteAdmin(organizationId string) error
+	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
 	List(ctx context.Context) (*[]domain.User, error)
 	GetByAccountId(ctx context.Context, accountId string) (*domain.User, error)
@@ -27,6 +31,18 @@ type IUserUsecase interface {
 type UserUsecase struct {
 	repo repository.IUserRepository
 	kc   keycloak.IKeycloak
+}
+
+func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) error {
+	// TODO: implement me as transaction
+	// TODO: clean users in keycloak
+
+	err := u.repo.Flush(organizationId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserUsecase) DeleteAdmin(organizationId string) error {
@@ -75,19 +91,6 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 		Name: "admin",
 	}
 
-	keycloakUser, err := u.kc.GetUser(orgainzationId, user.AccountId, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "getting user from keycloak failed")
-	}
-	if keycloakUser != nil {
-		return nil, errors.Wrap(err, "already existed user in keycloak")
-	}
-
-	_, err = u.repo.GetUserByAccountId(user.AccountId, orgainzationId)
-	if err == nil {
-		return nil, errors.Wrap(err, "already existed user"+user.AccountId)
-	}
-
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, orgainzationId)}
 	err = u.kc.CreateUser(orgainzationId, &gocloak.User{
@@ -104,7 +107,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
 	}
-	keycloakUser, err = u.kc.GetUser(user.Organization.ID, user.AccountId, token)
+	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting user from keycloak failed")
 	}
@@ -123,7 +126,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, role := range roles {
+	for _, role := range *roles {
 		if role.Name == user.Role.Name {
 			user.Role.ID = role.ID
 		}
@@ -132,16 +135,11 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
 	}
-
-	//err = u.repo.AssignRole(user.AccountId, user.Organization.ID, user.Role.Name)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	return &resUser, nil
 }
@@ -158,21 +156,27 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return fmt.Errorf("user in the context is empty")
 	}
 
-	originUser, err := u.kc.GetUser(userInfo.GetOrganization(), accountId, token)
+	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId, token)
 	if err != nil {
 		return errors.Wrap(err, "getting user from keycloak failed")
 	}
 
-	(*originUser.Credentials)[0].Value = gocloak.StringP(newPassword)
+	originUser.Credentials = &[]gocloak.CredentialRepresentation{
+		{
+			Type:      gocloak.StringP("password"),
+			Value:     gocloak.StringP(newPassword),
+			Temporary: gocloak.BoolP(false),
+		},
+	}
 
-	err = u.kc.UpdateUser(userInfo.GetOrganization(), originUser, token)
+	err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser, token)
 	if err != nil {
 		return errors.Wrap(err, "updating user in keycloak failed")
 	}
 
 	// update password in DB
 
-	user, err := u.repo.GetUserByAccountId(accountId, userInfo.GetOrganization())
+	user, err := u.repo.Get(accountId, userInfo.GetOrganizationId())
 	if err != nil {
 		return errors.Wrap(err, "getting user from repository failed")
 	}
@@ -185,7 +189,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	_, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+	_, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
@@ -200,9 +204,9 @@ func (u *UserUsecase) List(ctx context.Context) (*[]domain.User, error) {
 		return nil, fmt.Errorf("user in the context is empty")
 	}
 
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganization()))
+	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()))
 	if err != nil {
-		return nil, errors.Wrap(err, "getting users from repository failed")
+		return nil, err
 	}
 
 	return users, nil
@@ -214,15 +218,10 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string) (*do
 		return nil, fmt.Errorf("user in the context is empty")
 	}
 
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganization()),
+	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
-		return nil, errors.Wrap(err, "getting users from repository failed")
-	}
-	if len(*users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	} else if len(*users) > 1 {
-		return nil, fmt.Errorf("multiple users found")
+		return nil, err
 	}
 
 	return &(*users)[0], nil
@@ -233,10 +232,17 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if ok == false {
 		return nil, fmt.Errorf("user in the context is empty")
 	}
+	token, ok := request.TokenFrom(ctx)
+	if ok == false {
+		return nil, fmt.Errorf("token in the context is empty")
+	}
 
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganization()),
+	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+		}
 		return nil, errors.Wrap(err, "getting users from repository failed")
 	}
 	if len(*users) == 0 {
@@ -245,14 +251,25 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, fmt.Errorf("multiple users found")
 	}
 
-	uuid, err := uuid.Parse((*users)[0].ID)
+	if user.Role.Name != (*users)[0].Role.Name {
+		groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())}
+		if err := u.kc.UpdateUser(userInfo.GetOrganizationId(), &gocloak.User{
+			ID:     &(*users)[0].ID,
+			Groups: &groups,
+		}, token); err != nil {
+			log.Errorf("updating user in keycloak failed: %v", err)
+			return nil, httpErrors.NewInternalServerError(err)
+		}
+	}
+
+	userUuid, err := uuid.Parse((*users)[0].ID)
 	if err != nil {
 		return nil, err
 	}
 
 	originPassword := (*users)[0].Password
 
-	*user, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, originPassword, user.EmailAddress,
+	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -267,24 +284,18 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) e
 		return fmt.Errorf("user in the context is empty")
 	}
 
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganization()),
-		u.repo.AccountIdFilter(accountId))
+	user, err := u.repo.Get(accountId, userInfo.GetOrganizationId())
 	if err != nil {
-		return errors.Wrap(err, "getting users from repository failed")
-	}
-	if len(*users) == 0 {
-		return fmt.Errorf("user not found")
-	} else if len(*users) > 1 {
-		return fmt.Errorf("multiple users found")
+		return err
 	}
 
-	uuid, err := uuid.Parse((*users)[0].ID)
+	uuid, err := uuid.Parse(user.ID)
 	if err != nil {
 		return err
 	}
 	err = u.repo.DeleteWithUuid(uuid)
 	if err != nil {
-		return errors.Wrap(err, "deleting user in repository failed")
+		return err
 	}
 
 	// Delete user in keycloak
@@ -292,9 +303,9 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) e
 	if ok == false {
 		return fmt.Errorf("token in the context is empty")
 	}
-	err = u.kc.DeleteUser(userInfo.GetOrganization(), accountId, token)
+	err = u.kc.DeleteUser(userInfo.GetOrganizationId(), accountId, token)
 	if err != nil {
-		return errors.Wrap(err, "deleting user in keycloak failed")
+		return err
 	}
 
 	return nil
@@ -307,21 +318,10 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	if ok == false {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
-	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "getting user from keycloak failed")
-	}
-	if keycloakUser != nil {
-		return nil, errors.Wrap(err, "already existed user in keycloak")
-	}
-	_, err = u.repo.GetUserByAccountId(user.AccountId, user.Organization.ID)
-	if err == nil {
-		return nil, errors.Wrap(err, "already existed user"+user.AccountId)
-	}
 
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}
-	err = u.kc.CreateUser(user.Organization.ID, &gocloak.User{
+	err := u.kc.CreateUser(user.Organization.ID, &gocloak.User{
 		Username: gocloak.StringP(user.AccountId),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
@@ -333,9 +333,13 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		Groups: &groups,
 	}, token)
 	if err != nil {
+		if _, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token); err == nil {
+			return nil, httpErrors.NewConflictError(errors.New("user already exists"))
+		}
+
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
 	}
-	keycloakUser, err = u.kc.GetUser(user.Organization.ID, user.AccountId, token)
+	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting user from keycloak failed")
 	}
@@ -354,7 +358,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	if err != nil {
 		return nil, err
 	}
-	for _, role := range roles {
+	for _, role := range *roles {
 		if role.Name == user.Role.Name {
 			user.Role.ID = role.ID
 		}
@@ -364,16 +368,11 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		return nil, err
 	}
 
-	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.EmailAddress,
+	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
 	}
-
-	//err = u.repo.AssignRole(user.AccountId, userInfo.GetOrganization(), user.Role.Name)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	return &resUser, nil
 }
