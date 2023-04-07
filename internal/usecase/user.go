@@ -196,6 +196,9 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		}
 	}
 	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return err
+	}
 
 	_, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, roleUuid, user.Email,
 		user.Department, user.Description)
@@ -277,6 +280,9 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		}
 	}
 	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
 		user.Department, user.Description)
