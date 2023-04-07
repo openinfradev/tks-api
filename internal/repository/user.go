@@ -17,7 +17,7 @@ type IUserRepository interface {
 	List(...FilterFunc) (out *[]domain.User, err error)
 	Get(accountId string, organizationId string) (domain.User, error)
 	GetByUuid(userId uuid.UUID) (domain.User, error)
-	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
+	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID, email string,
 		department string, description string) (domain.User, error)
 	DeleteWithUuid(uuid uuid.UUID) error
 	Flush(organizationId string) error
@@ -177,7 +177,8 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 
 	return r.reflect(user), nil
 }
-func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string, department string, description string) (domain.User, error) {
+func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID,
+	email string, department string, description string) (domain.User, error) {
 	var user User
 	res := r.db.Model(&User{}).Where("id = ?", uuid).Updates(User{
 		AccountId:   accountId,
@@ -186,6 +187,7 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 		Email:       email,
 		Department:  department,
 		Description: description,
+		RoleId:      roleId,
 	})
 	if res.RowsAffected == 0 || res.Error != nil {
 		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
