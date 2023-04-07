@@ -149,7 +149,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	organizationId string) error {
 
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("token in the context is empty")
 	}
 
