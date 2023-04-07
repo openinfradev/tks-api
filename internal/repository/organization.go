@@ -100,6 +100,7 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
 		Updates(Organization{
+			Name:             in.Name,
 			Description:      in.Description,
 			Phone:            in.Phone,
 			PrimaryClusterId: in.PrimaryClusterId,

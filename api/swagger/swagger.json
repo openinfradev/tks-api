@@ -1064,6 +1064,321 @@
                 }
             }
         },
+        "/organizations/{organizationId}/users": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get user list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.ListUserBody"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "create user request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "create user response",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateUserResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/users/{accountId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get user detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetUserResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update user request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/users/{accountId}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "return true when accountId exists",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user id existence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/users/{accountId}/password": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user password detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user password detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update user password request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdatePasswordResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/stack-templates": {
             "get": {
                 "security": [
@@ -1231,271 +1546,6 @@
                     }
                 }
             }
-        },
-        "/users": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get user list",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get user list",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/domain.ListUserBody"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Create user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Create user",
-                "parameters": [
-                    {
-                        "description": "create user request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.CreateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "create user response",
-                        "schema": {
-                            "$ref": "#/definitions/domain.CreateUserResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get user detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get user detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "userId",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.GetUserResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update user detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update user detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "userId",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update user request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update user password detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update user password detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "userId",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "409": {
-                        "description": "Conflict"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Delete user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Delete user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "userId",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.User"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userId}/password": {
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update user password detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update user password detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "userId",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update user password request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -1503,7 +1553,7 @@
             "type": "object",
             "properties": {
                 "appGroupType": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.AppGroupType"
                 },
                 "clusterId": {
                     "type": "string"
@@ -1524,7 +1574,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.AppGroupStatus"
                 },
                 "statusDescription": {
                     "type": "string"
@@ -1539,6 +1589,38 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.AppGroupStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "AppGroupStatus_PENDING",
+                "AppGroupStatus_INSTALLING",
+                "AppGroupStatus_RUNNING",
+                "AppGroupStatus_DELETING",
+                "AppGroupStatus_DELETED",
+                "AppGroupStatus_ERROR"
+            ]
+        },
+        "domain.AppGroupType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "AppGroupType_UNSPECIFIED",
+                "AppGroupType_LMA",
+                "AppGroupType_SERVICE_MESH"
+            ]
         },
         "domain.AppServeApp": {
             "type": "object",
@@ -1696,7 +1778,7 @@
                     "type": "string"
                 },
                 "applicationType": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.ApplicationType"
                 },
                 "createdAt": {
                     "type": "string"
@@ -1714,6 +1796,35 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.ApplicationType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "x-enum-varnames": [
+                "ApplicationType_UNSPECIFIED",
+                "ApplicationType_THANOS",
+                "ApplicationType_PROMETHEUS",
+                "ApplicationType_GRAFANA",
+                "ApplicationType_KIALI",
+                "ApplicationType_KIBANA",
+                "ApplicationType_ELASTICSERCH",
+                "ApplicationType_CLOUD_CONSOLE",
+                "ApplicationType_HORIZON",
+                "ApplicationType_JAEGER",
+                "ApplicationType_KUBERNETES_DASHBOARD"
+            ]
         },
         "domain.CloudSetting": {
             "type": "object",
@@ -1831,7 +1942,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.ClusterStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -1942,6 +2053,25 @@
                     "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
+        },
+        "domain.ClusterStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "ClusterStatus_PENDING",
+                "ClusterStatus_INSTALLING",
+                "ClusterStatus_RUNNING",
+                "ClusterStatus_DELETING",
+                "ClusterStatus_DELETED",
+                "ClusterStatus_ERROR"
+            ]
         },
         "domain.CreateAppGroupRequest": {
             "type": "object",
@@ -2391,7 +2521,7 @@
                             "type": "string"
                         },
                         "status": {
-                            "type": "integer"
+                            "$ref": "#/definitions/domain.OrganizationStatus"
                         },
                         "statusDescription": {
                             "type": "string"
@@ -2507,7 +2637,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.OrganizationStatus"
                 }
             }
         },
@@ -2618,7 +2748,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.OrganizationStatus"
                 },
                 "statusDescription": {
                     "type": "string"
@@ -2627,6 +2757,29 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.OrganizationStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "OrganizationStatus_PENDING",
+                "OrganizationStatus_CREATE",
+                "OrganizationStatus_CREATING",
+                "OrganizationStatus_CREATED",
+                "OrganizationStatus_DELETE",
+                "OrganizationStatus_DELETING",
+                "OrganizationStatus_DELETED",
+                "OrganizationStatus_ERROR"
+            ]
         },
         "domain.Role": {
             "type": "object",
@@ -2818,11 +2971,19 @@
         },
         "domain.UpdateOrganizationRequest": {
             "type": "object",
+            "required": [
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 0
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 3
                 },
                 "phone": {
                     "type": "string"
@@ -2839,6 +3000,9 @@
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "phone": {
