@@ -18,6 +18,7 @@ type StackTemplate struct {
 	Platform       string
 	KubeVersion    string
 	KubeType       string
+	Services       []byte
 	CreatorId      uuid.UUID
 	Creator        User
 	UpdatorId      uuid.UUID
