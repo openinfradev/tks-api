@@ -242,7 +242,7 @@ func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.
 // @Produce json
 // @Param name path string true "name"
 // @Success 200 {object} nil
-// @Router /cloud-settings/name/{name}/existance [GET]
+// @Router /cloud-settings/name/{name}/existence [GET]
 // @Security     JWT
 func (h *CloudSettingHandler) CheckCloudSettingName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
