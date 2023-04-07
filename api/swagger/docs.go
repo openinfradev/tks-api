@@ -559,7 +559,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/cloud-settings/name/{name}": {
+        "/cloud-settings/name/{name}/existance": {
             "get": {
                 "security": [
                     {

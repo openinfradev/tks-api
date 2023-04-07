@@ -1415,7 +1415,7 @@ paths:
       summary: Update CloudSetting
       tags:
       - CloudSettings
-  /cloud-settings/name/{name}:
+  /cloud-settings/name/{name}/existance:
     get:
       consumes:
       - application/json
