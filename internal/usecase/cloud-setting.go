@@ -11,10 +11,13 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type ICloudSettingUsecase interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
+	GetByName(organizationId string, name string) (domain.CloudSetting, error)
 	Fetch(organizationId string) ([]domain.CloudSetting, error)
 	Create(ctx context.Context, dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.CloudSetting) error
@@ -93,6 +96,17 @@ func (u *CloudSettingUsecase) Get(cloudSettingId uuid.UUID) (res domain.CloudSet
 
 	res.Clusters = u.getClusterCnt(cloudSettingId)
 
+	return
+}
+
+func (u *CloudSettingUsecase) GetByName(organizationId string, name string) (res domain.CloudSetting, err error) {
+	res, err = u.repo.GetByName(organizationId, name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.CloudSetting{}, httpErrors.NewNotFoundError(err)
+		}
+		return domain.CloudSetting{}, err
+	}
 	return
 }
 

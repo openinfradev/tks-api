@@ -11,6 +11,7 @@ import (
 // Interfaces
 type ICloudSettingRepository interface {
 	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
+	GetByName(organizationId string, name string) (domain.CloudSetting, error)
 	Fetch(organizationId string) ([]domain.CloudSetting, error)
 	Create(dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error)
 	Update(dto domain.CloudSetting) (err error)
@@ -53,6 +54,17 @@ func (c *CloudSetting) BeforeCreate(tx *gorm.DB) (err error) {
 func (r *CloudSettingRepository) Get(cloudSettingId uuid.UUID) (out domain.CloudSetting, err error) {
 	var cloudSetting CloudSetting
 	res := r.db.Preload(clause.Associations).First(&cloudSetting, "id = ?", cloudSettingId)
+	if res.Error != nil {
+		return domain.CloudSetting{}, res.Error
+	}
+	out = reflectCloudSetting(cloudSetting)
+	return
+}
+
+func (r *CloudSettingRepository) GetByName(organizationId string, name string) (out domain.CloudSetting, err error) {
+	var cloudSetting CloudSetting
+	res := r.db.Preload(clause.Associations).First(&cloudSetting, "organization_id = ? AND name = ?", organizationId, name)
+
 	if res.Error != nil {
 		return domain.CloudSetting{}, res.Error
 	}

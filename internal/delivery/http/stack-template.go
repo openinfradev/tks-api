@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -48,13 +47,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 // @Router /stack-templates [get]
 // @Security     JWT
 func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.Request) {
-	user, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
-		return
-	}
-
-	stackTemplates, err := h.usecase.Fetch(user.GetOrganizationId())
+	stackTemplates, err := h.usecase.Fetch()
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -122,12 +115,32 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 // @Router /stack-templates/{stackTemplateId} [put]
 // @Security     JWT
 func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	_, ok := vars["stackTemplateId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
-		return
-	}
+	/*
+		vars := mux.Vars(r)
+		strId, ok := vars["stackTemplateId"]
+		if !ok {
+			ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
+			return
+		}
+
+		stackTemplateId, err := uuid.Parse(strId)
+		if err != nil {
+			ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
+			return
+		}
+
+		var dto domain.StackTemplate
+		if err := domain.Map(r, &dto); err != nil {
+			log.Info(err)
+		}
+		dto.ID = stackTemplateId
+
+		err = h.usecase.Update(r.Context(), dto)
+		if err != nil {
+			ErrorJSON(w, err)
+			return
+		}
+	*/
 
 	ErrorJSON(w, fmt.Errorf("Need implentation"))
 }

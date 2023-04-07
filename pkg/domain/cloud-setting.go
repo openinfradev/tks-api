@@ -73,3 +73,7 @@ type DeleteCloudSettingRequest struct {
 	SecretKeyId string `json:"secretKeyId" validate:"required"`
 	SecretKey   string `json:"secretKey" validate:"required"`
 }
+
+type CheckCloudSettingNameResponse struct {
+	Existed bool `json:"existed"`
+}

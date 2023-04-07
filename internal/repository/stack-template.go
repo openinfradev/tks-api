@@ -11,7 +11,7 @@ import (
 // Interfaces
 type IStackTemplateRepository interface {
 	Get(stackTemplateId uuid.UUID) (domain.StackTemplate, error)
-	Fetch(organizationId string) ([]domain.StackTemplate, error)
+	Fetch() ([]domain.StackTemplate, error)
 	Create(dto domain.StackTemplate) (stackTemplateId uuid.UUID, err error)
 	Update(dto domain.StackTemplate) (err error)
 	Delete(dto domain.StackTemplate) (err error)
@@ -62,9 +62,10 @@ func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out domain.Sta
 	return
 }
 
-func (r *StackTemplateRepository) Fetch(organizationId string) (out []domain.StackTemplate, err error) {
+// [TODO] organizationId 별로 생성하지 않고, 하나의 stackTemplate 을 모든 organization 에서 재사용한다. ( 5월 한정, 추후 rearchitecture 필요)
+func (r *StackTemplateRepository) Fetch() (out []domain.StackTemplate, err error) {
 	var stackTemplates []StackTemplate
-	res := r.db.Preload(clause.Associations).Find(&stackTemplates, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Find(&stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}
