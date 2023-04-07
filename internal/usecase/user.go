@@ -231,7 +231,7 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, orga
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user in the context is empty")
+		return nil, fmt.Errorf("user in the context is  empty")
 	}
 	token, ok := request.TokenFrom(ctx)
 	if !ok {
