@@ -2770,11 +2770,23 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "kubeType": {
+                    "type": "string"
+                },
+                "kubeVersion": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
                 "platform": {
                     "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                    }
                 },
                 "template": {
                     "type": "string"
@@ -2786,6 +2798,34 @@ const docTemplate = `{
                     "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.StackTemplateServiceApplicationResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.StackTemplateServiceResponse": {
+            "type": "object",
+            "properties": {
+                "applications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateServiceApplicationResponse"
+                    }
+                },
+                "type": {
                     "type": "string"
                 }
             }

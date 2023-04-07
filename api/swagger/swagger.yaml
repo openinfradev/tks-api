@@ -792,10 +792,18 @@ definitions:
         type: string
       id:
         type: string
+      kubeType:
+        type: string
+      kubeVersion:
+        type: string
       name:
         type: string
       platform:
         type: string
+      services:
+        items:
+          $ref: '#/definitions/domain.StackTemplateServiceResponse'
+        type: array
       template:
         type: string
       updatedAt:
@@ -803,6 +811,24 @@ definitions:
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
       version:
+        type: string
+    type: object
+  domain.StackTemplateServiceApplicationResponse:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+    type: object
+  domain.StackTemplateServiceResponse:
+    properties:
+      applications:
+        items:
+          $ref: '#/definitions/domain.StackTemplateServiceApplicationResponse'
+        type: array
+      type:
         type: string
     type: object
   domain.UpdateAppServeAppRequest:

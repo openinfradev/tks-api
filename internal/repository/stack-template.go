@@ -36,10 +36,12 @@ type StackTemplate struct {
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
 	Name           string
 	Description    string
+	Template       string
 	Version        string
 	CloudService   string
 	Platform       string
-	Template       string
+	KubeVersion    string
+	KubeType       string
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -119,9 +121,12 @@ func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
 		OrganizationId: stackTemplate.OrganizationId,
 		Name:           stackTemplate.Name,
 		Description:    stackTemplate.Description,
+		Template:       stackTemplate.Template,
 		CloudService:   stackTemplate.CloudService,
 		Platform:       stackTemplate.Platform,
 		Version:        stackTemplate.Version,
+		KubeVersion:    stackTemplate.KubeVersion,
+		KubeType:       stackTemplate.KubeType,
 		Creator:        reflectUser(stackTemplate.Creator),
 		Updator:        reflectUser(stackTemplate.Updator),
 		CreatedAt:      stackTemplate.CreatedAt,
