@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -42,6 +43,7 @@ type StackTemplate struct {
 	Platform       string
 	KubeVersion    string
 	KubeType       string
+	Services       datatypes.JSON
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -116,6 +118,7 @@ func (r *StackTemplateRepository) Delete(dto domain.StackTemplate) (err error) {
 }
 
 func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
+	// hardcoded sample json : [{"type":"LMA","applications":[{"name":"Logging","description":"Logging 설명","version":"v1"},{"name":"Monitoring","description":"Monitoring 설명","version":"v1"},{"name":"Grafana","description":"Grafana 설명","version":"v1"}]},{"type":"SERVICE_MESH","applications":[{"name":"Istio","description":"Istio 설명","version":"v1"},{"name":"Jaeger","description":"Jaeger 설명","version":"v1"}]}]
 	return domain.StackTemplate{
 		ID:             stackTemplate.ID,
 		OrganizationId: stackTemplate.OrganizationId,
@@ -127,6 +130,7 @@ func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
 		Version:        stackTemplate.Version,
 		KubeVersion:    stackTemplate.KubeVersion,
 		KubeType:       stackTemplate.KubeType,
+		Services:       stackTemplate.Services,
 		Creator:        reflectUser(stackTemplate.Creator),
 		Updator:        reflectUser(stackTemplate.Updator),
 		CreatedAt:      stackTemplate.CreatedAt,
