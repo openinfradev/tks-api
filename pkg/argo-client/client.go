@@ -46,7 +46,7 @@ func New(host string, port int, ssl bool, token string) (ArgoClient, error) {
 }
 
 func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTemplatesResponse, error) {
-	res, err := http.Get(fmt.Sprintf("%s/api/v1/workflow-templates/%s", c.url, namespace))
+	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflow-templates/%s", c.url, namespace))
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTem
 }
 
 func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Workflow, error) {
-	res, err := http.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s", c.url, namespace, workflowName))
+	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s", c.url, namespace, workflowName))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Wo
 }
 
 func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, error) {
-	res, err := http.Get(fmt.Sprintf("%s/api/v1/workflows/%s", c.url, namespace))
+	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s", c.url, namespace))
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOp
 	}
 	buff := bytes.NewBuffer(reqBodyBytes)
 
-	res, err := http.Post(fmt.Sprintf("%s/api/v1/workflows/argo/submit", c.url), "application/json", buff)
+	res, err := c.client.Post(fmt.Sprintf("%s/api/v1/workflows/argo/submit", c.url), "application/json", buff)
 	if err != nil {
 		return "", err
 	}
