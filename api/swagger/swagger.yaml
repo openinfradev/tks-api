@@ -454,6 +454,32 @@ definitions:
     required:
     - name
     type: object
+  domain.CreateStackRequest:
+    properties:
+      cloudSettingId:
+        type: string
+      description:
+        type: string
+      machineReplicas:
+        type: integer
+      machineType:
+        type: string
+      name:
+        type: string
+      numOfAz:
+        type: integer
+      organizationId:
+        type: string
+      region:
+        type: string
+      stackTemplateId:
+        type: string
+    type: object
+  domain.CreateStackResponse:
+    properties:
+      id:
+        type: string
+    type: object
   domain.CreateStackTemplateRequest:
     properties:
       cloudService:
@@ -545,6 +571,11 @@ definitions:
     - secretKey
     - secretKeyId
     type: object
+  domain.DeleteStackRequest:
+    properties:
+      id:
+        type: string
+    type: object
   domain.GetAppGroupResponse:
     properties:
       appGroup:
@@ -609,6 +640,11 @@ definitions:
             type: string
         type: object
     type: object
+  domain.GetStackResponse:
+    properties:
+      stack:
+        $ref: '#/definitions/domain.StackResponse'
+    type: object
   domain.GetStackTemplateResponse:
     properties:
       stackTemplate:
@@ -619,6 +655,13 @@ definitions:
       stackTemplates:
         items:
           $ref: '#/definitions/domain.StackTemplateResponse'
+        type: array
+    type: object
+  domain.GetStacksResponse:
+    properties:
+      stacks:
+        items:
+          $ref: '#/definitions/domain.StackResponse'
         type: array
     type: object
   domain.GetUserResponse:
@@ -779,6 +822,33 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  domain.StackResponse:
+    properties:
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSettingResponse'
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplateResponse'
+      status:
+        type: string
+      statusDesc:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
   domain.StackTemplateResponse:
     properties:
@@ -945,6 +1015,11 @@ definitions:
   domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
+        type: string
+    type: object
+  domain.UpdateStackRequest:
+    properties:
+      id:
         type: string
     type: object
   domain.UpdateStackTemplateRequest:
@@ -2016,6 +2091,142 @@ paths:
       summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
+  /stacks:
+    get:
+      consumes:
+      - application/json
+      description: Get Stacks
+      parameters:
+      - description: show all organizations
+        in: query
+        name: all
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStacksResponse'
+      security:
+      - JWT: []
+      summary: Get Stacks
+      tags:
+      - Stacks
+    post:
+      consumes:
+      - application/json
+      description: Create Stack
+      parameters:
+      - description: create cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateStackResponse'
+      security:
+      - JWT: []
+      summary: Create Stack
+      tags:
+      - Stacks
+  /stacks/{stackId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Stack
+      parameters:
+      - description: Delete cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteStackRequest'
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Stack
+      tags:
+      - Stacks
+    get:
+      consumes:
+      - application/json
+      description: Get Stack
+      parameters:
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackResponse'
+      security:
+      - JWT: []
+      summary: Get Stack
+      tags:
+      - Stacks
+    put:
+      consumes:
+      - application/json
+      description: Update Stack
+      parameters:
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Stack
+      tags:
+      - Stacks
+  /stacks/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for stack
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Check name for stack
+      tags:
+      - Stacks
 securityDefinitions:
   JWT:
     in: header

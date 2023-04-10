@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/auth/request"
@@ -43,51 +45,71 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId uu
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
-	/***************************
-	 * Pre-process cluster conf *
-	 ***************************/
-	clConf, err := u.constructClusterConf(&domain.ClusterConf{
-		Region:          dto.Conf.Region,
-		NumOfAz:         dto.Conf.NumOfAz,
-		SshKeyName:      "",
-		MachineType:     dto.Conf.MachineType,
-		MachineReplicas: dto.Conf.MachineReplicas,
-	},
-	)
-	if err != nil {
-		return uuid.Nil, err
+	workflow := ""
+	if input.TemplateId == "aws-reference" || input.TemplateId == "eks-reference" {
+		workflow = "tks-stack-create-aws"
+	} else if input.TemplateId == "aws-msa-reference" || input.TemplateId == "eks-msa-reference" {
+		workflow = "tks-stack-create-aws-msa"
+	} else {
+		log.Error("Invalid templateId  : ", input.TemplateId)
+		ErrorJSON(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	userId := user.GetUserId()
-	dto.CreatorId = &userId
-	dto.Conf = *clConf
+	{
+		nameSpace := "argo"
+		opts := argowf.SubmitOptions{}
+		opts.Parameters = []string{
+			fmt.Sprintf("tks_info_url=%s:%d", viper.GetString("info-address"), viper.GetInt("info-port")),
+			fmt.Sprintf("tks_contract_url=%s:%d", viper.GetString("contract-address"), viper.GetInt("contract-port")),
+			fmt.Sprintf("tks_cluster_lcm_url=%s:%d", viper.GetString("lcm-address"), viper.GetInt("lcm-port")),
+			"cluster_name=" + input.Name,
+			"contract_id=" + input.ProjectId,
+			"csp_id=" + cspIds[0],
+			"creator=" + userId,
+			"description=" + input.TemplateId + "-" + input.Description,
+			"template_name=" + input.TemplateId,
+			/*
+				"machine_type=" + input.MachineType,
+				"num_of_az=" + input.NumberOfAz,
+				"machine_replicas=" + input.MachineReplicas,
+			*/
+		}
 
-	clusterId, err = u.repo.Create(dto)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to create cluster")
-	}
+		workflowId, err := argowfClient.SumbitWorkflowFromWftpl(workflow, nameSpace, opts)
+		if err != nil {
+			log.Error(err)
+			InternalServerError(w)
+			return
+		}
+		log.Info("Submitted workflow: ", workflowId)
 
-	// Call argo workflow
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-		"create-tks-usercluster",
-		argowf.SubmitOptions{
-			Parameters: []string{
-				"contract_id=" + dto.OrganizationId,
-				"cluster_id=" + clusterId.String(),
-				"site_name=" + clusterId.String(),
-				"template_name=" + dto.TemplateId,
-				"git_account=" + viper.GetString("git-account"),
-				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
-			},
-		})
-	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
-		return "", err
-	}
-	log.Info("Successfully submited workflow: ", workflowId)
+		// wait & get clusterId ( max 1min 	)
+		cnt := 0
+		for range time.Tick(2 * time.Second) {
+			if cnt >= 60 { // max wait 60sec
+				break
+			}
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
-		return "", errors.Wrap(err, "Failed to initialize status")
+			workflow, err := argowfClient.GetWorkflow("argo", workflowId)
+			if err != nil {
+				log.Error(err)
+				InternalServerError(w)
+				break
+			}
+
+			if workflow.Status.Phase != "Running" {
+				log.Error(err)
+				InternalServerError(w)
+				break
+			}
+
+			if workflow.Status.Progress == "1/2" { // start creating cluster
+				time.Sleep(time.Second * 5) // Buffer
+				break
+			}
+			cnt += 1
+		}
 	}
 
 	return clusterId, nil

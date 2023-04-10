@@ -1587,6 +1587,225 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/stacks": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Stacks",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Get Stacks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "show all organizations",
+                        "name": "all",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStacksResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create Stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Create Stack",
+                "parameters": [
+                    {
+                        "description": "create cloud setting request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateStackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateStackResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stacks/name/{name}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check name for stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Check name for stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/stacks/{stackId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Get Stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update Stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Update Stack",
+                "parameters": [
+                    {
+                        "description": "Update cloud setting request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateStackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Delete Stack",
+                "parameters": [
+                    {
+                        "description": "Delete cloud setting request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.DeleteStackRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2258,6 +2477,46 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CreateStackRequest": {
+            "type": "object",
+            "properties": {
+                "cloudSettingId": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "machineReplicas": {
+                    "type": "integer"
+                },
+                "machineType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "numOfAz": {
+                    "type": "integer"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "stackTemplateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateStackResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.CreateStackTemplateRequest": {
             "type": "object",
             "required": [
@@ -2390,6 +2649,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.DeleteStackRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.GetAppGroupResponse": {
             "type": "object",
             "properties": {
@@ -2490,6 +2757,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetStackResponse": {
+            "type": "object",
+            "properties": {
+                "stack": {
+                    "$ref": "#/definitions/domain.StackResponse"
+                }
+            }
+        },
         "domain.GetStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -2505,6 +2780,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.StackTemplateResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetStacksResponse": {
+            "type": "object",
+            "properties": {
+                "stacks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackResponse"
                     }
                 }
             }
@@ -2749,6 +3035,47 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.StackResponse": {
+            "type": "object",
+            "properties": {
+                "cloudSetting": {
+                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "stackTemplate": {
+                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
         },
@@ -2999,6 +3326,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "primaryClusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateStackRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "string"
                 }
             }

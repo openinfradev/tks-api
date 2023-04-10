@@ -7,14 +7,14 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
-type StackId StackId
+type StackId ClusterId
 
 func (c StackId) String() string {
 	return string(c)
 }
 
 func (c StackId) Validate() bool {
-	return helper.ValidateStackId(c.String())
+	return helper.ValidateClusterId(c.String())
 }
 
 // enum
@@ -100,4 +100,12 @@ type GetStacksResponse struct {
 
 type GetStackResponse struct {
 	Stack StackResponse `json:"stack"`
+}
+
+type UpdateStackRequest struct {
+	ID StackId `json:"id"`
+}
+
+type DeleteStackRequest struct {
+	ID StackId `json:"id"`
 }
