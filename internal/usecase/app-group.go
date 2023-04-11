@@ -29,10 +29,10 @@ type AppGroupUsecase struct {
 	argo        argowf.ArgoClient
 }
 
-func NewAppGroupUsecase(r repository.IAppGroupRepository, clusterRepo repository.IClusterRepository, argoClient argowf.ArgoClient) IAppGroupUsecase {
+func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppGroupUsecase {
 	return &AppGroupUsecase{
-		repo:        r,
-		clusterRepo: clusterRepo,
+		repo:        r.AppGroup,
+		clusterRepo: r.Cluster,
 		argo:        argoClient,
 	}
 }

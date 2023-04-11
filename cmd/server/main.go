@@ -18,6 +18,7 @@ import (
 )
 
 func init() {
+	flag.String("external-address", "http://tks-api.tks.svc:9110", "service address")
 	flag.Int("port", 8080, "service port")
 	flag.String("web-root", "../../web", "path of root path for web")
 	flag.String("argo-address", "http://localhost", "service address for argoworkflow")

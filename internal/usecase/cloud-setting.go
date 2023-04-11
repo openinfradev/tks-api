@@ -30,10 +30,10 @@ type CloudSettingUsecase struct {
 	argo        argowf.ArgoClient
 }
 
-func NewCloudSettingUsecase(r repository.ICloudSettingRepository, cr repository.IClusterRepository, argoClient argowf.ArgoClient) ICloudSettingUsecase {
+func NewCloudSettingUsecase(r repository.Repository, argoClient argowf.ArgoClient) ICloudSettingUsecase {
 	return &CloudSettingUsecase{
-		repo:        r,
-		clusterRepo: cr,
+		repo:        r.CloudSetting,
+		clusterRepo: r.Cluster,
 		argo:        argoClient,
 	}
 }

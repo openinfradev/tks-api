@@ -20,9 +20,9 @@ type StackTemplateUsecase struct {
 	repo repository.IStackTemplateRepository
 }
 
-func NewStackTemplateUsecase(r repository.IStackTemplateRepository) IStackTemplateUsecase {
+func NewStackTemplateUsecase(r repository.Repository) IStackTemplateUsecase {
 	return &StackTemplateUsecase{
-		repo: r,
+		repo: r.StackTemplate,
 	}
 }
 

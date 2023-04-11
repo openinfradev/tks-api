@@ -13,9 +13,9 @@ type HistoryUsecase struct {
 	historyRepo repository.IHistoryRepository
 }
 
-func NewHistoryUsecase(r repository.IHistoryRepository) IHistoryUsecase {
+func NewHistoryUsecase(r repository.Repository) IHistoryUsecase {
 	return &HistoryUsecase{
-		historyRepo: r,
+		historyRepo: r.History,
 	}
 }
 

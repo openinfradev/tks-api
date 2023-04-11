@@ -1606,14 +1606,6 @@ const docTemplate = `{
                     "Stacks"
                 ],
                 "summary": "Get Stacks",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "show all organizations",
-                        "name": "all",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",

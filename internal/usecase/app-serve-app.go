@@ -30,9 +30,9 @@ type AppServeAppUsecase struct {
 	argo argowf.ArgoClient
 }
 
-func NewAppServeAppUsecase(r repository.IAppServeAppRepository, argoClient argowf.ArgoClient) IAppServeAppUsecase {
+func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppServeAppUsecase {
 	return &AppServeAppUsecase{
-		repo: r,
+		repo: r.AppServeApp,
 		argo: argoClient,
 	}
 }

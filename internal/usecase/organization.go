@@ -32,9 +32,9 @@ type OrganizationUsecase struct {
 	kc   keycloak.IKeycloak
 }
 
-func NewOrganizationUsecase(r repository.IOrganizationRepository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
+func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo: r,
+		repo: r.Organization,
 		argo: argoClient,
 		kc:   kc,
 	}

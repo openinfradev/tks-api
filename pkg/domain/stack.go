@@ -7,7 +7,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
-type StackId ClusterId
+type StackId string
 
 func (c StackId) String() string {
 	return string(c)
@@ -50,17 +50,20 @@ func (m StackStatus) FromString(s string) StackStatus {
 
 // model
 type Stack = struct {
-	ID         StackId
-	Cluster    Cluster
-	AppGroups  []AppGroup
-	Status     StackStatus
-	StatusDesc string
-	CreatorId  *uuid.UUID
-	Creator    User
-	UpdatorId  *uuid.UUID
-	Updator    User
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID              StackId
+	Name            string
+	Description     string
+	OrganizationId  string
+	CloudSettingId  uuid.UUID
+	StackTemplateId uuid.UUID
+	Status          StackStatus
+	StatusDesc      string
+	CreatorId       *uuid.UUID
+	Creator         User
+	UpdatorId       *uuid.UUID
+	Updator         User
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type CreateStackRequest struct {

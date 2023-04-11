@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -20,9 +21,9 @@ type AuthUsecase struct {
 	repo repository.IUserRepository
 }
 
-func NewAuthUsecase(r repository.IUserRepository, kc keycloak.IKeycloak) IAuthUsecase {
+func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase {
 	return &AuthUsecase{
-		repo: r,
+		repo: r.User,
 		kc:   kc,
 	}
 }
