@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -28,11 +27,19 @@ func NewStackHandler(h usecase.IStackUsecase) *StackHandler {
 // @Description Create Stack
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.CreateStackRequest true "create cloud setting request"
 // @Success 200 {object} domain.CreateStackResponse
-// @Router /stacks [post]
+// @Router /organizations/{organizationId}/stacks [post]
 // @Security     JWT
 func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+
 	input := domain.CreateStackRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
@@ -44,6 +51,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
+	dto.OrganizationId = organizationId
 
 	err = h.usecase.Create(r.Context(), dto)
 	if err != nil {
@@ -60,26 +68,20 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 // @Description Get Stacks
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Success 200 {object} domain.GetStacksResponse
-// @Router /stacks [get]
+// @Router /organizations/{organizationId}/stacks [get]
 // @Security     JWT
 func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
-	user, ok := request.UserFrom(r.Context())
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
+	log.Debug("[TODO] organization check", organizationId)
 
-	urlParams := r.URL.Query()
-	showAll := urlParams.Get("all")
-
-	// [TODO REFACTORING] Privileges and Filtering
-	if showAll == "true" {
-		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Your token does not have permission to see all organizations.")))
-		return
-	}
-
-	stacks, err := h.usecase.Fetch(user.GetOrganizationId())
+	stacks, err := h.usecase.Fetch(organizationId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -92,6 +94,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 			log.Info(err)
 			continue
 		}
+		log.Info(out.Stacks[i])
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -103,12 +106,20 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 // @Description Get Stack
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param stackId path string true "stackId"
 // @Success 200 {object} domain.GetStackResponse
-// @Router /stacks/{stackId} [get]
+// @Router /organizations/{organizationId}/stacks/{stackId} [get]
 // @Security     JWT
 func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	log.Debug("[TODO] organization check", organizationId)
 	strId, ok := vars["stackId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
@@ -135,9 +146,10 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 // @Description Update Stack
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.UpdateStackRequest true "Update cloud setting request"
 // @Success 200 {object} nil
-// @Router /stacks/{stackId} [put]
+// @Router /organizations/{organizationId}/stacks/{stackId} [put]
 // @Security     JWT
 func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Need implementaion")))
@@ -149,10 +161,11 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 // @Description Delete Stack
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.DeleteStackRequest true "Delete cloud setting request"
 // @Param stackId path string true "stackId"
 // @Success 200 {object} nil
-// @Router /stacks/{stackId} [delete]
+// @Router /organizations/{organizationId}/stacks/{stackId} [delete]
 // @Security     JWT
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Need implementaion")))
@@ -164,9 +177,10 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 // @Description Check name for stack
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param name path string true "name"
 // @Success 200 {object} nil
-// @Router /stacks/name/{name}/existence [GET]
+// @Router /organizations/{organizationId}/stacks/name/{name}/existence [GET]
 // @Security     JWT
 func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Need implementaion")))

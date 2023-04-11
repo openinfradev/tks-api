@@ -56,11 +56,13 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 
 	repoFactory := repository.Repository{
 		User:          repository.NewUserRepository(db),
+		Cluster:       repository.NewClusterRepository(db),
 		Organization:  repository.NewOrganizationRepository(db),
 		AppGroup:      repository.NewAppGroupRepository(db),
 		AppServeApp:   repository.NewAppServeAppRepository(db),
 		CloudSetting:  repository.NewCloudSettingRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
+		History:       repository.NewHistoryRepository(db),
 	}
 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
@@ -123,11 +125,11 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", authMiddleware(http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate), kc)).Methods(http.MethodDelete)
 
 	stackHandler := delivery.NewStackHandler(usecase.NewStackUsecase(repoFactory, argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/stacks", authMiddleware(http.HandlerFunc(stackHandler.GetStacks), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/stacks", authMiddleware(http.HandlerFunc(stackHandler.CreateStack), kc)).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.GetStack), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.UpdateStack), kc)).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.DeleteStack), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", authMiddleware(http.HandlerFunc(stackHandler.GetStacks), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", authMiddleware(http.HandlerFunc(stackHandler.CreateStack), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.GetStack), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.UpdateStack), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.DeleteStack), kc)).Methods(http.MethodDelete)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)

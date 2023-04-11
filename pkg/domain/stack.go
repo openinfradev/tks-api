@@ -55,9 +55,14 @@ type Stack = struct {
 	Description     string
 	OrganizationId  string
 	CloudSettingId  uuid.UUID
+	CloudSetting    CloudSetting
 	StackTemplateId uuid.UUID
+	StackTemplate   StackTemplate
 	Status          StackStatus
 	StatusDesc      string
+	CpNodeCnt       int
+	TksNodeCnt      int
+	UserNodeCnt     int
 	CreatorId       *uuid.UUID
 	Creator         User
 	UpdatorId       *uuid.UUID
@@ -69,13 +74,11 @@ type Stack = struct {
 type CreateStackRequest struct {
 	Name            string `json:"name"`
 	Description     string `json:"description"`
-	OrganizationId  string `json:"organizationId"`
 	StackTemplateId string `json:"stackTemplateId"`
 	CloudSettingId  string `json:"cloudSettingId"`
-	NumOfAz         int    `json:"numOfAz"`
-	MachineType     string `json:"machineType"`
-	Region          string `json:"region"`
-	MachineReplicas int    `json:"machineReplicas"`
+	CpNodeCnt       int    `json:"cpNodeCnt"`
+	TksNodeCnt      int    `json:"tksNodeCnt"`
+	UserNodeCnt     int    `json:"userNodeCnt"`
 }
 
 type CreateStackResponse struct {
@@ -87,12 +90,12 @@ type StackResponse struct {
 	Name           string                `json:"name"`
 	Description    string                `json:"description"`
 	OrganizationId string                `json:"organizationId"`
-	StackTemplate  StackTemplateResponse `json:"stackTemplate"`
-	CloudSetting   CloudSettingResponse  `json:"cloudSetting"`
+	StackTemplate  StackTemplateResponse `json:"stackTemplate,omitempty"`
+	CloudSetting   CloudSettingResponse  `json:"cloudSetting,omitempty"`
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`
-	Creator        SimpleUserResponse    `json:"creator"`
-	Updator        SimpleUserResponse    `json:"updator"`
+	Creator        SimpleUserResponse    `json:"creator,omitempty"`
+	Updator        SimpleUserResponse    `json:"updator,omitempty"`
 	CreatedAt      time.Time             `json:"createdAt"`
 	UpdatedAt      time.Time             `json:"updatedAt"`
 }

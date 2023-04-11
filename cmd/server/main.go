@@ -33,6 +33,7 @@ func init() {
 	flag.String("git-base-url", "https://github.com", "git base url")
 	flag.String("git-account", "decapod10", "git account of admin cluster")
 	flag.String("revision", "main", "revision")
+	flag.Bool("migrate-db", true, "If the values is true, enable db migration. recommend only development")
 
 	// app-serve-apps
 	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")

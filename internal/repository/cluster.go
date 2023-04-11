@@ -40,27 +40,29 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 type Cluster struct {
 	gorm.Model
 
-	ID             domain.ClusterId `gorm:"primarykey"`
-	Name           string
-	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	TemplateId     string
-	SshKeyName     string
-	Region         string
-	NumOfAz        int
-	MachineType    string
-	MinSizePerAz   int
-	MaxSizePerAz   int
-	Description    string
-	WorkflowId     string
-	Status         domain.ClusterStatus
-	StatusDesc     string
-	CloudSettingId uuid.UUID
-	CloudSetting   CloudSetting `gorm:"foreignKey:CloudSettingId"`
-	CreatorId      *uuid.UUID   `gorm:"type:uuid"`
-	Creator        User         `gorm:"foreignKey:CreatorId"`
-	UpdatorId      *uuid.UUID   `gorm:"type:uuid"`
-	Updator        User         `gorm:"foreignKey:UpdatorId"`
+	ID              domain.ClusterId `gorm:"primarykey"`
+	Name            string
+	OrganizationId  string
+	Organization    Organization `gorm:"foreignKey:OrganizationId"`
+	TemplateId      string
+	SshKeyName      string
+	Region          string
+	NumOfAz         int
+	MachineType     string
+	MinSizePerAz    int
+	MaxSizePerAz    int
+	Description     string
+	WorkflowId      string
+	Status          domain.ClusterStatus
+	StatusDesc      string
+	CloudSettingId  uuid.UUID
+	CloudSetting    CloudSetting `gorm:"foreignKey:CloudSettingId"`
+	StackTemplateId uuid.UUID
+	StackTemplate   StackTemplate `gorm:"foreignKey:StackTemplateId"`
+	CreatorId       *uuid.UUID    `gorm:"type:uuid"`
+	Creator         User          `gorm:"foreignKey:CreatorId"`
+	UpdatorId       *uuid.UUID    `gorm:"type:uuid"`
+	Updator         User          `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -94,8 +96,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 // [TODO] Need refactoring about filters and pagination
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-
-	res := r.db.Preload("CloudSetting").Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -194,19 +195,22 @@ func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId 
 
 func reflectCluster(cluster Cluster) domain.Cluster {
 	return domain.Cluster{
-		ID:             cluster.ID,
-		OrganizationId: cluster.OrganizationId,
-		Name:           cluster.Name,
-		Description:    cluster.Description,
-		CloudSetting:   reflectCloudSetting(cluster.CloudSetting),
-		Status:         cluster.Status,
-		StatusDesc:     cluster.StatusDesc,
-		CreatorId:      cluster.CreatorId,
-		Creator:        reflectUser(cluster.Creator),
-		UpdatorId:      cluster.UpdatorId,
-		Updator:        reflectUser(cluster.Updator),
-		CreatedAt:      cluster.CreatedAt,
-		UpdatedAt:      cluster.UpdatedAt,
+		ID:              cluster.ID,
+		OrganizationId:  cluster.OrganizationId,
+		Name:            cluster.Name,
+		Description:     cluster.Description,
+		CloudSettingId:  cluster.CloudSettingId,
+		CloudSetting:    reflectCloudSetting(cluster.CloudSetting),
+		StackTemplateId: cluster.StackTemplateId,
+		StackTemplate:   reflectStackTemplate(cluster.StackTemplate),
+		Status:          cluster.Status,
+		StatusDesc:      cluster.StatusDesc,
+		CreatorId:       cluster.CreatorId,
+		Creator:         reflectUser(cluster.Creator),
+		UpdatorId:       cluster.UpdatorId,
+		Updator:         reflectUser(cluster.Updator),
+		CreatedAt:       cluster.CreatedAt,
+		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.ClusterConf{
 			SshKeyName:   cluster.SshKeyName,
 			Region:       cluster.Region,

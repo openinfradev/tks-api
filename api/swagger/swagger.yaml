@@ -227,6 +227,10 @@ definitions:
         type: string
       organizationId:
         type: string
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplate'
+      stackTemplateId:
+        type: string
       status:
         type: integer
       statusDesc:
@@ -458,22 +462,18 @@ definitions:
     properties:
       cloudSettingId:
         type: string
-      description:
-        type: string
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
+      description:
         type: string
       name:
         type: string
-      numOfAz:
-        type: integer
-      organizationId:
-        type: string
-      region:
-        type: string
       stackTemplateId:
         type: string
+      tksNodeCnt:
+        type: integer
+      userNodeCnt:
+        type: integer
     type: object
   domain.CreateStackResponse:
     properties:
@@ -849,6 +849,41 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
+  domain.StackTemplate:
+    properties:
+      cloudService:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.User'
+      creatorId:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      kubeType:
+        type: string
+      kubeVersion:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      platform:
+        type: string
+      template:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.User'
+      updatorId:
+        type: string
+      version:
+        type: string
     type: object
   domain.StackTemplateResponse:
     properties:
@@ -1786,6 +1821,168 @@ paths:
       summary: Update primary cluster
       tags:
       - Organizations
+  /organizations/{organizationId}/stacks:
+    get:
+      consumes:
+      - application/json
+      description: Get Stacks
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStacksResponse'
+      security:
+      - JWT: []
+      summary: Get Stacks
+      tags:
+      - Stacks
+    post:
+      consumes:
+      - application/json
+      description: Create Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateStackResponse'
+      security:
+      - JWT: []
+      summary: Create Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Delete cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteStackRequest'
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Stack
+      tags:
+      - Stacks
+    get:
+      consumes:
+      - application/json
+      description: Get Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackResponse'
+      security:
+      - JWT: []
+      summary: Get Stack
+      tags:
+      - Stacks
+    put:
+      consumes:
+      - application/json
+      description: Update Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Check name for stack
+      tags:
+      - Stacks
   /organizations/{organizationId}/users:
     get:
       consumes:
@@ -2091,137 +2288,6 @@ paths:
       summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
-  /stacks:
-    get:
-      consumes:
-      - application/json
-      description: Get Stacks
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.GetStacksResponse'
-      security:
-      - JWT: []
-      summary: Get Stacks
-      tags:
-      - Stacks
-    post:
-      consumes:
-      - application/json
-      description: Create Stack
-      parameters:
-      - description: create cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.CreateStackRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.CreateStackResponse'
-      security:
-      - JWT: []
-      summary: Create Stack
-      tags:
-      - Stacks
-  /stacks/{stackId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete Stack
-      parameters:
-      - description: Delete cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.DeleteStackRequest'
-      - description: stackId
-        in: path
-        name: stackId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Delete Stack
-      tags:
-      - Stacks
-    get:
-      consumes:
-      - application/json
-      description: Get Stack
-      parameters:
-      - description: stackId
-        in: path
-        name: stackId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.GetStackResponse'
-      security:
-      - JWT: []
-      summary: Get Stack
-      tags:
-      - Stacks
-    put:
-      consumes:
-      - application/json
-      description: Update Stack
-      parameters:
-      - description: Update cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateStackRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Update Stack
-      tags:
-      - Stacks
-  /stacks/name/{name}/existence:
-    get:
-      consumes:
-      - application/json
-      description: Check name for stack
-      parameters:
-      - description: name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Check name for stack
-      tags:
-      - Stacks
 securityDefinitions:
   JWT:
     in: header

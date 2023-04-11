@@ -44,7 +44,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 
 	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplateId"))
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
 	}
 
 	workflow := ""
@@ -54,7 +54,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 		workflow = "tks-stack-create-aws-msa"
 	} else {
 		log.Error("Invalid template  : ", stackTemplate.Template)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", &stackTemplate.Template))
+		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template))
 	}
 
 	opts := argowf.SubmitOptions{}
@@ -64,7 +64,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 		"description=" + dto.Description,
 		"organization_id=" + dto.OrganizationId,
 		"cloud_account_id=" + dto.CloudSettingId.String(),
-		"stack_template_id=" + dto.StackTemplateId.String(),
+		"stack_template_name=" + stackTemplate.Template,
 		"creator=" + user.GetUserId().String(),
 		/*
 			"machine_type=" + input.MachineType,
@@ -82,7 +82,9 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 
 	// wait & get clusterId ( max 1min 	)
 	cnt := 0
-	for range time.Tick(2 * time.Second) {
+
+	ticker := time.NewTicker(time.Second * 2)
+	for range ticker.C {
 		if cnt >= 60 { // max wait 60sec
 			break
 		}
@@ -137,15 +139,21 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 	status := domain.StackStatus_PENDING
 	statusDesc := ""
 	return domain.Stack{
-		ID:             domain.StackId(cluster.ID),
-		OrganizationId: cluster.OrganizationId,
-		Name:           cluster.Name,
-		Description:    cluster.Description,
-		Status:         status,
-		StatusDesc:     statusDesc,
-		CreatorId:      cluster.CreatorId,
-		UpdatorId:      cluster.UpdatorId,
-		CreatedAt:      cluster.CreatedAt,
-		UpdatedAt:      cluster.UpdatedAt,
+		ID:              domain.StackId(cluster.ID),
+		OrganizationId:  cluster.OrganizationId,
+		Name:            cluster.Name,
+		Description:     cluster.Description,
+		Status:          status,
+		StatusDesc:      statusDesc,
+		CloudSettingId:  cluster.CloudSettingId,
+		CloudSetting:    cluster.CloudSetting,
+		StackTemplateId: cluster.StackTemplateId,
+		StackTemplate:   cluster.StackTemplate,
+		CreatorId:       cluster.CreatorId,
+		Creator:         cluster.Creator,
+		UpdatorId:       cluster.UpdatorId,
+		Updator:         cluster.Updator,
+		CreatedAt:       cluster.CreatedAt,
+		UpdatedAt:       cluster.UpdatedAt,
 	}
 }
