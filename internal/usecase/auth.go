@@ -32,10 +32,10 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Authentication with DB
 	user, err := r.repo.Get(accountId, organizationId)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, httpErrors.NewUnauthorizedError(err)
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf("password is not correct"))
+		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf(""))
 	}
 
 	// Authentication with Keycloak
