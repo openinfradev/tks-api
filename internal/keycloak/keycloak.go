@@ -341,7 +341,6 @@ func (k *Keycloak) GetAccessTokenByIdPassword(accountId string, password string,
 }
 
 func (k *Keycloak) VerifyAccessToken(token string, organizationName string) error {
-
 	//TODO implement me
 	ctx := context.Background()
 	//log.Info(token)

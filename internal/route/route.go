@@ -227,7 +227,15 @@ func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
 				}
 				return
 			}
-			organization := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+			organization, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+			if !ok {
+				log.Error("failed to parse access token: ", err)
+				w.WriteHeader(http.StatusUnauthorized)
+				if _, err := w.Write([]byte(err.Error())); err != nil {
+					log.Error(err)
+				}
+				return
+			}
 			if err := kc.VerifyAccessToken(token, organization); err != nil {
 				log.Error("failed to verify access token: ", err)
 				w.WriteHeader(http.StatusUnauthorized)

@@ -141,7 +141,6 @@ func reflectVariableName(interface{}) string {
 */
 
 func parseErrors(err error) IRestError {
-
 	switch {
 	case strings.Contains(err.Error(), "SQLSTATE"):
 		return parseSqlError(err)

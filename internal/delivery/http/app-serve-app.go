@@ -139,7 +139,6 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	out.AppServeApps = apps
 
 	ResponseJSON(w, http.StatusOK, out)
-
 }
 
 // GetAppServeApp godoc
