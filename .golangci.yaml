@@ -22,6 +22,47 @@ linters-settings:
     checks:
       - all
       - "-SA9004" # <https://staticcheck.io/docs/checks#SA9004>
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+
+  govet:
+    check-shadowing: false
+    settings:
+      printf:
+        funcs:
+          - (github.com/xxx/xxx/pkg/log).Infof
+          - (github.com/xxx/xxx/pkg/log).Warnf
+          - (github.com/xxx/xxx/pkg/log).Errorf
+          - (github.com/xxx/xxx/pkg/log).Fatalf
+          - (github.com/xxx/xxx/pkg/log).Panicf
+          - (github.com/xxx/xxx/pkg/log).Debugf
+          - (github.com/xxx/xxx/pkg/log).Info
+          - (github.com/xxx/xxx/pkg/log).Warn
+          - (github.com/xxx/xxx/pkg/log).Error
+          - (github.com/xxx/xxx/pkg/log).Fatal
+          - (github.com/xxx/xxx/pkg/log).Panic
+          - (github.com/xxx/xxx/pkg/log).Debug
+          - (github.com/xxx/xxx/pkg/log).InfoDepth
+          - (github.com/xxx/xxx/pkg/log).WarnDepth
+          - (github.com/xxx/xxx/pkg/log).ErrorDepth
+          - (github.com/xxx/xxx/pkg/log).FatalDepth
+          - (github.com/xxx/xxx/pkg/log).PanicDepth
+          - (github.com/xxx/xxx/pkg/log).DebugDepth
+          - (github.com/xxx/xxx/pkg/log).InfofDepth
+          - (github.com/xxx/xxx/pkg/log).WarnfDepth
+          - (github.com/xxx/xxx/pkg/log).ErrorfDepth
+          - (github.com/xxx/xxx/pkg/log).FatalfDepth
+          - (github.com/xxx/xxx/pkg/log).PanicfDepth
+          - (github.com/xxx/xxx/pkg/log).DebugfDepth
+          - (github.com/xxx/xxx/pkg/log).InfoWithFields
+          - (github.com/xxx/xxx/pkg/log).WarnWithFields
+          - (github.com/xxx/xxx/pkg/log).ErrorWithFields
+          - (github.com/xxx/xxx/pkg/log).FatalWithFields
+          - (github.com/xxx/xxx/pkg/log).PanicWithFields
+          - (github.com/xxx/xxx/pkg/log).DebugWithFields
+          - (github.com/xxx/xxx/pkg/log).InfofWithFields
+
 linters:
   enable:
     - errcheck # checks unchecked errors
@@ -31,7 +72,9 @@ linters:
     - staticcheck # cover Go vet edge cases
     - typecheck # type-checks Go code
     - unused # checks Go code for unused constants, variables, functions and types
-
+    - gosimple # specializes in simplifying a code
+    - errcheck # checks unchecked errors
+    - misspell # finds commonly misspelled English words in comments
 
   disable:
     - deadcode # enabled-default. but duplicated & deprecated someday
@@ -51,7 +94,7 @@ linters:
     - gofmt # checks whether code was gofmt-ed
     - goimports # fix imports, formats your code in the same style as gofmt
     - ifshort # checks that your code uses short syntax for if-statements whenever possible
-    - misspell # finds commonly misspelled English words in comments
+#    - misspell # finds commonly misspelled English words in comments
     - noctx # finds sending http request without context.Context
     - predeclared # find code that shadows one of Go's predeclared identifiers
     - revive # replacement of golint
@@ -59,7 +102,7 @@ linters:
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed.
     - unconvert # remove unnecessary type conversions
     - wastedassign # finds wasted assignment statements.
-    - whitespace # tool for detection of leading and trailing whitespace
+    - whitespace  # checks for unnecessary whitespace
     - wrapcheck # check that errors from external packages are wrapped during return to help identify the error source.
 
 issues:
