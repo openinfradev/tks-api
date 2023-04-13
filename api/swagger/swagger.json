@@ -1207,6 +1207,13 @@
                     },
                     {
                         "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "name",
                         "name": "name",
                         "in": "path",
@@ -1289,6 +1296,13 @@
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Update cloud setting request",
                         "name": "body",
                         "in": "body",
@@ -1326,6 +1340,13 @@
                         "type": "string",
                         "description": "organizationId",
                         "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
                         "in": "path",
                         "required": true
                     },
@@ -2414,6 +2435,7 @@
             "type": "object",
             "required": [
                 "name",
+                "organizationId",
                 "secretKey",
                 "secretKeyId"
             ],
@@ -3090,6 +3112,9 @@
                 },
                 "organizationId": {
                     "type": "string"
+                },
+                "primaryCluster": {
+                    "type": "boolean"
                 },
                 "stackTemplate": {
                     "$ref": "#/definitions/domain.StackTemplateResponse"

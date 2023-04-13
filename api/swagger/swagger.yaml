@@ -409,6 +409,7 @@ definitions:
         type: string
     required:
     - name
+    - organizationId
     - secretKey
     - secretKeyId
     type: object
@@ -839,6 +840,8 @@ definitions:
         type: string
       organizationId:
         type: string
+      primaryCluster:
+        type: boolean
       stackTemplate:
         $ref: '#/definitions/domain.StackTemplateResponse'
       status:
@@ -1883,6 +1886,11 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
       - description: Delete cloud setting request
         in: body
         name: body
@@ -1941,6 +1949,11 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
       - description: Update cloud setting request
         in: body
         name: body
@@ -1966,6 +1979,11 @@ paths:
       - description: organizationId
         in: path
         name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
         required: true
         type: string
       - description: name

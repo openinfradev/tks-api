@@ -63,6 +63,7 @@ type Stack = struct {
 	CpNodeCnt       int
 	TksNodeCnt      int
 	UserNodeCnt     int
+	PrimaryCluster  bool
 	CreatorId       *uuid.UUID
 	Creator         User
 	UpdatorId       *uuid.UUID
@@ -94,6 +95,7 @@ type StackResponse struct {
 	CloudSetting   CloudSettingResponse  `json:"cloudSetting,omitempty"`
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`
+	PrimaryCluster bool                  `json:"primaryCluster"`
 	Creator        SimpleUserResponse    `json:"creator,omitempty"`
 	Updator        SimpleUserResponse    `json:"updator,omitempty"`
 	CreatedAt      time.Time             `json:"createdAt"`
@@ -114,4 +116,8 @@ type UpdateStackRequest struct {
 
 type DeleteStackRequest struct {
 	ID StackId `json:"id"`
+}
+
+type CheckStackNameResponse struct {
+	Existed bool `json:"existed"`
 }

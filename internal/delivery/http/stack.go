@@ -147,6 +147,7 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
 // @Param body body domain.UpdateStackRequest true "Update cloud setting request"
 // @Success 200 {object} nil
 // @Router /organizations/{organizationId}/stacks/{stackId} [put]
@@ -162,13 +163,34 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
 // @Param body body domain.DeleteStackRequest true "Delete cloud setting request"
 // @Param stackId path string true "stackId"
 // @Success 200 {object} nil
 // @Router /organizations/{organizationId}/stacks/{stackId} [delete]
 // @Security     JWT
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Need implementaion")))
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	log.Debug("[TODO] organization check", organizationId)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		return
+	}
+
+	_, err := h.usecase.Get(domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
 }
 
 // CheckStackName godoc
@@ -178,11 +200,38 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
 // @Param name path string true "name"
 // @Success 200 {object} nil
 // @Router /organizations/{organizationId}/stacks/name/{name}/existence [GET]
 // @Security     JWT
 func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Need implementaion")))
+	vars := mux.Vars(r)
 
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	name, ok := vars["name"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name")))
+		return
+	}
+
+	exist := true
+	_, err := h.usecase.GetByName(organizationId, name)
+	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			exist = false
+		} else {
+			ErrorJSON(w, err)
+			return
+		}
+	}
+
+	var out domain.CheckStackNameResponse
+	out.Existed = exist
+
+	ResponseJSON(w, http.StatusOK, out)
 }

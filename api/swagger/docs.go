@@ -1214,6 +1214,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "name",
                         "name": "name",
                         "in": "path",
@@ -1296,6 +1303,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Update cloud setting request",
                         "name": "body",
                         "in": "body",
@@ -1333,6 +1347,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "organizationId",
                         "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
                         "in": "path",
                         "required": true
                     },
@@ -2421,6 +2442,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
+                "organizationId",
                 "secretKey",
                 "secretKeyId"
             ],
@@ -3097,6 +3119,9 @@ const docTemplate = `{
                 },
                 "organizationId": {
                     "type": "string"
+                },
+                "primaryCluster": {
+                    "type": "boolean"
                 },
                 "stackTemplate": {
                     "$ref": "#/definitions/domain.StackTemplateResponse"

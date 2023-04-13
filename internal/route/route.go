@@ -127,6 +127,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	stackHandler := delivery.NewStackHandler(usecase.NewStackUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", authMiddleware(http.HandlerFunc(stackHandler.GetStacks), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", authMiddleware(http.HandlerFunc(stackHandler.CreateStack), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/name/{name}/existence", authMiddleware(http.HandlerFunc(stackHandler.CheckStackName), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.GetStack), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.UpdateStack), kc)).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.DeleteStack), kc)).Methods(http.MethodDelete)

@@ -19,6 +19,7 @@ type IClusterRepository interface {
 	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
 	FetchByCloudSettingId(cloudSettingId uuid.UUID) (res []domain.Cluster, err error)
 	Get(id domain.ClusterId) (domain.Cluster, error)
+	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Delete(id domain.ClusterId) error
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
@@ -135,15 +136,24 @@ func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out
 	return
 }
 
-func (r *ClusterRepository) Get(id domain.ClusterId) (domain.Cluster, error) {
+func (r *ClusterRepository) Get(id domain.ClusterId) (out domain.Cluster, err error) {
 	var cluster Cluster
 	res := r.db.Preload(clause.Associations).First(&cluster, "id = ?", id)
-	if res.RowsAffected == 0 || res.Error != nil {
-		log.Info(res.Error)
-		return domain.Cluster{}, fmt.Errorf("Not found cluster for %s", id)
+	if res.Error != nil {
+		return domain.Cluster{}, res.Error
 	}
-	resCluster := reflectCluster(cluster)
-	return resCluster, nil
+	out = reflectCluster(cluster)
+	return
+}
+
+func (r *ClusterRepository) GetByName(organizationId string, name string) (out domain.Cluster, err error) {
+	var cluster Cluster
+	res := r.db.Preload(clause.Associations).First(&cluster, "organization_id = ? AND name = ?", organizationId, name)
+	if res.Error != nil {
+		return domain.Cluster{}, res.Error
+	}
+	out = reflectCluster(cluster)
+	return
 }
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
