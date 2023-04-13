@@ -165,9 +165,10 @@ type UpdatePasswordRequest struct {
 type UpdatePasswordResponse struct {
 }
 
-type CheckDuplicatedIdRequest struct {
+type CheckExistedIdRequest struct {
 	AccountId string `json:"accountId" validate:"required"`
 }
 
-type CheckDuplicatedIdResponse struct {
+type CheckExistedIdResponse struct {
+	Existed bool `json:"existed"`
 }

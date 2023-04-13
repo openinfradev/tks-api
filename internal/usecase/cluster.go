@@ -32,10 +32,10 @@ type ClusterUsecase struct {
 	argo         argowf.ArgoClient
 }
 
-func NewClusterUsecase(r repository.IClusterRepository, appGroupRepo repository.IAppGroupRepository, argoClient argowf.ArgoClient) IClusterUsecase {
+func NewClusterUsecase(r repository.Repository, argoClient argowf.ArgoClient) IClusterUsecase {
 	return &ClusterUsecase{
-		repo:         r,
-		appGroupRepo: appGroupRepo,
+		repo:         r.Cluster,
+		appGroupRepo: r.AppGroup,
 		argo:         argoClient,
 	}
 }

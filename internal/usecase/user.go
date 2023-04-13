@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/auth/request"
@@ -13,7 +15,6 @@ import (
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
-	"net/http"
 )
 
 type IUserUsecase interface {
@@ -21,11 +22,11 @@ type IUserUsecase interface {
 	DeleteAdmin(organizationId string) error
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
-	List(ctx context.Context) (*[]domain.User, error)
-	GetByAccountId(ctx context.Context, accountId string) (*domain.User, error)
+	List(ctx context.Context, organizationId string) (*[]domain.User, error)
+	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
 	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
-	UpdatePasswordByAccountId(ctx context.Context, accountId string, password string) error
-	DeleteByAccountId(ctx context.Context, accountId string) error
+	UpdatePasswordByAccountId(ctx context.Context, accountId string, password string, organizationId string) error
+	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
 }
 
 type UserUsecase struct {
@@ -144,21 +145,17 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	return &resUser, nil
 }
 
-func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, newPassword string) error {
+func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, newPassword string,
+	organizationId string) error {
 
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("token in the context is empty")
 	}
 
-	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
-		return fmt.Errorf("user in the context is empty")
-	}
-
-	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId, token)
+	originUser, err := u.kc.GetUser(organizationId, accountId, token)
 	if err != nil {
-		return errors.Wrap(err, "getting user from keycloak failed")
+		return err
 	}
 
 	originUser.Credentials = &[]gocloak.CredentialRepresentation{
@@ -169,18 +166,18 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		},
 	}
 
-	err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser, token)
+	err = u.kc.UpdateUser(organizationId, originUser, token)
 	if err != nil {
 		return errors.Wrap(err, "updating user in keycloak failed")
 	}
 
 	// update password in DB
 
-	user, err := u.repo.Get(accountId, userInfo.GetOrganizationId())
+	user, err := u.repo.Get(accountId, organizationId)
 	if err != nil {
 		return errors.Wrap(err, "getting user from repository failed")
 	}
-	uuid, err := uuid.Parse(user.ID)
+	userUuid, err := uuid.Parse(user.ID)
 	if err != nil {
 		return errors.Wrap(err, "parsing uuid failed")
 	}
@@ -189,7 +186,21 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	_, err = u.repo.UpdateWithUuid(uuid, user.AccountId, user.Name, hashedPassword, user.Email,
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return err
+	}
+	for _, role := range *roles {
+		if role.Name == user.Role.Name {
+			user.Role.ID = role.ID
+		}
+	}
+	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, roleUuid, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
@@ -198,13 +209,8 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	return nil
 }
 
-func (u *UserUsecase) List(ctx context.Context) (*[]domain.User, error) {
-	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
-		return nil, fmt.Errorf("user in the context is empty")
-	}
-
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()))
+func (u *UserUsecase) List(ctx context.Context, organizationId string) (*[]domain.User, error) {
+	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId))
 	if err != nil {
 		return nil, err
 	}
@@ -212,13 +218,8 @@ func (u *UserUsecase) List(ctx context.Context) (*[]domain.User, error) {
 	return users, nil
 }
 
-func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string) (*domain.User, error) {
-	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
-		return nil, fmt.Errorf("user in the context is empty")
-	}
-
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
+func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error) {
+	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
 		return nil, err
@@ -229,11 +230,11 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string) (*do
 
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
 	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
-		return nil, fmt.Errorf("user in the context is empty")
+	if !ok {
+		return nil, fmt.Errorf("user in the context is  empty")
 	}
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
 
@@ -269,7 +270,21 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 	originPassword := (*users)[0].Password
 
-	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, user.Email,
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return nil, err
+	}
+	for _, role := range *roles {
+		if role.Name == user.Role.Name {
+			user.Role.ID = role.ID
+		}
+	}
+	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -278,32 +293,27 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	return user, nil
 }
 
-func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string) error {
-	userInfo, ok := request.UserFrom(ctx)
-	if ok == false {
-		return fmt.Errorf("user in the context is empty")
-	}
-
-	user, err := u.repo.Get(accountId, userInfo.GetOrganizationId())
+func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error {
+	user, err := u.repo.Get(accountId, organizationId)
 	if err != nil {
 		return err
 	}
 
-	uuid, err := uuid.Parse(user.ID)
+	userUuid, err := uuid.Parse(user.ID)
 	if err != nil {
 		return err
 	}
-	err = u.repo.DeleteWithUuid(uuid)
+	err = u.repo.DeleteWithUuid(userUuid)
 	if err != nil {
 		return err
 	}
 
 	// Delete user in keycloak
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return fmt.Errorf("token in the context is empty")
 	}
-	err = u.kc.DeleteUser(userInfo.GetOrganizationId(), accountId, token)
+	err = u.kc.DeleteUser(organizationId, accountId, token)
 	if err != nil {
 		return err
 	}
@@ -315,7 +325,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	// Validation check
 
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("token in the context is empty")
 	}
 
@@ -377,9 +387,9 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	return &resUser, nil
 }
 
-func NewUserUsecase(r repository.IUserRepository, kc keycloak.IKeycloak) IUserUsecase {
+func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {
 	return &UserUsecase{
-		repo: r,
+		repo: r.User,
 		kc:   kc,
 	}
 }

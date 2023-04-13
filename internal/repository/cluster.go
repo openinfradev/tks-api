@@ -19,6 +19,7 @@ type IClusterRepository interface {
 	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
 	FetchByCloudSettingId(cloudSettingId uuid.UUID) (res []domain.Cluster, err error)
 	Get(id domain.ClusterId) (domain.Cluster, error)
+	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Delete(id domain.ClusterId) error
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
@@ -40,27 +41,29 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 type Cluster struct {
 	gorm.Model
 
-	ID             domain.ClusterId `gorm:"primarykey"`
-	Name           string
-	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	TemplateId     string
-	SshKeyName     string
-	Region         string
-	NumOfAz        int
-	MachineType    string
-	MinSizePerAz   int
-	MaxSizePerAz   int
-	Description    string
-	WorkflowId     string
-	Status         domain.ClusterStatus
-	StatusDesc     string
-	CloudSettingId uuid.UUID
-	CloudSetting   CloudSetting `gorm:"foreignKey:CloudSettingId"`
-	CreatorId      *uuid.UUID   `gorm:"type:uuid"`
-	Creator        User         `gorm:"foreignKey:CreatorId"`
-	UpdatorId      *uuid.UUID   `gorm:"type:uuid"`
-	Updator        User         `gorm:"foreignKey:UpdatorId"`
+	ID              domain.ClusterId `gorm:"primarykey"`
+	Name            string
+	OrganizationId  string
+	Organization    Organization `gorm:"foreignKey:OrganizationId"`
+	TemplateId      string
+	SshKeyName      string
+	Region          string
+	NumOfAz         int
+	MachineType     string
+	MinSizePerAz    int
+	MaxSizePerAz    int
+	Description     string
+	WorkflowId      string
+	Status          domain.ClusterStatus
+	StatusDesc      string
+	CloudSettingId  uuid.UUID
+	CloudSetting    CloudSetting `gorm:"foreignKey:CloudSettingId"`
+	StackTemplateId uuid.UUID
+	StackTemplate   StackTemplate `gorm:"foreignKey:StackTemplateId"`
+	CreatorId       *uuid.UUID    `gorm:"type:uuid"`
+	Creator         User          `gorm:"foreignKey:CreatorId"`
+	UpdatorId       *uuid.UUID    `gorm:"type:uuid"`
+	Updator         User          `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -94,8 +97,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 // [TODO] Need refactoring about filters and pagination
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-
-	res := r.db.Preload("CloudSetting").Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -134,15 +136,24 @@ func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out
 	return
 }
 
-func (r *ClusterRepository) Get(id domain.ClusterId) (domain.Cluster, error) {
+func (r *ClusterRepository) Get(id domain.ClusterId) (out domain.Cluster, err error) {
 	var cluster Cluster
 	res := r.db.Preload(clause.Associations).First(&cluster, "id = ?", id)
-	if res.RowsAffected == 0 || res.Error != nil {
-		log.Info(res.Error)
-		return domain.Cluster{}, fmt.Errorf("Not found cluster for %s", id)
+	if res.Error != nil {
+		return domain.Cluster{}, res.Error
 	}
-	resCluster := reflectCluster(cluster)
-	return resCluster, nil
+	out = reflectCluster(cluster)
+	return
+}
+
+func (r *ClusterRepository) GetByName(organizationId string, name string) (out domain.Cluster, err error) {
+	var cluster Cluster
+	res := r.db.Preload(clause.Associations).First(&cluster, "organization_id = ? AND name = ?", organizationId, name)
+	if res.Error != nil {
+		return domain.Cluster{}, res.Error
+	}
+	out = reflectCluster(cluster)
+	return
 }
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
@@ -194,19 +205,22 @@ func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId 
 
 func reflectCluster(cluster Cluster) domain.Cluster {
 	return domain.Cluster{
-		ID:             cluster.ID,
-		OrganizationId: cluster.OrganizationId,
-		Name:           cluster.Name,
-		Description:    cluster.Description,
-		CloudSetting:   reflectCloudSetting(cluster.CloudSetting),
-		Status:         cluster.Status,
-		StatusDesc:     cluster.StatusDesc,
-		CreatorId:      cluster.CreatorId,
-		Creator:        reflectUser(cluster.Creator),
-		UpdatorId:      cluster.UpdatorId,
-		Updator:        reflectUser(cluster.Updator),
-		CreatedAt:      cluster.CreatedAt,
-		UpdatedAt:      cluster.UpdatedAt,
+		ID:              cluster.ID,
+		OrganizationId:  cluster.OrganizationId,
+		Name:            cluster.Name,
+		Description:     cluster.Description,
+		CloudSettingId:  cluster.CloudSettingId,
+		CloudSetting:    reflectCloudSetting(cluster.CloudSetting),
+		StackTemplateId: cluster.StackTemplateId,
+		StackTemplate:   reflectStackTemplate(cluster.StackTemplate),
+		Status:          cluster.Status,
+		StatusDesc:      cluster.StatusDesc,
+		CreatorId:       cluster.CreatorId,
+		Creator:         reflectUser(cluster.Creator),
+		UpdatorId:       cluster.UpdatorId,
+		Updator:         reflectUser(cluster.Updator),
+		CreatedAt:       cluster.CreatedAt,
+		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.ClusterConf{
 			SshKeyName:   cluster.SshKeyName,
 			Region:       cluster.Region,

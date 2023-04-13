@@ -14,8 +14,6 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
-var gormDB *gorm.DB
-
 func InitDB() (*gorm.DB, error) {
 	// Connect to gormDB
 	dsn := fmt.Sprintf(
@@ -45,8 +43,10 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := migrateSchema(db); err != nil {
-		return nil, err
+	if viper.GetBool("migrate-db") {
+		if err := migrateSchema(db); err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil

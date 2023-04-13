@@ -153,13 +153,13 @@ func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Req
 // @Security     JWT
 func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	cloudSettingId, ok := vars["cloudSettingId"]
+	strId, ok := vars["cloudSettingId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudSettingId")))
 		return
 	}
 
-	parsedUuid, err := uuid.Parse(cloudSettingId)
+	cloudSeetingId, err := uuid.Parse(strId)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
 		return
@@ -176,7 +176,7 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
-	dto.ID = parsedUuid
+	dto.ID = cloudSeetingId
 
 	err = h.usecase.Update(r.Context(), dto)
 	if err != nil {
@@ -232,4 +232,45 @@ func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.
 	}
 
 	ResponseJSON(w, http.StatusOK, nil)
+}
+
+// CheckCloudSettingName godoc
+// @Tags CloudSettings
+// @Summary Check name for cloudSetting
+// @Description Check name for cloudSetting
+// @Accept json
+// @Produce json
+// @Param name path string true "name"
+// @Success 200 {object} nil
+// @Router /cloud-settings/name/{name}/existence [GET]
+// @Security     JWT
+func (h *CloudSettingHandler) CheckCloudSettingName(w http.ResponseWriter, r *http.Request) {
+	user, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		return
+	}
+
+	vars := mux.Vars(r)
+	name, ok := vars["name"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name")))
+		return
+	}
+
+	exist := true
+	_, err := h.usecase.GetByName(user.GetOrganizationId(), name)
+	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			exist = false
+		} else {
+			ErrorJSON(w, err)
+			return
+		}
+	}
+
+	var out domain.CheckCloudSettingNameResponse
+	out.Existed = exist
+
+	ResponseJSON(w, http.StatusOK, out)
 }

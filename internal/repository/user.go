@@ -17,7 +17,7 @@ type IUserRepository interface {
 	List(...FilterFunc) (out *[]domain.User, err error)
 	Get(accountId string, organizationId string) (domain.User, error)
 	GetByUuid(userId uuid.UUID) (domain.User, error)
-	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
+	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID, email string,
 		department string, description string) (domain.User, error)
 	DeleteWithUuid(uuid uuid.UUID) error
 	Flush(organizationId string) error
@@ -137,8 +137,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 				return user
 			}
 		}
-		var cFunc FilterFunc
-		cFunc = combinedFilter(filters...)
+		cFunc := combinedFilter(filters...)
 		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 	if res.Error != nil {
@@ -178,7 +177,8 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 
 	return r.reflect(user), nil
 }
-func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string, department string, description string) (domain.User, error) {
+func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID,
+	email string, department string, description string) (domain.User, error) {
 	var user User
 	res := r.db.Model(&User{}).Where("id = ?", uuid).Updates(User{
 		AccountId:   accountId,
@@ -187,6 +187,7 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 		Email:       email,
 		Department:  department,
 		Description: description,
+		RoleId:      roleId,
 	})
 	if res.RowsAffected == 0 || res.Error != nil {
 		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound)
@@ -304,10 +305,7 @@ func (r *UserRepository) GetRoleByName(roleName string) (domain.Role, error) {
 		return domain.Role{}, err
 	}
 
-	var outRole domain.Role
-	outRole = r.reflectRole(role)
-
-	return outRole, nil
+	return r.reflectRole(role), nil
 }
 
 func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
@@ -434,5 +432,18 @@ func (r *UserRepository) reflectRole(role Role) domain.Role {
 		Creator:     role.Creator.String(),
 		CreatedAt:   role.CreatedAt,
 		UpdatedAt:   role.UpdatedAt,
+	}
+}
+
+func reflectUser(user User) domain.User {
+	return domain.User{
+		ID:          user.ID.String(),
+		AccountId:   user.AccountId,
+		Name:        user.Name,
+		Email:       user.Email,
+		Department:  user.Department,
+		Description: user.Description,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
 	}
 }

@@ -227,6 +227,10 @@ definitions:
         type: string
       organizationId:
         type: string
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplate'
+      stackTemplateId:
+        type: string
       status:
         type: integer
       statusDesc:
@@ -298,6 +302,8 @@ definitions:
         type: string
       updatedAt:
         type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
   domain.CreateAppGroupRequest:
     properties:
@@ -403,6 +409,7 @@ definitions:
         type: string
     required:
     - name
+    - organizationId
     - secretKey
     - secretKeyId
     type: object
@@ -452,6 +459,28 @@ definitions:
     required:
     - name
     type: object
+  domain.CreateStackRequest:
+    properties:
+      cloudSettingId:
+        type: string
+      cpNodeCnt:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      stackTemplateId:
+        type: string
+      tksNodeCnt:
+        type: integer
+      userNodeCnt:
+        type: integer
+    type: object
+  domain.CreateStackResponse:
+    properties:
+      id:
+        type: string
+    type: object
   domain.CreateStackTemplateRequest:
     properties:
       cloudService:
@@ -464,8 +493,6 @@ definitions:
         type: string
       name:
         type: string
-      organizationId:
-        type: string
       platform:
         type: string
       template:
@@ -474,7 +501,6 @@ definitions:
         type: string
     required:
     - name
-    - organizationId
     - platform
     - template
     - version
@@ -546,6 +572,11 @@ definitions:
     - secretKey
     - secretKeyId
     type: object
+  domain.DeleteStackRequest:
+    properties:
+      id:
+        type: string
+    type: object
   domain.GetAppGroupResponse:
     properties:
       appGroup:
@@ -610,6 +641,11 @@ definitions:
             type: string
         type: object
     type: object
+  domain.GetStackResponse:
+    properties:
+      stack:
+        $ref: '#/definitions/domain.StackResponse'
+    type: object
   domain.GetStackTemplateResponse:
     properties:
       stackTemplate:
@@ -620,6 +656,13 @@ definitions:
       stackTemplates:
         items:
           $ref: '#/definitions/domain.StackTemplateResponse'
+        type: array
+    type: object
+  domain.GetStacksResponse:
+    properties:
+      stacks:
+        items:
+          $ref: '#/definitions/domain.StackResponse'
         type: array
     type: object
   domain.GetUserResponse:
@@ -781,10 +824,10 @@ definitions:
       name:
         type: string
     type: object
-  domain.StackTemplateResponse:
+  domain.StackResponse:
     properties:
-      cloudService:
-        type: string
+      cloudSetting:
+        $ref: '#/definitions/domain.CloudSettingResponse'
       createdAt:
         type: string
       creator:
@@ -797,6 +840,41 @@ definitions:
         type: string
       organizationId:
         type: string
+      primaryCluster:
+        type: boolean
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplateResponse'
+      status:
+        type: string
+      statusDesc:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
+  domain.StackTemplate:
+    properties:
+      cloudService:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.User'
+      creatorId:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      kubeType:
+        type: string
+      kubeVersion:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
       platform:
         type: string
       template:
@@ -804,8 +882,61 @@ definitions:
       updatedAt:
         type: string
       updator:
+        $ref: '#/definitions/domain.User'
+      updatorId:
+        type: string
+      version:
+        type: string
+    type: object
+  domain.StackTemplateResponse:
+    properties:
+      cloudService:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      kubeType:
+        type: string
+      kubeVersion:
+        type: string
+      name:
+        type: string
+      platform:
+        type: string
+      services:
+        items:
+          $ref: '#/definitions/domain.StackTemplateServiceResponse'
+        type: array
+      template:
+        type: string
+      updatedAt:
+        type: string
+      updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
       version:
+        type: string
+    type: object
+  domain.StackTemplateServiceApplicationResponse:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+    type: object
+  domain.StackTemplateServiceResponse:
+    properties:
+      applications:
+        items:
+          $ref: '#/definitions/domain.StackTemplateServiceApplicationResponse'
+        type: array
+      type:
         type: string
     type: object
   domain.UpdateAppServeAppRequest:
@@ -888,16 +1019,24 @@ definitions:
         maxLength: 100
         minLength: 0
         type: string
+      name:
+        maxLength: 20
+        minLength: 3
+        type: string
       phone:
         type: string
       primaryClusterId:
         type: string
+    required:
+    - name
     type: object
   domain.UpdateOrganizationResponse:
     properties:
       description:
         type: string
       id:
+        type: string
+      name:
         type: string
       phone:
         type: string
@@ -914,6 +1053,11 @@ definitions:
   domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
+        type: string
+    type: object
+  domain.UpdateStackRequest:
+    properties:
+      id:
         type: string
     type: object
   domain.UpdateStackTemplateRequest:
@@ -1410,6 +1554,27 @@ paths:
       summary: Update CloudSetting
       tags:
       - CloudSettings
+  /cloud-settings/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for cloudSetting
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Check name for cloudSetting
+      tags:
+      - CloudSettings
   /clusters:
     get:
       consumes:
@@ -1659,6 +1824,384 @@ paths:
       summary: Update primary cluster
       tags:
       - Organizations
+  /organizations/{organizationId}/stacks:
+    get:
+      consumes:
+      - application/json
+      description: Get Stacks
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStacksResponse'
+      security:
+      - JWT: []
+      summary: Get Stacks
+      tags:
+      - Stacks
+    post:
+      consumes:
+      - application/json
+      description: Create Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateStackResponse'
+      security:
+      - JWT: []
+      summary: Create Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: Delete cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteStackRequest'
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Stack
+      tags:
+      - Stacks
+    get:
+      consumes:
+      - application/json
+      description: Get Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackResponse'
+      security:
+      - JWT: []
+      summary: Get Stack
+      tags:
+      - Stacks
+    put:
+      consumes:
+      - application/json
+      description: Update Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Check name for stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/users:
+    get:
+      consumes:
+      - application/json
+      description: Get user list
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.ListUserBody'
+            type: array
+      security:
+      - JWT: []
+      summary: Get user list
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: create user response
+          schema:
+            $ref: '#/definitions/domain.CreateUserResponse'
+      security:
+      - JWT: []
+      summary: Create user
+      tags:
+      - Users
+  /organizations/{organizationId}/users/{accountId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+      security:
+      - JWT: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get user detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetUserResponse'
+      security:
+      - JWT: []
+      summary: Get user detail
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update user detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserResponse'
+      security:
+      - JWT: []
+      summary: Update user detail
+      tags:
+      - Users
+  /organizations/{organizationId}/users/{accountId}/existence:
+    get:
+      consumes:
+      - application/json
+      description: return true when accountId exists
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Get user id existence
+      tags:
+      - Users
+  /organizations/{organizationId}/users/{accountId}/password:
+    put:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: update user password request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdatePasswordResponse'
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - Users
   /stack-templates:
     get:
       consumes:
@@ -1763,172 +2306,6 @@ paths:
       summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
-  /users:
-    get:
-      consumes:
-      - application/json
-      description: Get user list
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/domain.ListUserBody'
-            type: array
-      security:
-      - JWT: []
-      summary: Get user list
-      tags:
-      - Users
-    post:
-      consumes:
-      - application/json
-      description: Create user
-      parameters:
-      - description: create user request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: create user response
-          schema:
-            $ref: '#/definitions/domain.CreateUserResponse'
-      security:
-      - JWT: []
-      summary: Create user
-      tags:
-      - Users
-  /users/{userId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete user
-      parameters:
-      - description: userId
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.User'
-      security:
-      - JWT: []
-      summary: Delete user
-      tags:
-      - Users
-    get:
-      consumes:
-      - application/json
-      description: Get user detail
-      parameters:
-      - description: userId
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.GetUserResponse'
-      security:
-      - JWT: []
-      summary: Get user detail
-      tags:
-      - Users
-    post:
-      consumes:
-      - application/json
-      description: Update user password detail
-      parameters:
-      - description: userId
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "409":
-          description: Conflict
-      security:
-      - JWT: []
-      summary: Update user password detail
-      tags:
-      - Users
-    put:
-      consumes:
-      - application/json
-      description: Update user detail
-      parameters:
-      - description: userId
-        in: path
-        name: userId
-        required: true
-        type: string
-      - description: update user request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.UpdateUserResponse'
-      security:
-      - JWT: []
-      summary: Update user detail
-      tags:
-      - Users
-  /users/{userId}/password:
-    put:
-      consumes:
-      - application/json
-      description: Update user password detail
-      parameters:
-      - description: userId
-        in: path
-        name: userId
-        required: true
-        type: string
-      - description: update user password request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdatePasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.UpdatePasswordResponse'
-      security:
-      - JWT: []
-      summary: Update user password detail
-      tags:
-      - Users
 securityDefinitions:
   JWT:
     in: header

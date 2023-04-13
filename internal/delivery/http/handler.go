@@ -23,7 +23,9 @@ func ResponseJSON(w http.ResponseWriter, httpStatus int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpStatus)
 	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(out)))
-	json.NewEncoder(w).Encode(out)
+	if err := json.NewEncoder(w).Encode(out); err != nil {
+		log.Error(err)
+	}
 }
 
 func UnmarshalRequestInput(r *http.Request, in any) error {

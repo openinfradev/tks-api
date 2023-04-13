@@ -2,11 +2,11 @@ package http
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
 
+	"github.com/openinfradev/tks-api/pkg/log"
+
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -32,12 +32,19 @@ type UserHandler struct {
 // @Description Create user
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.CreateUserRequest true "create user request"
 // @Success 200 {object} domain.CreateUserResponse "create user response"
-// @Router /users [post]
+// @Router /organizations/{organizationId}/users [post]
 // @Security     JWT
 func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	// TODO implement validation
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
+		return
+	}
+
 	input := domain.CreateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
@@ -47,18 +54,21 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInfo, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("user info not found in token")))
-		return
-	}
+	//userInfo, ok := request.UserFrom(r.Context())
+	//if !ok {
+	//	ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("user info not found in token")))
+	//	return
+	//}
 
 	ctx := r.Context()
 	var user domain.User
-	domain.Map(input, &user)
-	user.Organization = domain.Organization{
-		ID: userInfo.GetOrganizationId(),
+	if err = domain.Map(input, &user); err != nil {
+		log.Error(err)
 	}
+	user.Organization = domain.Organization{
+		ID: organizationId,
+	}
+
 	resUser, err := u.usecase.Create(ctx, &user)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -72,7 +82,9 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.CreateUserResponse
-	domain.Map(*resUser, &out.User)
+	if err = domain.Map(*resUser, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusCreated, out)
 
@@ -84,28 +96,41 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Description Get user detail
 // @Accept json
 // @Produce json
-// @Param userId path string true "userId"
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
 // @Success 200 {object} domain.GetUserResponse
-// @Router /users/{userId} [get]
+// @Router /organizations/{organizationId}/users/{accountId} [get]
 // @Security     JWT
 func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userId, ok := vars["userId"]
+	userId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("userId not found in path")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
 		return
 	}
 
-	user, err := u.usecase.GetByAccountId(r.Context(), userId)
+	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
+
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			return
+		}
 
 		ErrorJSON(w, err)
 		return
 	}
 
 	var out domain.GetUserResponse
-	domain.Map(*user, &out.User)
+	if err = domain.Map(*user, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -116,11 +141,19 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 // @Description Get user list
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Success 200 {object} []domain.ListUserBody
-// @Router /users [get]
+// @Router /organizations/{organizationId}/users [get]
 // @Security     JWT
 func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
-	users, err := u.usecase.List(r.Context())
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
+		return
+	}
+
+	users, err := u.usecase.List(r.Context(), organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ResponseJSON(w, http.StatusNoContent, domain.ListUserResponse{})
@@ -135,7 +168,9 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	var out domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		domain.Map(user, &out.Users[i])
+		if err = domain.Map(user, &out.Users[i]); err != nil {
+			log.Error(err)
+		}
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -147,22 +182,28 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Description Delete user
 // @Accept json
 // @Produce json
-// @Param userId path string true "userId"
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
 // @Success 200 {object} domain.User
-// @Router /users/{userId} [delete]
+// @Router /organizations/{organizationId}/users/{accountId} [delete]
 // @Security     JWT
 func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userId, ok := vars["userId"]
+	userId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("userId not found in path")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
 		return
 	}
 
-	err := u.usecase.DeleteByAccountId(r.Context(), userId)
+	err := u.usecase.DeleteByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewNotFoundError(err))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
 			return
 		}
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -180,16 +221,22 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Description Update user detail
 // @Accept json
 // @Produce json
-// @Param userId path string true "userId"
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
 // @Param body body domain.UpdateUserRequest true "update user request"
 // @Success 200 {object} domain.UpdateUserResponse
-// @Router /users/{userId} [put]
+// @Router /organizations/{organizationId}/users/{accountId} [put]
 // @Security     JWT
 func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userId, ok := vars["userId"]
+	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("userId not found in path")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
 		return
 	}
 
@@ -202,30 +249,30 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInfo, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("user info not found in token")))
-		return
-	}
-
 	ctx := r.Context()
 	var user domain.User
-	domain.Map(input, &user)
-	user.Organization = domain.Organization{
-		ID: userInfo.GetOrganizationId(),
+	if err = domain.Map(input, &user); err != nil {
+		log.Error(err)
 	}
-	user.AccountId = userId
+	user.Organization = domain.Organization{
+		ID: organizationId,
+	}
+	user.AccountId = accountId
 
-	resUser, err := u.usecase.UpdateByAccountId(ctx, userId, &user)
+	resUser, err := u.usecase.UpdateByAccountId(ctx, accountId, &user)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		}
 
 		ErrorJSON(w, err)
 		return
 	}
 
 	var out domain.UpdateUserResponse
-	domain.Map(*resUser, &out.User)
+	if err = domain.Map(*resUser, &out.User); err != nil {
+		log.Error(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -236,30 +283,38 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Description Update user password detail
 // @Accept json
 // @Produce json
-// @Param userId path string true "userId"
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
 // @Param body body domain.UpdatePasswordRequest true "update user password request"
 // @Success 200 {object} domain.UpdatePasswordResponse
-// @Router /users/{userId}/password [put]
+// @Router /organizations/{organizationId}/users/{accountId}/password [put]
 // @Security     JWT
 func (u UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userId, ok := vars["userId"]
+	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("userId not found in path")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
 		return
 	}
 
 	input := domain.UpdatePasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	err = u.usecase.UpdatePasswordByAccountId(r.Context(), userId, input.Password)
+	err = u.usecase.UpdatePasswordByAccountId(r.Context(), accountId, input.Password, organizationId)
 	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			return
+		}
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, err)
@@ -271,34 +326,43 @@ func (u UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 // CheckId godoc
 // @Tags Users
-// @Summary Update user password detail
-// @Description Update user password detail
+// @Summary Get user id existence
+// @Description return true when accountId exists
 // @Accept json
 // @Produce json
-// @Param userId path string true "userId"
-// @Success 204
-// @Failure 409
-// @Router /users/{userId} [post]
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
+// @Success 200
+// @Router /organizations/{organizationId}/users/{accountId}/existence [get]
 // @Security     JWT
 func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userId, ok := vars["userId"]
+	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("userId not found in path")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
 		return
 	}
 
-	_, err := u.usecase.GetByAccountId(r.Context(), userId)
+	exist := true
+	_, err := u.usecase.GetByAccountId(r.Context(), accountId, organizationId)
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
-			ResponseJSON(w, http.StatusNoContent, nil)
+			exist = false
+		} else {
+			ErrorJSON(w, err)
 			return
 		}
-		ErrorJSON(w, err)
-		return
 	}
 
-	ResponseJSON(w, http.StatusConflict, nil)
+	var out domain.CheckExistedIdResponse
+	out.Existed = exist
+
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 func NewUserHandler(h usecase.IUserUsecase) IUserHandler {

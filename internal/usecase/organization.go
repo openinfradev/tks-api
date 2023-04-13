@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -31,9 +32,9 @@ type OrganizationUsecase struct {
 	kc   keycloak.IKeycloak
 }
 
-func NewOrganizationUsecase(r repository.IOrganizationRepository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
+func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo: r,
+		repo: r.Organization,
 		argo: argoClient,
 		kc:   kc,
 	}
@@ -48,7 +49,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		}
 	}
 	token, ok := request.TokenFrom(ctx)
-	if ok == false {
+	if !ok {
 		return "", fmt.Errorf("token in the context is empty")
 	}
 

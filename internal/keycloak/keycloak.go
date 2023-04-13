@@ -4,8 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"time"
+
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/golang-jwt/jwt/v4"
@@ -317,7 +318,7 @@ func (k *Keycloak) DeleteUser(organizationName string, userAccountId string, acc
 	ctx := context.Background()
 	u, err := k.GetUser(organizationName, userAccountId, accessToken)
 	if err != nil {
-		log.Error("error is :%s(%T)", err.Error(), err)
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 		return httpErrors.NewNotFoundError(err)
 	}
 	err = k.client.DeleteUser(ctx, accessToken, organizationName, *u.ID)
