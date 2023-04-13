@@ -43,8 +43,10 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := migrateSchema(db); err != nil {
-		return nil, err
+	if viper.GetBool("migrate-db") {
+		if err := migrateSchema(db); err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil

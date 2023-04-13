@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type ConverterMap map[compositeKey]func(interface{}) (interface{}, error)
@@ -37,6 +38,13 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 				if err := recursiveMap(srcField.Interface(), dstField.Addr().Interface(), converterMap); err != nil {
 					return err
 				}
+			} else if srcField.Type().Kind() == reflect.Ptr && dstField.Type().Kind() == reflect.Ptr {
+				log.Info("AAA", srcField)
+				ptr := reflect.New(dstField.Type().Elem())
+				dstField.Set(ptr)
+				if err := recursiveMap(srcField.Elem().Interface(), ptr.Interface(), converterMap); err != nil {
+					return err
+				}
 			} else {
 				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
 				if converter, ok := converterMap[converterKey]; ok {
@@ -49,6 +57,17 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 					return fmt.Errorf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
 				}
 			}
+
+			/*
+				 else if srcField.Type().Kind() == reflect.Ptr && dstField.Type().Kind() == reflect.Ptr {
+					log.Info("AAA ", dstField.Type())
+					ptr := reflect.New(dstField.Elem().Type())
+					if err := recursiveMap(srcField.Elem().Interface(), ptr.Elem().Interface(), converterMap); err != nil {
+						return err
+					}
+				}
+			*/
+
 		}
 	}
 
@@ -92,6 +111,12 @@ func Map(src interface{}, dst interface{}) error {
 		},
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AppGroupType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
 			return new(AppGroupType).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*StackStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(StackStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*StackStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(StackStatus).FromString(i.(string)), nil
 		},
 	})
 }

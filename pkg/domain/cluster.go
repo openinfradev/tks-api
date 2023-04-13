@@ -50,22 +50,24 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 
 // model
 type Cluster = struct {
-	ID             ClusterId
-	OrganizationId string
-	Name           string
-	Description    string
-	CloudSettingId uuid.UUID
-	CloudSetting   CloudSetting
-	Status         ClusterStatus
-	StatusDesc     string
-	Conf           ClusterConf
-	TemplateId     string
-	CreatorId      *uuid.UUID
-	Creator        User
-	UpdatorId      *uuid.UUID
-	Updator        User
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID              ClusterId
+	OrganizationId  string
+	Name            string
+	Description     string
+	CloudSettingId  uuid.UUID
+	CloudSetting    CloudSetting
+	StackTemplateId uuid.UUID
+	StackTemplate   StackTemplate
+	Status          ClusterStatus
+	StatusDesc      string
+	Conf            ClusterConf
+	TemplateId      string
+	CreatorId       *uuid.UUID
+	Creator         User
+	UpdatorId       *uuid.UUID
+	Updator         User
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type ClusterConf = struct {

@@ -387,9 +387,9 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	return &resUser, nil
 }
 
-func NewUserUsecase(r repository.IUserRepository, kc keycloak.IKeycloak) IUserUsecase {
+func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {
 	return &UserUsecase{
-		repo: r,
+		repo: r.User,
 		kc:   kc,
 	}
 }
