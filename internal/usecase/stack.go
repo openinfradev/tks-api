@@ -134,7 +134,7 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 
 	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
 	if err != nil {
-		return domain.Stack{}, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId ", cluster.OrganizationId)))
+		return domain.Stack{}, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)))
 	}
 
 	out = reflectClusterToStack(cluster)
