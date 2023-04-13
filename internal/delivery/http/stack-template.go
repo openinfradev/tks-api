@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -58,48 +59,12 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	for i, stackTemplate := range stackTemplates {
 		if err := domain.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
 			log.Info(err)
-			continue
 		}
 
-		out.StackTemplates[i].Services = make([]domain.StackTemplateServiceResponse, 2)
-
-		applications := make([]domain.StackTemplateServiceApplicationResponse, 3)
-		applications[0] = domain.StackTemplateServiceApplicationResponse{
-			Name:        "Logging",
-			Description: "Logging 설명",
-			Version:     "v1",
+		err := json.Unmarshal(stackTemplate.Services, &out.StackTemplates[i].Services)
+		if err != nil {
+			log.Error(err)
 		}
-		applications[1] = domain.StackTemplateServiceApplicationResponse{
-			Name:        "Monitoring",
-			Description: "Monitoring 설명",
-			Version:     "v1",
-		}
-		applications[2] = domain.StackTemplateServiceApplicationResponse{
-			Name:        "Grafana",
-			Description: "Grafana 설명",
-			Version:     "v1",
-		}
-		out.StackTemplates[i].Services[0] = domain.StackTemplateServiceResponse{
-			Type:         "LMA",
-			Applications: applications,
-		}
-
-		applications2 := make([]domain.StackTemplateServiceApplicationResponse, 2)
-		applications2[0] = domain.StackTemplateServiceApplicationResponse{
-			Name:        "Istio",
-			Description: "Istio 설명",
-			Version:     "v1",
-		}
-		applications2[1] = domain.StackTemplateServiceApplicationResponse{
-			Name:        "Jaeger",
-			Description: "Jaeger 설명",
-			Version:     "v1",
-		}
-		out.StackTemplates[i].Services[1] = domain.StackTemplateServiceResponse{
-			Type:         "SERVICE_MESH",
-			Applications: applications2,
-		}
-
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -140,43 +105,9 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 		log.Info(err)
 	}
 
-	out.StackTemplate.Services = make([]domain.StackTemplateServiceResponse, 2)
-
-	applications := make([]domain.StackTemplateServiceApplicationResponse, 3)
-	applications[0] = domain.StackTemplateServiceApplicationResponse{
-		Name:        "Logging",
-		Description: "Logging 설명",
-		Version:     "v1",
-	}
-	applications[1] = domain.StackTemplateServiceApplicationResponse{
-		Name:        "Monitoring",
-		Description: "Monitoring 설명",
-		Version:     "v1",
-	}
-	applications[2] = domain.StackTemplateServiceApplicationResponse{
-		Name:        "Grafana",
-		Description: "Grafana 설명",
-		Version:     "v1",
-	}
-	out.StackTemplate.Services[0] = domain.StackTemplateServiceResponse{
-		Type:         "LMA",
-		Applications: applications,
-	}
-
-	applications2 := make([]domain.StackTemplateServiceApplicationResponse, 2)
-	applications2[0] = domain.StackTemplateServiceApplicationResponse{
-		Name:        "Istio",
-		Description: "Istio 설명",
-		Version:     "v1",
-	}
-	applications2[1] = domain.StackTemplateServiceApplicationResponse{
-		Name:        "Jaeger",
-		Description: "Jaeger 설명",
-		Version:     "v1",
-	}
-	out.StackTemplate.Services[1] = domain.StackTemplateServiceResponse{
-		Type:         "SERVICE_MESH",
-		Applications: applications2,
+	err = json.Unmarshal(stackTemplate.Services, &out.StackTemplate.Services)
+	if err != nil {
+		log.Error(err)
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
