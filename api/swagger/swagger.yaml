@@ -296,6 +296,8 @@ definitions:
         type: string
       organizationId:
         type: string
+      stackTemplate:
+        $ref: '#/definitions/domain.StackTemplateResponse'
       status:
         type: string
       statusDesc:
@@ -436,7 +438,7 @@ definitions:
         type: string
       region:
         type: string
-      templateId:
+      stackTemplateId:
         type: string
     type: object
   domain.CreateClusterResponse:
@@ -877,6 +879,10 @@ definitions:
         type: string
       platform:
         type: string
+      services:
+        items:
+          type: integer
+        type: array
       template:
         type: string
       updatedAt:

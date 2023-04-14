@@ -45,7 +45,6 @@ type Cluster struct {
 	Name            string
 	OrganizationId  string
 	Organization    Organization `gorm:"foreignKey:OrganizationId"`
-	TemplateId      string
 	SshKeyName      string
 	Region          string
 	NumOfAz         int
@@ -97,7 +96,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 // [TODO] Need refactoring about filters and pagination
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	res := r.db.Preload(clause.Associations).Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Order("updated_at desc, created_at desc").Find(&clusters, "organization_id = ?", organizationId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -118,7 +117,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []
 func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Preload("CloudSetting").Find(&clusters, "cloud_setting_id = ?", cloudSettingId)
+	res := r.db.Preload("CloudSetting").Order("updated_at desc, created_at desc").Find(&clusters, "cloud_setting_id = ?", cloudSettingId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -158,20 +157,20 @@ func (r *ClusterRepository) GetByName(organizationId string, name string) (out d
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
 	cluster := Cluster{
-		OrganizationId: dto.OrganizationId,
-		TemplateId:     dto.TemplateId,
-		Name:           dto.Name,
-		Description:    dto.Description,
-		CloudSettingId: dto.CloudSettingId,
-		CreatorId:      dto.CreatorId,
-		UpdatorId:      nil,
-		SshKeyName:     dto.Conf.SshKeyName,
-		Region:         dto.Conf.Region,
-		NumOfAz:        dto.Conf.NumOfAz,
-		MachineType:    dto.Conf.MachineType,
-		MinSizePerAz:   dto.Conf.MinSizePerAz,
-		MaxSizePerAz:   dto.Conf.MaxSizePerAz,
-		Status:         domain.ClusterStatus_PENDING,
+		OrganizationId:  dto.OrganizationId,
+		Name:            dto.Name,
+		Description:     dto.Description,
+		CloudSettingId:  dto.CloudSettingId,
+		StackTemplateId: dto.StackTemplateId,
+		CreatorId:       dto.CreatorId,
+		UpdatorId:       nil,
+		SshKeyName:      dto.Conf.SshKeyName,
+		Region:          dto.Conf.Region,
+		NumOfAz:         dto.Conf.NumOfAz,
+		MachineType:     dto.Conf.MachineType,
+		MinSizePerAz:    dto.Conf.MinSizePerAz,
+		MaxSizePerAz:    dto.Conf.MaxSizePerAz,
+		Status:          domain.ClusterStatus_PENDING,
 	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
