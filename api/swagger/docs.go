@@ -401,6 +401,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/app-serve-apps/{appId}/endpoint": {
+            "patch": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update app endpoint",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Update app endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "appId",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update app endpoint request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateAppServeAppEndpointRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/app-serve-apps/{appId}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update app status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Update app status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "appId",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update app status request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateAppServeAppStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/app-serve-apps/{appServeAppId}": {
             "get": {
                 "security": [
@@ -2209,9 +2301,6 @@ const docTemplate = `{
                 "statusDesc": {
                     "type": "string"
                 },
-                "templateId": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "type": "string"
                 },
@@ -2436,7 +2525,7 @@ const docTemplate = `{
                     ]
                 },
                 "version": {
-                    "description": "AppType",
+                    "description": "Task",
                     "type": "string"
                 }
             }
@@ -3280,6 +3369,26 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.UpdateAppServeAppEndpointRequest": {
+            "type": "object",
+            "required": [
+                "task_id"
+            ],
+            "properties": {
+                "endpoint_url": {
+                    "type": "string"
+                },
+                "helm_revision": {
+                    "type": "integer"
+                },
+                "preview_endpoint_url": {
+                    "type": "string"
+                },
+                "task_id": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.UpdateAppServeAppRequest": {
             "type": "object",
             "properties": {
@@ -3360,7 +3469,25 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
-                    "description": "AppType",
+                    "description": "Task",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateAppServeAppStatusRequest": {
+            "type": "object",
+            "required": [
+                "status",
+                "task_id"
+            ],
+            "properties": {
+                "output": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "task_id": {
                     "type": "string"
                 }
             }

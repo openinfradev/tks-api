@@ -235,8 +235,6 @@ definitions:
         type: integer
       statusDesc:
         type: string
-      templateId:
-        type: string
       updatedAt:
         type: string
       updator:
@@ -384,7 +382,7 @@ definitions:
         - all
         type: string
       version:
-        description: AppType
+        description: Task
         type: string
     required:
     - name
@@ -945,6 +943,19 @@ definitions:
       type:
         type: string
     type: object
+  domain.UpdateAppServeAppEndpointRequest:
+    properties:
+      endpoint_url:
+        type: string
+      helm_revision:
+        type: integer
+      preview_endpoint_url:
+        type: string
+      task_id:
+        type: string
+    required:
+    - task_id
+    type: object
   domain.UpdateAppServeAppRequest:
     properties:
       abort:
@@ -1000,8 +1011,20 @@ definitions:
       type:
         type: string
       version:
-        description: AppType
+        description: Task
         type: string
+    type: object
+  domain.UpdateAppServeAppStatusRequest:
+    properties:
+      output:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+    required:
+    - status
+    - task_id
     type: object
   domain.UpdateApplicationRequest:
     properties:
@@ -1389,6 +1412,64 @@ paths:
       security:
       - JWT: []
       summary: Update appServeApp
+      tags:
+      - AppServeApps
+  /app-serve-apps/{appId}/endpoint:
+    patch:
+      consumes:
+      - application/json
+      description: Update app endpoint
+      parameters:
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: update app endpoint request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppEndpointRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /app-serve-apps/{appId}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update app status
+      parameters:
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: update app status request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update app status
       tags:
       - AppServeApps
   /app-serve-apps/{appServeAppId}:

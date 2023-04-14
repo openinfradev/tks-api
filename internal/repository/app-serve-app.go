@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"time"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
@@ -12,7 +13,7 @@ type IAppServeAppRepository interface {
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
-	UpdateStatus(taskId string, status string, output string) error
+	UpdateStatus(appId string, taskId string, status string, output string) error
 	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
 }
 
@@ -91,71 +92,86 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	return &app, nil
 }
 
-func (r *AppServeAppRepository) UpdateStatus(taskId string, status string, output string) error {
-	// Update task status
-	res := r.db.Model(&domain.AppServeAppTask{}).
-		Where("ID = ?", taskId).
-		Updates(domain.AppServeAppTask{Status: status, Output: output})
+func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status string, output string) error {
+	now := time.Now()
+	app := domain.AppServeApp{
+		ID:        appId,
+		Status:    status,
+		UpdatedAt: &now,
+	}
+	res := r.db.Model(&app).Select("Status", "UpdatedAt").Updates(app)
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("UpdateStatus: nothing updated in AppServeApp with ID %s", appId)
+	}
 
+	task := domain.AppServeAppTask{
+		ID:        taskId,
+		Status:    status,
+		Output:    output,
+		UpdatedAt: &now,
+	}
+	res = r.db.Model(&task).Select("Status", "Output", "UpdatedAt").Updates(task)
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("UpdateStatus: nothing updated in AppServeAppTask with ID %s", taskId)
 	}
 
-	// Get Asa ID which this task belongs to.
-	var appTask domain.AppServeAppTask
-	res = r.db.First(&appTask, "id = ?", taskId)
-
-	if res.RowsAffected == 0 || res.Error != nil {
-		return fmt.Errorf("could not find AppServeAppTask with ID: %s", taskId)
-	}
-	appId := appTask.AppServeAppId
-
-	// Update status of the Asa.
-	res = r.db.Model(&domain.AppServeApp{}).
-		Where("ID = ?", appId).
-		Update("Status", status)
-	if res.Error != nil || res.RowsAffected == 0 {
-		return fmt.Errorf("UpdateStatus: nothing updated in AppServeApp with id %s", appId)
-	}
+	//// Update task status
+	//res := r.db.Model(&domain.AppServeAppTask{}).
+	//	Where("ID = ?", taskId).
+	//	Updates(domain.AppServeAppTask{Status: status, Output: output})
+	//
+	//if res.Error != nil || res.RowsAffected == 0 {
+	//	return fmt.Errorf("UpdateStatus: nothing updated in AppServeAppTask with ID %s", taskId)
+	//}
+	//
+	//// Update status of the app.
+	//res = r.db.Model(&domain.AppServeApp{}).
+	//	Where("ID = ?", appId).
+	//	Update("Status", status)
+	//if res.Error != nil || res.RowsAffected == 0 {
+	//	return fmt.Errorf("UpdateStatus: nothing updated in AppServeApp with id %s", appId)
+	//}
 
 	return nil
 }
 
 func (r *AppServeAppRepository) UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error {
+	now := time.Now()
+	app := domain.AppServeApp{
+		ID:                 appId,
+		EndpointUrl:        endpoint,
+		PreviewEndpointUrl: previewEndpoint,
+		UpdatedAt:          &now,
+	}
+
+	task := domain.AppServeAppTask{
+		ID:           taskId,
+		HelmRevision: helmRevision,
+		UpdatedAt:    &now,
+	}
+
+	var res *gorm.DB
 	if endpoint != "" && previewEndpoint != "" {
 		// Both endpoints are valid
-		res := r.db.Model(&domain.AppServeApp{}).
-			Where("ID = ?", appId).
-			Updates(domain.AppServeApp{EndpointUrl: endpoint, PreviewEndpointUrl: previewEndpoint})
-		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
-		}
+		res = r.db.Model(&app).Select("EndpointUrl", "PreviewEndpointUrl", "UpdatedAt").Updates(app)
 	} else if endpoint != "" {
 		// endpoint-only case
-		res := r.db.Model(&domain.AppServeApp{}).
-			Where("ID = ?", appId).
-			Update("EndpointUrl", endpoint)
-		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
-		}
+		res = r.db.Model(&app).Select("EndpointUrl", "UpdatedAt").Updates(app)
 	} else if previewEndpoint != "" {
 		// previewEndpoint-only case
-		res := r.db.Model(&domain.AppServeApp{}).
-			Where("ID = ?", appId).Update("PreviewEndpointUrl", previewEndpoint)
-		if res.Error != nil || res.RowsAffected == 0 {
-			return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
-		}
+		res = r.db.Model(&app).Select("PreviewEndpointUrl", "UpdatedAt").Updates(app)
 	} else {
 		return fmt.Errorf("updateEndpoint: No endpoint provided. " +
 			"At least one of [endpoint, preview_endpoint] should be provided")
+	}
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("UpdateEndpoint: nothing updated in AppServeApp with id %s", appId)
 	}
 
 	// Update helm revision
 	// Ignore if the value is less than 0
 	if helmRevision > 0 {
-		res := r.db.Model(&domain.AppServeAppTask{}).
-			Where("ID = ?", taskId).
-			Update("HelmRevision", helmRevision)
+		res = r.db.Model(&task).Select("HelmRevision", "UpdatedAt").Updates(task)
 		if res.Error != nil || res.RowsAffected == 0 {
 			return fmt.Errorf("UpdateEndpoint: "+
 				"helm revision was not updated for AppServeAppTask with task ID %s", taskId)

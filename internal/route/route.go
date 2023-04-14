@@ -108,6 +108,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.GetAppServeApp), kc)).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp), kc)).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}/status", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppStatus), kc)).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}/endpoint", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppEndpoint), kc)).Methods(http.MethodPatch)
 
 	cloudSettingHandler := delivery.NewCloudSettingHandler(usecase.NewCloudSettingUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSettings), kc)).Methods(http.MethodGet)

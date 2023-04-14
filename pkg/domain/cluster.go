@@ -61,7 +61,6 @@ type Cluster = struct {
 	Status          ClusterStatus
 	StatusDesc      string
 	Conf            ClusterConf
-	TemplateId      string
 	CreatorId       *uuid.UUID
 	Creator         User
 	UpdatorId       *uuid.UUID

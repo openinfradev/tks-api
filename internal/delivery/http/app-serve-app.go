@@ -220,6 +220,81 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	ResponseJSON(w, http.StatusOK, res)
 }
 
+// UpdateAppServeAppStatus godoc
+// @Tags AppServeApps
+// @Summary Update app status
+// @Description Update app status
+// @Accept json
+// @Produce json
+// @Param appId path string true "appId"
+// @Param body body domain.UpdateAppServeAppStatusRequest true "update app status request"
+// @Success 200 {object} object
+// @Router /app-serve-apps/{appId}/status [patch]
+// @Security     JWT
+func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	appId, ok := vars["appId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
+		return
+	}
+
+	appStatusReq := domain.UpdateAppServeAppStatusRequest{}
+	err := UnmarshalRequestInput(r, &appStatusReq)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	res, err := h.usecase.UpdateAppServeAppStatus(appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, res)
+}
+
+// UpdateAppServeAppEndpoint godoc
+// @Tags AppServeApps
+// @Summary Update app endpoint
+// @Description Update app endpoint
+// @Accept json
+// @Produce json
+// @Param appId path string true "appId"
+// @Param body body domain.UpdateAppServeAppEndpointRequest true "update app endpoint request"
+// @Success 200 {object} object
+// @Router /app-serve-apps/{appId}/endpoint [patch]
+// @Security     JWT
+func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	appId, ok := vars["appId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
+		return
+	}
+
+	appReq := domain.UpdateAppServeAppEndpointRequest{}
+	err := UnmarshalRequestInput(r, &appReq)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	res, err := h.usecase.UpdateAppServeAppEndpoint(
+		appId,
+		appReq.TaskID,
+		appReq.EndpointUrl,
+		appReq.PreviewEndpointUrl,
+		appReq.HelmRevision)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, res)
+}
+
 // DeleteAppServeApp godoc
 // @Tags AppServeApps
 // @Summary Uninstall appServeApp
