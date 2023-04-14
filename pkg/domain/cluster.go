@@ -117,7 +117,7 @@ type Node = struct {
 
 type CreateClusterRequest struct {
 	OrganizationId  string `json:"organizationId"`
-	TemplateId      string `json:"templateId"`
+	StackTemplateId string `json:"stackTemplateId"`
 	Name            string `json:"name"`
 	Description     string `json:"description"`
 	CloudSettingId  string `json:"cloudSettingId"`
@@ -132,18 +132,19 @@ type CreateClusterResponse struct {
 }
 
 type ClusterResponse struct {
-	ID             ClusterId            `json:"id"`
-	OrganizationId string               `json:"organizationId"`
-	Name           string               `json:"name"`
-	Description    string               `json:"description"`
-	CloudSetting   CloudSettingResponse `json:"cloudSetting"`
-	Status         string               `json:"status"`
-	StatusDesc     string               `json:"statusDesc"`
-	Conf           ClusterConfResponse  `json:"conf"`
-	Creator        SimpleUserResponse   `json:"creator"`
-	Updator        SimpleUserResponse   `json:"updator"`
-	CreatedAt      time.Time            `json:"createdAt"`
-	UpdatedAt      time.Time            `json:"updatedAt"`
+	ID             ClusterId             `json:"id"`
+	OrganizationId string                `json:"organizationId"`
+	Name           string                `json:"name"`
+	Description    string                `json:"description"`
+	CloudSetting   CloudSettingResponse  `json:"cloudSetting"`
+	StackTemplate  StackTemplateResponse `json:"stackTemplate"`
+	Status         string                `json:"status"`
+	StatusDesc     string                `json:"statusDesc"`
+	Conf           ClusterConfResponse   `json:"conf"`
+	Creator        SimpleUserResponse    `json:"creator"`
+	Updator        SimpleUserResponse    `json:"updator"`
+	CreatedAt      time.Time             `json:"createdAt"`
+	UpdatedAt      time.Time             `json:"updatedAt"`
 }
 
 type ClusterConfResponse struct {
