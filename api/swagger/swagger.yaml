@@ -391,6 +391,10 @@ definitions:
     type: object
   domain.CreateCloudSettingRequest:
     properties:
+      accessKeyId:
+        maxLength: 128
+        minLength: 16
+        type: string
       cloudService:
         enum:
         - AWS
@@ -403,15 +407,18 @@ definitions:
         type: string
       organizationId:
         type: string
-      secretKey:
+      secretAccessKey:
+        maxLength: 128
+        minLength: 16
         type: string
-      secretKeyId:
+      sessionToken:
+        maxLength: 2000
         type: string
     required:
+    - accessKeyId
     - name
     - organizationId
-    - secretKey
-    - secretKeyId
+    - secretAccessKey
     type: object
   domain.CreateCloudSettingResponse:
     properties:
@@ -564,13 +571,20 @@ definitions:
     type: object
   domain.DeleteCloudSettingRequest:
     properties:
-      secretKey:
+      accessKeyId:
+        maxLength: 128
+        minLength: 16
         type: string
-      secretKeyId:
+      secretAccessKey:
+        maxLength: 128
+        minLength: 16
+        type: string
+      sessionToken:
+        maxLength: 2000
         type: string
     required:
-    - secretKey
-    - secretKeyId
+    - accessKeyId
+    - secretAccessKey
     type: object
   domain.DeleteStackRequest:
     properties:

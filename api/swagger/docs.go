@@ -2533,12 +2533,17 @@ const docTemplate = `{
         "domain.CreateCloudSettingRequest": {
             "type": "object",
             "required": [
+                "accessKeyId",
                 "name",
                 "organizationId",
-                "secretKey",
-                "secretKeyId"
+                "secretAccessKey"
             ],
             "properties": {
+                "accessKeyId": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
+                },
                 "cloudService": {
                     "type": "string",
                     "enum": [
@@ -2556,11 +2561,14 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
-                "secretKey": {
-                    "type": "string"
+                "secretAccessKey": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
                 },
-                "secretKeyId": {
-                    "type": "string"
+                "sessionToken": {
+                    "type": "string",
+                    "maxLength": 2000
                 }
             }
         },
@@ -2787,15 +2795,23 @@ const docTemplate = `{
         "domain.DeleteCloudSettingRequest": {
             "type": "object",
             "required": [
-                "secretKey",
-                "secretKeyId"
+                "accessKeyId",
+                "secretAccessKey"
             ],
             "properties": {
-                "secretKey": {
-                    "type": "string"
+                "accessKeyId": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
                 },
-                "secretKeyId": {
-                    "type": "string"
+                "secretAccessKey": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
+                },
+                "sessionToken": {
+                    "type": "string",
+                    "maxLength": 2000
                 }
             }
         },

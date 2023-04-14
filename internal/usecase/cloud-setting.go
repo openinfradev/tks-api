@@ -46,6 +46,12 @@ func (u *CloudSettingUsecase) Create(ctx context.Context, dto domain.CloudSettin
 
 	dto.Resource = "TODO server result or additional information"
 	dto.CreatorId = user.GetUserId()
+
+	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	if err == nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
+	}
+
 	cloudSettingId, err = u.repo.Create(dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err)
