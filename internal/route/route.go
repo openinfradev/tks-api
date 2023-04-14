@@ -52,7 +52,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	// [TODO] Transaction
 	//r.Use(transactionMiddleware(db))
 
-	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
+	//r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	repoFactory := repository.Repository{
 		User:          repository.NewUserRepository(db),
@@ -136,7 +136,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
-	r.PathPrefix("/").Handler(asset).Methods(http.MethodGet)
+	r.PathPrefix("/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
 
 	//withLog := handlers.LoggingHandler(os.Stdout, r)
 
