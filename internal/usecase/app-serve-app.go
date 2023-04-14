@@ -19,8 +19,10 @@ type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
 	UpdateAppServeApp(app *domain.AppServeAppTask) (ret string, err error)
+	UpdateAppServeAppEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
 	PromoteAppServeApp(appId string) (ret string, err error)
 	AbortAppServeApp(appId string) (ret string, err error)
 }
@@ -52,7 +54,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 
 		// Construct imageUrl
-		imageUrl := viper.GetString("image-registry-url") + "/" + app.Name + ":" + app.AppServeAppTasks[0].Version
+		imageUrl := viper.GetString("image-registry-url") + "/" + app.Name + "-" + app.TargetClusterId + ":" + app.AppServeAppTasks[0].Version
 		app.AppServeAppTasks[0].ImageUrl = imageUrl
 
 		if app.AppType == "springboot" {
@@ -144,6 +146,41 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 	}
 
 	return app, nil
+}
+
+func (u *AppServeAppUsecase) UpdateAppServeAppStatus(
+	appId string,
+	taskId string,
+	status string,
+	output string) (string, error) {
+
+	log.Info("Starting status update process..")
+
+	err := u.repo.UpdateStatus(appId, taskId, status, output)
+	if err != nil {
+		log.Info("appId = ", appId)
+		log.Info("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app status. Err: %s", err)
+	}
+	return fmt.Sprintf("The appId '%s' status is being updated.", appId), nil
+}
+
+func (u *AppServeAppUsecase) UpdateAppServeAppEndpoint(
+	appId string,
+	taskId string,
+	endpoint string,
+	previewEndpoint string,
+	helmRevision int32) (string, error) {
+
+	log.Info("Starting endpoint update process..")
+
+	err := u.repo.UpdateEndpoint(appId, taskId, endpoint, previewEndpoint, helmRevision)
+	if err != nil {
+		log.Info("appId = ", appId)
+		log.Info("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update endpoint. Err: %s", err)
+	}
+	return fmt.Sprintf("The appId '%s' endpoint is being updated.", appId), nil
 }
 
 func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err error) {
