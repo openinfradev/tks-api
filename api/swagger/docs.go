@@ -2533,12 +2533,16 @@ const docTemplate = `{
         "domain.CreateCloudSettingRequest": {
             "type": "object",
             "required": [
+                "accessKeyId",
                 "name",
                 "organizationId",
-                "secretKey",
-                "secretKeyId"
+                "secretAccessKey",
+                "sessionToken"
             ],
             "properties": {
+                "accessKeyId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string",
                     "enum": [
@@ -2556,10 +2560,10 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
-                "secretKey": {
+                "secretAccessKey": {
                     "type": "string"
                 },
-                "secretKeyId": {
+                "sessionToken": {
                     "type": "string"
                 }
             }
@@ -2787,14 +2791,18 @@ const docTemplate = `{
         "domain.DeleteCloudSettingRequest": {
             "type": "object",
             "required": [
-                "secretKey",
-                "secretKeyId"
+                "accessKeyId",
+                "secretAccessKey",
+                "sessionToken"
             ],
             "properties": {
-                "secretKey": {
+                "accessKeyId": {
                     "type": "string"
                 },
-                "secretKeyId": {
+                "secretAccessKey": {
+                    "type": "string"
+                },
+                "sessionToken": {
                     "type": "string"
                 }
             }

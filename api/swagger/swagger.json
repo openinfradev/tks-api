@@ -2526,12 +2526,16 @@
         "domain.CreateCloudSettingRequest": {
             "type": "object",
             "required": [
+                "accessKeyId",
                 "name",
                 "organizationId",
-                "secretKey",
-                "secretKeyId"
+                "secretAccessKey",
+                "sessionToken"
             ],
             "properties": {
+                "accessKeyId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string",
                     "enum": [
@@ -2549,10 +2553,10 @@
                 "organizationId": {
                     "type": "string"
                 },
-                "secretKey": {
+                "secretAccessKey": {
                     "type": "string"
                 },
-                "secretKeyId": {
+                "sessionToken": {
                     "type": "string"
                 }
             }
@@ -2780,14 +2784,18 @@
         "domain.DeleteCloudSettingRequest": {
             "type": "object",
             "required": [
-                "secretKey",
-                "secretKeyId"
+                "accessKeyId",
+                "secretAccessKey",
+                "sessionToken"
             ],
             "properties": {
-                "secretKey": {
+                "accessKeyId": {
                     "type": "string"
                 },
-                "secretKeyId": {
+                "secretAccessKey": {
+                    "type": "string"
+                },
+                "sessionToken": {
                     "type": "string"
                 }
             }

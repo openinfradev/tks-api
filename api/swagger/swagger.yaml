@@ -391,6 +391,8 @@ definitions:
     type: object
   domain.CreateCloudSettingRequest:
     properties:
+      accessKeyId:
+        type: string
       cloudService:
         enum:
         - AWS
@@ -403,15 +405,16 @@ definitions:
         type: string
       organizationId:
         type: string
-      secretKey:
+      secretAccessKey:
         type: string
-      secretKeyId:
+      sessionToken:
         type: string
     required:
+    - accessKeyId
     - name
     - organizationId
-    - secretKey
-    - secretKeyId
+    - secretAccessKey
+    - sessionToken
     type: object
   domain.CreateCloudSettingResponse:
     properties:
@@ -564,13 +567,16 @@ definitions:
     type: object
   domain.DeleteCloudSettingRequest:
     properties:
-      secretKey:
+      accessKeyId:
         type: string
-      secretKeyId:
+      secretAccessKey:
+        type: string
+      sessionToken:
         type: string
     required:
-    - secretKey
-    - secretKeyId
+    - accessKeyId
+    - secretAccessKey
+    - sessionToken
     type: object
   domain.DeleteStackRequest:
     properties:
