@@ -2536,12 +2536,13 @@ const docTemplate = `{
                 "accessKeyId",
                 "name",
                 "organizationId",
-                "secretAccessKey",
-                "sessionToken"
+                "secretAccessKey"
             ],
             "properties": {
                 "accessKeyId": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
                 },
                 "cloudService": {
                     "type": "string",
@@ -2561,10 +2562,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secretAccessKey": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
                 },
                 "sessionToken": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 2000
                 }
             }
         },
@@ -2792,18 +2796,22 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "accessKeyId",
-                "secretAccessKey",
-                "sessionToken"
+                "secretAccessKey"
             ],
             "properties": {
                 "accessKeyId": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
                 },
                 "secretAccessKey": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
                 },
                 "sessionToken": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 2000
                 }
             }
         },

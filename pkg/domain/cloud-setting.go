@@ -57,9 +57,9 @@ type CreateCloudSettingRequest struct {
 	Name            string `json:"name" validate:"required"`
 	Description     string `json:"description"`
 	CloudService    string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
-	AccessKeyId     string `json:"accessKeyId" validate:"required"`
-	SecretAccessKey string `json:"secretAccessKey" validate:"required"`
-	SessionToken    string `json:"sessionToken" validate:"required"`
+	AccessKeyId     string `json:"accessKeyId" validate:"required,min=16,max=128"`
+	SecretAccessKey string `json:"secretAccessKey" validate:"required,min=16,max=128"`
+	SessionToken    string `json:"sessionToken" validate:"max=2000"`
 }
 
 type CreateCloudSettingResponse struct {
@@ -71,9 +71,9 @@ type UpdateCloudSettingRequest struct {
 }
 
 type DeleteCloudSettingRequest struct {
-	AccessKeyId     string `json:"accessKeyId" validate:"required"`
-	SecretAccessKey string `json:"secretAccessKey" validate:"required"`
-	SessionToken    string `json:"sessionToken" validate:"required"`
+	AccessKeyId     string `json:"accessKeyId" validate:"required,min=16,max=128"`
+	SecretAccessKey string `json:"secretAccessKey" validate:"required,min=16,max=128"`
+	SessionToken    string `json:"sessionToken" validate:"max=2000"`
 }
 
 type CheckCloudSettingNameResponse struct {
