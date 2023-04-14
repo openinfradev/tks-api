@@ -93,7 +93,7 @@ type CreateAppServeAppRequest struct {
 	AppType         string `json:"app_type" validate:"oneof=spring springboot"`
 	TargetClusterId string `json:"target_cluster_id" validate:"required"`
 
-	// AppType
+	// Task
 	Version        string `json:"version"`
 	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
 	ArtifactUrl    string `json:"artifact_url"`
@@ -117,6 +117,19 @@ type CreateAppServeAppResponse struct {
 	Name string `json:"app_name"`
 }
 
+type UpdateAppServeAppStatusRequest struct {
+	TaskID string `json:"task_id" validate:"required"`
+	Status string `json:"status" validate:"required"`
+	Output string `json:"output"`
+}
+
+type UpdateAppServeAppEndpointRequest struct {
+	TaskID             string `json:"task_id" validate:"required"`
+	EndpointUrl        string `json:"endpoint_url"`
+	PreviewEndpointUrl string `json:"preview_endpoint_url"`
+	HelmRevision       int32  `json:"helm_revision"`
+}
+
 type UpdateAppServeAppRequest struct {
 	// App
 	ID              string `json:"id"`
@@ -126,7 +139,7 @@ type UpdateAppServeAppRequest struct {
 	AppType         string `json:"app_type"`
 	TargetClusterId string `json:"target_cluster_id"`
 
-	// AppType
+	// Task
 	Version        string `json:"version"`
 	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
 	ArtifactUrl    string `json:"artifact_url"`
