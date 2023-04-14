@@ -27,16 +27,18 @@ type IClusterUsecase interface {
 }
 
 type ClusterUsecase struct {
-	repo         repository.IClusterRepository
-	appGroupRepo repository.IAppGroupRepository
-	argo         argowf.ArgoClient
+	repo              repository.IClusterRepository
+	appGroupRepo      repository.IAppGroupRepository
+	stackTemplateRepo repository.IStackTemplateRepository
+	argo              argowf.ArgoClient
 }
 
 func NewClusterUsecase(r repository.Repository, argoClient argowf.ArgoClient) IClusterUsecase {
 	return &ClusterUsecase{
-		repo:         r.Cluster,
-		appGroupRepo: r.AppGroup,
-		argo:         argoClient,
+		repo:              r.Cluster,
+		appGroupRepo:      r.AppGroup,
+		stackTemplateRepo: r.StackTemplate,
+		argo:              argoClient,
 	}
 }
 
@@ -129,6 +131,11 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
+	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	if err != nil {
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
+	}
+
 	// Call argo workflow
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"create-tks-usercluster",
@@ -137,7 +144,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 				"contract_id=" + dto.OrganizationId,
 				"cluster_id=" + clusterId.String(),
 				"site_name=" + clusterId.String(),
-				"template_name=" + dto.TemplateId,
+				"template_name=" + stackTemplate.Template,
 				"git_account=" + viper.GetString("git-account"),
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
