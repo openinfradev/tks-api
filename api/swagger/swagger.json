@@ -2295,6 +2295,9 @@
                 "organizationId": {
                     "type": "string"
                 },
+                "stackTemplate": {
+                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -2500,7 +2503,7 @@
                 "region": {
                     "type": "string"
                 },
-                "templateId": {
+                "stackTemplateId": {
                     "type": "string"
                 }
             }
@@ -3168,6 +3171,12 @@
                 },
                 "platform": {
                     "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "template": {
                     "type": "string"

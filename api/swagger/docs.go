@@ -2302,6 +2302,9 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
+                "stackTemplate": {
+                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -2507,7 +2510,7 @@ const docTemplate = `{
                 "region": {
                     "type": "string"
                 },
-                "templateId": {
+                "stackTemplateId": {
                     "type": "string"
                 }
             }
@@ -3175,6 +3178,12 @@ const docTemplate = `{
                 },
                 "platform": {
                     "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "template": {
                     "type": "string"

@@ -38,13 +38,6 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 				if err := recursiveMap(srcField.Interface(), dstField.Addr().Interface(), converterMap); err != nil {
 					return err
 				}
-			} else if srcField.Type().Kind() == reflect.Ptr && dstField.Type().Kind() == reflect.Ptr {
-				log.Info("AAA", srcField)
-				ptr := reflect.New(dstField.Type().Elem())
-				dstField.Set(ptr)
-				if err := recursiveMap(srcField.Elem().Interface(), ptr.Interface(), converterMap); err != nil {
-					return err
-				}
 			} else {
 				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
 				if converter, ok := converterMap[converterKey]; ok {
@@ -54,7 +47,8 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 						dstField.Set(reflect.ValueOf(converted))
 					}
 				} else {
-					return fmt.Errorf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					log.Errorf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					continue
 				}
 			}
 
