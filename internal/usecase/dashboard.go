@@ -44,11 +44,6 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 		out = append(out, chart)
 	}
 
-	// [TODO] For sample data
-	if chartType == domain.ChartType_TRAFFIC {
-
-	}
-
 	return
 }
 

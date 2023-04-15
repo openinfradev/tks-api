@@ -578,14 +578,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/cloud-settings": {
+        "/cloud-accounts": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Get CloudSettings",
+                "description": "Get CloudAccounts",
                 "consumes": [
                     "application/json"
                 ],
@@ -593,9 +593,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Get CloudSettings",
+                "summary": "Get CloudAccounts",
                 "parameters": [
                     {
                         "type": "string",
@@ -608,7 +608,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudSettingsResponse"
+                            "$ref": "#/definitions/domain.GetCloudAccountsResponse"
                         }
                     }
                 }
@@ -619,7 +619,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Create CloudSetting",
+                "description": "Create CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -627,9 +627,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Create CloudSetting",
+                "summary": "Create CloudAccount",
                 "parameters": [
                     {
                         "type": "string",
@@ -644,7 +644,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudSettingRequest"
+                            "$ref": "#/definitions/domain.CreateCloudAccountRequest"
                         }
                     }
                 ],
@@ -652,20 +652,20 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudSettingResponse"
+                            "$ref": "#/definitions/domain.CreateCloudAccountResponse"
                         }
                     }
                 }
             }
         },
-        "/cloud-settings/name/{name}/existence": {
+        "/cloud-accounts/name/{name}/existence": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Check name for cloudSetting",
+                "description": "Check name for cloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -673,9 +673,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Check name for cloudSetting",
+                "summary": "Check name for cloudAccount",
                 "parameters": [
                     {
                         "type": "string",
@@ -692,14 +692,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/cloud-settings/{cloudSettingId}": {
+        "/cloud-accounts/{cloudAccountId}": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Get CloudSetting",
+                "description": "Get CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -707,14 +707,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Get CloudSetting",
+                "summary": "Get CloudAccount",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "cloudSettingId",
-                        "name": "cloudSettingId",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
                         "in": "path",
                         "required": true
                     }
@@ -723,7 +723,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudSettingResponse"
+                            "$ref": "#/definitions/domain.GetCloudAccountResponse"
                         }
                     }
                 }
@@ -734,7 +734,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Update CloudSetting",
+                "description": "Update CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -742,9 +742,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Update CloudSetting",
+                "summary": "Update CloudAccount",
                 "parameters": [
                     {
                         "description": "Update cloud setting request",
@@ -752,7 +752,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateCloudSettingRequest"
+                            "$ref": "#/definitions/domain.UpdateCloudAccountRequest"
                         }
                     }
                 ],
@@ -768,7 +768,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Delete CloudSetting",
+                "description": "Delete CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -776,9 +776,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Delete CloudSetting",
+                "summary": "Delete CloudAccount",
                 "parameters": [
                     {
                         "description": "Delete cloud setting request",
@@ -786,13 +786,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.DeleteCloudSettingRequest"
+                            "$ref": "#/definitions/domain.DeleteCloudAccountRequest"
                         }
                     },
                     {
                         "type": "string",
-                        "description": "cloudSettingId",
-                        "name": "cloudSettingId",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
                         "in": "path",
                         "required": true
                     }
@@ -2277,7 +2277,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CloudSetting": {
+        "domain.CloudAccount": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -2321,7 +2321,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CloudSettingResponse": {
+        "domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -2362,10 +2362,10 @@ const docTemplate = `{
         "domain.Cluster": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSetting"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccount"
                 },
-                "cloudSettingId": {
+                "cloudAccountId": {
                     "type": "string"
                 },
                 "conf": {
@@ -2470,8 +2470,8 @@ const docTemplate = `{
         "domain.ClusterResponse": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConfResponse"
@@ -2633,7 +2633,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateCloudSettingRequest": {
+        "domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
                 "accessKeyId",
@@ -2675,7 +2675,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateCloudSettingResponse": {
+        "domain.CreateCloudAccountResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2686,7 +2686,7 @@ const docTemplate = `{
         "domain.CreateClusterRequest": {
             "type": "object",
             "properties": {
-                "cloudSettingId": {
+                "cloudAccountId": {
                     "type": "string"
                 },
                 "description": {
@@ -2747,7 +2747,7 @@ const docTemplate = `{
         "domain.CreateStackRequest": {
             "type": "object",
             "properties": {
-                "cloudSettingId": {
+                "cloudAccountId": {
                     "type": "string"
                 },
                 "cpNodeCnt": {
@@ -2924,7 +2924,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.DeleteCloudSettingRequest": {
+        "domain.DeleteCloudAccountRequest": {
             "type": "object",
             "required": [
                 "accessKeyId",
@@ -2985,21 +2985,21 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GetCloudSettingResponse": {
+        "domain.GetCloudAccountResponse": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccountResponse"
                 }
             }
         },
-        "domain.GetCloudSettingsResponse": {
+        "domain.GetCloudAccountsResponse": {
             "type": "object",
             "properties": {
-                "cloudSettings": {
+                "cloudAccounts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.CloudSettingResponse"
+                        "$ref": "#/definitions/domain.CloudAccountResponse"
                     }
                 }
             }
@@ -3350,8 +3350,8 @@ const docTemplate = `{
         "domain.StackResponse": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
                 "createdAt": {
                     "type": "string"
@@ -3682,7 +3682,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateCloudSettingRequest": {
+        "domain.UpdateCloudAccountRequest": {
             "type": "object",
             "properties": {
                 "description": {

@@ -10,7 +10,7 @@ type Repository struct {
 	Organization  IOrganizationRepository
 	AppGroup      IAppGroupRepository
 	AppServeApp   IAppServeAppRepository
-	CloudSetting  ICloudSettingRepository
+	CloudAccount  ICloudAccountRepository
 	StackTemplate IStackTemplateRepository
 	History       IHistoryRepository
 }

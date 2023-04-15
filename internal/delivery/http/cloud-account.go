@@ -14,63 +14,63 @@ import (
 	"github.com/pkg/errors"
 )
 
-type CloudSettingHandler struct {
-	usecase usecase.ICloudSettingUsecase
+type CloudAccountHandler struct {
+	usecase usecase.ICloudAccountUsecase
 }
 
-func NewCloudSettingHandler(h usecase.ICloudSettingUsecase) *CloudSettingHandler {
-	return &CloudSettingHandler{
+func NewCloudAccountHandler(h usecase.ICloudAccountUsecase) *CloudAccountHandler {
+	return &CloudAccountHandler{
 		usecase: h,
 	}
 }
 
-// CreateCloudSetting godoc
-// @Tags CloudSettings
-// @Summary Create CloudSetting
-// @Description Create CloudSetting
+// CreateCloudAccount godoc
+// @Tags CloudAccounts
+// @Summary Create CloudAccount
+// @Description Create CloudAccount
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Param body body domain.CreateCloudSettingRequest true "create cloud setting request"
-// @Success 200 {object} domain.CreateCloudSettingResponse
-// @Router /cloud-settings [post]
+// @Param body body domain.CreateCloudAccountRequest true "create cloud setting request"
+// @Success 200 {object} domain.CreateCloudAccountResponse
+// @Router /cloud-accounts [post]
 // @Security     JWT
-func (h *CloudSettingHandler) CreateCloudSetting(w http.ResponseWriter, r *http.Request) {
-	input := domain.CreateCloudSettingRequest{}
+func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.Request) {
+	input := domain.CreateCloudAccountRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	var dto domain.CloudSetting
+	var dto domain.CloudAccount
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
 
-	cloudSettingId, err := h.usecase.Create(r.Context(), dto)
+	cloudAccountId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out domain.CreateCloudSettingResponse
-	out.ID = cloudSettingId.String()
+	var out domain.CreateCloudAccountResponse
+	out.ID = cloudAccountId.String()
 
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// GetCloudSetting godoc
-// @Tags CloudSettings
-// @Summary Get CloudSettings
-// @Description Get CloudSettings
+// GetCloudAccount godoc
+// @Tags CloudAccounts
+// @Summary Get CloudAccounts
+// @Description Get CloudAccounts
 // @Accept json
 // @Produce json
 // @Param all query string false "show all organizations"
-// @Success 200 {object} domain.GetCloudSettingsResponse
-// @Router /cloud-settings [get]
+// @Success 200 {object} domain.GetCloudAccountsResponse
+// @Router /cloud-accounts [get]
 // @Security     JWT
-func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Request) {
+func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
@@ -86,16 +86,16 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	cloudSettings, err := h.usecase.Fetch(user.GetOrganizationId())
+	cloudAccounts, err := h.usecase.Fetch(user.GetOrganizationId())
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out domain.GetCloudSettingsResponse
-	out.CloudSettings = make([]domain.CloudSettingResponse, len(cloudSettings))
-	for i, cloudSetting := range cloudSettings {
-		if err := domain.Map(cloudSetting, &out.CloudSettings[i]); err != nil {
+	var out domain.GetCloudAccountsResponse
+	out.CloudAccounts = make([]domain.CloudAccountResponse, len(cloudAccounts))
+	for i, cloudAccount := range cloudAccounts {
+		if err := domain.Map(cloudAccount, &out.CloudAccounts[i]); err != nil {
 			log.Info(err)
 			continue
 		}
@@ -104,59 +104,59 @@ func (h *CloudSettingHandler) GetCloudSettings(w http.ResponseWriter, r *http.Re
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// GetCloudSetting godoc
-// @Tags CloudSettings
-// @Summary Get CloudSetting
-// @Description Get CloudSetting
+// GetCloudAccount godoc
+// @Tags CloudAccounts
+// @Summary Get CloudAccount
+// @Description Get CloudAccount
 // @Accept json
 // @Produce json
-// @Param cloudSettingId path string true "cloudSettingId"
-// @Success 200 {object} domain.GetCloudSettingResponse
-// @Router /cloud-settings/{cloudSettingId} [get]
+// @Param cloudAccountId path string true "cloudAccountId"
+// @Success 200 {object} domain.GetCloudAccountResponse
+// @Router /cloud-accounts/{cloudAccountId} [get]
 // @Security     JWT
-func (h *CloudSettingHandler) GetCloudSetting(w http.ResponseWriter, r *http.Request) {
+func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	strId, ok := vars["cloudSettingId"]
+	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudSettingId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId")))
 		return
 	}
 
-	cloudSettingId, err := uuid.Parse(strId)
+	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
 		return
 	}
 
-	cloudSetting, err := h.usecase.Get(cloudSettingId)
+	cloudAccount, err := h.usecase.Get(cloudAccountId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	var out domain.GetCloudSettingResponse
-	if err := domain.Map(cloudSetting, &out.CloudSetting); err != nil {
+	var out domain.GetCloudAccountResponse
+	if err := domain.Map(cloudAccount, &out.CloudAccount); err != nil {
 		log.Info(err)
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// UpdateCloudSetting godoc
-// @Tags CloudSettings
-// @Summary Update CloudSetting
-// @Description Update CloudSetting
+// UpdateCloudAccount godoc
+// @Tags CloudAccounts
+// @Summary Update CloudAccount
+// @Description Update CloudAccount
 // @Accept json
 // @Produce json
-// @Param body body domain.UpdateCloudSettingRequest true "Update cloud setting request"
+// @Param body body domain.UpdateCloudAccountRequest true "Update cloud setting request"
 // @Success 200 {object} nil
-// @Router /cloud-settings/{cloudSettingId} [put]
+// @Router /cloud-accounts/{cloudAccountId} [put]
 // @Security     JWT
-func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.Request) {
+func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	strId, ok := vars["cloudSettingId"]
+	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudSettingId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId")))
 		return
 	}
 
@@ -166,14 +166,14 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 		return
 	}
 
-	input := domain.UpdateCloudSettingRequest{}
+	input := domain.UpdateCloudAccountRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	var dto domain.CloudSetting
+	var dto domain.CloudAccount
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
@@ -188,39 +188,39 @@ func (h *CloudSettingHandler) UpdateCloudSetting(w http.ResponseWriter, r *http.
 	ResponseJSON(w, http.StatusOK, nil)
 }
 
-// DeleteCloudSetting godoc
-// @Tags CloudSettings
-// @Summary Delete CloudSetting
-// @Description Delete CloudSetting
+// DeleteCloudAccount godoc
+// @Tags CloudAccounts
+// @Summary Delete CloudAccount
+// @Description Delete CloudAccount
 // @Accept json
 // @Produce json
-// @Param body body domain.DeleteCloudSettingRequest true "Delete cloud setting request"
-// @Param cloudSettingId path string true "cloudSettingId"
+// @Param body body domain.DeleteCloudAccountRequest true "Delete cloud setting request"
+// @Param cloudAccountId path string true "cloudAccountId"
 // @Success 200 {object} nil
-// @Router /cloud-settings/{cloudSettingId} [delete]
+// @Router /cloud-accounts/{cloudAccountId} [delete]
 // @Security     JWT
-func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.Request) {
+func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	cloudSettingId, ok := vars["cloudSettingId"]
+	cloudAccountId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudSettingId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId")))
 		return
 	}
 
-	parsedId, err := uuid.Parse(cloudSettingId)
+	parsedId, err := uuid.Parse(cloudAccountId)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid")))
 		return
 	}
 
-	input := domain.DeleteCloudSettingRequest{}
+	input := domain.DeleteCloudAccountRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
-	var dto domain.CloudSetting
+	var dto domain.CloudAccount
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
@@ -235,17 +235,17 @@ func (h *CloudSettingHandler) DeleteCloudSetting(w http.ResponseWriter, r *http.
 	ResponseJSON(w, http.StatusOK, nil)
 }
 
-// CheckCloudSettingName godoc
-// @Tags CloudSettings
-// @Summary Check name for cloudSetting
-// @Description Check name for cloudSetting
+// CheckCloudAccountName godoc
+// @Tags CloudAccounts
+// @Summary Check name for cloudAccount
+// @Description Check name for cloudAccount
 // @Accept json
 // @Produce json
 // @Param name path string true "name"
 // @Success 200 {object} nil
-// @Router /cloud-settings/name/{name}/existence [GET]
+// @Router /cloud-accounts/name/{name}/existence [GET]
 // @Security     JWT
-func (h *CloudSettingHandler) CheckCloudSettingName(w http.ResponseWriter, r *http.Request) {
+func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
@@ -270,7 +270,7 @@ func (h *CloudSettingHandler) CheckCloudSettingName(w http.ResponseWriter, r *ht
 		}
 	}
 
-	var out domain.CheckCloudSettingNameResponse
+	var out domain.CheckCloudAccountNameResponse
 	out.Existed = exist
 
 	ResponseJSON(w, http.StatusOK, out)

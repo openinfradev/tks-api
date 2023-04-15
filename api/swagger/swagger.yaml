@@ -176,7 +176,7 @@ definitions:
             type: string
         type: object
     type: object
-  domain.CloudSetting:
+  domain.CloudAccount:
     properties:
       cloudService:
         type: string
@@ -205,7 +205,7 @@ definitions:
       updatorId:
         type: string
     type: object
-  domain.CloudSettingResponse:
+  domain.CloudAccountResponse:
     properties:
       cloudService:
         type: string
@@ -232,9 +232,9 @@ definitions:
     type: object
   domain.Cluster:
     properties:
-      cloudSetting:
-        $ref: '#/definitions/domain.CloudSetting'
-      cloudSettingId:
+      cloudAccount:
+        $ref: '#/definitions/domain.CloudAccount'
+      cloudAccountId:
         type: string
       conf:
         $ref: '#/definitions/domain.ClusterConf'
@@ -303,8 +303,8 @@ definitions:
     type: object
   domain.ClusterResponse:
     properties:
-      cloudSetting:
-        $ref: '#/definitions/domain.CloudSettingResponse'
+      cloudAccount:
+        $ref: '#/definitions/domain.CloudAccountResponse'
       conf:
         $ref: '#/definitions/domain.ClusterConfResponse'
       createdAt:
@@ -414,7 +414,7 @@ definitions:
     - organization_id
     - target_cluster_id
     type: object
-  domain.CreateCloudSettingRequest:
+  domain.CreateCloudAccountRequest:
     properties:
       accessKeyId:
         maxLength: 128
@@ -445,14 +445,14 @@ definitions:
     - organizationId
     - secretAccessKey
     type: object
-  domain.CreateCloudSettingResponse:
+  domain.CreateCloudAccountResponse:
     properties:
       id:
         type: string
     type: object
   domain.CreateClusterRequest:
     properties:
-      cloudSettingId:
+      cloudAccountId:
         type: string
       description:
         type: string
@@ -493,7 +493,7 @@ definitions:
     type: object
   domain.CreateStackRequest:
     properties:
-      cloudSettingId:
+      cloudAccountId:
         type: string
       cpNodeCnt:
         type: integer
@@ -613,7 +613,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  domain.DeleteCloudSettingRequest:
+  domain.DeleteCloudAccountRequest:
     properties:
       accessKeyId:
         maxLength: 128
@@ -654,16 +654,16 @@ definitions:
           $ref: '#/definitions/domain.ApplicationResponse'
         type: array
     type: object
-  domain.GetCloudSettingResponse:
+  domain.GetCloudAccountResponse:
     properties:
-      cloudSetting:
-        $ref: '#/definitions/domain.CloudSettingResponse'
+      cloudAccount:
+        $ref: '#/definitions/domain.CloudAccountResponse'
     type: object
-  domain.GetCloudSettingsResponse:
+  domain.GetCloudAccountsResponse:
     properties:
-      cloudSettings:
+      cloudAccounts:
         items:
-          $ref: '#/definitions/domain.CloudSettingResponse'
+          $ref: '#/definitions/domain.CloudAccountResponse'
         type: array
     type: object
   domain.GetClustersResponse:
@@ -891,8 +891,8 @@ definitions:
     type: object
   domain.StackResponse:
     properties:
-      cloudSetting:
-        $ref: '#/definitions/domain.CloudSettingResponse'
+      cloudAccount:
+        $ref: '#/definitions/domain.CloudAccountResponse'
       createdAt:
         type: string
       creator:
@@ -1111,7 +1111,7 @@ definitions:
       metadata:
         type: string
     type: object
-  domain.UpdateCloudSettingRequest:
+  domain.UpdateCloudAccountRequest:
     properties:
       description:
         type: string
@@ -1600,11 +1600,11 @@ paths:
       summary: logout
       tags:
       - Auth
-  /cloud-settings:
+  /cloud-accounts:
     get:
       consumes:
       - application/json
-      description: Get CloudSettings
+      description: Get CloudAccounts
       parameters:
       - description: show all organizations
         in: query
@@ -1616,16 +1616,16 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.GetCloudSettingsResponse'
+            $ref: '#/definitions/domain.GetCloudAccountsResponse'
       security:
       - JWT: []
-      summary: Get CloudSettings
+      summary: Get CloudAccounts
       tags:
-      - CloudSettings
+      - CloudAccounts
     post:
       consumes:
       - application/json
-      description: Create CloudSetting
+      description: Create CloudAccount
       parameters:
       - description: organizationId
         in: path
@@ -1637,34 +1637,34 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.CreateCloudSettingRequest'
+          $ref: '#/definitions/domain.CreateCloudAccountRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.CreateCloudSettingResponse'
+            $ref: '#/definitions/domain.CreateCloudAccountResponse'
       security:
       - JWT: []
-      summary: Create CloudSetting
+      summary: Create CloudAccount
       tags:
-      - CloudSettings
-  /cloud-settings/{cloudSettingId}:
+      - CloudAccounts
+  /cloud-accounts/{cloudAccountId}:
     delete:
       consumes:
       - application/json
-      description: Delete CloudSetting
+      description: Delete CloudAccount
       parameters:
       - description: Delete cloud setting request
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.DeleteCloudSettingRequest'
-      - description: cloudSettingId
+          $ref: '#/definitions/domain.DeleteCloudAccountRequest'
+      - description: cloudAccountId
         in: path
-        name: cloudSettingId
+        name: cloudAccountId
         required: true
         type: string
       produces:
@@ -1674,17 +1674,17 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Delete CloudSetting
+      summary: Delete CloudAccount
       tags:
-      - CloudSettings
+      - CloudAccounts
     get:
       consumes:
       - application/json
-      description: Get CloudSetting
+      description: Get CloudAccount
       parameters:
-      - description: cloudSettingId
+      - description: cloudAccountId
         in: path
-        name: cloudSettingId
+        name: cloudAccountId
         required: true
         type: string
       produces:
@@ -1693,23 +1693,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.GetCloudSettingResponse'
+            $ref: '#/definitions/domain.GetCloudAccountResponse'
       security:
       - JWT: []
-      summary: Get CloudSetting
+      summary: Get CloudAccount
       tags:
-      - CloudSettings
+      - CloudAccounts
     put:
       consumes:
       - application/json
-      description: Update CloudSetting
+      description: Update CloudAccount
       parameters:
       - description: Update cloud setting request
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateCloudSettingRequest'
+          $ref: '#/definitions/domain.UpdateCloudAccountRequest'
       produces:
       - application/json
       responses:
@@ -1717,14 +1717,14 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Update CloudSetting
+      summary: Update CloudAccount
       tags:
-      - CloudSettings
-  /cloud-settings/name/{name}/existence:
+      - CloudAccounts
+  /cloud-accounts/name/{name}/existence:
     get:
       consumes:
       - application/json
-      description: Check name for cloudSetting
+      description: Check name for cloudAccount
       parameters:
       - description: name
         in: path
@@ -1738,9 +1738,9 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Check name for cloudSetting
+      summary: Check name for cloudAccount
       tags:
-      - CloudSettings
+      - CloudAccounts
   /clusters:
     get:
       consumes:

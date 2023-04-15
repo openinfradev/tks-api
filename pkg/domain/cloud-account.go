@@ -14,7 +14,7 @@ const (
 )
 
 // 내부
-type CloudSetting struct {
+type CloudAccount struct {
 	ID             uuid.UUID
 	OrganizationId string
 	Name           string
@@ -30,7 +30,7 @@ type CloudSetting struct {
 	UpdatedAt      time.Time
 }
 
-type CloudSettingResponse struct {
+type CloudAccountResponse struct {
 	ID             string             `json:"id"`
 	OrganizationId string             `json:"organizationId"`
 	Name           string             `json:"name"`
@@ -44,15 +44,15 @@ type CloudSettingResponse struct {
 	UpdatedAt      time.Time          `json:"updatedAt"`
 }
 
-type GetCloudSettingsResponse struct {
-	CloudSettings []CloudSettingResponse `json:"cloudSettings"`
+type GetCloudAccountsResponse struct {
+	CloudAccounts []CloudAccountResponse `json:"cloudAccounts"`
 }
 
-type GetCloudSettingResponse struct {
-	CloudSetting CloudSettingResponse `json:"cloudSetting"`
+type GetCloudAccountResponse struct {
+	CloudAccount CloudAccountResponse `json:"cloudAccount"`
 }
 
-type CreateCloudSettingRequest struct {
+type CreateCloudAccountRequest struct {
 	OrganizationId  string `json:"organizationId" validate:"required"`
 	Name            string `json:"name" validate:"required"`
 	Description     string `json:"description"`
@@ -62,20 +62,20 @@ type CreateCloudSettingRequest struct {
 	SessionToken    string `json:"sessionToken" validate:"max=2000"`
 }
 
-type CreateCloudSettingResponse struct {
+type CreateCloudAccountResponse struct {
 	ID string `json:"id"`
 }
 
-type UpdateCloudSettingRequest struct {
+type UpdateCloudAccountRequest struct {
 	Description string `json:"description"`
 }
 
-type DeleteCloudSettingRequest struct {
+type DeleteCloudAccountRequest struct {
 	AccessKeyId     string `json:"accessKeyId" validate:"required,min=16,max=128"`
 	SecretAccessKey string `json:"secretAccessKey" validate:"required,min=16,max=128"`
 	SessionToken    string `json:"sessionToken" validate:"max=2000"`
 }
 
-type CheckCloudSettingNameResponse struct {
+type CheckCloudAccountNameResponse struct {
 	Existed bool `json:"existed"`
 }
