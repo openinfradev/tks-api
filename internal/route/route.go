@@ -134,6 +134,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.UpdateStack), kc)).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.DeleteStack), kc)).Methods(http.MethodDelete)
 
+	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", authMiddleware(http.HandlerFunc(dashboardHandler.GetCharts), kc)).Methods(http.MethodGet)
+
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
 	r.PathPrefix("/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)

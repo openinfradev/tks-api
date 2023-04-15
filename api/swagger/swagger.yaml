@@ -151,6 +151,31 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.ChartData:
+    properties:
+      series:
+        items:
+          $ref: '#/definitions/domain.Unit'
+        type: array
+      xaxis:
+        properties:
+          data:
+            items:
+              type: string
+            type: array
+          type:
+            type: string
+        type: object
+      yaxis:
+        properties:
+          data:
+            items:
+              type: string
+            type: array
+          type:
+            type: string
+        type: object
+    type: object
   domain.CloudSetting:
     properties:
       cloudService:
@@ -569,6 +594,25 @@ definitions:
             $ref: '#/definitions/domain.Role'
         type: object
     type: object
+  domain.DashboardChartResponse:
+    properties:
+      chartData:
+        $ref: '#/definitions/domain.ChartData'
+      chartType:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+      interval:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   domain.DeleteCloudSettingRequest:
     properties:
       accessKeyId:
@@ -627,6 +671,13 @@ definitions:
       clusters:
         items:
           $ref: '#/definitions/domain.ClusterResponse'
+        type: array
+    type: object
+  domain.GetDashboardChartsResponse:
+    properties:
+      charts:
+        items:
+          $ref: '#/definitions/domain.DashboardChartResponse'
         type: array
     type: object
   domain.GetOrganizationResponse:
@@ -955,6 +1006,15 @@ definitions:
           $ref: '#/definitions/domain.StackTemplateServiceApplicationResponse'
         type: array
       type:
+        type: string
+    type: object
+  domain.Unit:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+      name:
         type: string
     type: object
   domain.UpdateAppServeAppEndpointRequest:
@@ -1567,6 +1627,11 @@ paths:
       - application/json
       description: Create CloudSetting
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: create cloud setting request
         in: body
         name: body
@@ -1898,6 +1963,43 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/dashboard/charts:
+    get:
+      consumes:
+      - application/json
+      description: Get chart data
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: chartType
+        in: query
+        name: chartType
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetDashboardChartsResponse'
+      security:
+      - JWT: []
+      summary: Get chart data
+      tags:
+      - Dashboards
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:

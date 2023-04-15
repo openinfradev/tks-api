@@ -79,7 +79,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 			"description=" + dto.Description,
 			"organization_id=" + dto.OrganizationId,
 			"cloud_account_id=" + dto.CloudSettingId.String(),
-			"stack_template_name=" + stackTemplate.Template,
+			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
 			/*
 				"machine_type=" + input.MachineType,

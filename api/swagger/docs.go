@@ -632,6 +632,13 @@ const docTemplate = `{
                 "summary": "Create CloudSetting",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "create cloud setting request",
                         "name": "body",
                         "in": "body",
@@ -1149,6 +1156,63 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.Organization"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/dashboard/charts": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get chart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get chart data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "chartType",
+                        "name": "chartType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "duration",
+                        "name": "duration",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "interval",
+                        "name": "interval",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetDashboardChartsResponse"
                         }
                     }
                 }
@@ -2174,6 +2238,45 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.ChartData": {
+            "type": "object",
+            "properties": {
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Unit"
+                    }
+                },
+                "xaxis": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "yaxis": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "domain.CloudSetting": {
             "type": "object",
             "properties": {
@@ -2792,6 +2895,35 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.DashboardChartResponse": {
+            "type": "object",
+            "properties": {
+                "chartData": {
+                    "$ref": "#/definitions/domain.ChartData"
+                },
+                "chartType": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "interval": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.DeleteCloudSettingRequest": {
             "type": "object",
             "required": [
@@ -2879,6 +3011,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.ClusterResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetDashboardChartsResponse": {
+            "type": "object",
+            "properties": {
+                "charts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DashboardChartResponse"
                     }
                 }
             }
@@ -3381,6 +3524,20 @@ const docTemplate = `{
                     }
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Unit": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
                     "type": "string"
                 }
             }

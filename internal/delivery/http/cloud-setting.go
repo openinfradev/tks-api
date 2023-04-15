@@ -30,6 +30,7 @@ func NewCloudSettingHandler(h usecase.ICloudSettingUsecase) *CloudSettingHandler
 // @Description Create CloudSetting
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.CreateCloudSettingRequest true "create cloud setting request"
 // @Success 200 {object} domain.CreateCloudSettingResponse
 // @Router /cloud-settings [post]
