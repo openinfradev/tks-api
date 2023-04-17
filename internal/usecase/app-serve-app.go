@@ -86,7 +86,8 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 
 	appId, taskId, err := u.repo.CreateAppServeApp(app)
 	if err != nil {
-		return "", "", err
+		log.Error(err)
+		return "", "", errors.Wrap(err, "Failed to create app.")
 	}
 
 	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
@@ -119,13 +120,15 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"pv_access_mode=" + app.AppServeAppTasks[0].PvAccessMode,
 		"pv_size=" + app.AppServeAppTasks[0].PvSize,
 		"pv_mount_path=" + app.AppServeAppTasks[0].PvMountPath,
+		"tks_info_host=" + viper.GetString("external-address"),
 	}
 
 	log.Info("Submitting workflow: ", workflow)
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, opts)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to submit workflow. Err: %s", err)
+		log.Error(err)
+		return "", "", errors.Wrap(err, fmt.Sprintf("failed to submit workflow. %s", workflow))
 	}
 	log.Info("Successfully submitted workflow: ", workflowId)
 
@@ -216,9 +219,9 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 
 	taskId, err := u.repo.CreateTask(appTask)
 	if err != nil {
-		log.Info("taskId = ", taskId)
+		log.Error("taskId = ", taskId)
 		log.Error("Failed to create delete task. Err:", err)
-		return "", fmt.Errorf("failed to create delete task. Err: %s", err)
+		return "", errors.Wrap(err, "Failed to create delete task.")
 	}
 
 	workflow := "delete-java-app"
@@ -226,7 +229,6 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
-			"type=" + app.Type,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"asa_id=" + app.ID,
@@ -236,7 +238,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	})
 	if err != nil {
 		log.Error("Failed to submit workflow. Err:", err)
-		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
+		return "", errors.Wrap(err, "Failed to submit workflow.")
 	}
 	log.Info("Successfully submitted workflow: ", workflowId)
 
