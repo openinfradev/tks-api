@@ -54,8 +54,8 @@ type Cluster = struct {
 	OrganizationId  string
 	Name            string
 	Description     string
-	CloudSettingId  uuid.UUID
-	CloudSetting    CloudSetting
+	CloudAccountId  uuid.UUID
+	CloudAccount    CloudAccount
 	StackTemplateId uuid.UUID
 	StackTemplate   StackTemplate
 	Status          ClusterStatus
@@ -119,7 +119,7 @@ type CreateClusterRequest struct {
 	StackTemplateId string `json:"stackTemplateId"`
 	Name            string `json:"name"`
 	Description     string `json:"description"`
-	CloudSettingId  string `json:"cloudSettingId"`
+	CloudAccountId  string `json:"cloudAccountId"`
 	NumOfAz         int    `json:"numOfAz"`
 	MachineType     string `json:"machineType"`
 	Region          string `json:"region"`
@@ -135,7 +135,7 @@ type ClusterResponse struct {
 	OrganizationId string                `json:"organizationId"`
 	Name           string                `json:"name"`
 	Description    string                `json:"description"`
-	CloudSetting   CloudSettingResponse  `json:"cloudSetting"`
+	CloudAccount   CloudAccountResponse  `json:"cloudAccount"`
 	StackTemplate  StackTemplateResponse `json:"stackTemplate"`
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`

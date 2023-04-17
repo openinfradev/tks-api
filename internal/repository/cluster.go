@@ -17,7 +17,7 @@ type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
 	Fetch() (res []domain.Cluster, err error)
 	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
-	FetchByCloudSettingId(cloudSettingId uuid.UUID) (res []domain.Cluster, err error)
+	FetchByCloudAccountId(cloudAccountId uuid.UUID) (res []domain.Cluster, err error)
 	Get(id domain.ClusterId) (domain.Cluster, error)
 	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
@@ -55,8 +55,8 @@ type Cluster struct {
 	WorkflowId      string
 	Status          domain.ClusterStatus
 	StatusDesc      string
-	CloudSettingId  uuid.UUID
-	CloudSetting    CloudSetting `gorm:"foreignKey:CloudSettingId"`
+	CloudAccountId  uuid.UUID
+	CloudAccount    CloudAccount `gorm:"foreignKey:CloudAccountId"`
 	StackTemplateId uuid.UUID
 	StackTemplate   StackTemplate `gorm:"foreignKey:StackTemplateId"`
 	CreatorId       *uuid.UUID    `gorm:"type:uuid"`
@@ -114,10 +114,10 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []
 	return
 }
 
-func (r *ClusterRepository) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error) {
+func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 
-	res := r.db.Preload("CloudSetting").Order("updated_at desc, created_at desc").Find(&clusters, "cloud_setting_id = ?", cloudSettingId)
+	res := r.db.Preload("CloudAccount").Order("updated_at desc, created_at desc").Find(&clusters, "cloud_account_id = ?", cloudAccountId)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -160,7 +160,7 @@ func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.Cluster
 		OrganizationId:  dto.OrganizationId,
 		Name:            dto.Name,
 		Description:     dto.Description,
-		CloudSettingId:  dto.CloudSettingId,
+		CloudAccountId:  dto.CloudAccountId,
 		StackTemplateId: dto.StackTemplateId,
 		CreatorId:       dto.CreatorId,
 		UpdatorId:       nil,
@@ -208,8 +208,8 @@ func reflectCluster(cluster Cluster) domain.Cluster {
 		OrganizationId:  cluster.OrganizationId,
 		Name:            cluster.Name,
 		Description:     cluster.Description,
-		CloudSettingId:  cluster.CloudSettingId,
-		CloudSetting:    reflectCloudSetting(cluster.CloudSetting),
+		CloudAccountId:  cluster.CloudAccountId,
+		CloudAccount:    reflectCloudAccount(cluster.CloudAccount),
 		StackTemplateId: cluster.StackTemplateId,
 		StackTemplate:   reflectStackTemplate(cluster.StackTemplate),
 		Status:          cluster.Status,

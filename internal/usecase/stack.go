@@ -78,8 +78,8 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 			"cluster_name=" + dto.Name,
 			"description=" + dto.Description,
 			"organization_id=" + dto.OrganizationId,
-			"cloud_account_id=" + dto.CloudSettingId.String(),
-			"stack_template_name=" + stackTemplate.Template,
+			"cloud_account_id=" + dto.CloudAccountId.String(),
+			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
 			/*
 				"machine_type=" + input.MachineType,
@@ -95,28 +95,21 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 	log.Debug("Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
-	cnt := 0
-
-	ticker := time.NewTicker(time.Second * 2)
-	for range ticker.C {
-		if cnt >= 60 { // max wait 60sec
-			break
-		}
-
+	for i := 0; i < 60; i++ {
+		time.Sleep(time.Second * 2)
 		workflow, err := u.argo.GetWorkflow("argo", workflowId)
 		if err != nil {
 			return err
 		}
 
-		if workflow.Status.Phase != "Running" {
-			return err
+		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
+			return fmt.Errorf("Invalid workflow status")
 		}
 
 		if workflow.Status.Progress == "1/2" { // start creating cluster
 			time.Sleep(time.Second * 5) // Buffer
 			break
 		}
-		cnt += 1
 	}
 
 	// [TODO] need clusterId?
@@ -204,27 +197,21 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	log.Debug("Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
-	cnt := 0
-	ticker := time.NewTicker(time.Second * 2)
-	for range ticker.C {
-		if cnt >= 60 { // max wait 60sec
-			break
-		}
-
+	for i := 0; i < 60; i++ {
+		time.Sleep(time.Second * 2)
 		workflow, err := u.argo.GetWorkflow("argo", workflowId)
 		if err != nil {
 			return err
 		}
 
-		if workflow.Status.Phase != "Running" {
-			return err
+		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
+			return fmt.Errorf("Invalid workflow status")
 		}
 
-		if workflow.Status.Progress == "1/2" { // start deleting service
-			time.Sleep(time.Second * 10) // Buffer
+		if workflow.Status.Progress == "1/2" { // start creating cluster
+			time.Sleep(time.Second * 5) // Buffer
 			break
 		}
-		cnt += 1
 	}
 
 	return nil
@@ -240,8 +227,8 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 		Description:     cluster.Description,
 		Status:          status,
 		StatusDesc:      statusDesc,
-		CloudSettingId:  cluster.CloudSettingId,
-		CloudSetting:    cluster.CloudSetting,
+		CloudAccountId:  cluster.CloudAccountId,
+		CloudAccount:    cluster.CloudAccount,
 		StackTemplateId: cluster.StackTemplateId,
 		StackTemplate:   cluster.StackTemplate,
 		CreatorId:       cluster.CreatorId,

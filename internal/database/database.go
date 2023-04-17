@@ -74,8 +74,8 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
-	// CloudSetting
-	if err := db.AutoMigrate(&repository.CloudSetting{}); err != nil {
+	// CloudAccount
+	if err := db.AutoMigrate(&repository.CloudAccount{}); err != nil {
 		return err
 	}
 

@@ -571,14 +571,14 @@
                 }
             }
         },
-        "/cloud-settings": {
+        "/cloud-accounts": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Get CloudSettings",
+                "description": "Get CloudAccounts",
                 "consumes": [
                     "application/json"
                 ],
@@ -586,9 +586,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Get CloudSettings",
+                "summary": "Get CloudAccounts",
                 "parameters": [
                     {
                         "type": "string",
@@ -601,7 +601,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudSettingsResponse"
+                            "$ref": "#/definitions/domain.GetCloudAccountsResponse"
                         }
                     }
                 }
@@ -612,7 +612,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Create CloudSetting",
+                "description": "Create CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -620,17 +620,24 @@
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Create CloudSetting",
+                "summary": "Create CloudAccount",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "create cloud setting request",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudSettingRequest"
+                            "$ref": "#/definitions/domain.CreateCloudAccountRequest"
                         }
                     }
                 ],
@@ -638,20 +645,20 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudSettingResponse"
+                            "$ref": "#/definitions/domain.CreateCloudAccountResponse"
                         }
                     }
                 }
             }
         },
-        "/cloud-settings/name/{name}/existence": {
+        "/cloud-accounts/name/{name}/existence": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Check name for cloudSetting",
+                "description": "Check name for cloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -659,9 +666,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Check name for cloudSetting",
+                "summary": "Check name for cloudAccount",
                 "parameters": [
                     {
                         "type": "string",
@@ -678,14 +685,14 @@
                 }
             }
         },
-        "/cloud-settings/{cloudSettingId}": {
+        "/cloud-accounts/{cloudAccountId}": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Get CloudSetting",
+                "description": "Get CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -693,14 +700,14 @@
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Get CloudSetting",
+                "summary": "Get CloudAccount",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "cloudSettingId",
-                        "name": "cloudSettingId",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
                         "in": "path",
                         "required": true
                     }
@@ -709,7 +716,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudSettingResponse"
+                            "$ref": "#/definitions/domain.GetCloudAccountResponse"
                         }
                     }
                 }
@@ -720,7 +727,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Update CloudSetting",
+                "description": "Update CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -728,9 +735,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Update CloudSetting",
+                "summary": "Update CloudAccount",
                 "parameters": [
                     {
                         "description": "Update cloud setting request",
@@ -738,7 +745,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateCloudSettingRequest"
+                            "$ref": "#/definitions/domain.UpdateCloudAccountRequest"
                         }
                     }
                 ],
@@ -754,7 +761,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Delete CloudSetting",
+                "description": "Delete CloudAccount",
                 "consumes": [
                     "application/json"
                 ],
@@ -762,9 +769,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "CloudSettings"
+                    "CloudAccounts"
                 ],
-                "summary": "Delete CloudSetting",
+                "summary": "Delete CloudAccount",
                 "parameters": [
                     {
                         "description": "Delete cloud setting request",
@@ -772,13 +779,13 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.DeleteCloudSettingRequest"
+                            "$ref": "#/definitions/domain.DeleteCloudAccountRequest"
                         }
                     },
                     {
                         "type": "string",
-                        "description": "cloudSettingId",
-                        "name": "cloudSettingId",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
                         "in": "path",
                         "required": true
                     }
@@ -1142,6 +1149,63 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.Organization"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/dashboard/charts": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get chart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get chart data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "chartType",
+                        "name": "chartType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "duration",
+                        "name": "duration",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "interval",
+                        "name": "interval",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetDashboardChartsResponse"
                         }
                     }
                 }
@@ -2167,7 +2231,46 @@
                 }
             }
         },
-        "domain.CloudSetting": {
+        "domain.ChartData": {
+            "type": "object",
+            "properties": {
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Unit"
+                    }
+                },
+                "xaxis": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "yaxis": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "domain.CloudAccount": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -2211,7 +2314,7 @@
                 }
             }
         },
-        "domain.CloudSettingResponse": {
+        "domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -2252,10 +2355,10 @@
         "domain.Cluster": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSetting"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccount"
                 },
-                "cloudSettingId": {
+                "cloudAccountId": {
                     "type": "string"
                 },
                 "conf": {
@@ -2360,8 +2463,8 @@
         "domain.ClusterResponse": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConfResponse"
@@ -2523,7 +2626,7 @@
                 }
             }
         },
-        "domain.CreateCloudSettingRequest": {
+        "domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
                 "accessKeyId",
@@ -2565,7 +2668,7 @@
                 }
             }
         },
-        "domain.CreateCloudSettingResponse": {
+        "domain.CreateCloudAccountResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2576,7 +2679,7 @@
         "domain.CreateClusterRequest": {
             "type": "object",
             "properties": {
-                "cloudSettingId": {
+                "cloudAccountId": {
                     "type": "string"
                 },
                 "description": {
@@ -2637,7 +2740,7 @@
         "domain.CreateStackRequest": {
             "type": "object",
             "properties": {
-                "cloudSettingId": {
+                "cloudAccountId": {
                     "type": "string"
                 },
                 "cpNodeCnt": {
@@ -2785,7 +2888,36 @@
                 }
             }
         },
-        "domain.DeleteCloudSettingRequest": {
+        "domain.DashboardChartResponse": {
+            "type": "object",
+            "properties": {
+                "chartData": {
+                    "$ref": "#/definitions/domain.ChartData"
+                },
+                "chartType": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "interval": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.DeleteCloudAccountRequest": {
             "type": "object",
             "required": [
                 "accessKeyId",
@@ -2846,21 +2978,21 @@
                 }
             }
         },
-        "domain.GetCloudSettingResponse": {
+        "domain.GetCloudAccountResponse": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccountResponse"
                 }
             }
         },
-        "domain.GetCloudSettingsResponse": {
+        "domain.GetCloudAccountsResponse": {
             "type": "object",
             "properties": {
-                "cloudSettings": {
+                "cloudAccounts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.CloudSettingResponse"
+                        "$ref": "#/definitions/domain.CloudAccountResponse"
                     }
                 }
             }
@@ -2872,6 +3004,17 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.ClusterResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetDashboardChartsResponse": {
+            "type": "object",
+            "properties": {
+                "charts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DashboardChartResponse"
                     }
                 }
             }
@@ -3200,8 +3343,8 @@
         "domain.StackResponse": {
             "type": "object",
             "properties": {
-                "cloudSetting": {
-                    "$ref": "#/definitions/domain.CloudSettingResponse"
+                "cloudAccount": {
+                    "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
                 "createdAt": {
                     "type": "string"
@@ -3378,6 +3521,20 @@
                 }
             }
         },
+        "domain.Unit": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.UpdateAppServeAppEndpointRequest": {
             "type": "object",
             "required": [
@@ -3518,7 +3675,7 @@
                 }
             }
         },
-        "domain.UpdateCloudSettingRequest": {
+        "domain.UpdateCloudAccountRequest": {
             "type": "object",
             "properties": {
                 "description": {

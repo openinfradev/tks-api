@@ -20,7 +20,7 @@ import (
 type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
 	Fetch(organizationId string) ([]domain.Cluster, error)
-	FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error)
+	FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []domain.Cluster, err error)
 	Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Get(clusterId domain.ClusterId) (out domain.Cluster, err error)
 	Delete(clusterId domain.ClusterId) (err error)
@@ -88,9 +88,9 @@ func (u *ClusterUsecase) Fetch(organizationId string) (out []domain.Cluster, err
 	return out, nil
 }
 
-func (u *ClusterUsecase) FetchByCloudSettingId(cloudSettingId uuid.UUID) (out []domain.Cluster, err error) {
-	if cloudSettingId == uuid.Nil {
-		return nil, fmt.Errorf("Invalid cloudSettingId")
+func (u *ClusterUsecase) FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []domain.Cluster, err error) {
+	if cloudAccountId == uuid.Nil {
+		return nil, fmt.Errorf("Invalid cloudAccountId")
 	}
 
 	out, err = u.repo.Fetch()
