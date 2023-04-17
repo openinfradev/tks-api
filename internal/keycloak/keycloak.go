@@ -38,7 +38,6 @@ type Keycloak struct {
 
 func (k *Keycloak) LoginAdmin() (string, error) {
 	token, err := k.client.LoginAdmin(context.Background(), k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm)
-	log.Infof("LoginAdmin: %s", token.AccessToken)
 	if err != nil {
 		return "", err
 	}
@@ -345,9 +344,7 @@ func (k *Keycloak) DeleteUser(organizationName string, userAccountId string) err
 }
 
 func (k *Keycloak) VerifyAccessToken(token string, organizationName string) error {
-	//TODO implement me
 	ctx := context.Background()
-	//log.Info(token)
 	rptResult, err := k.client.RetrospectToken(ctx, token, DefaultClientID, DefaultClientSecret, organizationName)
 	if err != nil {
 		return err

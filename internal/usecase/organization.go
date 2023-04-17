@@ -3,8 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -48,13 +46,9 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 			return "", err
 		}
 	}
-	token, ok := request.TokenFrom(ctx)
-	if !ok {
-		return "", fmt.Errorf("token in the context is empty")
-	}
 
 	// Create realm in keycloak
-	if organizationId, err = u.kc.CreateRealm(helper.GenerateOrganizationId(), domain.Organization{}, token); err != nil {
+	if organizationId, err = u.kc.CreateRealm(helper.GenerateOrganizationId()); err != nil {
 		return "", err
 	}
 
@@ -103,7 +97,7 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 	}
 
 	// Delete realm in keycloak
-	if err := u.kc.DeleteRealm(organizationId, accessToken); err != nil {
+	if err := u.kc.DeleteRealm(organizationId); err != nil {
 		return err
 	}
 
