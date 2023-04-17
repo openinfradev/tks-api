@@ -29,6 +29,7 @@ type IClusterUsecase interface {
 type ClusterUsecase struct {
 	repo              repository.IClusterRepository
 	appGroupRepo      repository.IAppGroupRepository
+	cloudAccountRepo  repository.ICloudAccountRepository
 	stackTemplateRepo repository.IStackTemplateRepository
 	argo              argowf.ArgoClient
 }
@@ -37,6 +38,7 @@ func NewClusterUsecase(r repository.Repository, argoClient argowf.ArgoClient) IC
 	return &ClusterUsecase{
 		repo:              r.Cluster,
 		appGroupRepo:      r.AppGroup,
+		cloudAccountRepo:  r.CloudAccount,
 		stackTemplateRepo: r.StackTemplate,
 		argo:              argoClient,
 	}
@@ -107,6 +109,28 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
+	// check cloudAccount
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId)
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"))
+	}
+	isExist := false
+	for _, ca := range cloudAccounts {
+		if ca.ID == dto.CloudAccountId {
+			isExist = true
+			break
+		}
+	}
+	if !isExist {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", dto.CloudAccountId, dto.OrganizationId))
+	}
+
+	// check stackTemplate
+	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"))
+	}
+
 	/***************************
 	 * Pre-process cluster conf *
 	 ***************************/
@@ -129,11 +153,6 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	clusterId, err = u.repo.Create(dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
-	}
-
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
-	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
 	}
 
 	// Call argo workflow

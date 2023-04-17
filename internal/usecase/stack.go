@@ -237,5 +237,10 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 		Updator:         cluster.Updator,
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
+
+		// [TODO]
+		CpNodeCnt:   3,
+		TksNodeCnt:  3,
+		UserNodeCnt: 3,
 	}
 }

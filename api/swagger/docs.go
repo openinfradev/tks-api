@@ -3378,6 +3378,9 @@ const docTemplate = `{
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
+                "cpNodeCnt": {
+                    "type": "integer"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -3408,11 +3411,17 @@ const docTemplate = `{
                 "statusDesc": {
                     "type": "string"
                 },
+                "tksNodeCnt": {
+                    "type": "integer"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userNodeCnt": {
+                    "type": "integer"
                 }
             }
         },
