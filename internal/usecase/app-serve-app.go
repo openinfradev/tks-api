@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -189,6 +191,9 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
+	if app == nil {
+		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId don't exists"))
+	}
 	// Validate app status
 	if app.Status == "WAIT_FOR_PROMOTE" || app.Status == "BLUEGREEN_FAILED" {
 		return "", fmt.Errorf("the app is in blue-green related state. Promote or abort first before deleting")
@@ -226,12 +231,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 			"app_name=" + app.Name,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
-			"artifact_url=" + "NA",
-			"image_url=" + "NA",
-			"port=" + "NA",
-			"profile=" + "NA",
-			"resource_spec=" + "NA",
-			"executable_path=" + "NA",
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
