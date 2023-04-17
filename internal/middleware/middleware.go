@@ -2,17 +2,17 @@ package middleware
 
 import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/authorization"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/authorizer"
 	"net/http"
 )
 
 type defaultMiddleware struct {
 	authenticator authenticator.Interface
-	authorizer    authorization.Interface
+	authorizer    authorizer.Interface
 }
 
 func NewDefaultMiddleware(authenticator authenticator.Interface,
-	authorizer authorization.Interface) *defaultMiddleware {
+	authorizer authorizer.Interface) *defaultMiddleware {
 	ret := &defaultMiddleware{
 		authenticator: authenticator,
 		authorizer:    authorizer,

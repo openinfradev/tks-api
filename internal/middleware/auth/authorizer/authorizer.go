@@ -1,4 +1,4 @@
-package authorization
+package authorizer
 
 import (
 	"github.com/openinfradev/tks-api/pkg/log"

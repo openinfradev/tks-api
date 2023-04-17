@@ -39,7 +39,7 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	}
 
 	// Authentication with Keycloak
-	accountToken, err := r.kc.GetAccessTokenByIdPassword(accountId, password, organizationId)
+	accountToken, err := r.kc.Login(accountId, password, organizationId)
 	if err != nil {
 		//TODO: implement not found handling
 		return domain.User{}, httpErrors.NewUnauthorizedError(err)

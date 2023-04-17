@@ -8,7 +8,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/user"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
 	"strings"
@@ -27,11 +26,11 @@ func NewKeycloakAuthenticator(kc keycloak.IKeycloak) *keycloakAuthenticator {
 func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authenticator.Response, bool, error) {
 	authHeader := strings.TrimSpace(r.Header.Get("Authorization"))
 	if authHeader == "" {
-		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("authorization header is invalid"))
+		return nil, false, fmt.Errorf("authorizer header is invalid")
 	}
 	parts := strings.SplitN(authHeader, " ", 3)
 	if len(parts) < 2 || strings.ToLower(parts[0]) != "bearer" {
-		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("authorization header is invalid"))
+		return nil, false, fmt.Errorf("authorizer header is invalid")
 	}
 
 	token := parts[1]
@@ -41,7 +40,7 @@ func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authentic
 		if len(parts) == 3 {
 			log.Warn("the provided Authorization header contains extra space before the bearer token, and is ignored")
 		}
-		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("authorization header is invalid"))
+		return nil, false, fmt.Errorf("token is empty")
 	}
 
 	return a.AuthenticateToken(r, token)
