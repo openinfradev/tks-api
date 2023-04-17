@@ -1238,7 +1238,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-host: tks-api-dev.taco-cat.xyz:9110
+host: tks-api-dev.taco-cat.xyz
 info:
   contact:
     email: taekyu.kang@sk.com

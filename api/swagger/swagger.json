@@ -13,7 +13,7 @@
         },
         "version": "1.0"
     },
-    "host": "tks-api-dev.taco-cat.xyz:9110",
+    "host": "tks-api-dev.taco-cat.xyz",
     "basePath": "/api/1.0/",
     "paths": {
         "/app-groups": {
