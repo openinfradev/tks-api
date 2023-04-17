@@ -35,7 +35,6 @@ type IKeycloak interface {
 	VerifyAccessToken(token string, organizationName string) error
 	ParseAccessToken(token string, organization string) (*jwt.Token, *jwt.MapClaims, error)
 }
-
 type Keycloak struct {
 	config *Config
 	client *gocloak.GoCloak

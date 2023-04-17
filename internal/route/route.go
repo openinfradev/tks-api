@@ -151,149 +151,149 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	return handlers.CORS(credentials, headersOk, originsOk, methodsOk)(r)
 }
 
-func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Possible values : "basic", "keycloak"
-		authType := r.Header.Get("Authorization-Type")
-
-		switch authType {
-		case "basic":
-			tokenString := r.Header.Get("Authorization")
-			if len(tokenString) == 0 {
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte("Missing Authorization Header")); err != nil {
-					log.Error(err)
-				}
-
-				return
-			}
-			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-			token, err := helper.VerifyToken(tokenString)
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte("Error verifying JWT token: " + err.Error())); err != nil {
-					log.Error(err)
-				}
-				return
-			}
-
-			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
-			organizationId := token.Claims.(jwt.MapClaims)["OrganizationId"]
-			id := token.Claims.(jwt.MapClaims)["ID"]
-
-			log.Debug("[authMiddleware] accountId : ", accountId)
-			log.Debug("[authMiddleware] Id : ", id)
-			log.Debug("[authMiddleware] organizationId : ", organizationId)
-
-			r.Header.Set("OrganizationId", fmt.Sprint(organizationId))
-			r.Header.Set("AccountId", fmt.Sprint(accountId))
-			r.Header.Set("ID", fmt.Sprint(id))
-
-			next.ServeHTTP(w, r)
-			return
-
-		case "keycloak":
-		default:
-			auth := strings.TrimSpace(r.Header.Get("Authorization"))
-			if auth == "" {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			parts := strings.SplitN(auth, " ", 3)
-			if len(parts) < 2 || strings.ToLower(parts[0]) != "bearer" {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			token := parts[1]
-
-			// Empty bearer tokens aren't valid
-			if len(token) == 0 {
-				// The space before the token case
-				if len(parts) == 3 {
-					log.Warn("the provided Authorization header contains extra space before the bearer token, and is ignored")
-				}
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
-
-			if err != nil {
-				log.Error("failed to parse access token: ", err)
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					log.Error(err)
-				}
-				return
-			}
-			organization, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
-			if !ok {
-				log.Error("failed to parse access token: ", err)
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					log.Error(err)
-				}
-				return
-			}
-			if err := kc.VerifyAccessToken(token, organization); err != nil {
-				log.Error("failed to verify access token: ", err)
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte("failed to verify access token: " + err.Error())); err != nil {
-					log.Error(err)
-				}
-				return
-			}
-			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)
-			if err != nil {
-				log.Error("failed to parse access token: ", err)
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte(err.Error())); err != nil {
-					log.Error(err)
-				}
-				return
-			}
-
-			if jwtToken == nil || mapClaims == nil || mapClaims.Valid() != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				if _, err := w.Write([]byte("Error message TODO")); err != nil {
-					log.Error(err)
-				}
-				return
-			}
-			roleProjectMapping := make(map[string]string)
-			for _, role := range jwtToken.Claims.(jwt.MapClaims)["tks-role"].([]interface{}) {
-				slice := strings.Split(role.(string), "@")
-				if len(slice) != 2 {
-					log.Error("invalid role format: ", role)
-					w.WriteHeader(http.StatusUnauthorized)
-					if _, err := w.Write([]byte(fmt.Sprintf("invalid role format: %s", role))); err != nil {
-						log.Error(err)
-					}
-					return
-				}
-				// key is projectName and value is roleName
-				roleProjectMapping[slice[1]] = slice[0]
-			}
-			userId, err := uuid.Parse(jwtToken.Claims.(jwt.MapClaims)["sub"].(string))
-			if err != nil {
-				userId = uuid.Nil
-			}
-
-			userInfo := &user.DefaultInfo{
-				OrganizationId:     jwtToken.Claims.(jwt.MapClaims)["organization"].(string),
-				UserId:             userId,
-				RoleProjectMapping: roleProjectMapping,
-			}
-
-			r = r.WithContext(request.WithToken(r.Context(), token))
-			r = r.WithContext(request.WithUser(r.Context(), userInfo))
-
-			next.ServeHTTP(w, r)
-		}
-
-	})
-}
+//func authMiddleware(next http.Handler, kc keycloak.IKeycloak) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		// Possible values : "basic", "keycloak"
+//		authType := r.Header.Get("Authorization-Type")
+//
+//		switch authType {
+//		case "basic":
+//			tokenString := r.Header.Get("Authorization")
+//			if len(tokenString) == 0 {
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte("Missing Authorization Header")); err != nil {
+//					log.Error(err)
+//				}
+//
+//				return
+//			}
+//			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+//			token, err := helper.VerifyToken(tokenString)
+//			if err != nil {
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte("Error verifying JWT token: " + err.Error())); err != nil {
+//					log.Error(err)
+//				}
+//				return
+//			}
+//
+//			accountId := token.Claims.(jwt.MapClaims)["AccountId"]
+//			organizationId := token.Claims.(jwt.MapClaims)["OrganizationId"]
+//			id := token.Claims.(jwt.MapClaims)["ID"]
+//
+//			log.Debug("[authMiddleware] accountId : ", accountId)
+//			log.Debug("[authMiddleware] Id : ", id)
+//			log.Debug("[authMiddleware] organizationId : ", organizationId)
+//
+//			r.Header.Set("OrganizationId", fmt.Sprint(organizationId))
+//			r.Header.Set("AccountId", fmt.Sprint(accountId))
+//			r.Header.Set("ID", fmt.Sprint(id))
+//
+//			next.ServeHTTP(w, r)
+//			return
+//
+//		case "keycloak":
+//		default:
+//			auth := strings.TrimSpace(r.Header.Get("Authorization"))
+//			if auth == "" {
+//				w.WriteHeader(http.StatusUnauthorized)
+//				return
+//			}
+//			parts := strings.SplitN(auth, " ", 3)
+//			if len(parts) < 2 || strings.ToLower(parts[0]) != "bearer" {
+//				w.WriteHeader(http.StatusUnauthorized)
+//				return
+//			}
+//
+//			token := parts[1]
+//
+//			// Empty bearer tokens aren't valid
+//			if len(token) == 0 {
+//				// The space before the token case
+//				if len(parts) == 3 {
+//					log.Warn("the provided Authorization header contains extra space before the bearer token, and is ignored")
+//				}
+//				w.WriteHeader(http.StatusUnauthorized)
+//				return
+//			}
+//
+//			parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
+//
+//			if err != nil {
+//				log.Error("failed to parse access token: ", err)
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte(err.Error())); err != nil {
+//					log.Error(err)
+//				}
+//				return
+//			}
+//			organization, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+//			if !ok {
+//				log.Error("failed to parse access token: ", err)
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte(err.Error())); err != nil {
+//					log.Error(err)
+//				}
+//				return
+//			}
+//			if err := kc.VerifyAccessToken(token, organization); err != nil {
+//				log.Error("failed to verify access token: ", err)
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte("failed to verify access token: " + err.Error())); err != nil {
+//					log.Error(err)
+//				}
+//				return
+//			}
+//			jwtToken, mapClaims, err := kc.ParseAccessToken(token, organization)
+//			if err != nil {
+//				log.Error("failed to parse access token: ", err)
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte(err.Error())); err != nil {
+//					log.Error(err)
+//				}
+//				return
+//			}
+//
+//			if jwtToken == nil || mapClaims == nil || mapClaims.Valid() != nil {
+//				w.WriteHeader(http.StatusUnauthorized)
+//				if _, err := w.Write([]byte("Error message TODO")); err != nil {
+//					log.Error(err)
+//				}
+//				return
+//			}
+//			roleProjectMapping := make(map[string]string)
+//			for _, role := range jwtToken.Claims.(jwt.MapClaims)["tks-role"].([]interface{}) {
+//				slice := strings.Split(role.(string), "@")
+//				if len(slice) != 2 {
+//					log.Error("invalid role format: ", role)
+//					w.WriteHeader(http.StatusUnauthorized)
+//					if _, err := w.Write([]byte(fmt.Sprintf("invalid role format: %s", role))); err != nil {
+//						log.Error(err)
+//					}
+//					return
+//				}
+//				// key is projectName and value is roleName
+//				roleProjectMapping[slice[1]] = slice[0]
+//			}
+//			userId, err := uuid.Parse(jwtToken.Claims.(jwt.MapClaims)["sub"].(string))
+//			if err != nil {
+//				userId = uuid.Nil
+//			}
+//
+//			userInfo := &user.DefaultInfo{
+//				OrganizationId:     jwtToken.Claims.(jwt.MapClaims)["organization"].(string),
+//				UserId:             userId,
+//				RoleProjectMapping: roleProjectMapping,
+//			}
+//
+//			r = r.WithContext(request.WithToken(r.Context(), token))
+//			r = r.WithContext(request.WithUser(r.Context(), userInfo))
+//
+//			next.ServeHTTP(w, r)
+//		}
+//
+//	})
+//}
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

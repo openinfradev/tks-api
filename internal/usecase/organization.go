@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
