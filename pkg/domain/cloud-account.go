@@ -53,7 +53,6 @@ type GetCloudAccountResponse struct {
 }
 
 type CreateCloudAccountRequest struct {
-	OrganizationId  string `json:"organizationId" validate:"required"`
 	Name            string `json:"name" validate:"required"`
 	Description     string `json:"description"`
 	CloudService    string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`

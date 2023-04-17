@@ -33,9 +33,17 @@ func NewCloudAccountHandler(h usecase.ICloudAccountUsecase) *CloudAccountHandler
 // @Param organizationId path string true "organizationId"
 // @Param body body domain.CreateCloudAccountRequest true "create cloud setting request"
 // @Success 200 {object} domain.CreateCloudAccountResponse
-// @Router /cloud-accounts [post]
+// @Router /organizations/{organizationId}/cloud-accounts [post]
 // @Security     JWT
 func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	log.Debug("[TODO] organization check", organizationId)
+
 	input := domain.CreateCloudAccountRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
@@ -47,6 +55,7 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
+	dto.OrganizationId = organizationId
 
 	cloudAccountId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
@@ -66,27 +75,20 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 // @Description Get CloudAccounts
 // @Accept json
 // @Produce json
-// @Param all query string false "show all organizations"
+// @Param organizationId path string true "organizationId"
 // @Success 200 {object} domain.GetCloudAccountsResponse
-// @Router /cloud-accounts [get]
+// @Router /organizations/{organizationId}/cloud-accounts [get]
 // @Security     JWT
 func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Request) {
-	user, ok := request.UserFrom(r.Context())
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
+	log.Debug("[TODO] organization check", organizationId)
 
-	urlParams := r.URL.Query()
-	showAll := urlParams.Get("all")
-
-	// [TODO REFACTORING] Privileges and Filtering
-	if showAll == "true" {
-		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Your token does not have permission to see all organizations.")))
-		return
-	}
-
-	cloudAccounts, err := h.usecase.Fetch(user.GetOrganizationId())
+	cloudAccounts, err := h.usecase.Fetch(organizationId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -110,9 +112,10 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 // @Description Get CloudAccount
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param cloudAccountId path string true "cloudAccountId"
 // @Success 200 {object} domain.GetCloudAccountResponse
-// @Router /cloud-accounts/{cloudAccountId} [get]
+// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [get]
 // @Security     JWT
 func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -148,9 +151,10 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 // @Description Update CloudAccount
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.UpdateCloudAccountRequest true "Update cloud setting request"
 // @Success 200 {object} nil
-// @Router /cloud-accounts/{cloudAccountId} [put]
+// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [put]
 // @Security     JWT
 func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -159,6 +163,12 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId")))
 		return
 	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	log.Debug("[TODO] organization check", organizationId)
 
 	cloudSeetingId, err := uuid.Parse(strId)
 	if err != nil {
@@ -178,6 +188,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 		log.Info(err)
 	}
 	dto.ID = cloudSeetingId
+	dto.OrganizationId = organizationId
 
 	err = h.usecase.Update(r.Context(), dto)
 	if err != nil {
@@ -194,10 +205,11 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 // @Description Delete CloudAccount
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param body body domain.DeleteCloudAccountRequest true "Delete cloud setting request"
 // @Param cloudAccountId path string true "cloudAccountId"
 // @Success 200 {object} nil
-// @Router /cloud-accounts/{cloudAccountId} [delete]
+// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [delete]
 // @Security     JWT
 func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -241,9 +253,10 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 // @Description Check name for cloudAccount
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "organizationId"
 // @Param name path string true "name"
 // @Success 200 {object} nil
-// @Router /cloud-accounts/name/{name}/existence [GET]
+// @Router /organizations/{organizationId}/cloud-accounts/name/{name}/existence [GET]
 // @Security     JWT
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())

@@ -112,12 +112,12 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}/endpoint", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppEndpoint), kc)).Methods(http.MethodPatch)
 
 	cloudAccountHandler := delivery.NewCloudAccountHandler(usecase.NewCloudAccountUsecase(repoFactory, argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-accounts", authMiddleware(http.HandlerFunc(cloudAccountHandler.GetCloudAccounts), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-accounts", authMiddleware(http.HandlerFunc(cloudAccountHandler.CreateCloudAccount), kc)).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-accounts/name/{name}/existence", authMiddleware(http.HandlerFunc(cloudAccountHandler.CheckCloudAccountName), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.GetCloudAccount), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.UpdateCloudAccount), kc)).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.DeleteCloudAccount), kc)).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware(http.HandlerFunc(cloudAccountHandler.GetCloudAccounts), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware(http.HandlerFunc(cloudAccountHandler.CreateCloudAccount), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/name/{name}/existence", authMiddleware(http.HandlerFunc(cloudAccountHandler.CheckCloudAccountName), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.GetCloudAccount), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.UpdateCloudAccount), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.DeleteCloudAccount), kc)).Methods(http.MethodDelete)
 
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(repoFactory))
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware(http.HandlerFunc(stackTemplateHandler.GetStackTemplates), kc)).Methods(http.MethodGet)

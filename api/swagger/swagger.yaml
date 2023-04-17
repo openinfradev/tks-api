@@ -430,8 +430,6 @@ definitions:
         type: string
       name:
         type: string
-      organizationId:
-        type: string
       secretAccessKey:
         maxLength: 128
         minLength: 16
@@ -442,7 +440,6 @@ definitions:
     required:
     - accessKeyId
     - name
-    - organizationId
     - secretAccessKey
     type: object
   domain.CreateCloudAccountResponse:
@@ -1600,147 +1597,6 @@ paths:
       summary: logout
       tags:
       - Auth
-  /cloud-accounts:
-    get:
-      consumes:
-      - application/json
-      description: Get CloudAccounts
-      parameters:
-      - description: show all organizations
-        in: query
-        name: all
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.GetCloudAccountsResponse'
-      security:
-      - JWT: []
-      summary: Get CloudAccounts
-      tags:
-      - CloudAccounts
-    post:
-      consumes:
-      - application/json
-      description: Create CloudAccount
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: create cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.CreateCloudAccountRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.CreateCloudAccountResponse'
-      security:
-      - JWT: []
-      summary: Create CloudAccount
-      tags:
-      - CloudAccounts
-  /cloud-accounts/{cloudAccountId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete CloudAccount
-      parameters:
-      - description: Delete cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.DeleteCloudAccountRequest'
-      - description: cloudAccountId
-        in: path
-        name: cloudAccountId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Delete CloudAccount
-      tags:
-      - CloudAccounts
-    get:
-      consumes:
-      - application/json
-      description: Get CloudAccount
-      parameters:
-      - description: cloudAccountId
-        in: path
-        name: cloudAccountId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.GetCloudAccountResponse'
-      security:
-      - JWT: []
-      summary: Get CloudAccount
-      tags:
-      - CloudAccounts
-    put:
-      consumes:
-      - application/json
-      description: Update CloudAccount
-      parameters:
-      - description: Update cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateCloudAccountRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Update CloudAccount
-      tags:
-      - CloudAccounts
-  /cloud-accounts/name/{name}/existence:
-    get:
-      consumes:
-      - application/json
-      description: Check name for cloudAccount
-      parameters:
-      - description: name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Check name for cloudAccount
-      tags:
-      - CloudAccounts
   /clusters:
     get:
       consumes:
@@ -1963,6 +1819,168 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/cloud-accounts:
+    get:
+      consumes:
+      - application/json
+      description: Get CloudAccounts
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetCloudAccountsResponse'
+      security:
+      - JWT: []
+      summary: Get CloudAccounts
+      tags:
+      - CloudAccounts
+    post:
+      consumes:
+      - application/json
+      description: Create CloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCloudAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateCloudAccountResponse'
+      security:
+      - JWT: []
+      summary: Create CloudAccount
+      tags:
+      - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete CloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Delete cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DeleteCloudAccountRequest'
+      - description: cloudAccountId
+        in: path
+        name: cloudAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete CloudAccount
+      tags:
+      - CloudAccounts
+    get:
+      consumes:
+      - application/json
+      description: Get CloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: cloudAccountId
+        in: path
+        name: cloudAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetCloudAccountResponse'
+      security:
+      - JWT: []
+      summary: Get CloudAccount
+      tags:
+      - CloudAccounts
+    put:
+      consumes:
+      - application/json
+      description: Update CloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCloudAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update CloudAccount
+      tags:
+      - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for cloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Check name for cloudAccount
+      tags:
+      - CloudAccounts
   /organizations/{organizationId}/dashboard/charts:
     get:
       consumes:
