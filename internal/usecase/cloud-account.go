@@ -15,30 +15,30 @@ import (
 	"gorm.io/gorm"
 )
 
-type ICloudSettingUsecase interface {
-	Get(cloudSettingId uuid.UUID) (domain.CloudSetting, error)
-	GetByName(organizationId string, name string) (domain.CloudSetting, error)
-	Fetch(organizationId string) ([]domain.CloudSetting, error)
-	Create(ctx context.Context, dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error)
-	Update(ctx context.Context, dto domain.CloudSetting) error
-	Delete(ctx context.Context, dto domain.CloudSetting) error
+type ICloudAccountUsecase interface {
+	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
+	GetByName(organizationId string, name string) (domain.CloudAccount, error)
+	Fetch(organizationId string) ([]domain.CloudAccount, error)
+	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
+	Update(ctx context.Context, dto domain.CloudAccount) error
+	Delete(ctx context.Context, dto domain.CloudAccount) error
 }
 
-type CloudSettingUsecase struct {
-	repo        repository.ICloudSettingRepository
+type CloudAccountUsecase struct {
+	repo        repository.ICloudAccountRepository
 	clusterRepo repository.IClusterRepository
 	argo        argowf.ArgoClient
 }
 
-func NewCloudSettingUsecase(r repository.Repository, argoClient argowf.ArgoClient) ICloudSettingUsecase {
-	return &CloudSettingUsecase{
-		repo:        r.CloudSetting,
+func NewCloudAccountUsecase(r repository.Repository, argoClient argowf.ArgoClient) ICloudAccountUsecase {
+	return &CloudAccountUsecase{
+		repo:        r.CloudAccount,
 		clusterRepo: r.Cluster,
 		argo:        argoClient,
 	}
 }
 
-func (u *CloudSettingUsecase) Create(ctx context.Context, dto domain.CloudSetting) (cloudSettingId uuid.UUID, err error) {
+func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
@@ -46,18 +46,24 @@ func (u *CloudSettingUsecase) Create(ctx context.Context, dto domain.CloudSettin
 
 	dto.Resource = "TODO server result or additional information"
 	dto.CreatorId = user.GetUserId()
-	cloudSettingId, err = u.repo.Create(dto)
+
+	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	if err == nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
+	}
+
+	cloudAccountId, err = u.repo.Create(dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err)
 	}
-	log.Info("newly created CloudSetting ID:", cloudSettingId)
+	log.Info("newly created CloudAccount ID:", cloudAccountId)
 
 	/*
 		workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 			"tks-create-contract-repo",
 			argowf.SubmitOptions{
 				Parameters: []string{
-					"contract_id=" + cloudSettingId,
+					"contract_id=" + cloudAccountId,
 				},
 			})
 		if err != nil {
@@ -65,15 +71,15 @@ func (u *CloudSettingUsecase) Create(ctx context.Context, dto domain.CloudSettin
 			return "", fmt.Errorf("Failed to call argo workflow : %s", err)
 		}
 		log.Info("submited workflow :", workflowId)
-		if err := u.repo.InitWorkflow(cloudSettingId, workflowId); err != nil {
-			return "", fmt.Errorf("Failed to initialize cloudSetting status to 'CREATING'. err : %s", err)
+		if err := u.repo.InitWorkflow(cloudAccountId, workflowId); err != nil {
+			return "", fmt.Errorf("Failed to initialize cloudAccount status to 'CREATING'. err : %s", err)
 		}
 	*/
 
-	return cloudSettingId, nil
+	return cloudAccountId, nil
 }
 
-func (u *CloudSettingUsecase) Update(ctx context.Context, dto domain.CloudSetting) error {
+func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccount) error {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
@@ -88,29 +94,29 @@ func (u *CloudSettingUsecase) Update(ctx context.Context, dto domain.CloudSettin
 	return nil
 }
 
-func (u *CloudSettingUsecase) Get(cloudSettingId uuid.UUID) (res domain.CloudSetting, err error) {
-	res, err = u.repo.Get(cloudSettingId)
+func (u *CloudAccountUsecase) Get(cloudAccountId uuid.UUID) (res domain.CloudAccount, err error) {
+	res, err = u.repo.Get(cloudAccountId)
 	if err != nil {
-		return domain.CloudSetting{}, err
+		return domain.CloudAccount{}, err
 	}
 
-	res.Clusters = u.getClusterCnt(cloudSettingId)
+	res.Clusters = u.getClusterCnt(cloudAccountId)
 
 	return
 }
 
-func (u *CloudSettingUsecase) GetByName(organizationId string, name string) (res domain.CloudSetting, err error) {
+func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res domain.CloudAccount, err error) {
 	res, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.CloudSetting{}, httpErrors.NewNotFoundError(err)
+			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err)
 		}
-		return domain.CloudSetting{}, err
+		return domain.CloudAccount{}, err
 	}
 	return
 }
 
-func (u *CloudSettingUsecase) Fetch(organizationId string) (res []domain.CloudSetting, err error) {
+func (u *CloudAccountUsecase) Fetch(organizationId string) (res []domain.CloudAccount, err error) {
 	res, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
@@ -118,7 +124,7 @@ func (u *CloudSettingUsecase) Fetch(organizationId string) (res []domain.CloudSe
 	return res, nil
 }
 
-func (u *CloudSettingUsecase) Delete(ctx context.Context, dto domain.CloudSetting) (err error) {
+func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccount) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
@@ -139,12 +145,12 @@ func (u *CloudSettingUsecase) Delete(ctx context.Context, dto domain.CloudSettin
 	return nil
 }
 
-func (u *CloudSettingUsecase) getClusterCnt(cloudSettingId uuid.UUID) (cnt int) {
+func (u *CloudAccountUsecase) getClusterCnt(cloudAccountId uuid.UUID) (cnt int) {
 	cnt = 0
 
-	clusters, err := u.clusterRepo.FetchByCloudSettingId(cloudSettingId)
+	clusters, err := u.clusterRepo.FetchByCloudAccountId(cloudAccountId)
 	if err != nil {
-		log.Error("Failed to get clusters by cloudSettingId. err : ", err)
+		log.Error("Failed to get clusters by cloudAccountId. err : ", err)
 		return cnt
 	}
 

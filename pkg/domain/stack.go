@@ -54,8 +54,8 @@ type Stack = struct {
 	Name            string
 	Description     string
 	OrganizationId  string
-	CloudSettingId  uuid.UUID
-	CloudSetting    CloudSetting
+	CloudAccountId  uuid.UUID
+	CloudAccount    CloudAccount
 	StackTemplateId uuid.UUID
 	StackTemplate   StackTemplate
 	Status          StackStatus
@@ -76,7 +76,7 @@ type CreateStackRequest struct {
 	Name            string `json:"name"`
 	Description     string `json:"description"`
 	StackTemplateId string `json:"stackTemplateId"`
-	CloudSettingId  string `json:"cloudSettingId"`
+	CloudAccountId  string `json:"cloudAccountId"`
 	CpNodeCnt       int    `json:"cpNodeCnt"`
 	TksNodeCnt      int    `json:"tksNodeCnt"`
 	UserNodeCnt     int    `json:"userNodeCnt"`
@@ -92,7 +92,7 @@ type StackResponse struct {
 	Description    string                `json:"description"`
 	OrganizationId string                `json:"organizationId"`
 	StackTemplate  StackTemplateResponse `json:"stackTemplate,omitempty"`
-	CloudSetting   CloudSettingResponse  `json:"cloudSetting,omitempty"`
+	CloudAccount   CloudAccountResponse  `json:"cloudAccount,omitempty"`
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`
 	PrimaryCluster bool                  `json:"primaryCluster"`

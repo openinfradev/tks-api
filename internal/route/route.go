@@ -52,7 +52,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	// [TODO] Transaction
 	//r.Use(transactionMiddleware(db))
 
-	r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
+	//r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	repoFactory := repository.Repository{
 		User:          repository.NewUserRepository(db),
@@ -60,7 +60,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 		Organization:  repository.NewOrganizationRepository(db),
 		AppGroup:      repository.NewAppGroupRepository(db),
 		AppServeApp:   repository.NewAppServeAppRepository(db),
-		CloudSetting:  repository.NewCloudSettingRepository(db),
+		CloudAccount:  repository.NewCloudAccountRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		History:       repository.NewHistoryRepository(db),
 	}
@@ -111,13 +111,13 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}/status", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppStatus), kc)).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/app-serve-apps/{appId}/endpoint", authMiddleware(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppEndpoint), kc)).Methods(http.MethodPatch)
 
-	cloudSettingHandler := delivery.NewCloudSettingHandler(usecase.NewCloudSettingUsecase(repoFactory, argoClient))
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSettings), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings", authMiddleware(http.HandlerFunc(cloudSettingHandler.CreateCloudSetting), kc)).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/name/{name}/existence", authMiddleware(http.HandlerFunc(cloudSettingHandler.CheckCloudSettingName), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.GetCloudSetting), kc)).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.UpdateCloudSetting), kc)).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/cloud-settings/{cloudSettingId}", authMiddleware(http.HandlerFunc(cloudSettingHandler.DeleteCloudSetting), kc)).Methods(http.MethodDelete)
+	cloudAccountHandler := delivery.NewCloudAccountHandler(usecase.NewCloudAccountUsecase(repoFactory, argoClient))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware(http.HandlerFunc(cloudAccountHandler.GetCloudAccounts), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware(http.HandlerFunc(cloudAccountHandler.CreateCloudAccount), kc)).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/name/{name}/existence", authMiddleware(http.HandlerFunc(cloudAccountHandler.CheckCloudAccountName), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.GetCloudAccount), kc)).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.UpdateCloudAccount), kc)).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware(http.HandlerFunc(cloudAccountHandler.DeleteCloudAccount), kc)).Methods(http.MethodDelete)
 
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(repoFactory))
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware(http.HandlerFunc(stackTemplateHandler.GetStackTemplates), kc)).Methods(http.MethodGet)
@@ -134,9 +134,12 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.UpdateStack), kc)).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware(http.HandlerFunc(stackHandler.DeleteStack), kc)).Methods(http.MethodDelete)
 
+	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", authMiddleware(http.HandlerFunc(dashboardHandler.GetCharts), kc)).Methods(http.MethodGet)
+
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
-	r.PathPrefix("/").Handler(asset).Methods(http.MethodGet)
+	r.PathPrefix("/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
 
 	//withLog := handlers.LoggingHandler(os.Stdout, r)
 
