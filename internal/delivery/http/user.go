@@ -289,6 +289,13 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/users/{accountId}/password [put]
 // @Security     JWT
 func (u UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	input := domain.UpdatePasswordRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
@@ -301,14 +308,7 @@ func (u UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := domain.UpdatePasswordRequest{}
-	err := UnmarshalRequestInput(r, &input)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
-
-	err = u.usecase.UpdatePasswordByAccountId(r.Context(), accountId, input.Password, organizationId)
+	err = u.usecase.UpdatePasswordByAccountId(r.Context(), accountId, input.OriginPassword, input.NewPassword, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, httpErrors.NewBadRequestError(err))

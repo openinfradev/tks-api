@@ -25,7 +25,7 @@ type IUserUsecase interface {
 	List(ctx context.Context, organizationId string) (*[]domain.User, error)
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
 	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
-	UpdatePasswordByAccountId(ctx context.Context, accountId string, password string, organizationId string) error
+	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
 	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
 }
 
@@ -136,13 +136,15 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	return &resUser, nil
 }
 
-func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, newPassword string,
+func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string,
 	organizationId string) error {
+	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
+		return err
+	}
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
 		return err
 	}
-
 	originUser.Credentials = &[]gocloak.CredentialRepresentation{
 		{
 			Type:      gocloak.StringP("password"),

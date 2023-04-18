@@ -160,7 +160,8 @@ type UpdateUserResponse struct {
 }
 
 type UpdatePasswordRequest struct {
-	Password string `json:"password" validate:"required"`
+	OriginPassword string `json:"originPassword" validate:"required"`
+	NewPassword    string `json:"newPassword" validate:"required"`
 }
 
 type UpdatePasswordResponse struct {
