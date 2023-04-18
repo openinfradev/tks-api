@@ -3,11 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"net/http"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -47,17 +47,12 @@ func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) erro
 }
 
 func (u *UserUsecase) DeleteAdmin(organizationId string) error {
-	token, err := u.kc.LoginAdmin()
-	if err != nil {
-		return errors.Wrap(err, "login admin failed")
-	}
-
-	user, err := u.kc.GetUser(organizationId, "admin", token)
+	user, err := u.kc.GetUser(organizationId, "admin")
 	if err != nil {
 		return errors.Wrap(err, "get user failed")
 	}
 
-	err = u.kc.DeleteUser(organizationId, "admin", token)
+	err = u.kc.DeleteUser(organizationId, "admin")
 	if err != nil {
 		return errors.Wrap(err, "delete user failed")
 	}
@@ -76,10 +71,6 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 }
 
 func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
-	token, err := u.kc.LoginAdmin()
-	if err != nil {
-		return nil, errors.Wrap(err, "login admin failed")
-	}
 	user := domain.User{
 		AccountId: "admin",
 		Password:  "admin",
@@ -94,7 +85,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, orgainzationId)}
-	err = u.kc.CreateUser(orgainzationId, &gocloak.User{
+	err := u.kc.CreateUser(orgainzationId, &gocloak.User{
 		Username: gocloak.StringP(user.AccountId),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
@@ -104,11 +95,11 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 			},
 		},
 		Groups: &groups,
-	}, token)
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
 	}
-	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)
+	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting user from keycloak failed")
 	}
@@ -147,13 +138,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, newPassword string,
 	organizationId string) error {
-
-	token, ok := request.TokenFrom(ctx)
-	if !ok {
-		return fmt.Errorf("token in the context is empty")
-	}
-
-	originUser, err := u.kc.GetUser(organizationId, accountId, token)
+	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
 		return err
 	}
@@ -166,7 +151,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		},
 	}
 
-	err = u.kc.UpdateUser(organizationId, originUser, token)
+	err = u.kc.UpdateUser(organizationId, originUser)
 	if err != nil {
 		return errors.Wrap(err, "updating user in keycloak failed")
 	}
@@ -233,10 +218,6 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if !ok {
 		return nil, fmt.Errorf("user in the context is  empty")
 	}
-	token, ok := request.TokenFrom(ctx)
-	if !ok {
-		return nil, fmt.Errorf("token in the context is empty")
-	}
 
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
@@ -257,7 +238,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		if err := u.kc.UpdateUser(userInfo.GetOrganizationId(), &gocloak.User{
 			ID:     &(*users)[0].ID,
 			Groups: &groups,
-		}, token); err != nil {
+		}); err != nil {
 			log.Errorf("updating user in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err)
 		}
@@ -309,11 +290,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 	}
 
 	// Delete user in keycloak
-	token, ok := request.TokenFrom(ctx)
-	if !ok {
-		return fmt.Errorf("token in the context is empty")
-	}
-	err = u.kc.DeleteUser(organizationId, accountId, token)
+	err = u.kc.DeleteUser(organizationId, accountId)
 	if err != nil {
 		return err
 	}
@@ -322,13 +299,6 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 }
 
 func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
-	// Validation check
-
-	token, ok := request.TokenFrom(ctx)
-	if !ok {
-		return nil, fmt.Errorf("token in the context is empty")
-	}
-
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}
 	err := u.kc.CreateUser(user.Organization.ID, &gocloak.User{
@@ -341,15 +311,15 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 			},
 		},
 		Groups: &groups,
-	}, token)
+	})
 	if err != nil {
-		if _, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token); err == nil {
+		if _, err := u.kc.GetUser(user.Organization.ID, user.AccountId); err == nil {
 			return nil, httpErrors.NewConflictError(errors.New("user already exists"))
 		}
 
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
 	}
-	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId, token)
+	keycloakUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting user from keycloak failed")
 	}

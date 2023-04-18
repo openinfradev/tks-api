@@ -59,7 +59,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
-
 }
 
 // Logout godoc

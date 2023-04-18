@@ -155,6 +155,8 @@ type UpdateUserResponse struct {
 		Email        string       `json:"email"`
 		Department   string       `json:"department"`
 		Description  string       `json:"description"`
+		CreatedAt    time.Time    `json:"createdAt"`
+		UpdatedAt    time.Time    `json:"updatedAt"`
 	} `json:"user"`
 }
 

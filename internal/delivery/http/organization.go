@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
-
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/auth/request"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -36,6 +35,7 @@ func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUseca
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
+	log.Info("called Create")
 	input := domain.CreateOrganizationRequest{}
 
 	err := UnmarshalRequestInput(r, &input)

@@ -35,7 +35,7 @@ func NewStackTemplateHandler(h usecase.IStackTemplateUsecase) *StackTemplateHand
 // @Router /stack-templates [post]
 // @Security     JWT
 func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, fmt.Errorf("Need implentation"))
+	ErrorJSON(w, fmt.Errorf("need implementation"))
 }
 
 // GetStackTemplate godoc
@@ -84,7 +84,7 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	strId, ok := vars["stackTemplateId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId")))
 		return
 	}
 
@@ -111,7 +111,6 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
-
 }
 
 // UpdateStackTemplate godoc
@@ -152,7 +151,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 		}
 	*/
 
-	ErrorJSON(w, fmt.Errorf("Need implentation"))
+	ErrorJSON(w, fmt.Errorf("need implementation"))
 }
 
 // DeleteStackTemplate godoc
@@ -169,9 +168,9 @@ func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *htt
 	vars := mux.Vars(r)
 	_, ok := vars["stackTemplateId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId")))
 		return
 	}
 
-	ErrorJSON(w, fmt.Errorf("Need implentation"))
+	ErrorJSON(w, fmt.Errorf("need implementation"))
 }

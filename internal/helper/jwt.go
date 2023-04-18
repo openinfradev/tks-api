@@ -11,7 +11,10 @@ func CreateJWT(accountId string, uId string, organizationId string) (string, err
 	signingKey := []byte(viper.GetString("jwt-secret"))
 
 	aToken := jwt.New(jwt.SigningMethodHS256)
-	claims := aToken.Claims.(jwt.MapClaims)
+	claims, ok := aToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", nil
+	}
 	claims["AccountId"] = accountId
 	claims["ID"] = uId
 	claims["OrganizationId"] = organizationId

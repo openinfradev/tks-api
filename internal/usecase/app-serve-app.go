@@ -367,7 +367,6 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
-
 }
 
 func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err error) {

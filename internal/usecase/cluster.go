@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
