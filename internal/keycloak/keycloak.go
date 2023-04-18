@@ -254,6 +254,9 @@ func (k *Keycloak) CreateRealm(organizationName string) (string, error) {
 func (k *Keycloak) GetRealm(organizationName string) (*domain.Organization, error) {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
 	realm, err := k.client.GetRealm(ctx, token.AccessToken, organizationName)
 	if err != nil {
 		return nil, err
@@ -264,6 +267,9 @@ func (k *Keycloak) GetRealm(organizationName string) (*domain.Organization, erro
 func (k *Keycloak) GetRealms() ([]*domain.Organization, error) {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
 	realms, err := k.client.GetRealms(ctx, token.AccessToken)
 	if err != nil {
 		return nil, err
@@ -278,6 +284,9 @@ func (k *Keycloak) GetRealms() ([]*domain.Organization, error) {
 func (k *Keycloak) UpdateRealm(organizationName string, organizationConfig domain.Organization) error {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return err
+	}
 	realm := k.reflectRealmRepresentation(organizationConfig)
 	err = k.client.UpdateRealm(ctx, token.AccessToken, *realm)
 	if err != nil {
@@ -289,6 +298,9 @@ func (k *Keycloak) UpdateRealm(organizationName string, organizationConfig domai
 func (k *Keycloak) DeleteRealm(organizationName string) error {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return err
+	}
 	err = k.client.DeleteRealm(ctx, token.AccessToken, organizationName)
 	if err != nil {
 		return err
@@ -299,6 +311,9 @@ func (k *Keycloak) DeleteRealm(organizationName string) error {
 func (k *Keycloak) CreateUser(organizationName string, user *gocloak.User) error {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return err
+	}
 	user.Enabled = gocloak.BoolP(true)
 	_, err = k.client.CreateUser(ctx, token.AccessToken, organizationName, *user)
 	if err != nil {
@@ -310,6 +325,9 @@ func (k *Keycloak) CreateUser(organizationName string, user *gocloak.User) error
 func (k *Keycloak) GetUser(organizationName string, accountId string) (*gocloak.User, error) {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	//TODO: this is rely on the fact that username is the same as userAccountId and unique
 	users, err := k.client.GetUsers(ctx, token.AccessToken, organizationName, gocloak.GetUsersParams{
@@ -327,6 +345,9 @@ func (k *Keycloak) GetUser(organizationName string, accountId string) (*gocloak.
 func (k *Keycloak) GetUsers(organizationName string) ([]*gocloak.User, error) {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
 	//TODO: this is rely on the fact that username is the same as userAccountId and unique
 	users, err := k.client.GetUsers(ctx, token.AccessToken, organizationName, gocloak.GetUsersParams{})
 	if err != nil {
@@ -342,6 +363,9 @@ func (k *Keycloak) GetUsers(organizationName string) ([]*gocloak.User, error) {
 func (k *Keycloak) UpdateUser(organizationName string, user *gocloak.User) error {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return err
+	}
 	user.Enabled = gocloak.BoolP(true)
 	err = k.client.UpdateUser(ctx, token.AccessToken, organizationName, *user)
 	if err != nil {
@@ -353,7 +377,9 @@ func (k *Keycloak) UpdateUser(organizationName string, user *gocloak.User) error
 func (k *Keycloak) DeleteUser(organizationName string, userAccountId string) error {
 	ctx := context.Background()
 	token, err := k.loginAdmin(ctx)
-
+	if err != nil {
+		return err
+	}
 	u, err := k.GetUser(organizationName, userAccountId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
