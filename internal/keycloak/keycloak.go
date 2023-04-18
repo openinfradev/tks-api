@@ -14,7 +14,7 @@ import (
 type IKeycloak interface {
 	InitializeKeycloak() error
 
-	LoginAdmin() (string, error)
+	LoginAdmin(accountId string, password string) (*domain.User, error)
 	Login(accountId string, password string, organizationId string) (*domain.User, error)
 
 	CreateRealm(organizationName string) (string, error)
@@ -36,13 +36,27 @@ type Keycloak struct {
 	client *gocloak.GoCloak
 }
 
-func (k *Keycloak) LoginAdmin() (string, error) {
-	token, err := k.client.LoginAdmin(context.Background(), k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm)
+func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
+	ctx := context.Background()
+	log.Info("LoginAdmin called")
+	//JWTToken, err := k.client.Login(ctx, "admin-cli", "", DefaultMasterRealm, accountId, password)
+	JWTToken, err := k.client.LoginAdmin(ctx, accountId, password, DefaultMasterRealm)
 	if err != nil {
-		return "", err
+		log.Error(err)
+		return nil, err
 	}
 
-	return token.AccessToken, nil
+	return &domain.User{Token: JWTToken.AccessToken}, nil
+}
+
+func (k *Keycloak) Login(accountId string, password string, organizationId string) (*domain.User, error) {
+	ctx := context.Background()
+	JWTToken, err := k.client.Login(ctx, DefaultClientID, DefaultClientSecret, organizationId, accountId, password)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return &domain.User{Token: JWTToken.AccessToken}, nil
 }
 
 func New(config *Config) IKeycloak {
@@ -93,6 +107,25 @@ func (k *Keycloak) InitializeKeycloak() error {
 	}
 
 	if _, err := k.client.Login(ctx, DefaultClientID, DefaultClientSecret, DefaultMasterRealm,
+		k.config.AdminId, k.config.AdminPassword); err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	adminCliClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, AdminCliClientID, DefaultClientSecret)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	for _, defaultMapper := range defaultProtocolTksMapper {
+		if err := k.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *adminCliClient.ClientID, "openid", defaultMapper); err != nil {
+			log.Fatal(err)
+			return err
+		}
+	}
+
+	if _, err := k.client.Login(ctx, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm,
 		k.config.AdminId, k.config.AdminPassword); err != nil {
 		log.Fatal(err)
 		return err
@@ -216,16 +249,6 @@ func (k *Keycloak) CreateRealm(organizationName string) (string, error) {
 	//viewerGroup, err := c.ensureGroup(ctx, token, realmName, "viewer@"+realmName)
 
 	return realmUUID, nil
-}
-
-func (k *Keycloak) Login(accountId string, password string, organizationId string) (*domain.User, error) {
-	ctx := context.Background()
-	JWTToken, err := k.client.Login(ctx, DefaultClientID, DefaultClientSecret, organizationId, accountId, password)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	return &domain.User{Token: JWTToken.AccessToken}, nil
 }
 
 func (k *Keycloak) GetRealm(organizationName string) (*domain.Organization, error) {
@@ -415,7 +438,7 @@ func (k *Keycloak) ensureClient(ctx context.Context, token *gocloak.JWT, realm s
 			log.Error("Getting Client is failed", err)
 		}
 	}
-	if *keycloakClient[0].Secret != secret {
+	if keycloakClient[0].Secret == nil || *keycloakClient[0].Secret != secret {
 		log.Warn("Client secret is not matched. Overwrite it")
 		keycloakClient[0].Secret = gocloak.StringP(secret)
 		if err := k.client.UpdateClient(ctx, token.AccessToken, realm, *keycloakClient[0]); err != nil {
@@ -423,7 +446,7 @@ func (k *Keycloak) ensureClient(ctx context.Context, token *gocloak.JWT, realm s
 		}
 	}
 
-	return keycloakClient[0], err
+	return keycloakClient[0], nil
 }
 
 func (k *Keycloak) addUserToGroup(ctx context.Context, token *gocloak.JWT, realm string, userID string, groupID string) error {

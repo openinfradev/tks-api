@@ -1,4 +1,4 @@
-package middleware
+package auth
 
 import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
@@ -6,21 +6,21 @@ import (
 	"net/http"
 )
 
-type defaultMiddleware struct {
+type authMiddleware struct {
 	authenticator authenticator.Interface
 	authorizer    authorizer.Interface
 }
 
-func NewDefaultMiddleware(authenticator authenticator.Interface,
-	authorizer authorizer.Interface) *defaultMiddleware {
-	ret := &defaultMiddleware{
+func NewAuthMiddleware(authenticator authenticator.Interface,
+	authorizer authorizer.Interface) *authMiddleware {
+	ret := &authMiddleware{
 		authenticator: authenticator,
 		authorizer:    authorizer,
 	}
 	return ret
 }
 
-func (m *defaultMiddleware) Handle(handle http.Handler) http.Handler {
+func (m *authMiddleware) Handle(handle http.Handler) http.Handler {
 	handler := m.authorizer.WithAuthorization(handle)
 	handler = m.authenticator.WithAuthentication(handler)
 	return handler

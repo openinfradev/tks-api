@@ -11,5 +11,6 @@ const (
 	DefaultMasterRealm  = "master"
 	DefaultClientID     = "tks"
 	DefaultClientSecret = "secret"
+	AdminCliClientID    = "admin-cli"
 	accessTokenLifespan = 60 * 60 * 24
 )

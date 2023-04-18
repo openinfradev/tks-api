@@ -37,9 +37,13 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	if !helper.CheckPasswordHash(user.Password, password) {
 		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf(""))
 	}
-
+	var accountToken *domain.User
 	// Authentication with Keycloak
-	accountToken, err := r.kc.Login(accountId, password, organizationId)
+	if organizationId == "master" && accountId == "admin" {
+		accountToken, err = r.kc.LoginAdmin(accountId, password)
+	} else {
+		accountToken, err = r.kc.Login(accountId, password, organizationId)
+	}
 	if err != nil {
 		//TODO: implement not found handling
 		return domain.User{}, httpErrors.NewUnauthorizedError(err)

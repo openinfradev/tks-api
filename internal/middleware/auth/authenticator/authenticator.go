@@ -19,9 +19,9 @@ type defaultAuthenticator struct {
 	auth Request
 }
 
-func NewDefaultAuthenticator(auth Request) *defaultAuthenticator {
+func NewAuthenticator(kc Request) *defaultAuthenticator {
 	return &defaultAuthenticator{
-		auth: auth,
+		auth: kc,
 	}
 }
 
