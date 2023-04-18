@@ -64,7 +64,6 @@ type LoginResponse struct {
 
 type LogoutRequest struct {
 	//TODO implement me
-	AccountId string `json:"accountId"`
 }
 
 type FindIdRequest struct {

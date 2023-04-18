@@ -12,7 +12,7 @@ import (
 
 type IAuthUsecase interface {
 	Login(accountId string, password string, organizationName string) (domain.User, error)
-	Logout(token string) error
+	Logout(accessToken string, accountId string, organizationName string) error
 	FetchRoles() (out []domain.Role, err error)
 }
 
@@ -55,8 +55,12 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	return user, nil
 }
 
-func (r *AuthUsecase) Logout(token string) error {
+func (r *AuthUsecase) Logout(accessToken string, accountId string, organizationName string) error {
 	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
+	err := r.kc.Logout(accessToken, accountId, organizationName)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

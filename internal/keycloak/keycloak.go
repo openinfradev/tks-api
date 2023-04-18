@@ -16,6 +16,7 @@ type IKeycloak interface {
 
 	LoginAdmin(accountId string, password string) (*domain.User, error)
 	Login(accountId string, password string, organizationId string) (*domain.User, error)
+	Logout(accessToken string, userId string, organizationId string) error
 
 	CreateRealm(organizationName string) (string, error)
 	GetRealm(organizationName string) (*domain.Organization, error)
@@ -30,6 +31,7 @@ type IKeycloak interface {
 	UpdateUser(organizationName string, user *gocloak.User) error
 
 	VerifyAccessToken(token string, organizationName string) error
+	GetSessions(userId string, organizationId string) (*[]string, error)
 }
 type Keycloak struct {
 	config *Config
@@ -400,6 +402,34 @@ func (k *Keycloak) VerifyAccessToken(token string, organizationName string) erro
 	}
 
 	if !(*rptResult.Active) {
+		return err
+	}
+	return nil
+}
+
+func (k *Keycloak) GetSessions(userId string, organizationId string) (*[]string, error) {
+	ctx := context.Background()
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sessions, err := k.client.GetUserSessions(ctx, token.AccessToken, organizationId, userId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+		return nil, err
+	}
+	var sessionIds []string
+	for _, session := range sessions {
+		sessionIds = append(sessionIds, *session.ID)
+	}
+
+	return &sessionIds, nil
+}
+
+func (k *Keycloak) Logout(accessToken string, userId string, organizationId string) error {
+	ctx := context.Background()
+	err := k.client.LogoutAllSessions(ctx, accessToken, organizationId, userId)
+	if err != nil {
 		return err
 	}
 	return nil
