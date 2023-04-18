@@ -3,25 +3,24 @@ package route
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	delivery "github.com/openinfradev/tks-api/internal/delivery/http"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
 	authKeycloak "github.com/openinfradev/tks-api/internal/middleware/auth/authenticator/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authorizer"
-	"gorm.io/gorm"
-	"io"
-	"io/ioutil"
-	"net/http"
-
-	"github.com/swaggo/http-swagger"
-
-	delivery "github.com/openinfradev/tks-api/internal/delivery/http"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/swaggo/http-swagger"
+	"gorm.io/gorm"
 )
 
 const (
@@ -58,11 +57,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
 
 	r.Use(loggingMiddleware)
-	//r.Use(authMiddleware.Handle)
 	// [TODO] Transaction
 	//r.Use(transactionMiddleware(db))
-
-	//r.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/logout", authHandler.Logout).Methods(http.MethodPost)
@@ -143,7 +139,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 
 	credentials := handlers.AllowCredentials()
 	headersOk := handlers.AllowedHeaders([]string{"content-type", "Authorization", "Authorization-Type"})
-	originsOk := handlers.AllowedOrigins([]string{"http://localhost"})
+	originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 
 	return handlers.CORS(credentials, headersOk, originsOk, methodsOk)(r)
