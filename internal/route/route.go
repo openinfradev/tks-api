@@ -61,7 +61,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	//r.Use(transactionMiddleware(db))
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/logout", authHandler.Logout).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", authMiddleware.Handle(http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/auth/refresh", authMiddleware.Handle(http.HandlerFunc(authHandler.RefreshToken))).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id", authHandler.FindId).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password", authHandler.FindPassword).Methods(http.MethodPost)
 

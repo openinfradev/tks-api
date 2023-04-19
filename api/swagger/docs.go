@@ -3876,10 +3876,14 @@ const docTemplate = `{
         "domain.UpdatePasswordRequest": {
             "type": "object",
             "required": [
-                "password"
+                "newPassword",
+                "originPassword"
             ],
             "properties": {
-                "password": {
+                "newPassword": {
+                    "type": "string"
+                },
+                "originPassword": {
                     "type": "string"
                 }
             }

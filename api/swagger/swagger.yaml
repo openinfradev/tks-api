@@ -1241,10 +1241,13 @@ definitions:
     type: object
   domain.UpdatePasswordRequest:
     properties:
-      password:
+      newPassword:
+        type: string
+      originPassword:
         type: string
     required:
-    - password
+    - newPassword
+    - originPassword
     type: object
   domain.UpdatePasswordResponse:
     type: object

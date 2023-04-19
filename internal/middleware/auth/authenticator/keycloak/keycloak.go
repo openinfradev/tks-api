@@ -64,6 +64,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	if !ok {
 		return nil, false, fmt.Errorf("organization is not found in token")
 	}
+
 	if err := a.kc.VerifyAccessToken(token, organizationId); err != nil {
 		log.Errorf("failed to verify access token: %v", err)
 		return nil, false, err
@@ -73,6 +74,8 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	for _, role := range parsedToken.Claims.(jwtWithouKey.MapClaims)["tks-role"].([]interface{}) {
 		slice := strings.Split(role.(string), "@")
 		if len(slice) != 2 {
+			log.Errorf("invalid tks-role format: %v", role)
+
 			return nil, false, fmt.Errorf("invalid tks-role format")
 		}
 		// key is projectName and value is roleName
@@ -80,7 +83,33 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	}
 	userAccountId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
 	if err != nil {
+		log.Errorf("failed to verify access token: %v", err)
+
 		return nil, false, err
+	}
+	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
+	if !ok {
+		return nil, false, fmt.Errorf("session id is not found in token")
+	}
+
+	sessionIds, err := a.kc.GetSessions(userAccountId.String(), organizationId)
+	if err != nil {
+		log.Errorf("failed to get sessions: %v", err)
+
+		return nil, false, err
+	}
+	if len(*sessionIds) == 0 {
+		return nil, false, fmt.Errorf("invalid session")
+	}
+	var matched bool = false
+	for _, id := range *sessionIds {
+		if id == requestSessionId {
+			matched = true
+			break
+		}
+	}
+	if !matched {
+		return nil, false, fmt.Errorf("invalid session")
 	}
 
 	userInfo := &user.DefaultInfo{
@@ -88,6 +117,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		OrganizationId:     organizationId,
 		RoleProjectMapping: roleProjectMapping,
 	}
+	//r = r.WithContext(request.WithToken(r.Context(), token))
 	*r = *(r.WithContext(request.WithToken(r.Context(), token)))
 
 	return &authenticator.Response{User: userInfo}, true, nil
