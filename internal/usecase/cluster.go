@@ -160,11 +160,13 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
+				fmt.Sprintf("tks_info_host=%s", viper.GetString("external-address")),
 				"contract_id=" + dto.OrganizationId,
 				"cluster_id=" + clusterId.String(),
 				"site_name=" + clusterId.String(),
 				"template_name=" + stackTemplate.Template,
 				"git_account=" + viper.GetString("git-account"),
+				"creator=" + user.GetUserId().String(),
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})

@@ -58,20 +58,18 @@ type DashboardChart struct {
 }
 
 type Unit struct {
-	Name string
-	Data []string
+	Name string   `json:"name"`
+	Data []string `json:"data"`
+}
+
+type Axis struct {
+	Data []string `json:"data"`
 }
 
 type ChartData struct {
-	XAxis struct {
-		Type string
-		Data []string
-	}
-	YAxis struct {
-		Type string
-		Data []string
-	}
-	Series []Unit
+	XAxis  Axis   `json:"xAxis"`
+	YAxis  Axis   `json:"yAxis"`
+	Series []Unit `json:"series"`
 }
 
 type DashboardChartResponse struct {
@@ -87,4 +85,8 @@ type DashboardChartResponse struct {
 
 type GetDashboardChartsResponse struct {
 	Charts []DashboardChartResponse `json:"charts"`
+}
+
+type GetDashboardChartResponse struct {
+	Chart DashboardChartResponse `json:"chart"`
 }

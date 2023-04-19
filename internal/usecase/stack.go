@@ -3,8 +3,9 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"time"
+
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -45,6 +46,8 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
+
+	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
 
 	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)

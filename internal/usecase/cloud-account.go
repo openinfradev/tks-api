@@ -44,6 +44,8 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
+	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
+
 	dto.Resource = "TODO server result or additional information"
 	dto.CreatorId = user.GetUserId()
 
