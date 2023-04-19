@@ -1,0 +1,111 @@
+run:
+  timeout: 5m
+  issues-exit-code: 2
+  tests: true
+  build-tags: []
+  skip-dirs: []
+  skip-dirs-use-default: false
+  skip-files: []
+  allow-parallel-runners: true
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
+linters-settings:
+  godot:
+    scope: all
+  gofmt:
+    simplify: false
+  staticcheck:
+    checks:
+      - all
+      - "-SA9004" # <https://staticcheck.io/docs/checks#SA9004>
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+
+  govet:
+    check-shadowing: false
+    settings:
+      printf:
+        funcs:
+          - (github.com/xxx/xxx/pkg/log).Infof
+          - (github.com/xxx/xxx/pkg/log).Warnf
+          - (github.com/xxx/xxx/pkg/log).Errorf
+          - (github.com/xxx/xxx/pkg/log).Fatalf
+          - (github.com/xxx/xxx/pkg/log).Panicf
+          - (github.com/xxx/xxx/pkg/log).Debugf
+          - (github.com/xxx/xxx/pkg/log).Info
+          - (github.com/xxx/xxx/pkg/log).Warn
+          - (github.com/xxx/xxx/pkg/log).Error
+          - (github.com/xxx/xxx/pkg/log).Fatal
+          - (github.com/xxx/xxx/pkg/log).Panic
+          - (github.com/xxx/xxx/pkg/log).Debug
+          - (github.com/xxx/xxx/pkg/log).InfoDepth
+          - (github.com/xxx/xxx/pkg/log).WarnDepth
+          - (github.com/xxx/xxx/pkg/log).ErrorDepth
+          - (github.com/xxx/xxx/pkg/log).FatalDepth
+          - (github.com/xxx/xxx/pkg/log).PanicDepth
+          - (github.com/xxx/xxx/pkg/log).DebugDepth
+          - (github.com/xxx/xxx/pkg/log).InfofDepth
+          - (github.com/xxx/xxx/pkg/log).WarnfDepth
+          - (github.com/xxx/xxx/pkg/log).ErrorfDepth
+          - (github.com/xxx/xxx/pkg/log).FatalfDepth
+          - (github.com/xxx/xxx/pkg/log).PanicfDepth
+          - (github.com/xxx/xxx/pkg/log).DebugfDepth
+          - (github.com/xxx/xxx/pkg/log).InfoWithFields
+          - (github.com/xxx/xxx/pkg/log).WarnWithFields
+          - (github.com/xxx/xxx/pkg/log).ErrorWithFields
+          - (github.com/xxx/xxx/pkg/log).FatalWithFields
+          - (github.com/xxx/xxx/pkg/log).PanicWithFields
+          - (github.com/xxx/xxx/pkg/log).DebugWithFields
+          - (github.com/xxx/xxx/pkg/log).InfofWithFields
+
+linters:
+  enable:
+    - errcheck # checks unchecked errors
+    - gosimple # simplify code
+    - govet # examines Go source code and reports suspicious constructs
+    - ineffassign # detect unused assign
+    - staticcheck # cover Go vet edge cases
+    - typecheck # type-checks Go code
+    - unused # checks Go code for unused constants, variables, functions and types
+    - gosimple # specializes in simplifying a code
+    - errcheck # checks unchecked errors
+    - misspell # finds commonly misspelled English words in comments
+
+  disable:
+    - deadcode # enabled-default. but duplicated & deprecated someday
+    - structcheck # enabled-default. but duplicated & deprecated someday
+    - varcheck # enabled-default. but duplicated & deprecated someday
+    - bidichk # checks for dangerous unicode character sequences
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - contextcheck # check the function whether use a non-inherited context
+    - dupl # code clone detection
+    - durationcheck # check for two durations multiplied together
+    - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
+    - errorlint # find code that will cause problems with the error wrapping scheme
+    - exportloopref # checks for pointers to enclosing loop variables
+    - goconst # finds repeated strings that could be replaced by a constant
+    - gocritic # provides diagnostics that check for bugs, performance and style issues
+    - godot # check if comments end in a period
+    - gofmt # checks whether code was gofmt-ed
+    - goimports # fix imports, formats your code in the same style as gofmt
+    - ifshort # checks that your code uses short syntax for if-statements whenever possible
+#    - misspell # finds commonly misspelled English words in comments
+    - noctx # finds sending http request without context.Context
+    - predeclared # find code that shadows one of Go's predeclared identifiers
+    - revive # replacement of golint
+    - rowserrcheck # checks whether Err of rows is checked successfully
+    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed.
+    - unconvert # remove unnecessary type conversions
+    - wastedassign # finds wasted assignment statements.
+    - whitespace  # checks for unnecessary whitespace
+    - wrapcheck # check that errors from external packages are wrapped during return to help identify the error source.
+
+issues:
+  exclude: []
+severity:
+  default-severity: warning

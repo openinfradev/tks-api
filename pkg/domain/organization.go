@@ -29,12 +29,21 @@ var organizationStatus = [...]string{
 	"ERROR",
 }
 
+var organizationStatusMap = map[string]OrganizationStatus{
+	"PENDING":  OrganizationStatus_PENDING,
+	"CREATE":   OrganizationStatus_CREATE,
+	"CREATING": OrganizationStatus_CREATING,
+	"CREATED":  OrganizationStatus_CREATED,
+	"DELETE":   OrganizationStatus_DELETE,
+	"DELETING": OrganizationStatus_DELETING,
+	"DELETED":  OrganizationStatus_DELETED,
+	"ERROR":    OrganizationStatus_ERROR,
+}
+
 func (m OrganizationStatus) String() string { return organizationStatus[(m)] }
 func (m OrganizationStatus) FromString(s string) OrganizationStatus {
-	for i, v := range organizationStatus {
-		if v == s {
-			return OrganizationStatus(i)
-		}
+	if v, ok := organizationStatusMap[s]; ok {
+		return v
 	}
 	return OrganizationStatus_ERROR
 }
@@ -64,16 +73,16 @@ type CreateOrganizationResponse struct {
 
 type GetOrganizationResponse struct {
 	Organization struct {
-		ID                string             `json:"id"`
-		Name              string             `json:"name"`
-		Description       string             `json:"description"`
-		Phone             string             `json:"phone"`
-		PrimaryClusterId  string             `json:"primaryClusterId"`
-		Status            OrganizationStatus `json:"status"`
-		StatusDescription string             `json:"statusDescription"`
-		Creator           string             `json:"creator"`
-		CreatedAt         time.Time          `json:"createdAt"`
-		UpdatedAt         time.Time          `json:"updatedAt"`
+		ID                string    `json:"id"`
+		Name              string    `json:"name"`
+		Description       string    `json:"description"`
+		Phone             string    `json:"phone"`
+		PrimaryClusterId  string    `json:"primaryClusterId"`
+		Status            string    `json:"status"`
+		StatusDescription string    `json:"statusDescription"`
+		Creator           string    `json:"creator"`
+		CreatedAt         time.Time `json:"createdAt"`
+		UpdatedAt         time.Time `json:"updatedAt"`
 	} `json:"organization"`
 }
 type ListOrganizationResponse struct {
@@ -86,6 +95,8 @@ type ListOrganizationBody struct {
 	Phone            string             `json:"phone"`
 	PrimaryClusterId string             `json:"primaryClusterId"`
 	Status           OrganizationStatus `json:"status"`
+	CreatedAt        time.Time          `json:"createdAt"`
+	UpdatedAt        time.Time          `json:"updatedAt"`
 }
 
 type UpdateOrganizationRequest struct {

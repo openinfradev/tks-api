@@ -153,7 +153,7 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/stacks/{stackId} [put]
 // @Security     JWT
 func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Need implementaion")))
+	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("need implementation")))
 }
 
 // DeleteStack godoc

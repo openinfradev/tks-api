@@ -3,9 +3,9 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"time"
 
-	"github.com/openinfradev/tks-api/internal/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -237,5 +237,10 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 		Updator:         cluster.Updator,
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
+
+		// [TODO]
+		CpNodeCnt:   3,
+		TksNodeCnt:  3,
+		UserNodeCnt: 3,
 	}
 }

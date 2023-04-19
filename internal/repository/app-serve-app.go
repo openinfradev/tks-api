@@ -27,8 +27,7 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 	}
 }
 
-func (r *AppServeAppRepository) CreateAppServeApp(
-	app *domain.AppServeApp) (appId string, taskId string, err error) {
+func (r *AppServeAppRepository) CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error) {
 
 	res := r.db.Create(&app)
 	if res.Error != nil {
@@ -41,7 +40,6 @@ func (r *AppServeAppRepository) CreateAppServeApp(
 // Update creates new appServeApp Task for existing appServeApp.
 func (r *AppServeAppRepository) CreateTask(
 	task *domain.AppServeAppTask) (string, error) {
-
 	res := r.db.Create(task)
 	if res.Error != nil {
 		return "", res.Error

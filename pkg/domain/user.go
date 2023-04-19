@@ -64,7 +64,6 @@ type LoginResponse struct {
 
 type LogoutRequest struct {
 	//TODO implement me
-	AccountId string `json:"accountId"`
 }
 
 type FindIdRequest struct {
@@ -155,11 +154,14 @@ type UpdateUserResponse struct {
 		Email        string       `json:"email"`
 		Department   string       `json:"department"`
 		Description  string       `json:"description"`
+		CreatedAt    time.Time    `json:"createdAt"`
+		UpdatedAt    time.Time    `json:"updatedAt"`
 	} `json:"user"`
 }
 
 type UpdatePasswordRequest struct {
-	Password string `json:"password" validate:"required"`
+	OriginPassword string `json:"originPassword" validate:"required"`
+	NewPassword    string `json:"newPassword" validate:"required"`
 }
 
 type UpdatePasswordResponse struct {

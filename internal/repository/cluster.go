@@ -199,7 +199,6 @@ func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId 
 	}
 
 	return nil
-
 }
 
 func reflectCluster(cluster Cluster) domain.Cluster {

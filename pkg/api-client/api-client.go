@@ -135,5 +135,4 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 	}
 
 	return resJson, nil
-
 }

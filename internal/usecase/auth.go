@@ -11,8 +11,8 @@ import (
 )
 
 type IAuthUsecase interface {
-	Login(accountId string, password string, organizationName string) (domain.User, error)
-	Logout(token string) error
+	Login(accountId string, password string, organizationId string) (domain.User, error)
+	Logout(accessToken string, accountId string, organizationId string) error
 	FetchRoles() (out []domain.Role, err error)
 }
 
@@ -32,14 +32,18 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Authentication with DB
 	user, err := r.repo.Get(accountId, organizationId)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, httpErrors.NewUnauthorizedError(err)
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf("password is not correct"))
+		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf(""))
 	}
-
+	var accountToken *domain.User
 	// Authentication with Keycloak
-	accountToken, err := r.kc.GetAccessTokenByIdPassword(accountId, password, organizationId)
+	if organizationId == "master" && accountId == "admin" {
+		accountToken, err = r.kc.LoginAdmin(accountId, password)
+	} else {
+		accountToken, err = r.kc.Login(accountId, password, organizationId)
+	}
 	if err != nil {
 		//TODO: implement not found handling
 		return domain.User{}, httpErrors.NewUnauthorizedError(err)
@@ -51,8 +55,12 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	return user, nil
 }
 
-func (r *AuthUsecase) Logout(token string) error {
+func (r *AuthUsecase) Logout(accessToken string, accountId string, organizationId string) error {
 	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
+	err := r.kc.Logout(accessToken, accountId, organizationId)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

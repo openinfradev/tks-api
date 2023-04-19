@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/openinfradev/tks-api/pkg/log"
-
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IUserHandler interface {
@@ -290,6 +289,13 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/users/{accountId}/password [put]
 // @Security     JWT
 func (u UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	input := domain.UpdatePasswordRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
@@ -302,14 +308,7 @@ func (u UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := domain.UpdatePasswordRequest{}
-	err := UnmarshalRequestInput(r, &input)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
-
-	err = u.usecase.UpdatePasswordByAccountId(r.Context(), accountId, input.Password, organizationId)
+	err = u.usecase.UpdatePasswordByAccountId(r.Context(), accountId, input.OriginPassword, input.NewPassword, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, httpErrors.NewBadRequestError(err))

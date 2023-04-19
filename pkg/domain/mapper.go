@@ -77,10 +77,10 @@ func Map(src interface{}, dst interface{}) error {
 			return val, nil
 		},
 		{srcType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return string(i.(OrganizationStatus)), nil
+			return i.(OrganizationStatus).String(), nil
 		},
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return i.(OrganizationStatus).String(), nil
+			return organizationStatusMap[i.(string)], nil
 		},
 		{srcType: reflect.TypeOf((*Role)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
 			return i.(Role).Name, nil

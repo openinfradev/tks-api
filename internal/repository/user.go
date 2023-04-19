@@ -11,9 +11,9 @@ import (
 
 // Interface
 type IUserRepository interface {
-	Create(accountId string, organizationId string, paasword string, name string) (domain.User, error)
+	Create(accountId string, organizationId string, password string, name string) (domain.User, error)
 	CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
-		department string, description string, orgainzationId string, roleId uuid.UUID) (domain.User, error)
+		department string, description string, organizationId string, roleId uuid.UUID) (domain.User, error)
 	List(...FilterFunc) (out *[]domain.User, err error)
 	Get(accountId string, organizationId string) (domain.User, error)
 	GetByUuid(userId uuid.UUID) (domain.User, error)

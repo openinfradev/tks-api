@@ -18,7 +18,7 @@ func TestConvert(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "test case 1",
+			name: "test case: CreateOrganizationRequest->Organization",
 			args: args{
 				src: CreateOrganizationRequest{
 					Name:        "test",
@@ -30,7 +30,7 @@ func TestConvert(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "test case 2",
+			name: "test case Organization->CreateOrganizationResponse",
 			args: args{
 				src: Organization{
 					ID:                "",
@@ -47,7 +47,25 @@ func TestConvert(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "test case 3",
+			name: "test case Organization->GetOrganizationResponse",
+			args: args{
+				src: Organization{
+					ID:                "",
+					Name:              "test",
+					Description:       "test",
+					Phone:             "test",
+					Status:            OrganizationStatus_CREATE,
+					StatusDescription: "good",
+					Creator:           "",
+					CreatedAt:         time.Time{},
+					UpdatedAt:         time.Time{},
+				},
+				dst: &(&GetOrganizationResponse{}).Organization,
+			},
+			wantErr: false,
+		},
+		{
+			name: "test case CreateUserRequest->User",
 			args: args{
 				src: CreateUserRequest{
 					AccountId:   "testAccount",
@@ -63,7 +81,7 @@ func TestConvert(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "test case 4",
+			name: "test case User->GetUserResponse",
 			args: args{
 				src: User{
 					ID:           "",
@@ -80,7 +98,7 @@ func TestConvert(t *testing.T) {
 					Department:   "",
 					Description:  "",
 				},
-				dst: &User{},
+				dst: &GetUserResponse{},
 			},
 			wantErr: false,
 		},
@@ -90,7 +108,8 @@ func TestConvert(t *testing.T) {
 			if err := Map(tt.args.src, tt.args.dst); (err != nil) != tt.wantErr {
 				t.Errorf("Map() error = %v, wantErr %v", err, tt.wantErr)
 			} else {
-				fmt.Println(tt.args.dst)
+				fmt.Printf("Input: %+v\n", tt.args.src)
+				fmt.Printf("Output: %+v\n\n", tt.args.dst)
 			}
 		})
 	}

@@ -96,6 +96,9 @@ type StackResponse struct {
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`
 	PrimaryCluster bool                  `json:"primaryCluster"`
+	CpNodeCnt      int                   `json:"cpNodeCnt"`
+	TksNodeCnt     int                   `json:"tksNodeCnt"`
+	UserNodeCnt    int                   `json:"userNodeCnt"`
 	Creator        SimpleUserResponse    `json:"creator,omitempty"`
 	Updator        SimpleUserResponse    `json:"updator,omitempty"`
 	CreatedAt      time.Time             `json:"createdAt"`
