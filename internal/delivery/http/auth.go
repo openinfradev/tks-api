@@ -52,7 +52,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
@@ -89,7 +89,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	err := h.usecase.Logout(accessToken, userInfo.GetUserId().String(), userInfo.GetOrganizationId())
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
