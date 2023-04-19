@@ -53,13 +53,17 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 	dto.OrganizationId = organizationId
 
-	err = h.usecase.Create(r.Context(), dto)
+	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	out := domain.CreateStackResponse{
+		ID: stackId.String(),
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // GetStack godoc
