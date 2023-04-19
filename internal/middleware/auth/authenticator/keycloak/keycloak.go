@@ -2,6 +2,9 @@ package keycloak
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	jwtWithouKey "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -9,8 +12,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/user"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"net/http"
-	"strings"
 )
 
 type keycloakAuthenticator struct {

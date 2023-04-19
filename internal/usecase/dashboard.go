@@ -51,9 +51,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 	// [TODO] get prometheus
 	if chartType == domain.ChartType_TRAFFIC.String() {
 		chartData := domain.ChartData{}
-		chartData.XAxis.Type = "category"
 		chartData.XAxis.Data = []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-		chartData.YAxis.Type = "value"
 
 		chartData.Series = append(chartData.Series, domain.Unit{
 			Name: "Cluster in",

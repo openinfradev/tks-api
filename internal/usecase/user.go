@@ -3,8 +3,9 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"net/http"
+
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
@@ -71,6 +72,9 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 }
 
 func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
+
+	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
+
 	user := domain.User{
 		AccountId: "admin",
 		Password:  "admin",
