@@ -19,10 +19,19 @@ type IUserHandler interface {
 	UpdatePassword(w http.ResponseWriter, r *http.Request)
 	List(w http.ResponseWriter, r *http.Request)
 	CheckId(w http.ResponseWriter, r *http.Request)
+
+	UpdatePasswordByAdmin(w http.ResponseWriter, r *http.Request)
+	UpdateByAdmin(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
 	usecase usecase.IUserUsecase
+}
+
+func NewUserHandler(h usecase.IUserUsecase) IUserHandler {
+	return &UserHandler{
+		usecase: h,
+	}
 }
 
 // Create godoc
@@ -257,7 +266,6 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 	user.AccountId = accountId
-
 	resUser, err := u.usecase.UpdateByAccountId(ctx, accountId, &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -364,8 +372,112 @@ func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-func NewUserHandler(h usecase.IUserUsecase) IUserHandler {
-	return &UserHandler{
-		usecase: h,
+// UpdatePasswordByAdmin godoc
+// @Tags Admin
+// @Tags Users
+// @Summary As admin, Update user password detail
+// @Description Update user password detail
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
+// @Param body body domain.UpdatePasswordByAdminRequest true "update user password request"
+// @Success 200 {object} domain.UpdatePasswordByAdminResponse
+// @Router /organizations/{organizationId}/users/{accountId}/password [put]
+// @Security     JWT
+func (u UserHandler) UpdatePasswordByAdmin(w http.ResponseWriter, r *http.Request) {
+	input := domain.UpdatePasswordByAdminRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
 	}
+
+	vars := mux.Vars(r)
+	accountId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
+		return
+	}
+
+	err = u.usecase.UpdatePasswordByAccountIdByAdmin(r.Context(), accountId, input.NewPassword, organizationId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			return
+		}
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
+// UpdateByAdmin UpdateUser godoc
+// @Tags Admin
+// @Summary As admin, Update user detail
+// @Description Update user detail
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
+// @Param body body domain.UpdateUserByAdminRequest true "update user request"
+// @Success 200 {object} domain.UpdateUserByAdminResponse
+// @Router /organizations/{organizationId}/users/{accountId} [put]
+// @Security     JWT
+func (u UserHandler) UpdateByAdmin(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
+		return
+	}
+
+	input := domain.UpdateUserByAdminResponse{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	ctx := r.Context()
+	var user domain.User
+	if err = domain.Map(input, &user); err != nil {
+		log.Error(err)
+	}
+	user.Organization = domain.Organization{
+		ID: organizationId,
+	}
+	user.AccountId = accountId
+
+	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		}
+
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out domain.UpdateUserResponse
+	if err = domain.Map(*resUser, &out.User); err != nil {
+		log.Error(err)
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
 }

@@ -28,6 +28,9 @@ type IUserUsecase interface {
 	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
 	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
+
+	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
+	UpdatePasswordByAccountIdByAdmin(ctx context.Context, accountId string, newPassword string, organizationId string) error
 }
 
 type UserUsecase struct {
@@ -239,17 +242,6 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, fmt.Errorf("multiple users found")
 	}
 
-	if user.Role.Name != (*users)[0].Role.Name {
-		groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())}
-		if err := u.kc.UpdateUser(userInfo.GetOrganizationId(), &gocloak.User{
-			ID:     &(*users)[0].ID,
-			Groups: &groups,
-		}); err != nil {
-			log.Errorf("updating user in keycloak failed: %v", err)
-			return nil, httpErrors.NewInternalServerError(err)
-		}
-	}
-
 	userUuid, err := uuid.Parse((*users)[0].ID)
 	if err != nil {
 		return nil, err
@@ -257,16 +249,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 	originPassword := (*users)[0].Password
 
-	roles, err := u.repo.FetchRoles()
-	if err != nil {
-		return nil, err
-	}
-	for _, role := range *roles {
-		if role.Name == user.Role.Name {
-			user.Role.ID = role.ID
-		}
-	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
+	roleUuid, err := uuid.Parse((*users)[0].Role.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -361,6 +344,123 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 	}
 
 	return &resUser, nil
+}
+
+func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
+	userInfo, ok := request.UserFrom(ctx)
+	if !ok {
+		return nil, fmt.Errorf("user in the context is  empty")
+	}
+
+	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
+		u.repo.AccountIdFilter(accountId))
+	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+		}
+		return nil, errors.Wrap(err, "getting users from repository failed")
+	}
+	if len(*users) == 0 {
+		return nil, fmt.Errorf("user not found")
+	} else if len(*users) > 1 {
+		return nil, fmt.Errorf("multiple users found")
+	}
+
+	if user.Role.Name != (*users)[0].Role.Name {
+		groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())}
+		if err := u.kc.UpdateUser(userInfo.GetOrganizationId(), &gocloak.User{
+			ID:     &(*users)[0].ID,
+			Groups: &groups,
+		}); err != nil {
+			log.Errorf("updating user in keycloak failed: %v", err)
+			return nil, httpErrors.NewInternalServerError(err)
+		}
+	}
+
+	userUuid, err := uuid.Parse((*users)[0].ID)
+	if err != nil {
+		return nil, err
+	}
+
+	originPassword := (*users)[0].Password
+
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return nil, err
+	}
+	for _, role := range *roles {
+		if role.Name == user.Role.Name {
+			user.Role.ID = role.ID
+		}
+	}
+	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
+		user.Department, user.Description)
+	if err != nil {
+		return nil, errors.Wrap(err, "updating user in repository failed")
+	}
+
+	return user, nil
+}
+
+func (u *UserUsecase) UpdatePasswordByAccountIdByAdmin(ctx context.Context, accountId string, newPassword string, organizationId string) error {
+	originUser, err := u.kc.GetUser(organizationId, accountId)
+	if err != nil {
+		return err
+	}
+	originUser.Credentials = &[]gocloak.CredentialRepresentation{
+		{
+			Type:      gocloak.StringP("password"),
+			Value:     gocloak.StringP(newPassword),
+			Temporary: gocloak.BoolP(false),
+		},
+	}
+
+	err = u.kc.UpdateUser(organizationId, originUser)
+	if err != nil {
+		return errors.Wrap(err, "updating user in keycloak failed")
+	}
+
+	// update password in DB
+
+	user, err := u.repo.Get(accountId, organizationId)
+	if err != nil {
+		return errors.Wrap(err, "getting user from repository failed")
+	}
+	userUuid, err := uuid.Parse(user.ID)
+	if err != nil {
+		return errors.Wrap(err, "parsing uuid failed")
+	}
+	hashedPassword, err := helper.HashPassword(newPassword)
+	if err != nil {
+		return errors.Wrap(err, "hashing password failed")
+	}
+
+	roles, err := u.repo.FetchRoles()
+	if err != nil {
+		return err
+	}
+	for _, role := range *roles {
+		if role.Name == user.Role.Name {
+			user.Role.ID = role.ID
+		}
+	}
+	roleUuid, err := uuid.Parse(user.Role.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, roleUuid, user.Email,
+		user.Department, user.Description)
+	if err != nil {
+		return errors.Wrap(err, "updating user in repository failed")
+	}
+
+	return nil
 }
 
 func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {

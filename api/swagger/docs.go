@@ -1765,9 +1765,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Admin"
                 ],
-                "summary": "Update user detail",
+                "summary": "As admin, Update user detail",
                 "parameters": [
                     {
                         "type": "string",
@@ -1789,7 +1789,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserRequest"
+                            "$ref": "#/definitions/domain.UpdateUserByAdminRequest"
                         }
                     }
                 ],
@@ -1797,7 +1797,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserResponse"
+                            "$ref": "#/definitions/domain.UpdateUserByAdminResponse"
                         }
                     }
                 }
@@ -1901,9 +1901,10 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
+                    "Admin",
                     "Users"
                 ],
-                "summary": "Update user password detail",
+                "summary": "As admin, Update user password detail",
                 "parameters": [
                     {
                         "type": "string",
@@ -1925,7 +1926,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
+                            "$ref": "#/definitions/domain.UpdatePasswordByAdminRequest"
                         }
                     }
                 ],
@@ -1933,7 +1934,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordResponse"
+                            "$ref": "#/definitions/domain.UpdatePasswordByAdminResponse"
                         }
                     }
                 }
@@ -3826,6 +3827,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.UpdatePasswordByAdminRequest": {
+            "type": "object",
+            "required": [
+                "newPassword"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdatePasswordByAdminResponse": {
+            "type": "object"
+        },
         "domain.UpdatePasswordRequest": {
             "type": "object",
             "required": [
@@ -3868,7 +3883,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateUserRequest": {
+        "domain.UpdateUserByAdminRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -3895,6 +3910,69 @@ const docTemplate = `{
                         "admin",
                         "user"
                     ]
+                }
+            }
+        },
+        "domain.UpdateUserByAdminResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "createdAt": {
+                            "type": "string"
+                        },
+                        "department": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/domain.Role"
+                        },
+                        "updatedAt": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "domain.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "department": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 0
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
                 }
             }
         },

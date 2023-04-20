@@ -138,7 +138,6 @@ type ListUserBody struct {
 
 type UpdateUserRequest struct {
 	Name        string `json:"name" validate:"omitempty,min=0,max=20"`
-	Role        string `json:"role" validate:"oneof=admin user"`
 	Email       string `json:"email" validate:"omitempty,email"`
 	Department  string `json:"department" validate:"omitempty,min=0,max=20"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
@@ -159,12 +158,42 @@ type UpdateUserResponse struct {
 	} `json:"user"`
 }
 
+type UpdateUserByAdminRequest struct {
+	Name        string `json:"name" validate:"omitempty,min=0,max=20"`
+	Role        string `json:"role" validate:"oneof=admin user"`
+	Email       string `json:"email" validate:"omitempty,email"`
+	Department  string `json:"department" validate:"omitempty,min=0,max=20"`
+	Description string `json:"description" validate:"omitempty,min=0,max=100"`
+}
+
+type UpdateUserByAdminResponse struct {
+	User struct {
+		ID           string       `json:"id"`
+		AccountId    string       `json:"accountId"`
+		Name         string       `json:"name"`
+		Role         Role         `json:"role"`
+		Organization Organization `json:"organization"`
+		Email        string       `json:"email"`
+		Department   string       `json:"department"`
+		Description  string       `json:"description"`
+		CreatedAt    time.Time    `json:"createdAt"`
+		UpdatedAt    time.Time    `json:"updatedAt"`
+	} `json:"user"`
+}
+
 type UpdatePasswordRequest struct {
 	OriginPassword string `json:"originPassword" validate:"required"`
 	NewPassword    string `json:"newPassword" validate:"required"`
 }
 
 type UpdatePasswordResponse struct {
+}
+
+type UpdatePasswordByAdminRequest struct {
+	NewPassword string `json:"newPassword" validate:"required"`
+}
+
+type UpdatePasswordByAdminResponse struct {
 }
 
 type CheckExistedIdRequest struct {

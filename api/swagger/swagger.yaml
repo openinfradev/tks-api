@@ -1149,6 +1149,15 @@ definitions:
       phone:
         type: string
     type: object
+  domain.UpdatePasswordByAdminRequest:
+    properties:
+      newPassword:
+        type: string
+    required:
+    - newPassword
+    type: object
+  domain.UpdatePasswordByAdminResponse:
+    type: object
   domain.UpdatePasswordRequest:
     properties:
       newPassword:
@@ -1176,7 +1185,7 @@ definitions:
       description:
         type: string
     type: object
-  domain.UpdateUserRequest:
+  domain.UpdateUserByAdminRequest:
     properties:
       department:
         maxLength: 20
@@ -1196,6 +1205,49 @@ definitions:
         enum:
         - admin
         - user
+        type: string
+    type: object
+  domain.UpdateUserByAdminResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          createdAt:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          updatedAt:
+            type: string
+        type: object
+    type: object
+  domain.UpdateUserRequest:
+    properties:
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
         type: string
     type: object
   domain.UpdateUserResponse:
@@ -2403,19 +2455,19 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateUserRequest'
+          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.UpdateUserResponse'
+            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
       security:
       - JWT: []
-      summary: Update user detail
+      summary: As admin, Update user detail
       tags:
-      - Users
+      - Admin
   /organizations/{organizationId}/users/{accountId}/existence:
     get:
       consumes:
@@ -2463,18 +2515,19 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdatePasswordRequest'
+          $ref: '#/definitions/domain.UpdatePasswordByAdminRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.UpdatePasswordResponse'
+            $ref: '#/definitions/domain.UpdatePasswordByAdminResponse'
       security:
       - JWT: []
-      summary: Update user password detail
+      summary: As admin, Update user password detail
       tags:
+      - Admin
       - Users
   /stack-templates:
     get:
