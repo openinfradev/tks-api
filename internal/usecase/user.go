@@ -146,7 +146,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string,
 	organizationId string) error {
 	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
-		return err
+		return httpErrors.NewBadRequestError(httpErrors.BadRequest)
 	}
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
