@@ -10,7 +10,7 @@ type key int
 const (
 	userKey key = iota
 	userToken
-	organinzation
+	sessionKey
 )
 
 func WithValue(parent context.Context, key, val interface{}) context.Context {
@@ -32,5 +32,14 @@ func WithToken(parent context.Context, token string) context.Context {
 
 func TokenFrom(ctx context.Context) (string, bool) {
 	token, ok := ctx.Value(userToken).(string)
+	return token, ok
+}
+
+func WithSession(parent context.Context, sessionId string) context.Context {
+	return WithValue(parent, sessionKey, sessionId)
+}
+
+func SessionFrom(ctx context.Context) (string, bool) {
+	token, ok := ctx.Value(sessionKey).(string)
 	return token, ok
 }

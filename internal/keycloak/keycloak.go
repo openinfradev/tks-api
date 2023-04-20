@@ -16,7 +16,7 @@ type IKeycloak interface {
 
 	LoginAdmin(accountId string, password string) (*domain.User, error)
 	Login(accountId string, password string, organizationId string) (*domain.User, error)
-	Logout(accessToken string, userId string, organizationId string) error
+	Logout(sessionId string, organizationId string) error
 
 	CreateRealm(organizationId string) (string, error)
 	GetRealm(organizationId string) (*domain.Organization, error)
@@ -426,9 +426,13 @@ func (k *Keycloak) GetSessions(userId string, organizationId string) (*[]string,
 	return &sessionIds, nil
 }
 
-func (k *Keycloak) Logout(accessToken string, userId string, organizationId string) error {
+func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 	ctx := context.Background()
-	err := k.client.LogoutAllSessions(ctx, accessToken, organizationId, userId)
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		return err
+	}
+	err = k.client.LogoutUserSession(ctx, token.AccessToken, organizationId, sessionId)
 	if err != nil {
 		return err
 	}

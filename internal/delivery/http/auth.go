@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"net/http"
 
@@ -76,17 +75,22 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Do nothing
 	// Token is not able to be expired manually. Therefore, nothing to do currently.z
 	ctx := r.Context()
-	accessToken, ok := request.TokenFrom(ctx)
+
+	sessionId, ok := request.SessionFrom(ctx)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("token not found")))
+		log.Errorf("session id is not found")
+		ErrorJSON(w, httpErrors.NewInternalServerError(httpErrors.InternalServerError))
 		return
 	}
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("user not found")))
+		log.Errorf("user info is not found")
+		ErrorJSON(w, httpErrors.NewInternalServerError(httpErrors.InternalServerError))
 		return
 	}
-	err := h.usecase.Logout(accessToken, userInfo.GetUserId().String(), userInfo.GetOrganizationId())
+	organizationId := userInfo.GetOrganizationId()
+
+	err := h.usecase.Logout(sessionId, organizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
