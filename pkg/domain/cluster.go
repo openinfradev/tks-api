@@ -70,60 +70,28 @@ type Cluster = struct {
 }
 
 type ClusterConf = struct {
-	SshKeyName      string
-	Region          string
-	MachineType     string
-	NumOfAz         int
-	MinSizePerAz    int
-	MaxSizePerAz    int
-	MachineReplicas int
-}
-
-type ClusterCapacity = struct {
-	Max     int
-	Current int
-}
-
-type ClusterKubeInfo = struct {
-	Version        string          `json:"version"`
-	TotalResources int             `json:"totalResources"`
-	Nodes          int             `json:"nodes"`
-	Namespaces     int             `json:"namespaces"`
-	Services       int             `json:"services"`
-	Pods           int             `json:"pods"`
-	Cores          ClusterCapacity `json:"cores"`
-	Memory         ClusterCapacity `json:"memory"`
-	Updated        time.Time       `json:"updated"`
-}
-
-type Event = struct {
-	ID        string    `json:"id"`
-	Namespace string    `json:"namespace"`
-	Type      string    `json:"type"`
-	Reason    string    `json:"reason"`
-	Message   string    `json:"message"`
-	Updated   time.Time `json:"updated"`
-}
-
-type Node = struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Status       string    `json:"status"`
-	InstanceType string    `json:"instanceType"`
-	Role         string    `json:"role"`
-	Updated      time.Time `json:"updated"`
+	Region              string
+	CpNodeCnt           string
+	CpNodeMachineType   string
+	TksNodeCnt          string
+	TksNodeMachineType  string
+	UserNodeCnt         string
+	UserNodeMachineType string
 }
 
 type CreateClusterRequest struct {
-	OrganizationId  string `json:"organizationId"`
-	StackTemplateId string `json:"stackTemplateId"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	CloudAccountId  string `json:"cloudAccountId"`
-	NumOfAz         int    `json:"numOfAz"`
-	MachineType     string `json:"machineType"`
-	Region          string `json:"region"`
-	MachineReplicas int    `json:"machineReplicas"`
+	OrganizationId      string `json:"organizationId"`
+	StackTemplateId     string `json:"stackTemplateId"`
+	Name                string `json:"name"`
+	Description         string `json:"description"`
+	CloudAccountId      string `json:"cloudAccountId"`
+	Region              string `json:"region"`
+	CpNodeCnt           string `json:"cpNodeCnt"`
+	CpNodeMachineType   string `json:"cpNodeMachineType"`
+	TksNodeCnt          string `json:"tksNodeCnt"`
+	TksNodeMachineType  string `json:"tksNodeMachineType"`
+	UserNodeCnt         string `json:"userNodeCnt"`
+	UserNodeMachineType string `json:"userNodeMachineType"`
 }
 
 type CreateClusterResponse struct {
@@ -147,13 +115,9 @@ type ClusterResponse struct {
 }
 
 type ClusterConfResponse struct {
-	SshKeyName      string `json:"sshKeyName"`
-	Region          string `json:"region"`
-	MachineType     string `json:"machineType"`
-	NumOfAz         int    `json:"numOfAz"`
-	MinSizePerAz    int    `json:"minSizePerAz"`
-	MaxSizePerAz    int    `json:"maxSizePerAz"`
-	MachineReplicas int    `json:"machineReplicas"`
+	CpNodeCnt   int `json:"cpNodeCnt"`
+	TksNodeCnt  int `json:"tksNodeCnt"`
+	UserNodeCnt int `json:"userpNodeCnt"`
 }
 
 type GetClustersResponse struct {

@@ -47,8 +47,6 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
-	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
-
 	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
 	if err != nil {
@@ -84,11 +82,9 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"cloud_account_id=" + dto.CloudAccountId.String(),
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
-			/*
-				"machine_type=" + input.MachineType,
-				"num_of_az=" + input.NumberOfAz,
-				"machine_replicas=" + input.MachineReplicas,
-			*/
+			"cp_node_cnt=" + dto.CpNodeCnt.String(),
+			"tks_node_cnt=" + dto.TksNodeCnt.String(),
+			"user_node_cnt=" + dto.UserNodeCnt.String(),
 		},
 	})
 	if err != nil {

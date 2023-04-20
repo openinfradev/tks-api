@@ -3,8 +3,9 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"strings"
+
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -131,6 +132,8 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"))
 	}
 
+	log.Info(dto.Conf)
+
 	/***************************
 	 * Pre-process cluster conf *
 	 ***************************/
@@ -142,6 +145,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		MachineReplicas: dto.Conf.MachineReplicas,
 	},
 	)
+
 	if err != nil {
 		return "", err
 	}

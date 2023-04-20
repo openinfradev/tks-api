@@ -279,20 +279,12 @@ definitions:
     type: object
   domain.ClusterConfResponse:
     properties:
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
-        type: string
-      maxSizePerAz:
+      tksNodeCnt:
         type: integer
-      minSizePerAz:
+      userpNodeCnt:
         type: integer
-      numOfAz:
-        type: integer
-      region:
-        type: string
-      sshKeyName:
-        type: string
     type: object
   domain.ClusterResponse:
     properties:

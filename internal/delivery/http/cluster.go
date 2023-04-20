@@ -108,6 +108,10 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		log.Info(err)
 	}
 
+	if err = domain.Map(input, &dto.Conf); err != nil {
+		log.Info(err)
+	}
+
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {

@@ -2520,26 +2520,14 @@ const docTemplate = `{
         "domain.ClusterConfResponse": {
             "type": "object",
             "properties": {
-                "machineReplicas": {
+                "cpNodeCnt": {
                     "type": "integer"
                 },
-                "machineType": {
-                    "type": "string"
-                },
-                "maxSizePerAz": {
+                "tksNodeCnt": {
                     "type": "integer"
                 },
-                "minSizePerAz": {
+                "userpNodeCnt": {
                     "type": "integer"
-                },
-                "numOfAz": {
-                    "type": "integer"
-                },
-                "region": {
-                    "type": "string"
-                },
-                "sshKeyName": {
-                    "type": "string"
                 }
             }
         },

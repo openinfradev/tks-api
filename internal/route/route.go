@@ -2,6 +2,7 @@ package route
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -57,8 +58,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
 
 	r.Use(loggingMiddleware)
+
 	// [TODO] Transaction
-	//r.Use(transactionMiddleware(db))
+	r.Use(transactionMiddleware(db))
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", authMiddleware.Handle(http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
@@ -163,7 +165,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-/*
 func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -207,4 +208,3 @@ func StatusInList(status int, statusList []int) bool {
 	}
 	return false
 }
-*/
