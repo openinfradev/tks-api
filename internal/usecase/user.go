@@ -74,9 +74,6 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 }
 
 func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
-
-	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
-
 	user := domain.User{
 		AccountId: "admin",
 		Password:  "admin",
@@ -145,7 +142,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string,
 	organizationId string) error {
 	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
-		return httpErrors.NewBadRequestError(httpErrors.BadRequest)
+		return err
 	}
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {

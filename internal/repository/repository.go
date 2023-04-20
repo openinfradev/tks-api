@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type FilterFunc func(user *gorm.DB) *gorm.DB
 
 type Repository struct {
+	Auth          IAuthRepository
 	User          IUserRepository
 	Cluster       IClusterRepository
 	Organization  IOrganizationRepository

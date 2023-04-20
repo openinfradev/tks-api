@@ -26,6 +26,8 @@ type IUserRepository interface {
 	AssignRole(accountId string, organizationId string, roleName string) error
 	AccountIdFilter(accountId string) FilterFunc
 	OrganizationFilter(organization string) FilterFunc
+	EmailFilter(email string) FilterFunc
+	NameFilter(name string) FilterFunc
 	AssignRoleWithUuid(uuid uuid.UUID, roleName string) error
 }
 
@@ -121,6 +123,16 @@ func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
 func (r *UserRepository) OrganizationFilter(organization string) FilterFunc {
 	return func(user *gorm.DB) *gorm.DB {
 		return user.Where("organization_id = ?", organization)
+	}
+}
+func (r *UserRepository) EmailFilter(email string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("email = ?", email)
+	}
+}
+func (r *UserRepository) NameFilter(name string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("name = ?", name)
 	}
 }
 func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {

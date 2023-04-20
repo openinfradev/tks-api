@@ -41,10 +41,15 @@ func init() {
 	flag.String("git-repository-url", "github.com/openinfradev", "URL of git repository")
 
 	// keycloak
-	flag.String("keycloak-address", "https://keycloak-kyuho.taco-cat.xyz/auth", "URL of keycloak")
+	flag.String("keycloak-address", "https://keycloak.keycloak.cdglab.site", "URL of keycloak")
 	flag.String("keycloak-admin", "admin", "user of keycloak")
 	flag.String("keycloak-password", "admin", "password of keycloak")
 	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")
+
+	// aws ses
+	flag.String("AWS_REGION", "ap-northeast-2", "region of aws ses")
+	flag.String("AWS_ACCESS_KEY_ID", "", "access key id of aws ses")
+	flag.String("AWS_SECRET_ACCESS_KEY", "", "access key of aws ses")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()

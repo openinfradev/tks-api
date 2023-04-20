@@ -58,7 +58,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		return "", err
 	}
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-		"tks-create-contract-repo",
+		"tks-create-contract-userRepository",
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"contract_id=" + organizationId,

@@ -50,6 +50,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 		authorizer.NewDefaultAuthorization())
 
 	repoFactory := repository.Repository{
+		Auth:          repository.NewAuthRepository(db),
 		User:          repository.NewUserRepository(db),
 		Cluster:       repository.NewClusterRepository(db),
 		Organization:  repository.NewOrganizationRepository(db),
@@ -72,6 +73,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/auth/refresh", authMiddleware.Handle(http.HandlerFunc(authHandler.RefreshToken))).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id", authHandler.FindId).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password", authHandler.FindPassword).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/verify-identity-for-lost-id", authHandler.VerifyIdentityForLostId).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/verify-identity-for-lost-password", authHandler.VerifyIdentityForLostPassword).Methods(http.MethodPost)
 
 	userHandler := delivery.NewUserHandler(usecase.NewUserUsecase(repoFactory, kc))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", authMiddleware.Handle(http.HandlerFunc(userHandler.Create))).Methods(http.MethodPost)

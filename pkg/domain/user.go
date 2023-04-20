@@ -46,34 +46,6 @@ type Policy = struct {
 	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
-type LoginRequest struct {
-	AccountId      string `json:"accountId" validate:"required"`
-	Password       string `json:"password" validate:"required"`
-	OrganizationId string `json:"organizationId" validate:"required"`
-}
-
-type LoginResponse struct {
-	User struct {
-		AccountId    string       `json:"accountId"`
-		Name         string       `json:"name"`
-		Token        string       `json:"token"`
-		Role         Role         `json:"role"`
-		Organization Organization `json:"organization"`
-	} `json:"user"`
-}
-
-type LogoutRequest struct {
-	//TODO implement me
-}
-
-type FindIdRequest struct {
-	//TODO implement me
-}
-
-type FindPasswordRequest struct {
-	//TODO implement me
-}
-
 type CreateUserRequest struct {
 	AccountId   string `json:"accountId" validate:"required"`
 	Password    string `json:"password" validate:"required"`

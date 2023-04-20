@@ -17,6 +17,8 @@ type IAuthHandler interface {
 	RefreshToken(w http.ResponseWriter, r *http.Request)
 	FindId(w http.ResponseWriter, r *http.Request)
 	FindPassword(w http.ResponseWriter, r *http.Request)
+	VerifyIdentityForLostId(w http.ResponseWriter, r *http.Request)
+	VerifyIdentityForLostPassword(w http.ResponseWriter, r *http.Request)
 
 	//Authenticate(next http.Handler) http.Handler
 }
@@ -71,6 +73,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Success 200 {object} object
 // @Router /auth/logout [post]
+// @Security     JWT
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Do nothing
 	// Token is not able to be expired manually. Therefore, nothing to do currently.z
@@ -104,10 +107,113 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 }
 
+// FindId godoc
+// @Tags Auth
+// @Summary FindId
+// @Description Request to find id
+// @Accept json
+// @Produce json
+// @Param body body domain.FindIdRequest true "return account id"
+// @Success 200 {object} domain.FindIdResponse
+// auth/find-id
 func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
+	input := domain.FindIdRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	accountId, err := h.usecase.FindId(input.Code, input.Email, input.UserName, input.OrganizationId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, err)
+		return
+	}
+	var out domain.FindIdResponse
+	out.AccountId = accountId
+
+	ResponseJSON(w, http.StatusOK, out)
 }
 
+// FindPassword godoc
+// @Tags Auth
+// @Summary FindPassword
+// @Description Request to find password
+// @Accept json
+// @Produce json
+// @Param body body domain.FindPasswordRequest true "temporary password sent to email"
+// @Success 200
+// auth/find-password
 func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
+	input := domain.FindPasswordRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	err = h.usecase.FindPassword(input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
+// VerifyIdentityForLostId godoc
+// @Tags Auth
+// @Summary VerifyIdentityForLostId
+// @Description VerifyIdentity for lost id
+// @Accept json
+// @Produce json
+// @Param body body domain.VerifyIdentityForLostIdRequest true "send code to verify identity via email"
+// @Success 200
+// @Router /auth/verify-identity-for-lost-id [post]
+func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Request) {
+	input := domain.VerifyIdentityForLostIdRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	err = h.usecase.VerifyIdentity("", input.Email, input.UserName, input.OrganizationId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
+// VerifyIdentityForLostPassword godoc
+// @Tags Auth
+// @Summary VerifyIdentityForLostPassword
+// @Description VerifyIdentity for lost password
+// @Accept json
+// @Produce json
+// @Param body body domain.VerifyIdentityForLostPasswordRequest true "send code to verify identity via email"
+// @Success 200
+// @Router /auth/verify-identity-for-lost-password [post]
+func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *http.Request) {
+	input := domain.VerifyIdentityForLostPasswordRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	err = h.usecase.VerifyIdentity(input.AccountId, input.Email, input.UserName, input.OrganizationId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
 }

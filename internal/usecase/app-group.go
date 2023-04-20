@@ -175,7 +175,7 @@ func (u *AppGroupUsecase) Delete(organizationId string, id domain.AppGroupId) (e
 	}
 
 	/*
-		err = u.repo.Delete(appGroupId)
+		err = u.userRepository.Delete(appGroupId)
 		if err != nil {
 			return fmt.Errorf("Fatiled to deleting appGroup : %s", appGroupId)
 		}
