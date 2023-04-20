@@ -445,7 +445,7 @@ func (u UserHandler) UpdateByAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := domain.UpdateUserByAdminResponse{}
+	input := domain.UpdateUserByAdminRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -463,6 +463,7 @@ func (u UserHandler) UpdateByAdmin(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 	user.AccountId = accountId
+	user.Role.Name = input.Role
 
 	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
 	if err != nil {

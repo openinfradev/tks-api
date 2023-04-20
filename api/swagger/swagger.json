@@ -3948,6 +3948,9 @@
         },
         "domain.UpdateUserRequest": {
             "type": "object",
+            "required": [
+                "password"
+            ],
             "properties": {
                 "department": {
                     "type": "string",
@@ -3966,6 +3969,9 @@
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 0
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },

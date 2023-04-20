@@ -228,6 +228,10 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, fmt.Errorf("user in the context is  empty")
 	}
 
+	_, err := u.kc.Login(user.AccountId, user.Password, userInfo.GetOrganizationId())
+	if err != nil {
+		return nil, httpErrors.NewBadRequestError(httpErrors.BadRequest)
+	}
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {

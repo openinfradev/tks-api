@@ -137,6 +137,7 @@ type ListUserBody struct {
 }
 
 type UpdateUserRequest struct {
+	Password    string `json:"password" validate:"required"`
 	Name        string `json:"name" validate:"omitempty,min=0,max=20"`
 	Email       string `json:"email" validate:"omitempty,email"`
 	Department  string `json:"department" validate:"omitempty,min=0,max=20"`

@@ -1249,6 +1249,10 @@ definitions:
         maxLength: 20
         minLength: 0
         type: string
+      password:
+        type: string
+    required:
+    - password
     type: object
   domain.UpdateUserResponse:
     properties:

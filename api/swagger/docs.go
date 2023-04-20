@@ -3955,6 +3955,9 @@ const docTemplate = `{
         },
         "domain.UpdateUserRequest": {
             "type": "object",
+            "required": [
+                "password"
+            ],
             "properties": {
                 "department": {
                     "type": "string",
@@ -3973,6 +3976,9 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 0
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },
