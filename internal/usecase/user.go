@@ -30,7 +30,6 @@ type IUserUsecase interface {
 	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
 
 	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
-	UpdatePasswordByAccountIdByAdmin(ctx context.Context, accountId string, newPassword string, organizationId string) error
 }
 
 type UserUsecase struct {
@@ -409,62 +408,6 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	}
 
 	return user, nil
-}
-
-func (u *UserUsecase) UpdatePasswordByAccountIdByAdmin(ctx context.Context, accountId string, newPassword string, organizationId string) error {
-	originUser, err := u.kc.GetUser(organizationId, accountId)
-	if err != nil {
-		return err
-	}
-	originUser.Credentials = &[]gocloak.CredentialRepresentation{
-		{
-			Type:      gocloak.StringP("password"),
-			Value:     gocloak.StringP(newPassword),
-			Temporary: gocloak.BoolP(false),
-		},
-	}
-
-	err = u.kc.UpdateUser(organizationId, originUser)
-	if err != nil {
-		return errors.Wrap(err, "updating user in keycloak failed")
-	}
-
-	// update password in DB
-
-	user, err := u.repo.Get(accountId, organizationId)
-	if err != nil {
-		return errors.Wrap(err, "getting user from repository failed")
-	}
-	userUuid, err := uuid.Parse(user.ID)
-	if err != nil {
-		return errors.Wrap(err, "parsing uuid failed")
-	}
-	hashedPassword, err := helper.HashPassword(newPassword)
-	if err != nil {
-		return errors.Wrap(err, "hashing password failed")
-	}
-
-	roles, err := u.repo.FetchRoles()
-	if err != nil {
-		return err
-	}
-	for _, role := range *roles {
-		if role.Name == user.Role.Name {
-			user.Role.ID = role.ID
-		}
-	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
-	if err != nil {
-		return err
-	}
-
-	_, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, roleUuid, user.Email,
-		user.Department, user.Description)
-	if err != nil {
-		return errors.Wrap(err, "updating user in repository failed")
-	}
-
-	return nil
 }
 
 func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {

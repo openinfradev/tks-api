@@ -75,7 +75,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Update))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdateByAdmin))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/password", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdatePassword))).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}/password", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdatePasswordByAdmin))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckId))).Methods(http.MethodGet)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repoFactory, argoClient, kc), usecase.NewUserUsecase(repoFactory, kc))

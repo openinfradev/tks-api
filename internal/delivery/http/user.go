@@ -20,7 +20,6 @@ type IUserHandler interface {
 	List(w http.ResponseWriter, r *http.Request)
 	CheckId(w http.ResponseWriter, r *http.Request)
 
-	UpdatePasswordByAdmin(w http.ResponseWriter, r *http.Request)
 	UpdateByAdmin(w http.ResponseWriter, r *http.Request)
 }
 
@@ -372,54 +371,6 @@ func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// UpdatePasswordByAdmin godoc
-// @Tags Admin
-// @Tags Users
-// @Summary As admin, Update user password detail
-// @Description Update user password detail
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param accountId path string true "accountId"
-// @Param body body domain.UpdatePasswordByAdminRequest true "update user password request"
-// @Success 200 {object} domain.UpdatePasswordByAdminResponse
-// @Router /organizations/{organizationId}/users/{accountId}/password [put]
-// @Security     JWT
-func (u UserHandler) UpdatePasswordByAdmin(w http.ResponseWriter, r *http.Request) {
-	input := domain.UpdatePasswordByAdminRequest{}
-	err := UnmarshalRequestInput(r, &input)
-	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
-		return
-	}
-
-	vars := mux.Vars(r)
-	accountId, ok := vars["accountId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
-		return
-	}
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
-		return
-	}
-
-	err = u.usecase.UpdatePasswordByAccountIdByAdmin(r.Context(), accountId, input.NewPassword, organizationId)
-	if err != nil {
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
-			return
-		}
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-
-		ErrorJSON(w, err)
-		return
-	}
-
-	ResponseJSON(w, http.StatusOK, nil)
-}
-
 // UpdateByAdmin UpdateUser godoc
 // @Tags Admin
 // @Summary As admin, Update user detail
@@ -430,7 +381,7 @@ func (u UserHandler) UpdatePasswordByAdmin(w http.ResponseWriter, r *http.Reques
 // @Param accountId path string true "accountId"
 // @Param body body domain.UpdateUserByAdminRequest true "update user request"
 // @Success 200 {object} domain.UpdateUserByAdminResponse
-// @Router /organizations/{organizationId}/users/{accountId} [put]
+// @Router /admin/organizations/{organizationId}/users/{accountId} [put]
 // @Security     JWT
 func (u UserHandler) UpdateByAdmin(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

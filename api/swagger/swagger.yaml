@@ -1149,15 +1149,6 @@ definitions:
       phone:
         type: string
     type: object
-  domain.UpdatePasswordByAdminRequest:
-    properties:
-      newPassword:
-        type: string
-    required:
-    - newPassword
-    type: object
-  domain.UpdatePasswordByAdminResponse:
-    type: object
   domain.UpdatePasswordRequest:
     properties:
       newPassword:
@@ -1321,6 +1312,40 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/organizations/{organizationId}/users/{accountId}:
+    put:
+      consumes:
+      - application/json
+      description: Update user detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
+      security:
+      - JWT: []
+      summary: As admin, Update user detail
+      tags:
+      - Admin
   /app-groups:
     delete:
       consumes:
@@ -2459,19 +2484,19 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
+          $ref: '#/definitions/domain.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
+            $ref: '#/definitions/domain.UpdateUserResponse'
       security:
       - JWT: []
-      summary: As admin, Update user detail
+      summary: Update user detail
       tags:
-      - Admin
+      - Users
   /organizations/{organizationId}/users/{accountId}/existence:
     get:
       consumes:
@@ -2519,19 +2544,18 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdatePasswordByAdminRequest'
+          $ref: '#/definitions/domain.UpdatePasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.UpdatePasswordByAdminResponse'
+            $ref: '#/definitions/domain.UpdatePasswordResponse'
       security:
       - JWT: []
-      summary: As admin, Update user password detail
+      summary: Update user password detail
       tags:
-      - Admin
       - Users
   /stack-templates:
     get:

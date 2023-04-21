@@ -23,6 +23,59 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/organizations/{organizationId}/users/{accountId}": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "As admin, Update user detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update user request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserByAdminRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserByAdminResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/app-groups": {
             "get": {
                 "security": [
@@ -1765,9 +1818,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "Users"
                 ],
-                "summary": "As admin, Update user detail",
+                "summary": "Update user detail",
                 "parameters": [
                     {
                         "type": "string",
@@ -1789,7 +1842,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserByAdminRequest"
+                            "$ref": "#/definitions/domain.UpdateUserRequest"
                         }
                     }
                 ],
@@ -1797,7 +1850,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserByAdminResponse"
+                            "$ref": "#/definitions/domain.UpdateUserResponse"
                         }
                     }
                 }
@@ -1901,10 +1954,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin",
                     "Users"
                 ],
-                "summary": "As admin, Update user password detail",
+                "summary": "Update user password detail",
                 "parameters": [
                     {
                         "type": "string",
@@ -1926,7 +1978,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordByAdminRequest"
+                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
                         }
                     }
                 ],
@@ -1934,7 +1986,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordByAdminResponse"
+                            "$ref": "#/definitions/domain.UpdatePasswordResponse"
                         }
                     }
                 }
@@ -3826,20 +3878,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "domain.UpdatePasswordByAdminRequest": {
-            "type": "object",
-            "required": [
-                "newPassword"
-            ],
-            "properties": {
-                "newPassword": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.UpdatePasswordByAdminResponse": {
-            "type": "object"
         },
         "domain.UpdatePasswordRequest": {
             "type": "object",
