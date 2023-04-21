@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -64,6 +65,8 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 
 	// Insert token
 	user.Token = accountToken.Token
+
+	user.PasswordExpired = helper.IsDurationExpired(user.PasswordUpdatedAt, internal.PasswordExpiredDuration)
 
 	return user, nil
 }
@@ -151,12 +154,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
 		return httpErrors.NewInternalServerError(err)
 	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
-	if err != nil {
-		return err
-	}
-	if _, err = u.userRepository.UpdateWithUuid(userUuid, user.AccountId, user.Name, user.Password, roleUuid,
-		user.Email, user.Department, user.Description); err != nil {
+	if err = u.userRepository.UpdatePassword(userUuid, organizationId, user.Password, true); err != nil {
 		return httpErrors.NewInternalServerError(err)
 	}
 
@@ -221,8 +219,5 @@ func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 }
 
 func (u *AuthUsecase) isValidEmailCode(code repository.CacheEmailCode) bool {
-	now := time.Now()
-	diff := now.Sub(code.UpdatedAt)
-
-	return diff < emailCodeExpireTime
+	return !helper.IsDurationExpired(code.UpdatedAt, emailCodeExpireTime)
 }

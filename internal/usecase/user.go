@@ -3,9 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"net/http"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
@@ -141,8 +140,11 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string,
 	organizationId string) error {
+	if originPassword == newPassword {
+		return httpErrors.NewBadRequestError(fmt.Errorf("new password is same with origin password"))
+	}
 	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
-		return err
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid origin password"))
 	}
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
@@ -176,22 +178,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	roles, err := u.repo.FetchRoles()
-	if err != nil {
-		return err
-	}
-	for _, role := range *roles {
-		if role.Name == user.Role.Name {
-			user.Role.ID = role.ID
-		}
-	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
-	if err != nil {
-		return err
-	}
-
-	_, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, roleUuid, user.Email,
-		user.Department, user.Description)
+	err = u.repo.UpdatePassword(userUuid, organizationId, hashedPassword, false)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
 	}

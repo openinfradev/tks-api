@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -51,4 +52,10 @@ func GenerateEmailCode() string {
 	num = num.Add(num, big.NewInt(100000))
 	numString := fmt.Sprintf("%06d", num)
 	return fmt.Sprintf("%06s", numString)
+}
+
+func IsDurationExpired(targetTime time.Time, duration time.Duration) bool {
+	now := time.Now()
+	diff := now.Sub(targetTime)
+	return diff > duration
 }

@@ -8,11 +8,12 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	User struct {
-		AccountId    string       `json:"accountId"`
-		Name         string       `json:"name"`
-		Token        string       `json:"token"`
-		Role         Role         `json:"role"`
-		Organization Organization `json:"organization"`
+		AccountId       string       `json:"accountId"`
+		Name            string       `json:"name"`
+		Token           string       `json:"token"`
+		Role            Role         `json:"role"`
+		Organization    Organization `json:"organization"`
+		PasswordExpired bool         `json:"passwordExpired"`
 	} `json:"user"`
 }
 

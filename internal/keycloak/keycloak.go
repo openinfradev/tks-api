@@ -40,8 +40,6 @@ type Keycloak struct {
 
 func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
 	ctx := context.Background()
-	log.Info("LoginAdmin called")
-	//JWTToken, err := k.client.Login(ctx, "admin-cli", "", DefaultMasterRealm, accountId, password)
 	JWTToken, err := k.client.LoginAdmin(ctx, accountId, password, DefaultMasterRealm)
 	if err != nil {
 		log.Error(err)

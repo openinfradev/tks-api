@@ -125,6 +125,15 @@ func NewConflictError(err error) IRestError {
 	}
 }
 
+func NewForbiddenError(err error) IRestError {
+	return RestError{
+		ErrStatus:  http.StatusForbidden,
+		ErrCode:    "",
+		ErrMessage: err.Error(),
+		ErrCauses:  err,
+	}
+}
+
 /*
 func NewForbiddenError(causes interface{}) RestErr {
 	return ErrorJson{
