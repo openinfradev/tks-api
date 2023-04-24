@@ -47,6 +47,11 @@ func (a *defaultAuthenticator) WithAuthentication(handler http.Handler) http.Han
 			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("token not found")))
 			return
 		}
+		_, ok = request.SessionFrom(r.Context())
+		if !ok {
+			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session not found")))
+			return
+		}
 		handler.ServeHTTP(w, r)
 	})
 }
