@@ -262,37 +262,27 @@ definitions:
     type: object
   domain.ClusterConf:
     properties:
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
+      cpNodeMachineType:
         type: string
-      maxSizePerAz:
+      tksNodeCnt:
         type: integer
-      minSizePerAz:
-        type: integer
-      numOfAz:
-        type: integer
-      region:
+      tksNodeMachineType:
         type: string
-      sshKeyName:
+      userNodeCnt:
+        type: integer
+      userNodeMachineType:
         type: string
     type: object
   domain.ClusterConfResponse:
     properties:
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
-        type: string
-      maxSizePerAz:
+      tksNodeCnt:
         type: integer
-      minSizePerAz:
+      userpNodeCnt:
         type: integer
-      numOfAz:
-        type: integer
-      region:
-        type: string
-      sshKeyName:
-        type: string
     type: object
   domain.ClusterResponse:
     properties:
@@ -322,6 +312,29 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
+  domain.ClusterSiteValuesResponse:
+    properties:
+      clusterRegion:
+        type: string
+      cpNodeMachineType:
+        type: string
+      cpReplicas:
+        type: integer
+      mdMachineType:
+        type: string
+      mdMaxSizePerAz:
+        type: integer
+      mdMinSizePerAz:
+        type: integer
+      mdNumOfAz:
+        type: integer
+      mpNodeMachineType:
+        type: string
+      mpReplicas:
+        type: integer
+      sshKeyName:
+        type: string
     type: object
   domain.CreateAppGroupRequest:
     properties:
@@ -444,21 +457,25 @@ definitions:
     properties:
       cloudAccountId:
         type: string
-      description:
-        type: string
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
+      cpNodeMachineType:
+        type: string
+      description:
         type: string
       name:
         type: string
-      numOfAz:
-        type: integer
       organizationId:
         type: string
-      region:
-        type: string
       stackTemplateId:
+        type: string
+      tksNodeCnt:
+        type: integer
+      tksNodeMachineType:
+        type: string
+      userNodeCnt:
+        type: integer
+      userNodeMachineType:
         type: string
     type: object
   domain.CreateClusterResponse:
@@ -487,6 +504,8 @@ definitions:
         type: string
       cpNodeCnt:
         type: integer
+      cpNodeMachineType:
+        type: string
       description:
         type: string
       name:
@@ -495,8 +514,12 @@ definitions:
         type: string
       tksNodeCnt:
         type: integer
+      tksNodeMachineType:
+        type: string
       userNodeCnt:
         type: integer
+      userNodeMachineType:
+        type: string
     type: object
   domain.CreateStackResponse:
     properties:
@@ -888,12 +911,27 @@ definitions:
       name:
         type: string
     type: object
+  domain.StackConf:
+    properties:
+      cpNodeCnt:
+        type: integer
+      cpNodeMachineType:
+        type: string
+      tksNodeCnt:
+        type: integer
+      tksNodeMachineType:
+        type: string
+      userNodeCnt:
+        type: integer
+      userNodeMachineType:
+        type: string
+    type: object
   domain.StackResponse:
     properties:
       cloudAccount:
         $ref: '#/definitions/domain.CloudAccountResponse'
-      cpNodeCnt:
-        type: integer
+      conf:
+        $ref: '#/definitions/domain.StackConf'
       createdAt:
         type: string
       creator:
@@ -914,14 +952,10 @@ definitions:
         type: string
       statusDesc:
         type: string
-      tksNodeCnt:
-        type: integer
       updatedAt:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
-      userNodeCnt:
-        type: integer
     type: object
   domain.StackTemplate:
     properties:
@@ -1781,6 +1815,29 @@ paths:
       security:
       - JWT: []
       summary: Get cluster
+      tags:
+      - Clusters
+  /clusters/{clusterId}/site-values:
+    get:
+      consumes:
+      - application/json
+      description: Get cluster site values for creating
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ClusterSiteValuesResponse'
+      security:
+      - JWT: []
+      summary: Get cluster site values for creating
       tags:
       - Clusters
   /histories:
