@@ -21,6 +21,7 @@ type IClusterRepository interface {
 	Get(id domain.ClusterId) (domain.Cluster, error)
 	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
+	Update(dto domain.Cluster) (err error)
 	Delete(id domain.ClusterId) error
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
 }
@@ -185,6 +186,16 @@ func (r *ClusterRepository) Delete(clusterId domain.ClusterId) error {
 	res := r.db.Unscoped().Delete(&Cluster{}, "id = ?", clusterId)
 	if res.Error != nil {
 		return fmt.Errorf("could not delete cluster for clusterId %s", clusterId)
+	}
+	return nil
+}
+
+func (r *ClusterRepository) Update(dto domain.Cluster) error {
+	res := r.db.Model(&Cluster{}).
+		Where("id = ?", dto.ID).
+		Updates(map[string]interface{}{"Description": dto.Description, "UpdatorId": dto.UpdatorId})
+	if res.Error != nil {
+		return res.Error
 	}
 	return nil
 }

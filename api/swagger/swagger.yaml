@@ -513,13 +513,23 @@ definitions:
       stackTemplateId:
         type: string
       tksNodeCnt:
+        maximum: 6
+        minimum: 3
         type: integer
       tksNodeMachineType:
         type: string
       userNodeCnt:
+        maximum: 100
+        minimum: 0
         type: integer
       userNodeMachineType:
         type: string
+    required:
+    - cloudAccountId
+    - name
+    - stackTemplateId
+    - tksNodeCnt
+    - userNodeCnt
     type: object
   domain.CreateStackResponse:
     properties:
@@ -642,11 +652,6 @@ definitions:
     required:
     - accessKeyId
     - secretAccessKey
-    type: object
-  domain.DeleteStackRequest:
-    properties:
-      id:
-        type: string
     type: object
   domain.GetAppGroupResponse:
     properties:
@@ -911,7 +916,7 @@ definitions:
       name:
         type: string
     type: object
-  domain.StackConf:
+  domain.StackConfResponse:
     properties:
       cpNodeCnt:
         type: integer
@@ -931,7 +936,7 @@ definitions:
       cloudAccount:
         $ref: '#/definitions/domain.CloudAccountResponse'
       conf:
-        $ref: '#/definitions/domain.StackConf'
+        $ref: '#/definitions/domain.StackConfResponse'
       createdAt:
         type: string
       creator:
@@ -1202,8 +1207,10 @@ definitions:
     type: object
   domain.UpdateStackRequest:
     properties:
-      id:
+      description:
         type: string
+    required:
+    - description
     type: object
   domain.UpdateStackTemplateRequest:
     properties:
@@ -2298,17 +2305,6 @@ paths:
         name: organizationId
         required: true
         type: string
-      - description: stackId
-        in: path
-        name: stackId
-        required: true
-        type: string
-      - description: Delete cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.DeleteStackRequest'
       - description: stackId
         in: path
         name: stackId

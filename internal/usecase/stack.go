@@ -3,11 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -23,11 +24,13 @@ type IStackUsecase interface {
 	GetByName(organizationId string, name string) (domain.Stack, error)
 	Fetch(organizationId string) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
+	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 }
 
 type StackUsecase struct {
 	clusterRepo       repository.IClusterRepository
+	cloudAccountRepo  repository.ICloudAccountRepository
 	organizationRepo  repository.IOrganizationRepository
 	stackTemplateRepo repository.IStackTemplateRepository
 	argo              argowf.ArgoClient
@@ -36,6 +39,7 @@ type StackUsecase struct {
 func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) IStackUsecase {
 	return &StackUsecase{
 		clusterRepo:       r.Cluster,
+		cloudAccountRepo:  r.CloudAccount,
 		organizationRepo:  r.Organization,
 		stackTemplateRepo: r.StackTemplate,
 		argo:              argoClient,
@@ -53,6 +57,16 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
 	}
 
+	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	if err != nil {
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
+	}
+
+	_, err = u.cloudAccountRepo.Get(dto.CloudAccountId)
+	if err != nil {
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"))
+	}
+
 	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
 	if err != nil {
@@ -63,11 +77,6 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		isPrimary = true
 	}
 	log.Debug("isPrimary ", isPrimary)
-
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
-	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
-	}
 
 	workflow := ""
 	if stackTemplate.Template == "aws-reference" {
@@ -88,9 +97,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"cloud_account_id=" + dto.CloudAccountId.String(),
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
-			"cp_node_cnt=" + strconv.Itoa(dto.Conf.CpNodeCnt),
-			"tks_node_cnt=" + strconv.Itoa(dto.Conf.TksNodeCnt),
-			"user_node_cnt=" + strconv.Itoa(dto.Conf.UserNodeCnt),
+			"infra_conf=" + strings.Replace(helper.ModelToJson(dto.Conf), "\"", "\\\"", -1),
 		},
 	})
 	if err != nil {
@@ -171,6 +178,32 @@ func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err err
 	}
 
 	return
+}
+
+func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+
+	_, err = u.clusterRepo.Get(domain.ClusterId(dto.ID))
+	if err != nil {
+		return errors.Wrap(err, "No cluster")
+	}
+
+	updatorId := user.GetUserId()
+	dtoCluster := domain.Cluster{
+		ID:          domain.ClusterId(dto.ID),
+		Description: dto.Description,
+		UpdatorId:   &updatorId,
+	}
+
+	err = u.clusterRepo.Update(dtoCluster)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error) {

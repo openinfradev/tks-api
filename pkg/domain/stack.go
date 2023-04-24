@@ -80,20 +80,29 @@ type StackConf = struct {
 }
 
 type CreateStackRequest struct {
-	Name                string `json:"name"`
+	Name                string `json:"name" validate:"required"`
 	Description         string `json:"description"`
-	StackTemplateId     string `json:"stackTemplateId"`
-	CloudAccountId      string `json:"cloudAccountId"`
-	CpNodeCnt           int    `json:"cpNodeCnt"`
-	CpNodeMachineType   string `json:"cpNodeMachineType"`
-	TksNodeCnt          int    `json:"tksNodeCnt"`
-	TksNodeMachineType  string `json:"tksNodeMachineType"`
-	UserNodeCnt         int    `json:"userNodeCnt"`
-	UserNodeMachineType string `json:"userNodeMachineType"`
+	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
+	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
+	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
+	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
+	TksNodeCnt          int    `json:"tksNodeCnt" validate:"required,min=3,max=6"`
+	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
+	UserNodeCnt         int    `json:"userNodeCnt" validate:"required,min=0,max=100"`
+	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
 }
 
 type CreateStackResponse struct {
 	ID string `json:"id"`
+}
+
+type StackConfResponse = struct {
+	CpNodeCnt           int    `json:"cpNodeCnt"`
+	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
+	TksNodeCnt          int    `json:"tksNodeCnt"`
+	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
+	UserNodeCnt         int    `json:"userNodeCnt"`
+	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
 }
 
 type StackResponse struct {
@@ -106,7 +115,7 @@ type StackResponse struct {
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`
 	PrimaryCluster bool                  `json:"primaryCluster"`
-	Conf           StackConf             `json:"conf"`
+	Conf           StackConfResponse     `json:"conf"`
 	Creator        SimpleUserResponse    `json:"creator,omitempty"`
 	Updator        SimpleUserResponse    `json:"updator,omitempty"`
 	CreatedAt      time.Time             `json:"createdAt"`
@@ -122,11 +131,7 @@ type GetStackResponse struct {
 }
 
 type UpdateStackRequest struct {
-	ID StackId `json:"id"`
-}
-
-type DeleteStackRequest struct {
-	ID StackId `json:"id"`
+	Description string `json:"description" validate:"required"`
 }
 
 type CheckStackNameResponse struct {

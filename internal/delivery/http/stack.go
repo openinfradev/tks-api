@@ -51,6 +51,9 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
+	if err = domain.Map(input, &dto.Conf); err != nil {
+		log.Info(err)
+	}
 	dto.OrganizationId = organizationId
 
 	stackId, err := h.usecase.Create(r.Context(), dto)
@@ -157,7 +160,47 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/stacks/{stackId} [put]
 // @Security     JWT
 func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("need implementation")))
+	vars := mux.Vars(r)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		return
+	}
+	stackId := domain.StackId(strId)
+	if !stackId.Validate() {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		return
+	}
+
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	log.Debug("[TODO] organization check", organizationId)
+
+	input := domain.UpdateStackRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+
+	var dto domain.Stack
+	if err = domain.Map(input, &dto); err != nil {
+		log.Info(err)
+	}
+	dto.ID = stackId
+	dto.OrganizationId = organizationId
+
+	err = h.usecase.Update(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+
 }
 
 // DeleteStack godoc
@@ -167,8 +210,6 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Param body body domain.DeleteStackRequest true "Delete cloud setting request"
 // @Param stackId path string true "stackId"
 // @Success 200 {object} nil
 // @Router /organizations/{organizationId}/stacks/{stackId} [delete]

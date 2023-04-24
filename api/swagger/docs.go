@@ -1689,22 +1689,6 @@ const docTemplate = `{
                         "name": "stackId",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Delete cloud setting request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.DeleteStackRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "stackId",
-                        "name": "stackId",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -2934,6 +2918,13 @@ const docTemplate = `{
         },
         "domain.CreateStackRequest": {
             "type": "object",
+            "required": [
+                "cloudAccountId",
+                "name",
+                "stackTemplateId",
+                "tksNodeCnt",
+                "userNodeCnt"
+            ],
             "properties": {
                 "cloudAccountId": {
                     "type": "string"
@@ -2954,13 +2945,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tksNodeCnt": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 6,
+                    "minimum": 3
                 },
                 "tksNodeMachineType": {
                     "type": "string"
                 },
                 "userNodeCnt": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
                 },
                 "userNodeMachineType": {
                     "type": "string"
@@ -3141,14 +3136,6 @@ const docTemplate = `{
                 "sessionToken": {
                     "type": "string",
                     "maxLength": 2000
-                }
-            }
-        },
-        "domain.DeleteStackRequest": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
                 }
             }
         },
@@ -3558,7 +3545,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackConf": {
+        "domain.StackConfResponse": {
             "type": "object",
             "properties": {
                 "cpNodeCnt": {
@@ -3588,7 +3575,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
                 "conf": {
-                    "$ref": "#/definitions/domain.StackConf"
+                    "$ref": "#/definitions/domain.StackConfResponse"
                 },
                 "createdAt": {
                     "type": "string"
@@ -3996,8 +3983,11 @@ const docTemplate = `{
         },
         "domain.UpdateStackRequest": {
             "type": "object",
+            "required": [
+                "description"
+            ],
             "properties": {
-                "id": {
+                "description": {
                     "type": "string"
                 }
             }
