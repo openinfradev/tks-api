@@ -1520,178 +1520,6 @@ paths:
       summary: Update application
       tags:
       - AppGroups
-  /app-serve-apps:
-    delete:
-      consumes:
-      - application/json
-      description: Uninstall appServeApp
-      parameters:
-      - description: body
-        in: body
-        name: object
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Uninstall appServeApp
-      tags:
-      - AppServeApps
-    get:
-      consumes:
-      - application/json
-      description: Get appServeApp list by giving params
-      parameters:
-      - description: organization_Id
-        in: query
-        name: organization_Id
-        type: string
-      - description: show_all
-        in: query
-        name: showAll
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/domain.AppServeApp'
-            type: array
-      security:
-      - JWT: []
-      summary: Get appServeApp list
-      tags:
-      - AppServeApps
-    post:
-      consumes:
-      - application/json
-      description: Install appServeApp
-      parameters:
-      - description: create appserve request
-        in: body
-        name: object
-        required: true
-        schema:
-          $ref: '#/definitions/domain.CreateAppServeAppRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      security:
-      - JWT: []
-      summary: Install appServeApp
-      tags:
-      - AppServeApps
-    put:
-      consumes:
-      - application/json
-      description: Update appServeApp
-      parameters:
-      - description: update appserve request
-        in: body
-        name: object
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateAppServeAppRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Update appServeApp
-      tags:
-      - AppServeApps
-  /app-serve-apps/{appId}/endpoint:
-    patch:
-      consumes:
-      - application/json
-      description: Update app endpoint
-      parameters:
-      - description: appId
-        in: path
-        name: appId
-        required: true
-        type: string
-      - description: update app endpoint request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateAppServeAppEndpointRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Update app endpoint
-      tags:
-      - AppServeApps
-  /app-serve-apps/{appId}/status:
-    patch:
-      consumes:
-      - application/json
-      description: Update app status
-      parameters:
-      - description: appId
-        in: path
-        name: appId
-        required: true
-        type: string
-      - description: update app status request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateAppServeAppStatusRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Update app status
-      tags:
-      - AppServeApps
-  /app-serve-apps/{appServeAppId}:
-    get:
-      consumes:
-      - application/json
-      description: Get appServeApp by giving params
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.AppServeApp'
-      security:
-      - JWT: []
-      summary: Get appServeApp
-      tags:
-      - AppServeApps
   /auth/login:
     post:
       consumes:
@@ -1974,6 +1802,178 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/app-serve-apps:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appServeApp
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Uninstall appServeApp
+      tags:
+      - AppServeApps
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp list by giving params
+      parameters:
+      - description: organization_Id
+        in: query
+        name: organization_Id
+        type: string
+      - description: show_all
+        in: query
+        name: showAll
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppServeApp'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appServeApp list
+      tags:
+      - AppServeApps
+    post:
+      consumes:
+      - application/json
+      description: Install appServeApp
+      parameters:
+      - description: create appserve request
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Install appServeApp
+      tags:
+      - AppServeApps
+    put:
+      consumes:
+      - application/json
+      description: Update appServeApp
+      parameters:
+      - description: update appserve request
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/endpoint:
+    patch:
+      consumes:
+      - application/json
+      description: Update app endpoint
+      parameters:
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: update app endpoint request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppEndpointRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update app status
+      parameters:
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: update app status request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update app status
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appServeAppId}:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AppServeApp'
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
   /organizations/{organizationId}/cloud-accounts:
     get:
       consumes:

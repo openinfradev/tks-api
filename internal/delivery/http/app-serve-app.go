@@ -32,7 +32,7 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 // @Produce json
 // @Param object body domain.CreateAppServeAppRequest true "create appserve request"
 // @Success 200 {object} string
-// @Router /app-serve-apps [post]
+// @Router /organizations/{organizationId}/app-serve-apps [post]
 // @Security     JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -116,7 +116,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param organization_Id query string false "organization_Id"
 // @Param showAll query string false "show_all"
 // @Success 200 {object} []domain.AppServeApp
-// @Router /app-serve-apps [get]
+// @Router /organizations/{organizationId}/app-serve-apps [get]
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -161,7 +161,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Accept json
 // @Produce json
 // @Success 200 {object} domain.AppServeApp
-// @Router /app-serve-apps/{appServeAppId} [get]
+// @Router /organizations/{organizationId}/app-serve-apps/{appServeAppId} [get]
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -195,7 +195,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param object body domain.UpdateAppServeAppRequest true "update appserve request"
 // @Success 200 {object} object
-// @Router /app-serve-apps [put]
+// @Router /organizations/{organizationId}/app-serve-apps [put]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -256,7 +256,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param appId path string true "appId"
 // @Param body body domain.UpdateAppServeAppStatusRequest true "update app status request"
 // @Success 200 {object} object
-// @Router /app-serve-apps/{appId}/status [patch]
+// @Router /organizations/{organizationId}/app-serve-apps/{appId}/status [patch]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -298,7 +298,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 // @Param appId path string true "appId"
 // @Param body body domain.UpdateAppServeAppEndpointRequest true "update app endpoint request"
 // @Success 200 {object} object
-// @Router /app-serve-apps/{appId}/endpoint [patch]
+// @Router /organizations/{organizationId}/app-serve-apps/{appId}/endpoint [patch]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -344,7 +344,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 // @Produce json
 // @Param object body string true "body"
 // @Success 200 {object} object
-// @Router /app-serve-apps [delete]
+// @Router /organizations/{organizationId}/app-serve-apps [delete]
 // @Security     JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

@@ -86,6 +86,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
+	log.Debug("[TODO] organization check", organizationId)
 
 	stacks, err := h.usecase.Fetch(organizationId)
 	if err != nil {
@@ -120,18 +121,19 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	log.Debug("[TODO] organization check", organizationId)
 	strId, ok := vars["stackId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
 		return
 	}
-	stackId := domain.StackId(strId)
-	if !stackId.Validate() {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
-		return
-	}
 
-	stack, err := h.usecase.Get(stackId)
+	stack, err := h.usecase.Get(domain.StackId(strId))
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -175,6 +177,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
+	log.Debug("[TODO] organization check", organizationId)
 
 	input := domain.UpdateStackRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -213,28 +216,20 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 // @Security     JWT
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	strId, ok := vars["stackId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
-		return
-	}
+
 	organizationId, ok := vars["organizationId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
-
-	stackId := domain.StackId(strId)
-	if !stackId.Validate() {
+	log.Debug("[TODO] organization check", organizationId)
+	strId, ok := vars["stackId"]
+	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
 		return
 	}
 
-	var dto domain.Stack
-	dto.ID = stackId
-	dto.OrganizationId = organizationId
-
-	err := h.usecase.Delete(r.Context(), dto)
+	_, err := h.usecase.Get(domain.StackId(strId))
 	if err != nil {
 		ErrorJSON(w, err)
 		return
