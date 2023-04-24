@@ -71,12 +71,11 @@ type Stack = struct {
 }
 
 type StackConf = struct {
-	Region              string
-	CpNodeCnt           string
+	CpNodeCnt           int
 	CpNodeMachineType   string
-	TksNodeCnt          string
+	TksNodeCnt          int
 	TksNodeMachineType  string
-	UserNodeCnt         string
+	UserNodeCnt         int
 	UserNodeMachineType string
 }
 
@@ -85,11 +84,11 @@ type CreateStackRequest struct {
 	Description         string `json:"description"`
 	StackTemplateId     string `json:"stackTemplateId"`
 	CloudAccountId      string `json:"cloudAccountId"`
-	CpNodeCnt           string `json:"cpNodeCnt"`
+	CpNodeCnt           int    `json:"cpNodeCnt"`
 	CpNodeMachineType   string `json:"cpNodeMachineType"`
-	TksNodeCnt          string `json:"tksNodeCnt"`
+	TksNodeCnt          int    `json:"tksNodeCnt"`
 	TksNodeMachineType  string `json:"tksNodeMachineType"`
-	UserNodeCnt         string `json:"userNodeCnt"`
+	UserNodeCnt         int    `json:"userNodeCnt"`
 	UserNodeMachineType string `json:"userNodeMachineType"`
 }
 

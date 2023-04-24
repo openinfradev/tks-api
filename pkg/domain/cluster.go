@@ -49,7 +49,7 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 }
 
 // model
-type Cluster = struct {
+type Cluster struct {
 	ID              ClusterId
 	OrganizationId  string
 	Name            string
@@ -69,14 +69,35 @@ type Cluster = struct {
 	UpdatedAt       time.Time
 }
 
-type ClusterConf = struct {
-	Region              string
-	CpNodeCnt           string
+type ClusterConf struct {
+	CpNodeCnt           int
 	CpNodeMachineType   string
-	TksNodeCnt          string
+	TksNodeCnt          int
 	TksNodeMachineType  string
-	UserNodeCnt         string
+	UserNodeCnt         int
 	UserNodeMachineType string
+}
+
+// [TODO] annotaion 으로 가능하려나?
+func (m *ClusterConf) SetDefault() {
+	if m.CpNodeCnt == 0 {
+		m.CpNodeCnt = 3
+	}
+	if m.TksNodeCnt == 0 {
+		m.TksNodeCnt = 3
+	}
+	if m.UserNodeCnt == 0 {
+		m.UserNodeCnt = 1
+	}
+	if m.CpNodeMachineType == "" {
+		m.CpNodeMachineType = "t3.xlarge"
+	}
+	if m.TksNodeMachineType == "" {
+		m.TksNodeMachineType = "t3.2xlarge"
+	}
+	if m.UserNodeMachineType == "" {
+		m.UserNodeMachineType = "t3.large"
+	}
 }
 
 type CreateClusterRequest struct {
@@ -85,17 +106,22 @@ type CreateClusterRequest struct {
 	Name                string `json:"name"`
 	Description         string `json:"description"`
 	CloudAccountId      string `json:"cloudAccountId"`
-	Region              string `json:"region"`
-	CpNodeCnt           string `json:"cpNodeCnt"`
+	CpNodeCnt           int    `json:"cpNodeCnt"`
 	CpNodeMachineType   string `json:"cpNodeMachineType"`
-	TksNodeCnt          string `json:"tksNodeCnt"`
+	TksNodeCnt          int    `json:"tksNodeCnt"`
 	TksNodeMachineType  string `json:"tksNodeMachineType"`
-	UserNodeCnt         string `json:"userNodeCnt"`
+	UserNodeCnt         int    `json:"userNodeCnt"`
 	UserNodeMachineType string `json:"userNodeMachineType"`
 }
 
 type CreateClusterResponse struct {
 	ID string `json:"id"`
+}
+
+type ClusterConfResponse struct {
+	CpNodeCnt   int `json:"cpNodeCnt"`
+	TksNodeCnt  int `json:"tksNodeCnt"`
+	UserNodeCnt int `json:"userpNodeCnt"`
 }
 
 type ClusterResponse struct {
@@ -114,10 +140,17 @@ type ClusterResponse struct {
 	UpdatedAt      time.Time             `json:"updatedAt"`
 }
 
-type ClusterConfResponse struct {
-	CpNodeCnt   int `json:"cpNodeCnt"`
-	TksNodeCnt  int `json:"tksNodeCnt"`
-	UserNodeCnt int `json:"userpNodeCnt"`
+type ClusterSiteValuesResponse struct {
+	SshKeyName        string `json:"sshKeyName"`
+	ClusterRegion     string `json:"clusterRegion"`
+	CpReplicas        int    `json:"cpReplicas"`
+	CpNodeMachineType string `json:"cpNodeMachineType"`
+	MpReplicas        int    `json:"mpReplicas"`
+	MpNodeMachineType string `json:"mpNodeMachineType"`
+	MdNumOfAz         int    `json:"mdNumOfAz"`
+	MdMinSizePerAz    int    `json:"mdMinSizePerAz"`
+	MdMaxSizePerAz    int    `json:"mdMaxSizePerAz"`
+	MdMachineType     string `json:"mdMachineType"`
 }
 
 type GetClustersResponse struct {
@@ -126,4 +159,8 @@ type GetClustersResponse struct {
 
 type GetClusterResponse struct {
 	Cluster ClusterResponse `json:"cluster"`
+}
+
+type GetClusterSiteValuesResponse struct {
+	ClusterSiteValues ClusterSiteValuesResponse `json:"clusterSiteValues"`
 }

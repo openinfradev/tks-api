@@ -41,28 +41,28 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 type Cluster struct {
 	gorm.Model
 
-	ID              domain.ClusterId `gorm:"primarykey"`
-	Name            string
-	OrganizationId  string
-	Organization    Organization `gorm:"foreignKey:OrganizationId"`
-	SshKeyName      string
-	Region          string
-	NumOfAz         int
-	MachineType     string
-	MinSizePerAz    int
-	MaxSizePerAz    int
-	Description     string
-	WorkflowId      string
-	Status          domain.ClusterStatus
-	StatusDesc      string
-	CloudAccountId  uuid.UUID
-	CloudAccount    CloudAccount `gorm:"foreignKey:CloudAccountId"`
-	StackTemplateId uuid.UUID
-	StackTemplate   StackTemplate `gorm:"foreignKey:StackTemplateId"`
-	CreatorId       *uuid.UUID    `gorm:"type:uuid"`
-	Creator         User          `gorm:"foreignKey:CreatorId"`
-	UpdatorId       *uuid.UUID    `gorm:"type:uuid"`
-	Updator         User          `gorm:"foreignKey:UpdatorId"`
+	ID                  domain.ClusterId `gorm:"primarykey"`
+	Name                string
+	OrganizationId      string
+	Organization        Organization `gorm:"foreignKey:OrganizationId"`
+	Description         string
+	WorkflowId          string
+	Status              domain.ClusterStatus
+	StatusDesc          string
+	CloudAccountId      uuid.UUID
+	CloudAccount        CloudAccount `gorm:"foreignKey:CloudAccountId"`
+	StackTemplateId     uuid.UUID
+	StackTemplate       StackTemplate `gorm:"foreignKey:StackTemplateId"`
+	CpNodeCnt           int
+	CpNodeMachineType   string
+	TksNodeCnt          int
+	TksNodeMachineType  string
+	UserNodeCnt         int
+	UserNodeMachineType string
+	CreatorId           *uuid.UUID `gorm:"type:uuid"`
+	Creator             User       `gorm:"foreignKey:CreatorId"`
+	UpdatorId           *uuid.UUID `gorm:"type:uuid"`
+	Updator             User       `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -157,20 +157,20 @@ func (r *ClusterRepository) GetByName(organizationId string, name string) (out d
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
 	cluster := Cluster{
-		OrganizationId:  dto.OrganizationId,
-		Name:            dto.Name,
-		Description:     dto.Description,
-		CloudAccountId:  dto.CloudAccountId,
-		StackTemplateId: dto.StackTemplateId,
-		CreatorId:       dto.CreatorId,
-		UpdatorId:       nil,
-		SshKeyName:      dto.Conf.SshKeyName,
-		Region:          dto.Conf.Region,
-		NumOfAz:         dto.Conf.NumOfAz,
-		MachineType:     dto.Conf.MachineType,
-		MinSizePerAz:    dto.Conf.MinSizePerAz,
-		MaxSizePerAz:    dto.Conf.MaxSizePerAz,
-		Status:          domain.ClusterStatus_PENDING,
+		OrganizationId:      dto.OrganizationId,
+		Name:                dto.Name,
+		Description:         dto.Description,
+		CloudAccountId:      dto.CloudAccountId,
+		StackTemplateId:     dto.StackTemplateId,
+		CreatorId:           dto.CreatorId,
+		UpdatorId:           nil,
+		Status:              domain.ClusterStatus_PENDING,
+		CpNodeCnt:           dto.Conf.CpNodeCnt,
+		CpNodeMachineType:   dto.Conf.CpNodeMachineType,
+		TksNodeCnt:          dto.Conf.TksNodeCnt,
+		TksNodeMachineType:  dto.Conf.TksNodeMachineType,
+		UserNodeCnt:         dto.Conf.UserNodeCnt,
+		UserNodeMachineType: dto.Conf.UserNodeMachineType,
 	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
@@ -220,12 +220,12 @@ func reflectCluster(cluster Cluster) domain.Cluster {
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.ClusterConf{
-			SshKeyName:   cluster.SshKeyName,
-			Region:       cluster.Region,
-			MachineType:  cluster.MachineType,
-			NumOfAz:      int(cluster.NumOfAz),
-			MinSizePerAz: int(cluster.MinSizePerAz),
-			MaxSizePerAz: int(cluster.MaxSizePerAz),
+			CpNodeCnt:           int(cluster.CpNodeCnt),
+			CpNodeMachineType:   cluster.CpNodeMachineType,
+			TksNodeCnt:          int(cluster.TksNodeCnt),
+			TksNodeMachineType:  cluster.TksNodeMachineType,
+			UserNodeCnt:         int(cluster.UserNodeCnt),
+			UserNodeMachineType: cluster.UserNodeMachineType,
 		},
 	}
 }

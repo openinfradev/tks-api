@@ -723,6 +723,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/clusters/{clusterId}/site-values": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get cluster site values for creating",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Get cluster site values for creating",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ClusterSiteValuesResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/histories": {
             "get": {
                 "security": [
@@ -2494,25 +2531,22 @@ const docTemplate = `{
         "domain.ClusterConf": {
             "type": "object",
             "properties": {
-                "machineReplicas": {
+                "cpNodeCnt": {
                     "type": "integer"
                 },
-                "machineType": {
+                "cpNodeMachineType": {
                     "type": "string"
                 },
-                "maxSizePerAz": {
+                "tksNodeCnt": {
                     "type": "integer"
                 },
-                "minSizePerAz": {
-                    "type": "integer"
-                },
-                "numOfAz": {
-                    "type": "integer"
-                },
-                "region": {
+                "tksNodeMachineType": {
                     "type": "string"
                 },
-                "sshKeyName": {
+                "userNodeCnt": {
+                    "type": "integer"
+                },
+                "userNodeMachineType": {
                     "type": "string"
                 }
             }
@@ -2572,6 +2606,41 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                }
+            }
+        },
+        "domain.ClusterSiteValuesResponse": {
+            "type": "object",
+            "properties": {
+                "clusterRegion": {
+                    "type": "string"
+                },
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
+                "cpReplicas": {
+                    "type": "integer"
+                },
+                "mdMachineType": {
+                    "type": "string"
+                },
+                "mdMaxSizePerAz": {
+                    "type": "integer"
+                },
+                "mdMinSizePerAz": {
+                    "type": "integer"
+                },
+                "mdNumOfAz": {
+                    "type": "integer"
+                },
+                "mpNodeMachineType": {
+                    "type": "string"
+                },
+                "mpReplicas": {
+                    "type": "integer"
+                },
+                "sshKeyName": {
+                    "type": "string"
                 }
             }
         },
@@ -2749,28 +2818,34 @@ const docTemplate = `{
                 "cloudAccountId": {
                     "type": "string"
                 },
-                "description": {
-                    "type": "string"
-                },
-                "machineReplicas": {
+                "cpNodeCnt": {
                     "type": "integer"
                 },
-                "machineType": {
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "numOfAz": {
-                    "type": "integer"
-                },
                 "organizationId": {
                     "type": "string"
                 },
-                "region": {
+                "stackTemplateId": {
                     "type": "string"
                 },
-                "stackTemplateId": {
+                "tksNodeCnt": {
+                    "type": "integer"
+                },
+                "tksNodeMachineType": {
+                    "type": "string"
+                },
+                "userNodeCnt": {
+                    "type": "integer"
+                },
+                "userNodeMachineType": {
                     "type": "string"
                 }
             }
@@ -2813,6 +2888,9 @@ const docTemplate = `{
                 "cpNodeCnt": {
                     "type": "integer"
                 },
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2825,8 +2903,14 @@ const docTemplate = `{
                 "tksNodeCnt": {
                     "type": "integer"
                 },
+                "tksNodeMachineType": {
+                    "type": "string"
+                },
                 "userNodeCnt": {
                     "type": "integer"
+                },
+                "userNodeMachineType": {
+                    "type": "string"
                 }
             }
         },
@@ -3421,14 +3505,37 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.StackConf": {
+            "type": "object",
+            "properties": {
+                "cpNodeCnt": {
+                    "type": "integer"
+                },
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
+                "tksNodeCnt": {
+                    "type": "integer"
+                },
+                "tksNodeMachineType": {
+                    "type": "string"
+                },
+                "userNodeCnt": {
+                    "type": "integer"
+                },
+                "userNodeMachineType": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.StackResponse": {
             "type": "object",
             "properties": {
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
-                "cpNodeCnt": {
-                    "type": "integer"
+                "conf": {
+                    "$ref": "#/definitions/domain.StackConf"
                 },
                 "createdAt": {
                     "type": "string"
@@ -3460,17 +3567,11 @@ const docTemplate = `{
                 "statusDesc": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
-                    "type": "integer"
-                },
                 "updatedAt": {
                     "type": "string"
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
-                },
-                "userNodeCnt": {
-                    "type": "integer"
                 }
             }
         },

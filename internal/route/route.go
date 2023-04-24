@@ -60,7 +60,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Use(loggingMiddleware)
 
 	// [TODO] Transaction
-	r.Use(transactionMiddleware(db))
+	//r.Use(transactionMiddleware(db))
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", authMiddleware.Handle(http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
@@ -89,6 +89,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware.Handle(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/site-values", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusterSiteValues))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware.Handle(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
 
 	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repoFactory, argoClient))

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -47,6 +48,11 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
+	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	if err == nil {
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
+	}
+
 	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
 	if err != nil {
@@ -82,9 +88,9 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"cloud_account_id=" + dto.CloudAccountId.String(),
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
-			"cp_node_cnt=" + dto.CpNodeCnt.String(),
-			"tks_node_cnt=" + dto.TksNodeCnt.String(),
-			"user_node_cnt=" + dto.UserNodeCnt.String(),
+			"cp_node_cnt=" + strconv.Itoa(dto.Conf.CpNodeCnt),
+			"tks_node_cnt=" + strconv.Itoa(dto.Conf.TksNodeCnt),
+			"user_node_cnt=" + strconv.Itoa(dto.Conf.UserNodeCnt),
 		},
 	})
 	if err != nil {
@@ -243,8 +249,10 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 		UpdatedAt:       cluster.UpdatedAt,
 
 		// [TODO]
-		CpNodeCnt:   3,
-		TksNodeCnt:  3,
-		UserNodeCnt: 3,
+		Conf: domain.StackConf{
+			CpNodeCnt:   cluster.Conf.CpNodeCnt,
+			TksNodeCnt:  cluster.Conf.TksNodeCnt,
+			UserNodeCnt: cluster.Conf.UserNodeCnt,
+		},
 	}
 }

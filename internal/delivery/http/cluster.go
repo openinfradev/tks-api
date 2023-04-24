@@ -85,6 +85,36 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, http.StatusOK, out)
 }
 
+// GetClusterSiteValues godoc
+// @Tags Clusters
+// @Summary Get cluster site values for creating
+// @Description Get cluster site values for creating
+// @Accept json
+// @Produce json
+// @Param clusterId path string true "clusterId"
+// @Success 200 {object} domain.ClusterSiteValuesResponse
+// @Router /clusters/{clusterId}/site-values [get]
+// @Security     JWT
+func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId")))
+		return
+	}
+
+	clusterSiteValues, err := h.usecase.GetClusterSiteValues(domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out domain.GetClusterSiteValuesResponse
+	out.ClusterSiteValues = clusterSiteValues
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
 // GetCluster godoc
 // @Tags Clusters
 // @Summary Create cluster
@@ -111,6 +141,10 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	if err = domain.Map(input, &dto.Conf); err != nil {
 		log.Info(err)
 	}
+
+	// [TODO] set default value
+	dto.Conf.SetDefault()
+	log.Info(dto.Conf)
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId, err := h.usecase.Create(r.Context(), dto)

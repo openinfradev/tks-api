@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
@@ -24,6 +23,7 @@ type IClusterUsecase interface {
 	FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []domain.Cluster, err error)
 	Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Get(clusterId domain.ClusterId) (out domain.Cluster, err error)
+	GetClusterSiteValues(clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
 	Delete(clusterId domain.ClusterId) (err error)
 }
 
@@ -110,6 +110,11 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
+	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	if err == nil {
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
+	}
+
 	// check cloudAccount
 	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId)
 	if err != nil {
@@ -132,28 +137,22 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"))
 	}
 
-	log.Info(dto.Conf)
-
 	/***************************
 	 * Pre-process cluster conf *
 	 ***************************/
-	clConf, err := u.constructClusterConf(&domain.ClusterConf{
-		Region:          dto.Conf.Region,
-		NumOfAz:         dto.Conf.NumOfAz,
-		SshKeyName:      "",
-		MachineType:     dto.Conf.MachineType,
-		MachineReplicas: dto.Conf.MachineReplicas,
-	},
-	)
-
-	if err != nil {
-		return "", err
-	}
+	/*
+		clConf, err := u.constructClusterConf(&domain.ClusterConf{
+			Region:          dto.Conf.Region,
+			NumOfAz:         dto.Conf.NumOfAz,
+			SshKeyName:      "",
+			MachineType:     dto.Conf.MachineType,
+			MachineReplicas: dto.Conf.MachineReplicas,
+		},
+		)
+	*/
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
-	dto.Conf = *clConf
-
 	clusterId, err = u.repo.Create(dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
@@ -192,6 +191,7 @@ func (u *ClusterUsecase) Get(clusterId domain.ClusterId) (out domain.Cluster, er
 	if err != nil {
 		return domain.Cluster{}, err
 	}
+
 	return cluster, nil
 }
 
@@ -239,6 +239,35 @@ func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
 	return nil
 }
 
+func (u *ClusterUsecase) GetClusterSiteValues(clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error) {
+	cluster, err := u.Get(clusterId)
+	if err != nil {
+		return domain.ClusterSiteValuesResponse{}, errors.Wrap(err, "Failed to get cluster")
+	}
+
+	out.SshKeyName = "tks-seoul"
+	out.ClusterRegion = "ap-northeast-2"
+	out.CpReplicas = cluster.Conf.CpNodeCnt
+	out.CpNodeMachineType = cluster.Conf.CpNodeMachineType
+	out.MpReplicas = cluster.Conf.TksNodeCnt
+	out.MpNodeMachineType = cluster.Conf.TksNodeMachineType
+	out.MdMachineType = cluster.Conf.UserNodeMachineType
+
+	const MAX_AZ_NUM = 4
+
+	if cluster.Conf.UserNodeCnt <= MAX_AZ_NUM {
+		out.MdNumOfAz = cluster.Conf.UserNodeCnt
+		out.MdMinSizePerAz = 1
+		out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt
+	} else {
+		out.MdNumOfAz = MAX_AZ_NUM
+		out.MdMinSizePerAz = int(cluster.Conf.UserNodeCnt / 3)
+		out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt * 5
+	}
+	return
+}
+
+/*
 func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clusterConf *domain.ClusterConf, err error) {
 	region := "ap-northeast-2"
 	if rawConf != nil && rawConf.Region != "" {
@@ -329,3 +358,4 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clus
 	fmt.Printf("Newly constructed cluster conf: %+v\n", &tempConf)
 	return &tempConf, nil
 }
+*/
