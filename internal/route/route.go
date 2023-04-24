@@ -2,7 +2,6 @@ package route
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,8 +24,9 @@ import (
 )
 
 const (
-	API_VERSION = "/1.0"
-	API_PREFIX  = "/api"
+	API_VERSION     = "/1.0"
+	API_PREFIX      = "/api"
+	ADMINAPI_PREFIX = "/admin"
 )
 
 type StatusRecorder struct {
@@ -74,6 +74,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Get))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Delete))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Update))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdateByAdmin))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/password", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdatePassword))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckId))).Methods(http.MethodGet)
 
@@ -166,6 +167,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+/*
 func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -209,3 +211,4 @@ func StatusInList(status int, statusList []int) bool {
 	}
 	return false
 }
+*/

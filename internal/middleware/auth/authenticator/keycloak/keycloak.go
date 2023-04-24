@@ -121,5 +121,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	//r = r.WithContext(request.WithToken(r.Context(), token))
 	*r = *(r.WithContext(request.WithToken(r.Context(), token)))
 
+	*r = *(r.WithContext(request.WithSession(r.Context(), requestSessionId)))
+
 	return &authenticator.Response{User: userInfo}, true, nil
 }

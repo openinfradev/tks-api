@@ -269,7 +269,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 
 	if app.Type != "deploy" {
 		// Construct imageUrl
-		imageUrl := viper.GetString("image-registry-url") + "/" + app.Name + ":" + appTask.Version
+		imageUrl := viper.GetString("image-registry-url") + "/" + app.Name + "-" + app.TargetClusterId + ":" + appTask.Version
 		appTask.ImageUrl = imageUrl
 
 		// Construct executable_path

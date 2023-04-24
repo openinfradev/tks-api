@@ -99,12 +99,12 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 	var organization Organization
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
-		Updates(Organization{
-			Name:             in.Name,
-			Description:      in.Description,
-			Phone:            in.Phone,
-			PrimaryClusterId: in.PrimaryClusterId,
-		})
+		Updates(map[string]interface{}{
+			"name":               in.Name,
+			"description":        in.Description,
+			"phone":              in.Phone,
+			"primary_cluster_id": in.PrimaryClusterId})
+
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error

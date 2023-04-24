@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -147,13 +148,20 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId")))
 		return
 	}
+
+	user, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token")))
+		return
+	}
+
 	appGroupId := domain.AppGroupId(strId)
 	if !appGroupId.Validate() {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId")))
 		return
 	}
 
-	err := h.usecase.Delete(appGroupId)
+	err := h.usecase.Delete(user.GetOrganizationId(), appGroupId)
 	if err != nil {
 		log.Error("Failed to delete appGroup err : ", err)
 		ErrorJSON(w, err)

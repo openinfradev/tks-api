@@ -1210,7 +1210,7 @@ definitions:
       description:
         type: string
     type: object
-  domain.UpdateUserRequest:
+  domain.UpdateUserByAdminRequest:
     properties:
       department:
         maxLength: 20
@@ -1231,6 +1231,53 @@ definitions:
         - admin
         - user
         type: string
+    type: object
+  domain.UpdateUserByAdminResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          createdAt:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          updatedAt:
+            type: string
+        type: object
+    type: object
+  domain.UpdateUserRequest:
+    properties:
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      password:
+        type: string
+    required:
+    - password
     type: object
   domain.UpdateUserResponse:
     properties:
@@ -1299,6 +1346,40 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/organizations/{organizationId}/users/{accountId}:
+    put:
+      consumes:
+      - application/json
+      description: Update user detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
+      security:
+      - JWT: []
+      summary: As admin, Update user detail
+      tags:
+      - Admin
   /app-groups:
     delete:
       consumes:

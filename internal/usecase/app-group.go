@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -18,7 +19,7 @@ type IAppGroupUsecase interface {
 	Fetch(clusterId domain.ClusterId) ([]domain.AppGroup, error)
 	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Get(id domain.AppGroupId) (out domain.AppGroup, err error)
-	Delete(id domain.AppGroupId) (err error)
+	Delete(organizationId string, id domain.AppGroupId) (err error)
 	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
 	UpdateApplication(dto domain.Application) (err error)
 }
@@ -128,7 +129,7 @@ func (u *AppGroupUsecase) Get(id domain.AppGroupId) (out domain.AppGroup, err er
 	return appGroup, nil
 }
 
-func (u *AppGroupUsecase) Delete(id domain.AppGroupId) (err error) {
+func (u *AppGroupUsecase) Delete(organizationId string, id domain.AppGroupId) (err error) {
 	appGroup, err := u.repo.Get(id)
 	if err != nil {
 		return fmt.Errorf("No appGroup for deletiing : %s", id)
@@ -155,6 +156,7 @@ func (u *AppGroupUsecase) Delete(id domain.AppGroupId) (err error) {
 
 	opts := argowf.SubmitOptions{}
 	opts.Parameters = []string{
+		"organization_id=" + organizationId,
 		"app_group=" + appGroupName,
 		"github_account=" + viper.GetString("git-account"),
 		"cluster_id=" + clusterId.String(),

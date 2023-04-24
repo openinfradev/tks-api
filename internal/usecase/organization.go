@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -126,7 +127,7 @@ func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrga
 }
 
 func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clusterId string) (err error) {
-	if !helper.ValidateClusterId(clusterId) {
+	if clusterId != "" && !helper.ValidateClusterId(clusterId) {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"))
 	}
 

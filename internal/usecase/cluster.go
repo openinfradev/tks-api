@@ -45,6 +45,7 @@ func NewClusterUsecase(r repository.Repository, argoClient argowf.ArgoClient) IC
 	}
 }
 
+/*
 var azPerRegion = map[string]int{
 	"ec2.af-south-1.amazonaws.com":     3,
 	"ec2.eu-north-1.amazonaws.com":     3,
@@ -71,6 +72,7 @@ var azPerRegion = map[string]int{
 }
 
 const MAX_SIZE_PER_AZ = 99
+*/
 
 func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 	u.repo = u.repo.WithTrx(trxHandle)
