@@ -100,8 +100,10 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"type=" + app.Type,
 		"strategy=" + app.AppServeAppTasks[0].Strategy,
 		"app_type=" + app.AppType,
+		"organization_id=" + app.OrganizationId,
 		"target_cluster_id=" + app.TargetClusterId,
 		"app_name=" + app.Name,
+		"namespace=" + app.Namespace,
 		"asa_id=" + appId,
 		"asa_task_id=" + taskId,
 		"artifact_url=" + app.AppServeAppTasks[0].ArtifactUrl,
@@ -233,6 +235,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 			"app_name=" + app.Name,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
+			"organization_id=" + app.OrganizationId,
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
@@ -300,6 +303,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 			"type=" + app.Type,
 			"strategy=" + appTask.Strategy,
 			"app_type=" + app.AppType,
+			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"asa_id=" + app.ID,
@@ -353,6 +357,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
+			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"asa_id=" + app.ID,
@@ -391,6 +396,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 	// Call argo workflow
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
+			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"asa_id=" + app.ID,

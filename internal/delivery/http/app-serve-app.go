@@ -35,12 +35,22 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 // @Router /app-serve-apps [post]
 // @Security     JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
 	appReq := domain.CreateAppServeAppRequest{}
 	err := UnmarshalRequestInput(r, &appReq)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
+
+	(appReq).SetDefaultValue()
 
 	var app domain.AppServeApp
 	if err = domain.Map(appReq, &app); err != nil {
@@ -49,6 +59,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 
 	now := time.Now()
+	app.OrganizationId = organizationId
 	app.EndpointUrl = "N/A"
 	app.PreviewEndpointUrl = "N/A"
 	app.Status = "PREPARING"
@@ -108,13 +119,15 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Router /app-serve-apps [get]
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
-	urlParams := r.URL.Query()
-
-	organizationId := urlParams.Get("organizationId")
-	if organizationId == "" {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]", organizationId)
+	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
 		return
 	}
+
+	urlParams := r.URL.Query()
 
 	showAllParam := urlParams.Get("showAll")
 	if showAllParam == "" {
@@ -152,6 +165,14 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	fmt.Printf("appId = [%s]", appId)
 	if !ok {
@@ -178,6 +199,13 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
@@ -232,6 +260,13 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
@@ -267,6 +302,13 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
@@ -306,6 +348,13 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 // @Security     JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
