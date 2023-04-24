@@ -16,6 +16,59 @@
     "host": "tks-api-dev.taco-cat.xyz",
     "basePath": "/api/1.0/",
     "paths": {
+        "/admin/organizations/{organizationId}/users/{accountId}": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "As admin, Update user detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update user request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserByAdminRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserByAdminResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/app-groups": {
             "get": {
                 "security": [
@@ -716,6 +769,43 @@
                 }
             }
         },
+        "/clusters/{clusterId}/site-values": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get cluster site values for creating",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Get cluster site values for creating",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ClusterSiteValuesResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/histories": {
             "get": {
                 "security": [
@@ -1190,7 +1280,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Get chart data",
+                "description": "Get charts data",
                 "consumes": [
                     "application/json"
                 ],
@@ -1200,7 +1290,7 @@
                 "tags": [
                     "Dashboards"
                 ],
-                "summary": "Get chart data",
+                "summary": "Get charts data",
                 "parameters": [
                     {
                         "type": "string",
@@ -1235,6 +1325,64 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.GetDashboardChartsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/dashboard/charts/{chartType}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get chart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get chart data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "chartType",
+                        "name": "chartType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "duration",
+                        "name": "duration",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "interval",
+                        "name": "interval",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetDashboardChartResponse"
                         }
                     }
                 }
@@ -2048,7 +2196,7 @@
             "type": "object",
             "properties": {
                 "appGroupType": {
-                    "$ref": "#/definitions/domain.AppGroupType"
+                    "type": "integer"
                 },
                 "clusterId": {
                     "type": "string"
@@ -2069,7 +2217,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.AppGroupStatus"
+                    "type": "integer"
                 },
                 "statusDescription": {
                     "type": "string"
@@ -2084,38 +2232,6 @@
                     "type": "string"
                 }
             }
-        },
-        "domain.AppGroupStatus": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5
-            ],
-            "x-enum-varnames": [
-                "AppGroupStatus_PENDING",
-                "AppGroupStatus_INSTALLING",
-                "AppGroupStatus_RUNNING",
-                "AppGroupStatus_DELETING",
-                "AppGroupStatus_DELETED",
-                "AppGroupStatus_ERROR"
-            ]
-        },
-        "domain.AppGroupType": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "AppGroupType_UNSPECIFIED",
-                "AppGroupType_LMA",
-                "AppGroupType_SERVICE_MESH"
-            ]
         },
         "domain.AppServeApp": {
             "type": "object",
@@ -2273,7 +2389,7 @@
                     "type": "string"
                 },
                 "applicationType": {
-                    "$ref": "#/definitions/domain.ApplicationType"
+                    "type": "integer"
                 },
                 "createdAt": {
                     "type": "string"
@@ -2292,34 +2408,16 @@
                 }
             }
         },
-        "domain.ApplicationType": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
-            ],
-            "x-enum-varnames": [
-                "ApplicationType_UNSPECIFIED",
-                "ApplicationType_THANOS",
-                "ApplicationType_PROMETHEUS",
-                "ApplicationType_GRAFANA",
-                "ApplicationType_KIALI",
-                "ApplicationType_KIBANA",
-                "ApplicationType_ELASTICSERCH",
-                "ApplicationType_CLOUD_CONSOLE",
-                "ApplicationType_HORIZON",
-                "ApplicationType_JAEGER",
-                "ApplicationType_KUBERNETES_DASHBOARD"
-            ]
+        "domain.Axis": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
         },
         "domain.ChartData": {
             "type": "object",
@@ -2330,33 +2428,11 @@
                         "$ref": "#/definitions/domain.Unit"
                     }
                 },
-                "xaxis": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "type": {
-                            "type": "string"
-                        }
-                    }
+                "xAxis": {
+                    "$ref": "#/definitions/domain.Axis"
                 },
-                "yaxis": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "type": {
-                            "type": "string"
-                        }
-                    }
+                "yAxis": {
+                    "$ref": "#/definitions/domain.Axis"
                 }
             }
         },
@@ -2482,7 +2558,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.ClusterStatus"
+                    "type": "integer"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -2501,25 +2577,22 @@
         "domain.ClusterConf": {
             "type": "object",
             "properties": {
-                "machineReplicas": {
+                "cpNodeCnt": {
                     "type": "integer"
                 },
-                "machineType": {
+                "cpNodeMachineType": {
                     "type": "string"
                 },
-                "maxSizePerAz": {
+                "tksNodeCnt": {
                     "type": "integer"
                 },
-                "minSizePerAz": {
-                    "type": "integer"
-                },
-                "numOfAz": {
-                    "type": "integer"
-                },
-                "region": {
+                "tksNodeMachineType": {
                     "type": "string"
                 },
-                "sshKeyName": {
+                "userNodeCnt": {
+                    "type": "integer"
+                },
+                "userNodeMachineType": {
                     "type": "string"
                 }
             }
@@ -2527,26 +2600,14 @@
         "domain.ClusterConfResponse": {
             "type": "object",
             "properties": {
-                "machineReplicas": {
+                "cpNodeCnt": {
                     "type": "integer"
                 },
-                "machineType": {
-                    "type": "string"
-                },
-                "maxSizePerAz": {
+                "tksNodeCnt": {
                     "type": "integer"
                 },
-                "minSizePerAz": {
+                "userpNodeCnt": {
                     "type": "integer"
-                },
-                "numOfAz": {
-                    "type": "integer"
-                },
-                "region": {
-                    "type": "string"
-                },
-                "sshKeyName": {
-                    "type": "string"
                 }
             }
         },
@@ -2594,24 +2655,40 @@
                 }
             }
         },
-        "domain.ClusterStatus": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5
-            ],
-            "x-enum-varnames": [
-                "ClusterStatus_PENDING",
-                "ClusterStatus_INSTALLING",
-                "ClusterStatus_RUNNING",
-                "ClusterStatus_DELETING",
-                "ClusterStatus_DELETED",
-                "ClusterStatus_ERROR"
-            ]
+        "domain.ClusterSiteValuesResponse": {
+            "type": "object",
+            "properties": {
+                "clusterRegion": {
+                    "type": "string"
+                },
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
+                "cpReplicas": {
+                    "type": "integer"
+                },
+                "mdMachineType": {
+                    "type": "string"
+                },
+                "mdMaxSizePerAz": {
+                    "type": "integer"
+                },
+                "mdMinSizePerAz": {
+                    "type": "integer"
+                },
+                "mdNumOfAz": {
+                    "type": "integer"
+                },
+                "mpNodeMachineType": {
+                    "type": "string"
+                },
+                "mpReplicas": {
+                    "type": "integer"
+                },
+                "sshKeyName": {
+                    "type": "string"
+                }
+            }
         },
         "domain.CreateAppGroupRequest": {
             "type": "object",
@@ -2787,28 +2864,34 @@
                 "cloudAccountId": {
                     "type": "string"
                 },
-                "description": {
-                    "type": "string"
-                },
-                "machineReplicas": {
+                "cpNodeCnt": {
                     "type": "integer"
                 },
-                "machineType": {
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
-                "numOfAz": {
-                    "type": "integer"
-                },
                 "organizationId": {
                     "type": "string"
                 },
-                "region": {
+                "stackTemplateId": {
                     "type": "string"
                 },
-                "stackTemplateId": {
+                "tksNodeCnt": {
+                    "type": "integer"
+                },
+                "tksNodeMachineType": {
+                    "type": "string"
+                },
+                "userNodeCnt": {
+                    "type": "integer"
+                },
+                "userNodeMachineType": {
                     "type": "string"
                 }
             }
@@ -2851,6 +2934,9 @@
                 "cpNodeCnt": {
                     "type": "integer"
                 },
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2863,8 +2949,14 @@
                 "tksNodeCnt": {
                     "type": "integer"
                 },
+                "tksNodeMachineType": {
+                    "type": "string"
+                },
                 "userNodeCnt": {
                     "type": "integer"
+                },
+                "userNodeMachineType": {
+                    "type": "string"
                 }
             }
         },
@@ -3113,6 +3205,14 @@
                 }
             }
         },
+        "domain.GetDashboardChartResponse": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/domain.DashboardChartResponse"
+                }
+            }
+        },
         "domain.GetDashboardChartsResponse": {
             "type": "object",
             "properties": {
@@ -3290,7 +3390,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.OrganizationStatus"
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -3404,7 +3504,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.OrganizationStatus"
+                    "type": "integer"
                 },
                 "statusDescription": {
                     "type": "string"
@@ -3413,29 +3513,6 @@
                     "type": "string"
                 }
             }
-        },
-        "domain.OrganizationStatus": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "x-enum-varnames": [
-                "OrganizationStatus_PENDING",
-                "OrganizationStatus_CREATE",
-                "OrganizationStatus_CREATING",
-                "OrganizationStatus_CREATED",
-                "OrganizationStatus_DELETE",
-                "OrganizationStatus_DELETING",
-                "OrganizationStatus_DELETED",
-                "OrganizationStatus_ERROR"
-            ]
         },
         "domain.Role": {
             "type": "object",
@@ -3474,14 +3551,37 @@
                 }
             }
         },
+        "domain.StackConf": {
+            "type": "object",
+            "properties": {
+                "cpNodeCnt": {
+                    "type": "integer"
+                },
+                "cpNodeMachineType": {
+                    "type": "string"
+                },
+                "tksNodeCnt": {
+                    "type": "integer"
+                },
+                "tksNodeMachineType": {
+                    "type": "string"
+                },
+                "userNodeCnt": {
+                    "type": "integer"
+                },
+                "userNodeMachineType": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.StackResponse": {
             "type": "object",
             "properties": {
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.CloudAccountResponse"
                 },
-                "cpNodeCnt": {
-                    "type": "integer"
+                "conf": {
+                    "$ref": "#/definitions/domain.StackConf"
                 },
                 "createdAt": {
                     "type": "string"
@@ -3513,17 +3613,11 @@
                 "statusDesc": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
-                    "type": "integer"
-                },
                 "updatedAt": {
                     "type": "string"
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
-                },
-                "userNodeCnt": {
-                    "type": "integer"
                 }
             }
         },
@@ -3909,7 +4003,7 @@
                 }
             }
         },
-        "domain.UpdateUserRequest": {
+        "domain.UpdateUserByAdminRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -3936,6 +4030,75 @@
                         "admin",
                         "user"
                     ]
+                }
+            }
+        },
+        "domain.UpdateUserByAdminResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "createdAt": {
+                            "type": "string"
+                        },
+                        "department": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/domain.Role"
+                        },
+                        "updatedAt": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "domain.UpdateUserRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "department": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 0
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },

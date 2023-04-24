@@ -3,8 +3,10 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"strconv"
 	"time"
+
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -20,7 +22,7 @@ type IStackUsecase interface {
 	Get(stackId domain.StackId) (domain.Stack, error)
 	GetByName(organizationId string, name string) (domain.Stack, error)
 	Fetch(organizationId string) ([]domain.Stack, error)
-	Create(ctx context.Context, dto domain.Stack) (err error)
+	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
 	Delete(ctx context.Context, dto domain.Stack) error
 }
 
@@ -40,16 +42,21 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) ISta
 	}
 }
 
-func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error) {
+func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+	}
+
+	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	if err == nil {
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
 	}
 
 	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
 	if err != nil {
-		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get clusters"))
+		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get clusters"))
 	}
 	isPrimary := false
 	if len(clusters) == 0 {
@@ -59,7 +66,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 
 	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
-		return httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"))
 	}
 
 	workflow := ""
@@ -69,7 +76,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 		workflow = "tks-stack-create-aws-msa"
 	} else {
 		log.Error("Invalid template  : ", stackTemplate.Template)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template))
+		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template))
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
@@ -81,39 +88,42 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (err error)
 			"cloud_account_id=" + dto.CloudAccountId.String(),
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
-			/*
-				"machine_type=" + input.MachineType,
-				"num_of_az=" + input.NumberOfAz,
-				"machine_replicas=" + input.MachineReplicas,
-			*/
+			"cp_node_cnt=" + strconv.Itoa(dto.Conf.CpNodeCnt),
+			"tks_node_cnt=" + strconv.Itoa(dto.Conf.TksNodeCnt),
+			"user_node_cnt=" + strconv.Itoa(dto.Conf.UserNodeCnt),
 		},
 	})
 	if err != nil {
 		log.Error(err)
-		return errors.Wrap(err, "Failed to call workflow. workflow")
+		return "", errors.Wrap(err, "Failed to call workflow. workflow")
 	}
 	log.Debug("Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
+	dto.ID = domain.StackId("")
 	for i := 0; i < 60; i++ {
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 5)
 		workflow, err := u.argo.GetWorkflow("argo", workflowId)
 		if err != nil {
-			return err
+			return "", err
 		}
 
+		log.Debug("workflow ", workflow)
 		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
-			return fmt.Errorf("Invalid workflow status")
+			return "", fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
 		}
 
-		if workflow.Status.Progress == "1/2" { // start creating cluster
-			time.Sleep(time.Second * 5) // Buffer
+		cluster, err := u.clusterRepo.GetByName(dto.OrganizationId, dto.Name)
+		if err != nil {
+			continue
+		}
+		if cluster.Name == dto.Name {
+			dto.ID = domain.StackId(cluster.ID)
 			break
 		}
 	}
 
-	// [TODO] need clusterId?
-	return nil
+	return dto.ID, nil
 }
 
 func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error) {
@@ -239,8 +249,10 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 		UpdatedAt:       cluster.UpdatedAt,
 
 		// [TODO]
-		CpNodeCnt:   3,
-		TksNodeCnt:  3,
-		UserNodeCnt: 3,
+		Conf: domain.StackConf{
+			CpNodeCnt:   cluster.Conf.CpNodeCnt,
+			TksNodeCnt:  cluster.Conf.TksNodeCnt,
+			UserNodeCnt: cluster.Conf.UserNodeCnt,
+		},
 	}
 }

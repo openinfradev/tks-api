@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"fmt"
-
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -12,7 +11,7 @@ import (
 
 type IAuthUsecase interface {
 	Login(accountId string, password string, organizationId string) (domain.User, error)
-	Logout(accessToken string, accountId string, organizationId string) error
+	Logout(sessionId string, orgainzationId string) error
 	FetchRoles() (out []domain.Role, err error)
 }
 
@@ -55,9 +54,8 @@ func (r *AuthUsecase) Login(accountId string, password string, organizationId st
 	return user, nil
 }
 
-func (r *AuthUsecase) Logout(accessToken string, accountId string, organizationId string) error {
-	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
-	err := r.kc.Logout(accessToken, accountId, organizationId)
+func (r *AuthUsecase) Logout(sessionId string, organizationId string) error {
+	err := r.kc.Logout(sessionId, organizationId)
 	if err != nil {
 		return err
 	}

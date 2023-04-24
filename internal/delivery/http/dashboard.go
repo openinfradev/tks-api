@@ -23,8 +23,8 @@ func NewDashboardHandler(h usecase.IDashboardUsecase) *DashboardHandler {
 
 // GetCharts godoc
 // @Tags Dashboards
-// @Summary Get chart data
-// @Description Get chart data
+// @Summary Get charts data
+// @Description Get charts data
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
@@ -43,13 +43,67 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := r.URL.Query()
-	strType := query.Get("chartType")
-	chartType := new(domain.ChartType).FromString(strType)
-	if strType == "" {
-		chartType = domain.ChartType(domain.ChartType_ALL)
+	duration := query.Get("duration")
+	if duration == "" {
+		duration = "1d" // default
 	}
 
-	log.Info("a", chartType)
+	interval := query.Get("interval")
+	if interval == "" {
+		interval = "1d" // default
+	}
+
+	charts, err := h.usecase.GetCharts(organizationId, domain.ChartType_ALL, duration, interval)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out domain.GetDashboardChartsResponse
+	out.Charts = make([]domain.DashboardChartResponse, len(charts))
+	for i, chart := range charts {
+		if err := domain.Map(chart, &out.Charts[i]); err != nil {
+			log.Info(err)
+			continue
+		}
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// GetCharts godoc
+// @Tags Dashboards
+// @Summary Get chart data
+// @Description Get chart data
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param chartType path string true "chartType"
+// @Param duration query string true "duration"
+// @Param interval query string true "interval"
+// @Success 200 {object} domain.GetDashboardChartResponse
+// @Router /organizations/{organizationId}/dashboard/charts/{chartType} [get]
+// @Security     JWT
+func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+
+	strType, ok := vars["chartType"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType")))
+		return
+	}
+	chartType := new(domain.ChartType).FromString(strType)
+	if chartType == domain.ChartType_ERROR {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType")))
+		return
+	}
+
+	query := r.URL.Query()
 	duration := query.Get("duration")
 	if duration == "" {
 		duration = "1d" // default
@@ -65,14 +119,14 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, err)
 		return
 	}
+	if len(charts) < 1 {
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Not found chart")))
+		return
+	}
 
-	var out domain.GetDashboardChartsResponse
-	out.Charts = make([]domain.DashboardChartResponse, len(charts))
-	for i, chart := range charts {
-		if err := domain.Map(chart, &out.Charts[i]); err != nil {
-			log.Info(err)
-			continue
-		}
+	var out domain.DashboardChartResponse
+	if err := domain.Map(charts[0], &out); err != nil {
+		log.Info(err)
 	}
 
 	ResponseJSON(w, http.StatusOK, out)

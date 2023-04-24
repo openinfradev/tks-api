@@ -71,12 +71,11 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 		return restError, fmt.Errorf("HTTP status [%d] message [%s]", res.StatusCode, restError.ErrMessage)
 	}
 
-	var resJson interface{}
-	if err := json.Unmarshal(body, &resJson); err != nil {
+	if err := json.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
 
-	return resJson, nil
+	return out, nil
 }
 
 func (c *ApiClientImpl) Post(path string, input interface{}) (out interface{}, err error) {
@@ -129,10 +128,9 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 		return restError, fmt.Errorf("HTTP status [%d] message [%s]", res.StatusCode, restError.ErrMessage)
 	}
 
-	var resJson interface{}
-	if err := json.Unmarshal(body, &resJson); err != nil {
+	if err := json.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
 
-	return resJson, nil
+	return
 }

@@ -49,7 +49,7 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 }
 
 // model
-type Cluster = struct {
+type Cluster struct {
 	ID              ClusterId
 	OrganizationId  string
 	Name            string
@@ -69,65 +69,59 @@ type Cluster = struct {
 	UpdatedAt       time.Time
 }
 
-type ClusterConf = struct {
-	SshKeyName      string
-	Region          string
-	MachineType     string
-	NumOfAz         int
-	MinSizePerAz    int
-	MaxSizePerAz    int
-	MachineReplicas int
+type ClusterConf struct {
+	CpNodeCnt           int
+	CpNodeMachineType   string
+	TksNodeCnt          int
+	TksNodeMachineType  string
+	UserNodeCnt         int
+	UserNodeMachineType string
 }
 
-type ClusterCapacity = struct {
-	Max     int
-	Current int
-}
-
-type ClusterKubeInfo = struct {
-	Version        string          `json:"version"`
-	TotalResources int             `json:"totalResources"`
-	Nodes          int             `json:"nodes"`
-	Namespaces     int             `json:"namespaces"`
-	Services       int             `json:"services"`
-	Pods           int             `json:"pods"`
-	Cores          ClusterCapacity `json:"cores"`
-	Memory         ClusterCapacity `json:"memory"`
-	Updated        time.Time       `json:"updated"`
-}
-
-type Event = struct {
-	ID        string    `json:"id"`
-	Namespace string    `json:"namespace"`
-	Type      string    `json:"type"`
-	Reason    string    `json:"reason"`
-	Message   string    `json:"message"`
-	Updated   time.Time `json:"updated"`
-}
-
-type Node = struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Status       string    `json:"status"`
-	InstanceType string    `json:"instanceType"`
-	Role         string    `json:"role"`
-	Updated      time.Time `json:"updated"`
+// [TODO] annotaion 으로 가능하려나?
+func (m *ClusterConf) SetDefault() {
+	if m.CpNodeCnt == 0 {
+		m.CpNodeCnt = 3
+	}
+	if m.TksNodeCnt == 0 {
+		m.TksNodeCnt = 3
+	}
+	if m.UserNodeCnt == 0 {
+		m.UserNodeCnt = 1
+	}
+	if m.CpNodeMachineType == "" {
+		m.CpNodeMachineType = "t3.xlarge"
+	}
+	if m.TksNodeMachineType == "" {
+		m.TksNodeMachineType = "t3.2xlarge"
+	}
+	if m.UserNodeMachineType == "" {
+		m.UserNodeMachineType = "t3.large"
+	}
 }
 
 type CreateClusterRequest struct {
-	OrganizationId  string `json:"organizationId"`
-	StackTemplateId string `json:"stackTemplateId"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	CloudAccountId  string `json:"cloudAccountId"`
-	NumOfAz         int    `json:"numOfAz"`
-	MachineType     string `json:"machineType"`
-	Region          string `json:"region"`
-	MachineReplicas int    `json:"machineReplicas"`
+	OrganizationId      string `json:"organizationId"`
+	StackTemplateId     string `json:"stackTemplateId"`
+	Name                string `json:"name"`
+	Description         string `json:"description"`
+	CloudAccountId      string `json:"cloudAccountId"`
+	CpNodeCnt           int    `json:"cpNodeCnt"`
+	CpNodeMachineType   string `json:"cpNodeMachineType"`
+	TksNodeCnt          int    `json:"tksNodeCnt"`
+	TksNodeMachineType  string `json:"tksNodeMachineType"`
+	UserNodeCnt         int    `json:"userNodeCnt"`
+	UserNodeMachineType string `json:"userNodeMachineType"`
 }
 
 type CreateClusterResponse struct {
 	ID string `json:"id"`
+}
+
+type ClusterConfResponse struct {
+	CpNodeCnt   int `json:"cpNodeCnt"`
+	TksNodeCnt  int `json:"tksNodeCnt"`
+	UserNodeCnt int `json:"userpNodeCnt"`
 }
 
 type ClusterResponse struct {
@@ -146,14 +140,17 @@ type ClusterResponse struct {
 	UpdatedAt      time.Time             `json:"updatedAt"`
 }
 
-type ClusterConfResponse struct {
-	SshKeyName      string `json:"sshKeyName"`
-	Region          string `json:"region"`
-	MachineType     string `json:"machineType"`
-	NumOfAz         int    `json:"numOfAz"`
-	MinSizePerAz    int    `json:"minSizePerAz"`
-	MaxSizePerAz    int    `json:"maxSizePerAz"`
-	MachineReplicas int    `json:"machineReplicas"`
+type ClusterSiteValuesResponse struct {
+	SshKeyName        string `json:"sshKeyName"`
+	ClusterRegion     string `json:"clusterRegion"`
+	CpReplicas        int    `json:"cpReplicas"`
+	CpNodeMachineType string `json:"cpNodeMachineType"`
+	MpReplicas        int    `json:"mpReplicas"`
+	MpNodeMachineType string `json:"mpNodeMachineType"`
+	MdNumOfAz         int    `json:"mdNumOfAz"`
+	MdMinSizePerAz    int    `json:"mdMinSizePerAz"`
+	MdMaxSizePerAz    int    `json:"mdMaxSizePerAz"`
+	MdMachineType     string `json:"mdMachineType"`
 }
 
 type GetClustersResponse struct {
@@ -162,4 +159,8 @@ type GetClustersResponse struct {
 
 type GetClusterResponse struct {
 	Cluster ClusterResponse `json:"cluster"`
+}
+
+type GetClusterSiteValuesResponse struct {
+	ClusterSiteValues ClusterSiteValuesResponse `json:"clusterSiteValues"`
 }

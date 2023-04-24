@@ -3,7 +3,7 @@ definitions:
   domain.AppGroupResponse:
     properties:
       appGroupType:
-        $ref: '#/definitions/domain.AppGroupType'
+        type: integer
       clusterId:
         type: string
       createdAt:
@@ -17,7 +17,7 @@ definitions:
       name:
         type: string
       status:
-        $ref: '#/definitions/domain.AppGroupStatus'
+        type: integer
       statusDescription:
         type: string
       updatedAt:
@@ -27,32 +27,6 @@ definitions:
       workflowId:
         type: string
     type: object
-  domain.AppGroupStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    type: integer
-    x-enum-varnames:
-    - AppGroupStatus_PENDING
-    - AppGroupStatus_INSTALLING
-    - AppGroupStatus_RUNNING
-    - AppGroupStatus_DELETING
-    - AppGroupStatus_DELETED
-    - AppGroupStatus_ERROR
-  domain.AppGroupType:
-    enum:
-    - 0
-    - 1
-    - 2
-    type: integer
-    x-enum-varnames:
-    - AppGroupType_UNSPECIFIED
-    - AppGroupType_LMA
-    - AppGroupType_SERVICE_MESH
   domain.AppServeApp:
     properties:
       app_serve_app_tasks:
@@ -165,7 +139,7 @@ definitions:
       appGroupId:
         type: string
       applicationType:
-        $ref: '#/definitions/domain.ApplicationType'
+        type: integer
       createdAt:
         type: string
       endpoint:
@@ -177,56 +151,23 @@ definitions:
       updatedAt:
         type: string
     type: object
-  domain.ApplicationType:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    - 8
-    - 9
-    - 10
-    type: integer
-    x-enum-varnames:
-    - ApplicationType_UNSPECIFIED
-    - ApplicationType_THANOS
-    - ApplicationType_PROMETHEUS
-    - ApplicationType_GRAFANA
-    - ApplicationType_KIALI
-    - ApplicationType_KIBANA
-    - ApplicationType_ELASTICSERCH
-    - ApplicationType_CLOUD_CONSOLE
-    - ApplicationType_HORIZON
-    - ApplicationType_JAEGER
-    - ApplicationType_KUBERNETES_DASHBOARD
+  domain.Axis:
+    properties:
+      data:
+        items:
+          type: string
+        type: array
+    type: object
   domain.ChartData:
     properties:
       series:
         items:
           $ref: '#/definitions/domain.Unit'
         type: array
-      xaxis:
-        properties:
-          data:
-            items:
-              type: string
-            type: array
-          type:
-            type: string
-        type: object
-      yaxis:
-        properties:
-          data:
-            items:
-              type: string
-            type: array
-          type:
-            type: string
-        type: object
+      xAxis:
+        $ref: '#/definitions/domain.Axis'
+      yAxis:
+        $ref: '#/definitions/domain.Axis'
     type: object
   domain.CloudAccount:
     properties:
@@ -309,7 +250,7 @@ definitions:
       stackTemplateId:
         type: string
       status:
-        $ref: '#/definitions/domain.ClusterStatus'
+        type: integer
       statusDesc:
         type: string
       updatedAt:
@@ -321,37 +262,27 @@ definitions:
     type: object
   domain.ClusterConf:
     properties:
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
+      cpNodeMachineType:
         type: string
-      maxSizePerAz:
+      tksNodeCnt:
         type: integer
-      minSizePerAz:
-        type: integer
-      numOfAz:
-        type: integer
-      region:
+      tksNodeMachineType:
         type: string
-      sshKeyName:
+      userNodeCnt:
+        type: integer
+      userNodeMachineType:
         type: string
     type: object
   domain.ClusterConfResponse:
     properties:
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
-        type: string
-      maxSizePerAz:
+      tksNodeCnt:
         type: integer
-      minSizePerAz:
+      userpNodeCnt:
         type: integer
-      numOfAz:
-        type: integer
-      region:
-        type: string
-      sshKeyName:
-        type: string
     type: object
   domain.ClusterResponse:
     properties:
@@ -382,22 +313,29 @@ definitions:
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
-  domain.ClusterStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    type: integer
-    x-enum-varnames:
-    - ClusterStatus_PENDING
-    - ClusterStatus_INSTALLING
-    - ClusterStatus_RUNNING
-    - ClusterStatus_DELETING
-    - ClusterStatus_DELETED
-    - ClusterStatus_ERROR
+  domain.ClusterSiteValuesResponse:
+    properties:
+      clusterRegion:
+        type: string
+      cpNodeMachineType:
+        type: string
+      cpReplicas:
+        type: integer
+      mdMachineType:
+        type: string
+      mdMaxSizePerAz:
+        type: integer
+      mdMinSizePerAz:
+        type: integer
+      mdNumOfAz:
+        type: integer
+      mpNodeMachineType:
+        type: string
+      mpReplicas:
+        type: integer
+      sshKeyName:
+        type: string
+    type: object
   domain.CreateAppGroupRequest:
     properties:
       appGroupType:
@@ -519,21 +457,25 @@ definitions:
     properties:
       cloudAccountId:
         type: string
-      description:
-        type: string
-      machineReplicas:
+      cpNodeCnt:
         type: integer
-      machineType:
+      cpNodeMachineType:
+        type: string
+      description:
         type: string
       name:
         type: string
-      numOfAz:
-        type: integer
       organizationId:
         type: string
-      region:
-        type: string
       stackTemplateId:
+        type: string
+      tksNodeCnt:
+        type: integer
+      tksNodeMachineType:
+        type: string
+      userNodeCnt:
+        type: integer
+      userNodeMachineType:
         type: string
     type: object
   domain.CreateClusterResponse:
@@ -562,6 +504,8 @@ definitions:
         type: string
       cpNodeCnt:
         type: integer
+      cpNodeMachineType:
+        type: string
       description:
         type: string
       name:
@@ -570,8 +514,12 @@ definitions:
         type: string
       tksNodeCnt:
         type: integer
+      tksNodeMachineType:
+        type: string
       userNodeCnt:
         type: integer
+      userNodeMachineType:
+        type: string
     type: object
   domain.CreateStackResponse:
     properties:
@@ -738,6 +686,11 @@ definitions:
           $ref: '#/definitions/domain.ClusterResponse'
         type: array
     type: object
+  domain.GetDashboardChartResponse:
+    properties:
+      chart:
+        $ref: '#/definitions/domain.DashboardChartResponse'
+    type: object
   domain.GetDashboardChartsResponse:
     properties:
       charts:
@@ -853,7 +806,7 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        $ref: '#/definitions/domain.OrganizationStatus'
+        type: integer
       updatedAt:
         type: string
     type: object
@@ -928,32 +881,12 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        $ref: '#/definitions/domain.OrganizationStatus'
+        type: integer
       statusDescription:
         type: string
       updatedAt:
         type: string
     type: object
-  domain.OrganizationStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    type: integer
-    x-enum-varnames:
-    - OrganizationStatus_PENDING
-    - OrganizationStatus_CREATE
-    - OrganizationStatus_CREATING
-    - OrganizationStatus_CREATED
-    - OrganizationStatus_DELETE
-    - OrganizationStatus_DELETING
-    - OrganizationStatus_DELETED
-    - OrganizationStatus_ERROR
   domain.Role:
     properties:
       createdAt:
@@ -978,12 +911,27 @@ definitions:
       name:
         type: string
     type: object
+  domain.StackConf:
+    properties:
+      cpNodeCnt:
+        type: integer
+      cpNodeMachineType:
+        type: string
+      tksNodeCnt:
+        type: integer
+      tksNodeMachineType:
+        type: string
+      userNodeCnt:
+        type: integer
+      userNodeMachineType:
+        type: string
+    type: object
   domain.StackResponse:
     properties:
       cloudAccount:
         $ref: '#/definitions/domain.CloudAccountResponse'
-      cpNodeCnt:
-        type: integer
+      conf:
+        $ref: '#/definitions/domain.StackConf'
       createdAt:
         type: string
       creator:
@@ -1004,14 +952,10 @@ definitions:
         type: string
       statusDesc:
         type: string
-      tksNodeCnt:
-        type: integer
       updatedAt:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
-      userNodeCnt:
-        type: integer
     type: object
   domain.StackTemplate:
     properties:
@@ -1266,7 +1210,7 @@ definitions:
       description:
         type: string
     type: object
-  domain.UpdateUserRequest:
+  domain.UpdateUserByAdminRequest:
     properties:
       department:
         maxLength: 20
@@ -1287,6 +1231,53 @@ definitions:
         - admin
         - user
         type: string
+    type: object
+  domain.UpdateUserByAdminResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          createdAt:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+          updatedAt:
+            type: string
+        type: object
+    type: object
+  domain.UpdateUserRequest:
+    properties:
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      password:
+        type: string
+    required:
+    - password
     type: object
   domain.UpdateUserResponse:
     properties:
@@ -1355,6 +1346,40 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/organizations/{organizationId}/users/{accountId}:
+    put:
+      consumes:
+      - application/json
+      description: Update user detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
+      security:
+      - JWT: []
+      summary: As admin, Update user detail
+      tags:
+      - Admin
   /app-groups:
     delete:
       consumes:
@@ -1792,6 +1817,29 @@ paths:
       summary: Get cluster
       tags:
       - Clusters
+  /clusters/{clusterId}/site-values:
+    get:
+      consumes:
+      - application/json
+      description: Get cluster site values for creating
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ClusterSiteValuesResponse'
+      security:
+      - JWT: []
+      summary: Get cluster site values for creating
+      tags:
+      - Clusters
   /histories:
     get:
       consumes:
@@ -2090,7 +2138,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get chart data
+      description: Get charts data
       parameters:
       - description: organizationId
         in: path
@@ -2118,6 +2166,44 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/domain.GetDashboardChartsResponse'
+      security:
+      - JWT: []
+      summary: Get charts data
+      tags:
+      - Dashboards
+  /organizations/{organizationId}/dashboard/charts/{chartType}:
+    get:
+      consumes:
+      - application/json
+      description: Get chart data
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: chartType
+        in: path
+        name: chartType
+        required: true
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetDashboardChartResponse'
       security:
       - JWT: []
       summary: Get chart data

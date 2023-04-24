@@ -60,9 +60,7 @@ type Stack = struct {
 	StackTemplate   StackTemplate
 	Status          StackStatus
 	StatusDesc      string
-	CpNodeCnt       int
-	TksNodeCnt      int
-	UserNodeCnt     int
+	Conf            StackConf
 	PrimaryCluster  bool
 	CreatorId       *uuid.UUID
 	Creator         User
@@ -72,14 +70,26 @@ type Stack = struct {
 	UpdatedAt       time.Time
 }
 
+type StackConf = struct {
+	CpNodeCnt           int
+	CpNodeMachineType   string
+	TksNodeCnt          int
+	TksNodeMachineType  string
+	UserNodeCnt         int
+	UserNodeMachineType string
+}
+
 type CreateStackRequest struct {
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	StackTemplateId string `json:"stackTemplateId"`
-	CloudAccountId  string `json:"cloudAccountId"`
-	CpNodeCnt       int    `json:"cpNodeCnt"`
-	TksNodeCnt      int    `json:"tksNodeCnt"`
-	UserNodeCnt     int    `json:"userNodeCnt"`
+	Name                string `json:"name"`
+	Description         string `json:"description"`
+	StackTemplateId     string `json:"stackTemplateId"`
+	CloudAccountId      string `json:"cloudAccountId"`
+	CpNodeCnt           int    `json:"cpNodeCnt"`
+	CpNodeMachineType   string `json:"cpNodeMachineType"`
+	TksNodeCnt          int    `json:"tksNodeCnt"`
+	TksNodeMachineType  string `json:"tksNodeMachineType"`
+	UserNodeCnt         int    `json:"userNodeCnt"`
+	UserNodeMachineType string `json:"userNodeMachineType"`
 }
 
 type CreateStackResponse struct {
@@ -96,9 +106,7 @@ type StackResponse struct {
 	Status         string                `json:"status"`
 	StatusDesc     string                `json:"statusDesc"`
 	PrimaryCluster bool                  `json:"primaryCluster"`
-	CpNodeCnt      int                   `json:"cpNodeCnt"`
-	TksNodeCnt     int                   `json:"tksNodeCnt"`
-	UserNodeCnt    int                   `json:"userNodeCnt"`
+	Conf           StackConf             `json:"conf"`
 	Creator        SimpleUserResponse    `json:"creator,omitempty"`
 	Updator        SimpleUserResponse    `json:"updator,omitempty"`
 	CreatedAt      time.Time             `json:"createdAt"`
