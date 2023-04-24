@@ -11,7 +11,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"time"
 )
 
 type IAuthUsecase interface {
@@ -24,8 +23,7 @@ type IAuthUsecase interface {
 }
 
 const (
-	emailCodeExpireTime = 10 * time.Minute
-	passwordLength      = 16
+	passwordLength = 16
 )
 
 type AuthUsecase struct {
@@ -94,7 +92,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return "", httpErrors.NewUnauthorizedError(err)
+		return "", httpErrors.NewBadRequestError(err)
 	}
 	if !u.isValidEmailCode(emailCode) {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"))
@@ -126,7 +124,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return httpErrors.NewUnauthorizedError(err)
+		return httpErrors.NewBadRequestError(err)
 	}
 	if !u.isValidEmailCode(emailCode) {
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"))
@@ -219,5 +217,5 @@ func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 }
 
 func (u *AuthUsecase) isValidEmailCode(code repository.CacheEmailCode) bool {
-	return !helper.IsDurationExpired(code.UpdatedAt, emailCodeExpireTime)
+	return !helper.IsDurationExpired(code.UpdatedAt, internal.EmailCodeExpireTime)
 }

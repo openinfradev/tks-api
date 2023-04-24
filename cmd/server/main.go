@@ -41,7 +41,7 @@ func init() {
 	flag.String("git-repository-url", "github.com/openinfradev", "URL of git repository")
 
 	// keycloak
-	flag.String("keycloak-address", "https://keycloak.keycloak.cdglab.site", "URL of keycloak")
+	flag.String("keycloak-address", "https://keycloak-kyuho.taco-cat.xyz/auth", "URL of keycloak")
 	flag.String("keycloak-admin", "admin", "user of keycloak")
 	flag.String("keycloak-password", "admin", "password of keycloak")
 	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")

@@ -228,6 +228,11 @@ definitions:
       yAxis:
         $ref: '#/definitions/domain.Axis'
     type: object
+  domain.CheckExistedResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
   domain.CloudAccount:
     properties:
       cloudService:
@@ -654,6 +659,7 @@ definitions:
         type: string
     required:
     - accountId
+    - email
     - password
     - role
     type: object
@@ -719,6 +725,46 @@ definitions:
     - accessKeyId
     - secretAccessKey
     type: object
+  domain.FindIdRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - code
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.FindIdResponse:
+    properties:
+      accountId:
+        type: string
+    type: object
+  domain.FindPasswordRequest:
+    properties:
+      accountId:
+        type: string
+      code:
+        type: string
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - accountId
+    - code
+    - email
+    - organizationId
+    - userName
+    type: object
   domain.GetAlertResponse:
     properties:
       alert:
@@ -780,6 +826,26 @@ definitions:
         items:
           $ref: '#/definitions/domain.DashboardChartResponse'
         type: array
+    type: object
+  domain.GetMyProfileResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
     type: object
   domain.GetOrganizationResponse:
     properties:
@@ -941,6 +1007,8 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/domain.Organization'
+          passwordExpired:
+            type: boolean
           role:
             $ref: '#/definitions/domain.Role'
           token:
@@ -1217,6 +1285,43 @@ definitions:
       description:
         type: string
     type: object
+  domain.UpdateMyProfileRequest:
+    properties:
+      department:
+        maxLength: 20
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 20
+        minLength: 0
+        type: string
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  domain.UpdateMyProfileResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
+    type: object
   domain.UpdateOrganizationRequest:
     properties:
       description:
@@ -1255,8 +1360,6 @@ definitions:
     - newPassword
     - originPassword
     type: object
-  domain.UpdatePasswordResponse:
-    type: object
   domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
@@ -1274,7 +1377,7 @@ definitions:
       description:
         type: string
     type: object
-  domain.UpdateUserByAdminRequest:
+  domain.UpdateUserRequest:
     properties:
       department:
         maxLength: 20
@@ -1295,53 +1398,6 @@ definitions:
         - admin
         - user
         type: string
-    type: object
-  domain.UpdateUserByAdminResponse:
-    properties:
-      user:
-        properties:
-          accountId:
-            type: string
-          createdAt:
-            type: string
-          department:
-            type: string
-          description:
-            type: string
-          email:
-            type: string
-          id:
-            type: string
-          name:
-            type: string
-          organization:
-            $ref: '#/definitions/domain.Organization'
-          role:
-            $ref: '#/definitions/domain.Role'
-          updatedAt:
-            type: string
-        type: object
-    type: object
-  domain.UpdateUserRequest:
-    properties:
-      department:
-        maxLength: 20
-        minLength: 0
-        type: string
-      description:
-        maxLength: 100
-        minLength: 0
-        type: string
-      email:
-        type: string
-      name:
-        maxLength: 20
-        minLength: 0
-        type: string
-      password:
-        type: string
-    required:
-    - password
     type: object
   domain.UpdateUserResponse:
     properties:
@@ -1391,12 +1447,64 @@ definitions:
         $ref: '#/definitions/domain.Organization'
       password:
         type: string
+      passwordExpired:
+        type: boolean
+      passwordUpdatedAt:
+        type: string
       role:
         $ref: '#/definitions/domain.Role'
       token:
         type: string
       updatedAt:
         type: string
+    type: object
+  domain.VerifyIdentityForLostIdRequest:
+    properties:
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.VerifyIdentityForLostIdResponse:
+    properties:
+      validityPeriod:
+        type: string
+    type: object
+  domain.VerifyIdentityForLostPasswordRequest:
+    properties:
+      accountId:
+        type: string
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - accountId
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.VerifyIdentityForLostPasswordResponse:
+    properties:
+      validityPeriod:
+        type: string
+    type: object
+  httpErrors.RestError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
     type: object
 host: tks-api-dev.taco-cat.xyz
 info:
@@ -1452,40 +1560,6 @@ paths:
       summary: Create alert action
       tags:
       - Alerts
-  /admin/organizations/{organizationId}/users/{accountId}:
-    put:
-      consumes:
-      - application/json
-      description: Update user detail
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: accountId
-        in: path
-        name: accountId
-        required: true
-        type: string
-      - description: update user request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
-      security:
-      - JWT: []
-      summary: As admin, Update user detail
-      tags:
-      - Admin
   /app-groups:
     delete:
       consumes:
@@ -1624,6 +1698,116 @@ paths:
       summary: Update application
       tags:
       - AppGroups
+  /auth/find-id/code:
+    post:
+      consumes:
+      - application/json
+      description: This API allows users to verify their identity for lost id by submitting
+        required information
+      parameters:
+      - description: Request body for verifying identity for lost id including {organization
+          ID, email, username}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VerifyIdentityForLostIdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.VerifyIdentityForLostIdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to verify identity for lost id
+      tags:
+      - Auth
+  /auth/find-id/verification:
+    post:
+      consumes:
+      - application/json
+      description: This API allows users to find their account ID by submitting required
+        information
+      parameters:
+      - description: Request body for finding the account ID including {organization
+          ID, email, username, 6 digit code}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.FindIdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.FindIdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to find forgotten ID
+      tags:
+      - Auth
+  /auth/find-password/code:
+    post:
+      consumes:
+      - application/json
+      description: This API allows users to verify their identity for lost password
+        by submitting required information
+      parameters:
+      - description: Request body for verifying identity for lost password including
+          {organization ID, email, username, Account ID}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VerifyIdentityForLostPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.VerifyIdentityForLostPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to verify identity for lost password
+      tags:
+      - Auth
+  /auth/find-password/verification:
+    post:
+      consumes:
+      - application/json
+      description: This API allows users to reset their forgotten password by submitting
+        required information
+      parameters:
+      - description: Request body for finding the password including {organization
+          ID, email, username, Account ID, 6 digit code}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.FindPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to find forgotten password
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -1658,6 +1842,8 @@ paths:
           description: OK
           schema:
             type: object
+      security:
+      - JWT: []
       summary: logout
       tags:
       - Auth
@@ -2417,6 +2603,106 @@ paths:
       summary: Get chart data
       tags:
       - Dashboards
+  /organizations/{organizationId}/my-profile:
+    delete:
+      consumes:
+      - application/json
+      description: Delete myProfile
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      security:
+      - JWT: []
+      summary: Delete myProfile
+      tags:
+      - My-profile
+    get:
+      consumes:
+      - application/json
+      description: Get my profile detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetMyProfileResponse'
+      security:
+      - JWT: []
+      summary: Get my profile detail
+      tags:
+      - My-profile
+    put:
+      consumes:
+      - application/json
+      description: Update my profile detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 'Required fields: password due to double-check'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateMyProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateMyProfileResponse'
+      security:
+      - JWT: []
+      summary: Update my profile detail
+      tags:
+      - My-profile
+  /organizations/{organizationId}/my-profile/password:
+    put:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: update user password request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - My-profile
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:
@@ -2721,7 +3007,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update user detail
+      description: Update user
       parameters:
       - description: organizationId
         in: path
@@ -2733,9 +3019,9 @@ paths:
         name: accountId
         required: true
         type: string
-      - description: update user request
+      - description: input
         in: body
-        name: body
+        name: input
         required: true
         schema:
           $ref: '#/definitions/domain.UpdateUserRequest'
@@ -2748,13 +3034,11 @@ paths:
             $ref: '#/definitions/domain.UpdateUserResponse'
       security:
       - JWT: []
-      summary: Update user detail
+      summary: Update user
       tags:
       - Users
-  /organizations/{organizationId}/users/{accountId}/existence:
+  /organizations/{organizationId}/users/accountId/{accountId}/existence:
     get:
-      consumes:
-      - application/json
       description: return true when accountId exists
       parameters:
       - description: organizationId
@@ -2772,43 +3056,37 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckExistedResponse'
       security:
       - JWT: []
       summary: Get user id existence
       tags:
       - Users
-  /organizations/{organizationId}/users/{accountId}/password:
-    put:
-      consumes:
-      - application/json
-      description: Update user password detail
+  /organizations/{organizationId}/users/email/{email}/existence:
+    get:
+      description: return true when email exists
       parameters:
       - description: organizationId
         in: path
         name: organizationId
         required: true
         type: string
-      - description: accountId
+      - description: email
         in: path
         name: accountId
         required: true
         type: string
-      - description: update user password request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdatePasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.UpdatePasswordResponse'
+            $ref: '#/definitions/domain.CheckExistedResponse'
       security:
       - JWT: []
-      summary: Update user password detail
+      summary: Get user email existence
       tags:
       - Users
   /stack-templates:

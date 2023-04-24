@@ -41,10 +41,18 @@ type VerifyIdentityForLostPasswordRequest struct {
 	AccountId      string `json:"accountId" validate:"required"`
 }
 
+type VerifyIdentityForLostIdResponse struct {
+	ValidityPeriod string `json:"validityPeriod"`
+}
+
 type FindPasswordRequest struct {
 	OrganizationId string `json:"organizationId" validate:"required"`
 	Email          string `json:"email" validate:"required,email"`
 	UserName       string `json:"userName" validate:"required"`
 	AccountId      string `json:"accountId" validate:"required"`
 	Code           string `json:"code" validate:"required"`
+}
+
+type VerifyIdentityForLostPasswordResponse struct {
+	ValidityPeriod string `json:"validityPeriod"`
 }

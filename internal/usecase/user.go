@@ -23,10 +23,17 @@ type IUserUsecase interface {
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
 	List(ctx context.Context, organizationId string) (*[]domain.User, error)
+	Get(userId uuid.UUID) (*domain.User, error)
+	Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error)
+	Delete(userId uuid.UUID, organizationId string) error
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
+	GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error)
+
 	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
 	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
+	ValidateAccount(userId uuid.UUID, password string, organizationId string) error
+	ValidateAccountByAccountId(accountId string, password string, organizationId string) error
 
 	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 }
@@ -34,6 +41,20 @@ type IUserUsecase interface {
 type UserUsecase struct {
 	repo repository.IUserRepository
 	kc   keycloak.IKeycloak
+}
+
+func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		return err
+	}
+	_, err = u.kc.Login(user.AccountId, password, organizationId)
+	return err
+}
+
+func (u *UserUsecase) ValidateAccountByAccountId(accountId string, password string, organizationId string) error {
+	_, err := u.kc.Login(organizationId, accountId, password)
+	return err
 }
 
 func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) error {
@@ -195,6 +216,18 @@ func (u *UserUsecase) List(ctx context.Context, organizationId string) (*[]domai
 	return users, nil
 }
 
+func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return nil, httpErrors.NewBadRequestError(fmt.Errorf("user not found"))
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error) {
 	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
 		u.repo.AccountIdFilter(accountId))
@@ -203,6 +236,26 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, orga
 	}
 
 	return &(*users)[0], nil
+}
+
+func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error) {
+	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
+		u.repo.EmailFilter(email))
+	if err != nil {
+		return nil, err
+	}
+
+	return &(*users)[0], nil
+}
+
+func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error) {
+	storedUser, err := u.Get(userId)
+	if err != nil {
+		return nil, err
+	}
+	user.AccountId = storedUser.AccountId
+
+	return u.UpdateByAccountId(ctx, storedUser.AccountId, user)
 }
 
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
@@ -215,6 +268,19 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if err != nil {
 		return nil, httpErrors.NewBadRequestError(httpErrors.BadRequest)
 	}
+
+	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId)
+	if err != nil {
+		return nil, err
+	}
+	if *originUser.Email != user.Email {
+		originUser.Email = gocloak.StringP(user.Email)
+		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
@@ -250,6 +316,25 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	return user, nil
 }
 
+func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("not found user"))
+	}
+
+	err = u.repo.DeleteWithUuid(userId)
+	if err != nil {
+		return err
+	}
+
+	// Delete user in keycloak
+	err = u.kc.DeleteUser(organizationId, user.AccountId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error {
 	user, err := u.repo.Get(accountId, organizationId)
 	if err != nil {
@@ -286,6 +371,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 				Temporary: gocloak.BoolP(false),
 			},
 		},
+		Email:  gocloak.StringP(user.Email),
 		Groups: &groups,
 	})
 	if err != nil {
@@ -337,6 +423,18 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
 		return nil, fmt.Errorf("user in the context is  empty")
+	}
+
+	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId)
+	if err != nil {
+		return nil, err
+	}
+	if *originUser.Email != user.Email {
+		originUser.Email = gocloak.StringP(user.Email)
+		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),

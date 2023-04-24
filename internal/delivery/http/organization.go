@@ -35,7 +35,6 @@ func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUseca
 // @Router /organizations [post]
 // @Security     JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
-	log.Info("called Create")
 	input := domain.CreateOrganizationRequest{}
 
 	err := UnmarshalRequestInput(r, &input)

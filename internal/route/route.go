@@ -45,9 +45,6 @@ func (r *StatusRecorder) WriteHeader(status int) {
 
 func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, kc keycloak.IKeycloak) http.Handler {
 	r := mux.NewRouter()
-	authMiddleware := auth.NewAuthMiddleware(
-		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
-		authorizer.NewDefaultAuthorization(db))
 
 	repoFactory := repository.Repository{
 		Auth:          repository.NewAuthRepository(db),
@@ -60,6 +57,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		History:       repository.NewHistoryRepository(db),
 	}
+	authMiddleware := auth.NewAuthMiddleware(
+		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
+		authorizer.NewDefaultAuthorization(repoFactory))
+
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
 
 	r.Use(loggingMiddleware)
@@ -70,20 +71,25 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", authMiddleware.Handle(http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/refresh", authMiddleware.Handle(http.HandlerFunc(authHandler.RefreshToken))).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id", authHandler.FindId).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password", authHandler.FindPassword).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/verify-identity-for-lost-id", authHandler.VerifyIdentityForLostId).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/verify-identity-for-lost-password", authHandler.VerifyIdentityForLostPassword).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id/verification", authHandler.FindId).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password/verification", authHandler.FindPassword).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id/code", authHandler.VerifyIdentityForLostId).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password/code", authHandler.VerifyIdentityForLostPassword).Methods(http.MethodPost)
 
 	userHandler := delivery.NewUserHandler(usecase.NewUserUsecase(repoFactory, kc))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", authMiddleware.Handle(http.HandlerFunc(userHandler.Create))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", authMiddleware.Handle(http.HandlerFunc(userHandler.List))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Get))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Delete))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Update))).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdateByAdmin))).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/password", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdatePassword))).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Delete))).Methods(http.MethodDelete)
+
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", authMiddleware.Handle(http.HandlerFunc(userHandler.GetMyProfile))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdateMyProfile))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile/password", authMiddleware.Handle(http.HandlerFunc(userHandler.UpdateMyPassword))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", authMiddleware.Handle(http.HandlerFunc(userHandler.DeleteMyProfile))).Methods(http.MethodDelete)
+
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/accountId/{accountId}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/email/{email}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckEmail))).Methods(http.MethodGet)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repoFactory, argoClient, kc), usecase.NewUserUsecase(repoFactory, kc))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", authMiddleware.Handle(http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)

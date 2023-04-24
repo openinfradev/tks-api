@@ -75,6 +75,11 @@ func (k *Keycloak) InitializeKeycloak() error {
 		log.Fatal(err)
 		return err
 	}
+	// Initialize Master realm
+	err = k.client.UpdateRealm(ctx, token.AccessToken, defaultRealmSetting(DefaultMasterRealm))
+	if err != nil {
+		return err
+	}
 
 	group, err := k.ensureGroupByName(ctx, token, DefaultMasterRealm, "tks-admin@master")
 	if err != nil {
@@ -143,12 +148,7 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 	}
 	accessToken := token.AccessToken
 
-	realmConfig := gocloak.RealmRepresentation{
-		Realm:               &organizationId,
-		Enabled:             gocloak.BoolP(true),
-		AccessTokenLifespan: gocloak.IntP(accessTokenLifespan),
-	}
-	realmUUID, err := k.client.CreateRealm(ctx, accessToken, realmConfig)
+	realmUUID, err := k.client.CreateRealm(ctx, accessToken, defaultRealmSetting(organizationId))
 	if err != nil {
 		return "", err
 	}
@@ -722,4 +722,14 @@ var defaultProtocolTksMapper = []gocloak.ProtocolMapperRepresentation{
 			"userinfo.token.claim": "false",
 		},
 	},
+}
+
+func defaultRealmSetting(realmId string) gocloak.RealmRepresentation {
+	return gocloak.RealmRepresentation{
+		Realm:                 gocloak.StringP(realmId),
+		Enabled:               gocloak.BoolP(true),
+		AccessTokenLifespan:   gocloak.IntP(accessTokenLifespan),
+		SsoSessionIdleTimeout: gocloak.IntP(ssoSessionIdleTimeout),
+		SsoSessionMaxLifespan: gocloak.IntP(ssoSessionMaxLifespan),
+	}
 }

@@ -1,10 +1,11 @@
 package http
 
 import (
+	"fmt"
+	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"net/http"
-
 	"github.com/openinfradev/tks-api/pkg/log"
+	"net/http"
 
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -109,13 +110,14 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 // FindId godoc
 // @Tags Auth
-// @Summary FindId
-// @Description Request to find id
+// @Summary Request to find forgotten ID
+// @Description This API allows users to find their account ID by submitting required information
 // @Accept json
 // @Produce json
-// @Param body body domain.FindIdRequest true "return account id"
+// @Param body body domain.FindIdRequest true "Request body for finding the account ID including {organization ID, email, username, 6 digit code}"
 // @Success 200 {object} domain.FindIdResponse
-// auth/find-id
+// @Failure 400 {object} httpErrors.RestError
+// @Router /auth/find-id/verification [post]
 func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -139,13 +141,14 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 
 // FindPassword godoc
 // @Tags Auth
-// @Summary FindPassword
-// @Description Request to find password
+// @Summary Request to find forgotten password
+// @Description This API allows users to reset their forgotten password by submitting required information
 // @Accept json
 // @Produce json
-// @Param body body domain.FindPasswordRequest true "temporary password sent to email"
+// @Param body body domain.FindPasswordRequest true "Request body for finding the password including {organization ID, email, username, Account ID, 6 digit code}"
 // @Success 200
-// auth/find-password
+// @Failure 400 {object} httpErrors.RestError
+// @Router /auth/find-password/verification [post]
 func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -166,13 +169,14 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 
 // VerifyIdentityForLostId godoc
 // @Tags Auth
-// @Summary VerifyIdentityForLostId
-// @Description VerifyIdentity for lost id
+// @Summary Request to verify identity for lost id
+// @Description This API allows users to verify their identity for lost id by submitting required information
 // @Accept json
 // @Produce json
-// @Param body body domain.VerifyIdentityForLostIdRequest true "send code to verify identity via email"
-// @Success 200
-// @Router /auth/verify-identity-for-lost-id [post]
+// @Param body body domain.VerifyIdentityForLostIdRequest true "Request body for verifying identity for lost id including {organization ID, email, username}"
+// @Success 200 {object} domain.VerifyIdentityForLostIdResponse
+// @Failure 400 {object} httpErrors.RestError
+// @Router /auth/find-id/code [post]
 func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Request) {
 	input := domain.VerifyIdentityForLostIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -187,19 +191,22 @@ func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Req
 		ErrorJSON(w, err)
 		return
 	}
+	var out domain.VerifyIdentityForLostIdResponse
+	out.ValidityPeriod = fmt.Sprintf("%.0f", internal.EmailCodeExpireTime.Seconds())
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // VerifyIdentityForLostPassword godoc
 // @Tags Auth
-// @Summary VerifyIdentityForLostPassword
-// @Description VerifyIdentity for lost password
+// @Summary Request to verify identity for lost password
+// @Description This API allows users to verify their identity for lost password by submitting required information
 // @Accept json
 // @Produce json
-// @Param body body domain.VerifyIdentityForLostPasswordRequest true "send code to verify identity via email"
-// @Success 200
-// @Router /auth/verify-identity-for-lost-password [post]
+// @Param body body domain.VerifyIdentityForLostPasswordRequest true "Request body for verifying identity for lost password including {organization ID, email, username, Account ID}"
+// @Success 200 {object} domain.VerifyIdentityForLostPasswordResponse
+// @Failure 400 {object} httpErrors.RestError
+// @Router /auth/find-password/code [post]
 func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *http.Request) {
 	input := domain.VerifyIdentityForLostPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -214,6 +221,8 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 		ErrorJSON(w, err)
 		return
 	}
+	var out domain.VerifyIdentityForLostPasswordResponse
+	out.ValidityPeriod = fmt.Sprintf("%.0f", internal.EmailCodeExpireTime.Seconds())
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, http.StatusOK, out)
 }

@@ -30,7 +30,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 			return
 		}
 		if helper.IsDurationExpired(storedUser.PasswordUpdatedAt, internal.PasswordExpiredDuration) {
-			allowedUrl := internal.API_PREFIX + internal.API_VERSION + "/organizations/" + requestUserInfo.GetOrganizationId() + "/users/" + storedUser.AccountId + "/password"
+			allowedUrl := internal.API_PREFIX + internal.API_VERSION + "/organizations/" + requestUserInfo.GetOrganizationId() + "/my-profile" + "/password"
 			if !(r.URL.Path == allowedUrl && r.Method == http.MethodPut) {
 				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired")))
 				return
