@@ -11,6 +11,8 @@ type AppServeApp struct {
 	ID string `gorm:"primarykey" json:"id,omitempty"`
 	// application name
 	Name string `json:"name,omitempty"`
+	// application namespace
+	Namespace string `json:"namespace,omitempty"`
 	// contract_id is a contract ID which this app belongs to
 	OrganizationId string `json:"organization_id,omitempty"`
 	// type (build/deploy/all)
@@ -88,18 +90,18 @@ func (t *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
 type CreateAppServeAppRequest struct {
 	// App
 	Name            string `json:"name" validate:"required"`
-	OrganizationId  string `json:"organization_id" validate:"required"`
-	Type            string `json:"type" validate:"oneof=build deploy all"`
-	AppType         string `json:"app_type" validate:"oneof=spring springboot"`
+	Namespace       string `json:"namespace"`
+	Type            string `json:"type" `    // build deploy all
+	AppType         string `json:"app_type"` // springboot spring
 	TargetClusterId string `json:"target_cluster_id" validate:"required"`
 
 	// Task
 	Version        string `json:"version"`
-	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
+	Strategy       string `json:"strategy"` // rolling-update blue-green canary
 	ArtifactUrl    string `json:"artifact_url"`
 	ImageUrl       string `json:"image_url"`
 	ExecutablePath string `json:"executable_path"`
-	ResourceSpec   string `json:"resource_spec"`
+	ResourceSpec   string `json:"resource_spec"` // tiny medium large
 	Profile        string `json:"profile"`
 	AppConfig      string `json:"app_config"`
 	AppSecret      string `json:"app_secret"`
@@ -110,6 +112,33 @@ type CreateAppServeAppRequest struct {
 	PvAccessMode   string `json:"pv_access_mode"`
 	PvSize         string `json:"pv_size"`
 	PvMountPath    string `json:"pv_mount_path"`
+}
+
+func (c *CreateAppServeAppRequest) SetDefaultValue() {
+	if c.Namespace == "" {
+		c.Namespace = c.Name
+	}
+	if c.Type == "" {
+		c.Type = "all"
+	}
+	if c.AppType == "" {
+		c.AppType = "springboot"
+	}
+	if c.Version == "" {
+		c.Version = "1"
+	}
+	if c.Strategy == "" {
+		c.Strategy = "rolling-update"
+	}
+	if c.ResourceSpec == "" {
+		c.ResourceSpec = "medium"
+	}
+	if c.Profile == "" {
+		c.Profile = "default"
+	}
+	if c.Port == "" {
+		c.Port = "8080"
+	}
 }
 
 type CreateAppServeAppResponse struct {
