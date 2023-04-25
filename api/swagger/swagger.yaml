@@ -25,6 +25,8 @@ definitions:
         type: array
       alertType:
         type: string
+      closedAt:
+        type: string
       clusterId:
         type: string
       createdAt:
@@ -32,6 +34,8 @@ definitions:
       creator:
         $ref: '#/definitions/domain.SimpleUserResponse'
       description:
+        type: string
+      firedAt:
         type: string
       grafanaUrl:
         type: string
@@ -41,6 +45,12 @@ definitions:
         type: string
       organizationId:
         type: string
+      processingSec:
+        type: integer
+      takedAt:
+        type: string
+      takedSec:
+        type: integer
       updatedAt:
         type: string
       updator:

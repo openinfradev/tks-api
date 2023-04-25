@@ -2450,6 +2450,9 @@ const docTemplate = `{
                 "alertType": {
                     "type": "string"
                 },
+                "closedAt": {
+                    "type": "string"
+                },
                 "clusterId": {
                     "type": "string"
                 },
@@ -2460,6 +2463,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "firedAt": {
                     "type": "string"
                 },
                 "grafanaUrl": {
@@ -2473,6 +2479,15 @@ const docTemplate = `{
                 },
                 "organizationId": {
                     "type": "string"
+                },
+                "processingSec": {
+                    "type": "integer"
+                },
+                "takedAt": {
+                    "type": "string"
+                },
+                "takedSec": {
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
