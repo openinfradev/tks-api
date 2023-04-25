@@ -257,6 +257,7 @@ func (h *AppGroupHandler) UpdateApplication(w http.ResponseWriter, r *http.Reque
 	if err := domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
+	dto.AppGroupId = appGroupId
 
 	err = h.usecase.UpdateApplication(dto)
 	if err != nil {

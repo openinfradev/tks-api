@@ -176,10 +176,9 @@ type CreateAppGroupResponse struct {
 }
 
 type UpdateApplicationRequest struct {
-	AppGroupId      AppGroupId `json:"appGroupId"`
-	ApplicationType string     `json:"applicationType"`
-	Endpoint        string     `json:"endpoint"`
-	Metadata        string     `json:"metadata"`
+	ApplicationType string `json:"applicationType"`
+	Endpoint        string `json:"endpoint"`
+	Metadata        string `json:"metadata"`
 }
 
 type GetAppGroupsResponse struct {

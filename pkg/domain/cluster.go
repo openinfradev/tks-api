@@ -101,17 +101,17 @@ func (m *ClusterConf) SetDefault() {
 }
 
 type CreateClusterRequest struct {
-	OrganizationId      string `json:"organizationId"`
-	StackTemplateId     string `json:"stackTemplateId"`
-	Name                string `json:"name"`
+	OrganizationId      string `json:"organizationId" validate:"required"`
+	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
+	Name                string `json:"name" validate:"required"`
 	Description         string `json:"description"`
-	CloudAccountId      string `json:"cloudAccountId"`
-	CpNodeCnt           int    `json:"cpNodeCnt"`
-	CpNodeMachineType   string `json:"cpNodeMachineType"`
-	TksNodeCnt          int    `json:"tksNodeCnt"`
-	TksNodeMachineType  string `json:"tksNodeMachineType"`
-	UserNodeCnt         int    `json:"userNodeCnt"`
-	UserNodeMachineType string `json:"userNodeMachineType"`
+	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
+	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
+	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
+	TksNodeCnt          int    `json:"tksNodeCnt" validate:"required,min=3,max=6"`
+	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
+	UserNodeCnt         int    `json:"userNodeCnt" validate:"required,min=0,max=100"`
+	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
 }
 
 type CreateClusterResponse struct {

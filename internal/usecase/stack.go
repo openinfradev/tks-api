@@ -88,6 +88,11 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template))
 	}
 
+	var stackConf domain.StackConfResponse
+	if err = domain.Map(dto.Conf, &stackConf); err != nil {
+		log.Info(err)
+	}
+
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
@@ -97,7 +102,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"cloud_account_id=" + dto.CloudAccountId.String(),
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
-			"infra_conf=" + strings.Replace(helper.ModelToJson(dto.Conf), "\"", "\\\"", -1),
+			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
 		},
 	})
 	if err != nil {

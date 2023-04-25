@@ -465,13 +465,24 @@ definitions:
       stackTemplateId:
         type: string
       tksNodeCnt:
+        maximum: 6
+        minimum: 3
         type: integer
       tksNodeMachineType:
         type: string
       userNodeCnt:
+        maximum: 100
+        minimum: 0
         type: integer
       userNodeMachineType:
         type: string
+    required:
+    - cloudAccountId
+    - name
+    - organizationId
+    - stackTemplateId
+    - tksNodeCnt
+    - userNodeCnt
     type: object
   domain.CreateClusterResponse:
     properties:
@@ -1141,8 +1152,6 @@ definitions:
     type: object
   domain.UpdateApplicationRequest:
     properties:
-      appGroupId:
-        type: string
       applicationType:
         type: string
       endpoint:

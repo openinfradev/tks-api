@@ -2844,6 +2844,14 @@ const docTemplate = `{
         },
         "domain.CreateClusterRequest": {
             "type": "object",
+            "required": [
+                "cloudAccountId",
+                "name",
+                "organizationId",
+                "stackTemplateId",
+                "tksNodeCnt",
+                "userNodeCnt"
+            ],
             "properties": {
                 "cloudAccountId": {
                     "type": "string"
@@ -2867,13 +2875,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tksNodeCnt": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 6,
+                    "minimum": 3
                 },
                 "tksNodeMachineType": {
                     "type": "string"
                 },
                 "userNodeCnt": {
-                    "type": "integer"
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
                 },
                 "userNodeMachineType": {
                     "type": "string"
@@ -3885,9 +3897,6 @@ const docTemplate = `{
         "domain.UpdateApplicationRequest": {
             "type": "object",
             "properties": {
-                "appGroupId": {
-                    "type": "string"
-                },
                 "applicationType": {
                     "type": "string"
                 },
