@@ -160,7 +160,7 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/alerts/{alertId} [put]
 // @Security     JWT
 func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
-	fmt.Errorf("Need implementation")
+	ErrorJSON(w, fmt.Errorf("Need implementation"))
 }
 
 // DeleteAlert godoc
@@ -175,7 +175,7 @@ func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/alerts/{alertId} [delete]
 // @Security     JWT
 func (h *AlertHandler) DeleteAlert(w http.ResponseWriter, r *http.Request) {
-	fmt.Errorf("Need implementation")
+	ErrorJSON(w, fmt.Errorf("Need implementation"))
 }
 
 func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
