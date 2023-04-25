@@ -243,7 +243,6 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 
 	var task domain.AppServeAppTask
-	var latestTask domain.AppServeAppTask
 	//tasks := app.AppServeAppTasks
 	//sort.Slice(tasks, func(i, j int) bool {
 	//	return tasks[i].CreatedAt.String() > tasks[j].CreatedAt.String()
@@ -260,7 +259,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//}
 
 	// priority: 3. previous task
-	latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
+	var latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
 	if err = domain.Map(latestTask, &task); err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
