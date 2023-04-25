@@ -23,7 +23,7 @@ type IAppServeAppUsecase interface {
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
-	UpdateAppServeApp(app *domain.AppServeAppTask) (ret string, err error)
+	UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error)
 	UpdateAppServeAppEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
 	PromoteAppServeApp(appId string) (ret string, err error)
 	AbortAppServeApp(appId string) (ret string, err error)
@@ -210,11 +210,11 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 
 	appTask := &domain.AppServeAppTask{
 		AppServeAppId: app.ID,
-		Version:       "",
-		ArtifactUrl:   "",
-		ImageUrl:      "",
+		Version:       strconv.Itoa(len(app.AppServeAppTasks) + 1),
+		ArtifactUrl:   app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ArtifactUrl,
+		ImageUrl:      app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ImageUrl,
 		Status:        "DELETING",
-		Profile:       "",
+		Profile:       app.AppServeAppTasks[len(app.AppServeAppTasks)-1].Profile,
 		Output:        "",
 		CreatedAt:     time.Now(),
 	}
@@ -233,6 +233,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		Parameters: []string{
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
 			"organization_id=" + app.OrganizationId,
@@ -249,7 +250,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) (ret string, err error) {
+func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error) {
 	if appTask == nil {
 		return "", errors.New("invalid parameters. appTask is nil")
 	}
@@ -265,10 +266,10 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 			"\n\t- rolling-update\n\t- blue-green\n\t- canary")
 	}
 
-	app, err := u.repo.GetAppServeAppById(appTask.AppServeAppId)
-	if err != nil {
-		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
-	}
+	//app, err := u.repo.GetAppServeAppById(appTask.AppServeAppId)
+	//if err != nil {
+	//	return "", fmt.Errorf("error while getting ASA Info from DB. Error: %v", err)
+	//}
 
 	if app.Type != "deploy" {
 		// Construct imageUrl
@@ -306,6 +307,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
 			"artifact_url=" + appTask.ArtifactUrl,
@@ -332,8 +334,14 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 	}
 	log.Info("Successfully submitted workflow: ", workflowId)
 
-	return fmt.Sprintf("The app '%s' is being updated. "+
-		"Confirm result by checking the app status after a while.", app.Name), nil
+	var message string
+	if appTask.Strategy == "rolling-update" {
+		message = fmt.Sprintf("The app '%s' is successfully updated", app.Name)
+	} else {
+		message = fmt.Sprintf("The app '%s' is being updated. "+
+			"Confirm result by checking the app status after a while.", app.Name)
+	}
+	return message, nil
 }
 
 func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err error) {
@@ -342,7 +350,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "WAIT_FOR_PROMOTE" {
+	if app.Status != "WAIT_FOR_PROMOTE" && app.Status != "PROMOTE_FAILED" {
 		return "", fmt.Errorf("the app is not in 'WAIT_FOR_PROMOTE' state. Exiting")
 	}
 
@@ -360,6 +368,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
 		},
@@ -380,7 +389,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "WAIT_FOR_PROMOTE" && app.Status != "BLUEGREEN_FAILED" {
+	if app.Status != "WAIT_FOR_PROMOTE" && app.Status != "ABORT_FAILED" {
 		return "", fmt.Errorf("the app is not in blue-green related state. Exiting")
 	}
 
@@ -399,6 +408,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
 		},

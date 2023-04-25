@@ -14,22 +14,22 @@ type AppServeApp struct {
 	// application namespace
 	Namespace string `json:"namespace,omitempty"`
 	// contract_id is a contract ID which this app belongs to
-	OrganizationId string `json:"organization_id,omitempty"`
+	OrganizationId string `json:"organizationId,omitempty"`
 	// type (build/deploy/all)
 	Type string `json:"type,omitempty"`
 	// app_type (spring/springboot)
-	AppType string `json:"app_type,omitempty"`
+	AppType string `json:"appType,omitempty"`
 	// endpoint URL of deployed app
-	EndpointUrl string `json:"endpoint_url,omitempty"`
+	EndpointUrl string `json:"endpointUrl,omitempty"`
 	// preview svc endpoint URL in B/G deployment
-	PreviewEndpointUrl string `json:"preview_endpoint_url,omitempty"`
+	PreviewEndpointUrl string `json:"previewEndpointUrl,omitempty"`
 	// target cluster to which the app is deployed
-	TargetClusterId string `json:"target_cluster_id,omitempty"`
+	TargetClusterId string `json:"targetClusterId,omitempty"`
 	// status is status of deployed app
 	Status string `json:"status,omitempty"`
 	// created_at is a creatioin timestamp for the application
-	CreatedAt        time.Time         `gorm:"autoCreateTime:false" json:"created_at" `
-	UpdatedAt        *time.Time        `gorm:"autoUpdateTime:false" json:"updated_at"`
+	CreatedAt        time.Time         `gorm:"autoCreateTime:false" json:"createdAt" `
+	UpdatedAt        *time.Time        `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt        *time.Time        `json:"deleted_at"`
 	AppServeAppTasks []AppServeAppTask `gorm:"foreignKey:AppServeAppId" json:"app_serve_app_tasks"`
 }
@@ -161,16 +161,11 @@ type UpdateAppServeAppEndpointRequest struct {
 
 type UpdateAppServeAppRequest struct {
 	// App
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	OrganizationId  string `json:"organization_id"`
-	Type            string `json:"type"`
-	AppType         string `json:"app_type"`
-	TargetClusterId string `json:"target_cluster_id"`
+	Type    string `json:"type"`
+	AppType string `json:"app_type"`
 
 	// Task
-	Version        string `json:"version"`
-	Strategy       string `json:"strategy" validate:"oneof=rolling-update blue-green canary"`
+	Strategy       string `json:"strategy"`
 	ArtifactUrl    string `json:"artifact_url"`
 	ImageUrl       string `json:"image_url"`
 	ExecutablePath string `json:"executable_path"`
@@ -180,15 +175,31 @@ type UpdateAppServeAppRequest struct {
 	AppSecret      string `json:"app_secret"`
 	ExtraEnv       string `json:"extra_env"`
 	Port           string `json:"port"`
-	PvEnabled      bool   `json:"pv_enabled"`
-	PvStorageClass string `json:"pv_storage_class"`
-	PvAccessMode   string `json:"pv_access_mode"`
-	PvSize         string `json:"pv_size"`
-	PvMountPath    string `json:"pv_mount_path"`
 
 	// Update Strategy
 	Promote bool `json:"promote"`
 	Abort   bool `json:"abort"`
+}
+
+func (u *UpdateAppServeAppRequest) SetDefaultValue() {
+	if u.Type == "" {
+		u.Type = "all"
+	}
+	if u.AppType == "" {
+		u.AppType = "springboot"
+	}
+	if u.Strategy == "" {
+		u.Strategy = "rolling-update"
+	}
+	if u.ResourceSpec == "" {
+		u.ResourceSpec = "medium"
+	}
+	if u.Profile == "" {
+		u.Profile = "default"
+	}
+	if u.Port == "" {
+		u.Port = "8080"
+	}
 }
 
 type GetAppServeAppsResponse struct {
