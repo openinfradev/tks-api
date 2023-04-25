@@ -11,7 +11,7 @@ import (
 )
 
 type IDashboardUsecase interface {
-	GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string) (res []domain.DashboardChart, err error)
+	GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
 }
 
 type DashboardUsecase struct {
@@ -24,7 +24,7 @@ func NewDashboardUsecase(r repository.Repository) IDashboardUsecase {
 	}
 }
 
-func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string) (out []domain.DashboardChart, err error) {
+func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
 	_, err = u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid organization")
@@ -35,7 +35,7 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 			continue
 		}
 
-		chart, err := u.getPrometheus(organizationId, strType, duration, interval)
+		chart, err := u.getPrometheus(organizationId, strType, duration, interval, year, month)
 		if err != nil {
 			log.Error(err)
 			continue
@@ -47,9 +47,10 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 	return
 }
 
-func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string) (res domain.DashboardChart, err error) {
+func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	// [TODO] get prometheus
-	if chartType == domain.ChartType_TRAFFIC.String() {
+	switch chartType {
+	case domain.ChartType_TRAFFIC.String():
 		chartData := domain.ChartData{}
 		chartData.XAxis.Data = []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 
@@ -71,6 +72,32 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 			ChartData:      chartData,
 			UpdatedAt:      time.Now(),
 		}, nil
+
+	case domain.ChartType_POD_CALENDAR.String():
+		chartData := domain.ChartData{}
+		chartData.Series = append(chartData.Series, domain.Unit{
+			Name: "date",
+			Data: []string{"2021-04-01", "2021-04-02", "2021-04-03"},
+		})
+		chartData.Series = append(chartData.Series, domain.Unit{
+			Name: "podRestartCount",
+			Data: []string{"1", "4", "0"},
+		})
+		chartData.Series = append(chartData.Series, domain.Unit{
+			Name: "totalPodCount",
+			Data: []string{"100", "120", "100"},
+		})
+		return domain.DashboardChart{
+			ChartType:      domain.ChartType_POD_CALENDAR,
+			OrganizationId: organizationId,
+			Name:           "POD 기동 현황",
+			Description:    "Pod 재기동 수 / 총 Pod 수",
+			Year:           year,
+			Month:          month,
+			ChartData:      chartData,
+			UpdatedAt:      time.Now(),
+		}, nil
+
 	}
 
 	return domain.DashboardChart{}, fmt.Errorf("No data")

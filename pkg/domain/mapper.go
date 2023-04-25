@@ -118,5 +118,11 @@ func Map(src interface{}, dst interface{}) error {
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ChartType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
 			return new(ChartType).FromString(i.(string)), nil
 		},
+		{srcType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(AlertActionStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(AlertActionStatus).FromString(i.(string)), nil
+		},
 	})
 }

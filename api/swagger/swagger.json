@@ -16,6 +16,74 @@
     "host": "tks-api-dev.taco-cat.xyz",
     "basePath": "/api/1.0/",
     "paths": {
+        "/admin/organizations/{organizationId}/alerts": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create alert. ADMIN ONLY",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Create alert. ADMIN ONLY",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/admin/organizations/{organizationId}/alerts/{alertId}/actions": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create alert action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Create alert action",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/admin/organizations/{organizationId}/users/{accountId}": {
             "put": {
                 "security": [
@@ -738,6 +806,167 @@
                         "schema": {
                             "$ref": "#/definitions/domain.Organization"
                         }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/alerts": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Alerts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Get Alerts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAlertsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/alerts/{alertId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Alert",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Get Alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "alertId",
+                        "name": "alertId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAlertResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update Alert",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Update Alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update cloud setting request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateAlertRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Alert",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Delete Alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "alertId",
+                        "name": "alertId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -2176,6 +2405,76 @@
         }
     },
     "definitions": {
+        "domain.AlertActionResponse": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "contents": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taker": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                }
+            }
+        },
+        "domain.AlertResponse": {
+            "type": "object",
+            "properties": {
+                "alertActions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AlertActionResponse"
+                    }
+                },
+                "alertType": {
+                    "type": "string"
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "grafanaUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                }
+            }
+        },
         "domain.AppGroupResponse": {
             "type": "object",
             "properties": {
@@ -3103,6 +3402,9 @@
                 "interval": {
                     "type": "string"
                 },
+                "month": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -3110,6 +3412,9 @@
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                },
+                "year": {
                     "type": "string"
                 }
             }
@@ -3134,6 +3439,25 @@
                 "sessionToken": {
                     "type": "string",
                     "maxLength": 2000
+                }
+            }
+        },
+        "domain.GetAlertResponse": {
+            "type": "object",
+            "properties": {
+                "alert": {
+                    "$ref": "#/definitions/domain.AlertResponse"
+                }
+            }
+        },
+        "domain.GetAlertsResponse": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AlertResponse"
+                    }
                 }
             }
         },
@@ -3760,6 +4084,14 @@
                     }
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateAlertRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
                     "type": "string"
                 }
             }

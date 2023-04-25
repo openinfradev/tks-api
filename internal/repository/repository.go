@@ -12,5 +12,6 @@ type Repository struct {
 	AppServeApp   IAppServeAppRepository
 	CloudAccount  ICloudAccountRepository
 	StackTemplate IStackTemplateRepository
+	Alert         IAlertRepository
 	History       IHistoryRepository
 }

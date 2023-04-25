@@ -24,8 +24,12 @@ import (
 )
 
 const (
-	API_VERSION     = "/1.0"
-	API_PREFIX      = "/api"
+	API_VERSION = "/1.0"
+	API_PREFIX  = "/api"
+
+	SYSTEM_API_VERSION = "/1.0"
+	SYSTEM_API_PREFIX  = "/system-api"
+
 	ADMINAPI_PREFIX = "/admin"
 )
 
@@ -53,6 +57,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 		AppServeApp:   repository.NewAppServeAppRepository(db),
 		CloudAccount:  repository.NewCloudAccountRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
+		Alert:         repository.NewAlertRepository(db),
 		History:       repository.NewHistoryRepository(db),
 	}
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
@@ -137,6 +142,16 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts/{chartType}", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetChart))).Methods(http.MethodGet)
 
+	alertHandler := delivery.NewAlertHandler(usecase.NewAlertUsecase(repoFactory))
+	r.Handle(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/alerts", authMiddleware.Handle(http.HandlerFunc(alertHandler.CreateAlert))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts", authMiddleware.Handle(http.HandlerFunc(alertHandler.GetAlerts))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", authMiddleware.Handle(http.HandlerFunc(alertHandler.GetAlert))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", authMiddleware.Handle(http.HandlerFunc(alertHandler.DeleteAlert))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", authMiddleware.Handle(http.HandlerFunc(alertHandler.UpdateAlert))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions", authMiddleware.Handle(http.HandlerFunc(alertHandler.CreateAlertAction))).Methods(http.MethodPost)
+	//r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions/status", authMiddleware.Handle(http.HandlerFunc(alertHandler.UpdateAlertActionStatus))).Methods(http.MethodPatch)
+
+	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
 	r.PathPrefix("/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
@@ -155,6 +170,9 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Info(fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
 
+		//xRequestID := uuid.New().String()
+		//r.Header.Set("X-REQUEST-ID", fmt.Sprint(xRequestID))
+
 		body, err := io.ReadAll(r.Body)
 		if err == nil {
 			log.Info(fmt.Sprintf("body : %s", bytes.NewBuffer(body).String()))
@@ -163,7 +181,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 
-		log.Info("***** END *****")
+		log.Infof("***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }
 

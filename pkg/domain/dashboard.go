@@ -13,7 +13,7 @@ const (
 	ChartType_CPU
 	ChartType_POD
 	ChartType_MEMORY
-	ChartType_POD_RESTART
+	ChartType_POD_CALENDAR
 	ChartType_ERROR
 )
 
@@ -23,7 +23,7 @@ var chartType = [...]string{
 	"CPU",
 	"POD",
 	"MEMORY",
-	"POD_RESTART",
+	"POD_CALENDAR",
 	"ERROR",
 }
 
@@ -53,6 +53,8 @@ type DashboardChart struct {
 	Description    string
 	Duration       string // 1d, 7d, 30d ...
 	Interval       string // 1h, 1d, ...
+	Year           string
+	Month          string
 	ChartData      ChartData
 	UpdatedAt      time.Time
 }
@@ -79,6 +81,8 @@ type DashboardChartResponse struct {
 	Description    string    `json:"description"`
 	Duration       string    `json:"duration"`
 	Interval       string    `json:"interval"`
+	Year           string    `json:"year"`
+	Month          string    `json:"month"`
 	ChartData      ChartData `json:"chartData"`
 	UpdatedAt      time.Time `json:"updatedAt"`
 }

@@ -1,5 +1,51 @@
 basePath: /api/1.0/
 definitions:
+  domain.AlertActionResponse:
+    properties:
+      alertId:
+        type: string
+      completedAt:
+        type: string
+      contents:
+        type: string
+      id:
+        type: string
+      startedAt:
+        type: string
+      status:
+        type: string
+      taker:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
+  domain.AlertResponse:
+    properties:
+      alertActions:
+        items:
+          $ref: '#/definitions/domain.AlertActionResponse'
+        type: array
+      alertType:
+        type: string
+      clusterId:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      description:
+        type: string
+      grafanaUrl:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
   domain.AppGroupResponse:
     properties:
       appGroupType:
@@ -635,11 +681,15 @@ definitions:
         type: string
       interval:
         type: string
+      month:
+        type: string
       name:
         type: string
       organizationId:
         type: string
       updatedAt:
+        type: string
+      year:
         type: string
     type: object
   domain.DeleteCloudAccountRequest:
@@ -658,6 +708,18 @@ definitions:
     required:
     - accessKeyId
     - secretAccessKey
+    type: object
+  domain.GetAlertResponse:
+    properties:
+      alert:
+        $ref: '#/definitions/domain.AlertResponse'
+    type: object
+  domain.GetAlertsResponse:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/domain.AlertResponse'
+        type: array
     type: object
   domain.GetAppGroupResponse:
     properties:
@@ -1067,6 +1129,11 @@ definitions:
       name:
         type: string
     type: object
+  domain.UpdateAlertRequest:
+    properties:
+      description:
+        type: string
+    type: object
   domain.UpdateAppServeAppEndpointRequest:
     properties:
       endpoint_url:
@@ -1357,6 +1424,48 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/organizations/{organizationId}/alerts:
+    post:
+      consumes:
+      - application/json
+      description: Create alert. ADMIN ONLY
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert. ADMIN ONLY
+      tags:
+      - Alerts
+  /admin/organizations/{organizationId}/alerts/{alertId}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Create alert action
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert action
+      tags:
+      - Alerts
   /admin/organizations/{organizationId}/users/{accountId}:
     put:
       consumes:
@@ -1811,6 +1920,108 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/alerts:
+    get:
+      consumes:
+      - application/json
+      description: Get Alerts
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAlertsResponse'
+      security:
+      - JWT: []
+      summary: Get Alerts
+      tags:
+      - Alerts
+  /organizations/{organizationId}/alerts/{alertId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Alert
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: alertId
+        in: path
+        name: alertId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Alert
+      tags:
+      - Alerts
+    get:
+      consumes:
+      - application/json
+      description: Get Alert
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: alertId
+        in: path
+        name: alertId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAlertResponse'
+      security:
+      - JWT: []
+      summary: Get Alert
+      tags:
+      - Alerts
+    put:
+      consumes:
+      - application/json
+      description: Update Alert
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAlertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Alert
+      tags:
+      - Alerts
   /organizations/{organizationId}/app-serve-apps:
     delete:
       consumes:

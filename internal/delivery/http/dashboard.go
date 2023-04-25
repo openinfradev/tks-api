@@ -52,8 +52,17 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	if interval == "" {
 		interval = "1d" // default
 	}
+	year := query.Get("year")
+	if year == "" {
+		year = "2023" // default
+	}
 
-	charts, err := h.usecase.GetCharts(organizationId, domain.ChartType_ALL, duration, interval)
+	month := query.Get("month")
+	if month == "" {
+		month = "4" // default
+	}
+
+	charts, err := h.usecase.GetCharts(organizationId, domain.ChartType_ALL, duration, interval, year, month)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -114,7 +123,17 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 		interval = "1d" // default
 	}
 
-	charts, err := h.usecase.GetCharts(organizationId, chartType, duration, interval)
+	year := query.Get("year")
+	if year == "" {
+		year = "2023" // default
+	}
+
+	month := query.Get("month")
+	if month == "" {
+		month = "4" // default
+	}
+
+	charts, err := h.usecase.GetCharts(organizationId, chartType, duration, interval, year, month)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
