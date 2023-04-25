@@ -2526,24 +2526,24 @@ const docTemplate = `{
         "domain.AppServeApp": {
             "type": "object",
             "properties": {
-                "app_serve_app_tasks": {
+                "appServeAppTasks": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.AppServeAppTask"
                     }
                 },
-                "app_type": {
+                "appType": {
                     "description": "app_type (spring/springboot)",
                     "type": "string"
                 },
-                "created_at": {
-                    "description": "created_at is a creatioin timestamp for the application",
+                "createdAt": {
+                    "description": "created_at is a creation timestamp for the application",
                     "type": "string"
                 },
                 "deleted_at": {
                     "type": "string"
                 },
-                "endpoint_url": {
+                "endpointUrl": {
                     "description": "endpoint URL of deployed app",
                     "type": "string"
                 },
@@ -2558,11 +2558,11 @@ const docTemplate = `{
                     "description": "application namespace",
                     "type": "string"
                 },
-                "organization_id": {
+                "organizationId": {
                     "description": "contract_id is a contract ID which this app belongs to",
                     "type": "string"
                 },
-                "preview_endpoint_url": {
+                "previewEndpointUrl": {
                     "description": "preview svc endpoint URL in B/G deployment",
                     "type": "string"
                 },
@@ -2570,7 +2570,7 @@ const docTemplate = `{
                     "description": "status is status of deployed app",
                     "type": "string"
                 },
-                "target_cluster_id": {
+                "targetClusterId": {
                     "description": "target cluster to which the app is deployed",
                     "type": "string"
                 },
@@ -2578,7 +2578,7 @@ const docTemplate = `{
                     "description": "type (build/deploy/all)",
                     "type": "string"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -2586,45 +2586,45 @@ const docTemplate = `{
         "domain.AppServeAppTask": {
             "type": "object",
             "properties": {
-                "app_config": {
+                "appConfig": {
                     "description": "java app config",
                     "type": "string"
                 },
-                "app_secret": {
+                "appSecret": {
                     "description": "java app secret",
                     "type": "string"
                 },
-                "app_serve_app_id": {
+                "appServeAppId": {
                     "description": "ID for appServeApp that this task belongs to.",
                     "type": "string"
                 },
-                "artifact_url": {
+                "artifactUrl": {
                     "description": "URL of java app artifact (Eg, Jar)",
                     "type": "string"
                 },
-                "created_at": {
+                "createdAt": {
                     "description": "created_at is  a creation timestamp for the application",
                     "type": "string"
                 },
-                "deleted_at": {
+                "deletedAt": {
                     "type": "string"
                 },
-                "executable_path": {
+                "executablePath": {
                     "description": "Executable path of app image",
                     "type": "string"
                 },
-                "extra_env": {
+                "extraEnv": {
                     "description": "env variable list for java app",
                     "type": "string"
                 },
-                "helm_revision": {
+                "helmRevision": {
                     "description": "revision of deployed helm release",
                     "type": "integer"
                 },
                 "id": {
                     "type": "string"
                 },
-                "image_url": {
+                "imageUrl": {
                     "description": "URL of built image for app",
                     "type": "string"
                 },
@@ -2640,22 +2640,22 @@ const docTemplate = `{
                     "description": "java app profile",
                     "type": "string"
                 },
-                "pv_access_mode": {
+                "pvAccessMode": {
                     "type": "string"
                 },
-                "pv_enabled": {
+                "pvEnabled": {
                     "type": "boolean"
                 },
-                "pv_mount_path": {
+                "pvMountPath": {
                     "type": "string"
                 },
-                "pv_size": {
+                "pvSize": {
                     "type": "string"
                 },
-                "pv_storage_class": {
+                "pvStorageClass": {
                     "type": "string"
                 },
-                "resource_spec": {
+                "resourceSpec": {
                     "description": "resource spec of app pod",
                     "type": "string"
                 },
@@ -2667,7 +2667,7 @@ const docTemplate = `{
                     "description": "deployment strategy (eg, rolling-update)",
                     "type": "string"
                 },
-                "updated_at": {
+                "updatedAt": {
                     "type": "string"
                 },
                 "version": {
@@ -3021,29 +3021,29 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "name",
-                "target_cluster_id"
+                "targetClusterId"
             ],
             "properties": {
-                "app_config": {
+                "appConfig": {
                     "type": "string"
                 },
-                "app_secret": {
+                "appSecret": {
                     "type": "string"
                 },
-                "app_type": {
+                "appType": {
                     "description": "springboot spring",
                     "type": "string"
                 },
-                "artifact_url": {
+                "artifactUrl": {
                     "type": "string"
                 },
-                "executable_path": {
+                "executablePath": {
                     "type": "string"
                 },
-                "extra_env": {
+                "extraEnv": {
                     "type": "string"
                 },
-                "image_url": {
+                "imageUrl": {
                     "type": "string"
                 },
                 "name": {
@@ -3059,22 +3059,22 @@ const docTemplate = `{
                 "profile": {
                     "type": "string"
                 },
-                "pv_access_mode": {
+                "pvAccessMode": {
                     "type": "string"
                 },
-                "pv_enabled": {
+                "pvEnabled": {
                     "type": "boolean"
                 },
-                "pv_mount_path": {
+                "pvMountPath": {
                     "type": "string"
                 },
-                "pv_size": {
+                "pvSize": {
                     "type": "string"
                 },
-                "pv_storage_class": {
+                "pvStorageClass": {
                     "type": "string"
                 },
-                "resource_spec": {
+                "resourceSpec": {
                     "description": "tiny medium large",
                     "type": "string"
                 },
@@ -3082,7 +3082,7 @@ const docTemplate = `{
                     "description": "rolling-update blue-green canary",
                     "type": "string"
                 },
-                "target_cluster_id": {
+                "targetClusterId": {
                     "type": "string"
                 },
                 "type": {
@@ -4106,19 +4106,19 @@ const docTemplate = `{
         "domain.UpdateAppServeAppEndpointRequest": {
             "type": "object",
             "required": [
-                "task_id"
+                "taskId"
             ],
             "properties": {
-                "endpoint_url": {
+                "endpointUrl": {
                     "type": "string"
                 },
-                "helm_revision": {
+                "helmRevision": {
                     "type": "integer"
                 },
-                "preview_endpoint_url": {
+                "previewEndpointUrl": {
                     "type": "string"
                 },
-                "task_id": {
+                "taskId": {
                     "type": "string"
                 }
             }
@@ -4129,35 +4129,25 @@ const docTemplate = `{
                 "abort": {
                     "type": "boolean"
                 },
-                "app_config": {
+                "appConfig": {
                     "type": "string"
                 },
-                "app_secret": {
+                "appSecret": {
                     "type": "string"
                 },
-                "app_type": {
+                "appType": {
                     "type": "string"
                 },
-                "artifact_url": {
+                "artifactUrl": {
                     "type": "string"
                 },
-                "executable_path": {
+                "executablePath": {
                     "type": "string"
                 },
-                "extra_env": {
+                "extraEnv": {
                     "type": "string"
                 },
-                "id": {
-                    "description": "App",
-                    "type": "string"
-                },
-                "image_url": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organization_id": {
+                "imageUrl": {
                     "type": "string"
                 },
                 "port": {
@@ -4170,40 +4160,15 @@ const docTemplate = `{
                     "description": "Update Strategy",
                     "type": "boolean"
                 },
-                "pv_access_mode": {
-                    "type": "string"
-                },
-                "pv_enabled": {
-                    "type": "boolean"
-                },
-                "pv_mount_path": {
-                    "type": "string"
-                },
-                "pv_size": {
-                    "type": "string"
-                },
-                "pv_storage_class": {
-                    "type": "string"
-                },
-                "resource_spec": {
+                "resourceSpec": {
                     "type": "string"
                 },
                 "strategy": {
-                    "type": "string",
-                    "enum": [
-                        "rolling-update",
-                        "blue-green",
-                        "canary"
-                    ]
-                },
-                "target_cluster_id": {
+                    "description": "Task",
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Task",
+                    "description": "App",
                     "type": "string"
                 }
             }
@@ -4212,7 +4177,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "status",
-                "task_id"
+                "taskId"
             ],
             "properties": {
                 "output": {
@@ -4221,7 +4186,7 @@ const docTemplate = `{
                 "status": {
                     "type": "string"
                 },
-                "task_id": {
+                "taskId": {
                     "type": "string"
                 }
             }
