@@ -266,7 +266,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 	_, err := u.kc.Login(user.AccountId, user.Password, userInfo.GetOrganizationId())
 	if err != nil {
-		return nil, httpErrors.NewBadRequestError(httpErrors.BadRequest)
+		return nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid password"))
 	}
 
 	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId)
