@@ -1518,48 +1518,40 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
-  /admin/organizations/{organizationId}/alerts:
-    post:
+  /admin/organizations/{organizationId}/users/{accountId}:
+    put:
       consumes:
       - application/json
-      description: Create alert. ADMIN ONLY
+      description: Update user detail
       parameters:
       - description: organizationId
         in: path
         name: organizationId
         required: true
         type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Create alert. ADMIN ONLY
-      tags:
-      - Alerts
-  /admin/organizations/{organizationId}/alerts/{alertId}/actions:
-    post:
-      consumes:
-      - application/json
-      description: Create alert action
-      parameters:
-      - description: organizationId
+      - description: accountId
         in: path
-        name: organizationId
+        name: accountId
         required: true
         type: string
+      - description: update user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
       security:
       - JWT: []
-      summary: Create alert action
+      summary: As admin, Update user detail
       tags:
-      - Alerts
+      - Admin
   /app-groups:
     delete:
       consumes:
@@ -2192,6 +2184,27 @@ paths:
       security:
       - JWT: []
       summary: Update Alert
+      tags:
+      - Alerts
+  /organizations/{organizationId}/alerts/{alertId}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Create alert action
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert action
       tags:
       - Alerts
   /organizations/{organizationId}/app-serve-apps:
@@ -3193,6 +3206,27 @@ paths:
       summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
+  /system-api/organizations/{organizationId}/alerts:
+    post:
+      consumes:
+      - application/json
+      description: Create alert. ADMIN ONLY
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert. ADMIN ONLY
+      tags:
+      - Alerts
 securityDefinitions:
   JWT:
     in: header

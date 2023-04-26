@@ -51,6 +51,9 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 	// [TODO] get prometheus
 	switch chartType {
 	case domain.ChartType_TRAFFIC.String():
+	case domain.ChartType_CPU.String():
+	case domain.ChartType_POD.String():
+	case domain.ChartType_MEMORY.String():
 		chartData := domain.ChartData{}
 		chartData.XAxis.Data = []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 
@@ -62,8 +65,9 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 			Name: "Cluster out",
 			Data: []string{"730", "860", "793", "821", "1271", "648", "927"},
 		})
+
 		return domain.DashboardChart{
-			ChartType:      domain.ChartType_TRAFFIC,
+			ChartType:      new(domain.ChartType).FromString(chartType),
 			OrganizationId: organizationId,
 			Name:           "Traffic",
 			Description:    "Traffic 통계 데이터",

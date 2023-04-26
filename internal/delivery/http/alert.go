@@ -32,9 +32,14 @@ func NewAlertHandler(h usecase.IAlertUsecase) *AlertHandler {
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Success 200 {object} nil
-// @Router /admin/organizations/{organizationId}/alerts [post]
+// @Router /system-api/organizations/{organizationId}/alerts [post]
 // @Security     JWT
 func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
+
+	/*
+		INFO[2023-04-26 18:14:11] body : {"receiver":"webhook-alert","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"TestAlert1"},"annotations":{},"startsAt":"2023-04-26T09:14:01.489894015Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"","fingerprint":"0dafe30dffce9487"}],"groupLabels":{"alertname":"TestAlert1"},"commonLabels":{"alertname":"TestAlert1"},"commonAnnotations":{},"externalURL":"http://lma-alertmanager.lma:9093","version":"4","groupKey":"{}:{alertname=\"TestAlert1\"}","truncatedAlerts":0}
+		INFO[2023-04-26 18:14:11] {"receiver":"webhook-alert","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"TestAlert1"},"annotations":{},"startsAt":"2023-04-26T09:14:01.489894015Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"","fingerprint":"0dafe30dffce9487"}],"groupLabels":{"alertname":"TestAlert1"},"commonLabels":{"alertname":"TestAlert1"},"commonAnnotations":{},"externalURL":"http://lma-alertmanager.lma:9093","version":"4","groupKey":"{}:{alertname=\"TestAlert1\"}","truncatedAlerts":0}
+	*/
 
 	// webhook 으로 부터 받은 body parse
 	bodyBytes, err := io.ReadAll(r.Body)
@@ -95,7 +100,6 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		fmt.Println("out.Alerts[i].AlertActions ", alert.AlertActions)
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
 			if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
@@ -144,6 +148,14 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	if err := domain.Map(alert, &out.Alert); err != nil {
 		log.Info(err)
 	}
+	outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
+	for j, alertAction := range alert.AlertActions {
+		if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
+			log.Info(err)
+			continue
+		}
+	}
+	out.Alert.AlertActions = outAlertActions
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -196,7 +208,7 @@ func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Success 200 {object} nil
-// @Router /admin/organizations/{organizationId}/alerts/{alertId}/actions [post]
+// @Router /organizations/{organizationId}/alerts/{alertId}/actions [post]
 // @Security     JWT
 func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

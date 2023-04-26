@@ -30,7 +30,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Create alert. ADMIN ONLY",
+                "description": "Update user detail",
                 "consumes": [
                     "application/json"
                 ],
@@ -38,9 +38,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Alerts"
+                    "Admin"
                 ],
-                "summary": "Create alert. ADMIN ONLY",
+                "summary": "As admin, Update user detail",
                 "parameters": [
                     {
                         "type": "string",
@@ -48,45 +48,30 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/admin/organizations/{organizationId}/alerts/{alertId}/actions": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Create alert action",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Alerts"
-                ],
-                "summary": "Create alert action",
-                "parameters": [
+                    },
                     {
                         "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
+                        "description": "accountId",
+                        "name": "accountId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "update user request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserByAdminRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateUserByAdminResponse"
+                        }
                     }
                 }
             }
@@ -1076,6 +1061,40 @@ const docTemplate = `{
                         "type": "string",
                         "description": "alertId",
                         "name": "alertId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/alerts/{alertId}/actions": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create alert action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Create alert action",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
                         "in": "path",
                         "required": true
                     }
@@ -2655,6 +2674,40 @@ const docTemplate = `{
                         "type": "string",
                         "description": "stackTemplateId",
                         "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/system-api/organizations/{organizationId}/alerts": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create alert. ADMIN ONLY",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "Create alert. ADMIN ONLY",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
                         "in": "path",
                         "required": true
                     }
