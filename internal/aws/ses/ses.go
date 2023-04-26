@@ -2,12 +2,14 @@ package ses
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsSes "github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var Client *awsSes.Client
@@ -16,18 +18,38 @@ const (
 	senderEmailAddress = "tks-dev@sktelecom.com"
 )
 
-func init() {
-	if viper.GetString("AWS_ACCESS_KEY_ID") != "" || viper.GetString("AWS_SECRET_ACCESS_KEY") != "" {
-		log.Warn("aws secret is used on env. Be aware of security")
-
+func Initialize() error {
+	if viper.GetString("aws-access-key-id") != "" || viper.GetString("aws-secret-access-key") != "" {
+		log.Warn("aws access key information is used on env. Be aware of security")
 	}
+	if viper.GetString("aws-access-key-id") != "" {
+		err := os.Setenv("AWS_ACCESS_KEY_ID", viper.GetString("aws-access-key-id"))
+		if err != nil {
+			return err
+		}
+	}
+	if viper.GetString("aws-secret-access-key") != "" {
+		err := os.Setenv("AWS_SECRET_ACCESS_KEY", viper.GetString("aws-secret-access-key"))
+		if err != nil {
+			return err
+		}
+	}
+	if viper.GetString("aws-region") != "" {
+		err := os.Setenv("AWS_REGION", viper.GetString("aws-region"))
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("aws region is not set")
+	}
+
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-northeast-2"))
-	//cfg, err := config.NewEnvConfig()
 	if err != nil {
-		log.Fatalf("aws configuration error, " + err.Error())
+		return err
 	}
 
 	Client = awsSes.NewFromConfig(cfg)
+	return nil
 }
 func SendEmailForVerityIdentity(client *awsSes.Client, targetEmailAddress string, code string) error {
 	subject := "[TKS][인증번호:" + code + "] – 요청하신 인증번호를 알려드립니다."

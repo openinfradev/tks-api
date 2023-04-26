@@ -21,7 +21,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 
 		storedUser, err := repo.User.GetByUuid(requestUserInfo.GetUserId())
 		if err != nil {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(err))
+			internalHttp.ErrorJSON(w, err)
 			return
 		}
 		//TODO: 임시로 admin 계정은 비밀번호 변경 기간을 무시하도록 함. 추후 설계 필요

@@ -186,7 +186,10 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 		return httpErrors.NewInternalServerError(err)
 	}
 
-	code := helper.GenerateEmailCode()
+	code, err := helper.GenerateEmailCode()
+	if err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
 	userUuid, err := uuid.Parse((*users)[0].ID)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err)

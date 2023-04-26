@@ -263,7 +263,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var user domain.User
 	if err = domain.Map(input, &user); err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		ErrorJSON(w, err)
 		return
 	}
 	user.Organization = domain.Organization{
@@ -286,7 +286,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var out domain.UpdateUserResponse
 	if err = domain.Map(*resUser, &out.User); err != nil {
 		log.Error(err)
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -318,7 +318,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetMyProfileResponse
 	if err = domain.Map(*user, &out.User); err != nil {
 		log.Error(err)
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -363,7 +363,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	var user domain.User
 	if err = domain.Map(input, &user); err != nil {
 		log.Error(err)
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		ErrorJSON(w, err)
 		return
 	}
 	user.Organization = domain.Organization{
@@ -383,7 +383,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	var out domain.UpdateMyProfileResponse
 	if err = domain.Map(*resUser, &out.User); err != nil {
 		log.Error(err)
-		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		ErrorJSON(w, err)
 		return
 	}
 

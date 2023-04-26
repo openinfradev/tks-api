@@ -44,14 +44,15 @@ func Transcode(in, out interface{}) {
 	}
 }
 
-func GenerateEmailCode() string {
+func GenerateEmailCode() (string, error) {
 	num, err := rand.Int(rand.Reader, big.NewInt(900000))
 	if err != nil {
-		panic(err)
+		log.Error(err)
+		return "", err
 	}
 	num = num.Add(num, big.NewInt(100000))
 	numString := fmt.Sprintf("%06d", num)
-	return fmt.Sprintf("%06s", numString)
+	return fmt.Sprintf("%06s", numString), nil
 }
 
 func IsDurationExpired(targetTime time.Time, duration time.Duration) bool {

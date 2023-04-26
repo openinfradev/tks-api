@@ -3021,7 +3021,7 @@ paths:
         type: string
       - description: input
         in: body
-        name: input
+        name: body
         required: true
         schema:
           $ref: '#/definitions/domain.UpdateUserRequest'

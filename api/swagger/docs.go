@@ -2438,7 +2438,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "input",
-                        "name": "input",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
