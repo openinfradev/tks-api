@@ -13,11 +13,11 @@ type AppServeApp struct {
 	Name string `json:"name,omitempty"`
 	// application namespace
 	Namespace string `json:"namespace,omitempty"`
-	// contract_id is a contract ID which this app belongs to
+	// contractId is a contract ID which this app belongs to
 	OrganizationId string `json:"organizationId,omitempty"`
 	// type (build/deploy/all)
 	Type string `json:"type,omitempty"`
-	// app_type (spring/springboot)
+	// appType (spring/springboot)
 	AppType string `json:"appType,omitempty"`
 	// endpoint URL of deployed app
 	EndpointUrl string `json:"endpointUrl,omitempty"`
@@ -27,10 +27,10 @@ type AppServeApp struct {
 	TargetClusterId string `json:"targetClusterId,omitempty"`
 	// status is status of deployed app
 	Status string `json:"status,omitempty"`
-	// created_at is a creation timestamp for the application
+	// createdAt is a creation timestamp for the application
 	CreatedAt        time.Time         `gorm:"autoCreateTime:false" json:"createdAt" `
 	UpdatedAt        *time.Time        `gorm:"autoUpdateTime:false" json:"updatedAt"`
-	DeletedAt        *time.Time        `json:"deleted_at"`
+	DeletedAt        *time.Time        `json:"deletedAt"`
 	AppServeAppTasks []AppServeAppTask `gorm:"foreignKey:AppServeAppId" json:"appServeAppTasks"`
 }
 
@@ -71,7 +71,7 @@ type AppServeAppTask struct {
 	PvAccessMode   string `json:"pvAccessMode"`
 	PvSize         string `json:"pvSize"`
 	PvMountPath    string `json:"pvMountPath"`
-	// created_at is  a creation timestamp for the application
+	// createdAt is  a creation timestamp for the application
 	CreatedAt time.Time  `gorm:"autoCreateTime:false" json:"createdAt"`
 	UpdatedAt *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt"`
