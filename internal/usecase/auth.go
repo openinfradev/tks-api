@@ -23,7 +23,7 @@ type IAuthUsecase interface {
 }
 
 const (
-	passwordLength = 16
+	passwordLength = 8
 )
 
 type AuthUsecase struct {
