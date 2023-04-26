@@ -468,7 +468,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 			"app_name=" + app.Name,
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
-			"asa_task_id=" + taskId,
+			"asa_task_id=" + newTaskId,
 			"helm_revision=" + strconv.Itoa(int(task.HelmRevision)),
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
