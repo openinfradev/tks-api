@@ -180,7 +180,15 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
 		return
 	}
-	app, _ := h.usecase.GetAppServeAppById(appId)
+	app, err := h.usecase.GetAppServeAppById(appId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		return
+	}
+	if app != nil {
+		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no appId")))
+		return
+	}
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
