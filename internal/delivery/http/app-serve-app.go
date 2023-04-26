@@ -162,7 +162,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Accept json
 // @Produce json
 // @Success 200 {object} domain.AppServeApp
-// @Router /organizations/{organizationId}/app-serve-apps/{appServeAppId} [get]
+// @Router /organizations/{organizationId}/app-serve-apps/{appId} [get]
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -180,7 +180,15 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
 		return
 	}
-	app, _ := h.usecase.GetAppServeAppById(appId)
+	app, err := h.usecase.GetAppServeAppById(appId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		return
+	}
+	if app == nil {
+		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no appId")))
+		return
+	}
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
@@ -196,7 +204,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param object body domain.UpdateAppServeAppRequest true "update appserve request"
 // @Success 200 {object} object
-// @Router /organizations/{organizationId}/app-serve-apps [put]
+// @Router /organizations/{organizationId}/app-serve-apps/{appId} [put]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -401,7 +409,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 // @Produce json
 // @Param object body string true "body"
 // @Success 200 {object} object
-// @Router /organizations/{organizationId}/app-serve-apps [delete]
+// @Router /organizations/{organizationId}/app-serve-apps/{appId} [delete]
 // @Security     JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -422,6 +430,52 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		log.Error("Failed to delete appId err : ", err)
 		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, res)
+}
+
+// RollbackAppServeApp godoc
+// @Tags AppServeApps
+// @Summary Rollback appServeApp
+// @Description Rollback appServeApp
+// @Accept json
+// @Produce json
+// @Param object body domain.RollbackAppServeAppRequest true "rollback appserve request"
+// @Success 200 {object} object
+// @Router /organizations/{organizationId}/app-serve-apps/{appId}/rollback [post]
+// @Security     JWT
+func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
+		return
+	}
+
+	appReq := domain.RollbackAppServeAppRequest{}
+	err := UnmarshalRequestInput(r, &appReq)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
+	}
+	if appReq.TaskId == "" {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("no taskId")))
+		return
+	}
+
+	res, err := h.usecase.RollbackAppServeApp(appId, appReq.TaskId)
+
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
 		return
 	}
 
