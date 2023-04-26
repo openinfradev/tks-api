@@ -62,7 +62,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 
 	/*
 		workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-			"tks-create-contract-userRepository",
+			"tks-create-contract-repo",
 			argowf.SubmitOptions{
 				Parameters: []string{
 					"contract_id=" + cloudAccountId,
