@@ -27,6 +27,7 @@ type IAppServeAppUsecase interface {
 	UpdateAppServeAppEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
 	PromoteAppServeApp(appId string) (ret string, err error)
 	AbortAppServeApp(appId string) (ret string, err error)
+	RollbackAppServeApp(appId string, taskId string) (ret string, err error)
 }
 
 type AppServeAppUsecase struct {
@@ -326,6 +327,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 			"pv_access_mode=" + appTask.PvAccessMode,
 			"pv_size=" + appTask.PvSize,
 			"pv_mount_path=" + appTask.PvMountPath,
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -371,6 +373,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -411,6 +414,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -420,4 +424,60 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
+}
+
+func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (ret string, err error) {
+	log.Info("Starting rollback process..")
+
+	app, err := u.repo.GetAppServeAppById(appId)
+	if err != nil {
+		return "", err
+	}
+
+	var task domain.AppServeAppTask
+	for _, t := range app.AppServeAppTasks {
+		if t.ID == taskId {
+			task = t
+			break
+		}
+	}
+
+	task.ID = ""
+	task.Output = ""
+	task.Status = "ROLLBACKING"
+	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
+	task.CreatedAt = time.Now()
+	task.UpdatedAt = nil
+
+	// 'Update' GRPC only creates ASA Task record
+	newTaskId, err := u.repo.CreateTask(&task)
+	if err != nil {
+		log.Info("taskId = ", newTaskId)
+		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)
+	}
+
+	// Call argo workflow
+	workflow := "rollback-java-app"
+
+	log.Info("Submitting workflow: ", workflow)
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+		Parameters: []string{
+			"organization_id=" + app.OrganizationId,
+			"target_cluster_id=" + app.TargetClusterId,
+			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
+			"asa_id=" + app.ID,
+			"asa_task_id=" + taskId,
+			"helm_revision=" + strconv.Itoa(int(task.HelmRevision)),
+			"tks_info_host=" + viper.GetString("external-address"),
+		},
+	})
+	if err != nil {
+		log.Error("Failed to submit workflow. Err:", err)
+		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
+	}
+	log.Info("Successfully submitted workflow: ", workflowId)
+
+	return fmt.Sprintf("Rollback app Request '%v' is successfully submitted", taskId), nil
 }

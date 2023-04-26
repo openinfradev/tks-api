@@ -122,6 +122,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/status", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppStatus))).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/endpoint", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppEndpoint))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/rollback", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.RollbackAppServeApp))).Methods(http.MethodPost)
 
 	cloudAccountHandler := delivery.NewCloudAccountHandler(usecase.NewCloudAccountUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.GetCloudAccounts))).Methods(http.MethodGet)

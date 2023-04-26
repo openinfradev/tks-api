@@ -202,6 +202,10 @@ func (u *UpdateAppServeAppRequest) SetDefaultValue() {
 	}
 }
 
+type RollbackAppServeAppRequest struct {
+	TaskId string `json:"taskId"`
+}
+
 type GetAppServeAppsResponse struct {
 	AppServeApps []AppServeApp `json:"appServeApps"`
 }
