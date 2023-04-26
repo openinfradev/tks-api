@@ -23,8 +23,8 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/organizations/{organizationId}/users/{accountId}": {
-            "put": {
+        "/admin/organizations/{organizationId}/alerts": {
+            "post": {
                 "security": [
                     {
                         "JWT": []
@@ -298,6 +298,163 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/find-id/code": {
+            "post": {
+                "description": "This API allows users to verify their identity for lost id by submitting required information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request to verify identity for lost id",
+                "parameters": [
+                    {
+                        "description": "Request body for verifying identity for lost id including {organization ID, email, username}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.VerifyIdentityForLostIdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.VerifyIdentityForLostIdResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpErrors.RestError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/find-id/verification": {
+            "post": {
+                "description": "This API allows users to find their account ID by submitting required information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request to find forgotten ID",
+                "parameters": [
+                    {
+                        "description": "Request body for finding the account ID including {organization ID, email, username, 6 digit code}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.FindIdRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.FindIdResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpErrors.RestError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/find-password/code": {
+            "post": {
+                "description": "This API allows users to verify their identity for lost password by submitting required information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request to verify identity for lost password",
+                "parameters": [
+                    {
+                        "description": "Request body for verifying identity for lost password including {organization ID, email, username, Account ID}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.VerifyIdentityForLostPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.VerifyIdentityForLostPasswordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpErrors.RestError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/find-password/verification": {
+            "post": {
+                "description": "This API allows users to reset their forgotten password by submitting required information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Request to find forgotten password",
+                "parameters": [
+                    {
+                        "description": "Request body for finding the password including {organization ID, email, username, Account ID, 6 digit code}",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.FindPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpErrors.RestError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "login",
@@ -334,6 +491,11 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "logout",
                 "consumes": [
                     "application/json"
@@ -1590,6 +1752,165 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/my-profile": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get my profile detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "My-profile"
+                ],
+                "summary": "Get my profile detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetMyProfileResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update my profile detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "My-profile"
+                ],
+                "summary": "Update my profile detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Required fields: password due to double-check",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateMyProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateMyProfileResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete myProfile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "My-profile"
+                ],
+                "summary": "Delete myProfile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/my-profile/password": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user password detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "My-profile"
+                ],
+                "summary": "Update user password detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update user password request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/primary-cluster": {
             "patch": {
                 "security": [
@@ -1977,6 +2298,88 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/users/accountId/{accountId}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "return true when accountId exists",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user id existence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CheckExistedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/users/email/{email}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "return true when email exists",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user email existence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CheckExistedResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/users/{accountId}": {
             "get": {
                 "security": [
@@ -2026,7 +2429,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Update user detail",
+                "description": "Update user",
                 "consumes": [
                     "application/json"
                 ],
@@ -2036,7 +2439,7 @@ const docTemplate = `{
                 "tags": [
                     "Users"
                 ],
-                "summary": "Update user detail",
+                "summary": "Update user",
                 "parameters": [
                     {
                         "type": "string",
@@ -2053,7 +2456,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "update user request",
+                        "description": "input",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -2109,100 +2512,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.User"
-                        }
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/users/{accountId}/existence": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "return true when accountId exists",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get user id existence",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "accountId",
-                        "name": "accountId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/users/{accountId}/password": {
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update user password detail",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Update user password detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "accountId",
-                        "name": "accountId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update user password request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordResponse"
                         }
                     }
                 }
@@ -2742,6 +3051,14 @@ const docTemplate = `{
                 },
                 "yAxis": {
                     "$ref": "#/definitions/domain.Axis"
+                }
+            }
+        },
+        "domain.CheckExistedResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3335,6 +3652,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "accountId",
+                "email",
                 "password",
                 "role"
             ],
@@ -3464,6 +3782,64 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.FindIdRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email",
+                "organizationId",
+                "userName"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.FindIdResponse": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.FindPasswordRequest": {
+            "type": "object",
+            "required": [
+                "accountId",
+                "code",
+                "email",
+                "organizationId",
+                "userName"
+            ],
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.GetAlertResponse": {
             "type": "object",
             "properties": {
@@ -3558,6 +3934,37 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.DashboardChartResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetMyProfileResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "department": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/domain.Role"
+                        }
                     }
                 }
             }
@@ -3806,6 +4213,9 @@ const docTemplate = `{
                         },
                         "organization": {
                             "$ref": "#/definitions/domain.Organization"
+                        },
+                        "passwordExpired": {
+                            "type": "boolean"
                         },
                         "role": {
                             "$ref": "#/definitions/domain.Role"
@@ -4228,6 +4638,61 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.UpdateMyProfileRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "department": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.UpdateMyProfileResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "department": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/domain.Role"
+                        }
+                    }
+                }
+            }
+        },
         "domain.UpdateOrganizationRequest": {
             "type": "object",
             "required": [
@@ -4284,9 +4749,6 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdatePasswordResponse": {
-            "type": "object"
-        },
         "domain.UpdatePrimaryClusterRequest": {
             "type": "object",
             "properties": {
@@ -4314,7 +4776,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateUserByAdminRequest": {
+        "domain.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -4341,75 +4803,6 @@ const docTemplate = `{
                         "admin",
                         "user"
                     ]
-                }
-            }
-        },
-        "domain.UpdateUserByAdminResponse": {
-            "type": "object",
-            "properties": {
-                "user": {
-                    "type": "object",
-                    "properties": {
-                        "accountId": {
-                            "type": "string"
-                        },
-                        "createdAt": {
-                            "type": "string"
-                        },
-                        "department": {
-                            "type": "string"
-                        },
-                        "description": {
-                            "type": "string"
-                        },
-                        "email": {
-                            "type": "string"
-                        },
-                        "id": {
-                            "type": "string"
-                        },
-                        "name": {
-                            "type": "string"
-                        },
-                        "organization": {
-                            "$ref": "#/definitions/domain.Organization"
-                        },
-                        "role": {
-                            "$ref": "#/definitions/domain.Role"
-                        },
-                        "updatedAt": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "domain.UpdateUserRequest": {
-            "type": "object",
-            "required": [
-                "password"
-            ],
-            "properties": {
-                "department": {
-                    "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
-                },
-                "description": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 0
-                },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
-                },
-                "password": {
-                    "type": "string"
                 }
             }
         },
@@ -4486,6 +4879,12 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
+                "passwordExpired": {
+                    "type": "boolean"
+                },
+                "passwordUpdatedAt": {
+                    "type": "string"
+                },
                 "role": {
                     "$ref": "#/definitions/domain.Role"
                 },
@@ -4494,6 +4893,78 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.VerifyIdentityForLostIdRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "organizationId",
+                "userName"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.VerifyIdentityForLostIdResponse": {
+            "type": "object",
+            "properties": {
+                "validityPeriod": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.VerifyIdentityForLostPasswordRequest": {
+            "type": "object",
+            "required": [
+                "accountId",
+                "email",
+                "organizationId",
+                "userName"
+            ],
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.VerifyIdentityForLostPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "validityPeriod": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpErrors.RestError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         }

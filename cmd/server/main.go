@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"net/http"
 	"strconv"
 
@@ -46,8 +47,14 @@ func init() {
 	flag.String("keycloak-password", "admin", "password of keycloak")
 	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")
 
+	// aws ses
+	flag.String("aws-region", "ap-northeast-2", "region of aws ses")
+	flag.String("aws-access-key-id", "", "access key id of aws ses")
+	flag.String("aws-secret-access-key", "", "access key of aws ses")
+
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
+
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Error(err)
 	}
@@ -111,6 +118,10 @@ func main() {
 	err = keycloak.InitializeKeycloak()
 	if err != nil {
 		log.Fatal("failed to initialize keycloak : ", err)
+	}
+	err = ses.Initialize()
+	if err != nil {
+		log.Fatal("failed to initialize ses : ", err)
 	}
 
 	route := route.SetupRouter(db, argoClient, asset, keycloak)

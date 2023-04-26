@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"gorm.io/gorm"
+	"time"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -19,6 +20,7 @@ type IUserRepository interface {
 	GetByUuid(userId uuid.UUID) (domain.User, error)
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID, email string,
 		department string, description string) (domain.User, error)
+	UpdatePassword(userId uuid.UUID, organizationId string, password string, isTemporary bool) error
 	DeleteWithUuid(uuid uuid.UUID) error
 	Flush(organizationId string) error
 
@@ -26,6 +28,8 @@ type IUserRepository interface {
 	AssignRole(accountId string, organizationId string, roleName string) error
 	AccountIdFilter(accountId string) FilterFunc
 	OrganizationFilter(organization string) FilterFunc
+	EmailFilter(email string) FilterFunc
+	NameFilter(name string) FilterFunc
 	AssignRoleWithUuid(uuid uuid.UUID, roleName string) error
 }
 
@@ -65,12 +69,14 @@ type User struct {
 	Email          string
 	Department     string
 	Description    string
+
+	PasswordUpdatedAt time.Time `json:"passwordUpdatedAt"`
 }
 
-//func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
-//	g.ID = uuid.New()
-//	return nil
-//}
+func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
+	g.PasswordUpdatedAt = time.Now()
+	return nil
+}
 
 func (r *UserRepository) Create(accountId string, organizationId string, password string, name string) (domain.User, error) {
 	newUser := User{
@@ -121,6 +127,16 @@ func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
 func (r *UserRepository) OrganizationFilter(organization string) FilterFunc {
 	return func(user *gorm.DB) *gorm.DB {
 		return user.Where("organization_id = ?", organization)
+	}
+}
+func (r *UserRepository) EmailFilter(email string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("email = ?", email)
+	}
+}
+func (r *UserRepository) NameFilter(name string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("name = ?", name)
 	}
 }
 func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
@@ -201,6 +217,28 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 		return domain.User{}, res.Error
 	}
 	return r.reflect(user), nil
+}
+func (r *UserRepository) UpdatePassword(userId uuid.UUID, organizationId string, password string, isTemporary bool) error {
+	var updateUser = User{
+		Password: password,
+	}
+	if isTemporary {
+		updateUser.PasswordUpdatedAt = time.Time{}
+	} else {
+		updateUser.PasswordUpdatedAt = time.Now()
+	}
+	res := r.db.Model(&User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
+		Select("password", "password_updated_at").Updates(updateUser)
+
+	if res.RowsAffected == 0 || res.Error != nil {
+		return httpErrors.NewNotFoundError(httpErrors.NotFound)
+	}
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+
+	return nil
 }
 func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
 	res := r.db.Unscoped().Delete(&User{}, "id = ?", uuid)
@@ -409,18 +447,19 @@ func (r *UserRepository) reflect(user User) domain.User {
 	//}
 
 	return domain.User{
-		ID:           user.ID.String(),
-		AccountId:    user.AccountId,
-		Password:     user.Password,
-		Name:         user.Name,
-		Role:         role,
-		Organization: organization,
-		Creator:      user.Creator.String(),
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
-		Email:        user.Email,
-		Department:   user.Department,
-		Description:  user.Description,
+		ID:                user.ID.String(),
+		AccountId:         user.AccountId,
+		Password:          user.Password,
+		Name:              user.Name,
+		Role:              role,
+		Organization:      organization,
+		Creator:           user.Creator.String(),
+		CreatedAt:         user.CreatedAt,
+		UpdatedAt:         user.UpdatedAt,
+		Email:             user.Email,
+		Department:        user.Department,
+		Description:       user.Description,
+		PasswordUpdatedAt: user.PasswordUpdatedAt,
 	}
 }
 

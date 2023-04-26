@@ -40,8 +40,6 @@ type Keycloak struct {
 
 func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
 	ctx := context.Background()
-	log.Info("LoginAdmin called")
-	//JWTToken, err := k.client.Login(ctx, "admin-cli", "", DefaultMasterRealm, accountId, password)
 	JWTToken, err := k.client.LoginAdmin(ctx, accountId, password, DefaultMasterRealm)
 	if err != nil {
 		log.Error(err)
@@ -75,6 +73,11 @@ func (k *Keycloak) InitializeKeycloak() error {
 	token, err := k.loginAdmin(ctx)
 	if err != nil {
 		log.Fatal(err)
+		return err
+	}
+	// Initialize Master realm
+	err = k.client.UpdateRealm(ctx, token.AccessToken, defaultRealmSetting(DefaultMasterRealm))
+	if err != nil {
 		return err
 	}
 
@@ -145,12 +148,7 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 	}
 	accessToken := token.AccessToken
 
-	realmConfig := gocloak.RealmRepresentation{
-		Realm:               &organizationId,
-		Enabled:             gocloak.BoolP(true),
-		AccessTokenLifespan: gocloak.IntP(accessTokenLifespan),
-	}
-	realmUUID, err := k.client.CreateRealm(ctx, accessToken, realmConfig)
+	realmUUID, err := k.client.CreateRealm(ctx, accessToken, defaultRealmSetting(organizationId))
 	if err != nil {
 		return "", err
 	}
@@ -724,4 +722,14 @@ var defaultProtocolTksMapper = []gocloak.ProtocolMapperRepresentation{
 			"userinfo.token.claim": "false",
 		},
 	},
+}
+
+func defaultRealmSetting(realmId string) gocloak.RealmRepresentation {
+	return gocloak.RealmRepresentation{
+		Realm:                 gocloak.StringP(realmId),
+		Enabled:               gocloak.BoolP(true),
+		AccessTokenLifespan:   gocloak.IntP(accessTokenLifespan),
+		SsoSessionIdleTimeout: gocloak.IntP(ssoSessionIdleTimeout),
+		SsoSessionMaxLifespan: gocloak.IntP(ssoSessionMaxLifespan),
+	}
 }

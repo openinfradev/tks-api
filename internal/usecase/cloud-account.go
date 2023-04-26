@@ -73,7 +73,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 			return "", fmt.Errorf("Failed to call argo workflow : %s", err)
 		}
 		log.Info("submited workflow :", workflowId)
-		if err := u.repo.InitWorkflow(cloudAccountId, workflowId); err != nil {
+		if err := u.userRepository.InitWorkflow(cloudAccountId, workflowId); err != nil {
 			return "", fmt.Errorf("Failed to initialize cloudAccount status to 'CREATING'. err : %s", err)
 		}
 	*/
