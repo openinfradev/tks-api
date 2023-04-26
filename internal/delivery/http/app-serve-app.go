@@ -185,7 +185,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		ErrorJSON(w, httpErrors.NewInternalServerError(err))
 		return
 	}
-	if app != nil {
+	if app == nil {
 		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no appId")))
 		return
 	}

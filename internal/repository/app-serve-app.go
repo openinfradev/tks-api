@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
 	"time"
 
@@ -73,12 +74,17 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
 	var app domain.AppServeApp
 
-	if err := r.db.Where("id = ?", appId).First(&app).Error; err != nil {
-		return nil, fmt.Errorf("could not find AppServeApp with ID: %s", appId)
+	res := r.db.Where("id = ?", appId).First(&app)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
 	}
 
-	err := r.db.Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks)
-	if err != nil {
+	if err := r.db.Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks); err != nil {
+		log.Debug(err)
 		return nil, err
 	}
 
