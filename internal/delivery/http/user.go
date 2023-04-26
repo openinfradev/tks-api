@@ -2,10 +2,10 @@ package http
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -234,7 +234,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Param accountId path string true "accountId"
-// @Param input body domain.UpdateUserRequest true "input"
+// @Param body body domain.UpdateUserRequest true "input"
 // @Success 200 {object} domain.UpdateUserResponse
 // @Router /organizations/{organizationId}/users/{accountId} [put]
 // @Security     JWT
