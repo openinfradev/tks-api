@@ -1410,48 +1410,6 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
-  /admin/organizations/{organizationId}/alerts:
-    post:
-      consumes:
-      - application/json
-      description: Create alert. ADMIN ONLY
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Create alert. ADMIN ONLY
-      tags:
-      - Alerts
-  /admin/organizations/{organizationId}/alerts/{alertId}/actions:
-    post:
-      consumes:
-      - application/json
-      description: Create alert action
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Create alert action
-      tags:
-      - Alerts
   /admin/organizations/{organizationId}/users/{accountId}:
     put:
       consumes:
@@ -2006,6 +1964,27 @@ paths:
       security:
       - JWT: []
       summary: Update Alert
+      tags:
+      - Alerts
+  /organizations/{organizationId}/alerts/{alertId}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Create alert action
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert action
       tags:
       - Alerts
   /organizations/{organizationId}/app-serve-apps:
@@ -2915,6 +2894,27 @@ paths:
       summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
+  /system-api/organizations/{organizationId}/alerts:
+    post:
+      consumes:
+      - application/json
+      description: Create alert. ADMIN ONLY
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert. ADMIN ONLY
+      tags:
+      - Alerts
 securityDefinitions:
   JWT:
     in: header

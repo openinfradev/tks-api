@@ -32,7 +32,7 @@ func NewAlertHandler(h usecase.IAlertUsecase) *AlertHandler {
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Success 200 {object} nil
-// @Router /admin/organizations/{organizationId}/alerts [post]
+// @Router /system-api/organizations/{organizationId}/alerts [post]
 // @Security     JWT
 func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 
@@ -196,7 +196,7 @@ func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Success 200 {object} nil
-// @Router /admin/organizations/{organizationId}/alerts/{alertId}/actions [post]
+// @Router /organizations/{organizationId}/alerts/{alertId}/actions [post]
 // @Security     JWT
 func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
