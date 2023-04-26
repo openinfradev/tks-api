@@ -1053,6 +1053,11 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.RollbackAppServeAppRequest:
+    properties:
+      taskId:
+        type: string
+    type: object
   domain.SimpleUserResponse:
     properties:
       accountId:
@@ -1518,40 +1523,6 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
-  /admin/organizations/{organizationId}/users/{accountId}:
-    put:
-      consumes:
-      - application/json
-      description: Update user detail
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: accountId
-        in: path
-        name: accountId
-        required: true
-        type: string
-      - description: update user request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
-      security:
-      - JWT: []
-      summary: As admin, Update user detail
-      tags:
-      - Admin
   /app-groups:
     delete:
       consumes:
@@ -2208,29 +2179,6 @@ paths:
       tags:
       - Alerts
   /organizations/{organizationId}/app-serve-apps:
-    delete:
-      consumes:
-      - application/json
-      description: Uninstall appServeApp
-      parameters:
-      - description: body
-        in: body
-        name: object
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Uninstall appServeApp
-      tags:
-      - AppServeApps
     get:
       consumes:
       - application/json
@@ -2279,6 +2227,46 @@ paths:
       security:
       - JWT: []
       summary: Install appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appServeApp
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Uninstall appServeApp
+      tags:
+      - AppServeApps
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AppServeApp'
+      security:
+      - JWT: []
+      summary: Get appServeApp
       tags:
       - AppServeApps
     put:
@@ -2333,6 +2321,30 @@ paths:
       summary: Update app endpoint
       tags:
       - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: Rollback appServeApp
+      parameters:
+      - description: rollback appserve request
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RollbackAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Rollback appServeApp
+      tags:
+      - AppServeApps
   /organizations/{organizationId}/app-serve-apps/{appId}/status:
     patch:
       consumes:
@@ -2360,23 +2372,6 @@ paths:
       security:
       - JWT: []
       summary: Update app status
-      tags:
-      - AppServeApps
-  /organizations/{organizationId}/app-serve-apps/{appServeAppId}:
-    get:
-      consumes:
-      - application/json
-      description: Get appServeApp by giving params
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.AppServeApp'
-      security:
-      - JWT: []
-      summary: Get appServeApp
       tags:
       - AppServeApps
   /organizations/{organizationId}/cloud-accounts:
