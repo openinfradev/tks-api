@@ -50,9 +50,10 @@ func NewUserHandler(h usecase.IUserUsecase) IUserHandler {
 // @Router /organizations/{organizationId}/users [post]
 // @Security     JWT
 func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	requestUserInfo, ok := request.UserFrom(r.Context())
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("userInfo not found in path")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
 		return
 	}
 
@@ -77,7 +78,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 	}
 	user.Organization = domain.Organization{
-		ID: requestUserInfo.GetOrganizationId(),
+		ID: organizationId,
 	}
 
 	resUser, err := u.usecase.Create(ctx, &user)
