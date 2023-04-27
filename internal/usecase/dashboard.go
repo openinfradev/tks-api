@@ -50,10 +50,12 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	// [TODO] get prometheus
 	switch chartType {
-	case domain.ChartType_TRAFFIC.String():
-	case domain.ChartType_CPU.String():
-	case domain.ChartType_POD.String():
-	case domain.ChartType_MEMORY.String():
+	case domain.ChartType_TRAFFIC.String(),
+		domain.ChartType_CPU.String(),
+		domain.ChartType_CPU.String(),
+		domain.ChartType_POD.String(),
+		domain.ChartType_MEMORY.String():
+
 		chartData := domain.ChartData{}
 		chartData.XAxis.Data = []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 
@@ -69,8 +71,8 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		return domain.DashboardChart{
 			ChartType:      new(domain.ChartType).FromString(chartType),
 			OrganizationId: organizationId,
-			Name:           "Traffic",
-			Description:    "Traffic 통계 데이터",
+			Name:           chartType,
+			Description:    chartType + " 통계 데이터",
 			Duration:       duration,
 			Interval:       interval,
 			ChartData:      chartData,
