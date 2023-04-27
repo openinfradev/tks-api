@@ -40,11 +40,13 @@ type Alert struct {
 	Description    string
 	Code           string
 	Grade          string
+	Message        string
 	ClusterId      ClusterId
 	Cluster        Cluster
 	GrafanaUrl     string
 	Status         string
 	AlertActions   []AlertAction
+	RawData        []byte
 	CreatorId      *uuid.UUID
 	Creator        User
 	UpdatorId      *uuid.UUID
@@ -64,11 +66,52 @@ type AlertAction struct {
 	CompletedAt time.Time
 }
 
+type CreateAlertRequestAlert struct {
+	Status       string    `json:"status"`
+	GeneratorURL string    `json:"generatorURL"`
+	FingerPrint  string    `json:"fingerprint"`
+	StartsAt     time.Time `json:"startsAt"`
+	EndsAt       time.Time `json:"endsAt"`
+	Labels       struct {
+		AlertName   string `json:"alertname"`
+		Container   string `json:"container"`
+		Endpoint    string `json:"endpoint"`
+		Instance    string `json:"instance"`
+		Job         string `json:"job"`
+		Namespace   string `json:"namespace"`
+		Pod         string `json:"pod"`
+		Prometheus  string `json:"prometheus"`
+		Service     string `json:"service"`
+		Severity    string `json:"severity"`
+		TacoCluster string `json:"taco_cluster"`
+	} `json:"labels"`
+	Annotations struct {
+		Message string `json:"message"`
+		Summary string `json:"summary"`
+	} `json:"annotations"`
+}
+
+type CreateAlertRequest struct {
+	Receiver       string                    `json:"receiver"`
+	Status         string                    `json:"status"`
+	ExternalURL    string                    `json:"externalURL"`
+	Version        string                    `json:"version"`
+	GroupKey       string                    `json:"groupKey"`
+	TruncateAlerts int                       `json:"truncateAlerts"`
+	Alerts         []CreateAlertRequestAlert `json:"alerts"`
+	GroupLabels    struct {
+		Alertname string `json:"alertname"`
+	} `json:"groupLabels"`
+	//CommonLabels      string `json:"commonLabels"`
+	//CommonAnnotations string `json:"commonAnnotations"`
+}
+
 type AlertResponse struct {
 	ID             string                `json:"id"`
 	OrganizationId string                `json:"organizationId"`
 	Name           string                `json:"name"`
 	Description    string                `json:"description"`
+	Message        string                `json:"message"`
 	Code           string                `json:"code"`
 	Grade          string                `json:"grade"`
 	Cluster        SimpleClusterResponse `json:"cluster"`
@@ -80,6 +123,8 @@ type AlertResponse struct {
 	ProcessingSec  int                   `json:"processingSec"`
 	TakedTimeSec   int                   `json:"takedSec"`
 	AlertActions   []AlertActionResponse `json:"alertActions"`
+	LastTaker      SimpleUserResponse    `json:"lastTaker"`
+	RawData        string                `json:"rawData"`
 	CreatedAt      time.Time             `json:"createdAt"`
 	UpdatedAt      time.Time             `json:"updatedAt"`
 }

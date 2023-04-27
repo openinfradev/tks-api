@@ -41,27 +41,25 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 		INFO[2023-04-26 18:14:11] {"receiver":"webhook-alert","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"TestAlert1"},"annotations":{},"startsAt":"2023-04-26T09:14:01.489894015Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"","fingerprint":"0dafe30dffce9487"}],"groupLabels":{"alertname":"TestAlert1"},"commonLabels":{"alertname":"TestAlert1"},"commonAnnotations":{},"externalURL":"http://lma-alertmanager.lma:9093","version":"4","groupKey":"{}:{alertname=\"TestAlert1\"}","truncatedAlerts":0}
 	*/
 
-	// webhook 으로 부터 받은 body parse
-	bodyBytes, err := io.ReadAll(r.Body)
+	/*
+		// webhook 으로 부터 받은 body parse
+		bodyBytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Error(err)
+		}
+		bodyString := string(bodyBytes)
+		log.Info(bodyString)
+	*/
+
+	// 외부로부터(alert manager) 오는 데이터이므로, dto 변환없이 by-pass 처리한다.
+	input := domain.CreateAlertRequest{}
+	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.Error(err)
-	}
-	bodyString := string(bodyBytes)
-	log.Info(bodyString)
-
-	dto := domain.Alert{
-		OrganizationId: "master",
-		Name:           "name",
-		Code:           "OVER_CPU",
-		Description:    "description",
-		Grade:          "CRITICAL",
-		ClusterId:      "cmsai5k5l",
-		GrafanaUrl:     "http://localhost",
-		Status:         "CREATED",
-		AlertActions:   []domain.AlertAction{},
+		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		return
 	}
 
-	err = h.usecase.Create(r.Context(), dto)
+	err = h.usecase.Create(r.Context(), input)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -99,17 +97,20 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	for i, alert := range alerts {
 		if err := domain.Map(alert, &out.Alerts[i]); err != nil {
 			log.Info(err)
-			continue
 		}
+
+		//out.Alerts[i].RawData = fmt.Sprintf("%s", alert.RawData)
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
 			if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
 				log.Info(err)
-				continue
 			}
 		}
 		out.Alerts[i].AlertActions = outAlertActions
+		if len(outAlertActions) > 0 {
+			out.Alerts[i].LastTaker = outAlertActions[0].Taker
+		}
 	}
 
 	ResponseJSON(w, http.StatusOK, out)

@@ -41,12 +41,18 @@ definitions:
         type: string
       id:
         type: string
+      lastTaker:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      message:
+        type: string
       name:
         type: string
       organizationId:
         type: string
       processingSec:
         type: integer
+      rawData:
+        type: string
       status:
         type: string
       takedAt:

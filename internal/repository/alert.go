@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -45,14 +46,12 @@ type Alert struct {
 	Code           string
 	Description    string
 	Grade          string
+	Message        string
 	ClusterId      domain.ClusterId
 	Cluster        Cluster `gorm:"foreignKey:ClusterId"`
 	GrafanaUrl     string
 	AlertActions   []AlertAction `gorm:"foreignKey:AlertId"`
-	CreatorId      *uuid.UUID    `gorm:"type:uuid"`
-	Creator        User          `gorm:"foreignKey:CreatorId"`
-	UpdatorId      *uuid.UUID    `gorm:"type:uuid"`
-	Updator        User          `gorm:"foreignKey:UpdatorId"`
+	RawData        datatypes.JSON
 }
 
 func (c *Alert) BeforeCreate(tx *gorm.DB) (err error) {
@@ -102,7 +101,9 @@ func (r *AlertRepository) GetByName(organizationId string, name string) (out dom
 
 func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err error) {
 	var alerts []Alert
-	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).Find(&alerts, "organization_id = ?", organizationId)
+	res := r.db.Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
+		return db.Order("created_at DESC")
+	}).Preload("AlertActions.Taker").Preload(clause.Associations).Find(&alerts, "organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -118,12 +119,12 @@ func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
 		Code:           dto.Code,
+		Message:        dto.Message,
 		Description:    dto.Description,
 		Grade:          dto.Grade,
 		ClusterId:      dto.ClusterId,
 		GrafanaUrl:     dto.GrafanaUrl,
-		CreatorId:      dto.CreatorId,
-		UpdatorId:      dto.UpdatorId,
+		RawData:        dto.RawData,
 	}
 	res := r.db.Create(&alert)
 	if res.Error != nil {
@@ -180,14 +181,14 @@ func reflectAlert(alert Alert) domain.Alert {
 		OrganizationId: alert.OrganizationId,
 		Name:           alert.Name,
 		Description:    alert.Description,
+		Message:        alert.Message,
 		Code:           alert.Code,
 		Grade:          alert.Grade,
 		ClusterId:      alert.ClusterId,
 		Cluster:        reflectSimpleCluster(alert.Cluster),
 		GrafanaUrl:     alert.GrafanaUrl,
 		AlertActions:   outAlertActions,
-		CreatorId:      alert.CreatorId,
-		UpdatorId:      alert.UpdatorId,
+		RawData:        alert.RawData,
 		CreatedAt:      alert.CreatedAt,
 		UpdatedAt:      alert.UpdatedAt,
 	}

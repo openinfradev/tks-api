@@ -2850,6 +2850,12 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "lastTaker": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "message": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -2858,6 +2864,9 @@ const docTemplate = `{
                 },
                 "processingSec": {
                     "type": "integer"
+                },
+                "rawData": {
+                    "type": "string"
                 },
                 "status": {
                     "type": "string"

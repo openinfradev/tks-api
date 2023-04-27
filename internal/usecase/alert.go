@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -20,7 +21,7 @@ type IAlertUsecase interface {
 	Get(alertId uuid.UUID) (domain.Alert, error)
 	GetByName(organizationId string, name string) (domain.Alert, error)
 	Fetch(organizationId string) ([]domain.Alert, error)
-	Create(ctx context.Context, dto domain.Alert) (err error)
+	Create(ctx context.Context, dto domain.CreateAlertRequest) (err error)
 	Update(ctx context.Context, dto domain.Alert) error
 	Delete(ctx context.Context, dto domain.Alert) error
 
@@ -39,12 +40,44 @@ func NewAlertUsecase(r repository.Repository) IAlertUsecase {
 	}
 }
 
-func (u *AlertUsecase) Create(ctx context.Context, dto domain.Alert) (err error) {
-	alertId, err := u.repo.Create(dto)
-	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertRequest) (err error) {
+	if input.Alerts == nil || len(input.Alerts) == 0 {
+		return fmt.Errorf("No data found")
 	}
-	log.Info("newly created alertId:", alertId)
+
+	allClusters, err := u.clusterRepo.Fetch()
+	if err != nil {
+		return fmt.Errorf("No clusters")
+	}
+
+	for _, alert := range input.Alerts {
+		organizationId, err := u.getOrganizationFromCluster(&allClusters, alert.Labels.TacoCluster)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+
+		rawData, err := json.Marshal(alert)
+		if err != nil {
+			rawData = []byte{}
+		}
+		dto := domain.Alert{
+			OrganizationId: organizationId,
+			Name:           alert.Labels.AlertName,
+			Code:           alert.Labels.AlertName,
+			Message:        alert.Annotations.Message,
+			Description:    alert.Annotations.Message,
+			Grade:          "CRITICAL",
+			ClusterId:      domain.ClusterId(alert.Labels.TacoCluster),
+			GrafanaUrl:     "http://localhost/grafana",
+			RawData:        rawData,
+		}
+
+		_, err = u.repo.Create(dto)
+		if err != nil {
+			continue
+		}
+	}
 
 	return nil
 }
@@ -131,4 +164,19 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAc
 	log.Info("newly created alertActionId:", alertActionId)
 
 	return
+}
+
+func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, strId string) (organizationId string, err error) {
+	clusterId := domain.ClusterId(strId)
+	if !clusterId.Validate() {
+		return "", fmt.Errorf("Invalid clusterId %s", strId)
+	}
+
+	for _, cluster := range *clusters {
+		if cluster.ID == clusterId {
+			return cluster.OrganizationId, nil
+		}
+	}
+
+	return "", fmt.Errorf("No martched organization %s", strId)
 }

@@ -44,6 +44,7 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
