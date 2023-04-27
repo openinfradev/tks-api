@@ -55,7 +55,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 		Code:           "OVER_CPU",
 		Description:    "description",
 		Grade:          "CRITICAL",
-		ClusterId:      "cam4rtkd0",
+		ClusterId:      "cmsai5k5l",
 		GrafanaUrl:     "http://localhost",
 		Status:         "CREATED",
 		AlertActions:   []domain.AlertAction{},
