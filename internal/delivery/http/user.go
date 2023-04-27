@@ -18,6 +18,7 @@ type IUserHandler interface {
 	Get(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
+	ResetPassword(w http.ResponseWriter, r *http.Request)
 
 	GetMyProfile(w http.ResponseWriter, r *http.Request)
 	UpdateMyProfile(w http.ResponseWriter, r *http.Request)
@@ -292,6 +293,39 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
+}
+
+// ResetPassword godoc
+// @Tags Users
+// @Summary Reset user's password as temporary password by admin
+// @Description Reset user's password as temporary password by admin and send email to user
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
+// @Success 200
+// @Router /organizations/{organizationId}/users/{accountId}/reset-password [post]
+// @Security     JWT
+func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
+		return
+	}
+
+	err := u.usecase.ResetPasswordByAccountId(accountId, organizationId)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
 }
 
 // GetMyProfile godoc

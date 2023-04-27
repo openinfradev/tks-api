@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"net/http"
 
@@ -25,6 +26,8 @@ type IUserUsecase interface {
 	List(ctx context.Context, organizationId string) (*[]domain.User, error)
 	Get(userId uuid.UUID) (*domain.User, error)
 	Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error)
+	ResetPassword(userId uuid.UUID, organizationId string) error
+	ResetPasswordByAccountId(accountId string, organizationId string) error
 	Delete(userId uuid.UUID, organizationId string) error
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error)
@@ -41,6 +44,54 @@ type IUserUsecase interface {
 type UserUsecase struct {
 	repo repository.IUserRepository
 	kc   keycloak.IKeycloak
+}
+
+func (u *UserUsecase) ResetPassword(userId uuid.UUID, organizationId string) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		return err
+	}
+	randomPassword := helper.GenerateRandomString(passwordLength)
+
+	originUser, err := u.kc.GetUser(organizationId, user.AccountId)
+	if err != nil {
+		return err
+	}
+	originUser.Credentials = &[]gocloak.CredentialRepresentation{
+		{
+			Type:      gocloak.StringP("password"),
+			Value:     gocloak.StringP(randomPassword),
+			Temporary: gocloak.BoolP(false),
+		},
+	}
+	if err = u.kc.UpdateUser(organizationId, originUser); err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
+
+	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
+	if err = u.repo.UpdatePassword(userId, organizationId, user.Password, true); err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
+
+	if err = ses.SendEmailForTemporaryPassword(ses.Client, user.Email, randomPassword); err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
+
+	return nil
+}
+
+func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId string) error {
+	user, err := u.repo.Get(accountId, organizationId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return err
+		}
+		return httpErrors.NewInternalServerError(err)
+	}
+	userId, err := uuid.Parse(user.AccountId)
+	return u.ResetPassword(userId, organizationId)
 }
 
 func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {

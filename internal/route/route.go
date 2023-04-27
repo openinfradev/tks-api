@@ -83,6 +83,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", authMiddleware.Handle(http.HandlerFunc(userHandler.List))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Get))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Update))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/reset-password", authMiddleware.Handle(http.HandlerFunc(userHandler.ResetPassword))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", authMiddleware.Handle(http.HandlerFunc(userHandler.Delete))).Methods(http.MethodDelete)
 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", authMiddleware.Handle(http.HandlerFunc(userHandler.GetMyProfile))).Methods(http.MethodGet)
