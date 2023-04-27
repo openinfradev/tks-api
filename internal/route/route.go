@@ -3,10 +3,11 @@ package route
 import (
 	"bytes"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/openinfradev/tks-api/internal"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -153,7 +154,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts/{chartType}", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetChart))).Methods(http.MethodGet)
 
 	alertHandler := delivery.NewAlertHandler(usecase.NewAlertUsecase(repoFactory))
-	r.Handle(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/alerts", authMiddleware.Handle(http.HandlerFunc(alertHandler.CreateAlert))).Methods(http.MethodPost)
+	r.HandleFunc(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/alerts", alertHandler.CreateAlert).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts", authMiddleware.Handle(http.HandlerFunc(alertHandler.GetAlerts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", authMiddleware.Handle(http.HandlerFunc(alertHandler.GetAlert))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", authMiddleware.Handle(http.HandlerFunc(alertHandler.DeleteAlert))).Methods(http.MethodDelete)
