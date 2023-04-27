@@ -20,7 +20,6 @@ require (
 	golang.org/x/crypto v0.7.0
 	gorm.io/datatypes v1.1.1
 	gorm.io/driver/postgres v1.4.5
-	gorm.io/gorm v1.24.6
 	k8s.io/apimachinery v0.24.4
 	k8s.io/client-go v0.24.4
 )
@@ -107,6 +106,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
+	gorm.io/gorm v1.25.0 // indirect
 	k8s.io/api v0.24.4 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect

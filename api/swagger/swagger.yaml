@@ -23,19 +23,19 @@ definitions:
         items:
           $ref: '#/definitions/domain.AlertActionResponse'
         type: array
-      alertType:
-        type: string
       closedAt:
         type: string
-      clusterId:
+      cluster:
+        $ref: '#/definitions/domain.SimpleClusterResponse'
+      code:
         type: string
       createdAt:
         type: string
-      creator:
-        $ref: '#/definitions/domain.SimpleUserResponse'
       description:
         type: string
       firedAt:
+        type: string
+      grade:
         type: string
       grafanaUrl:
         type: string
@@ -47,14 +47,14 @@ definitions:
         type: string
       processingSec:
         type: integer
+      status:
+        type: string
       takedAt:
         type: string
       takedSec:
         type: integer
       updatedAt:
         type: string
-      updator:
-        $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
   domain.AppGroupResponse:
     properties:
@@ -1056,6 +1056,15 @@ definitions:
   domain.RollbackAppServeAppRequest:
     properties:
       taskId:
+        type: string
+    type: object
+  domain.SimpleClusterResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
         type: string
     type: object
   domain.SimpleUserResponse:

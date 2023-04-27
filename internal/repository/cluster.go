@@ -225,9 +225,9 @@ func reflectCluster(cluster Cluster) domain.Cluster {
 		Status:          cluster.Status,
 		StatusDesc:      cluster.StatusDesc,
 		CreatorId:       cluster.CreatorId,
-		Creator:         reflectUser(cluster.Creator),
+		Creator:         reflectSimpleUser(cluster.Creator),
 		UpdatorId:       cluster.UpdatorId,
-		Updator:         reflectUser(cluster.Updator),
+		Updator:         reflectSimpleUser(cluster.Updator),
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.ClusterConf{
@@ -238,5 +238,13 @@ func reflectCluster(cluster Cluster) domain.Cluster {
 			UserNodeCnt:         int(cluster.UserNodeCnt),
 			UserNodeMachineType: cluster.UserNodeMachineType,
 		},
+	}
+}
+
+func reflectSimpleCluster(cluster Cluster) domain.Cluster {
+	return domain.Cluster{
+		ID:             cluster.ID,
+		OrganizationId: cluster.OrganizationId,
+		Name:           cluster.Name,
 	}
 }

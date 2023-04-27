@@ -38,9 +38,12 @@ type Alert struct {
 	Organization   Organization
 	Name           string
 	Description    string
-	AlertType      string
+	Code           string
+	Grade          string
 	ClusterId      ClusterId
+	Cluster        Cluster
 	GrafanaUrl     string
+	Status         string
 	AlertActions   []AlertAction
 	CreatorId      *uuid.UUID
 	Creator        User
@@ -66,17 +69,17 @@ type AlertResponse struct {
 	OrganizationId string                `json:"organizationId"`
 	Name           string                `json:"name"`
 	Description    string                `json:"description"`
-	AlertType      string                `json:"alertType"`
-	ClusterId      ClusterId             `json:"clusterId"`
+	Code           string                `json:"code"`
+	Grade          string                `json:"grade"`
+	Cluster        SimpleClusterResponse `json:"cluster"`
 	GrafanaUrl     string                `json:"grafanaUrl"`
 	FiredAt        time.Time             `json:"firedAt"`
 	TakedAt        time.Time             `json:"takedAt"`
 	ClosedAt       time.Time             `json:"closedAt"`
+	Status         string                `json:"status"`
 	ProcessingSec  int                   `json:"processingSec"`
 	TakedTimeSec   int                   `json:"takedSec"`
 	AlertActions   []AlertActionResponse `json:"alertActions"`
-	Creator        SimpleUserResponse    `json:"creator"`
-	Updator        SimpleUserResponse    `json:"updator"`
 	CreatedAt      time.Time             `json:"createdAt"`
 	UpdatedAt      time.Time             `json:"updatedAt"`
 }

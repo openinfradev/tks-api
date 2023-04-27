@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"gorm.io/gorm"
-	"time"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -474,7 +475,7 @@ func (r *UserRepository) reflectRole(role Role) domain.Role {
 	}
 }
 
-func reflectUser(user User) domain.User {
+func reflectSimpleUser(user User) domain.User {
 	return domain.User{
 		ID:          user.ID.String(),
 		AccountId:   user.AccountId,

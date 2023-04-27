@@ -194,9 +194,9 @@ func reflectAppGroup(appGroup AppGroup) domain.AppGroup {
 		CreatedAt:         appGroup.CreatedAt,
 		UpdatedAt:         appGroup.UpdatedAt,
 		CreatorId:         appGroup.CreatorId,
-		Creator:           reflectUser(appGroup.Creator),
+		Creator:           reflectSimpleUser(appGroup.Creator),
 		UpdatorId:         appGroup.UpdatorId,
-		Updator:           reflectUser(appGroup.Updator),
+		Updator:           reflectSimpleUser(appGroup.Updator),
 	}
 }
 

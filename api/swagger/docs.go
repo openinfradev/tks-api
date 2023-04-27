@@ -2742,25 +2742,25 @@ const docTemplate = `{
                         "$ref": "#/definitions/domain.AlertActionResponse"
                     }
                 },
-                "alertType": {
-                    "type": "string"
-                },
                 "closedAt": {
                     "type": "string"
                 },
-                "clusterId": {
+                "cluster": {
+                    "$ref": "#/definitions/domain.SimpleClusterResponse"
+                },
+                "code": {
                     "type": "string"
                 },
                 "createdAt": {
                     "type": "string"
                 },
-                "creator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
-                },
                 "description": {
                     "type": "string"
                 },
                 "firedAt": {
+                    "type": "string"
+                },
+                "grade": {
                     "type": "string"
                 },
                 "grafanaUrl": {
@@ -2778,6 +2778,9 @@ const docTemplate = `{
                 "processingSec": {
                     "type": "integer"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "takedAt": {
                     "type": "string"
                 },
@@ -2786,9 +2789,6 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
-                },
-                "updator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
         },
@@ -4275,6 +4275,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "taskId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SimpleClusterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
                     "type": "string"
                 }
             }

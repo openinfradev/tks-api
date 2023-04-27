@@ -126,8 +126,8 @@ func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
 		Description:    cloudAccount.Description,
 		Resource:       cloudAccount.Resource,
 		CloudService:   cloudAccount.CloudService,
-		Creator:        reflectUser(cloudAccount.Creator),
-		Updator:        reflectUser(cloudAccount.Updator),
+		Creator:        reflectSimpleUser(cloudAccount.Creator),
+		Updator:        reflectSimpleUser(cloudAccount.Updator),
 		CreatedAt:      cloudAccount.CreatedAt,
 		UpdatedAt:      cloudAccount.UpdatedAt,
 	}

@@ -52,10 +52,12 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 	dto := domain.Alert{
 		OrganizationId: "master",
 		Name:           "name",
+		Code:           "OVER_CPU",
 		Description:    "description",
-		AlertType:      "CRITICAL",
+		Grade:          "CRITICAL",
 		ClusterId:      "cootmrijh",
 		GrafanaUrl:     "http://localhost",
+		Status:         "CREATED",
 		AlertActions:   []domain.AlertAction{},
 	}
 

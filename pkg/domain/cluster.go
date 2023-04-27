@@ -140,6 +140,12 @@ type ClusterResponse struct {
 	UpdatedAt      time.Time             `json:"updatedAt"`
 }
 
+type SimpleClusterResponse struct {
+	ID             ClusterId `json:"id"`
+	OrganizationId string    `json:"organizationId"`
+	Name           string    `json:"name"`
+}
+
 type ClusterSiteValuesResponse struct {
 	SshKeyName        string `json:"sshKeyName"`
 	ClusterRegion     string `json:"clusterRegion"`

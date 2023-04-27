@@ -7,7 +7,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -40,9 +42,11 @@ type Alert struct {
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
 	Name           string
+	Code           string
 	Description    string
-	AlertType      string
+	Grade          string
 	ClusterId      domain.ClusterId
+	Cluster        Cluster `gorm:"foreignKey:ClusterId"`
 	GrafanaUrl     string
 	AlertActions   []AlertAction `gorm:"foreignKey:AlertId"`
 	CreatorId      *uuid.UUID    `gorm:"type:uuid"`
@@ -113,8 +117,9 @@ func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error
 	alert := Alert{
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
+		Code:           dto.Code,
 		Description:    dto.Description,
-		AlertType:      dto.AlertType,
+		Grade:          dto.Grade,
 		ClusterId:      dto.ClusterId,
 		GrafanaUrl:     dto.GrafanaUrl,
 		CreatorId:      dto.CreatorId,
@@ -162,6 +167,9 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 }
 
 func reflectAlert(alert Alert) domain.Alert {
+
+	log.Info(helper.ModelToJson(alert))
+
 	outAlertActions := make([]domain.AlertAction, len(alert.AlertActions))
 	for i, alertAction := range alert.AlertActions {
 		outAlertActions[i] = reflectAlertAction(alertAction)
@@ -172,8 +180,10 @@ func reflectAlert(alert Alert) domain.Alert {
 		OrganizationId: alert.OrganizationId,
 		Name:           alert.Name,
 		Description:    alert.Description,
-		AlertType:      alert.AlertType,
+		Code:           alert.Code,
+		Grade:          alert.Grade,
 		ClusterId:      alert.ClusterId,
+		Cluster:        reflectSimpleCluster(alert.Cluster),
 		GrafanaUrl:     alert.GrafanaUrl,
 		AlertActions:   outAlertActions,
 		CreatorId:      alert.CreatorId,
@@ -184,12 +194,15 @@ func reflectAlert(alert Alert) domain.Alert {
 }
 
 func reflectAlertAction(alertAction AlertAction) domain.AlertAction {
+	log.Info(alertAction.TakerId)
+	log.Info(reflectSimpleUser(alertAction.Taker))
 	return domain.AlertAction{
 		ID:          alertAction.ID,
 		AlertId:     alertAction.AlertId,
 		Content:     alertAction.Content,
 		Status:      alertAction.Status,
 		TakerId:     alertAction.TakerId,
+		Taker:       reflectSimpleUser(alertAction.Taker),
 		StartedAt:   alertAction.StartedAt,
 		CompletedAt: alertAction.CompletedAt,
 	}
