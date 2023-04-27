@@ -53,7 +53,7 @@ type Alert struct {
 type AlertAction struct {
 	ID          uuid.UUID
 	AlertId     uuid.UUID
-	Contents    string
+	Content     string
 	Status      AlertActionStatus
 	TakerId     *uuid.UUID
 	Taker       User

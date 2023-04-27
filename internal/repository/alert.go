@@ -61,7 +61,7 @@ type AlertAction struct {
 
 	ID          uuid.UUID `gorm:"primarykey"`
 	AlertId     uuid.UUID
-	Contents    string
+	Content     string
 	Status      domain.AlertActionStatus
 	TakerId     *uuid.UUID `gorm:"type:uuid"`
 	Taker       User       `gorm:"foreignKey:TakerId"`
@@ -148,7 +148,7 @@ func (r *AlertRepository) Delete(dto domain.Alert) (err error) {
 func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
 	alert := AlertAction{
 		AlertId:     dto.AlertId,
-		Contents:    dto.Contents,
+		Content:     dto.Content,
 		Status:      dto.Status,
 		TakerId:     dto.TakerId,
 		StartedAt:   dto.StartedAt,
@@ -187,7 +187,7 @@ func reflectAlertAction(alertAction AlertAction) domain.AlertAction {
 	return domain.AlertAction{
 		ID:          alertAction.ID,
 		AlertId:     alertAction.AlertId,
-		Contents:    alertAction.Contents,
+		Content:     alertAction.Content,
 		Status:      alertAction.Status,
 		TakerId:     alertAction.TakerId,
 		StartedAt:   alertAction.StartedAt,
