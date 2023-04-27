@@ -75,15 +75,20 @@ func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context,
 		return httpErrors.NewInternalServerError(err)
 	}
 	userId, err := uuid.Parse(user.ID)
+	if err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
 	return u.RenewalPasswordExpiredTime(ctx, userId)
 }
 
 func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 	user, err := u.repo.GetByUuid(userId)
 	if err != nil {
-		return err
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"))
+		}
 	}
-	originUser, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
+	userInKeycloak, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"))
@@ -92,14 +97,14 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 	}
 
 	randomPassword := helper.GenerateRandomString(passwordLength)
-	originUser.Credentials = &[]gocloak.CredentialRepresentation{
+	userInKeycloak.Credentials = &[]gocloak.CredentialRepresentation{
 		{
 			Type:      gocloak.StringP("password"),
 			Value:     gocloak.StringP(randomPassword),
 			Temporary: gocloak.BoolP(false),
 		},
 	}
-	if err = u.kc.UpdateUser(user.Organization.ID, originUser); err != nil {
+	if err = u.kc.UpdateUser(user.Organization.ID, userInKeycloak); err != nil {
 		return httpErrors.NewInternalServerError(err)
 	}
 
@@ -125,7 +130,10 @@ func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId 
 		}
 		return httpErrors.NewInternalServerError(err)
 	}
-	userId, err := uuid.Parse(user.AccountId)
+	userId, err := uuid.Parse(user.ID)
+	if err != nil {
+		return httpErrors.NewInternalServerError(err)
+	}
 	return u.ResetPassword(userId)
 }
 
