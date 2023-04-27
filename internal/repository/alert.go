@@ -81,7 +81,7 @@ func (c *AlertAction) BeforeCreate(tx *gorm.DB) (err error) {
 // Logics
 func (r *AlertRepository) Get(alertId uuid.UUID) (out domain.Alert, err error) {
 	var alert Alert
-	res := r.db.Preload(clause.Associations).First(&alert, "id = ?", alertId)
+	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&alert, "id = ?", alertId)
 	if res.Error != nil {
 		return domain.Alert{}, res.Error
 	}
@@ -91,7 +91,7 @@ func (r *AlertRepository) Get(alertId uuid.UUID) (out domain.Alert, err error) {
 
 func (r *AlertRepository) GetByName(organizationId string, name string) (out domain.Alert, err error) {
 	var alert Alert
-	res := r.db.Preload(clause.Associations).First(&alert, "organization_id = ? AND name = ?", organizationId, name)
+	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&alert, "organization_id = ? AND name = ?", organizationId, name)
 
 	if res.Error != nil {
 		return domain.Alert{}, res.Error
@@ -102,7 +102,7 @@ func (r *AlertRepository) GetByName(organizationId string, name string) (out dom
 
 func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err error) {
 	var alerts []Alert
-	res := r.db.Preload(clause.Associations).Find(&alerts, "organization_id = ?", organizationId)
+	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).Find(&alerts, "organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error
 	}
