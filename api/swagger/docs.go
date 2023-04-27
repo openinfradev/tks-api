@@ -2843,14 +2843,14 @@ const docTemplate = `{
                     }
                 },
                 "appType": {
-                    "description": "app_type (spring/springboot)",
+                    "description": "appType (spring/springboot)",
                     "type": "string"
                 },
                 "createdAt": {
-                    "description": "created_at is a creation timestamp for the application",
+                    "description": "createdAt is a creation timestamp for the application",
                     "type": "string"
                 },
-                "deleted_at": {
+                "deletedAt": {
                     "type": "string"
                 },
                 "endpointUrl": {
@@ -2869,7 +2869,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organizationId": {
-                    "description": "contract_id is a contract ID which this app belongs to",
+                    "description": "contractId is a contract ID which this app belongs to",
                     "type": "string"
                 },
                 "previewEndpointUrl": {
@@ -2913,7 +2913,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createdAt": {
-                    "description": "created_at is  a creation timestamp for the application",
+                    "description": "createdAt is  a creation timestamp for the application",
                     "type": "string"
                 },
                 "deletedAt": {
