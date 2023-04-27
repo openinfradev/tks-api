@@ -6,7 +6,7 @@ definitions:
         type: string
       completedAt:
         type: string
-      contents:
+      content:
         type: string
       id:
         type: string

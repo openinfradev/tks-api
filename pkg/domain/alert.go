@@ -84,7 +84,7 @@ type AlertResponse struct {
 type AlertActionResponse struct {
 	ID          uuid.UUID          `json:"id"`
 	AlertId     uuid.UUID          `json:"alertId"`
-	Contents    string             `json:"contents"`
+	Content     string             `json:"content"`
 	Status      string             `json:"status"`
 	Taker       SimpleUserResponse `json:"taker"`
 	StartedAt   time.Time          `json:"startedAt"`
@@ -108,8 +108,8 @@ type UpdateAlertRequest struct {
 }
 
 type CreateAlertActionRequest struct {
-	Contents string `json:"contents"`
-	Status   string `json:"status" validate:"oneof=INPROGRESS CLOSED"`
+	Content string `json:"content"`
+	Status  string `json:"status" validate:"oneof=INPROGRESS CLOSED"`
 }
 
 type CreateAlertActionResponse struct {

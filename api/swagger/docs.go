@@ -2716,7 +2716,7 @@ const docTemplate = `{
                 "completedAt": {
                     "type": "string"
                 },
-                "contents": {
+                "content": {
                     "type": "string"
                 },
                 "id": {
