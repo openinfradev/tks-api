@@ -2693,6 +2693,31 @@ paths:
       summary: Update my profile detail
       tags:
       - My-profile
+  /organizations/{organizationId}/my-profile/next-password-change:
+    put:
+      consumes:
+      - application/json
+      description: Update user's password expired date to current date
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      security:
+      - JWT: []
+      summary: Update user's password expired date to current date
+      tags:
+      - My-profile
   /organizations/{organizationId}/my-profile/password:
     put:
       consumes:
@@ -3052,6 +3077,33 @@ paths:
       security:
       - JWT: []
       summary: Update user
+      tags:
+      - Users
+  /organizations/{organizationId}/users/{accountId}/reset-password:
+    put:
+      consumes:
+      - application/json
+      description: Reset user's password as temporary password by admin and send email
+        to user
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Reset user's password as temporary password by admin
       tags:
       - Users
   /organizations/{organizationId}/users/accountId/{accountId}/existence:

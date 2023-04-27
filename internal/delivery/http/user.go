@@ -18,10 +18,12 @@ type IUserHandler interface {
 	Get(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
+	ResetPassword(w http.ResponseWriter, r *http.Request)
 
 	GetMyProfile(w http.ResponseWriter, r *http.Request)
 	UpdateMyProfile(w http.ResponseWriter, r *http.Request)
 	UpdateMyPassword(w http.ResponseWriter, r *http.Request)
+	RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Request)
 	DeleteMyProfile(w http.ResponseWriter, r *http.Request)
 
 	CheckId(w http.ResponseWriter, r *http.Request)
@@ -294,6 +296,39 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, http.StatusOK, out)
 }
 
+// ResetPassword godoc
+// @Tags Users
+// @Summary Reset user's password as temporary password by admin
+// @Description Reset user's password as temporary password by admin and send email to user
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param accountId path string true "accountId"
+// @Success 200
+// @Router /organizations/{organizationId}/users/{accountId}/reset-password [put]
+// @Security     JWT
+func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path")))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path")))
+		return
+	}
+
+	err := u.usecase.ResetPasswordByAccountId(accountId, organizationId)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
 // GetMyProfile godoc
 // @Tags My-profile
 // @Summary Get my profile detail
@@ -429,6 +464,33 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
+// RenewPasswordExpiredDate godoc
+// @Tags My-profile
+// @Summary Update user's password expired date to current date
+// @Description Update user's password expired date to current date
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200
+// @Failure 400 {object} httpErrors.RestError
+// @Router /organizations/{organizationId}/my-profile/next-password-change [put]
+// @Security     JWT
+func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Request) {
+	requestUserInfo, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request")))
+		return
+	}
+
+	err := u.usecase.RenewalPasswordExpiredTime(r.Context(), requestUserInfo.GetUserId())
+	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}

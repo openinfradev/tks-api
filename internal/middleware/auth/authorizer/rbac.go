@@ -22,6 +22,12 @@ func RBACFilter(handler http.Handler, repo repository.Repository) http.Handler {
 		}
 		role := requestUserInfo.GetRoleProjectMapping()[requestUserInfo.GetOrganizationId()]
 
+		// TODO: 추후 tks-admin role 수정 필요
+		if role == "tks-admin" {
+			handler.ServeHTTP(w, r)
+			return
+		}
+
 		vars := mux.Vars(r)
 		// Organization Filter
 		if role == "admin" || role == "user" {
