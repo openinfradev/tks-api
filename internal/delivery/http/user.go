@@ -531,7 +531,7 @@ func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Param organizationId path string true "organizationId"
 // @Param accountId path string true "accountId"
 // @Success 200 {object} domain.CheckExistedResponse
-// @Router /organizations/{organizationId}/users/accountId/{accountId}/existence [get]
+// @Router /organizations/{organizationId}/users/account-id/{accountId}/existence [get]
 // @Security     JWT
 func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

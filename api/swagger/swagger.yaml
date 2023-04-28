@@ -3112,7 +3112,7 @@ paths:
       summary: Reset user's password as temporary password by admin
       tags:
       - Users
-  /organizations/{organizationId}/users/accountId/{accountId}/existence:
+  /organizations/{organizationId}/users/account-id/{accountId}/existence:
     get:
       description: return true when accountId exists
       parameters:
