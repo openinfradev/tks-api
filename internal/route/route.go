@@ -92,7 +92,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, asset http.Handler, 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile/next-password-change", authMiddleware.Handle(http.HandlerFunc(userHandler.RenewPasswordExpiredDate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", authMiddleware.Handle(http.HandlerFunc(userHandler.DeleteMyProfile))).Methods(http.MethodDelete)
 
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/accountId/{accountId}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/account-id/{accountId}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckId))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/email/{email}/existence", authMiddleware.Handle(http.HandlerFunc(userHandler.CheckEmail))).Methods(http.MethodGet)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repoFactory, argoClient, kc), usecase.NewUserUsecase(repoFactory, kc))
