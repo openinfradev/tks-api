@@ -2324,7 +2324,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/users/accountId/{accountId}/existence": {
+        "/organizations/{organizationId}/users/account-id/{accountId}/existence": {
             "get": {
                 "security": [
                     {
