@@ -127,7 +127,7 @@ func (u *AlertUsecase) Fetch(organizationId string) (res []domain.Alert, err err
 				log.Debug(fmt.Printf("%d %s %s\n", j, action.Status.String(), action.StartedAt))
 
 				if action.Status == domain.AlertActionStatus_CLOSED {
-					alerts[j].ClosedAt = action.CompletedAt
+					alerts[i].ClosedAt = action.CompletedAt
 				}
 			}
 		}
