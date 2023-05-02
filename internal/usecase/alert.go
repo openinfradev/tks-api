@@ -107,11 +107,31 @@ func (u *AlertUsecase) GetByName(organizationId string, name string) (res domain
 }
 
 func (u *AlertUsecase) Fetch(organizationId string) (res []domain.Alert, err error) {
-	res, err = u.repo.Fetch(organizationId)
+	alerts, err := u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+
+	// make data
+	// FiredAt
+	// TakedAt
+	// ClosedAt
+
+	for i, alert := range alerts {
+		alerts[i].FiredAt = &alert.CreatedAt
+
+		if len(alert.AlertActions) > 0 {
+			alerts[i].TakedAt = alert.AlertActions[0].StartedAt
+		}
+
+		for j, action := range alert.AlertActions {
+			if action.Status == domain.AlertActionStatus_CLOSED {
+				alerts[j].ClosedAt = action.CompletedAt
+			}
+		}
+	}
+
+	return alerts, nil
 }
 
 func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {
@@ -148,11 +168,11 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAc
 
 	userId := user.GetUserId()
 	dto.TakerId = &userId
-
+	now := time.Now()
 	if dto.Status == domain.AlertActionStatus_INPROGRESS {
-		dto.StartedAt = time.Now()
+		dto.StartedAt = &now
 	} else if dto.Status == domain.AlertActionStatus_CLOSED {
-		dto.CompletedAt = time.Now()
+		dto.CompletedAt = &now
 	} else {
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid Status"))
 	}

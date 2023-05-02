@@ -8,9 +8,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -68,8 +66,8 @@ type AlertAction struct {
 	Status      domain.AlertActionStatus
 	TakerId     *uuid.UUID `gorm:"type:uuid"`
 	Taker       User       `gorm:"foreignKey:TakerId"`
-	StartedAt   time.Time
-	CompletedAt time.Time
+	StartedAt   *time.Time
+	CompletedAt *time.Time
 }
 
 func (c *AlertAction) BeforeCreate(tx *gorm.DB) (err error) {
@@ -103,7 +101,7 @@ func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err 
 	var alerts []Alert
 	res := r.db.Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 		return db.Order("created_at DESC")
-	}).Preload("AlertActions.Taker").Preload(clause.Associations).Find(&alerts, "organization_id = ?", organizationId)
+	}).Preload("AlertActions.Taker").Preload(clause.Associations).Order("created_at desc").Find(&alerts, "organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -168,9 +166,6 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 }
 
 func reflectAlert(alert Alert) domain.Alert {
-
-	log.Info(helper.ModelToJson(alert))
-
 	outAlertActions := make([]domain.AlertAction, len(alert.AlertActions))
 	for i, alertAction := range alert.AlertActions {
 		outAlertActions[i] = reflectAlertAction(alertAction)
@@ -195,8 +190,6 @@ func reflectAlert(alert Alert) domain.Alert {
 }
 
 func reflectAlertAction(alertAction AlertAction) domain.AlertAction {
-	log.Info(alertAction.TakerId)
-	log.Info(reflectSimpleUser(alertAction.Taker))
 	return domain.AlertAction{
 		ID:          alertAction.ID,
 		AlertId:     alertAction.AlertId,

@@ -44,6 +44,9 @@ type Alert struct {
 	ClusterId      ClusterId
 	Cluster        Cluster
 	GrafanaUrl     string
+	FiredAt        *time.Time
+	TakedAt        *time.Time
+	ClosedAt       *time.Time
 	Status         string
 	AlertActions   []AlertAction
 	RawData        []byte
@@ -62,8 +65,8 @@ type AlertAction struct {
 	Status      AlertActionStatus
 	TakerId     *uuid.UUID
 	Taker       User
-	StartedAt   time.Time
-	CompletedAt time.Time
+	StartedAt   *time.Time
+	CompletedAt *time.Time
 }
 
 type CreateAlertRequestAlert struct {
@@ -116,9 +119,9 @@ type AlertResponse struct {
 	Grade          string                `json:"grade"`
 	Cluster        SimpleClusterResponse `json:"cluster"`
 	GrafanaUrl     string                `json:"grafanaUrl"`
-	FiredAt        time.Time             `json:"firedAt"`
-	TakedAt        time.Time             `json:"takedAt"`
-	ClosedAt       time.Time             `json:"closedAt"`
+	FiredAt        *time.Time            `json:"firedAt"`
+	TakedAt        *time.Time            `json:"takedAt"`
+	ClosedAt       *time.Time            `json:"closedAt"`
 	Status         string                `json:"status"`
 	ProcessingSec  int                   `json:"processingSec"`
 	TakedTimeSec   int                   `json:"takedSec"`
@@ -135,8 +138,8 @@ type AlertActionResponse struct {
 	Content     string             `json:"content"`
 	Status      string             `json:"status"`
 	Taker       SimpleUserResponse `json:"taker"`
-	StartedAt   time.Time          `json:"startedAt"`
-	CompletedAt time.Time          `json:"completedAt"`
+	StartedAt   *time.Time         `json:"startedAt"`
+	CompletedAt *time.Time         `json:"completedAt"`
 }
 
 type GetAlertsResponse struct {

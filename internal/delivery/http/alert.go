@@ -100,6 +100,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//out.Alerts[i].RawData = fmt.Sprintf("%s", alert.RawData)
+		log.Info(alert.FiredAt)
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
