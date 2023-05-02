@@ -225,7 +225,7 @@ func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
 				"app_group=tks-cluster-aws",
 				"tks_info_host=http://tks-api.tks.svc:9110",
 				"cluster_id=" + clusterId.String(),
-				"cloud_account_id=" + cluster.CloudAccountId,
+				"cloud_account_id=" + cluster.CloudAccountId.String(),
 			},
 		})
 	if err != nil {
