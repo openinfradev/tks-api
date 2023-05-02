@@ -122,11 +122,13 @@ func (u *AlertUsecase) Fetch(organizationId string) (res []domain.Alert, err err
 
 		if len(alert.AlertActions) > 0 {
 			alerts[i].TakedAt = alert.AlertActions[0].StartedAt
-		}
 
-		for j, action := range alert.AlertActions {
-			if action.Status == domain.AlertActionStatus_CLOSED {
-				alerts[j].ClosedAt = action.CompletedAt
+			for j, action := range alert.AlertActions {
+				log.Debug(fmt.Printf("%d %s %s\n", j, action.Status.String(), action.StartedAt))
+
+				if action.Status == domain.AlertActionStatus_CLOSED {
+					alerts[j].ClosedAt = action.CompletedAt
+				}
 			}
 		}
 	}

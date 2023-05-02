@@ -100,7 +100,7 @@ func (r *AlertRepository) GetByName(organizationId string, name string) (out dom
 func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err error) {
 	var alerts []Alert
 	res := r.db.Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
-		return db.Order("created_at DESC")
+		return db.Order("created_at ASC")
 	}).Preload("AlertActions.Taker").Preload(clause.Associations).Order("created_at desc").Find(&alerts, "organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error
