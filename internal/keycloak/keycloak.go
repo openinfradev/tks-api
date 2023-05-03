@@ -29,6 +29,9 @@ type IKeycloak interface {
 	GetUsers(organizationId string) ([]*gocloak.User, error)
 	DeleteUser(organizationId string, userAccountId string) error
 	UpdateUser(organizationId string, user *gocloak.User) error
+	GetGroup(organizationId string, groupName string) (*gocloak.Group, error)
+	JoinGroup(organizationId string, userId string, groupName string) error
+	LeaveGroup(organizationId string, userId string, groupName string) error
 
 	VerifyAccessToken(token string, organizationId string) error
 	GetSessions(userId string, organizationId string) (*[]string, error)
@@ -433,6 +436,68 @@ func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 	err = k.client.LogoutUserSession(ctx, token.AccessToken, organizationId, sessionId)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (k *Keycloak) GetGroup(organizationId string, groupName string) (*gocloak.Group, error) {
+	ctx := context.Background()
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
+		Search: &groupName,
+	})
+
+	return groups[0], nil
+}
+
+func (k *Keycloak) JoinGroup(organizationId string, userId string, groupName string) error {
+	ctx := context.Background()
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"))
+	}
+	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
+		Search: &groupName,
+	})
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err)
+	}
+	if len(groups) == 0 {
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"))
+	}
+	if err := k.client.AddUserToGroup(ctx, token.AccessToken, organizationId, userId, *groups[0].ID); err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err)
+	}
+	return nil
+}
+
+func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName string) error {
+	ctx := context.Background()
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"))
+	}
+	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
+		Search: &groupName,
+	})
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err)
+	}
+	if len(groups) == 0 {
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"))
+	}
+	if err := k.client.DeleteUserFromGroup(ctx, token.AccessToken, organizationId, userId, *groups[0].ID); err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err)
 	}
 	return nil
 }
