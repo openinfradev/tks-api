@@ -497,8 +497,8 @@ definitions:
         minLength: 16
         type: string
       awsAccountId:
-        maxLength: 128
-        minLength: 16
+        maxLength: 12
+        minLength: 12
         type: string
       cloudService:
         enum:

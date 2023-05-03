@@ -15,15 +15,15 @@ const (
 	AlertActionStatus_ERROR
 )
 
-var alertStatus = [...]string{
+var alertActionStatus = [...]string{
 	"INPROGRESS",
 	"CLOSED",
 	"ERROR",
 }
 
-func (m AlertActionStatus) String() string { return alertStatus[(m)] }
+func (m AlertActionStatus) String() string { return alertActionStatus[(m)] }
 func (m AlertActionStatus) FromString(s string) AlertActionStatus {
-	for i, v := range alertStatus {
+	for i, v := range alertActionStatus {
 		if v == s {
 			return AlertActionStatus(i)
 		}
@@ -49,7 +49,7 @@ type Alert struct {
 	ClosedAt       *time.Time
 	TakedSec       int
 	ProcessingSec  int
-	Status         string
+	Status         AlertActionStatus
 	AlertActions   []AlertAction
 	LastTaker      User
 	RawData        []byte

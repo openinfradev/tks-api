@@ -121,25 +121,6 @@ func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err 
 	return alerts, nil
 }
 
-func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
-	alert.FiredAt = &alert.CreatedAt
-	if len(alert.AlertActions) > 0 {
-		alert.TakedAt = alert.AlertActions[0].StartedAt
-		for _, action := range alert.AlertActions {
-			if action.Status == domain.AlertActionStatus_CLOSED {
-				alert.ClosedAt = action.CompletedAt
-				alert.ProcessingSec = int((action.CompletedAt).Sub(alert.CreatedAt).Seconds())
-			}
-		}
-
-		alert.LastTaker = alert.AlertActions[len(alert.AlertActions)-1].Taker
-		alert.TakedSec = int((alert.AlertActions[0].StartedAt).Sub(alert.CreatedAt).Seconds())
-	}
-
-	// make data grafana URL
-	alert.GrafanaUrl = "TODO url"
-}
-
 func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
@@ -205,4 +186,25 @@ func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, st
 	}
 
 	return "", fmt.Errorf("No martched organization %s", strId)
+}
+
+func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
+	alert.FiredAt = &alert.CreatedAt
+	if len(alert.AlertActions) > 0 {
+		alert.TakedAt = alert.AlertActions[0].StartedAt
+		for _, action := range alert.AlertActions {
+			if action.Status == domain.AlertActionStatus_CLOSED {
+				alert.ClosedAt = action.CompletedAt
+				alert.ProcessingSec = int((action.CompletedAt).Sub(alert.CreatedAt).Seconds())
+			}
+		}
+
+		alert.LastTaker = alert.AlertActions[len(alert.AlertActions)-1].Taker
+		alert.TakedSec = int((alert.AlertActions[0].StartedAt).Sub(alert.CreatedAt).Seconds())
+		alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
+	}
+
+	// make data grafana URL
+	alert.GrafanaUrl = "TODO url"
+
 }

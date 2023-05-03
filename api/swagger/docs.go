@@ -3531,8 +3531,8 @@ const docTemplate = `{
                 },
                 "awsAccountId": {
                     "type": "string",
-                    "maxLength": 128,
-                    "minLength": 16
+                    "maxLength": 12,
+                    "minLength": 12
                 },
                 "cloudService": {
                     "type": "string",
