@@ -30,6 +30,7 @@ type IStackUsecase interface {
 
 type StackUsecase struct {
 	clusterRepo       repository.IClusterRepository
+	appGroupRepo      repository.IAppGroupRepository
 	cloudAccountRepo  repository.ICloudAccountRepository
 	organizationRepo  repository.IOrganizationRepository
 	stackTemplateRepo repository.IStackTemplateRepository
@@ -39,6 +40,7 @@ type StackUsecase struct {
 func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) IStackUsecase {
 	return &StackUsecase{
 		clusterRepo:       r.Cluster,
+		appGroupRepo:      r.AppGroup,
 		cloudAccountRepo:  r.CloudAccount,
 		organizationRepo:  r.Organization,
 		stackTemplateRepo: r.StackTemplate,
@@ -152,7 +154,12 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 		return domain.Stack{}, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)))
 	}
 
-	out = reflectClusterToStack(cluster)
+	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId))
+	if err != nil {
+		return domain.Stack{}, err
+	}
+
+	out = reflectClusterToStack(cluster, appGroups)
 	if organization.PrimaryClusterId == cluster.ID.String() {
 		out.PrimaryCluster = true
 	}
@@ -161,14 +168,20 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 }
 
 func (u *StackUsecase) GetByName(organizationId string, name string) (out domain.Stack, err error) {
-	res, err := u.clusterRepo.GetByName(organizationId, name)
+	cluster, err := u.clusterRepo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return domain.Stack{}, httpErrors.NewNotFoundError(err)
 		}
 		return domain.Stack{}, err
 	}
-	out = reflectClusterToStack(res)
+
+	appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
+	if err != nil {
+		return domain.Stack{}, err
+	}
+
+	out = reflectClusterToStack(cluster, appGroups)
 	return
 }
 
@@ -179,7 +192,11 @@ func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err err
 	}
 
 	for _, cluster := range clusters {
-		out = append(out, reflectClusterToStack(cluster))
+		appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, reflectClusterToStack(cluster, appGroups))
 	}
 
 	return
@@ -265,9 +282,8 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	return nil
 }
 
-func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
-	status := domain.StackStatus_PENDING
-	statusDesc := ""
+func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) domain.Stack {
+	status, statusDesc := getStackStatus(cluster, appGroups)
 	return domain.Stack{
 		ID:              domain.StackId(cluster.ID),
 		OrganizationId:  cluster.OrganizationId,
@@ -293,4 +309,45 @@ func reflectClusterToStack(cluster domain.Cluster) domain.Stack {
 			UserNodeCnt: cluster.Conf.UserNodeCnt,
 		},
 	}
+}
+
+func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (domain.StackStatus, string) {
+	for _, application := range applications {
+		if application.Status == domain.AppGroupStatus_INSTALLING {
+			return domain.StackStatus_APPGROUP_INSTALLING, application.StatusDesc
+		}
+		if application.Status == domain.AppGroupStatus_DELETING {
+			return domain.StackStatus_APPGROUP_DELETING, application.StatusDesc
+		}
+		if application.Status == domain.AppGroupStatus_ERROR {
+			return domain.StackStatus_APPGROUP_ERROR, application.StatusDesc
+		}
+	}
+
+	if cluster.Status == domain.ClusterStatus_INSTALLING {
+		return domain.StackStatus_CLUSTER_INSTALLING, cluster.StatusDesc
+	}
+	if cluster.Status == domain.ClusterStatus_DELETING {
+		return domain.StackStatus_CLUSTER_DELETING, cluster.StatusDesc
+	}
+	if cluster.Status == domain.ClusterStatus_DELETED {
+		return domain.StackStatus_CLUSTER_DELETED, cluster.StatusDesc
+	}
+	if cluster.Status == domain.ClusterStatus_ERROR {
+		return domain.StackStatus_CLUSTER_ERROR, cluster.StatusDesc
+	}
+
+	// workflow 중간 중간 비는 status 처리...
+	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+		if len(applications) != 1 {
+			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
+		}
+	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
+		if len(applications) != 2 {
+			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
+		}
+	}
+
+	return domain.StackStatus_RUNNING, cluster.StatusDesc
+
 }

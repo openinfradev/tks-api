@@ -2909,7 +2909,7 @@ const docTemplate = `{
                 "status": {
                     "type": "integer"
                 },
-                "statusDescription": {
+                "statusDesc": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -4075,7 +4075,7 @@ const docTemplate = `{
                         "status": {
                             "type": "string"
                         },
-                        "statusDescription": {
+                        "statusDesc": {
                             "type": "string"
                         },
                         "updatedAt": {
@@ -4330,7 +4330,7 @@ const docTemplate = `{
                 "status": {
                     "type": "integer"
                 },
-                "statusDescription": {
+                "statusDesc": {
                     "type": "string"
                 },
                 "updatedAt": {

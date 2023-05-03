@@ -2902,7 +2902,7 @@
                 "status": {
                     "type": "integer"
                 },
-                "statusDescription": {
+                "statusDesc": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -4068,7 +4068,7 @@
                         "status": {
                             "type": "string"
                         },
-                        "statusDescription": {
+                        "statusDesc": {
                             "type": "string"
                         },
                         "updatedAt": {
@@ -4323,7 +4323,7 @@
                 "status": {
                     "type": "integer"
                 },
-                "statusDescription": {
+                "statusDesc": {
                     "type": "string"
                 },
                 "updatedAt": {

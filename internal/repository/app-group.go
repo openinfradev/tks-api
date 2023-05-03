@@ -184,19 +184,19 @@ func (r *AppGroupRepository) InitWorkflow(appGroupId domain.AppGroupId, workflow
 
 func reflectAppGroup(appGroup AppGroup) domain.AppGroup {
 	return domain.AppGroup{
-		ID:                appGroup.ID,
-		ClusterId:         appGroup.ClusterId,
-		AppGroupType:      appGroup.AppGroupType,
-		Name:              appGroup.Name,
-		Description:       appGroup.Description,
-		Status:            appGroup.Status,
-		StatusDescription: appGroup.StatusDesc,
-		CreatedAt:         appGroup.CreatedAt,
-		UpdatedAt:         appGroup.UpdatedAt,
-		CreatorId:         appGroup.CreatorId,
-		Creator:           reflectSimpleUser(appGroup.Creator),
-		UpdatorId:         appGroup.UpdatorId,
-		Updator:           reflectSimpleUser(appGroup.Updator),
+		ID:           appGroup.ID,
+		ClusterId:    appGroup.ClusterId,
+		AppGroupType: appGroup.AppGroupType,
+		Name:         appGroup.Name,
+		Description:  appGroup.Description,
+		Status:       appGroup.Status,
+		StatusDesc:   appGroup.StatusDesc,
+		CreatedAt:    appGroup.CreatedAt,
+		UpdatedAt:    appGroup.UpdatedAt,
+		CreatorId:    appGroup.CreatorId,
+		Creator:      reflectSimpleUser(appGroup.Creator),
+		UpdatorId:    appGroup.UpdatorId,
+		Updator:      reflectSimpleUser(appGroup.Updator),
 	}
 }
 

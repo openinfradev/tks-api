@@ -113,20 +113,20 @@ func (m AppGroupType) FromString(s string) AppGroupType {
 }
 
 type AppGroup = struct {
-	ID                AppGroupId
-	Name              string
-	ClusterId         ClusterId
-	AppGroupType      AppGroupType
-	Description       string
-	WorkflowId        string
-	Status            AppGroupStatus
-	StatusDescription string
-	CreatorId         *uuid.UUID
-	Creator           User
-	UpdatorId         *uuid.UUID
-	Updator           User
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	ID           AppGroupId
+	Name         string
+	ClusterId    ClusterId
+	AppGroupType AppGroupType
+	Description  string
+	WorkflowId   string
+	Status       AppGroupStatus
+	StatusDesc   string
+	CreatorId    *uuid.UUID
+	Creator      User
+	UpdatorId    *uuid.UUID
+	Updator      User
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type Application = struct {
@@ -140,18 +140,18 @@ type Application = struct {
 }
 
 type AppGroupResponse = struct {
-	ID                AppGroupId         `json:"id"`
-	Name              string             `json:"name"`
-	ClusterId         ClusterId          `json:"clusterId"`
-	AppGroupType      AppGroupType       `json:"appGroupType"`
-	Description       string             `json:"description"`
-	WorkflowId        string             `json:"workflowId"`
-	Status            AppGroupStatus     `json:"status"`
-	StatusDescription string             `json:"statusDescription"`
-	Creator           SimpleUserResponse `json:"creator"`
-	Updator           SimpleUserResponse `json:"updator"`
-	CreatedAt         time.Time          `json:"createdAt"`
-	UpdatedAt         time.Time          `json:"updatedAt"`
+	ID           AppGroupId         `json:"id"`
+	Name         string             `json:"name"`
+	ClusterId    ClusterId          `json:"clusterId"`
+	AppGroupType AppGroupType       `json:"appGroupType"`
+	Description  string             `json:"description"`
+	WorkflowId   string             `json:"workflowId"`
+	Status       AppGroupStatus     `json:"status"`
+	StatusDesc   string             `json:"statusDesc"`
+	Creator      SimpleUserResponse `json:"creator"`
+	Updator      SimpleUserResponse `json:"updator"`
+	CreatedAt    time.Time          `json:"createdAt"`
+	UpdatedAt    time.Time          `json:"updatedAt"`
 }
 
 type ApplicationResponse = struct {

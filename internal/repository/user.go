@@ -425,15 +425,15 @@ func (r *UserRepository) reflect(user User) domain.User {
 	//}
 
 	organization := domain.Organization{
-		ID:                user.Organization.ID,
-		Name:              user.Organization.Name,
-		Description:       user.Organization.Description,
-		Phone:             user.Organization.Phone,
-		Status:            user.Organization.Status,
-		StatusDescription: user.Organization.StatusDesc,
-		Creator:           user.Organization.Creator.String(),
-		CreatedAt:         user.Organization.CreatedAt,
-		UpdatedAt:         user.Organization.UpdatedAt,
+		ID:          user.Organization.ID,
+		Name:        user.Organization.Name,
+		Description: user.Organization.Description,
+		Phone:       user.Organization.Phone,
+		Status:      user.Organization.Status,
+		StatusDesc:  user.Organization.StatusDesc,
+		Creator:     user.Organization.Creator.String(),
+		CreatedAt:   user.Organization.CreatedAt,
+		UpdatedAt:   user.Organization.UpdatedAt,
 	}
 	//for _, organization := range user.Organizations {
 	//	outOrganization := domain.Organization{

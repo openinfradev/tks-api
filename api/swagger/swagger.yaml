@@ -80,7 +80,7 @@ definitions:
         type: string
       status:
         type: integer
-      statusDescription:
+      statusDesc:
         type: string
       updatedAt:
         type: string
@@ -873,7 +873,7 @@ definitions:
             type: string
           status:
             type: string
-          statusDescription:
+          statusDesc:
             type: string
           updatedAt:
             type: string
@@ -1039,7 +1039,7 @@ definitions:
         type: string
       status:
         type: integer
-      statusDescription:
+      statusDesc:
         type: string
       updatedAt:
         type: string

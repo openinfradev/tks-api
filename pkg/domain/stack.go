@@ -22,19 +22,30 @@ type StackStatus int32
 
 const (
 	StackStatus_PENDING StackStatus = iota
-	StackStatus_INSTALLING
+
+	StackStatus_APPGROUP_INSTALLING
+	StackStatus_APPGROUP_DELETING
+	StackStatus_APPGROUP_ERROR
+
+	StackStatus_CLUSTER_INSTALLING
+	StackStatus_CLUSTER_DELETING
+	StackStatus_CLUSTER_DELETED
+	StackStatus_CLUSTER_ERROR
+
 	StackStatus_RUNNING
-	StackStatus_DELETING
-	StackStatus_DELETED
 	StackStatus_ERROR
 )
 
 var stackStatus = [...]string{
 	"PENDING",
-	"INSTALLING",
+	"APPGROUP_INSTALLING",
+	"APPGROUP_DELETING",
+	"APPGROUP_ERROR",
+	"CLUSTER_INSTALLING",
+	"CLUSTER_DELETING",
+	"CLUSTER_DELETED",
+	"CLUSTER_ERROR",
 	"RUNNING",
-	"DELETING",
-	"DELETED",
 	"ERROR",
 }
 
