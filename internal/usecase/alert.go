@@ -106,31 +106,31 @@ func (u *AlertUsecase) GetByName(organizationId string, name string) (res domain
 	return
 }
 
-func (u *AlertUsecase) Fetch(organizationId string) (res []domain.Alert, err error) {
-	alerts, err := u.repo.Fetch(organizationId)
+func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err error) {
+	alerts, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
 	}
 
-	// make data
-	// FiredAt
-	// TakedAt
-	// ClosedAt
-
-	for i, alert := range alerts {
-		alerts[i].FiredAt = &alert.CreatedAt
-
-		if len(alert.AlertActions) > 0 {
-			alerts[i].TakedAt = alert.AlertActions[0].StartedAt
-
-			for j, action := range alert.AlertActions {
-				log.Debug(fmt.Printf("%d %s %s\n", j, action.Status.String(), action.StartedAt))
-
+	for i := range alerts {
+		// make data ( FiredAt, TakedAt, ClosedAt )
+		alerts[i].FiredAt = &alerts[i].CreatedAt
+		if len(alerts[i].AlertActions) > 0 {
+			alerts[i].TakedAt = alerts[i].AlertActions[0].StartedAt
+			for _, action := range alerts[i].AlertActions {
 				if action.Status == domain.AlertActionStatus_CLOSED {
 					alerts[i].ClosedAt = action.CompletedAt
+					alerts[i].ProcessingSec = int((action.CompletedAt).Sub(alerts[i].CreatedAt).Seconds())
 				}
 			}
+
+			alerts[i].LastTaker = alerts[i].AlertActions[len(alerts[i].AlertActions)-1].Taker
+			alerts[i].TakedSec = int((alerts[i].AlertActions[0].StartedAt).Sub(alerts[i].CreatedAt).Seconds())
 		}
+
+		// make data grafana URL
+		alerts[i].GrafanaUrl = "TODO url"
+
 	}
 
 	return alerts, nil

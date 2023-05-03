@@ -47,8 +47,11 @@ type Alert struct {
 	FiredAt        *time.Time
 	TakedAt        *time.Time
 	ClosedAt       *time.Time
+	TakedSec       int
+	ProcessingSec  int
 	Status         string
 	AlertActions   []AlertAction
+	LastTaker      User
 	RawData        []byte
 	CreatorId      *uuid.UUID
 	Creator        User
@@ -124,7 +127,7 @@ type AlertResponse struct {
 	ClosedAt       *time.Time            `json:"closedAt"`
 	Status         string                `json:"status"`
 	ProcessingSec  int                   `json:"processingSec"`
-	TakedTimeSec   int                   `json:"takedSec"`
+	TakedSec       int                   `json:"takedSec"`
 	AlertActions   []AlertActionResponse `json:"alertActions"`
 	LastTaker      SimpleUserResponse    `json:"lastTaker"`
 	RawData        string                `json:"rawData"`
