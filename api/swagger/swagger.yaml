@@ -357,7 +357,7 @@ definitions:
   domain.ClusterResponse:
     properties:
       cloudAccount:
-        $ref: '#/definitions/domain.CloudAccountResponse'
+        $ref: '#/definitions/domain.SimpleCloudAccountResponse'
       conf:
         $ref: '#/definitions/domain.ClusterConfResponse'
       createdAt:
@@ -373,7 +373,7 @@ definitions:
       organizationId:
         type: string
       stackTemplate:
-        $ref: '#/definitions/domain.StackTemplateResponse'
+        $ref: '#/definitions/domain.SimpleStackTemplateResponse'
       status:
         type: string
       statusDesc:
@@ -1064,6 +1064,21 @@ definitions:
       taskId:
         type: string
     type: object
+  domain.SimpleCloudAccountResponse:
+    properties:
+      cloudService:
+        type: string
+      clusters:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+    type: object
   domain.SimpleClusterResponse:
     properties:
       id:
@@ -1071,6 +1086,19 @@ definitions:
       name:
         type: string
       organizationId:
+        type: string
+    type: object
+  domain.SimpleStackTemplateResponse:
+    properties:
+      cloudService:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      template:
         type: string
     type: object
   domain.SimpleUserResponse:
@@ -1100,7 +1128,7 @@ definitions:
   domain.StackResponse:
     properties:
       cloudAccount:
-        $ref: '#/definitions/domain.CloudAccountResponse'
+        $ref: '#/definitions/domain.SimpleCloudAccountResponse'
       conf:
         $ref: '#/definitions/domain.StackConfResponse'
       createdAt:
@@ -1118,7 +1146,7 @@ definitions:
       primaryCluster:
         type: boolean
       stackTemplate:
-        $ref: '#/definitions/domain.StackTemplateResponse'
+        $ref: '#/definitions/domain.SimpleStackTemplateResponse'
       status:
         type: string
       statusDesc:

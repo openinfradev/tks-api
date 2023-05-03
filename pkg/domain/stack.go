@@ -117,20 +117,20 @@ type StackConfResponse = struct {
 }
 
 type StackResponse struct {
-	ID             StackId               `json:"id"`
-	Name           string                `json:"name"`
-	Description    string                `json:"description"`
-	OrganizationId string                `json:"organizationId"`
-	StackTemplate  StackTemplateResponse `json:"stackTemplate,omitempty"`
-	CloudAccount   CloudAccountResponse  `json:"cloudAccount,omitempty"`
-	Status         string                `json:"status"`
-	StatusDesc     string                `json:"statusDesc"`
-	PrimaryCluster bool                  `json:"primaryCluster"`
-	Conf           StackConfResponse     `json:"conf"`
-	Creator        SimpleUserResponse    `json:"creator,omitempty"`
-	Updator        SimpleUserResponse    `json:"updator,omitempty"`
-	CreatedAt      time.Time             `json:"createdAt"`
-	UpdatedAt      time.Time             `json:"updatedAt"`
+	ID             StackId                     `json:"id"`
+	Name           string                      `json:"name"`
+	Description    string                      `json:"description"`
+	OrganizationId string                      `json:"organizationId"`
+	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate,omitempty"`
+	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount,omitempty"`
+	Status         string                      `json:"status"`
+	StatusDesc     string                      `json:"statusDesc"`
+	PrimaryCluster bool                        `json:"primaryCluster"`
+	Conf           StackConfResponse           `json:"conf"`
+	Creator        SimpleUserResponse          `json:"creator,omitempty"`
+	Updator        SimpleUserResponse          `json:"updator,omitempty"`
+	CreatedAt      time.Time                   `json:"createdAt"`
+	UpdatedAt      time.Time                   `json:"updatedAt"`
 }
 
 type GetStacksResponse struct {

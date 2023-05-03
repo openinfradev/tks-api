@@ -44,6 +44,15 @@ type CloudAccountResponse struct {
 	UpdatedAt      time.Time          `json:"updatedAt"`
 }
 
+type SimpleCloudAccountResponse struct {
+	ID             string `json:"id"`
+	OrganizationId string `json:"organizationId"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	CloudService   string `json:"cloudService"`
+	Clusters       int    `json:"clusters"`
+}
+
 type GetCloudAccountsResponse struct {
 	CloudAccounts []CloudAccountResponse `json:"cloudAccounts"`
 }

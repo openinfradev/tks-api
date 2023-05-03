@@ -3317,7 +3317,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "cloudAccount": {
-                    "$ref": "#/definitions/domain.CloudAccountResponse"
+                    "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConfResponse"
@@ -3341,7 +3341,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stackTemplate": {
-                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                    "$ref": "#/definitions/domain.SimpleStackTemplateResponse"
                 },
                 "status": {
                     "type": "string"
@@ -4369,6 +4369,29 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.SimpleCloudAccountResponse": {
+            "type": "object",
+            "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusters": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.SimpleClusterResponse": {
             "type": "object",
             "properties": {
@@ -4379,6 +4402,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organizationId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SimpleStackTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "template": {
                     "type": "string"
                 }
             }
@@ -4424,7 +4467,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "cloudAccount": {
-                    "$ref": "#/definitions/domain.CloudAccountResponse"
+                    "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.StackConfResponse"
@@ -4451,7 +4494,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "stackTemplate": {
-                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                    "$ref": "#/definitions/domain.SimpleStackTemplateResponse"
                 },
                 "status": {
                     "type": "string"
