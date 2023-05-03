@@ -241,6 +241,10 @@ definitions:
     type: object
   domain.CloudAccount:
     properties:
+      accessKeyId:
+        type: string
+      awsAccountId:
+        type: string
       cloudService:
         type: string
       clusters:
@@ -260,6 +264,10 @@ definitions:
       organizationId:
         type: string
       resource:
+        type: string
+      secretAccessKey:
+        type: string
+      sessionToken:
         type: string
       updatedAt:
         type: string
@@ -488,6 +496,10 @@ definitions:
         maxLength: 128
         minLength: 16
         type: string
+      awsAccountId:
+        maxLength: 128
+        minLength: 16
+        type: string
       cloudService:
         enum:
         - AWS
@@ -507,6 +519,7 @@ definitions:
         type: string
     required:
     - accessKeyId
+    - awsAccountId
     - name
     - secretAccessKey
     type: object
@@ -1066,6 +1079,8 @@ definitions:
     type: object
   domain.SimpleCloudAccountResponse:
     properties:
+      awsAccountId:
+        type: string
       cloudService:
         type: string
       clusters:

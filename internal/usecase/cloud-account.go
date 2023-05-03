@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
@@ -62,20 +63,24 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 
 	/*
 		workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-			"tks-create-contract-repo",
+			"tks-create-aws-cloud-account",
 			argowf.SubmitOptions{
 				Parameters: []string{
-					"contract_id=" + cloudAccountId,
+					"aws_region=" + "ap-northeast-2",
+					"tks_aws_account_id=" + viper.GetString("tks-aws-account-id"),
+					"tks_aws_user=" + viper.GetString("tks-aws-user"),
+					"tks_cloud_account_id=" + cloudAccountId.String(),
+					"aws_account_id=" + dto.AwsAccountId,
+					"aws_access_key_id=" + dto.AccessKeyId,
+					"aws_secret_access_key=" + dto.SecretAccessKey,
+					"aws_session_token=" + dto.SessionToken,
 				},
 			})
 		if err != nil {
 			log.Error("failed to submit argo workflow template. err : ", err)
-			return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+			return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
 		}
 		log.Info("submited workflow :", workflowId)
-		if err := u.userRepository.InitWorkflow(cloudAccountId, workflowId); err != nil {
-			return "", fmt.Errorf("Failed to initialize cloudAccount status to 'CREATING'. err : %s", err)
-		}
 	*/
 
 	return cloudAccountId, nil

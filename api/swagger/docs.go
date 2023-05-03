@@ -3141,6 +3141,12 @@ const docTemplate = `{
         "domain.CloudAccount": {
             "type": "object",
             "properties": {
+                "accessKeyId": {
+                    "type": "string"
+                },
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string"
                 },
@@ -3169,6 +3175,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "resource": {
+                    "type": "string"
+                },
+                "secretAccessKey": {
+                    "type": "string"
+                },
+                "sessionToken": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -3507,11 +3519,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "accessKeyId",
+                "awsAccountId",
                 "name",
                 "secretAccessKey"
             ],
             "properties": {
                 "accessKeyId": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
+                },
+                "awsAccountId": {
                     "type": "string",
                     "maxLength": 128,
                     "minLength": 16
@@ -4372,6 +4390,9 @@ const docTemplate = `{
         "domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string"
                 },

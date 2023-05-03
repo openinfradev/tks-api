@@ -86,11 +86,12 @@ func (u *AlertUsecase) Update(ctx context.Context, dto domain.Alert) error {
 	return nil
 }
 
-func (u *AlertUsecase) Get(alertId uuid.UUID) (res domain.Alert, err error) {
-	res, err = u.repo.Get(alertId)
+func (u *AlertUsecase) Get(alertId uuid.UUID) (alert domain.Alert, err error) {
+	alert, err = u.repo.Get(alertId)
 	if err != nil {
 		return domain.Alert{}, err
 	}
+	u.makeAdditionalInfo(&alert)
 
 	return
 }
@@ -114,26 +115,29 @@ func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err 
 
 	for i := range alerts {
 		// make data ( FiredAt, TakedAt, ClosedAt )
-		alerts[i].FiredAt = &alerts[i].CreatedAt
-		if len(alerts[i].AlertActions) > 0 {
-			alerts[i].TakedAt = alerts[i].AlertActions[0].StartedAt
-			for _, action := range alerts[i].AlertActions {
-				if action.Status == domain.AlertActionStatus_CLOSED {
-					alerts[i].ClosedAt = action.CompletedAt
-					alerts[i].ProcessingSec = int((action.CompletedAt).Sub(alerts[i].CreatedAt).Seconds())
-				}
-			}
-
-			alerts[i].LastTaker = alerts[i].AlertActions[len(alerts[i].AlertActions)-1].Taker
-			alerts[i].TakedSec = int((alerts[i].AlertActions[0].StartedAt).Sub(alerts[i].CreatedAt).Seconds())
-		}
-
-		// make data grafana URL
-		alerts[i].GrafanaUrl = "TODO url"
-
+		u.makeAdditionalInfo(&alerts[i])
 	}
 
 	return alerts, nil
+}
+
+func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
+	alert.FiredAt = &alert.CreatedAt
+	if len(alert.AlertActions) > 0 {
+		alert.TakedAt = alert.AlertActions[0].StartedAt
+		for _, action := range alert.AlertActions {
+			if action.Status == domain.AlertActionStatus_CLOSED {
+				alert.ClosedAt = action.CompletedAt
+				alert.ProcessingSec = int((action.CompletedAt).Sub(alert.CreatedAt).Seconds())
+			}
+		}
+
+		alert.LastTaker = alert.AlertActions[len(alert.AlertActions)-1].Taker
+		alert.TakedSec = int((alert.AlertActions[0].StartedAt).Sub(alert.CreatedAt).Seconds())
+	}
+
+	// make data grafana URL
+	alert.GrafanaUrl = "TODO url"
 }
 
 func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {

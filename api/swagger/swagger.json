@@ -3134,6 +3134,12 @@
         "domain.CloudAccount": {
             "type": "object",
             "properties": {
+                "accessKeyId": {
+                    "type": "string"
+                },
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string"
                 },
@@ -3162,6 +3168,12 @@
                     "type": "string"
                 },
                 "resource": {
+                    "type": "string"
+                },
+                "secretAccessKey": {
+                    "type": "string"
+                },
+                "sessionToken": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -3500,11 +3512,17 @@
             "type": "object",
             "required": [
                 "accessKeyId",
+                "awsAccountId",
                 "name",
                 "secretAccessKey"
             ],
             "properties": {
                 "accessKeyId": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "minLength": 16
+                },
+                "awsAccountId": {
                     "type": "string",
                     "maxLength": 128,
                     "minLength": 16
@@ -4365,6 +4383,9 @@
         "domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string"
                 },
