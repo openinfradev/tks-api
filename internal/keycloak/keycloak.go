@@ -29,7 +29,6 @@ type IKeycloak interface {
 	GetUsers(organizationId string) ([]*gocloak.User, error)
 	DeleteUser(organizationId string, userAccountId string) error
 	UpdateUser(organizationId string, user *gocloak.User) error
-	GetGroup(organizationId string, groupName string) (*gocloak.Group, error)
 	JoinGroup(organizationId string, userId string, groupName string) error
 	LeaveGroup(organizationId string, userId string, groupName string) error
 
@@ -438,20 +437,6 @@ func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 		return err
 	}
 	return nil
-}
-
-func (k *Keycloak) GetGroup(organizationId string, groupName string) (*gocloak.Group, error) {
-	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
-		Search: &groupName,
-	})
-
-	return groups[0], nil
 }
 
 func (k *Keycloak) JoinGroup(organizationId string, userId string, groupName string) error {

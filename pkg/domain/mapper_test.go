@@ -55,7 +55,7 @@ func TestConvert(t *testing.T) {
 					Description: "test",
 					Phone:       "test",
 					Status:      OrganizationStatus_CREATE,
-					Status:      "good",
+					StatusDesc:  "good",
 					Creator:     "",
 					CreatedAt:   time.Time{},
 					UpdatedAt:   time.Time{},
