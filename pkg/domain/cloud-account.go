@@ -84,7 +84,6 @@ type UpdateCloudAccountRequest struct {
 }
 
 type DeleteCloudAccountRequest struct {
-	AwsAccountId    string `json:"awsAccountId"`
 	AccessKeyId     string `json:"accessKeyId" validate:"required,min=16,max=128"`
 	SecretAccessKey string `json:"secretAccessKey" validate:"required,min=16,max=128"`
 	SessionToken    string `json:"sessionToken" validate:"max=2000"`
