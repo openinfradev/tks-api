@@ -134,15 +134,20 @@ func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res
 		}
 		return domain.CloudAccount{}, err
 	}
+	res.Clusters = u.getClusterCnt(res.ID)
 	return
 }
 
-func (u *CloudAccountUsecase) Fetch(organizationId string) (res []domain.CloudAccount, err error) {
-	res, err = u.repo.Fetch(organizationId)
+func (u *CloudAccountUsecase) Fetch(organizationId string) (cloudAccounts []domain.CloudAccount, err error) {
+	cloudAccounts, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+
+	for i, _ := range cloudAccounts {
+		cloudAccounts[i].Clusters = u.getClusterCnt(cloudAccounts[i].ID)
+	}
+	return
 }
 
 func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccount) (err error) {

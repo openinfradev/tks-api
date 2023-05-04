@@ -4445,9 +4445,6 @@ const docTemplate = `{
         "domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
-                "awsAccountId": {
-                    "type": "string"
-                },
                 "cloudService": {
                     "type": "string"
                 },

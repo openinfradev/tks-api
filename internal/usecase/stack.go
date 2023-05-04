@@ -313,8 +313,6 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 		Updator:         cluster.Updator,
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
-
-		// [TODO]
 		Conf: domain.StackConf{
 			CpNodeCnt:   cluster.Conf.CpNodeCnt,
 			TksNodeCnt:  cluster.Conf.TksNodeCnt,

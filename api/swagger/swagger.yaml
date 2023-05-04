@@ -1086,8 +1086,6 @@ definitions:
     type: object
   domain.SimpleCloudAccountResponse:
     properties:
-      awsAccountId:
-        type: string
       cloudService:
         type: string
       clusters:

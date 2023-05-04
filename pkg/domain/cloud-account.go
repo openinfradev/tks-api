@@ -55,7 +55,6 @@ type SimpleCloudAccountResponse struct {
 	Description    string `json:"description"`
 	CloudService   string `json:"cloudService"`
 	Clusters       int    `json:"clusters"`
-	AwsAccountId   string `json:"awsAccountId"`
 }
 
 type GetCloudAccountsResponse struct {
