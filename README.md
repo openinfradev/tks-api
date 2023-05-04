@@ -44,7 +44,7 @@ $ kubectl create clusterrolebinding default-view --clusterrole=view --serviceacc
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: tks-api-test
+  name: tks-api
   namespace: tks
 rules:
 # Just an example, feel free to change it
@@ -56,14 +56,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: tks-api-test
+  name: tks-api
   namespace: tks
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: tks-api
   namespace: tks
 roleRef:
   kind: ClusterRole
-  name: tks-api-test
+  name: tks-api
   apiGroup: rbac.authorization.k8s.io
 ```
