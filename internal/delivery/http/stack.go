@@ -290,7 +290,7 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 // @Param organizationId path string true "organizationId"
 // @Param stackId path string true "organizationId"
 // @Success 200 {object} domain.GetStackKubeConfigResponse
-// @Router /organizations/{organizationId}/stacks/{stackId}/kubeconfig [get]
+// @Router /organizations/{organizationId}/stacks/{stackId}/kube-config [get]
 // @Security     JWT
 func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
