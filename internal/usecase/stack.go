@@ -9,6 +9,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -26,6 +27,7 @@ type IStackUsecase interface {
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
+	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
 }
 
 type StackUsecase struct {
@@ -280,6 +282,16 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	}
 
 	return nil
+}
+
+func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error) {
+	kubeconfig, err := kubernetes.GetKubeConfig(stackId.String())
+	//kubeconfig, err := kubernetes.GetKubeConfig("cmsai5k5l")
+	if err != nil {
+		return "", err
+	}
+
+	return string(kubeconfig[:]), nil
 }
 
 func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) domain.Stack {

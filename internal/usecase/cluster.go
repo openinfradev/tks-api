@@ -12,6 +12,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	gcache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -33,15 +34,17 @@ type ClusterUsecase struct {
 	cloudAccountRepo  repository.ICloudAccountRepository
 	stackTemplateRepo repository.IStackTemplateRepository
 	argo              argowf.ArgoClient
+	cache             *gcache.Cache
 }
 
-func NewClusterUsecase(r repository.Repository, argoClient argowf.ArgoClient) IClusterUsecase {
+func NewClusterUsecase(r repository.Repository, argoClient argowf.ArgoClient, cache *gcache.Cache) IClusterUsecase {
 	return &ClusterUsecase{
 		repo:              r.Cluster,
 		appGroupRepo:      r.AppGroup,
 		cloudAccountRepo:  r.CloudAccount,
 		stackTemplateRepo: r.StackTemplate,
 		argo:              argoClient,
+		cache:             cache,
 	}
 }
 

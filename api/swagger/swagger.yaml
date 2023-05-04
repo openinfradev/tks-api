@@ -733,6 +733,8 @@ definitions:
         maxLength: 128
         minLength: 16
         type: string
+      awsAccountId:
+        type: string
       secretAccessKey:
         maxLength: 128
         minLength: 16
@@ -891,6 +893,11 @@ definitions:
           updatedAt:
             type: string
         type: object
+    type: object
+  domain.GetStackKubeConfigResponse:
+    properties:
+      kubeConfig:
+        type: string
     type: object
   domain.GetStackResponse:
     properties:
@@ -2954,6 +2961,34 @@ paths:
       security:
       - JWT: []
       summary: Update Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/kubeconfig:
+    get:
+      consumes:
+      - application/json
+      description: Get KubeConfig by stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: organizationId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackKubeConfigResponse'
+      security:
+      - JWT: []
+      summary: Get KubeConfig by stack
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/name/{name}/existence:

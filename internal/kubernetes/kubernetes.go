@@ -1,10 +1,11 @@
-package helper
+package kubernetes
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/spf13/viper"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"

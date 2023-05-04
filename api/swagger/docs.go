@@ -2240,6 +2240,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/{stackId}/kubeconfig": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get KubeConfig by stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Get KubeConfig by stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackKubeConfigResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/users": {
             "get": {
                 "security": [
@@ -3865,6 +3909,9 @@ const docTemplate = `{
                     "maxLength": 128,
                     "minLength": 16
                 },
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "secretAccessKey": {
                     "type": "string",
                     "maxLength": 128,
@@ -4100,6 +4147,14 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "domain.GetStackKubeConfigResponse": {
+            "type": "object",
+            "properties": {
+                "kubeConfig": {
+                    "type": "string"
                 }
             }
         },

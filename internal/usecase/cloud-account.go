@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
+
+const MAX_WORKFLOW_TIME = 30
 
 type ICloudAccountUsecase interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
@@ -45,8 +48,6 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
 	}
 
-	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
-
 	dto.Resource = "TODO server result or additional information"
 	dto.CreatorId = user.GetUserId()
 
@@ -61,29 +62,42 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 	}
 	log.Info("newly created CloudAccount ID:", cloudAccountId)
 
-	/*
-		workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-			"tks-create-aws-cloud-account",
-			argowf.SubmitOptions{
-				Parameters: []string{
-					"aws_region=" + "ap-northeast-2",
-					"tks_aws_account_id=" + viper.GetString("tks-aws-account-id"),
-					"tks_aws_user=" + viper.GetString("tks-aws-user"),
-					"tks_cloud_account_id=" + cloudAccountId.String(),
-					"aws_account_id=" + dto.AwsAccountId,
-					"aws_access_key_id=" + dto.AccessKeyId,
-					"aws_secret_access_key=" + dto.SecretAccessKey,
-					"aws_session_token=" + dto.SessionToken,
-				},
-			})
-		if err != nil {
-			log.Error("failed to submit argo workflow template. err : ", err)
-			return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
-		}
-		log.Info("submited workflow :", workflowId)
-	*/
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		"tks-create-aws-cloud-account",
+		argowf.SubmitOptions{
+			Parameters: []string{
+				"aws_region=" + "ap-northeast-2",
+				"tks_cloud_account_id=" + cloudAccountId.String(),
+				"aws_account_id=" + dto.AwsAccountId,
+				"aws_access_key_id=" + dto.AccessKeyId,
+				"aws_secret_access_key=" + dto.SecretAccessKey,
+				"aws_session_token=" + dto.SessionToken,
+			},
+		})
+	if err != nil {
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+	log.Info("submited workflow :", workflowId)
 
-	return cloudAccountId, nil
+	// wait & get clusterId ( max 1min 	)
+	for i := 0; i < MAX_WORKFLOW_TIME; i++ {
+		time.Sleep(time.Second * 2)
+		workflow, err := u.argo.GetWorkflow("argo", workflowId)
+		if err != nil {
+			return uuid.Nil, err
+		}
+
+		if workflow.Status.Phase == "Succeeded" {
+			return cloudAccountId, nil
+		}
+
+		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
+			return uuid.Nil, fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
+		}
+	}
+
+	return uuid.Nil, fmt.Errorf("Failed to creating cloud account")
 }
 
 func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccount) error {
@@ -141,8 +155,11 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 	if err != nil {
 		return httpErrors.NewNotFoundError(err)
 	}
-
 	dto.UpdatorId = user.GetUserId()
+
+	if u.getClusterCnt(dto.ID) > 0 {
+		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
+	}
 
 	err = u.repo.Delete(dto)
 	if err != nil {

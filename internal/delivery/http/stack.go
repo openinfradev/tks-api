@@ -280,3 +280,46 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 
 	ResponseJSON(w, http.StatusOK, out)
 }
+
+// GetStackKubeConfig godoc
+// @Tags Stacks
+// @Summary Get KubeConfig by stack
+// @Description Get KubeConfig by stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "organizationId"
+// @Success 200 {object} domain.GetStackKubeConfigResponse
+// @Router /organizations/{organizationId}/stacks/{stackId}/kubeconfig [get]
+// @Security     JWT
+func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	_, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+	stackId := domain.StackId(strId)
+	if !stackId.Validate() {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		return
+	}
+
+	kubeConfig, err := h.usecase.GetKubeConfig(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out = domain.GetStackKubeConfigResponse{
+		KubeConfig: kubeConfig,
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
