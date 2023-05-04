@@ -30,9 +30,10 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 			return
 		}
 		if helper.IsDurationExpired(storedUser.PasswordUpdatedAt, internal.PasswordExpiredDuration) {
-			allowedUrl := [2]string{
+			allowedUrl := []string{
 				internal.API_PREFIX + internal.API_VERSION + "/organizations/" + requestUserInfo.GetOrganizationId() + "/my-profile" + "/password",
 				internal.API_PREFIX + internal.API_VERSION + "/organizations/" + requestUserInfo.GetOrganizationId() + "/my-profile" + "/next-password-change",
+				internal.API_PREFIX + internal.API_VERSION + "/auth/logout",
 			}
 			if !(urlContains(allowedUrl, r.URL.Path) && r.Method == http.MethodPut) {
 				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired")))
@@ -43,7 +44,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 	})
 }
 
-func urlContains(urls [2]string, url string) bool {
+func urlContains(urls []string, url string) bool {
 	for _, u := range urls {
 		if u == url {
 			return true
