@@ -59,6 +59,19 @@ type DashboardChart struct {
 	UpdatedAt      time.Time
 }
 
+type DashboardStack struct {
+	ID          StackId
+	Name        string
+	Description string
+	Status      string
+	StatusDesc  string
+	Cpu         string
+	Memory      string
+	Storage     string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
 type Unit struct {
 	Name string   `json:"name"`
 	Data []string `json:"data"`
@@ -93,4 +106,28 @@ type GetDashboardChartsResponse struct {
 
 type GetDashboardChartResponse struct {
 	Chart DashboardChartResponse `json:"chart"`
+}
+
+type GetDashboardResourcesResponse struct {
+	Stack   string `json:"stack"`
+	Cpu     string `json:"cpu"`
+	Memory  string `json:"memory"`
+	Storage string `json:"storage"`
+}
+
+type DashboardStackResponse struct {
+	ID          StackId   `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Status      string    `json:"status"`
+	StatusDesc  string    `json:"statusDesc"`
+	Cpu         string    `json:"cpu"`
+	Memory      string    `json:"memory"`
+	Storage     string    `json:"storage"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type GetDashboardStacksResponse struct {
+	Stacks []DashboardStackResponse `json:"stacks"`
 }

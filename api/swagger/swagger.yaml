@@ -727,13 +727,34 @@ definitions:
       year:
         type: string
     type: object
+  domain.DashboardStackResponse:
+    properties:
+      cpu:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      memory:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      statusDesc:
+        type: string
+      storage:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   domain.DeleteCloudAccountRequest:
     properties:
       accessKeyId:
         maxLength: 128
         minLength: 16
-        type: string
-      awsAccountId:
         type: string
       secretAccessKey:
         maxLength: 128
@@ -846,6 +867,24 @@ definitions:
       charts:
         items:
           $ref: '#/definitions/domain.DashboardChartResponse'
+        type: array
+    type: object
+  domain.GetDashboardResourcesResponse:
+    properties:
+      cpu:
+        type: string
+      memory:
+        type: string
+      stack:
+        type: string
+      storage:
+        type: string
+    type: object
+  domain.GetDashboardStacksResponse:
+    properties:
+      stacks:
+        items:
+          $ref: '#/definitions/domain.DashboardStackResponse'
         type: array
     type: object
   domain.GetMyProfileResponse:
@@ -2674,6 +2713,52 @@ paths:
       summary: Get chart data
       tags:
       - Dashboards
+  /organizations/{organizationId}/dashboard/resources:
+    get:
+      consumes:
+      - application/json
+      description: Get resources
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetDashboardResourcesResponse'
+      security:
+      - JWT: []
+      summary: Get resources
+      tags:
+      - Dashboards
+  /organizations/{organizationId}/dashboard/stacks:
+    get:
+      consumes:
+      - application/json
+      description: Get stacks
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetDashboardStacksResponse'
+      security:
+      - JWT: []
+      summary: Get stacks
+      tags:
+      - Dashboards
   /organizations/{organizationId}/my-profile:
     delete:
       consumes:
@@ -2961,7 +3046,7 @@ paths:
       summary: Update Stack
       tags:
       - Stacks
-  /organizations/{organizationId}/stacks/{stackId}/kubeconfig:
+  /organizations/{organizationId}/stacks/{stackId}/kube-config:
     get:
       consumes:
       - application/json

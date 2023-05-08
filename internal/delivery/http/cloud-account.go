@@ -42,7 +42,6 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
-	log.Debug("[TODO] organization check", organizationId)
 
 	input := domain.CreateCloudAccountRequest{}
 	err := UnmarshalRequestInput(r, &input)

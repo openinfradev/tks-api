@@ -150,3 +150,67 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 
 	ResponseJSON(w, http.StatusOK, out)
 }
+
+// GetStacks godoc
+// @Tags Dashboards
+// @Summary Get stacks
+// @Description Get stacks
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200 {object} domain.GetDashboardStacksResponse
+// @Router /organizations/{organizationId}/dashboard/stacks [get]
+// @Security     JWT
+func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+
+	stacks, err := h.usecase.Fetch(organizationId)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out domain.GetDashboardStacksResponse
+	out.Stacks = make([]domain.DashboardStackResponse, len(stacks))
+	for i, stack := range stacks {
+		if err := domain.Map(stack, &out.Stacks[i]); err != nil {
+			log.Info(err)
+			continue
+		}
+		log.Info(out.Stacks[i])
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// GetResources godoc
+// @Tags Dashboards
+// @Summary Get resources
+// @Description Get resources
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200 {object} domain.GetDashboardResourcesResponse
+// @Router /organizations/{organizationId}/dashboard/resources [get]
+// @Security     JWT
+func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	_, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
+
+	var out domain.GetDashboardResourcesResponse
+	out.Stack = "1 개"
+	out.Cpu = "80 %"
+	out.Memory = "128 GB"
+	out.Storage = "10 TB"
+
+	ResponseJSON(w, http.StatusOK, out)
+}

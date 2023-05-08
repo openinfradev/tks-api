@@ -43,6 +43,9 @@ type Alert struct {
 	Message        string
 	ClusterId      ClusterId
 	Cluster        Cluster
+	Node           string
+	CheckPoint     string
+	Summary        string
 	GrafanaUrl     string
 	FiredAt        *time.Time
 	TakedAt        *time.Time
@@ -92,8 +95,12 @@ type CreateAlertRequestAlert struct {
 		TacoCluster string `json:"taco_cluster"`
 	} `json:"labels"`
 	Annotations struct {
-		Message string `json:"message"`
-		Summary string `json:"summary"`
+		Message     string `json:"message"`
+		Summary     string `json:"summary"`
+		Description string `json:"description"`
+		Checkpoint  string `json:"Checkpoint"`
+		Cluster     string `json:"cluster"`
+		Node        string `json:"node"`
 	} `json:"annotations"`
 }
 

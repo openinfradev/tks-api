@@ -51,7 +51,8 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 	}
 
 	for _, alert := range input.Alerts {
-		organizationId, err := u.getOrganizationFromCluster(&allClusters, alert.Labels.TacoCluster)
+		clusterId := alert.Annotations.Cluster
+		organizationId, err := u.getOrganizationFromCluster(&allClusters, clusterId)
 		if err != nil {
 			log.Error(err)
 			continue
@@ -65,10 +66,13 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			OrganizationId: organizationId,
 			Name:           alert.Labels.AlertName,
 			Code:           alert.Labels.AlertName,
+			Grade:          alert.Labels.Severity,
 			Message:        alert.Annotations.Message,
-			Description:    alert.Annotations.Message,
-			Grade:          "CRITICAL",
-			ClusterId:      domain.ClusterId(alert.Labels.TacoCluster),
+			Description:    alert.Annotations.Description,
+			Node:           alert.Annotations.Node,
+			CheckPoint:     alert.Annotations.Checkpoint,
+			Summary:        alert.Annotations.Summary,
+			ClusterId:      domain.ClusterId(clusterId),
 			GrafanaUrl:     "http://localhost/grafana",
 			RawData:        rawData,
 		}
@@ -206,5 +210,5 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 
 	// make data grafana URL
 	alert.GrafanaUrl = "TODO url"
-
+	alert.Node = fmt.Sprintf("STACK (%s) / NODE (%s)", alert.Cluster.Name, alert.Node)
 }

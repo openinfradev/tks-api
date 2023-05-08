@@ -12,15 +12,20 @@ import (
 
 type IDashboardUsecase interface {
 	GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
+	Fetch(organizationId string) (out []domain.DashboardStack, err error)
 }
 
 type DashboardUsecase struct {
 	organizationRepo repository.IOrganizationRepository
+	clusterRepo      repository.IClusterRepository
+	appGroupRepo     repository.IAppGroupRepository
 }
 
 func NewDashboardUsecase(r repository.Repository) IDashboardUsecase {
 	return &DashboardUsecase{
 		organizationRepo: r.Organization,
+		clusterRepo:      r.Cluster,
+		appGroupRepo:     r.AppGroup,
 	}
 }
 
@@ -42,6 +47,34 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 		}
 
 		out = append(out, chart)
+	}
+
+	return
+}
+
+func (u *DashboardUsecase) Fetch(organizationId string) (out []domain.DashboardStack, err error) {
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
+	if err != nil {
+		return out, err
+	}
+
+	for _, cluster := range clusters {
+		appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
+		if err != nil {
+			return nil, err
+		}
+		stack := reflectClusterToStack(cluster, appGroups)
+		dashboardStack := domain.DashboardStack{}
+		if err := domain.Map(stack, &dashboardStack); err != nil {
+			log.Info(err)
+		}
+
+		// [TODO]
+		dashboardStack.Cpu = "30 %"
+		dashboardStack.Memory = "128 GB"
+		dashboardStack.Storage = "20 TB"
+
+		out = append(out, dashboardStack)
 	}
 
 	return

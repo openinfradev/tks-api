@@ -47,7 +47,10 @@ type Alert struct {
 	Message        string
 	ClusterId      domain.ClusterId
 	Cluster        Cluster `gorm:"foreignKey:ClusterId"`
+	Node           string
+	CheckPoint     string
 	GrafanaUrl     string
+	Summary        string
 	AlertActions   []AlertAction `gorm:"foreignKey:AlertId"`
 	RawData        datatypes.JSON
 }
@@ -121,7 +124,10 @@ func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error
 		Description:    dto.Description,
 		Grade:          dto.Grade,
 		ClusterId:      dto.ClusterId,
+		Node:           dto.Node,
 		GrafanaUrl:     dto.GrafanaUrl,
+		CheckPoint:     dto.CheckPoint,
+		Summary:        dto.Summary,
 		RawData:        dto.RawData,
 	}
 	res := r.db.Create(&alert)
@@ -182,6 +188,9 @@ func reflectAlert(alert Alert) domain.Alert {
 		ClusterId:      alert.ClusterId,
 		Cluster:        reflectSimpleCluster(alert.Cluster),
 		GrafanaUrl:     alert.GrafanaUrl,
+		Node:           alert.Node,
+		CheckPoint:     alert.CheckPoint,
+		Summary:        alert.Summary,
 		AlertActions:   outAlertActions,
 		RawData:        alert.RawData,
 		CreatedAt:      alert.CreatedAt,

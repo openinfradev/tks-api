@@ -1738,6 +1738,80 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/dashboard/resources": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get resources",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get resources",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetDashboardResourcesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/dashboard/stacks": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get stacks",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get stacks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetDashboardStacksResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/my-profile": {
             "get": {
                 "security": [
@@ -2240,7 +2314,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/{stackId}/kubeconfig": {
+        "/organizations/{organizationId}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
                     {
@@ -3897,6 +3971,41 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.DashboardStackResponse": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "memory": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
+                "storage": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.DeleteCloudAccountRequest": {
             "type": "object",
             "required": [
@@ -3908,9 +4017,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 128,
                     "minLength": 16
-                },
-                "awsAccountId": {
-                    "type": "string"
                 },
                 "secretAccessKey": {
                     "type": "string",
@@ -4075,6 +4181,34 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.DashboardChartResponse"
+                    }
+                }
+            }
+        },
+        "domain.GetDashboardResourcesResponse": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "type": "string"
+                },
+                "memory": {
+                    "type": "string"
+                },
+                "stack": {
+                    "type": "string"
+                },
+                "storage": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.GetDashboardStacksResponse": {
+            "type": "object",
+            "properties": {
+                "stacks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DashboardStackResponse"
                     }
                 }
             }
