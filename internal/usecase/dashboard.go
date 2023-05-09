@@ -88,44 +88,78 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 
 func (u *DashboardUsecase) GetResources(organizationId string) (out domain.DashboardResource, err error) {
 
-	result, err := u.thanosClient.Get("sum by (taco_cluster) (machine_cpu_cores)")
-	if err != nil {
-		return out, err
-	}
-
 	// Stack
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
 	if err != nil {
 		return out, err
 	}
 
-	filteredClusters := funk.Find(clusters, func(x domain.Cluster) bool {
+	log.Info(len(clusters))
+
+	filteredClusters := funk.Filter(clusters, func(x domain.Cluster) bool {
 		return x.Status != domain.ClusterStatus_DELETED
 	})
-	out.Stack = fmt.Sprintf("%s 개", len(filteredClusters.([]domain.Cluster)))
+	if filteredClusters != nil {
+		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]domain.Cluster)))
+	} else {
+		out.Stack = fmt.Sprintf("0 개")
+	}
 
+	// CPU
 	/*
 		{"data":{"result":[{"metric":{"taco_cluster":"cmsai5k5l"},"value":[1683608185.65,"32"]},{"metric":{"taco_cluster":"crjfh12oc"},"value":[1683608185.65,"12"]}],"vector":""},"status":"success"}
 	*/
-
-	// CPU
+	result, err := u.thanosClient.Get("sum by (taco_cluster) (machine_cpu_cores)")
+	if err != nil {
+		return out, err
+	}
 	cpu := 0
 	for _, val := range result.Data.Result {
-		clusterId := val.Metric.TacoCluster
-		log.Info(clusterId)
-
 		cpuVal, err := strconv.Atoi(val.Value[1].(string))
 		if err != nil {
 			continue
 		}
-		cpu = cpu + cpuVal
+		if cpuVal > 0 {
+			cpu = cpu + cpuVal
+		}
 	}
 	out.Cpu = fmt.Sprintf("%d 개", cpu)
 
 	// Memory
-	// machine_memory_bytes
+	result, err = u.thanosClient.Get("sum by (taco_cluster) (machine_memory_bytes)")
+	if err != nil {
+		return out, err
+	}
+	memory := 0
+	for _, val := range result.Data.Result {
+		memoryVal, err := strconv.Atoi(val.Value[1].(string))
+		if err != nil {
+			continue
+		}
+		if memoryVal > 0 {
+			memoryVal = memoryVal / 1024 / 1024 / 1024
+			memory = memory + memoryVal
+		}
+	}
+	out.Memory = fmt.Sprintf("%d GB", memory)
 
 	// Storage
+	result, err = u.thanosClient.Get("sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
+	if err != nil {
+		return out, err
+	}
+	storage := 0
+	for _, val := range result.Data.Result {
+		storageVal, err := strconv.Atoi(val.Value[1].(string))
+		if err != nil {
+			continue
+		}
+		if storageVal > 0 {
+			storageVal = storageVal / 1024 / 1024 / 1024
+			storage = storage + storageVal
+		}
+	}
+	out.Storage = fmt.Sprintf("%d GB", storage)
 
 	return
 }

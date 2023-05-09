@@ -147,6 +147,40 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, http.StatusOK, out)
 }
 
+// GetStackStatus godoc
+// @Tags Stacks
+// @Summary Get Stack Status
+// @Description Get Stack Status
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
+// @Success 200 {object} domain.GetStackStatusResponse
+// @Router /organizations/{organizationId}/stacks/{stackId}/status [get]
+// @Security     JWT
+func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		return
+	}
+
+	status, err := h.usecase.GetStepStatus(domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out domain.GetStackStatusResponse
+	if err := domain.Map(status, &out.StepStatus); err != nil {
+		log.Info(err)
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
 // UpdateStack godoc
 // @Tags Stacks
 // @Summary Update Stack

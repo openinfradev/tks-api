@@ -155,6 +155,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, thanosClient thanos.
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware.Handle(http.HandlerFunc(stackHandler.UpdateStack))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware.Handle(http.HandlerFunc(stackHandler.DeleteStack))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/kube-config", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackKubeConfig))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/status", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackStatus))).Methods(http.MethodGet)
 
 	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory, thanosClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)

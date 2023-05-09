@@ -545,14 +545,10 @@ definitions:
       stackTemplateId:
         type: string
       tksNodeCnt:
-        maximum: 6
-        minimum: 3
         type: integer
       tksNodeMachineType:
         type: string
       userNodeCnt:
-        maximum: 100
-        minimum: 0
         type: integer
       userNodeMachineType:
         type: string
@@ -561,8 +557,6 @@ definitions:
     - name
     - organizationId
     - stackTemplateId
-    - tksNodeCnt
-    - userNodeCnt
     type: object
   domain.CreateClusterResponse:
     properties:
@@ -948,6 +942,11 @@ definitions:
       stack:
         $ref: '#/definitions/domain.StackResponse'
     type: object
+  domain.GetStackStatusResponse:
+    properties:
+      stepStatus:
+        $ref: '#/definitions/domain.StackStepStatus'
+    type: object
   domain.GetStackTemplateResponse:
     properties:
       stackTemplate:
@@ -1219,6 +1218,17 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
+  domain.StackStepStatus:
+    properties:
+      maxStep:
+        type: integer
+      stage:
+        type: string
+      status:
+        type: string
+      step:
+        type: integer
     type: object
   domain.StackTemplate:
     properties:
@@ -3077,6 +3087,34 @@ paths:
       security:
       - JWT: []
       summary: Get KubeConfig by stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get Stack Status
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackStatusResponse'
+      security:
+      - JWT: []
+      summary: Get Stack Status
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/name/{name}/existence:

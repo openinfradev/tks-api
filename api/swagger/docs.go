@@ -2358,6 +2358,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/{stackId}/status": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Stack Status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Get Stack Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackStatusResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/users": {
             "get": {
                 "security": [
@@ -3691,9 +3735,7 @@ const docTemplate = `{
                 "cloudAccountId",
                 "name",
                 "organizationId",
-                "stackTemplateId",
-                "tksNodeCnt",
-                "userNodeCnt"
+                "stackTemplateId"
             ],
             "properties": {
                 "cloudAccountId": {
@@ -3718,17 +3760,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tksNodeCnt": {
-                    "type": "integer",
-                    "maximum": 6,
-                    "minimum": 3
+                    "type": "integer"
                 },
                 "tksNodeMachineType": {
                     "type": "string"
                 },
                 "userNodeCnt": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 0
+                    "type": "integer"
                 },
                 "userNodeMachineType": {
                     "type": "string"
@@ -4308,6 +4346,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetStackStatusResponse": {
+            "type": "object",
+            "properties": {
+                "stepStatus": {
+                    "$ref": "#/definitions/domain.StackStepStatus"
+                }
+            }
+        },
         "domain.GetStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -4722,6 +4768,23 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                }
+            }
+        },
+        "domain.StackStepStatus": {
+            "type": "object",
+            "properties": {
+                "maxStep": {
+                    "type": "integer"
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "step": {
+                    "type": "integer"
                 }
             }
         },

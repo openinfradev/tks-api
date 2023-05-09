@@ -28,6 +28,7 @@ type IStackUsecase interface {
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
+	GetStepStatus(stackId domain.StackId) (domain.StackStepStatus, error)
 }
 
 type StackUsecase struct {
@@ -292,6 +293,20 @@ func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId
 	}
 
 	return string(kubeconfig[:]), nil
+}
+
+func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out domain.StackStepStatus, err error) {
+	stack, err := u.Get(stackId)
+	if err != nil {
+		return out, err
+	}
+
+	out.Status = stack.Status.String()
+	out.Stage = "CLUSTER"
+	out.Step = 1
+	out.MaxStep = 15
+
+	return
 }
 
 func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) domain.Stack {

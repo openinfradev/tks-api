@@ -90,6 +90,13 @@ type StackConf = struct {
 	UserNodeMachineType string
 }
 
+type StackStepStatus = struct {
+	Status  string `json:"status"`
+	Stage   string `json:"stage"`
+	Step    int    `json:"step"`
+	MaxStep int    `json:"maxStep"`
+}
+
 type CreateStackRequest struct {
 	Name                string `json:"name" validate:"required"`
 	Description         string `json:"description"`
@@ -151,4 +158,8 @@ type CheckStackNameResponse struct {
 
 type GetStackKubeConfigResponse struct {
 	KubeConfig string `json:"kubeConfig"`
+}
+
+type GetStackStatusResponse struct {
+	StepStatus StackStepStatus
 }
