@@ -3971,6 +3971,23 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.DashboardResource": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "type": "string"
+                },
+                "memory": {
+                    "type": "string"
+                },
+                "stack": {
+                    "type": "string"
+                },
+                "storage": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.DashboardStackResponse": {
             "type": "object",
             "properties": {
@@ -4188,17 +4205,8 @@ const docTemplate = `{
         "domain.GetDashboardResourcesResponse": {
             "type": "object",
             "properties": {
-                "cpu": {
-                    "type": "string"
-                },
-                "memory": {
-                    "type": "string"
-                },
-                "stack": {
-                    "type": "string"
-                },
-                "storage": {
-                    "type": "string"
+                "resources": {
+                    "$ref": "#/definitions/domain.DashboardResource"
                 }
             }
         },

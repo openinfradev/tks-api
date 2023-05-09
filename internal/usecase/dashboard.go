@@ -2,30 +2,36 @@ package usecase
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/openinfradev/tks-api/pkg/thanos-client"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 type IDashboardUsecase interface {
 	GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
-	Fetch(organizationId string) (out []domain.DashboardStack, err error)
+	GetStacks(organizationId string) (out []domain.DashboardStack, err error)
+	GetResources(organizationId string) (out domain.DashboardResource, err error)
 }
 
 type DashboardUsecase struct {
 	organizationRepo repository.IOrganizationRepository
 	clusterRepo      repository.IClusterRepository
 	appGroupRepo     repository.IAppGroupRepository
+	thanosClient     thanos.ThanosClient
 }
 
-func NewDashboardUsecase(r repository.Repository) IDashboardUsecase {
+func NewDashboardUsecase(r repository.Repository, thanos thanos.ThanosClient) IDashboardUsecase {
 	return &DashboardUsecase{
 		organizationRepo: r.Organization,
 		clusterRepo:      r.Cluster,
 		appGroupRepo:     r.AppGroup,
+		thanosClient:     thanos,
 	}
 }
 
@@ -52,7 +58,7 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 	return
 }
 
-func (u *DashboardUsecase) Fetch(organizationId string) (out []domain.DashboardStack, err error) {
+func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.DashboardStack, err error) {
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
 	if err != nil {
 		return out, err
@@ -76,6 +82,50 @@ func (u *DashboardUsecase) Fetch(organizationId string) (out []domain.DashboardS
 
 		out = append(out, dashboardStack)
 	}
+
+	return
+}
+
+func (u *DashboardUsecase) GetResources(organizationId string) (out domain.DashboardResource, err error) {
+
+	result, err := u.thanosClient.Get("sum by (taco_cluster) (machine_cpu_cores)")
+	if err != nil {
+		return out, err
+	}
+
+	// Stack
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
+	if err != nil {
+		return out, err
+	}
+
+	filteredClusters := funk.Find(clusters, func(x domain.Cluster) bool {
+		return x.Status != domain.ClusterStatus_DELETED
+	})
+	out.Stack = fmt.Sprintf("%s 개", len(filteredClusters.([]domain.Cluster)))
+
+	/*
+		{"data":{"result":[{"metric":{"taco_cluster":"cmsai5k5l"},"value":[1683608185.65,"32"]},{"metric":{"taco_cluster":"crjfh12oc"},"value":[1683608185.65,"12"]}],"vector":""},"status":"success"}
+	*/
+
+	// CPU
+	cpu := 0
+	for _, val := range result.Data.Result {
+		clusterId := val.Metric.TacoCluster
+		log.Info(clusterId)
+
+		cpuVal, err := strconv.Atoi(val.Value[1].(string))
+		if err != nil {
+			continue
+		}
+		cpu = cpu + cpuVal
+	}
+	out.Cpu = fmt.Sprintf("%d 개", cpu)
+
+	// Memory
+	// machine_memory_bytes
+
+	// Storage
 
 	return
 }

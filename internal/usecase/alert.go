@@ -51,7 +51,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 	}
 
 	for _, alert := range input.Alerts {
-		clusterId := alert.Annotations.Cluster
+		clusterId := alert.Labels.TacoCluster
 		organizationId, err := u.getOrganizationFromCluster(&allClusters, clusterId)
 		if err != nil {
 			log.Error(err)

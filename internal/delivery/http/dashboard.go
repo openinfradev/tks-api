@@ -169,7 +169,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stacks, err := h.usecase.Fetch(organizationId)
+	stacks, err := h.usecase.GetStacks(organizationId)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -200,17 +200,21 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 // @Security     JWT
 func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	_, ok := vars["organizationId"]
+	organizationId, ok := vars["organizationId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
 
+	resources, err := h.usecase.GetResources(organizationId)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
 	var out domain.GetDashboardResourcesResponse
-	out.Stack = "1 개"
-	out.Cpu = "80 %"
-	out.Memory = "128 GB"
-	out.Storage = "10 TB"
+	if err := domain.Map(resources, &out.Resources); err != nil {
+		log.Info(err)
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }

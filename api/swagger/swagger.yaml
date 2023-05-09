@@ -727,6 +727,17 @@ definitions:
       year:
         type: string
     type: object
+  domain.DashboardResource:
+    properties:
+      cpu:
+        type: string
+      memory:
+        type: string
+      stack:
+        type: string
+      storage:
+        type: string
+    type: object
   domain.DashboardStackResponse:
     properties:
       cpu:
@@ -871,14 +882,8 @@ definitions:
     type: object
   domain.GetDashboardResourcesResponse:
     properties:
-      cpu:
-        type: string
-      memory:
-        type: string
-      stack:
-        type: string
-      storage:
-        type: string
+      resources:
+        $ref: '#/definitions/domain.DashboardResource'
     type: object
   domain.GetDashboardStacksResponse:
     properties:

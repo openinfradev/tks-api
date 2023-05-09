@@ -108,11 +108,15 @@ type GetDashboardChartResponse struct {
 	Chart DashboardChartResponse `json:"chart"`
 }
 
-type GetDashboardResourcesResponse struct {
+type DashboardResource struct {
 	Stack   string `json:"stack"`
 	Cpu     string `json:"cpu"`
 	Memory  string `json:"memory"`
 	Storage string `json:"storage"`
+}
+
+type GetDashboardResourcesResponse struct {
+	Resources DashboardResource `json:"resources"`
 }
 
 type DashboardStackResponse struct {
