@@ -108,9 +108,9 @@ type CreateClusterRequest struct {
 	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
 	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
 	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
-	TksNodeCnt          int    `json:"tksNodeCnt" validate:"required,min=3,max=6"`
+	TksNodeCnt          int    `json:"tksNodeCnt,omitempty"`
 	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
-	UserNodeCnt         int    `json:"userNodeCnt" validate:"required,min=0,max=100"`
+	UserNodeCnt         int    `json:"userNodeCnt,omitempty"`
 	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
 }
 
