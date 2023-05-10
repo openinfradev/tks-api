@@ -81,7 +81,7 @@ type Stack = struct {
 	UpdatedAt       time.Time
 }
 
-type StackConf = struct {
+type StackConf struct {
 	CpNodeCnt           int
 	CpNodeMachineType   string
 	TksNodeCnt          int
@@ -90,7 +90,7 @@ type StackConf = struct {
 	UserNodeMachineType string
 }
 
-type StackStepStatus = struct {
+type StackStepStatus struct {
 	Status  string `json:"status"`
 	Stage   string `json:"stage"`
 	Step    int    `json:"step"`
@@ -114,7 +114,7 @@ type CreateStackResponse struct {
 	ID string `json:"id"`
 }
 
-type StackConfResponse = struct {
+type StackConfResponse struct {
 	CpNodeCnt           int    `json:"cpNodeCnt"`
 	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
 	TksNodeCnt          int    `json:"tksNodeCnt"`
@@ -161,5 +161,6 @@ type GetStackKubeConfigResponse struct {
 }
 
 type GetStackStatusResponse struct {
-	StepStatus StackStepStatus
+	Status     string            `json:"status"`
+	StepStatus []StackStepStatus `json:"stepStatus"`
 }

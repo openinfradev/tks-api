@@ -4349,8 +4349,14 @@ const docTemplate = `{
         "domain.GetStackStatusResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "stepStatus": {
-                    "$ref": "#/definitions/domain.StackStepStatus"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackStepStatus"
+                    }
                 }
             }
         },

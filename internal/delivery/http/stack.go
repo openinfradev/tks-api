@@ -167,16 +167,22 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := h.usecase.GetStepStatus(domain.StackId(strId))
+	steps, status, err := h.usecase.GetStepStatus(domain.StackId(strId))
 	if err != nil {
 		ErrorJSON(w, err)
 		return
 	}
 
+	log.Info(status)
+
 	var out domain.GetStackStatusResponse
-	if err := domain.Map(status, &out.StepStatus); err != nil {
-		log.Info(err)
+	out.StepStatus = make([]domain.StackStepStatus, len(steps))
+	for i, step := range steps {
+		if err := domain.Map(step, &out.StepStatus[i]); err != nil {
+			log.Info(err)
+		}
 	}
+	out.Status = status
 
 	ResponseJSON(w, http.StatusOK, out)
 }
@@ -251,12 +257,6 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
-		return
-	}
-	log.Debug("[TODO] organization check", organizationId)
 	strId, ok := vars["stackId"]
 	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
