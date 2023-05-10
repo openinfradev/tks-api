@@ -103,7 +103,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	if filteredClusters != nil {
 		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]domain.Cluster)))
 	} else {
-		out.Stack = fmt.Sprintf("0 개")
+		out.Stack = "0 개"
 	}
 
 	// CPU

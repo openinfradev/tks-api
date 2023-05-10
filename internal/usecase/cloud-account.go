@@ -144,8 +144,8 @@ func (u *CloudAccountUsecase) Fetch(organizationId string) (cloudAccounts []doma
 		return nil, err
 	}
 
-	for i, _ := range cloudAccounts {
-		cloudAccounts[i].Clusters = u.getClusterCnt(cloudAccounts[i].ID)
+	for i, cloudAccount := range cloudAccounts {
+		cloudAccounts[i].Clusters = u.getClusterCnt(cloudAccount.ID)
 	}
 	return
 }
