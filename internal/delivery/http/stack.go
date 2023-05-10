@@ -182,7 +182,7 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 			log.Info(err)
 		}
 	}
-	out.Status = status
+	out.StackStatus = status
 
 	ResponseJSON(w, http.StatusOK, out)
 }

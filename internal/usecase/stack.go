@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -430,19 +429,11 @@ func parseStatusDescription(statusDesc string) (step int, maxStep int) {
 		return 0, 0
 	}
 
-	a := fmt.Sprintf("%s\n", statusDesc)
-	trimed := strings.Trim(a, "()")
-	log.Info(trimed)
-
-	arr := strings.Split(trimed, "/")
-
-	step, err := strconv.Atoi(arr[0])
+	_, err := fmt.Sscanf(statusDesc, "(%d/%d)", &step, &maxStep)
 	if err != nil {
 		step = 0
-	}
-	maxStep, err = strconv.Atoi(arr[1])
-	if err != nil {
 		maxStep = 0
 	}
+
 	return
 }
