@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -302,35 +303,37 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 	}
 
 	// cluster status
+	step, maxStep := parseStatusDescription(cluster.StatusDesc)
 	out = append(out, domain.StackStepStatus{
 		Status:  cluster.Status.String(),
 		Stage:   "CLUSTER",
-		Step:    1,
-		MaxStep: 15,
+		Step:    step,
+		MaxStep: maxStep,
 	})
 
+	// [TODO] need more pretty...
 	// make default appgroup status
 	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
 		// LMA
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
-			Step:    1,
-			MaxStep: 15,
+			Step:    0,
+			MaxStep: 0,
 		})
-	} else {
+	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		// LMA + SERVICE_MESH
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
-			Step:    1,
-			MaxStep: 20,
+			Step:    0,
+			MaxStep: 0,
 		})
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "SERVICE_MESH",
-			Step:    1,
-			MaxStep: 20,
+			Step:    0,
+			MaxStep: 0,
 		})
 	}
 
@@ -338,9 +341,11 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 	for _, appGroup := range appGroups {
 		for i, step := range out {
 			if step.Stage == appGroup.AppGroupType.String() {
+				step, maxStep := parseStatusDescription(cluster.StatusDesc)
+
 				out[i].Status = appGroup.Status.String()
-				out[i].Step = 1
-				out[i].MaxStep = 20
+				out[i].Step = step
+				out[i].MaxStep = maxStep
 			}
 		}
 	}
@@ -417,4 +422,27 @@ func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (dom
 
 	return domain.StackStatus_RUNNING, cluster.StatusDesc
 
+}
+
+func parseStatusDescription(statusDesc string) (step int, maxStep int) {
+	// (20/20)
+	if statusDesc == "" {
+		return 0, 0
+	}
+
+	a := fmt.Sprintf("%s\n", statusDesc)
+	trimed := strings.Trim(a, "()")
+	log.Info(trimed)
+
+	arr := strings.Split(trimed, "/")
+
+	step, err := strconv.Atoi(arr[0])
+	if err != nil {
+		step = 0
+	}
+	maxStep, err = strconv.Atoi(arr[1])
+	if err != nil {
+		maxStep = 0
+	}
+	return
 }
