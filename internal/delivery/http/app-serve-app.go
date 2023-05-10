@@ -287,7 +287,8 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	for _, t := range app.AppServeAppTasks {
 		if strings.Contains(t.Status, "SUCCESS") {
-			t.AvailableRollback = true
+			b := true
+			t.AvailableRollback = &b
 		}
 	}
 
