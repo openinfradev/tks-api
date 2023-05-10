@@ -215,15 +215,6 @@ type GetAppServeAppResponse struct {
 	Stages      []StageResponse `json:"stages"`
 }
 
-// Name             - Status (Result)
-// -------------------------------------------------------------------------------------
-// PREPARE (준비)    - PREPARING (DONE)
-// BUILD (빌드)      - BUILDING (BUILDING),       BUILD_SUCCESS (DONE),      BUILD_FAILED (FAILED)
-// DEPLOY (배포)     - DEPLOYING (DEPLOYING),     DEPLOY_SUCCESS (DONE),     DEPLOY_FAILED (FAILED)
-// PROMOTE (프로모트) - DEPLOYING (DEPLOYING),     WAIT_FOR_PROMOTE (WAIT),   DEPLOY_FAILED (FAILED)
-// PROMOTE (프로모트) - PROMOTING (PROMOTING),     PROMOTE_SUCCESS (DONE),    PROMOTE_FAILED (FAILED)
-// PROMOTE (프로모트) - ABORTING (ABORTING),       ABORT_SUCCESS (DONE),      ABORT_FAILED (FAILED)
-// ROLLBACK (롤백)   - ROLLBACKING (ROLLBACKING), ROLLBACK_SUCCESS (DONE),   ROLLBACK_FAILED (FAILED)
 type StageResponse struct {
 	Name    string            `json:"name"` // PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
 	Status  string            `json:"status"`
@@ -232,7 +223,9 @@ type StageResponse struct {
 }
 
 type ActionResponse struct {
-	Name string `json:"name"` // ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)
-	Url  string `json:"url"`
-	Type string `json:"type"` // link, api
+	Name   string `json:"name"` // ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)
+	Uri    string `json:"uri"`
+	Type   string `json:"type"` // LINK, API
+	Method string `json:"method"`
+	Body   string `json:"body"`
 }
