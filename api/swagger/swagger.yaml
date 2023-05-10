@@ -944,8 +944,12 @@ definitions:
     type: object
   domain.GetStackStatusResponse:
     properties:
+      status:
+        type: string
       stepStatus:
-        $ref: '#/definitions/domain.StackStepStatus'
+        items:
+          $ref: '#/definitions/domain.StackStepStatus'
+        type: array
     type: object
   domain.GetStackTemplateResponse:
     properties:

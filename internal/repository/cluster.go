@@ -97,7 +97,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 // [TODO] Need refactoring about filters and pagination
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	res := r.db.Preload(clause.Associations).Order("updated_at desc, created_at desc").Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Order("updated_at desc, created_at desc").Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED)
 
 	if res.Error != nil {
 		return nil, res.Error

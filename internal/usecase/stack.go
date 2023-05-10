@@ -28,7 +28,7 @@ type IStackUsecase interface {
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
-	GetStepStatus(stackId domain.StackId) (domain.StackStepStatus, error)
+	GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
 }
 
 type StackUsecase struct {
@@ -295,16 +295,58 @@ func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId
 	return string(kubeconfig[:]), nil
 }
 
-func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out domain.StackStepStatus, err error) {
-	stack, err := u.Get(stackId)
+func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error) {
+	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
-		return out, err
+		return out, "", err
 	}
 
-	out.Status = stack.Status.String()
-	out.Stage = "CLUSTER"
-	out.Step = 1
-	out.MaxStep = 15
+	// cluster status
+	out = append(out, domain.StackStepStatus{
+		Status:  cluster.Status.String(),
+		Stage:   "CLUSTER",
+		Step:    1,
+		MaxStep: 15,
+	})
+
+	// make default appgroup status
+	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+		// LMA
+		out = append(out, domain.StackStepStatus{
+			Status:  domain.AppGroupStatus_PENDING.String(),
+			Stage:   "LMA",
+			Step:    1,
+			MaxStep: 15,
+		})
+	} else {
+		// LMA + SERVICE_MESH
+		out = append(out, domain.StackStepStatus{
+			Status:  domain.AppGroupStatus_PENDING.String(),
+			Stage:   "LMA",
+			Step:    1,
+			MaxStep: 20,
+		})
+		out = append(out, domain.StackStepStatus{
+			Status:  domain.AppGroupStatus_PENDING.String(),
+			Stage:   "SERVICE_MESH",
+			Step:    1,
+			MaxStep: 20,
+		})
+	}
+
+	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId))
+	for _, appGroup := range appGroups {
+		for i, step := range out {
+			if step.Stage == appGroup.AppGroupType.String() {
+				out[i].Status = appGroup.Status.String()
+				out[i].Step = 1
+				out[i].MaxStep = 20
+			}
+		}
+	}
+
+	status, _ := getStackStatus(cluster, appGroups)
+	stackStatus = status.String()
 
 	return
 }
