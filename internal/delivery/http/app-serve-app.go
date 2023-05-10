@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -84,18 +85,18 @@ var (
 		"DEPLOYING":                 {"PREPARING", "BUILD_SUCCESS", "DEPLOYING"},
 		"DEPLOY_SUCCESS":            {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS"},
 		"DEPLOY_FAILED":             {"PREPARING", "BUILD_SUCCESS", "DEPLOY_FAILED"},
-		"BLUEGREEN_DEPLOYING":       {"PREPARING", "BUILD_SUCCESS", "BLUEGREEN_DEPLOYING"},
-		"BLUEGREEN_WAIT":            {"PREPARING", "BUILD_SUCCESS", "BLUEGREEN_WAIT"},
-		"BLUEGREEN_DEPLOY_FAILED":   {"PREPARING", "BUILD_SUCCESS", "BLUEGREEN_DEPLOY_FAILED"},
+		"BLUEGREEN_DEPLOYING":       {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_DEPLOYING"},
+		"BLUEGREEN_WAIT":            {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_WAIT"},
+		"BLUEGREEN_DEPLOY_FAILED":   {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_DEPLOY_FAILED"},
 		"BLUEGREEN_PROMOTING":       {"BLUEGREEN_PROMOTING"},
 		"BLUEGREEN_PROMOTE_SUCCESS": {"BLUEGREEN_PROMOTING", "BLUEGREEN_PROMOTE_SUCCESS"},
 		"BLUEGREEN_PROMOTE_FAILED":  {"BLUEGREEN_PROMOTING", "BLUEGREEN_PROMOTE_FAILED"},
 		"BLUEGREEN_ABORTING":        {"BLUEGREEN_ABORTING"},
 		"BLUEGREEN_ABORT_SUCCESS":   {"BLUEGREEN_ABORTING", "BLUEGREEN_ABORT_SUCCESS"},
 		"BLUEGREEN_ABORT_FAILED":    {"BLUEGREEN_ABORTING", "BLUEGREEN_ABORT_FAILED"},
-		"CANARY_DEPLOYING":          {"PREPARING", "BUILD_SUCCESS", "CANARY_DEPLOYING"},
-		"CANARY_WAIT":               {"PREPARING", "BUILD_SUCCESS", "CANARY_WAIT"},
-		"CANARY_DEPLOY_FAILED":      {"PREPARING", "BUILD_SUCCESS", "CANARY_DEPLOY_FAILED"},
+		"CANARY_DEPLOYING":          {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_DEPLOYING"},
+		"CANARY_WAIT":               {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_WAIT"},
+		"CANARY_DEPLOY_FAILED":      {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_DEPLOY_FAILED"},
 		"CANARY_PROMOTING":          {"CANARY_PROMOTING"},
 		"CANARY_PROMOTE_SUCCESS":    {"CANARY_PROMOTING", "CANARY_PROMOTE_SUCCESS"},
 		"CANARY_PROMOTE_FAILED":     {"CANARY_PROMOTING", "CANARY_PROMOTE_FAILED"},
@@ -284,6 +285,12 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	for _, t := range app.AppServeAppTasks {
+		if strings.Contains(t.Status, "SUCCESS") {
+			t.AvailableRollback = true
+		}
+	}
+
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
 	out.Stages = makeStages(app)
@@ -355,6 +362,13 @@ func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
+		}
+		actions = append(actions, action)
+	} else if status == "BLUEGREEN_PROMOTE_SUCCESS" {
+		action := domain.ActionResponse{
+			Name: "ENDPOINT",
+			Uri:  app.EndpointUrl,
+			Type: "LINK",
 		}
 		actions = append(actions, action)
 	}
