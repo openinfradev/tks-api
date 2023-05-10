@@ -14,6 +14,73 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
+var (
+	StatusResult = map[string]string{
+		"PREPARING":               "DONE",
+		"BUILDING":                "BUILDING",
+		"BUILD_SUCCESS":           "DONE",
+		"BUILD_FAILED":            "FAILED",
+		"DEPLOYING":               "DEPLOYING",
+		"DEPLOY_SUCCESS":          "DONE",
+		"DEPLOY_FAILED":           "FAILED",
+		"BLUEGREEN_DEPLOYING":     "DEPLOYING",
+		"WAIT_FOR_PROMOTE":        "WAIT",
+		"BLUEGREEN_DEPLOY_FAILED": "FAILED",
+		"PROMOTING":               "PROMOTING",
+		"PROMOTE_SUCCESS":         "DONE",
+		"PROMOTE_FAILED":          "FAILED",
+		"ABORTING":                "ABORTING",
+		"ABORT_SUCCESS":           "DONE",
+		"ABORT_FAILED":            "FAILED",
+		"ROLLBACKING":             "ROLLBACKING",
+		"ROLLBACK_SUCCESS":        "DONE",
+		"ROLLBACK_FAILED":         "FAILED",
+	}
+	StatusName = map[string]string{
+		"PREPARING":               "PREPARE",
+		"BUILDING":                "BUILD",
+		"BUILD_SUCCESS":           "BUILD",
+		"BUILD_FAILED":            "BUILD",
+		"DEPLOYING":               "DEPLOY",
+		"DEPLOY_SUCCESS":          "DEPLOY",
+		"DEPLOY_FAILED":           "DEPLOY",
+		"BLUEGREEN_DEPLOYING":     "PROMOTE",
+		"WAIT_FOR_PROMOTE":        "PROMOTE",
+		"BLUEGREEN_DEPLOY_FAILED": "PROMOTE",
+		"PROMOTING":               "PROMOTE",
+		"PROMOTE_SUCCESS":         "PROMOTE",
+		"PROMOTE_FAILED":          "PROMOTE",
+		"ABORTING":                "PROMOTE",
+		"ABORT_SUCCESS":           "PROMOTE",
+		"ABORT_FAILED":            "PROMOTE",
+		"ROLLBACKING":             "ROLLBACK",
+		"ROLLBACK_SUCCESS":        "ROLLBACK",
+		"ROLLBACK_FAILED":         "ROLLBACK",
+	}
+
+	StatusStages = map[string][]string{
+		"PREPARING":               []string{"PREPARING"},
+		"BUILDING":                []string{"PREPARING", "BUILDING"},
+		"BUILD_SUCCESS":           []string{"PREPARING", "BUILD_SUCCESS"},
+		"BUILD_FAILED":            []string{"PREPARING", "BUILD_FAILED"},
+		"DEPLOYING":               []string{"PREPARING", "BUILD_SUCCESS", "DEPLOYING"},
+		"DEPLOY_SUCCESS":          []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS"},
+		"DEPLOY_FAILED":           []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_FAILED"},
+		"BLUEGREEN_DEPLOYING":     []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_DEPLOYING"},
+		"WAIT_FOR_PROMOTE":        []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "WAIT_FOR_PROMOTE"},
+		"BLUEGREEN_DEPLOY_FAILED": []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_DEPLOY_FAILED"},
+		"PROMOTING":               []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "PROMOTING"},
+		"PROMOTE_SUCCESS":         []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "PROMOTE_SUCCESS"},
+		"PROMOTE_FAILED":          []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "PROMOTE_FAILED"},
+		"ABORTING":                []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "ABORTING"},
+		"ABORT_SUCCESS":           []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "ABORT_SUCCESS"},
+		"ABORT_FAILED":            []string{"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "ABORT_FAILED"},
+		"ROLLBACKING":             []string{"ROLLBACKING"},
+		"ROLLBACK_SUCCESS":        []string{"ROLLBACK_SUCCESS"},
+		"ROLLBACK_FAILED":         []string{"ROLLBACK_FAILED"},
+	}
+)
+
 type AppServeAppHandler struct {
 	usecase usecase.IAppServeAppUsecase
 }
@@ -161,7 +228,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Description Get appServeApp by giving params
 // @Accept json
 // @Produce json
-// @Success 200 {object} domain.AppServeApp
+// @Success 200 {object} domain.GetAppServeAppResponse
 // @Router /organizations/{organizationId}/app-serve-apps/{appId} [get]
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
@@ -192,8 +259,50 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
+	out.Stages = makeStages(app)
 
 	ResponseJSON(w, http.StatusOK, out)
+}
+
+// Name             - Status (Result)
+// -------------------------------------------------------------------------------------
+// PREPARE (준비)    - PREPARING (DONE)
+// BUILD (빌드)      - BUILDING (BUILDING),              BUILD_SUCCESS (DONE),      BUILD_FAILED (FAILED)
+// DEPLOY (배포)     - DEPLOYING (DEPLOYING),            DEPLOY_SUCCESS (DONE),     DEPLOY_FAILED (FAILED)
+// PROMOTE (프로모트) - BLUEGREEN_DEPLOYING (DEPLOYING),  WAIT_FOR_PROMOTE (WAIT),   BLUEGREEN_DEPLOY_FAILED (FAILED)
+// PROMOTE (프로모트) - PROMOTING (PROMOTING),            PROMOTE_SUCCESS (DONE),    PROMOTE_FAILED (FAILED)
+// PROMOTE (프로모트) - ABORTING (ABORTING),              ABORT_SUCCESS (DONE),      ABORT_FAILED (FAILED)
+// ROLLBACK (롤백)   - ROLLBACKING (ROLLBACKING),        ROLLBACK_SUCCESS (DONE),   ROLLBACK_FAILED (FAILED)
+func makeStages(app *domain.AppServeApp) []domain.StageResponse {
+	stages := make([]domain.StageResponse, 0)
+
+	var stage domain.StageResponse
+	for _, s := range StatusStages[app.Status] {
+		stage = makeStage(s)
+		stages = append(stages, stage)
+	}
+
+	//var stage domain.StageResponse
+	//if app.Status == "PREPARE" {
+	//	stage = makeStage(app.Status)
+	//	stages = append(stages, stage)
+	//} else if app.Status == "BUILDING" || app.Status == "BUILD_SUCCESS" || app.Status == "BUILD_FAILED" {
+	//	stage = makeStage("PREPARE")
+	//	stages = append(stages, stage)
+	//
+	//	stage = makeStage(app.Status)
+	//	stages = append(stages, stage)
+	//}
+	return stages
+}
+
+func makeStage(status string) domain.StageResponse {
+	stage := domain.StageResponse{
+		Name:   StatusName[status],
+		Status: status,
+		Result: StatusResult[status],
+	}
+	return stage
 }
 
 // UpdateAppServeApp godoc
