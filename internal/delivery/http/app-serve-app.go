@@ -344,7 +344,7 @@ func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
 				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
 			Type:   "API",
 			Method: "PUT",
-			Body:   "{ \"strategy\": \"blue-green\", \"promote\": \"true\" }",
+			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
 		}
 		actions = append(actions, action)
 
@@ -354,7 +354,7 @@ func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
 				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
 			Type:   "API",
 			Method: "PUT",
-			Body:   "{ \"strategy\": \"blue-green\", \"abort\": \"true\" }",
+			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
 		}
 		actions = append(actions, action)
 	}

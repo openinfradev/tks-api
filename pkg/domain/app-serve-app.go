@@ -223,9 +223,9 @@ type StageResponse struct {
 }
 
 type ActionResponse struct {
-	Name   string `json:"name"` // ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)
-	Uri    string `json:"uri"`
-	Type   string `json:"type"` // LINK, API
-	Method string `json:"method"`
-	Body   string `json:"body"`
+	Name   string            `json:"name"` // ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)
+	Uri    string            `json:"uri"`
+	Type   string            `json:"type"` // LINK, API
+	Method string            `json:"method"`
+	Body   map[string]string `json:"body"`
 }
