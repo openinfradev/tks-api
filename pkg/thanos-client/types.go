@@ -13,6 +13,7 @@ type MetricData struct {
 type MetricDataResult struct {
 	Metric MetricDataResultMetric `json:"metric"`
 	Value  []interface{}          `json:"value"`
+	Values []interface{}          `json:"values"`
 }
 
 type MetricDataResultMetric struct {

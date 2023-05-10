@@ -166,6 +166,12 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 
 func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	// [TODO] get prometheus
+	result, err := u.thanosClient.Get("machine_cpu_cores [1h]")
+	if err != nil {
+		return res, err
+	}
+	log.Info(result)
+
 	switch chartType {
 	case domain.ChartType_TRAFFIC.String(),
 		domain.ChartType_CPU.String(),
