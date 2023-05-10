@@ -292,6 +292,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		}
 		newTask = append(newTask, t)
 	}
+	app.AppServeAppTasks = newTask
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
@@ -378,6 +379,45 @@ func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
 	stage.Actions = &actions
 
 	return stage
+}
+
+// IsAppServeAppExist godoc
+// @Tags AppServeApps
+// @Summary Get appServeApp
+// @Description Get appServeApp by giving params
+// @Accept json
+// @Produce json
+// @Success 200 {object} bool
+// @Router /organizations/{organizationId}/app-serve-apps/{appId}/exist [get]
+// @Security     JWT
+func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	fmt.Printf("appId = [%s]\n", appId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
+		return
+	}
+
+	exist, err := h.usecase.IsAppServeAppExist(appId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		return
+	}
+
+	var out = struct {
+		Exist bool `json:"exist"`
+	}{Exist: exist}
+
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 // UpdateAppServeApp godoc

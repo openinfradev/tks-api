@@ -1157,7 +1157,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.AppServeApp"
+                            "$ref": "#/definitions/domain.GetAppServeAppResponse"
                         }
                     }
                 }
@@ -1278,6 +1278,34 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/app-serve-apps/{appId}/exist": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get appServeApp by giving params",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Get appServeApp",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
                         }
                     }
                 }
@@ -2950,6 +2978,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.ActionResponse": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "method": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "LINK, API",
+                    "type": "string"
+                },
+                "uri": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.AlertActionResponse": {
             "type": "object",
             "properties": {
@@ -3099,7 +3152,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "createdAt": {
-                    "description": "createdAt is a creation timestamp for the application",
                     "type": "string"
                 },
                 "deletedAt": {
@@ -3157,12 +3209,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "appServeAppId": {
-                    "description": "ID for appServeApp that this task belongs to.",
+                    "description": "ID for appServeApp that this task belongs to",
                     "type": "string"
                 },
                 "artifactUrl": {
                     "description": "URL of java app artifact (Eg, Jar)",
                     "type": "string"
+                },
+                "availableRollback": {
+                    "type": "boolean"
                 },
                 "createdAt": {
                     "description": "createdAt is  a creation timestamp for the application",
@@ -4180,6 +4235,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetAppServeAppResponse": {
+            "type": "object",
+            "properties": {
+                "appServeApp": {
+                    "$ref": "#/definitions/domain.AppServeApp"
+                },
+                "stages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StageResponse"
+                    }
+                }
+            }
+        },
         "domain.GetApplicationsResponse": {
             "type": "object",
             "properties": {
@@ -4921,6 +4990,27 @@ const docTemplate = `{
                     }
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.StageResponse": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ActionResponse"
+                    }
+                },
+                "name": {
+                    "description": "PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)",
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }

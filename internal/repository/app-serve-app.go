@@ -13,6 +13,7 @@ type IAppServeAppRepository interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	IsAppServeAppExist(appId string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
 	UpdateStatus(appId string, taskId string, status string, output string) error
 	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
@@ -96,6 +97,17 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	//}
 
 	return &app, nil
+}
+
+func (r *AppServeAppRepository) IsAppServeAppExist(appId string) (int64, error) {
+	var result int64
+
+	res := r.db.Table("app_serve_apps").Where("id = ? AND status <> 'DELETE_SUCCESS'", appId).Count(&result)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return 0, res.Error
+	}
+	return result, nil
 }
 
 func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status string, output string) error {
