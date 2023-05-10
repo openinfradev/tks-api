@@ -285,11 +285,12 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	newTask := make([]domain.AppServeAppTask, 0)
 	for _, t := range app.AppServeAppTasks {
 		if strings.Contains(t.Status, "SUCCESS") {
-			b := true
-			t.AvailableRollback = &b
+			t.AvailableRollback = true
 		}
+		newTask = append(newTask, t)
 	}
 
 	var out domain.GetAppServeAppResponse

@@ -46,7 +46,7 @@ type AppServeAppTask struct {
 	PvAccessMode      string     `json:"pvAccessMode"`
 	PvSize            string     `json:"pvSize"`
 	PvMountPath       string     `json:"pvMountPath"`
-	AvailableRollback *bool      `gorm:"-:migration" json:"availableRollback"`
+	AvailableRollback bool       `gorm:"-:migration" json:"availableRollback"`
 	CreatedAt         time.Time  `gorm:"autoCreateTime:false" json:"createdAt"` // createdAt is  a creation timestamp for the application
 	UpdatedAt         *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt         *time.Time `json:"deletedAt"`
