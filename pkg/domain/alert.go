@@ -45,7 +45,7 @@ type Alert struct {
 	Message        string
 	ClusterId      ClusterId
 	Cluster        Cluster
-	Node           string
+	Instance       string
 	CheckPoint     string
 	Summary        string
 	GrafanaUrl     string
@@ -87,22 +87,21 @@ type CreateAlertRequestAlert struct {
 		AlertName   string `json:"alertname"`
 		Container   string `json:"container"`
 		Endpoint    string `json:"endpoint"`
-		Instance    string `json:"instance"`
 		Job         string `json:"job"`
 		Namespace   string `json:"namespace"`
 		Pod         string `json:"pod"`
 		Prometheus  string `json:"prometheus"`
 		Service     string `json:"service"`
 		Severity    string `json:"severity"`
+		Instance    string `json:"instance"`
 		TacoCluster string `json:"taco_cluster"`
 	} `json:"labels"`
 	Annotations struct {
-		Message     string `json:"message"`
-		Summary     string `json:"summary"`
-		Description string `json:"description"`
-		Checkpoint  string `json:"Checkpoint"`
-		Cluster     string `json:"cluster"`
-		Node        string `json:"node"`
+		Message        string `json:"message"`
+		Summary        string `json:"summary"`
+		Description    string `json:"description"`
+		Checkpoint     string `json:"Checkpoint"`
+		Discriminative string `json:"discriminative"`
 	} `json:"annotations"`
 }
 

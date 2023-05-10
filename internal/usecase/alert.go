@@ -62,14 +62,31 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 		if err != nil {
 			rawData = []byte{}
 		}
+
+		/*
+			target := ""
+			// discriminative 에 target 에 대한 정보가 있다.
+			// discriminative: $labels.taco_cluster, $labels.instance
+			discriminative := alert.Annotations.Discriminative
+			if discriminative != "" {
+				trimed := strings.TrimLeft(discriminative, " ")
+				trimed = strings.TrimLeft(trimed, "$")
+				arr := strings.Split(trimed, ",")
+
+				for _, refer := range arr {
+
+				}
+			}
+		*/
+
 		dto := domain.Alert{
 			OrganizationId: organizationId,
 			Name:           alert.Labels.AlertName,
 			Code:           alert.Labels.AlertName,
 			Grade:          alert.Labels.Severity,
+			Instance:       alert.Labels.Instance,
 			Message:        alert.Annotations.Message,
 			Description:    alert.Annotations.Description,
-			Node:           alert.Annotations.Node,
 			CheckPoint:     alert.Annotations.Checkpoint,
 			Summary:        alert.Annotations.Summary,
 			ClusterId:      domain.ClusterId(clusterId),
@@ -118,7 +135,6 @@ func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err 
 	}
 
 	for i := range alerts {
-		// make data ( FiredAt, TakedAt, ClosedAt )
 		u.makeAdditionalInfo(&alerts[i])
 	}
 
@@ -202,8 +218,4 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 		alert.TakedSec = int((alert.AlertActions[0].CreatedAt).Sub(alert.CreatedAt).Seconds())
 		alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
 	}
-
-	// make data grafana URL
-	alert.GrafanaUrl = "TODO url"
-	alert.Node = fmt.Sprintf("STACK (%s) / NODE (%s)", alert.Cluster.Name, alert.Node)
 }
