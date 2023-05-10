@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -63,14 +61,12 @@ func (c *Alert) BeforeCreate(tx *gorm.DB) (err error) {
 type AlertAction struct {
 	gorm.Model
 
-	ID          uuid.UUID `gorm:"primarykey"`
-	AlertId     uuid.UUID
-	Content     string
-	Status      domain.AlertActionStatus
-	TakerId     *uuid.UUID `gorm:"type:uuid"`
-	Taker       User       `gorm:"foreignKey:TakerId"`
-	StartedAt   *time.Time
-	CompletedAt *time.Time
+	ID      uuid.UUID `gorm:"primarykey"`
+	AlertId uuid.UUID
+	Content string
+	Status  domain.AlertActionStatus
+	TakerId *uuid.UUID `gorm:"type:uuid"`
+	Taker   User       `gorm:"foreignKey:TakerId"`
 }
 
 func (c *AlertAction) BeforeCreate(tx *gorm.DB) (err error) {
@@ -157,12 +153,10 @@ func (r *AlertRepository) Delete(dto domain.Alert) (err error) {
 
 func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
 	alert := AlertAction{
-		AlertId:     dto.AlertId,
-		Content:     dto.Content,
-		Status:      dto.Status,
-		TakerId:     dto.TakerId,
-		StartedAt:   dto.StartedAt,
-		CompletedAt: dto.CompletedAt,
+		AlertId: dto.AlertId,
+		Content: dto.Content,
+		Status:  dto.Status,
+		TakerId: dto.TakerId,
 	}
 	res := r.db.Create(&alert)
 	if res.Error != nil {
@@ -200,13 +194,13 @@ func reflectAlert(alert Alert) domain.Alert {
 
 func reflectAlertAction(alertAction AlertAction) domain.AlertAction {
 	return domain.AlertAction{
-		ID:          alertAction.ID,
-		AlertId:     alertAction.AlertId,
-		Content:     alertAction.Content,
-		Status:      alertAction.Status,
-		TakerId:     alertAction.TakerId,
-		Taker:       reflectSimpleUser(alertAction.Taker),
-		StartedAt:   alertAction.StartedAt,
-		CompletedAt: alertAction.CompletedAt,
+		ID:        alertAction.ID,
+		AlertId:   alertAction.AlertId,
+		Content:   alertAction.Content,
+		Status:    alertAction.Status,
+		TakerId:   alertAction.TakerId,
+		Taker:     reflectSimpleUser(alertAction.Taker),
+		CreatedAt: alertAction.CreatedAt,
+		UpdatedAt: alertAction.UpdatedAt,
 	}
 }

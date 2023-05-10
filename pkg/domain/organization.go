@@ -89,14 +89,14 @@ type ListOrganizationResponse struct {
 	Organizations []ListOrganizationBody `json:"organizations"`
 }
 type ListOrganizationBody struct {
-	ID               string             `json:"id"`
-	Name             string             `json:"name"`
-	Description      string             `json:"description"`
-	Phone            string             `json:"phone"`
-	PrimaryClusterId string             `json:"primaryClusterId"`
-	Status           OrganizationStatus `json:"status"`
-	CreatedAt        time.Time          `json:"createdAt"`
-	UpdatedAt        time.Time          `json:"updatedAt"`
+	ID               string    `json:"id"`
+	Name             string    `json:"name"`
+	Description      string    `json:"description"`
+	Phone            string    `json:"phone"`
+	PrimaryClusterId string    `json:"primaryClusterId"`
+	Status           string    `json:"status"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 type UpdateOrganizationRequest struct {

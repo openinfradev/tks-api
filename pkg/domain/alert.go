@@ -65,14 +65,14 @@ type Alert struct {
 }
 
 type AlertAction struct {
-	ID          uuid.UUID
-	AlertId     uuid.UUID
-	Content     string
-	Status      AlertActionStatus
-	TakerId     *uuid.UUID
-	Taker       User
-	StartedAt   *time.Time
-	CompletedAt *time.Time
+	ID        uuid.UUID
+	AlertId   uuid.UUID
+	Content   string
+	Status    AlertActionStatus
+	TakerId   *uuid.UUID
+	Taker     User
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type CreateAlertRequestAlert struct {
@@ -143,13 +143,13 @@ type AlertResponse struct {
 }
 
 type AlertActionResponse struct {
-	ID          uuid.UUID          `json:"id"`
-	AlertId     uuid.UUID          `json:"alertId"`
-	Content     string             `json:"content"`
-	Status      string             `json:"status"`
-	Taker       SimpleUserResponse `json:"taker"`
-	StartedAt   *time.Time         `json:"startedAt"`
-	CompletedAt *time.Time         `json:"completedAt"`
+	ID        uuid.UUID          `json:"id"`
+	AlertId   uuid.UUID          `json:"alertId"`
+	Content   string             `json:"content"`
+	Status    string             `json:"status"`
+	Taker     SimpleUserResponse `json:"taker"`
+	CreatedAt time.Time          `json:"createdAt"`
+	UpdatedAt time.Time          `json:"updatedAt"`
 }
 
 type GetAlertsResponse struct {

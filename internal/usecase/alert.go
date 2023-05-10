@@ -159,14 +159,7 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAc
 
 	userId := user.GetUserId()
 	dto.TakerId = &userId
-	now := time.Now()
-	if dto.Status == domain.AlertActionStatus_INPROGRESS {
-		dto.StartedAt = &now
-	} else if dto.Status == domain.AlertActionStatus_CLOSED {
-		dto.CompletedAt = &now
-	} else {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid Status"))
-	}
+	dto.CreatedAt = time.Now()
 
 	alertActionId, err = u.repo.CreateAlertAction(dto)
 	if err != nil {
@@ -195,16 +188,16 @@ func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, st
 func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 	alert.FiredAt = &alert.CreatedAt
 	if len(alert.AlertActions) > 0 {
-		alert.TakedAt = alert.AlertActions[0].StartedAt
+		alert.TakedAt = &alert.AlertActions[0].CreatedAt
 		for _, action := range alert.AlertActions {
 			if action.Status == domain.AlertActionStatus_CLOSED {
-				alert.ClosedAt = action.CompletedAt
-				alert.ProcessingSec = int((action.CompletedAt).Sub(alert.CreatedAt).Seconds())
+				alert.ClosedAt = &action.CreatedAt
+				alert.ProcessingSec = int((action.CreatedAt).Sub(alert.CreatedAt).Seconds())
 			}
 		}
 
 		alert.LastTaker = alert.AlertActions[len(alert.AlertActions)-1].Taker
-		alert.TakedSec = int((alert.AlertActions[0].StartedAt).Sub(alert.CreatedAt).Seconds())
+		alert.TakedSec = int((alert.AlertActions[0].CreatedAt).Sub(alert.CreatedAt).Seconds())
 		alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
 	}
 

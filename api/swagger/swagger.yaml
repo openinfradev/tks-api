@@ -4,18 +4,18 @@ definitions:
     properties:
       alertId:
         type: string
-      completedAt:
-        type: string
       content:
         type: string
-      id:
+      createdAt:
         type: string
-      startedAt:
+      id:
         type: string
       status:
         type: string
       taker:
         $ref: '#/definitions/domain.SimpleUserResponse'
+      updatedAt:
+        type: string
     type: object
   domain.AlertResponse:
     properties:
@@ -1024,7 +1024,7 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        type: integer
+        type: string
       updatedAt:
         type: string
     type: object

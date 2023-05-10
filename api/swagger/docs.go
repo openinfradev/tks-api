@@ -2956,16 +2956,13 @@ const docTemplate = `{
                 "alertId": {
                     "type": "string"
                 },
-                "completedAt": {
-                    "type": "string"
-                },
                 "content": {
                     "type": "string"
                 },
-                "id": {
+                "createdAt": {
                     "type": "string"
                 },
-                "startedAt": {
+                "id": {
                     "type": "string"
                 },
                 "status": {
@@ -2973,6 +2970,9 @@ const docTemplate = `{
                 },
                 "taker": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -4472,7 +4472,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"

@@ -2949,16 +2949,13 @@
                 "alertId": {
                     "type": "string"
                 },
-                "completedAt": {
-                    "type": "string"
-                },
                 "content": {
                     "type": "string"
                 },
-                "id": {
+                "createdAt": {
                     "type": "string"
                 },
-                "startedAt": {
+                "id": {
                     "type": "string"
                 },
                 "status": {
@@ -2966,6 +2963,9 @@
                 },
                 "taker": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -4465,7 +4465,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
