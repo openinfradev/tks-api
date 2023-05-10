@@ -161,6 +161,6 @@ type GetStackKubeConfigResponse struct {
 }
 
 type GetStackStatusResponse struct {
-	Status     string            `json:"status"`
-	StepStatus []StackStepStatus `json:"stepStatus"`
+	StackStatus string            `json:"stackStatus"`
+	StepStatus  []StackStepStatus `json:"stepStatus"`
 }

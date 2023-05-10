@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -102,7 +103,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	if filteredClusters != nil {
 		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]domain.Cluster)))
 	} else {
-		out.Stack = fmt.Sprintf("0 개")
+		out.Stack = "0 개"
 	}
 
 	// CPU
@@ -165,37 +166,20 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 }
 
 func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
-	// [TODO] get prometheus
+	now := time.Now()
+	query := ""
+	name := ""
+
 	switch chartType {
-	case domain.ChartType_TRAFFIC.String(),
-		domain.ChartType_CPU.String(),
-		domain.ChartType_CPU.String(),
-		domain.ChartType_POD.String(),
-		domain.ChartType_MEMORY.String():
-
-		chartData := domain.ChartData{}
-		chartData.XAxis.Data = []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
-
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "Cluster in",
-			Data: []string{"820", "932", "901", "934", "1290", "1330", "1320"},
-		})
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "Cluster out",
-			Data: []string{"730", "860", "793", "821", "1271", "648", "927"},
-		})
-
-		return domain.DashboardChart{
-			ChartType:      new(domain.ChartType).FromString(chartType),
-			OrganizationId: organizationId,
-			Name:           chartType,
-			Description:    chartType + " 통계 데이터",
-			Duration:       duration,
-			Interval:       interval,
-			ChartData:      chartData,
-			UpdatedAt:      time.Now(),
-		}, nil
-
+	case domain.ChartType_CPU.String():
+		query = "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
+		name = "CPU 사용량"
+	case domain.ChartType_MEMORY.String():
+		query = "sum (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
+		name = "Memory 사용량"
+	case domain.ChartType_POD.String():
+		query = "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		name = "Pod 재기동"
 	case domain.ChartType_POD_CALENDAR.String():
 		chartData := domain.ChartData{}
 		chartData.Series = append(chartData.Series, domain.Unit{
@@ -220,8 +204,52 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 			ChartData:      chartData,
 			UpdatedAt:      time.Now(),
 		}, nil
-
+	default:
+		return domain.DashboardChart{}, fmt.Errorf("No data")
 	}
 
-	return domain.DashboardChart{}, fmt.Errorf("No data")
+	// call promql
+	result, err := u.thanosClient.FetchRange(query, int(now.Unix())-60*60*24, int(now.Unix()), 60*60)
+	if err != nil {
+		return res, err
+	}
+
+	chartData := domain.ChartData{}
+	xAxisData := []string{}
+	yAxisData := []string{}
+	for _, val := range result.Data.Result {
+		for _, vals := range val.Values {
+			x := int(math.Round(vals.([]interface{})[0].(float64)))
+			y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
+			if err != nil {
+				y = 0
+			}
+
+			if chartType == domain.ChartType_CPU.String() || chartType == domain.ChartType_MEMORY.String() {
+				y = y * 100
+			}
+
+			log.Info(fmt.Sprintf("%d %f", x, y))
+
+			xAxisData = append(xAxisData, fmt.Sprintf("%d", x))
+			yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
+		}
+	}
+	chartData.XAxis.Data = xAxisData
+	chartData.Series = append(chartData.Series, domain.Unit{
+		Name: name,
+		Data: yAxisData,
+	})
+
+	return domain.DashboardChart{
+		ChartType:      new(domain.ChartType).FromString(chartType),
+		OrganizationId: organizationId,
+		Name:           chartType,
+		Description:    chartType + " 통계 데이터",
+		Duration:       duration,
+		Interval:       interval,
+		ChartData:      chartData,
+		UpdatedAt:      time.Now(),
+	}, nil
+
 }

@@ -971,7 +971,7 @@ definitions:
     type: object
   domain.GetStackStatusResponse:
     properties:
-      status:
+      stackStatus:
         type: string
       stepStatus:
         items:

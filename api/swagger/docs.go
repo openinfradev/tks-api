@@ -4418,7 +4418,7 @@ const docTemplate = `{
         "domain.GetStackStatusResponse": {
             "type": "object",
             "properties": {
-                "status": {
+                "stackStatus": {
                     "type": "string"
                 },
                 "stepStatus": {
