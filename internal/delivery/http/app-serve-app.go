@@ -4,14 +4,109 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 
+	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+)
+
+var (
+	StatusResult = map[string]string{
+		"PREPARING":                 "DONE",
+		"BUILDING":                  "BUILDING",
+		"BUILD_SUCCESS":             "DONE",
+		"BUILD_FAILED":              "FAILED",
+		"DEPLOYING":                 "DEPLOYING",
+		"DEPLOY_SUCCESS":            "DONE",
+		"DEPLOY_FAILED":             "FAILED",
+		"BLUEGREEN_DEPLOYING":       "DEPLOYING",
+		"BLUEGREEN_WAIT":            "WAIT",
+		"BLUEGREEN_DEPLOY_FAILED":   "FAILED",
+		"BLUEGREEN_PROMOTING":       "PROMOTING",
+		"BLUEGREEN_PROMOTE_SUCCESS": "DONE",
+		"BLUEGREEN_PROMOTE_FAILED":  "FAILED",
+		"BLUEGREEN_ABORTING":        "ABORTING",
+		"BLUEGREEN_ABORT_SUCCESS":   "DONE",
+		"BLUEGREEN_ABORT_FAILED":    "FAILED",
+		"CANARY_DEPLOYING":          "DEPLOYING",
+		"CANARY_WAIT":               "WAIT",
+		"CANARY_DEPLOY_FAILED":      "FAILED",
+		"CANARY_PROMOTING":          "PROMOTING",
+		"CANARY_PROMOTE_SUCCESS":    "DONE",
+		"CANARY_PROMOTE_FAILED":     "FAILED",
+		"CANARY_ABORTING":           "ABORTING",
+		"CANARY_ABORT_SUCCESS":      "DONE",
+		"CANARY_ABORT_FAILED":       "FAILED",
+		"ROLLBACKING":               "ROLLBACKING",
+		"ROLLBACK_SUCCESS":          "DONE",
+		"ROLLBACK_FAILED":           "FAILED",
+	}
+	StatusName = map[string]string{
+		"PREPARING":                 "PREPARE",
+		"BUILDING":                  "BUILD",
+		"BUILD_SUCCESS":             "BUILD",
+		"BUILD_FAILED":              "BUILD",
+		"DEPLOYING":                 "DEPLOY",
+		"DEPLOY_SUCCESS":            "DEPLOY",
+		"DEPLOY_FAILED":             "DEPLOY",
+		"BLUEGREEN_DEPLOYING":       "PROMOTE",
+		"BLUEGREEN_WAIT":            "PROMOTE",
+		"BLUEGREEN_DEPLOY_FAILED":   "PROMOTE",
+		"BLUEGREEN_PROMOTING":       "PROMOTE",
+		"BLUEGREEN_PROMOTE_SUCCESS": "PROMOTE",
+		"BLUEGREEN_PROMOTE_FAILED":  "PROMOTE",
+		"BLUEGREEN_ABORTING":        "PROMOTE",
+		"BLUEGREEN_ABORT_SUCCESS":   "PROMOTE",
+		"BLUEGREEN_ABORT_FAILED":    "PROMOTE",
+		"CANARY_DEPLOYING":          "PROMOTE",
+		"CANARY_WAIT":               "PROMOTE",
+		"CANARY_DEPLOY_FAILED":      "PROMOTE",
+		"CANARY_PROMOTING":          "PROMOTE",
+		"CANARY_PROMOTE_SUCCESS":    "PROMOTE",
+		"CANARY_PROMOTE_FAILED":     "PROMOTE",
+		"CANARY_ABORTING":           "PROMOTE",
+		"CANARY_ABORT_SUCCESS":      "PROMOTE",
+		"CANARY_ABORT_FAILED":       "PROMOTE",
+		"ROLLBACKING":               "ROLLBACK",
+		"ROLLBACK_SUCCESS":          "ROLLBACK",
+		"ROLLBACK_FAILED":           "ROLLBACK",
+	}
+	StatusStages = map[string][]string{
+		"PREPARING":                 {"PREPARING"},
+		"BUILDING":                  {"PREPARING", "BUILDING"},
+		"BUILD_SUCCESS":             {"PREPARING", "BUILD_SUCCESS"},
+		"BUILD_FAILED":              {"PREPARING", "BUILD_FAILED"},
+		"DEPLOYING":                 {"PREPARING", "BUILD_SUCCESS", "DEPLOYING"},
+		"DEPLOY_SUCCESS":            {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS"},
+		"DEPLOY_FAILED":             {"PREPARING", "BUILD_SUCCESS", "DEPLOY_FAILED"},
+		"BLUEGREEN_DEPLOYING":       {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_DEPLOYING"},
+		"BLUEGREEN_WAIT":            {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_WAIT"},
+		"BLUEGREEN_DEPLOY_FAILED":   {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_DEPLOY_FAILED"},
+		"BLUEGREEN_PROMOTING":       {"BLUEGREEN_PROMOTING"},
+		"BLUEGREEN_PROMOTE_SUCCESS": {"BLUEGREEN_PROMOTING", "BLUEGREEN_PROMOTE_SUCCESS"},
+		"BLUEGREEN_PROMOTE_FAILED":  {"BLUEGREEN_PROMOTING", "BLUEGREEN_PROMOTE_FAILED"},
+		"BLUEGREEN_ABORTING":        {"BLUEGREEN_ABORTING"},
+		"BLUEGREEN_ABORT_SUCCESS":   {"BLUEGREEN_ABORTING", "BLUEGREEN_ABORT_SUCCESS"},
+		"BLUEGREEN_ABORT_FAILED":    {"BLUEGREEN_ABORTING", "BLUEGREEN_ABORT_FAILED"},
+		"CANARY_DEPLOYING":          {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_DEPLOYING"},
+		"CANARY_WAIT":               {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_WAIT"},
+		"CANARY_DEPLOY_FAILED":      {"PREPARING", "BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_DEPLOY_FAILED"},
+		"CANARY_PROMOTING":          {"CANARY_PROMOTING"},
+		"CANARY_PROMOTE_SUCCESS":    {"CANARY_PROMOTING", "CANARY_PROMOTE_SUCCESS"},
+		"CANARY_PROMOTE_FAILED":     {"CANARY_PROMOTING", "CANARY_PROMOTE_FAILED"},
+		"CANARY_ABORTING":           {"CANARY_ABORTING"},
+		"CANARY_ABORT_SUCCESS":      {"CANARY_ABORTING", "CANARY_ABORT_SUCCESS"},
+		"CANARY_ABORT_FAILED":       {"CANARY_ABORTING", "CANARY_ABORT_FAILED"},
+		"ROLLBACKING":               {"ROLLBACKING"},
+		"ROLLBACK_SUCCESS":          {"ROLLBACKING", "ROLLBACK_SUCCESS"},
+		"ROLLBACK_FAILED":           {"ROLLBACKING", "ROLLBACK_FAILED"},
+	}
 )
 
 type AppServeAppHandler struct {
@@ -161,7 +256,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Description Get appServeApp by giving params
 // @Accept json
 // @Produce json
-// @Success 200 {object} domain.AppServeApp
+// @Success 200 {object} domain.GetAppServeAppResponse
 // @Router /organizations/{organizationId}/app-serve-apps/{appId} [get]
 // @Security     JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
@@ -190,8 +285,137 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	newTask := make([]domain.AppServeAppTask, 0)
+	for _, t := range app.AppServeAppTasks {
+		if strings.Contains(t.Status, "SUCCESS") {
+			t.AvailableRollback = true
+		}
+		newTask = append(newTask, t)
+	}
+	app.AppServeAppTasks = newTask
+
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
+	out.Stages = makeStages(app)
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// Name             - Status (Result)
+// -------------------------------------------------------------------------------------
+// PREPARE (준비)              - PREPARING (DONE)
+// BUILD (빌드)                - BUILDING (BUILDING),              BUILD_SUCCESS (DONE),             BUILD_FAILED (FAILED)
+// DEPLOY (배포)               - DEPLOYING (DEPLOYING),            DEPLOY_SUCCESS (DONE),            DEPLOY_FAILED (FAILED)
+// BLUEGREEN_PROMOTE (프로모트) - BLUEGREEN_DEPLOYING (DEPLOYING),  BLUEGREEN_WAIT (WAIT),            BLUEGREEN_DEPLOY_FAILED (FAILED)
+// BLUEGREEN_PROMOTE (프로모트) - BLUEGREEN_PROMOTING (PROMOTING),  BLUEGREEN_PROMOTE_SUCCESS (DONE), BLUEGREEN_PROMOTE_FAILED (FAILED)
+// BLUEGREEN_PROMOTE (프로모트) - BLUEGREEN_ABORTING (ABORTING),    BLUEGREEN_ABORT_SUCCESS (DONE),   BLUEGREEN_ABORT_FAILED (FAILED)
+// CANARY_PROMOTE (카나리아)    - CANARY_DEPLOYING (DEPLOYING),     CANARY_WAIT (WAIT),               CANARY_DEPLOY_FAILED (FAILED)
+// CANARY_PROMOTE (카나리아)    - CANARY_PROMOTING (PROMOTING),     CANARY_PROMOTE_SUCCESS (DONE),    CANARY_PROMOTE_FAILED (FAILED)
+// CANARY_PROMOTE (카나리아)    - CANARY_ABORTING (ABORTING),       CANARY_ABORT_SUCCESS (DONE),      CANARY_ABORT_FAILED (FAILED)
+// ROLLBACK (롤백)             - ROLLBACKING (ROLLBACKING),        ROLLBACK_SUCCESS (DONE),          ROLLBACK_FAILED (FAILED)
+func makeStages(app *domain.AppServeApp) []domain.StageResponse {
+	stages := make([]domain.StageResponse, 0)
+
+	var stage domain.StageResponse
+	for _, s := range StatusStages[app.Status] {
+		stage = makeStage(app, s)
+		stages = append(stages, stage)
+	}
+
+	return stages
+}
+
+func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
+	stage := domain.StageResponse{
+		Name:   StatusName[status],
+		Status: status,
+		Result: StatusResult[status],
+	}
+
+	var actions []domain.ActionResponse
+	if status == "DEPLOY_SUCCESS" {
+		action := domain.ActionResponse{
+			Name: "ENDPOINT",
+			Uri:  app.EndpointUrl,
+			Type: "LINK",
+		}
+		actions = append(actions, action)
+	} else if status == "BLUEGREEN_WAIT" {
+		action := domain.ActionResponse{
+			Name: "PREVIEW",
+			Uri:  app.PreviewEndpointUrl,
+			Type: "LINK",
+		}
+		actions = append(actions, action)
+
+		action = domain.ActionResponse{
+			Name: "PROMOTE",
+			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
+				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+			Type:   "API",
+			Method: "PUT",
+			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
+		}
+		actions = append(actions, action)
+
+		action = domain.ActionResponse{
+			Name: "ABORT",
+			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
+				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+			Type:   "API",
+			Method: "PUT",
+			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
+		}
+		actions = append(actions, action)
+	} else if status == "BLUEGREEN_PROMOTE_SUCCESS" {
+		action := domain.ActionResponse{
+			Name: "ENDPOINT",
+			Uri:  app.EndpointUrl,
+			Type: "LINK",
+		}
+		actions = append(actions, action)
+	}
+
+	stage.Actions = &actions
+
+	return stage
+}
+
+// IsAppServeAppExist godoc
+// @Tags AppServeApps
+// @Summary Get appServeApp
+// @Description Get appServeApp by giving params
+// @Accept json
+// @Produce json
+// @Success 200 {object} bool
+// @Router /organizations/{organizationId}/app-serve-apps/{appId}/exist [get]
+// @Security     JWT
+func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	fmt.Printf("appId = [%s]\n", appId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
+		return
+	}
+
+	exist, err := h.usecase.IsAppServeAppExist(appId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		return
+	}
+
+	var out = struct {
+		Exist bool `json:"exist"`
+	}{Exist: exist}
 
 	ResponseJSON(w, http.StatusOK, out)
 }

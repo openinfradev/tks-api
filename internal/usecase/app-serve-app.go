@@ -21,6 +21,7 @@ type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	IsAppServeAppExist(appId string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
 	UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error)
@@ -154,6 +155,19 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 	}
 
 	return app, nil
+}
+
+func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
+	count, err := u.repo.IsAppServeAppExist(appId)
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (u *AppServeAppUsecase) UpdateAppServeAppStatus(
@@ -352,13 +366,15 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "WAIT_FOR_PROMOTE" && app.Status != "PROMOTE_FAILED" {
+	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_PROMOTE_FAILED" {
 		return "", fmt.Errorf("the app is not in 'WAIT_FOR_PROMOTE' state. Exiting")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
+	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info("latestTaskId = ", latestTaskId)
+	log.Info("strategy = ", strategy)
 
 	// Call argo workflow
 	workflow := "promote-java-app"
@@ -373,6 +389,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
+			"strategy=" + strategy,
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
@@ -392,13 +409,15 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "WAIT_FOR_PROMOTE" && app.Status != "ABORT_FAILED" {
+	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_ABORT_FAILED" {
 		return "", fmt.Errorf("the app is not in blue-green related state. Exiting")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
+	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info("latestTaskId = ", latestTaskId)
+	log.Info("strategy = ", strategy)
 
 	// Call argo workflow
 	workflow := "abort-java-app"
@@ -414,6 +433,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
+			"strategy=" + strategy,
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})

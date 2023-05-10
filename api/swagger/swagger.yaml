@@ -1,5 +1,22 @@
 basePath: /api/1.0/
 definitions:
+  domain.ActionResponse:
+    properties:
+      body:
+        additionalProperties:
+          type: string
+        type: object
+      method:
+        type: string
+      name:
+        description: ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)
+        type: string
+      type:
+        description: LINK, API
+        type: string
+      uri:
+        type: string
+    type: object
   domain.AlertActionResponse:
     properties:
       alertId:
@@ -99,7 +116,6 @@ definitions:
         description: appType (spring/springboot)
         type: string
       createdAt:
-        description: createdAt is a creation timestamp for the application
         type: string
       deletedAt:
         type: string
@@ -141,11 +157,13 @@ definitions:
         description: java app secret
         type: string
       appServeAppId:
-        description: ID for appServeApp that this task belongs to.
+        description: ID for appServeApp that this task belongs to
         type: string
       artifactUrl:
         description: URL of java app artifact (Eg, Jar)
         type: string
+      availableRollback:
+        type: boolean
       createdAt:
         description: createdAt is  a creation timestamp for the application
         type: string
@@ -836,6 +854,15 @@ definitions:
           $ref: '#/definitions/domain.AppGroupResponse'
         type: array
     type: object
+  domain.GetAppServeAppResponse:
+    properties:
+      appServeApp:
+        $ref: '#/definitions/domain.AppServeApp'
+      stages:
+        items:
+          $ref: '#/definitions/domain.StageResponse'
+        type: array
+    type: object
   domain.GetApplicationsResponse:
     properties:
       applications:
@@ -1322,6 +1349,21 @@ definitions:
           $ref: '#/definitions/domain.StackTemplateServiceApplicationResponse'
         type: array
       type:
+        type: string
+    type: object
+  domain.StageResponse:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/domain.ActionResponse'
+        type: array
+      name:
+        description: PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK
+          (롤백)
+        type: string
+      result:
+        type: string
+      status:
         type: string
     type: object
   domain.Unit:
@@ -2384,7 +2426,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.AppServeApp'
+            $ref: '#/definitions/domain.GetAppServeAppResponse'
       security:
       - JWT: []
       summary: Get appServeApp
@@ -2440,6 +2482,23 @@ paths:
       security:
       - JWT: []
       summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/exist:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Get appServeApp
       tags:
       - AppServeApps
   /organizations/{organizationId}/app-serve-apps/{appId}/rollback:
