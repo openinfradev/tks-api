@@ -10,12 +10,14 @@ import (
 type AlertActionStatus int32
 
 const (
-	AlertActionStatus_INPROGRESS AlertActionStatus = iota
+	AlertActionStatus_CREATED AlertActionStatus = iota
+	AlertActionStatus_INPROGRESS
 	AlertActionStatus_CLOSED
 	AlertActionStatus_ERROR
 )
 
 var alertActionStatus = [...]string{
+	"CREATED",
 	"INPROGRESS",
 	"CLOSED",
 	"ERROR",

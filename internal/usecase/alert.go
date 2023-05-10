@@ -187,6 +187,8 @@ func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, st
 
 func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 	alert.FiredAt = &alert.CreatedAt
+	alert.Status = domain.AlertActionStatus_CREATED
+
 	if len(alert.AlertActions) > 0 {
 		alert.TakedAt = &alert.AlertActions[0].CreatedAt
 		for _, action := range alert.AlertActions {
