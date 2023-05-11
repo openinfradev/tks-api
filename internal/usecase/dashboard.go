@@ -212,7 +212,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				y = y * 100
 
 				tm := time.Unix(int64(x), 0)
-				xAxisData = append(xAxisData, tm.Format("2000-01-01 00:00:00"))
+				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -238,7 +238,8 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 					y = 0
 				}
 				y = y * 100
-				xAxisData = append(xAxisData, fmt.Sprintf("%d", x))
+				tm := time.Unix(int64(x), 0)
+				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -262,7 +263,8 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				if err != nil {
 					y = 0
 				}
-				xAxisData = append(xAxisData, fmt.Sprintf("%d", x))
+				tm := time.Unix(int64(x), 0)
+				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -286,7 +288,8 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				if err != nil {
 					y = 0
 				}
-				xAxisData = append(xAxisData, fmt.Sprintf("%d", x))
+				tm := time.Unix(int64(x), 0)
+				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
