@@ -169,10 +169,32 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 	now := time.Now()
 	chartData := domain.ChartData{}
 
+	durationSec := 60 * 60 * 24
+	switch duration {
+	case "1h":
+		durationSec = 60 * 60
+	case "1d":
+		durationSec = 60 * 60 * 24
+	case "7h":
+		durationSec = 60 * 60 * 24 * 7
+	}
+
+	/*
+		intervalSec := 60 * 60 // default 1h
+		switch interval {
+		case "1h":
+			intervalSec = 60 * 60
+		case "1d":
+			intervalSec = 60 * 60 * 24
+		case "7h":
+			intervalSec = 60 * 60 * 24 * 7
+		}
+	*/
+
 	switch chartType {
 	case domain.ChartType_CPU.String():
 		query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-60*60*24, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
 		if err != nil {
 			return res, err
 		}

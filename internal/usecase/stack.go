@@ -295,6 +295,7 @@ func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId
 	return string(kubeconfig[:]), nil
 }
 
+// [TODO] need more pretty...
 func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
@@ -302,15 +303,18 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 	}
 
 	// cluster status
-	step, maxStep := parseStatusDescription(cluster.StatusDesc)
-	out = append(out, domain.StackStepStatus{
+	step := parseStatusDescription(cluster.StatusDesc)
+	clusterStepStatus := domain.StackStepStatus{
 		Status:  cluster.Status.String(),
 		Stage:   "CLUSTER",
 		Step:    step,
-		MaxStep: maxStep,
-	})
+		MaxStep: domain.MAX_STEP_CLUSTER_CREATE,
+	}
+	if cluster.Status == domain.ClusterStatus_DELETING {
+		clusterStepStatus.MaxStep = domain.MAX_STEP_CLUSTER_REMOVE
+	}
+	out = append(out, clusterStepStatus)
 
-	// [TODO] need more pretty...
 	// make default appgroup status
 	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
 		// LMA
@@ -318,7 +322,7 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
 			Step:    0,
-			MaxStep: 0,
+			MaxStep: domain.MAX_STEP_LMA_CREATE,
 		})
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		// LMA + SERVICE_MESH
@@ -326,13 +330,13 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
 			Step:    0,
-			MaxStep: 0,
+			MaxStep: domain.MAX_STEP_LMA_CREATE,
 		})
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "SERVICE_MESH",
 			Step:    0,
-			MaxStep: 0,
+			MaxStep: domain.MAX_STEP_SM_CREATE,
 		})
 	}
 
@@ -340,11 +344,14 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 	for _, appGroup := range appGroups {
 		for i, step := range out {
 			if step.Stage == appGroup.AppGroupType.String() {
-				step, maxStep := parseStatusDescription(cluster.StatusDesc)
+				step := parseStatusDescription(cluster.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
 				out[i].Step = step
-				out[i].MaxStep = maxStep
+				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE
+				if appGroup.Status == domain.AppGroupStatus_DELETING {
+					out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
+				}
 			}
 		}
 	}
@@ -423,17 +430,16 @@ func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (dom
 
 }
 
-func parseStatusDescription(statusDesc string) (step int, maxStep int) {
+func parseStatusDescription(statusDesc string) (step int) {
 	// (20/20)
 	if statusDesc == "" {
-		return 0, 0
+		return 0
 	}
 
+	maxStep := 0
 	_, err := fmt.Sscanf(statusDesc, "(%d/%d)", &step, &maxStep)
 	if err != nil {
 		step = 0
-		maxStep = 0
 	}
-
 	return
 }
