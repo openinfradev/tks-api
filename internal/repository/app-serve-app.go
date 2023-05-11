@@ -14,6 +14,7 @@ type IAppServeAppRepository interface {
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	IsAppServeAppExist(appId string) (int64, error)
+	IsAppServeAppNameExist(orgId string, clusterId string, namespace string, appName string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
 	UpdateStatus(appId string, taskId string, status string, output string) error
 	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
@@ -103,6 +104,28 @@ func (r *AppServeAppRepository) IsAppServeAppExist(appId string) (int64, error) 
 	var result int64
 
 	res := r.db.Table("app_serve_apps").Where("id = ? AND status <> 'DELETE_SUCCESS'", appId).Count(&result)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return 0, res.Error
+	}
+	return result, nil
+}
+
+func (r *AppServeAppRepository) IsAppServeAppNameExist(orgId string, clusterId string, namespace string, appName string) (int64, error) {
+	var result int64
+
+	queryString := fmt.Sprintf("organization_id = '%v' "+
+		"AND target_cluster_id = '%v' "+
+		"AND name = '%v' "+
+		"AND status <> 'DELETE_SUCCESS'", orgId, clusterId, appName)
+
+	if namespace != "" {
+		queryString += fmt.Sprintf("AND namespace = '%v' ", namespace)
+	}
+
+	fmt.Println("query = ", queryString)
+
+	res := r.db.Table("app_serve_apps").Where(queryString).Count(&result)
 	if res.Error != nil {
 		log.Debug(res.Error)
 		return 0, res.Error
