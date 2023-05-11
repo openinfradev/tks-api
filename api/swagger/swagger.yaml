@@ -2484,23 +2484,6 @@ paths:
       summary: Update app endpoint
       tags:
       - AppServeApps
-  /organizations/{organizationId}/app-serve-apps/{appId}/exist:
-    get:
-      consumes:
-      - application/json
-      description: Get appServeApp by giving params
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: boolean
-      security:
-      - JWT: []
-      summary: Get appServeApp
-      tags:
-      - AppServeApps
   /organizations/{organizationId}/app-serve-apps/{appId}/rollback:
     post:
       consumes:
@@ -2552,6 +2535,61 @@ paths:
       security:
       - JWT: []
       summary: Update app status
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/app-id/exist:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/app-name/exist:
+    get:
+      consumes:
+      - application/json
+      description: Check duplicate appServeAppName by giving params
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: clusterId
+        in: query
+        name: clusterId
+        required: true
+        type: string
+      - description: appName
+        in: query
+        name: appName
+        required: true
+        type: string
+      - description: namespace
+        in: query
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Check duplicate appServeAppName
       tags:
       - AppServeApps
   /organizations/{organizationId}/cloud-accounts:

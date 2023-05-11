@@ -22,6 +22,7 @@ type IAppServeAppUsecase interface {
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	IsAppServeAppExist(appId string) (bool, error)
+	IsAppServeAppNameExist(orgId string, clusterId string, namespace string, appName string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
 	UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error)
@@ -159,6 +160,19 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 
 func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
 	count, err := u.repo.IsAppServeAppExist(appId)
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (u *AppServeAppUsecase) IsAppServeAppNameExist(orgId string, clusterId string, namespace string, appName string) (bool, error) {
+	count, err := u.repo.IsAppServeAppNameExist(orgId, clusterId, namespace, appName)
 	if err != nil {
 		return false, err
 	}

@@ -388,7 +388,7 @@ func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
 // @Accept json
 // @Produce json
 // @Success 200 {object} bool
-// @Router /organizations/{organizationId}/app-serve-apps/{appId}/exist [get]
+// @Router /organizations/{organizationId}/app-serve-apps/app-id/exist [get]
 // @Security     JWT
 func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -400,14 +400,66 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	appId, ok := vars["appId"]
-	fmt.Printf("appId = [%s]\n", appId)
-	if !ok {
+	urlParams := r.URL.Query()
+	appId := urlParams.Get("appId")
+	if appId == "" {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId")))
 		return
 	}
 
 	exist, err := h.usecase.IsAppServeAppExist(appId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewInternalServerError(err))
+		return
+	}
+
+	var out = struct {
+		Exist bool `json:"exist"`
+	}{Exist: exist}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// IsAppServeAppNameExist godoc
+// @Tags AppServeApps
+// @Summary Check duplicate appServeAppName
+// @Description Check duplicate appServeAppName by giving params
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param clusterId query string true "clusterId"
+// @Param appName query string true "appName"
+// @Param namespace query string true "namespace"
+// @Success 200 {object} bool
+// @Router /organizations/{organizationId}/app-serve-apps/app-name/exist [get]
+// @Security     JWT
+func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		return
+	}
+
+	urlParams := r.URL.Query()
+
+	clusterId := urlParams.Get("clusterId")
+	if clusterId == "" {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId")))
+		return
+	}
+
+	namespace := urlParams.Get("namespace")
+
+	appName := urlParams.Get("appName")
+	if appName == "" {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appName")))
+		return
+	}
+
+	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, clusterId, namespace, appName)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewInternalServerError(err))
 		return
