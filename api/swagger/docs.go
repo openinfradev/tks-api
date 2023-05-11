@@ -1163,7 +1163,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/app-serve-apps/app-name/exist": {
+        "/organizations/{organizationId}/app-serve-apps/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -1191,23 +1191,10 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "clusterId",
-                        "name": "clusterId",
-                        "in": "query",
+                        "description": "name",
+                        "name": "name",
+                        "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "appName",
-                        "name": "appName",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "namespace",
-                        "name": "namespace",
-                        "in": "query"
                     }
                 ],
                 "responses": {

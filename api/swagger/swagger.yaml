@@ -2554,7 +2554,7 @@ paths:
       summary: Get appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/app-serve-apps/app-name/exist:
+  /organizations/{organizationId}/app-serve-apps/name/{name}/existence:
     get:
       consumes:
       - application/json
@@ -2565,19 +2565,10 @@ paths:
         name: organizationId
         required: true
         type: string
-      - description: clusterId
-        in: query
-        name: clusterId
+      - description: name
+        in: path
+        name: name
         required: true
-        type: string
-      - description: appName
-        in: query
-        name: appName
-        required: true
-        type: string
-      - description: namespace
-        in: query
-        name: namespace
         type: string
       produces:
       - application/json

@@ -427,11 +427,9 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
-// @Param clusterId query string true "clusterId"
-// @Param appName query string true "appName"
-// @Param namespace query string false "namespace"
+// @Param name path string true "name"
 // @Success 200 {object} bool
-// @Router /organizations/{organizationId}/app-serve-apps/app-name/exist [get]
+// @Router /organizations/{organizationId}/app-serve-apps/name/{name}/existence [get]
 // @Security     JWT
 func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -442,32 +440,21 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
 		return
 	}
-
-	urlParams := r.URL.Query()
-
-	clusterId := urlParams.Get("clusterId")
-	if clusterId == "" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId")))
-		return
-	}
-
-	namespace := urlParams.Get("namespace")
-
-	appName := urlParams.Get("appName")
-	if appName == "" {
+	appName, ok := vars["name"]
+	if !ok {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appName")))
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, clusterId, namespace, appName)
+	existed, err := h.usecase.IsAppServeAppNameExist(organizationId, appName)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewInternalServerError(err))
 		return
 	}
 
 	var out = struct {
-		Exist bool `json:"exist"`
-	}{Exist: exist}
+		Existed bool `json:"existed"`
+	}{Existed: existed}
 
 	ResponseJSON(w, http.StatusOK, out)
 }

@@ -127,7 +127,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, thanosClient thanos.
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/app-id/exist", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.IsAppServeAppExist))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/app-name/exist", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.IsAppServeAppNameExist))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/name/{name}/existence", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.IsAppServeAppNameExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/status", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.UpdateAppServeAppStatus))).Methods(http.MethodPatch)
