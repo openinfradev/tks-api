@@ -81,6 +81,8 @@ func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int
 	rangeParam := fmt.Sprintf("&dedup=true&partial_response=false&start=%d&end=%d&step=%d&max_source_resolution=0s", start, end, step)
 	query = url.QueryEscape(query) + rangeParam
 	url := c.url + "/api/v1/query_range?query=" + query
+
+	log.Info(url)
 	res, err := c.client.Get(url)
 	if err != nil {
 		return out, err

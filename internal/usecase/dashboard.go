@@ -175,8 +175,10 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		durationSec = 60 * 60
 	case "1d":
 		durationSec = 60 * 60 * 24
-	case "7h":
+	case "7d":
 		durationSec = 60 * 60 * 24 * 7
+	case "30d":
+		durationSec = 60 * 60 * 24 * 30
 	}
 
 	/*
@@ -208,7 +210,9 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 					y = 0
 				}
 				y = y * 100
-				xAxisData = append(xAxisData, fmt.Sprintf("%d", x))
+
+				tm := time.Unix(int64(x), 0)
+				xAxisData = append(xAxisData, tm.Format("2000-01-01 00:00:00"))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -220,7 +224,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 
 	case domain.ChartType_MEMORY.String():
 		query := "sum (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-60*60*24, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
 		if err != nil {
 			return res, err
 		}
@@ -245,7 +249,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_POD.String():
 		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-60*60*24, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
 		if err != nil {
 			return res, err
 		}
@@ -269,7 +273,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_TRAFFIC.String():
 		query := "sum(rate(container_network_receive_bytes_total[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-60*60*24, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
 		if err != nil {
 			return res, err
 		}
