@@ -84,9 +84,9 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	log.Debug("isPrimary ", isPrimary)
 
 	workflow := ""
-	if stackTemplate.Template == "aws-reference" {
+	if strings.Contains(stackTemplate.Template, "aws-reference") || strings.Contains(stackTemplate.Template, "eks-reference") {
 		workflow = "tks-stack-create-aws"
-	} else if stackTemplate.Template == "aws-msa-reference" {
+	} else if strings.Contains(stackTemplate.Template, "aws-msa-reference") || strings.Contains(stackTemplate.Template, "eks-msa-reference") {
 		workflow = "tks-stack-create-aws-msa"
 	} else {
 		log.Error("Invalid template  : ", stackTemplate.Template)
@@ -242,9 +242,9 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	// [TODO] primary 체크
 
 	workflow := ""
-	if cluster.StackTemplate.Template == "aws-reference" {
+	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
 		workflow = "tks-stack-delete-aws"
-	} else if cluster.StackTemplate.Template == "aws-msa-reference" {
+	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		workflow = "tks-stack-delete-aws-msa"
 	} else {
 		log.Error("Invalid template  : ", cluster.StackTemplate.Template)
