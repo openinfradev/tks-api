@@ -429,7 +429,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 // @Param organizationId path string true "organizationId"
 // @Param clusterId query string true "clusterId"
 // @Param appName query string true "appName"
-// @Param namespace query string true "namespace"
+// @Param namespace query string false "namespace"
 // @Success 200 {object} bool
 // @Router /organizations/{organizationId}/app-serve-apps/app-name/exist [get]
 // @Security     JWT

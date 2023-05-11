@@ -2578,7 +2578,6 @@ paths:
       - description: namespace
         in: query
         name: namespace
-        required: true
         type: string
       produces:
       - application/json

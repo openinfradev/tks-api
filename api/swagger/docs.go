@@ -1207,8 +1207,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "namespace",
                         "name": "namespace",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
