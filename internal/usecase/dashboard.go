@@ -273,7 +273,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_TRAFFIC.String():
 		query := "sum(rate(container_network_receive_bytes_total[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
