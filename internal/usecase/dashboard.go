@@ -181,22 +181,20 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		durationSec = 60 * 60 * 24 * 30
 	}
 
-	/*
-		intervalSec := 60 * 60 // default 1h
-		switch interval {
-		case "1h":
-			intervalSec = 60 * 60
-		case "1d":
-			intervalSec = 60 * 60 * 24
-		case "7h":
-			intervalSec = 60 * 60 * 24 * 7
-		}
-	*/
+	intervalSec := 60 * 60 // default 1h
+	switch interval {
+	case "1h":
+		intervalSec = 60 * 60
+	case "1d":
+		intervalSec = 60 * 60 * 24
+	case "7h":
+		intervalSec = 60 * 60 * 24 * 7
+	}
 
 	switch chartType {
 	case domain.ChartType_CPU.String():
 		query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -224,7 +222,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 
 	case domain.ChartType_MEMORY.String():
 		query := "sum (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -250,7 +248,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_POD.String():
 		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), 60*60)
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -299,19 +297,54 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 			Data: yAxisData,
 		})
 	case domain.ChartType_POD_CALENDAR.String():
-		chartData := domain.ChartData{}
+		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-(60*60*24*30), int(now.Unix()), 60*60*24)
+		if err != nil {
+			return res, err
+		}
+		xAxisData := []string{}
+		yAxisData := []string{}
+		for _, val := range result.Data.Result {
+			for _, vals := range val.Values {
+				x := int(math.Round(vals.([]interface{})[0].(float64)))
+				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
+				if err != nil {
+					y = 0
+				}
+				tm := time.Unix(int64(x), 0)
+				xAxisData = append(xAxisData, tm.Format("2006-01-02"))
+				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
+			}
+		}
+		chartData.XAxis.Data = xAxisData
 		chartData.Series = append(chartData.Series, domain.Unit{
 			Name: "date",
-			Data: []string{"2021-04-01", "2021-04-02", "2021-04-03"},
+			Data: xAxisData,
 		})
 		chartData.Series = append(chartData.Series, domain.Unit{
 			Name: "podRestartCount",
-			Data: []string{"1", "4", "0"},
+			Data: yAxisData,
 		})
 		chartData.Series = append(chartData.Series, domain.Unit{
 			Name: "totalPodCount",
-			Data: []string{"100", "120", "100"},
+			Data: []string{"100"},
 		})
+
+		/*
+			chartData := domain.ChartData{}
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: "date",
+				Data: []string{"2021-04-01", "2021-04-02", "2021-04-03"},
+			})
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: "podRestartCount",
+				Data: []string{"1", "4", "0"},
+			})
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: "totalPodCount",
+				Data: []string{"100", "120", "100"},
+			})
+		*/
 		return domain.DashboardChart{
 			ChartType:      domain.ChartType_POD_CALENDAR,
 			OrganizationId: organizationId,
