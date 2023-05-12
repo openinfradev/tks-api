@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -79,12 +80,17 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			}
 		*/
 
+		node := ""
+		if strings.Contains(alert.Labels.AlertName, "node") {
+			node = alert.Labels.Instance
+		}
+
 		dto := domain.Alert{
 			OrganizationId: organizationId,
 			Name:           alert.Labels.AlertName,
 			Code:           alert.Labels.AlertName,
 			Grade:          alert.Labels.Severity,
-			Instance:       alert.Labels.Instance,
+			Node:           node,
 			Message:        alert.Annotations.Message,
 			Description:    alert.Annotations.Description,
 			CheckPoint:     alert.Annotations.Checkpoint,

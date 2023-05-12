@@ -3118,6 +3118,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "node": {
+                    "type": "string"
+                },
                 "organizationId": {
                     "type": "string"
                 },

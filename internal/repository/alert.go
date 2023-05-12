@@ -45,7 +45,7 @@ type Alert struct {
 	Message        string
 	ClusterId      domain.ClusterId
 	Cluster        Cluster `gorm:"foreignKey:ClusterId"`
-	Instance       string
+	Node           string
 	CheckPoint     string
 	GrafanaUrl     string
 	Summary        string
@@ -120,7 +120,7 @@ func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error
 		Description:    dto.Description,
 		Grade:          dto.Grade,
 		ClusterId:      dto.ClusterId,
-		Instance:       dto.Instance,
+		Node:           dto.Node,
 		GrafanaUrl:     dto.GrafanaUrl,
 		CheckPoint:     dto.CheckPoint,
 		Summary:        dto.Summary,
@@ -182,7 +182,7 @@ func reflectAlert(alert Alert) domain.Alert {
 		ClusterId:      alert.ClusterId,
 		Cluster:        reflectSimpleCluster(alert.Cluster),
 		GrafanaUrl:     alert.GrafanaUrl,
-		Instance:       alert.Instance,
+		Node:           alert.Node,
 		CheckPoint:     alert.CheckPoint,
 		Summary:        alert.Summary,
 		AlertActions:   outAlertActions,

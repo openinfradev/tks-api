@@ -45,7 +45,7 @@ type Alert struct {
 	Message        string
 	ClusterId      ClusterId
 	Cluster        Cluster
-	Instance       string
+	Node           string
 	CheckPoint     string
 	Summary        string
 	GrafanaUrl     string
@@ -130,7 +130,7 @@ type AlertResponse struct {
 	Grade          string                `json:"grade"`
 	Cluster        SimpleClusterResponse `json:"cluster"`
 	GrafanaUrl     string                `json:"grafanaUrl"`
-	Source         string                `json:"source"`
+	Node           string                `json:"node"`
 	FiredAt        *time.Time            `json:"firedAt"`
 	TakedAt        *time.Time            `json:"takedAt"`
 	ClosedAt       *time.Time            `json:"closedAt"`
