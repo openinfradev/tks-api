@@ -130,6 +130,7 @@ type AlertResponse struct {
 	Grade          string                `json:"grade"`
 	Cluster        SimpleClusterResponse `json:"cluster"`
 	GrafanaUrl     string                `json:"grafanaUrl"`
+	Source         string                `json:"source"`
 	FiredAt        *time.Time            `json:"firedAt"`
 	TakedAt        *time.Time            `json:"takedAt"`
 	ClosedAt       *time.Time            `json:"closedAt"`
