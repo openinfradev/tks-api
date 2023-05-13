@@ -1,17 +1,23 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"github.com/openinfradev/tks-api/pkg/thanos-client"
+	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
+	gcache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type IDashboardUsecase interface {
@@ -24,15 +30,15 @@ type DashboardUsecase struct {
 	organizationRepo repository.IOrganizationRepository
 	clusterRepo      repository.IClusterRepository
 	appGroupRepo     repository.IAppGroupRepository
-	thanosClient     thanos.ThanosClient
+	cache            *gcache.Cache
 }
 
-func NewDashboardUsecase(r repository.Repository, thanos thanos.ThanosClient) IDashboardUsecase {
+func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboardUsecase {
 	return &DashboardUsecase{
 		organizationRepo: r.Organization,
 		clusterRepo:      r.Cluster,
 		appGroupRepo:     r.AppGroup,
-		thanosClient:     thanos,
+		cache:            cache,
 	}
 }
 
@@ -88,6 +94,17 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 }
 
 func (u *DashboardUsecase) GetResources(organizationId string) (out domain.DashboardResource, err error) {
+	thanosUrl, err := u.getThanosUrl(organizationId)
+	if err != nil {
+		return out, err
+	}
+	arr := strings.Split(thanosUrl, ":")
+	address := arr[0]
+	port, _ := strconv.Atoi(arr[1])
+	thanosClient, err := thanos.New(address, port, false, "")
+	if err != nil {
+		return out, errors.Wrap(err, "failed to create thanos client")
+	}
 
 	// Stack
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
@@ -110,7 +127,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	/*
 		{"data":{"result":[{"metric":{"taco_cluster":"cmsai5k5l"},"value":[1683608185.65,"32"]},{"metric":{"taco_cluster":"crjfh12oc"},"value":[1683608185.65,"12"]}],"vector":""},"status":"success"}
 	*/
-	result, err := u.thanosClient.Get("sum by (taco_cluster) (machine_cpu_cores)")
+	result, err := thanosClient.Get("sum by (taco_cluster) (machine_cpu_cores)")
 	if err != nil {
 		return out, err
 	}
@@ -127,7 +144,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	out.Cpu = fmt.Sprintf("%d 개", cpu)
 
 	// Memory
-	result, err = u.thanosClient.Get("sum by (taco_cluster) (machine_memory_bytes)")
+	result, err = thanosClient.Get("sum by (taco_cluster) (machine_memory_bytes)")
 	if err != nil {
 		return out, err
 	}
@@ -145,7 +162,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	out.Memory = fmt.Sprintf("%d GB", memory)
 
 	// Storage
-	result, err = u.thanosClient.Get("sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
+	result, err = thanosClient.Get("sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
 	if err != nil {
 		return out, err
 	}
@@ -166,6 +183,19 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 }
 
 func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
+	thanosUrl, err := u.getThanosUrl(organizationId)
+	if err != nil {
+		return res, err
+	}
+	arr := strings.Split(thanosUrl, ":")
+	address := arr[0] + ":" + arr[1]
+	log.Info(address)
+	port, _ := strconv.Atoi(arr[2])
+	thanosClient, err := thanos.New(address, port, false, "")
+	if err != nil {
+		return res, errors.Wrap(err, "failed to create thanos client")
+	}
+
 	now := time.Now()
 	chartData := domain.ChartData{}
 
@@ -194,7 +224,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 	switch chartType {
 	case domain.ChartType_CPU.String():
 		query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -222,7 +252,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 
 	case domain.ChartType_MEMORY.String():
 		query := "sum (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -248,7 +278,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_POD.String():
 		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -273,7 +303,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_TRAFFIC.String():
 		query := "sum(rate(container_network_receive_bytes_total[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
@@ -298,7 +328,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		})
 	case domain.ChartType_POD_CALENDAR.String():
 		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
-		result, err := u.thanosClient.FetchRange(query, int(now.Unix())-(60*60*24*30), int(now.Unix()), 60*60*24)
+		result, err := thanosClient.FetchRange(query, int(now.Unix())-(60*60*24*30), int(now.Unix()), 60*60*24)
 		if err != nil {
 			return res, err
 		}
@@ -370,4 +400,45 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		UpdatedAt:      time.Now(),
 	}, nil
 
+}
+
+func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err error) {
+	const prefix = "CACHE_KEY_THANOS_URL"
+	value, found := u.cache.Get(prefix + organizationId)
+	if found {
+		return value.(string), nil
+	}
+
+	organization, err := u.organizationRepo.Get(organizationId)
+	if err != nil {
+		return out, errors.Wrap(err, "Failed to get organization")
+	}
+
+	organization.PrimaryClusterId = "csxvxdn46"
+	if organization.PrimaryClusterId == "" {
+		return out, fmt.Errorf("Invalid primary clusterId")
+	}
+
+	clientset_user, err := kubernetes.GetClientFromClusterId(organization.PrimaryClusterId)
+	if err != nil {
+		return out, err
+	}
+	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+	if err != nil {
+		return out, errors.Wrap(err, "Failed to get services.")
+	}
+
+	// LoadBalaner 일경우, aws address 형태의 경우만 가정한다.
+	if service.Spec.Type != "LoadBalancer" {
+		return out, fmt.Errorf("Service type is not LoadBalancer. [%s] ", service.Spec.Type)
+	}
+
+	lbs := service.Status.LoadBalancer.Ingress
+	ports := service.Spec.Ports
+	if len(lbs) > 0 && len(ports) > 0 {
+		out = ports[0].TargetPort.StrVal + "://" + lbs[0].Hostname + ":" + strconv.Itoa(int(ports[0].Port))
+	}
+
+	u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
+	return
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
-	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
 	gcache "github.com/patrickmn/go-cache"
 	"github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
@@ -47,7 +46,7 @@ func (r *StatusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, thanosClient thanos.ThanosClient, kc keycloak.IKeycloak, asset http.Handler) http.Handler {
+func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloak, asset http.Handler) http.Handler {
 	r := mux.NewRouter()
 
 	repoFactory := repository.Repository{
@@ -159,7 +158,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, thanosClient thanos.
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/kube-config", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackKubeConfig))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/status", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackStatus))).Methods(http.MethodGet)
 
-	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory, thanosClient))
+	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory, cache))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts/{chartType}", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetChart))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/stacks", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetStacks))).Methods(http.MethodGet)

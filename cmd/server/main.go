@@ -17,7 +17,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/route"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
-	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
 )
 
 func init() {
@@ -26,8 +25,6 @@ func init() {
 	flag.String("web-root", "../../web", "path of root path for web")
 	flag.String("argo-address", "http://localhost", "service address for argoworkflow")
 	flag.Int("argo-port", 0, "service port for argoworkflow")
-	flag.String("thanos-address", "http://a9d2773b0a5f547f2baa7ec01ddd8032-1403713328.ap-northeast-2.elb.amazonaws.com", "service address for thanos")
-	flag.Int("thanos-port", 9090, "service port for thanos")
 	flag.String("dbhost", "localhost", "host of postgreSQL")
 	flag.String("dbname", "tks", "name of releation")
 	flag.String("dbport", "5432", "port of postgreSQL")
@@ -112,11 +109,6 @@ func main() {
 		}
 	}
 
-	thanosClient, err := thanos.New(viper.GetString("thanos-address"), viper.GetInt("thanos-port"), false, "")
-	if err != nil {
-		log.Fatal("failed to create thanos client : ", err)
-	}
-
 	keycloak := keycloak.New(&keycloak.Config{
 		Address:       viper.GetString("keycloak-address"),
 		AdminId:       viper.GetString("keycloak-admin"),
@@ -133,7 +125,7 @@ func main() {
 		log.Fatal("failed to initialize ses : ", err)
 	}
 
-	route := route.SetupRouter(db, argoClient, thanosClient, keycloak, asset)
+	route := route.SetupRouter(db, argoClient, keycloak, asset)
 
 	log.Info("Starting server on ", viper.GetInt("port"))
 	err = http.ListenAndServe("0.0.0.0:"+strconv.Itoa(viper.GetInt("port")), route)

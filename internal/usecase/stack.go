@@ -344,7 +344,7 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 	for _, appGroup := range appGroups {
 		for i, step := range out {
 			if step.Stage == appGroup.AppGroupType.String() {
-				step := parseStatusDescription(cluster.StatusDesc)
+				step := parseStatusDescription(appGroup.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
 				out[i].Step = step
