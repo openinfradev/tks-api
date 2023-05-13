@@ -99,8 +99,9 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 		return out, err
 	}
 	arr := strings.Split(thanosUrl, ":")
-	address := arr[0]
-	port, _ := strconv.Atoi(arr[1])
+	address := arr[0] + ":" + arr[1]
+	log.Info(address)
+	port, _ := strconv.Atoi(arr[2])
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return out, errors.Wrap(err, "failed to create thanos client")
@@ -414,7 +415,7 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		return out, errors.Wrap(err, "Failed to get organization")
 	}
 
-	organization.PrimaryClusterId = "csxvxdn46"
+	//organization.PrimaryClusterId = "csxvxdn46"
 	if organization.PrimaryClusterId == "" {
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
