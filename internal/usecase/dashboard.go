@@ -240,8 +240,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				}
 				y = y * 100
 
-				tm := time.Unix(int64(x), 0)
-				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
+				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -267,8 +266,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 					y = 0
 				}
 				y = y * 100
-				tm := time.Unix(int64(x), 0)
-				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
+				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -292,8 +290,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				if err != nil {
 					y = 0
 				}
-				tm := time.Unix(int64(x), 0)
-				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
+				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -317,8 +314,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				if err != nil {
 					y = 0
 				}
-				tm := time.Unix(int64(x), 0)
-				xAxisData = append(xAxisData, tm.Format("2006-01-02 15:04:05"))
+				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -342,8 +338,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				if err != nil {
 					y = 0
 				}
-				tm := time.Unix(int64(x), 0)
-				xAxisData = append(xAxisData, tm.Format("2006-01-02"))
+				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
 		}
@@ -415,7 +410,7 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		return out, errors.Wrap(err, "Failed to get organization")
 	}
 
-	//organization.PrimaryClusterId = "csxvxdn46"
+	organization.PrimaryClusterId = "c6ayyhbul"
 	if organization.PrimaryClusterId == "" {
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
