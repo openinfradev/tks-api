@@ -224,14 +224,15 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 
 	switch chartType {
 	case domain.ChartType_CPU.String():
-		query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
+		//query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
+		query := "avg by (taco_cluster) (1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h]))"
 		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
 		}
-		xAxisData := []string{}
-		yAxisData := []string{}
 		for _, val := range result.Data.Result {
+			xAxisData := []string{}
+			yAxisData := []string{}
 			for _, vals := range val.Values {
 				x := int(math.Round(vals.([]interface{})[0].(float64)))
 				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
@@ -243,15 +244,15 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
+			chartData.XAxis.Data = xAxisData
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: val.Metric.TacoCluster,
+				Data: yAxisData,
+			})
 		}
-		chartData.XAxis.Data = xAxisData
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "CPU 사용량",
-			Data: yAxisData,
-		})
 
 	case domain.ChartType_MEMORY.String():
-		query := "sum (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
+		query := "avg by (taco_cluster) (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
 		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
@@ -269,14 +270,14 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
+			chartData.XAxis.Data = xAxisData
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: val.Metric.TacoCluster,
+				Data: yAxisData,
+			})
 		}
-		chartData.XAxis.Data = xAxisData
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "Memory 사용량",
-			Data: yAxisData,
-		})
 	case domain.ChartType_POD.String():
-		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		query := "avg by (taco_cluster) (increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
 		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
@@ -293,14 +294,14 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
+			chartData.XAxis.Data = xAxisData
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: val.Metric.TacoCluster,
+				Data: yAxisData,
+			})
 		}
-		chartData.XAxis.Data = xAxisData
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "POD 재기동",
-			Data: yAxisData,
-		})
 	case domain.ChartType_TRAFFIC.String():
-		query := "sum(rate(container_network_receive_bytes_total[1h]))"
+		query := "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
 		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 		if err != nil {
 			return res, err
@@ -317,14 +318,14 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
+			chartData.XAxis.Data = xAxisData
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: val.Metric.TacoCluster,
+				Data: yAxisData,
+			})
 		}
-		chartData.XAxis.Data = xAxisData
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "Traffic IN",
-			Data: yAxisData,
-		})
 	case domain.ChartType_POD_CALENDAR.String():
-		query := "sum(increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		query := "avg by (taco_cluster) (increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
 		result, err := thanosClient.FetchRange(query, int(now.Unix())-(60*60*24*30), int(now.Unix()), 60*60*24)
 		if err != nil {
 			return res, err
@@ -417,7 +418,7 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 
 	clientset_user, err := kubernetes.GetClientFromClusterId(organization.PrimaryClusterId)
 	if err != nil {
-		return out, err
+		return out, errors.Wrap(err, "Failed to get client set for user cluster")
 	}
 	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
 	if err != nil {
