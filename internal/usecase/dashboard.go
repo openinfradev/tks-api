@@ -438,8 +438,8 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 	ports := service.Spec.Ports
 	if len(lbs) > 0 && len(ports) > 0 {
 		out = ports[0].TargetPort.StrVal + "://" + lbs[0].Hostname + ":" + strconv.Itoa(int(ports[0].Port))
+		u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
 	}
 
-	u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
 	return
 }

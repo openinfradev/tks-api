@@ -217,7 +217,6 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
 		return
 	}
-	log.Debug("[TODO] organization check", organizationId)
 
 	input := domain.UpdateStackRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -262,8 +261,17 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
 		return
 	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		return
+	}
 
-	_, err := h.usecase.Get(domain.StackId(strId))
+	var dto domain.Stack
+	dto.ID = domain.StackId(strId)
+	dto.OrganizationId = organizationId
+
+	err := h.usecase.Delete(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return

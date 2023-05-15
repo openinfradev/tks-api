@@ -237,9 +237,43 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"))
 	}
 
-	// [TODO] appgroup 체크
+	// 지우려고 하는 stack 이 primary cluster 라면, organization 내에 cluster 가 자기 자신만 남아있을 경우이다.
+	organizations, err := u.organizationRepo.Fetch()
+	if err != nil {
+		return errors.Wrap(err, "Failed to get organizations")
+	}
 
-	// [TODO] primary 체크
+	for _, organization := range *organizations {
+		if organization.PrimaryClusterId == cluster.ID.String() {
+
+			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID)
+			if err != nil {
+				return errors.Wrap(err, "Failed to get organizations")
+			}
+
+			for _, cl := range clusters {
+				log.Infof("%s %s", cl.ID, cl.Status)
+				if cl.ID != cluster.ID &&
+					cl.Status != domain.ClusterStatus_DELETED &&
+					cl.Status != domain.ClusterStatus_ERROR {
+					return fmt.Errorf("Failed to delete 'Primary' cluster. The clusters remain in organization")
+				}
+			}
+			break
+		}
+	}
+
+	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(dto.ID))
+	if err != nil {
+		return errors.Wrap(err, "Failed to get appGroups")
+	}
+	if len(appGroups) > 0 {
+		for _, appGroup := range appGroups {
+			if appGroup.Status != domain.AppGroupStatus_RUNNING {
+				return fmt.Errorf("Appgroup status is not 'RUNNING'. status [%s]", appGroup.Status.String())
+			}
+		}
+	}
 
 	workflow := ""
 	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
