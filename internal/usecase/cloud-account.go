@@ -44,46 +44,44 @@ func NewCloudAccountUsecase(r repository.Repository, argoClient argowf.ArgoClien
 }
 
 func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error) {
-	/*
-		user, ok := request.UserFrom(ctx)
-		if !ok {
-			return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
-		}
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
+	}
 
-		dto.Resource = "TODO server result or additional information"
-		dto.CreatorId = user.GetUserId()
+	dto.Resource = "TODO server result or additional information"
+	dto.CreatorId = user.GetUserId()
 
-		_, err = u.GetByName(dto.OrganizationId, dto.Name)
-		if err == nil {
-			return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
-		}
+	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	if err == nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "")
+	}
 
-		cloudAccountId, err = u.repo.Create(dto)
-		if err != nil {
-			return uuid.Nil, httpErrors.NewInternalServerError(err,"")
-		}
-		log.Info("newly created CloudAccount ID:", cloudAccountId)
+	cloudAccountId, err = u.repo.Create(dto)
+	if err != nil {
+		return uuid.Nil, httpErrors.NewInternalServerError(err, "")
+	}
+	log.Info("newly created CloudAccount ID:", cloudAccountId)
 
-		workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-			"tks-create-aws-cloud-account",
-			argowf.SubmitOptions{
-				Parameters: []string{
-					"aws_region=" + "ap-northeast-2",
-					"tks_cloud_account_id=" + cloudAccountId.String(),
-					"aws_account_id=" + dto.AwsAccountId,
-					"aws_access_key_id=" + dto.AccessKeyId,
-					"aws_secret_access_key=" + dto.SecretAccessKey,
-					"aws_session_token=" + dto.SessionToken,
-				},
-			})
-		if err != nil {
-			log.Error("failed to submit argo workflow template. err : ", err)
-			return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
-		}
-		log.Info("submited workflow :", workflowId)
-	*/
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		"tks-create-aws-cloud-account",
+		argowf.SubmitOptions{
+			Parameters: []string{
+				"aws_region=" + "ap-northeast-2",
+				"tks_cloud_account_id=" + cloudAccountId.String(),
+				"aws_account_id=" + dto.AwsAccountId,
+				"aws_access_key_id=" + dto.AccessKeyId,
+				"aws_secret_access_key=" + dto.SecretAccessKey,
+				"aws_session_token=" + dto.SessionToken,
+			},
+		})
+	if err != nil {
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+	log.Info("submited workflow :", workflowId)
 
-	workflowId := "tks-create-aws-cloud-account-dfw95"
+	//workflowId := "tks-create-aws-cloud-account-dfw95"
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < MAX_WORKFLOW_TIME; i++ {
 		time.Sleep(time.Second * 2)
