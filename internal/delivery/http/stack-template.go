@@ -84,13 +84,13 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	strId, ok := vars["stackTemplateId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), ""))
 		return
 	}
 
 	stackTemplateId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), ""))
 		return
 	}
 
@@ -168,7 +168,7 @@ func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *htt
 	vars := mux.Vars(r)
 	_, ok := vars["stackTemplateId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), ""))
 		return
 	}
 

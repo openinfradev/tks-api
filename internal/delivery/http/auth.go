@@ -46,7 +46,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -83,13 +83,13 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionId, ok := request.SessionFrom(ctx)
 	if !ok {
 		log.Errorf("session id is not found")
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found")))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found"), ""))
 		return
 	}
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
 		log.Errorf("user info is not found")
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found")))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found"), ""))
 		return
 	}
 	organizationId := userInfo.GetOrganizationId()
@@ -97,7 +97,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	err := h.usecase.Logout(sessionId, organizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -122,7 +122,7 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -153,7 +153,7 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -181,7 +181,7 @@ func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Req
 	input := domain.VerifyIdentityForLostIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -211,7 +211,7 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 	input := domain.VerifyIdentityForLostPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 

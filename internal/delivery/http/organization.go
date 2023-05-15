@@ -40,7 +40,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -119,7 +119,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
 		return
 	}
 
@@ -127,7 +127,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 			return
 		}
 
@@ -160,13 +160,13 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
 		return
 	}
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token")))
+		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), ""))
 		return
 	}
 
@@ -183,7 +183,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 			return
 		}
 		ErrorJSON(w, err)
@@ -208,14 +208,14 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), ""))
 		return
 	}
 
 	input := domain.UpdateOrganizationRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -223,7 +223,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 			return
 		}
 		ErrorJSON(w, err)
@@ -253,21 +253,21 @@ func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *htt
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), ""))
 		return
 	}
 
 	input := domain.UpdatePrimaryClusterRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
 	err = h.usecase.UpdatePrimaryClusterId(organizationId, input.PrimaryClusterId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 			return
 		}
 		ErrorJSON(w, err)

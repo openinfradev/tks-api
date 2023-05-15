@@ -127,7 +127,7 @@ func (u *AlertUsecase) GetByName(organizationId string, name string) (res domain
 	res, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Alert{}, httpErrors.NewNotFoundError(err)
+			return domain.Alert{}, httpErrors.NewNotFoundError(err, "")
 		}
 		return domain.Alert{}, err
 	}
@@ -150,12 +150,12 @@ func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err 
 func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
 	}
 
 	_, err = u.Get(dto.ID)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "")
 	}
 
 	*dto.UpdatorId = user.GetUserId()
@@ -171,12 +171,12 @@ func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error)
 func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
 	}
 
 	_, err = u.repo.Get(dto.AlertId)
 	if err != nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Not found alert"))
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Not found alert"), "")
 	}
 
 	userId := user.GetUserId()

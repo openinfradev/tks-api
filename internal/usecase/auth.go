@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
@@ -44,10 +45,10 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Authentication with DB
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
-		return domain.User{}, httpErrors.NewUnauthorizedError(err)
+		return domain.User{}, httpErrors.NewUnauthorizedError(err, "")
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf(""))
+		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf(""), "")
 	}
 	var accountToken *domain.User
 	// Authentication with Keycloak
@@ -58,7 +59,7 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	}
 	if err != nil {
 		//TODO: implement not found handling
-		return domain.User{}, httpErrors.NewUnauthorizedError(err)
+		return domain.User{}, httpErrors.NewUnauthorizedError(err, "")
 	}
 
 	// Insert token
@@ -81,27 +82,27 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return "", httpErrors.NewBadRequestError(err)
+		return "", httpErrors.NewBadRequestError(err, "")
 	}
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(err)
+		return "", httpErrors.NewInternalServerError(err, "")
 	}
 	userUuid, err := uuid.Parse((*users)[0].ID)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(err)
+		return "", httpErrors.NewInternalServerError(err, "")
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(err)
+		return "", httpErrors.NewBadRequestError(err, "")
 	}
 	if !u.isValidEmailCode(emailCode) {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"))
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "")
 	}
 	if emailCode.Code != code {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"))
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "")
 	}
 	if err := u.authRepository.DeleteEmailCode(userUuid); err != nil {
-		return "", httpErrors.NewInternalServerError(err)
+		return "", httpErrors.NewInternalServerError(err, "")
 	}
 
 	return (*users)[0].AccountId, nil
@@ -112,25 +113,25 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 		u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err)
+		return httpErrors.NewBadRequestError(err, "")
 	}
 	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	user := (*users)[0]
 	userUuid, err := uuid.Parse(user.ID)
 	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return httpErrors.NewBadRequestError(err)
+		return httpErrors.NewBadRequestError(err, "")
 	}
 	if !u.isValidEmailCode(emailCode) {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "")
 	}
 	if emailCode.Code != code {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "")
 	}
 	randomPassword := helper.GenerateRandomString(passwordLength)
 
@@ -146,22 +147,22 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		},
 	}
 	if err = u.kc.UpdateUser(organizationId, originUser); err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 
 	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	if err = u.userRepository.UpdatePassword(userUuid, organizationId, user.Password, true); err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 
 	if err = ses.SendEmailForTemporaryPassword(ses.Client, email, randomPassword); err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 
 	if err = u.authRepository.DeleteEmailCode(userUuid); err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 
 	return nil
@@ -180,32 +181,32 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			u.userRepository.EmailFilter(email))
 	}
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err)
+		return httpErrors.NewBadRequestError(err, "")
 	}
 	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 
 	code, err := helper.GenerateEmailCode()
 	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	userUuid, err := uuid.Parse((*users)[0].ID)
 	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	_, err = u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
 		if err := u.authRepository.CreateEmailCode(userUuid, code); err != nil {
-			return httpErrors.NewInternalServerError(err)
+			return httpErrors.NewInternalServerError(err, "")
 		}
 	} else {
 		if err := u.authRepository.UpdateEmailCode(userUuid, code); err != nil {
-			return httpErrors.NewInternalServerError(err)
+			return httpErrors.NewInternalServerError(err, "")
 		}
 	}
 	if err := ses.SendEmailForVerityIdentity(ses.Client, email, code); err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 
 	return nil

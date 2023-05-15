@@ -226,7 +226,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	}
 
 	if app == nil {
-		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId don't exists"))
+		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId don't exists"), "")
 	}
 	// Validate app status
 	if app.Status == "WAIT_FOR_PROMOTE" || app.Status == "BLUEGREEN_FAILED" {

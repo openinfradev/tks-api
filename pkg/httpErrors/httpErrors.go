@@ -70,65 +70,65 @@ func NewRestError(status int, code string, err error) IRestError {
 	}
 }
 
-func NewBadRequestError(err error) IRestError {
+func NewBadRequestError(err error, code string) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusBadRequest,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
 }
 
-func NewUnauthorizedError(err error) IRestError {
+func NewUnauthorizedError(err error, code string) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusUnauthorized,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
 }
 
-func NewInternalServerError(err error) IRestError {
+func NewInternalServerError(err error, code string) IRestError {
 	result := RestError{
 		ErrStatus:  http.StatusInternalServerError,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
 	return result
 }
 
-func NewNotFoundError(err error) IRestError {
+func NewNotFoundError(err error, code string) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusNotFound,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
 }
 
-func NewNoContentError(err error) IRestError {
+func NewNoContentError(err error, code string) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusNoContent,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
 }
 
-func NewConflictError(err error) IRestError {
+func NewConflictError(err error, code string) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusConflict,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
 }
 
-func NewForbiddenError(err error) IRestError {
+func NewForbiddenError(err error, code string) IRestError {
 	return RestError{
 		ErrStatus:  http.StatusForbidden,
-		ErrCode:    "",
+		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
 	}
@@ -157,12 +157,12 @@ func parseErrors(err error) IRestError {
 		if restErr, ok := err.(IRestError); ok {
 			return restErr
 		}
-		return NewInternalServerError(err)
+		return NewInternalServerError(err, "")
 	}
 }
 
 func parseSqlError(err error) IRestError {
-	return NewInternalServerError(errors.Wrap(err, "SQL ERROR"))
+	return NewInternalServerError(errors.Wrap(err, "SQL ERROR"), "")
 }
 
 func ErrorResponse(err error) (IRestError, int) {

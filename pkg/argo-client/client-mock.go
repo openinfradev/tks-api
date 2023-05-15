@@ -31,6 +31,10 @@ func (c *ArgoClientMockImpl) GetWorkflow(namespace string, workflowName string) 
 	return nil, nil
 }
 
+func (c *ArgoClientMockImpl) GetWorkflowLog(namespace string, container string, workflowName string) (string, error) {
+	return "", nil
+}
+
 func (c *ArgoClientMockImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, error) {
 	return nil, nil
 }

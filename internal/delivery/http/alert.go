@@ -55,7 +55,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateAlertRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
 		return
 	}
 
@@ -132,13 +132,13 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["alertId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId"), ""))
 		return
 	}
 
 	alertId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), ""))
 		return
 	}
 
@@ -218,20 +218,20 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	strId, ok := vars["alertId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId"), ""))
 		return
 	}
 
 	alertId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), ""))
 		return
 	}
 
 	input := domain.CreateAlertActionRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
 		return
 	}
 

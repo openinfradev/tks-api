@@ -112,18 +112,18 @@ func (u *ClusterUsecase) FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []
 func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
 	}
 
 	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
 	if err == nil {
-		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "")
 	}
 
 	// check cloudAccount
 	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"))
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "")
 	}
 	isExist := false
 	for _, ca := range cloudAccounts {
@@ -133,13 +133,13 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		}
 	}
 	if !isExist {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", dto.CloudAccountId, dto.OrganizationId))
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", dto.CloudAccountId, dto.OrganizationId), "")
 	}
 
 	// check stackTemplate
 	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"))
+		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "")
 	}
 
 	/***************************
@@ -203,7 +203,7 @@ func (u *ClusterUsecase) Get(clusterId domain.ClusterId) (out domain.Cluster, er
 func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "")
 	}
 
 	if cluster.Status != domain.ClusterStatus_RUNNING {

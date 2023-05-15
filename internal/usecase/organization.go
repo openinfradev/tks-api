@@ -86,7 +86,7 @@ func (u *OrganizationUsecase) Fetch() (out *[]domain.Organization, err error) {
 func (u *OrganizationUsecase) Get(organizationId string) (res domain.Organization, err error) {
 	res, err = u.repo.Get(organizationId)
 	if err != nil {
-		return domain.Organization{}, httpErrors.NewNotFoundError(err)
+		return domain.Organization{}, httpErrors.NewNotFoundError(err, "")
 	}
 	return res, nil
 }
@@ -115,7 +115,7 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
 	_, err := u.Get(organizationId)
 	if err != nil {
-		return domain.Organization{}, httpErrors.NewNotFoundError(err)
+		return domain.Organization{}, httpErrors.NewNotFoundError(err, "")
 	}
 
 	res, err := u.repo.Update(organizationId, in)
@@ -128,12 +128,12 @@ func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrga
 
 func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clusterId string) (err error) {
 	if clusterId != "" && !helper.ValidateClusterId(clusterId) {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "")
 	}
 
 	organization, err := u.Get(organizationId)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "")
 	}
 
 	// [TODO] need refactoring about reflect

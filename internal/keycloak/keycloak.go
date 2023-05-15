@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -339,7 +340,7 @@ func (k *Keycloak) GetUser(organizationId string, accountId string) (*gocloak.Us
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, httpErrors.NewNotFoundError(fmt.Errorf("user %s not found", accountId))
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("user %s not found", accountId), "")
 	}
 	return users[0], nil
 }
@@ -356,7 +357,7 @@ func (k *Keycloak) GetUsers(organizationId string) ([]*gocloak.User, error) {
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, httpErrors.NewNotFoundError(fmt.Errorf("users not found"))
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("users not found"), "")
 	}
 
 	return users, nil
@@ -385,7 +386,7 @@ func (k *Keycloak) DeleteUser(organizationId string, userAccountId string) error
 	u, err := k.GetUser(organizationId, userAccountId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "")
 	}
 	err = k.client.DeleteUser(ctx, token.AccessToken, organizationId, *u.ID)
 	if err != nil {
@@ -444,21 +445,21 @@ func (k *Keycloak) JoinGroup(organizationId string, userId string, groupName str
 	token, err := k.loginAdmin(ctx)
 	if err != nil {
 		log.Error(err)
-		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"))
+		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"), "")
 	}
 	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
 		Search: &groupName,
 	})
 	if err != nil {
 		log.Error(err)
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	if len(groups) == 0 {
-		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"))
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"), "")
 	}
 	if err := k.client.AddUserToGroup(ctx, token.AccessToken, organizationId, userId, *groups[0].ID); err != nil {
 		log.Error(err)
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	return nil
 }
@@ -468,21 +469,21 @@ func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName st
 	token, err := k.loginAdmin(ctx)
 	if err != nil {
 		log.Error(err)
-		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"))
+		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"), "")
 	}
 	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
 		Search: &groupName,
 	})
 	if err != nil {
 		log.Error(err)
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	if len(groups) == 0 {
-		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"))
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"), "")
 	}
 	if err := k.client.DeleteUserFromGroup(ctx, token.AccessToken, organizationId, userId, *groups[0].ID); err != nil {
 		log.Error(err)
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "")
 	}
 	return nil
 }

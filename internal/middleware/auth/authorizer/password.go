@@ -2,20 +2,21 @@ package authorizer
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/openinfradev/tks-api/internal"
 	internalHttp "github.com/openinfradev/tks-api/internal/delivery/http"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"net/http"
 )
 
 func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestUserInfo, ok := request.UserFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found")))
+			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), ""))
 			return
 		}
 
@@ -36,7 +37,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 				internal.API_PREFIX + internal.API_VERSION + "/auth/logout",
 			}
 			if !(urlContains(allowedUrl, r.URL.Path) && r.Method == http.MethodPut) {
-				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired")))
+				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired"), ""))
 				return
 			}
 		}
