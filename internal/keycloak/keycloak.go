@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/spf13/viper"
+
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -15,7 +17,6 @@ type IKeycloak interface {
 	InitializeKeycloak() error
 
 	LoginAdmin(accountId string, password string) (*domain.User, error)
-	LogoutAdmin(token *gocloak.JWT) error
 	Login(accountId string, password string, organizationId string) (*domain.User, error)
 	Logout(sessionId string, organizationId string) error
 
@@ -40,12 +41,6 @@ type Keycloak struct {
 	config        *Config
 	client        *gocloak.GoCloak
 	adminCliToken *gocloak.JWT
-}
-
-func (k *Keycloak) LogoutAdmin(token *gocloak.JWT) error {
-	ctx := context.Background()
-	err := k.client.Logout(ctx, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm, token.RefreshToken)
-	return err
 }
 
 func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
@@ -110,20 +105,22 @@ func (k *Keycloak) InitializeKeycloak() error {
 		return err
 	}
 
-	keycloakClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, DefaultClientID, DefaultClientSecret)
+	var redirectURIs []string
+	redirectURIs = append(redirectURIs, viper.GetString("external-address")+"/*")
+	tksClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, DefaultClientID, DefaultClientSecret, &redirectURIs)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 
 	for _, defaultMapper := range defaultProtocolTksMapper {
-		if err := k.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *keycloakClient.ClientID, "openid", defaultMapper); err != nil {
+		if err := k.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *tksClient.ClientID, "openid", defaultMapper); err != nil {
 			log.Fatal(err)
 			return err
 		}
 	}
 
-	adminCliClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, AdminCliClientID, DefaultClientSecret)
+	adminCliClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, AdminCliClientID, DefaultClientSecret, nil)
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -136,11 +133,10 @@ func (k *Keycloak) InitializeKeycloak() error {
 		}
 	}
 
-	sec := getTokenExpiredDuration(k.adminCliToken)
-	count := 0
-	go func(count int, sec time.Duration) {
+	// Todo: 현재 30초마다 갱신하도록 함. 최적화 요소 확인 및 개선 필요
+	_ = getRefreshTokenExpiredDuration(k.adminCliToken)
+	go func() {
 		for {
-			log.Info("[Do Refresh]")
 			if token, err := k.client.RefreshToken(context.Background(), k.adminCliToken.RefreshToken, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm); err != nil {
 				log.Errorf("[Refresh]error is :%s(%T)", err.Error(), err)
 				log.Info("[Do Keycloak Admin CLI Login]")
@@ -151,11 +147,9 @@ func (k *Keycloak) InitializeKeycloak() error {
 			} else {
 				k.adminCliToken = token
 			}
-			// Expired Duration의 90%에서 refresh를 수행한다.
-			time.Sleep(time.Duration(float64(sec) * 0.9))
-			count++
+			time.Sleep(30 * time.Second)
 		}
-	}(count, sec)
+	}()
 
 	return nil
 }
@@ -170,7 +164,9 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 		return "", err
 	}
 
-	clientUUID, err := k.createDefaultClient(context.Background(), token.AccessToken, organizationId, DefaultClientID, DefaultClientSecret)
+	var redirectURIs []string
+	redirectURIs = append(redirectURIs, viper.GetString("external-address")+"/*")
+	clientUUID, err := k.createDefaultClient(context.Background(), token.AccessToken, organizationId, DefaultClientID, DefaultClientSecret, &redirectURIs)
 	if err != nil {
 		log.Error(err, "createDefaultClient")
 		return "", err
@@ -233,10 +229,6 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 		})
 
 	if err != nil {
-		return "", err
-	}
-	if err := k.LogoutAdmin(token); err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
 		return "", err
 	}
 
@@ -407,10 +399,7 @@ func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 	if err != nil {
 		return err
 	}
-	if err := k.LogoutAdmin(token); err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		return err
-	}
+
 	return nil
 }
 
@@ -481,7 +470,7 @@ func (k *Keycloak) ensureClientProtocolMappers(ctx context.Context, token *goclo
 	return nil
 }
 
-func (k *Keycloak) ensureClient(ctx context.Context, token *gocloak.JWT, realm string, clientId string, secret string) (*gocloak.Client, error) {
+func (k *Keycloak) ensureClient(ctx context.Context, token *gocloak.JWT, realm string, clientId string, secret string, redirectURIs *[]string) (*gocloak.Client, error) {
 	keycloakClient, err := k.client.GetClients(ctx, token.AccessToken, realm, gocloak.GetClientsParams{
 		ClientID: &clientId,
 	})
@@ -494,6 +483,7 @@ func (k *Keycloak) ensureClient(ctx context.Context, token *gocloak.JWT, realm s
 			ClientID:                  gocloak.StringP(clientId),
 			Enabled:                   gocloak.BoolP(true),
 			DirectAccessGrantsEnabled: gocloak.BoolP(true),
+			RedirectURIs:              redirectURIs,
 		})
 		if err != nil {
 			log.Error("Creating Client is failed", err)
@@ -503,6 +493,16 @@ func (k *Keycloak) ensureClient(ctx context.Context, token *gocloak.JWT, realm s
 		})
 		if err != nil {
 			log.Error("Getting Client is failed", err)
+		}
+	} else {
+		err = k.client.UpdateClient(ctx, token.AccessToken, realm, gocloak.Client{
+			ID:                        keycloakClient[0].ID,
+			Enabled:                   gocloak.BoolP(true),
+			DirectAccessGrantsEnabled: gocloak.BoolP(true),
+			RedirectURIs:              redirectURIs,
+		})
+		if err != nil {
+			log.Error("Update Client is failed", err)
 		}
 	}
 	if keycloakClient[0].Secret == nil || *keycloakClient[0].Secret != secret {
@@ -654,11 +654,12 @@ func (k *Keycloak) createClientProtocolMapper(ctx context.Context, accessToken s
 }
 
 func (k *Keycloak) createDefaultClient(ctx context.Context, accessToken string, realm string, clientId string,
-	clientSecret string) (string, error) {
+	clientSecret string, redirectURIs *[]string) (string, error) {
 	id, err := k.client.CreateClient(ctx, accessToken, realm, gocloak.Client{
 		ClientID:                  gocloak.StringP(clientId),
 		DirectAccessGrantsEnabled: gocloak.BoolP(true),
 		Enabled:                   gocloak.BoolP(true),
+		RedirectURIs:              redirectURIs,
 	})
 
 	if err != nil {
@@ -743,7 +744,6 @@ func defaultRealmSetting(realmId string) gocloak.RealmRepresentation {
 	}
 }
 
-func getTokenExpiredDuration(token *gocloak.JWT) time.Duration {
-	log.Info("Token Expires In: ", token.ExpiresIn)
-	return time.Duration(token.ExpiresIn) * time.Second
+func getRefreshTokenExpiredDuration(token *gocloak.JWT) time.Duration {
+	return time.Duration(token.RefreshExpiresIn) * time.Second
 }

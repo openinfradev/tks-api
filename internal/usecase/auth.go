@@ -1,7 +1,17 @@
 package usecase
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
+	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/spf13/viper"
+	"golang.org/x/net/html"
+	"golang.org/x/oauth2"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
@@ -21,23 +31,76 @@ type IAuthUsecase interface {
 	FindPassword(code string, accountId string, email string, userName string, organizationId string) error
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
 	FetchRoles() (out []domain.Role, err error)
+	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
+	SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error)
 }
 
 const (
-	passwordLength = 8
+	passwordLength           = 8
+	KEYCLOAK_IDENTITY_COOKIE = "KEYCLOAK_IDENTITY"
 )
 
 type AuthUsecase struct {
-	kc             keycloak.IKeycloak
-	userRepository repository.IUserRepository
-	authRepository repository.IAuthRepository
+	kc                 keycloak.IKeycloak
+	userRepository     repository.IUserRepository
+	authRepository     repository.IAuthRepository
+	clusterRepository  repository.IClusterRepository
+	appgroupRepository repository.IAppGroupRepository
+}
+
+func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error) {
+	urls := make(map[string][]string)
+
+	clusters, err := u.clusterRepository.FetchByOrganizationId(organizationId)
+	log.Info("clusters", clusters)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(clusters) == 0 {
+		return nil, nil, nil
+	}
+	for _, cluster := range clusters {
+		appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
+		log.Info("appgroups", appgroups)
+		if err != nil {
+			return nil, nil, err
+		}
+		if len(appgroups) == 0 {
+			continue
+		}
+		for _, appgroup := range appgroups {
+			for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
+				apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
+				if err != nil {
+					return nil, nil, err
+				}
+				if urls[strings.ToLower(appType.String())] == nil {
+					urls[strings.ToLower(appType.String())] = []string{}
+				}
+				for _, app := range apps {
+					urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
+				}
+			}
+		}
+	}
+
+	cookies := []*http.Cookie{
+		{
+			Name:   KEYCLOAK_IDENTITY_COOKIE,
+			MaxAge: -1,
+		},
+	}
+
+	return urls, cookies, nil
 }
 
 func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase {
 	return &AuthUsecase{
-		userRepository: r.User,
-		authRepository: r.Auth,
-		kc:             kc,
+		kc:                 kc,
+		userRepository:     r.User,
+		authRepository:     r.Auth,
+		clusterRepository:  r.Cluster,
+		appgroupRepository: r.AppGroup,
 	}
 }
 
@@ -220,6 +283,139 @@ func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 	return *roles, nil
 }
 
+func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error) {
+	var cookies []*http.Cookie
+
+	cookie, err := makingCookie(organizationId, accountId, password)
+	if err != nil {
+		return nil, err
+	}
+	if cookie == nil {
+		return nil, fmt.Errorf("no cookie generated")
+	}
+	cookies = append(cookies, cookie)
+	return cookies, nil
+}
+
 func (u *AuthUsecase) isValidEmailCode(code repository.CacheEmailCode) bool {
 	return !helper.IsDurationExpired(code.UpdatedAt, internal.EmailCodeExpireTime)
+}
+
+func extractFormAction(htmlContent string) (string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlContent))
+	if err != nil {
+		return "", err
+	}
+
+	var f func(*html.Node) string
+	f = func(n *html.Node) string {
+		if n.Type == html.ElementNode && n.Data == "form" {
+			for _, a := range n.Attr {
+				if a.Key == "id" && a.Val == "kc-form-login" {
+					for _, a := range n.Attr {
+						if a.Key == "action" {
+							return a.Val
+						}
+					}
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			if result := f(c); result != "" {
+				return result
+			}
+		}
+		return ""
+	}
+
+	return f(doc), nil
+}
+
+func makingCookie(organizationId, userName, password string) (*http.Cookie, error) {
+	stateCode, err := genStateString()
+	if err != nil {
+		return nil, err
+	}
+	baseUrl := viper.GetString("keycloak-address") + "/realms/" + organizationId + "/protocol/openid-connect"
+	var oauth2Config = &oauth2.Config{
+		ClientID:     keycloak.DefaultClientID,
+		ClientSecret: keycloak.DefaultClientSecret,
+		RedirectURL:  viper.GetString("external-address") + internal.API_PREFIX + internal.API_VERSION + "/auth/callback",
+		Scopes:       []string{"openid"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  baseUrl + "/auth",
+			TokenURL: baseUrl + "/token",
+		},
+	}
+
+	authCodeUrl := oauth2Config.AuthCodeURL(stateCode, oauth2.AccessTypeOnline)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", authCodeUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Accept", "text/html")
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Errorf("Error while creating new request: %v", err)
+	}
+	cookies := resp.Cookies()
+	log.Info(cookies)
+	if len(cookies) < 1 {
+		return nil, fmt.Errorf("no cookie found")
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	htmlContent := string(body)
+
+	s, err := extractFormAction(htmlContent)
+	if err != nil {
+		log.Errorf("Error while creating new request: %v", err)
+		return nil, err
+	}
+
+	data := url.Values{}
+	data.Set("username", userName)
+	data.Set("password", password)
+
+	req, err = http.NewRequest("POST", s, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+
+	client = &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err = client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	cookies2 := resp.Cookies()
+	var targetCookie *http.Cookie
+	for _, cookie := range cookies2 {
+		if cookie.Name == KEYCLOAK_IDENTITY_COOKIE {
+			targetCookie = cookie
+		}
+	}
+
+	return targetCookie, nil
+}
+
+func genStateString() (string, error) {
+	rnd := make([]byte, 32)
+	if _, err := rand.Read(rnd); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(rnd), nil
 }

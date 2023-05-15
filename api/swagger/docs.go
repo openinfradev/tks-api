@@ -458,7 +458,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.LogoutResponse"
                         }
                     }
                 }
@@ -4697,6 +4697,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/domain.Role"
                         },
                         "token": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "domain.LogoutResponse": {
+            "type": "object",
+            "properties": {
+                "ssoUrls": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
                             "type": "string"
                         }
                     }
