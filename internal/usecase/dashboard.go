@@ -257,9 +257,9 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		if err != nil {
 			return res, err
 		}
-		xAxisData := []string{}
-		yAxisData := []string{}
 		for _, val := range result.Data.Result {
+			xAxisData := []string{}
+			yAxisData := []string{}
 			for _, vals := range val.Values {
 				x := int(math.Round(vals.([]interface{})[0].(float64)))
 				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
@@ -282,9 +282,9 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		if err != nil {
 			return res, err
 		}
-		xAxisData := []string{}
-		yAxisData := []string{}
 		for _, val := range result.Data.Result {
+			xAxisData := []string{}
+			yAxisData := []string{}
 			for _, vals := range val.Values {
 				x := int(math.Round(vals.([]interface{})[0].(float64)))
 				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
@@ -306,9 +306,9 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		if err != nil {
 			return res, err
 		}
-		xAxisData := []string{}
-		yAxisData := []string{}
 		for _, val := range result.Data.Result {
+			xAxisData := []string{}
+			yAxisData := []string{}
 			for _, vals := range val.Values {
 				x := int(math.Round(vals.([]interface{})[0].(float64)))
 				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
