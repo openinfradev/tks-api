@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -98,10 +98,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	if err != nil {
 		return out, err
 	}
-	arr := strings.Split(thanosUrl, ":")
-	address := arr[0] + ":" + arr[1]
-	log.Info(address)
-	port, _ := strconv.Atoi(arr[2])
+	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return out, errors.Wrap(err, "failed to create thanos client")
@@ -112,8 +109,6 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	if err != nil {
 		return out, err
 	}
-
-	log.Info(len(clusters))
 
 	filteredClusters := funk.Filter(clusters, func(x domain.Cluster) bool {
 		return x.Status != domain.ClusterStatus_DELETED
@@ -188,10 +183,7 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 	if err != nil {
 		return res, err
 	}
-	arr := strings.Split(thanosUrl, ":")
-	address := arr[0] + ":" + arr[1]
-	log.Info(address)
-	port, _ := strconv.Atoi(arr[2])
+	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return res, errors.Wrap(err, "failed to create thanos client")

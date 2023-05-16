@@ -189,6 +189,11 @@ func (u *StackUsecase) GetByName(organizationId string, name string) (out domain
 }
 
 func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err error) {
+	organization, err := u.organizationRepo.Get(organizationId)
+	if err != nil {
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "")
+	}
+
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
 	if err != nil {
 		return out, err
@@ -199,7 +204,12 @@ func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err err
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, reflectClusterToStack(cluster, appGroups))
+
+		outStack := reflectClusterToStack(cluster, appGroups)
+		if organization.PrimaryClusterId == cluster.ID.String() {
+			outStack.PrimaryCluster = true
+		}
+		out = append(out, outStack)
 	}
 
 	return

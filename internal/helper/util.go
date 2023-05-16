@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,4 +61,12 @@ func IsDurationExpired(targetTime time.Time, duration time.Duration) bool {
 	now := time.Now()
 	diff := now.Sub(targetTime)
 	return diff > duration
+}
+
+func SplitAddress(url string) (address string, port int) {
+	arr := strings.Split(address, ":")
+	address = arr[0] + ":" + arr[1]
+	port, _ = strconv.Atoi(arr[2])
+
+	return
 }
