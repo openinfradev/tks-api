@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -63,7 +64,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"contract_id=" + organizationId,
-				"keycloak_url=" + viper.GetString("keycloak-address"),
+				"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 			},
 		})
 	if err != nil {
