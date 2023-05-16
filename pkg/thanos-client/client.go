@@ -106,11 +106,19 @@ func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int
 		return out, err
 	}
 
+	/*
+		var a interface{}
+		err = json.Unmarshal(body, &a)
+		if err != nil {
+			return out, err
+		}
+		log.Info(helper.ModelToJson(a))
+	*/
+
 	err = json.Unmarshal(body, &out)
 	if err != nil {
 		return out, err
 	}
 
-	//log.Info(helper.ModelToJson(out))
 	return
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/thoas/go-funk"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/strings/slices"
 )
 
 type IDashboardUsecase interface {
@@ -53,7 +54,7 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 			continue
 		}
 
-		chart, err := u.getPrometheus(organizationId, strType, duration, interval, year, month)
+		chart, err := u.getChartFromPrometheus(organizationId, strType, duration, interval, year, month)
 		if err != nil {
 			log.Error(err)
 			continue
@@ -71,6 +72,21 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 		return out, err
 	}
 
+	thanosUrl, err := u.getThanosUrl(organizationId)
+	if err != nil {
+		return out, err
+	}
+	address, port := helper.SplitAddress(thanosUrl)
+	thanosClient, err := thanos.New(address, port, false, "")
+	if err != nil {
+		return out, errors.Wrap(err, "failed to create thanos client")
+	}
+	result, err := thanosClient.Get("sum by (__name__, taco_cluster) ({__name__=~\"node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes\"})")
+	if err != nil {
+		return out, err
+	}
+	log.Info(result)
+
 	for _, cluster := range clusters {
 		appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
 		if err != nil {
@@ -82,10 +98,10 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 			log.Info(err)
 		}
 
-		// [TODO]
-		dashboardStack.Cpu = "30 %"
-		dashboardStack.Memory = "128 GB"
-		dashboardStack.Storage = "20 TB"
+		memory, disk := u.getStackMemoryDisk(result.Data.Result, cluster.ID.String())
+		dashboardStack.Cpu = "0 %"
+		dashboardStack.Memory = memory + " %"
+		dashboardStack.Storage = disk + " %"
 
 		out = append(out, dashboardStack)
 	}
@@ -178,7 +194,7 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 	return
 }
 
-func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
+func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
 		return res, err
@@ -214,117 +230,32 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		intervalSec = 60 * 60 * 24 * 7
 	}
 
+	query := ""
+
 	switch chartType {
 	case domain.ChartType_CPU.String():
 		//query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
-		query := "avg by (taco_cluster) (1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h]))"
-		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
-		if err != nil {
-			return res, err
-		}
-		for _, val := range result.Data.Result {
-			xAxisData := []string{}
-			yAxisData := []string{}
-			for _, vals := range val.Values {
-				x := int(math.Round(vals.([]interface{})[0].(float64)))
-				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-				if err != nil {
-					y = 0
-				}
-				y = y * 100
-
-				xAxisData = append(xAxisData, strconv.Itoa(x))
-				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
-			}
-			chartData.XAxis.Data = xAxisData
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: val.Metric.TacoCluster,
-				Data: yAxisData,
-			})
-		}
+		query = "avg by (taco_cluster) (1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h]))"
 
 	case domain.ChartType_MEMORY.String():
-		query := "avg by (taco_cluster) (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
-		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
-		if err != nil {
-			return res, err
-		}
-		for _, val := range result.Data.Result {
-			xAxisData := []string{}
-			yAxisData := []string{}
-			for _, vals := range val.Values {
-				x := int(math.Round(vals.([]interface{})[0].(float64)))
-				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-				if err != nil {
-					y = 0
-				}
-				y = y * 100
-				xAxisData = append(xAxisData, strconv.Itoa(x))
-				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
-			}
-			chartData.XAxis.Data = xAxisData
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: val.Metric.TacoCluster,
-				Data: yAxisData,
-			})
-		}
+		query = "avg by (taco_cluster) (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
+
 	case domain.ChartType_POD.String():
-		query := "avg by (taco_cluster) (increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
-		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
-		if err != nil {
-			return res, err
-		}
-		for _, val := range result.Data.Result {
-			xAxisData := []string{}
-			yAxisData := []string{}
-			for _, vals := range val.Values {
-				x := int(math.Round(vals.([]interface{})[0].(float64)))
-				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-				if err != nil {
-					y = 0
-				}
-				xAxisData = append(xAxisData, strconv.Itoa(x))
-				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
-			}
-			chartData.XAxis.Data = xAxisData
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: val.Metric.TacoCluster,
-				Data: yAxisData,
-			})
-		}
+		query = "avg by (taco_cluster) (increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+
 	case domain.ChartType_TRAFFIC.String():
-		query := "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
-		result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
-		if err != nil {
-			return res, err
-		}
-		for _, val := range result.Data.Result {
-			xAxisData := []string{}
-			yAxisData := []string{}
-			for _, vals := range val.Values {
-				x := int(math.Round(vals.([]interface{})[0].(float64)))
-				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-				if err != nil {
-					y = 0
-				}
-				xAxisData = append(xAxisData, strconv.Itoa(x))
-				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
-			}
-			chartData.XAxis.Data = xAxisData
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: val.Metric.TacoCluster,
-				Data: yAxisData,
-			})
-		}
+		query = "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
+
 	case domain.ChartType_POD_CALENDAR.String():
-		query := "avg by (taco_cluster) (increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		query = "sum by (__name__, taco_cluster) ({__name__=~\"node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes\"})"
 		result, err := thanosClient.FetchRange(query, int(now.Unix())-(60*60*24*30), int(now.Unix()), 60*60*24)
 		if err != nil {
 			return res, err
 		}
-		xAxisData := []string{}
-		yAxisData := []string{}
+		log.Info(helper.ModelToJson(result))
 		for _, val := range result.Data.Result {
+			xAxisData := []string{}
+			yAxisData := []string{}
 			for _, vals := range val.Values {
 				x := int(math.Round(vals.([]interface{})[0].(float64)))
 				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
@@ -334,20 +265,20 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 				xAxisData = append(xAxisData, strconv.Itoa(x))
 				yAxisData = append(yAxisData, fmt.Sprintf("%f", y))
 			}
+			chartData.XAxis.Data = xAxisData
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: "date",
+				Data: xAxisData,
+			})
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: "podRestartCount",
+				Data: yAxisData,
+			})
+			chartData.Series = append(chartData.Series, domain.Unit{
+				Name: "totalPodCount",
+				Data: []string{"100"},
+			})
 		}
-		chartData.XAxis.Data = xAxisData
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "date",
-			Data: xAxisData,
-		})
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "podRestartCount",
-			Data: yAxisData,
-		})
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "totalPodCount",
-			Data: []string{"100"},
-		})
 
 		/*
 			chartData := domain.ChartData{}
@@ -378,6 +309,41 @@ func (u *DashboardUsecase) getPrometheus(organizationId string, chartType string
 		return domain.DashboardChart{}, fmt.Errorf("No data")
 	}
 
+	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+	if err != nil {
+		return res, err
+	}
+
+	// 모든 x축 부터 계산
+	xAxisData := []string{}
+	for _, val := range result.Data.Result {
+		for _, vals := range val.Values {
+			x := int(math.Round(vals.([]interface{})[0].(float64)))
+
+			if !slices.Contains(xAxisData, strconv.Itoa(x)) {
+				xAxisData = append(xAxisData, strconv.Itoa(x))
+			}
+		}
+	}
+
+	// cluster 별 y축 계산
+	for _, val := range result.Data.Result {
+		yAxisData := []string{}
+
+		for _, xAxis := range xAxisData {
+			percentage := false
+			if chartType == domain.ChartType_CPU.String() || chartType == domain.ChartType_MEMORY.String() {
+				percentage = true
+			}
+			yAxisData = append(yAxisData, u.getChartYValue(val.Values, xAxis, percentage))
+		}
+		chartData.Series = append(chartData.Series, domain.Unit{
+			Name: val.Metric.TacoCluster,
+			Data: yAxisData,
+		})
+	}
+	chartData.XAxis.Data = xAxisData
+
 	return domain.DashboardChart{
 		ChartType:      new(domain.ChartType).FromString(chartType),
 		OrganizationId: organizationId,
@@ -403,7 +369,7 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		return out, errors.Wrap(err, "Failed to get organization")
 	}
 
-	//organization.PrimaryClusterId = "c6ayyhbul"
+	organization.PrimaryClusterId = "cmnl6zqmb"
 	if organization.PrimaryClusterId == "" {
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
@@ -428,6 +394,52 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		out = ports[0].TargetPort.StrVal + "://" + lbs[0].Hostname + ":" + strconv.Itoa(int(ports[0].Port))
 		u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
 	}
+
+	return
+}
+
+func (u *DashboardUsecase) getChartYValue(values []interface{}, xData string, percentage bool) (out string) {
+	for _, vals := range values {
+		x := int(math.Round(vals.([]interface{})[0].(float64)))
+		y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
+		if err != nil {
+			return ""
+		}
+		if strconv.Itoa(x) == xData {
+			if percentage {
+				y = y * 100
+			}
+			return fmt.Sprintf("%f", y)
+		}
+	}
+	return ""
+}
+
+func (u *DashboardUsecase) getStackMemoryDisk(result []thanos.MetricDataResult, clusterId string) (memory string, disk string) {
+	// node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes
+
+	free := 0
+	machine := 0
+	used := 0
+	capacity := 0
+	for _, val := range result {
+		if val.Metric.TacoCluster == clusterId {
+			if val.Metric.Name == "node_memory_MemFree_bytes" {
+				free, _ = strconv.Atoi(val.Value[1].(string))
+			} else if val.Metric.Name == "machine_memory_bytes" {
+				machine, _ = strconv.Atoi(val.Value[1].(string))
+			}
+
+			if val.Metric.Name == "kubelet_volume_stats_used_bytes" {
+				used, _ = strconv.Atoi(val.Value[1].(string))
+			} else if val.Metric.Name == "kubelet_volume_stats_capacity_bytes" {
+				capacity, _ = strconv.Atoi(val.Value[1].(string))
+			}
+		}
+	}
+
+	memory = fmt.Sprintf("%d", (1-free/machine)*100)
+	disk = fmt.Sprintf("%d", (used/capacity)*100)
 
 	return
 }

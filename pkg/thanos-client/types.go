@@ -17,5 +17,6 @@ type MetricDataResult struct {
 }
 
 type MetricDataResultMetric struct {
+	Name        string `json:"__name__"`
 	TacoCluster string `json:"taco_cluster"`
 }
