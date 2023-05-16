@@ -80,7 +80,6 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info("submited workflow :", workflowId)
-
 	//workflowId := "tks-create-aws-cloud-account-dfw95"
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < MAX_WORKFLOW_TIME; i++ {

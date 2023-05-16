@@ -36,13 +36,15 @@ type IRestError interface {
 	Code() string
 	Error() string
 	Causes() interface{}
+	Text() string
 }
 
 type RestError struct {
 	ErrStatus  int         `json:"status"`
 	ErrCode    string      `json:"code"`
 	ErrMessage string      `json:"message"`
-	ErrCauses  interface{} `json:"-"`
+	ErrCauses  interface{} `json:"cause"`
+	ErrText    string      `json:"text"`
 }
 
 func (e RestError) Status() int {
@@ -61,76 +63,95 @@ func (e RestError) Causes() interface{} {
 	return e.ErrCauses
 }
 
-func NewRestError(status int, code string, err error) IRestError {
+func (e RestError) Text() string {
+	return e.ErrText
+}
+
+func NewRestError(status int, code ErrorCode, err error) IRestError {
 	return RestError{
 		ErrStatus:  status,
-		ErrCode:    code,
+		ErrCode:    string(code),
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    code.GetText(),
 	}
 }
 
 func NewBadRequestError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	return RestError{
 		ErrStatus:  http.StatusBadRequest,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 }
 
 func NewUnauthorizedError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	return RestError{
 		ErrStatus:  http.StatusUnauthorized,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 }
 
 func NewInternalServerError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	result := RestError{
 		ErrStatus:  http.StatusInternalServerError,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 	return result
 }
 
 func NewNotFoundError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	return RestError{
 		ErrStatus:  http.StatusNotFound,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 }
 
 func NewNoContentError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	return RestError{
 		ErrStatus:  http.StatusNoContent,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 }
 
 func NewConflictError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	return RestError{
 		ErrStatus:  http.StatusConflict,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 }
 
 func NewForbiddenError(err error, code string) IRestError {
+	errCode := ErrorCode(code)
 	return RestError{
 		ErrStatus:  http.StatusForbidden,
 		ErrCode:    code,
 		ErrMessage: err.Error(),
 		ErrCauses:  err,
+		ErrText:    errCode.GetText(),
 	}
 }
 

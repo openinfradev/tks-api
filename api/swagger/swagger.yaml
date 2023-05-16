@@ -1669,12 +1669,15 @@ definitions:
     type: object
   httpErrors.RestError:
     properties:
+      cause: {}
       code:
         type: string
       message:
         type: string
       status:
         type: integer
+      text:
+        type: string
     type: object
 host: tks-api-dev.taco-cat.xyz
 info:

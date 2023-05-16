@@ -5512,6 +5512,7 @@
         "httpErrors.RestError": {
             "type": "object",
             "properties": {
+                "cause": {},
                 "code": {
                     "type": "string"
                 },
@@ -5520,6 +5521,9 @@
                 },
                 "status": {
                     "type": "integer"
+                },
+                "text": {
+                    "type": "string"
                 }
             }
         }

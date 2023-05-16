@@ -8,6 +8,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -62,6 +63,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"contract_id=" + organizationId,
+				"keycloak_url=" + viper.GetString("keycloak-address"),
 			},
 		})
 	if err != nil {
