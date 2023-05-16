@@ -438,8 +438,13 @@ func (u *DashboardUsecase) getStackMemoryDisk(result []thanos.MetricDataResult, 
 		}
 	}
 
-	memory = fmt.Sprintf("%d", (1-free/machine)*100)
-	disk = fmt.Sprintf("%d", (used/capacity)*100)
+	if machine > 0 {
+		memory = fmt.Sprintf("%d", (1-free/machine)*100)
+	}
+
+	if capacity > 0 {
+		disk = fmt.Sprintf("%d", (used/capacity)*100)
+	}
 
 	return
 }
