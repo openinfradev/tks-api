@@ -216,7 +216,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Update application",
+                "description": "Create application",
                 "consumes": [
                     "application/json"
                 ],
@@ -226,7 +226,7 @@ const docTemplate = `{
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "Update application",
+                "summary": "Create application",
                 "parameters": [
                     {
                         "description": "body",
@@ -234,7 +234,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateApplicationRequest"
+                            "$ref": "#/definitions/domain.CreateApplicationRequest"
                         }
                     }
                 ],
@@ -3779,6 +3779,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CreateApplicationRequest": {
+            "type": "object",
+            "properties": {
+                "applicationType": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
@@ -5174,20 +5188,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "taskId": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.UpdateApplicationRequest": {
-            "type": "object",
-            "properties": {
-                "applicationType": {
-                    "type": "string"
-                },
-                "endpoint": {
-                    "type": "string"
-                },
-                "metadata": {
                     "type": "string"
                 }
             }

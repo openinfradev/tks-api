@@ -209,7 +209,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Update application",
+                "description": "Create application",
                 "consumes": [
                     "application/json"
                 ],
@@ -219,7 +219,7 @@
                 "tags": [
                     "AppGroups"
                 ],
-                "summary": "Update application",
+                "summary": "Create application",
                 "parameters": [
                     {
                         "description": "body",
@@ -227,7 +227,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateApplicationRequest"
+                            "$ref": "#/definitions/domain.CreateApplicationRequest"
                         }
                     }
                 ],
@@ -3772,6 +3772,20 @@
                 }
             }
         },
+        "domain.CreateApplicationRequest": {
+            "type": "object",
+            "properties": {
+                "applicationType": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
@@ -5167,20 +5181,6 @@
                     "type": "string"
                 },
                 "taskId": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.UpdateApplicationRequest": {
-            "type": "object",
-            "properties": {
-                "applicationType": {
-                    "type": "string"
-                },
-                "endpoint": {
-                    "type": "string"
-                },
-                "metadata": {
                     "type": "string"
                 }
             }

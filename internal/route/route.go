@@ -119,7 +119,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware.Handle(http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", authMiddleware.Handle(http.HandlerFunc(appGroupHandler.DeleteAppGroup))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware.Handle(http.HandlerFunc(appGroupHandler.GetApplications))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware.Handle(http.HandlerFunc(appGroupHandler.UpdateApplication))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", authMiddleware.Handle(http.HandlerFunc(appGroupHandler.CreateApplication))).Methods(http.MethodPost)
 
 	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)

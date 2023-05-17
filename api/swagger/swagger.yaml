@@ -510,6 +510,15 @@ definitions:
     - name
     - targetClusterId
     type: object
+  domain.CreateApplicationRequest:
+    properties:
+      applicationType:
+        type: string
+      endpoint:
+        type: string
+      metadata:
+        type: string
+    type: object
   domain.CreateCloudAccountRequest:
     properties:
       accessKeyId:
@@ -1441,15 +1450,6 @@ definitions:
     - status
     - taskId
     type: object
-  domain.UpdateApplicationRequest:
-    properties:
-      applicationType:
-        type: string
-      endpoint:
-        type: string
-      metadata:
-        type: string
-    type: object
   domain.UpdateCloudAccountRequest:
     properties:
       description:
@@ -1811,14 +1811,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Update application
+      description: Create application
       parameters:
       - description: body
         in: body
         name: object
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateApplicationRequest'
+          $ref: '#/definitions/domain.CreateApplicationRequest'
       produces:
       - application/json
       responses:
@@ -1826,7 +1826,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Update application
+      summary: Create application
       tags:
       - AppGroups
   /auth/find-id/code:

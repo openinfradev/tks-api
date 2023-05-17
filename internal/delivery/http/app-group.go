@@ -223,17 +223,17 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// UpdateApplication godoc
+// CreateApplication godoc
 // @Tags AppGroups
-// @Summary Update application
-// @Description Update application
+// @Summary Create application
+// @Description Create application
 // @Accept json
 // @Produce json
-// @Param object body domain.UpdateApplicationRequest true "body"
+// @Param object body domain.CreateApplicationRequest true "body"
 // @Success 200 {object} nil
 // @Router /app-groups/{appGroupId}/applications [post]
 // @Security     JWT
-func (h *AppGroupHandler) UpdateApplication(w http.ResponseWriter, r *http.Request) {
+func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
 	if !ok {
@@ -246,7 +246,7 @@ func (h *AppGroupHandler) UpdateApplication(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	input := domain.UpdateApplicationRequest{}
+	input := domain.CreateApplicationRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))

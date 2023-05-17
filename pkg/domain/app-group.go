@@ -175,7 +175,7 @@ type CreateAppGroupResponse struct {
 	ID string `json:"id"`
 }
 
-type UpdateApplicationRequest struct {
+type CreateApplicationRequest struct {
 	ApplicationType string `json:"applicationType"`
 	Endpoint        string `json:"endpoint"`
 	Metadata        string `json:"metadata"`

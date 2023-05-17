@@ -124,5 +124,11 @@ func Map(src interface{}, dst interface{}) error {
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
 			return new(AlertActionStatus).FromString(i.(string)), nil
 		},
+		{srcType: reflect.TypeOf((*ApplicationType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(ApplicationType).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ApplicationType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(ApplicationType).FromString(i.(string)), nil
+		},
 	})
 }
