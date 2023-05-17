@@ -369,7 +369,7 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		return out, errors.Wrap(err, "Failed to get organization")
 	}
 
-	organization.PrimaryClusterId = "cmnl6zqmb"
+	//organization.PrimaryClusterId = "cmnl6zqmb"
 	if organization.PrimaryClusterId == "" {
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
