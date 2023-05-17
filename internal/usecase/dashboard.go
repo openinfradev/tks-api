@@ -56,8 +56,7 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 
 		chart, err := u.getChartFromPrometheus(organizationId, strType, duration, interval, year, month)
 		if err != nil {
-			log.Error(err)
-			continue
+			return nil, err
 		}
 
 		out = append(out, chart)
@@ -81,11 +80,15 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 	if err != nil {
 		return out, errors.Wrap(err, "failed to create thanos client")
 	}
-	result, err := thanosClient.Get("sum by (__name__, taco_cluster) ({__name__=~\"node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes\"})")
+	stackMemoryDisk, err := thanosClient.Get("sum by (__name__, taco_cluster) ({__name__=~\"node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes\"})")
 	if err != nil {
 		return out, err
 	}
-	log.Info(result)
+
+	stackCpu, err := thanosClient.Get("avg by (taco_cluster) (instance:node_cpu:ratio*100)")
+	if err != nil {
+		return out, err
+	}
 
 	for _, cluster := range clusters {
 		appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
@@ -98,8 +101,9 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 			log.Info(err)
 		}
 
-		memory, disk := u.getStackMemoryDisk(result.Data.Result, cluster.ID.String())
-		dashboardStack.Cpu = "0 %"
+		memory, disk := u.getStackMemoryDisk(stackMemoryDisk.Data.Result, cluster.ID.String())
+		cpu := u.getStackCpu(stackCpu.Data.Result, cluster.ID.String())
+		dashboardStack.Cpu = cpu + " %"
 		dashboardStack.Memory = memory + " %"
 		dashboardStack.Storage = disk + " %"
 
@@ -439,12 +443,27 @@ func (u *DashboardUsecase) getStackMemoryDisk(result []thanos.MetricDataResult, 
 	}
 
 	if machine > 0 {
-		memory = fmt.Sprintf("%d", (1-free/machine)*100)
+		m := 1 - (float32(free) / float32(machine))
+		memory = fmt.Sprintf("%0.2f", m*100)
 	}
 
 	if capacity > 0 {
-		disk = fmt.Sprintf("%d", (used/capacity)*100)
+		d := float32(used) / float32(capacity)
+		disk = fmt.Sprintf("%0.2f", d*100)
 	}
 
+	return
+}
+
+func (u *DashboardUsecase) getStackCpu(result []thanos.MetricDataResult, clusterId string) (cpu string) {
+	for _, val := range result {
+		if val.Metric.TacoCluster == clusterId {
+			if s, err := strconv.ParseFloat(val.Value[1].(string), 32); err == nil {
+				cpu = fmt.Sprintf("%0.2f", s)
+			}
+
+			return cpu
+		}
+	}
 	return
 }
