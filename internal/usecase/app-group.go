@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
@@ -93,6 +94,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + dto.ClusterId.String() + "-manifests",
 		"revision=" + viper.GetString("revision"),
 		"app_group_id=" + dto.ID.String(),
+		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 	}
 
 	switch dto.AppGroupType {
@@ -161,6 +163,7 @@ func (u *AppGroupUsecase) Delete(organizationId string, id domain.AppGroupId) (e
 		"github_account=" + viper.GetString("git-account"),
 		"cluster_id=" + clusterId.String(),
 		"app_group_id=" + id.String(),
+		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
