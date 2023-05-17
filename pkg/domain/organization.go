@@ -62,7 +62,7 @@ type Organization = struct {
 }
 
 type CreateOrganizationRequest struct {
-	Name        string `json:"name" validate:"required,min=3,max=20"`
+	Name        string `json:"name" validate:"required,min=1,max=30"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 	Phone       string `json:"phone"`
 }
@@ -101,7 +101,7 @@ type ListOrganizationBody struct {
 
 type UpdateOrganizationRequest struct {
 	PrimaryClusterId string `json:"primaryClusterId"`
-	Name             string `json:"name" validate:"required,min=3,max=20"`
+	Name             string `json:"name" validate:"required,min=1,max=30"`
 	Description      string `json:"description" validate:"omitempty,min=0,max=100"`
 	Phone            string `json:"phone"`
 }

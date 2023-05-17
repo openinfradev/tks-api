@@ -51,9 +51,9 @@ type Policy = struct {
 type CreateUserRequest struct {
 	AccountId   string `json:"accountId" validate:"required"`
 	Password    string `json:"password" validate:"required"`
-	Name        string `json:"name" validate:"min=0,max=20"`
+	Name        string `json:"name" validate:"min=1,max=30"`
 	Email       string `json:"email" validate:"required,email"`
-	Department  string `json:"department" validate:"min=0,max=20"`
+	Department  string `json:"department" validate:"min=0,max=50"`
 	Role        string `json:"role" validate:"required,oneof=admin user"`
 	Description string `json:"description" validate:"min=0,max=100"`
 }
@@ -111,10 +111,10 @@ type ListUserBody struct {
 }
 
 type UpdateUserRequest struct {
-	Name        string `json:"name" validate:"omitempty,min=0,max=20"`
+	Name        string `json:"name" validate:"omitempty,min=1,max=30"`
 	Role        string `json:"role" validate:"oneof=admin user"`
 	Email       string `json:"email" validate:"omitempty,email"`
-	Department  string `json:"department" validate:"omitempty,min=0,max=20"`
+	Department  string `json:"department" validate:"omitempty,min=0,max=50"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }
 
@@ -146,9 +146,9 @@ type GetMyProfileResponse struct {
 }
 type UpdateMyProfileRequest struct {
 	Password   string `json:"password" validate:"required"`
-	Name       string `json:"name" validate:"omitempty,min=0,max=20"`
+	Name       string `json:"name" validate:"omitempty,min=1,max=30"`
 	Email      string `json:"email" validate:"omitempty,email"`
-	Department string `json:"department" validate:"omitempty,min=0,max=20"`
+	Department string `json:"department" validate:"omitempty,min=0,max=50"`
 }
 
 type UpdateMyProfileResponse struct {
