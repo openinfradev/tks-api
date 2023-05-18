@@ -599,8 +599,8 @@ definitions:
         minLength: 0
         type: string
       name:
-        maxLength: 20
-        minLength: 3
+        maxLength: 30
+        minLength: 1
         type: string
       phone:
         type: string
@@ -679,7 +679,7 @@ definitions:
       accountId:
         type: string
       department:
-        maxLength: 20
+        maxLength: 50
         minLength: 0
         type: string
       description:
@@ -689,8 +689,8 @@ definitions:
       email:
         type: string
       name:
-        maxLength: 20
-        minLength: 0
+        maxLength: 30
+        minLength: 1
         type: string
       password:
         type: string
@@ -1458,14 +1458,14 @@ definitions:
   domain.UpdateMyProfileRequest:
     properties:
       department:
-        maxLength: 20
+        maxLength: 50
         minLength: 0
         type: string
       email:
         type: string
       name:
-        maxLength: 20
-        minLength: 0
+        maxLength: 30
+        minLength: 1
         type: string
       password:
         type: string
@@ -1499,8 +1499,8 @@ definitions:
         minLength: 0
         type: string
       name:
-        maxLength: 20
-        minLength: 3
+        maxLength: 30
+        minLength: 1
         type: string
       phone:
         type: string
@@ -1550,7 +1550,7 @@ definitions:
   domain.UpdateUserRequest:
     properties:
       department:
-        maxLength: 20
+        maxLength: 50
         minLength: 0
         type: string
       description:
@@ -1560,8 +1560,8 @@ definitions:
       email:
         type: string
       name:
-        maxLength: 20
-        minLength: 0
+        maxLength: 30
+        minLength: 1
         type: string
       role:
         enum:

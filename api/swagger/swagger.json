@@ -3903,8 +3903,8 @@
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 3
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "phone": {
                     "type": "string"
@@ -4021,7 +4021,7 @@
                 },
                 "department": {
                     "type": "string",
-                    "maxLength": 20,
+                    "maxLength": 50,
                     "minLength": 0
                 },
                 "description": {
@@ -4034,8 +4034,8 @@
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "password": {
                     "type": "string"
@@ -5201,7 +5201,7 @@
             "properties": {
                 "department": {
                     "type": "string",
-                    "maxLength": 20,
+                    "maxLength": 50,
                     "minLength": 0
                 },
                 "email": {
@@ -5209,8 +5209,8 @@
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "password": {
                     "type": "string"
@@ -5261,8 +5261,8 @@
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 3
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "phone": {
                     "type": "string"
@@ -5336,7 +5336,7 @@
             "properties": {
                 "department": {
                     "type": "string",
-                    "maxLength": 20,
+                    "maxLength": 50,
                     "minLength": 0
                 },
                 "description": {
@@ -5349,8 +5349,8 @@
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "role": {
                     "type": "string",

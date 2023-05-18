@@ -3910,8 +3910,8 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 3
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "phone": {
                     "type": "string"
@@ -4028,7 +4028,7 @@ const docTemplate = `{
                 },
                 "department": {
                     "type": "string",
-                    "maxLength": 20,
+                    "maxLength": 50,
                     "minLength": 0
                 },
                 "description": {
@@ -4041,8 +4041,8 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "password": {
                     "type": "string"
@@ -5208,7 +5208,7 @@ const docTemplate = `{
             "properties": {
                 "department": {
                     "type": "string",
-                    "maxLength": 20,
+                    "maxLength": 50,
                     "minLength": 0
                 },
                 "email": {
@@ -5216,8 +5216,8 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "password": {
                     "type": "string"
@@ -5268,8 +5268,8 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 3
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "phone": {
                     "type": "string"
@@ -5343,7 +5343,7 @@ const docTemplate = `{
             "properties": {
                 "department": {
                     "type": "string",
-                    "maxLength": 20,
+                    "maxLength": 50,
                     "minLength": 0
                 },
                 "description": {
@@ -5356,8 +5356,8 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20,
-                    "minLength": 0
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "role": {
                     "type": "string",
