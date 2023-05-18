@@ -3909,9 +3909,7 @@ const docTemplate = `{
                     "minLength": 0
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "phone": {
                     "type": "string"
@@ -4040,9 +4038,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "password": {
                     "type": "string"

@@ -103,7 +103,7 @@ func (m *ClusterConf) SetDefault() {
 type CreateClusterRequest struct {
 	OrganizationId      string `json:"organizationId" validate:"required"`
 	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
-	Name                string `json:"name" validate:"required"`
+	Name                string `json:"name" validate:"required,name"`
 	Description         string `json:"description"`
 	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
 	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`

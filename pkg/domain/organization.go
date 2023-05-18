@@ -62,7 +62,7 @@ type Organization = struct {
 }
 
 type CreateOrganizationRequest struct {
-	Name        string `json:"name" validate:"required,min=1,max=30"`
+	Name        string `json:"name" validate:"required,name"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 	Phone       string `json:"phone"`
 }

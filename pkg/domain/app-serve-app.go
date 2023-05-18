@@ -64,7 +64,7 @@ func (t *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
 
 type CreateAppServeAppRequest struct {
 	// App
-	Name            string `json:"name" validate:"required"`
+	Name            string `json:"name" validate:"required,rfc1123,name"`
 	Namespace       string `json:"namespace"`
 	Type            string `json:"type" `   // build deploy all
 	AppType         string `json:"appType"` // springboot spring

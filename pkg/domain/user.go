@@ -51,7 +51,7 @@ type Policy = struct {
 type CreateUserRequest struct {
 	AccountId   string `json:"accountId" validate:"required"`
 	Password    string `json:"password" validate:"required"`
-	Name        string `json:"name" validate:"min=1,max=30"`
+	Name        string `json:"name" validate:"name"`
 	Email       string `json:"email" validate:"required,email"`
 	Department  string `json:"department" validate:"min=0,max=50"`
 	Role        string `json:"role" validate:"required,oneof=admin user"`

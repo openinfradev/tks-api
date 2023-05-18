@@ -6,11 +6,19 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-playground/validator"
+	validator_ "github.com/go-playground/validator"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/validator"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
+
+// use a single instance of Validate, it caches struct info
+var validate *validator_.Validate
+
+func init() {
+	validate = validator.NewValidator()
+}
 
 func ErrorJSON(w http.ResponseWriter, err error) {
 	errorResponse, status := httpErrors.ErrorResponse(err)
@@ -39,7 +47,6 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 		return err
 	}
 
-	validate := validator.New()
 	err = validate.Struct(in)
 	if err != nil {
 		return err

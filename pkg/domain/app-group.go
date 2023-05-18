@@ -165,7 +165,7 @@ type ApplicationResponse = struct {
 }
 
 type CreateAppGroupRequest struct {
-	Name         string    `json:"name" validate:"required"`
+	Name         string    `json:"name" validate:"required,name"`
 	Description  string    `json:"description"`
 	ClusterId    ClusterId `json:"clusterId" validate:"required"`
 	AppGroupType string    `json:"appGroupType" validate:"oneof=LMA SERVICE_MESH"`

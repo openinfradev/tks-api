@@ -599,8 +599,6 @@ definitions:
         minLength: 0
         type: string
       name:
-        maxLength: 30
-        minLength: 1
         type: string
       phone:
         type: string
@@ -689,8 +687,6 @@ definitions:
       email:
         type: string
       name:
-        maxLength: 30
-        minLength: 1
         type: string
       password:
         type: string

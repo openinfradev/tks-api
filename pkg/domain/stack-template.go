@@ -72,7 +72,7 @@ type GetStackTemplateResponse struct {
 }
 
 type CreateStackTemplateRequest struct {
-	Name         string `json:"name" validate:"required"`
+	Name         string `json:"name" validate:"required,name"`
 	Description  string `json:"description"`
 	CloudService string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
 	Version      string `json:"version" validate:"required"`
