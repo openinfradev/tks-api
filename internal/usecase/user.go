@@ -524,7 +524,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	if err != nil {
 		return nil, err
 	}
-	if *originUser.Email != user.Email {
+	if originUser.Email == nil || *originUser.Email != user.Email {
 		originUser.Email = gocloak.StringP(user.Email)
 		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
 		if err != nil {
