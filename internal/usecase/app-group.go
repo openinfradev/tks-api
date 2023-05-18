@@ -50,7 +50,7 @@ func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGro
 func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 	userId := user.GetUserId()
 	dto.CreatorId = &userId

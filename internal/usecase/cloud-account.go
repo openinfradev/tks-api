@@ -46,7 +46,7 @@ func NewCloudAccountUsecase(r repository.Repository, argoClient argowf.ArgoClien
 func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
 	dto.Resource = "TODO server result or additional information"
@@ -54,12 +54,12 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 
 	_, err = u.GetByName(dto.OrganizationId, dto.Name)
 	if err == nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "")
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
 	cloudAccountId, err = u.repo.Create(dto)
 	if err != nil {
-		return uuid.Nil, httpErrors.NewInternalServerError(err, "")
+		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
 	log.Info("newly created CloudAccount ID:", cloudAccountId)
 
@@ -102,7 +102,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 			arr := strings.Split(logs, "\n")
 			for _, line := range arr {
 				if strings.Contains(line, "Error:") {
-					return uuid.Nil, httpErrors.NewInternalServerError(fmt.Errorf("%s", line), "INVALID_CLIENT_TOKEN_ID")
+					return uuid.Nil, httpErrors.NewInternalServerError(fmt.Errorf("%s", line), "INVALID_CLIENT_TOKEN_ID", "")
 				}
 			}
 
@@ -120,14 +120,14 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccount) error {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
 	dto.Resource = "TODO server result or additional information"
 	dto.UpdatorId = user.GetUserId()
 	err := u.repo.Update(dto)
 	if err != nil {
-		return httpErrors.NewInternalServerError(err, "")
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	return nil
 }
@@ -147,7 +147,7 @@ func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res
 	res, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err, "")
+			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
 		}
 		return domain.CloudAccount{}, err
 	}
@@ -170,12 +170,12 @@ func (u *CloudAccountUsecase) Fetch(organizationId string) (cloudAccounts []doma
 func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccount) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
 	_, err = u.Get(dto.ID)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err, "")
+		return httpErrors.NewNotFoundError(err, "", "")
 	}
 	dto.UpdatorId = user.GetUserId()
 

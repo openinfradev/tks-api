@@ -1665,7 +1665,6 @@ definitions:
     type: object
   httpErrors.RestError:
     properties:
-      cause: {}
       code:
         type: string
       message:

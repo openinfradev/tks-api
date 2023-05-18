@@ -39,14 +39,14 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
 	input := domain.CreateCloudAccountRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 	log.Debug("[TODO] organization check", organizationId)
@@ -120,13 +120,13 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
 		return
 	}
 
 	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
 		return
 	}
 
@@ -159,26 +159,26 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 	log.Debug("[TODO] organization check", organizationId)
 
 	cloudSeetingId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
 		return
 	}
 
 	input := domain.UpdateCloudAccountRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -214,20 +214,20 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
 		return
 	}
 
 	parsedId, err := uuid.Parse(cloudAccountId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "", ""))
 		return
 	}
 
 	input := domain.DeleteCloudAccountRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -260,14 +260,14 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", ""))
 		return
 	}
 
 	vars := mux.Vars(r)
 	name, ok := vars["name"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "", ""))
 		return
 	}
 

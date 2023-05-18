@@ -38,7 +38,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
@@ -97,18 +97,18 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
 	strType, ok := vars["chartType"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "", ""))
 		return
 	}
 	chartType := new(domain.ChartType).FromString(strType)
 	if chartType == domain.ChartType_ERROR {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "", ""))
 		return
 	}
 
@@ -139,7 +139,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(charts) < 1 {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Not found chart"), ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Not found chart"), "", ""))
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
@@ -202,7 +202,7 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 

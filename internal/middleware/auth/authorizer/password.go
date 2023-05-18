@@ -16,7 +16,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestUserInfo, ok := request.UserFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), ""))
+			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
 			return
 		}
 
@@ -37,7 +37,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 				internal.API_PREFIX + internal.API_VERSION + "/auth/logout",
 			}
 			if !(urlContains(allowedUrl, r.URL.Path) && r.Method == http.MethodPut) {
-				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired"), ""))
+				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired"), "", ""))
 				return
 			}
 		}

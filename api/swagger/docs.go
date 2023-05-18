@@ -5515,7 +5515,6 @@ const docTemplate = `{
         "httpErrors.RestError": {
             "type": "object",
             "properties": {
-                "cause": {},
                 "code": {
                     "type": "string"
                 },

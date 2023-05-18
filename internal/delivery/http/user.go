@@ -55,7 +55,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
@@ -64,7 +64,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusConflict {
-			ErrorJSON(w, httpErrors.NewConflictError(err, ""))
+			ErrorJSON(w, httpErrors.NewConflictError(err, "", ""))
 			return
 		}
 
@@ -119,12 +119,12 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
@@ -133,7 +133,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
 
@@ -163,7 +163,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
@@ -205,19 +205,19 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
 	err := u.usecase.DeleteByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -245,12 +245,12 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
@@ -259,7 +259,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -278,7 +278,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
 
@@ -311,12 +311,12 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
@@ -342,7 +342,7 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
 		return
 	}
 
@@ -375,7 +375,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
 		return
 	}
 
@@ -384,14 +384,14 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
 	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
@@ -409,7 +409,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	resUser, err := u.usecase.Update(ctx, requestUserInfo.GetUserId(), &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
 		ErrorJSON(w, err)
@@ -440,14 +440,14 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
 		return
 
 	}
 	input := domain.UpdatePasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -459,7 +459,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	err = u.usecase.UpdatePasswordByAccountId(r.Context(), user.AccountId, input.OriginPassword, input.NewPassword, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, ""))
+			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -485,7 +485,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
 		return
 	}
 
@@ -512,7 +512,7 @@ func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Req
 func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request context"), ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request context"), "", ""))
 		return
 	}
 	if err := u.usecase.Delete(requestUserInfo.GetUserId(), requestUserInfo.GetOrganizationId()); err != nil {
@@ -537,12 +537,12 @@ func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 
@@ -577,12 +577,12 @@ func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	email, ok := vars["email"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
 		return
 	}
 

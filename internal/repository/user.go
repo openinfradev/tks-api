@@ -162,7 +162,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	var out []domain.User
@@ -189,7 +189,7 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 		return domain.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	return r.reflect(user), nil
@@ -207,7 +207,7 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 		RoleId:      roleId,
 	})
 	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -232,7 +232,7 @@ func (r *UserRepository) UpdatePassword(userId uuid.UUID, organizationId string,
 		Select("password", "password_updated_at").Updates(updateUser)
 
 	if res.RowsAffected == 0 || res.Error != nil {
-		return httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -357,7 +357,7 @@ func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
 	}
 
 	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	var out []domain.Role
@@ -379,7 +379,7 @@ func (r *UserRepository) getUserByAccountId(accountId string, organizationId str
 		return User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	return user, nil
@@ -393,7 +393,7 @@ func (r *UserRepository) getRoleByName(roleName string) (Role, error) {
 		return Role{}, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return Role{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "")
+		return Role{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	//if res.RowsAffected == 0 {
