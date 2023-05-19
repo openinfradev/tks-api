@@ -45,6 +45,8 @@ var (
 		"ROLLBACKING":               "ROLLBACKING",
 		"ROLLBACK_SUCCESS":          "DONE",
 		"ROLLBACK_FAILED":           "FAILED",
+		"DELETING":                  "DELETING",
+		"DELETE_FAILED":             "FAILED",
 	}
 	StatusName = map[string]string{
 		"BUILDING":                  "BUILD",
@@ -74,6 +76,8 @@ var (
 		"ROLLBACKING":               "ROLLBACK",
 		"ROLLBACK_SUCCESS":          "ROLLBACK",
 		"ROLLBACK_FAILED":           "ROLLBACK",
+		"DELETING":                  "DELETE",
+		"DELETE_FAILED":             "DELETE",
 	}
 	StatusStages = map[string][]string{
 		"PREPARING":                 {},
@@ -104,6 +108,8 @@ var (
 		"ROLLBACKING":               {"ROLLBACKING"},
 		"ROLLBACK_SUCCESS":          {"ROLLBACK_SUCCESS"},
 		"ROLLBACK_FAILED":           {"ROLLBACK_FAILED"},
+		"DELETING":                  {"DELETING"},
+		"DELETE_FAILED":             {"DELETE_FAILED"},
 	}
 )
 
