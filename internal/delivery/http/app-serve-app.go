@@ -45,6 +45,8 @@ var (
 		"ROLLBACKING":               "ROLLBACKING",
 		"ROLLBACK_SUCCESS":          "DONE",
 		"ROLLBACK_FAILED":           "FAILED",
+		"DELETING":                  "DELETING",
+		"DELETE_FAILED":             "FAILED",
 	}
 	StatusName = map[string]string{
 		"BUILDING":                  "BUILD",
@@ -74,6 +76,8 @@ var (
 		"ROLLBACKING":               "ROLLBACK",
 		"ROLLBACK_SUCCESS":          "ROLLBACK",
 		"ROLLBACK_FAILED":           "ROLLBACK",
+		"DELETING":                  "DELETE",
+		"DELETE_FAILED":             "DELETE",
 	}
 	StatusStages = map[string][]string{
 		"PREPARING":                 {},
@@ -104,6 +108,8 @@ var (
 		"ROLLBACKING":               {"ROLLBACKING"},
 		"ROLLBACK_SUCCESS":          {"ROLLBACK_SUCCESS"},
 		"ROLLBACK_FAILED":           {"ROLLBACK_FAILED"},
+		"DELETING":                  {"DELETING"},
+		"DELETE_FAILED":             {"DELETE_FAILED"},
 	}
 )
 
@@ -283,14 +289,18 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	newTask := make([]domain.AppServeAppTask, 0)
-	for _, t := range app.AppServeAppTasks {
-		if strings.Contains(t.Status, "SUCCESS") {
-			t.AvailableRollback = true
+	// For very first task, rollback should be disabled.
+  if len(app.AppServeAppTasks) > 1 {
+		newTasks := make([]domain.AppServeAppTask, 0)
+		for _, t := range app.AppServeAppTasks {
+			if strings.Contains(t.Status, "SUCCESS") && t.Status != "BLUEGREEN_ABORT_SUCCESS" &&
+				t.Status != "ROLLBACK_SUCCESS" {
+				t.AvailableRollback = true
+			}
+			newTasks = append(newTasks, t)
 		}
-		newTask = append(newTask, t)
+		app.AppServeAppTasks = newTasks
 	}
-	app.AppServeAppTasks = newTask
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
