@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -53,6 +54,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
+
+		//Mismatch password
+		if strings.Contains(err.Error(), "Mismatch password") {
+			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_MISMATCH_PASSWORD", ""))
+			return
+		}
 
 		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
@@ -130,6 +137,11 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
+		if strings.Contains(err.Error(), "invalid code") {
+			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_MISMATCH_CODE", ""))
+			return
+		}
+
 		ErrorJSON(w, err)
 		return
 	}
@@ -160,6 +172,12 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	err = h.usecase.FindPassword(input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
+
+		if strings.Contains(err.Error(), "invalid code") {
+			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_MISMATCH_CODE", ""))
+			return
+		}
+
 		ErrorJSON(w, err)
 		return
 	}

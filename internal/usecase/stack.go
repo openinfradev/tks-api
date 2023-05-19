@@ -391,10 +391,14 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 				step := parseStatusDescription(appGroup.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
-				out[i].Step = step
 				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE
 				if appGroup.Status == domain.AppGroupStatus_DELETING {
 					out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
+				}
+
+				out[i].Step = step
+				if out[i].Step > out[i].MaxStep {
+					out[i].Step = out[i].MaxStep
 				}
 			}
 		}

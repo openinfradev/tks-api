@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -391,6 +392,10 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
+		if strings.Contains(err.Error(), "Invalid user credentials") {
+			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_INVALID_USER_CREDENTIAL", ""))
+			return
+		}
 		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -458,6 +463,11 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	err = u.usecase.UpdatePasswordByAccountId(r.Context(), user.AccountId, input.OriginPassword, input.NewPassword, requestUserInfo.GetOrganizationId())
 	if err != nil {
+		if strings.Contains(err.Error(), "invalid origin password") {
+			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_INVALID_ORIGIN_PASSWORD", ""))
+			return
+		}
+
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 			return

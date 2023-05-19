@@ -48,7 +48,7 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 		return domain.User{}, httpErrors.NewUnauthorizedError(err, "", "")
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf(""), "", "")
+		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf("Mismatch password"), "", "")
 	}
 	var accountToken *domain.User
 	// Authentication with Keycloak

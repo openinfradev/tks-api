@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -135,11 +136,16 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 
 	charts, err := h.usecase.GetCharts(organizationId, chartType, duration, interval, year, month)
 	if err != nil {
+		if strings.Contains(err.Error(), "Invalid primary clusterId") {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			return
+		}
+
 		ErrorJSON(w, err)
 		return
 	}
 	if len(charts) < 1 {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Not found chart"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_NOT_FOUND_CHART", ""))
 		return
 	}
 
@@ -171,6 +177,11 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 
 	stacks, err := h.usecase.GetStacks(organizationId)
 	if err != nil {
+		if strings.Contains(err.Error(), "Invalid primary clusterId") {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			return
+		}
+
 		ErrorJSON(w, err)
 		return
 	}
@@ -208,6 +219,10 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 
 	resources, err := h.usecase.GetResources(organizationId)
 	if err != nil {
+		if strings.Contains(err.Error(), "Invalid primary clusterId") {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_CLUSTER", ""))
+			return
+		}
 		ErrorJSON(w, err)
 		return
 	}
