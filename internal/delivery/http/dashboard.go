@@ -220,7 +220,7 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 	resources, err := h.usecase.GetResources(organizationId)
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid primary clusterId") {
-			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_CLUSTER", ""))
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
 			return
 		}
 		ErrorJSON(w, err)
