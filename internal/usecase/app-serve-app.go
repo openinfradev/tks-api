@@ -226,11 +226,13 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	}
 
 	if app == nil {
-		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId don't exists"), "", "")
+		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId doesn't exist"), "", "")
 	}
 	// Validate app status
-	if app.Status == "WAIT_FOR_PROMOTE" || app.Status == "BLUEGREEN_FAILED" {
-		return "", fmt.Errorf("the app is in blue-green related state. Promote or abort first before deleting")
+	// TODO: Add common helper function for this kind of status validation
+	if app.Status == "BUILDING" || app.Status == "DEPLOYING" || app.Status == "BLUEGREEN_DEPLOYING" ||
+		app.Status == "BLUEGREEN_PROMOTING" || app.Status == "BLUEGREEN_ABORTING" {
+		return "작업 진행 중에는 앱을 삭제할 수 없습니다", fmt.Errorf("Can't delete app while the task is in progress.")
 	}
 
 	/********************
@@ -284,6 +286,17 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		return "", errors.New("invalid parameters. appTask is nil")
 	}
 
+	app_, err := u.repo.GetAppServeAppById(app.ID)
+	if err != nil {
+		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
+	}
+
+	// Block update if the app's current status is one of those.
+	if app_.Status == "BLUEGREEN_WAIT" || app_.Status == "BLUEGREEN_PROMOTING" || app_.Status == "BLUEGREEN_ABORTING" ||
+		app_.Status == "CANARY_WAIT" || app_.Status == "CANARY_PROMOTING" || app_.Status == "CANARY_ABORTING" {
+		return "승인대기 또는 프로모트 작업 중에는 업그레이드를 수행할 수 없습니다", fmt.Errorf("Update not possible. The app is waiting for promote or in the middle of promote process.")
+	}
+
 	log.Info("Starting normal update process..")
 
 	// TODO: for more strict validation, check if immutable fields are provided by user
@@ -294,11 +307,6 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		return "", fmt.Errorf("Error: 'strategy' should be one of these values." +
 			"\n\t- rolling-update\n\t- blue-green\n\t- canary")
 	}
-
-	//app, err := u.repo.GetAppServeAppById(appTask.AppServeAppId)
-	//if err != nil {
-	//	return "", fmt.Errorf("error while getting ASA Info from DB. Error: %v", err)
-	//}
 
 	if app.Type != "deploy" {
 		// Construct imageUrl
@@ -381,7 +389,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 	}
 
 	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_PROMOTE_FAILED" {
-		return "", fmt.Errorf("the app is not in 'WAIT_FOR_PROMOTE' state. Exiting")
+		return "", fmt.Errorf("The app is not in blue-green related state. Exiting..")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.

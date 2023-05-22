@@ -39,7 +39,7 @@ type AppServeAppTask struct {
 	ExtraEnv          string     `json:"extraEnv,omitempty"`                      // env variable list for java app
 	Port              string     `json:"port,omitempty"`                          // java app port
 	ResourceSpec      string     `json:"resourceSpec,omitempty"`                  // resource spec of app pod
-	HelmRevision      int32      `json:"helmRevision,omitempty"`                  // revision of deployed helm release
+	HelmRevision      int32      `gorm:"default:0" json:"helmRevision,omitempty"` // revision of deployed helm release
 	Strategy          string     `json:"strategy,omitempty"`                      // deployment strategy (eg, rolling-update)
 	PvEnabled         bool       `json:"pvEnabled"`
 	PvStorageClass    string     `json:"pvStorageClass"`
