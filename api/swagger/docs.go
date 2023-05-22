@@ -4677,6 +4677,9 @@ const docTemplate = `{
                         "accountId": {
                             "type": "string"
                         },
+                        "department": {
+                            "type": "string"
+                        },
                         "name": {
                             "type": "string"
                         },
