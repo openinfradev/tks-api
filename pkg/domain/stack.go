@@ -22,19 +22,30 @@ type StackStatus int32
 
 const (
 	StackStatus_PENDING StackStatus = iota
-	StackStatus_INSTALLING
+
+	StackStatus_APPGROUP_INSTALLING
+	StackStatus_APPGROUP_DELETING
+	StackStatus_APPGROUP_ERROR
+
+	StackStatus_CLUSTER_INSTALLING
+	StackStatus_CLUSTER_DELETING
+	StackStatus_CLUSTER_DELETED
+	StackStatus_CLUSTER_ERROR
+
 	StackStatus_RUNNING
-	StackStatus_DELETING
-	StackStatus_DELETED
 	StackStatus_ERROR
 )
 
 var stackStatus = [...]string{
 	"PENDING",
-	"INSTALLING",
+	"APPGROUP_INSTALLING",
+	"APPGROUP_DELETING",
+	"APPGROUP_ERROR",
+	"CLUSTER_INSTALLING",
+	"CLUSTER_DELETING",
+	"CLUSTER_DELETED",
+	"CLUSTER_ERROR",
 	"RUNNING",
-	"DELETING",
-	"DELETED",
 	"ERROR",
 }
 
@@ -47,6 +58,13 @@ func (m StackStatus) FromString(s string) StackStatus {
 	}
 	return StackStatus_ERROR
 }
+
+const MAX_STEP_CLUSTER_CREATE = 14
+const MAX_STEP_CLUSTER_REMOVE = 11
+const MAX_STEP_LMA_CREATE = 36
+const MAX_STEP_LMA_REMOVE = 9
+const MAX_STEP_SM_CREATE = 22
+const MAX_STEP_SM_REMOVE = 4
 
 // model
 type Stack = struct {
@@ -70,7 +88,7 @@ type Stack = struct {
 	UpdatedAt       time.Time
 }
 
-type StackConf = struct {
+type StackConf struct {
 	CpNodeCnt           int
 	CpNodeMachineType   string
 	TksNodeCnt          int
@@ -79,38 +97,54 @@ type StackConf = struct {
 	UserNodeMachineType string
 }
 
+type StackStepStatus struct {
+	Status  string `json:"status"`
+	Stage   string `json:"stage"`
+	Step    int    `json:"step"`
+	MaxStep int    `json:"maxStep"`
+}
+
 type CreateStackRequest struct {
-	Name                string `json:"name"`
+	Name                string `json:"name" validate:"required,name"`
 	Description         string `json:"description"`
-	StackTemplateId     string `json:"stackTemplateId"`
-	CloudAccountId      string `json:"cloudAccountId"`
-	CpNodeCnt           int    `json:"cpNodeCnt"`
-	CpNodeMachineType   string `json:"cpNodeMachineType"`
-	TksNodeCnt          int    `json:"tksNodeCnt"`
-	TksNodeMachineType  string `json:"tksNodeMachineType"`
-	UserNodeCnt         int    `json:"userNodeCnt"`
-	UserNodeMachineType string `json:"userNodeMachineType"`
+	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
+	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
+	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
+	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
+	TksNodeCnt          int    `json:"tksNodeCnt" validate:"required,min=3,max=6"`
+	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
+	UserNodeCnt         int    `json:"userNodeCnt" validate:"required,min=0,max=100"`
+	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
 }
 
 type CreateStackResponse struct {
 	ID string `json:"id"`
 }
 
+type StackConfResponse struct {
+	CpNodeCnt           int    `json:"cpNodeCnt"`
+	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
+	TksNodeCnt          int    `json:"tksNodeCnt"`
+	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
+	UserNodeCnt         int    `json:"userNodeCnt"`
+	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
+}
+
 type StackResponse struct {
-	ID             StackId               `json:"id"`
-	Name           string                `json:"name"`
-	Description    string                `json:"description"`
-	OrganizationId string                `json:"organizationId"`
-	StackTemplate  StackTemplateResponse `json:"stackTemplate,omitempty"`
-	CloudAccount   CloudAccountResponse  `json:"cloudAccount,omitempty"`
-	Status         string                `json:"status"`
-	StatusDesc     string                `json:"statusDesc"`
-	PrimaryCluster bool                  `json:"primaryCluster"`
-	Conf           StackConf             `json:"conf"`
-	Creator        SimpleUserResponse    `json:"creator,omitempty"`
-	Updator        SimpleUserResponse    `json:"updator,omitempty"`
-	CreatedAt      time.Time             `json:"createdAt"`
-	UpdatedAt      time.Time             `json:"updatedAt"`
+	ID             StackId                     `json:"id"`
+	Name           string                      `json:"name"`
+	Description    string                      `json:"description"`
+	OrganizationId string                      `json:"organizationId"`
+	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate,omitempty"`
+	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount,omitempty"`
+	Status         string                      `json:"status"`
+	StatusDesc     string                      `json:"statusDesc"`
+	PrimaryCluster bool                        `json:"primaryCluster"`
+	Conf           StackConfResponse           `json:"conf"`
+	Creator        SimpleUserResponse          `json:"creator,omitempty"`
+	Updator        SimpleUserResponse          `json:"updator,omitempty"`
+	CreatedAt      time.Time                   `json:"createdAt"`
+	UpdatedAt      time.Time                   `json:"updatedAt"`
 }
 
 type GetStacksResponse struct {
@@ -122,13 +156,18 @@ type GetStackResponse struct {
 }
 
 type UpdateStackRequest struct {
-	ID StackId `json:"id"`
-}
-
-type DeleteStackRequest struct {
-	ID StackId `json:"id"`
+	Description string `json:"description" validate:"required"`
 }
 
 type CheckStackNameResponse struct {
 	Existed bool `json:"existed"`
+}
+
+type GetStackKubeConfigResponse struct {
+	KubeConfig string `json:"kubeConfig"`
+}
+
+type GetStackStatusResponse struct {
+	StackStatus string            `json:"stackStatus"`
+	StepStatus  []StackStepStatus `json:"stepStatus"`
 }

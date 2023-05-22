@@ -2,15 +2,30 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/go-playground/validator"
+	ut "github.com/go-playground/universal-translator"
+	validator_ "github.com/go-playground/validator/v10"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/validator"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
+
+// use a single instance of Validate, it caches struct info
+var (
+	validate *validator_.Validate
+	uni      *ut.UniversalTranslator
+	trans    ut.Translator
+)
+
+func init() {
+	validate, uni = validator.NewValidator()
+	trans, _ = uni.GetTranslator("en")
+}
 
 func ErrorJSON(w http.ResponseWriter, err error) {
 	errorResponse, status := httpErrors.ErrorResponse(err)
@@ -39,11 +54,16 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 		return err
 	}
 
-	validate := validator.New()
 	err = validate.Struct(in)
 	if err != nil {
-		return err
+		var valErrs validator_.ValidationErrors
+		if errors.As(err, &valErrs) {
+			for _, e := range valErrs {
+				return httpErrors.NewBadRequestError(err, "", e.Translate(trans))
+			}
+		}
 	}
+
 	return nil
 }
 

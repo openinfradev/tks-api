@@ -2,7 +2,13 @@ package helper
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -38,4 +44,29 @@ func Transcode(in, out interface{}) {
 	if err := json.NewDecoder(buf).Decode(out); err != nil {
 		log.Error(err)
 	}
+}
+
+func GenerateEmailCode() (string, error) {
+	num, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+	num = num.Add(num, big.NewInt(100000))
+	numString := fmt.Sprintf("%06d", num)
+	return fmt.Sprintf("%06s", numString), nil
+}
+
+func IsDurationExpired(targetTime time.Time, duration time.Duration) bool {
+	now := time.Now()
+	diff := now.Sub(targetTime)
+	return diff > duration
+}
+
+func SplitAddress(url string) (address string, port int) {
+	arr := strings.Split(url, ":")
+	address = arr[0] + ":" + arr[1]
+	port, _ = strconv.Atoi(arr[2])
+
+	return
 }

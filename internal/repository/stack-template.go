@@ -131,8 +131,8 @@ func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
 		KubeVersion:    stackTemplate.KubeVersion,
 		KubeType:       stackTemplate.KubeType,
 		Services:       stackTemplate.Services,
-		Creator:        reflectUser(stackTemplate.Creator),
-		Updator:        reflectUser(stackTemplate.Updator),
+		Creator:        reflectSimpleUser(stackTemplate.Creator),
+		Updator:        reflectSimpleUser(stackTemplate.Updator),
 		CreatedAt:      stackTemplate.CreatedAt,
 		UpdatedAt:      stackTemplate.UpdatedAt,
 	}

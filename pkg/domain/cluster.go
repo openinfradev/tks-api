@@ -101,17 +101,17 @@ func (m *ClusterConf) SetDefault() {
 }
 
 type CreateClusterRequest struct {
-	OrganizationId      string `json:"organizationId"`
-	StackTemplateId     string `json:"stackTemplateId"`
-	Name                string `json:"name"`
+	OrganizationId      string `json:"organizationId" validate:"required"`
+	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
+	Name                string `json:"name" validate:"required,name"`
 	Description         string `json:"description"`
-	CloudAccountId      string `json:"cloudAccountId"`
-	CpNodeCnt           int    `json:"cpNodeCnt"`
-	CpNodeMachineType   string `json:"cpNodeMachineType"`
-	TksNodeCnt          int    `json:"tksNodeCnt"`
-	TksNodeMachineType  string `json:"tksNodeMachineType"`
-	UserNodeCnt         int    `json:"userNodeCnt"`
-	UserNodeMachineType string `json:"userNodeMachineType"`
+	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
+	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
+	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
+	TksNodeCnt          int    `json:"tksNodeCnt,omitempty"`
+	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
+	UserNodeCnt         int    `json:"userNodeCnt,omitempty"`
+	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
 }
 
 type CreateClusterResponse struct {
@@ -125,19 +125,25 @@ type ClusterConfResponse struct {
 }
 
 type ClusterResponse struct {
-	ID             ClusterId             `json:"id"`
-	OrganizationId string                `json:"organizationId"`
-	Name           string                `json:"name"`
-	Description    string                `json:"description"`
-	CloudAccount   CloudAccountResponse  `json:"cloudAccount"`
-	StackTemplate  StackTemplateResponse `json:"stackTemplate"`
-	Status         string                `json:"status"`
-	StatusDesc     string                `json:"statusDesc"`
-	Conf           ClusterConfResponse   `json:"conf"`
-	Creator        SimpleUserResponse    `json:"creator"`
-	Updator        SimpleUserResponse    `json:"updator"`
-	CreatedAt      time.Time             `json:"createdAt"`
-	UpdatedAt      time.Time             `json:"updatedAt"`
+	ID             ClusterId                   `json:"id"`
+	OrganizationId string                      `json:"organizationId"`
+	Name           string                      `json:"name"`
+	Description    string                      `json:"description"`
+	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount"`
+	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate"`
+	Status         string                      `json:"status"`
+	StatusDesc     string                      `json:"statusDesc"`
+	Conf           ClusterConfResponse         `json:"conf"`
+	Creator        SimpleUserResponse          `json:"creator"`
+	Updator        SimpleUserResponse          `json:"updator"`
+	CreatedAt      time.Time                   `json:"createdAt"`
+	UpdatedAt      time.Time                   `json:"updatedAt"`
+}
+
+type SimpleClusterResponse struct {
+	ID             ClusterId `json:"id"`
+	OrganizationId string    `json:"organizationId"`
+	Name           string    `json:"name"`
 }
 
 type ClusterSiteValuesResponse struct {

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/openinfradev/tks-api/internal/aws/ses"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
@@ -28,7 +30,7 @@ func init() {
 	flag.String("dbport", "5432", "port of postgreSQL")
 	flag.String("dbuser", "postgres", "postgreSQL user")
 	flag.String("dbpassword", "password", "password for postgreSQL user")
-	flag.String("kubeconfig-path", "/Users/1110640/.kube/config", "path of kubeconfig. used development only!")
+	flag.String("kubeconfig-path", "/Users/1110640/.kube/config_dev", "path of kubeconfig. used development only!")
 	flag.String("jwt-secret", "tks-api-secret", "secret value of jwt")
 	flag.String("git-base-url", "https://github.com", "git base url")
 	flag.String("git-account", "decapod10", "git account of admin cluster")
@@ -46,8 +48,17 @@ func init() {
 	flag.String("keycloak-password", "admin", "password of keycloak")
 	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")
 
+	// aws ses
+	flag.String("aws-region", "ap-northeast-2", "region of aws ses")
+	flag.String("aws-access-key-id", "", "access key id of aws ses")
+	flag.String("aws-secret-access-key", "", "access key of aws ses")
+
+	// alerts
+	flag.String("alert-slack", "", "slack url for LMA alert")
+
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
+
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		log.Error(err)
 	}
@@ -112,8 +123,12 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to initialize keycloak : ", err)
 	}
+	err = ses.Initialize()
+	if err != nil {
+		log.Fatal("failed to initialize ses : ", err)
+	}
 
-	route := route.SetupRouter(db, argoClient, asset, keycloak)
+	route := route.SetupRouter(db, argoClient, keycloak, asset)
 
 	log.Info("Starting server on ", viper.GetInt("port"))
 	err = http.ListenAndServe("0.0.0.0:"+strconv.Itoa(viper.GetInt("port")), route)

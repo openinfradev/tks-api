@@ -1,5 +1,86 @@
 basePath: /api/1.0/
 definitions:
+  domain.ActionResponse:
+    properties:
+      body:
+        additionalProperties:
+          type: string
+        type: object
+      method:
+        type: string
+      name:
+        description: ENDPOINT (화면보기), PREVIEW (미리보기), PROMOTE (배포), ABORT (중단)
+        type: string
+      type:
+        description: LINK, API
+        type: string
+      uri:
+        type: string
+    type: object
+  domain.AlertActionResponse:
+    properties:
+      alertId:
+        type: string
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      taker:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      updatedAt:
+        type: string
+    type: object
+  domain.AlertResponse:
+    properties:
+      alertActions:
+        items:
+          $ref: '#/definitions/domain.AlertActionResponse'
+        type: array
+      closedAt:
+        type: string
+      cluster:
+        $ref: '#/definitions/domain.SimpleClusterResponse'
+      code:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      firedAt:
+        type: string
+      grade:
+        type: string
+      grafanaUrl:
+        type: string
+      id:
+        type: string
+      lastTaker:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      message:
+        type: string
+      name:
+        type: string
+      node:
+        type: string
+      organizationId:
+        type: string
+      processingSec:
+        type: integer
+      rawData:
+        type: string
+      status:
+        type: string
+      takedAt:
+        type: string
+      takedSec:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
   domain.AppGroupResponse:
     properties:
       appGroupType:
@@ -18,7 +99,7 @@ definitions:
         type: string
       status:
         type: integer
-      statusDescription:
+      statusDesc:
         type: string
       updatedAt:
         type: string
@@ -29,19 +110,18 @@ definitions:
     type: object
   domain.AppServeApp:
     properties:
-      app_serve_app_tasks:
+      appServeAppTasks:
         items:
           $ref: '#/definitions/domain.AppServeAppTask'
         type: array
-      app_type:
-        description: app_type (spring/springboot)
+      appType:
+        description: appType (spring/springboot)
         type: string
-      created_at:
-        description: created_at is a creatioin timestamp for the application
+      createdAt:
         type: string
-      deleted_at:
+      deletedAt:
         type: string
-      endpoint_url:
+      endpointUrl:
         description: endpoint URL of deployed app
         type: string
       id:
@@ -49,55 +129,60 @@ definitions:
       name:
         description: application name
         type: string
-      organization_id:
-        description: contract_id is a contract ID which this app belongs to
+      namespace:
+        description: application namespace
         type: string
-      preview_endpoint_url:
+      organizationId:
+        description: contractId is a contract ID which this app belongs to
+        type: string
+      previewEndpointUrl:
         description: preview svc endpoint URL in B/G deployment
         type: string
       status:
         description: status is status of deployed app
         type: string
-      target_cluster_id:
+      targetClusterId:
         description: target cluster to which the app is deployed
         type: string
       type:
         description: type (build/deploy/all)
         type: string
-      updated_at:
+      updatedAt:
         type: string
     type: object
   domain.AppServeAppTask:
     properties:
-      app_config:
+      appConfig:
         description: java app config
         type: string
-      app_secret:
+      appSecret:
         description: java app secret
         type: string
-      app_serve_app_id:
-        description: ID for appServeApp that this task belongs to.
+      appServeAppId:
+        description: ID for appServeApp that this task belongs to
         type: string
-      artifact_url:
+      artifactUrl:
         description: URL of java app artifact (Eg, Jar)
         type: string
-      created_at:
-        description: created_at is  a creation timestamp for the application
+      availableRollback:
+        type: boolean
+      createdAt:
+        description: createdAt is  a creation timestamp for the application
         type: string
-      deleted_at:
+      deletedAt:
         type: string
-      executable_path:
+      executablePath:
         description: Executable path of app image
         type: string
-      extra_env:
+      extraEnv:
         description: env variable list for java app
         type: string
-      helm_revision:
+      helmRevision:
         description: revision of deployed helm release
         type: integer
       id:
         type: string
-      image_url:
+      imageUrl:
         description: URL of built image for app
         type: string
       output:
@@ -109,17 +194,17 @@ definitions:
       profile:
         description: java app profile
         type: string
-      pv_access_mode:
+      pvAccessMode:
         type: string
-      pv_enabled:
+      pvEnabled:
         type: boolean
-      pv_mount_path:
+      pvMountPath:
         type: string
-      pv_size:
+      pvSize:
         type: string
-      pv_storage_class:
+      pvStorageClass:
         type: string
-      resource_spec:
+      resourceSpec:
         description: resource spec of app pod
         type: string
       status:
@@ -128,7 +213,7 @@ definitions:
       strategy:
         description: deployment strategy (eg, rolling-update)
         type: string
-      updated_at:
+      updatedAt:
         type: string
       version:
         description: application version
@@ -169,8 +254,17 @@ definitions:
       yAxis:
         $ref: '#/definitions/domain.Axis'
     type: object
+  domain.CheckExistedResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
   domain.CloudAccount:
     properties:
+      accessKeyId:
+        type: string
+      awsAccountId:
+        type: string
       cloudService:
         type: string
       clusters:
@@ -190,6 +284,10 @@ definitions:
       organizationId:
         type: string
       resource:
+        type: string
+      secretAccessKey:
+        type: string
+      sessionToken:
         type: string
       updatedAt:
         type: string
@@ -287,7 +385,7 @@ definitions:
   domain.ClusterResponse:
     properties:
       cloudAccount:
-        $ref: '#/definitions/domain.CloudAccountResponse'
+        $ref: '#/definitions/domain.SimpleCloudAccountResponse'
       conf:
         $ref: '#/definitions/domain.ClusterConfResponse'
       createdAt:
@@ -303,7 +401,7 @@ definitions:
       organizationId:
         type: string
       stackTemplate:
-        $ref: '#/definitions/domain.StackTemplateResponse'
+        $ref: '#/definitions/domain.SimpleStackTemplateResponse'
       status:
         type: string
       statusDesc:
@@ -360,71 +458,76 @@ definitions:
     type: object
   domain.CreateAppServeAppRequest:
     properties:
-      app_config:
+      appConfig:
         type: string
-      app_secret:
+      appSecret:
         type: string
-      app_type:
-        enum:
-        - spring
-        - springboot
+      appType:
+        description: springboot spring
         type: string
-      artifact_url:
+      artifactUrl:
         type: string
-      executable_path:
+      executablePath:
         type: string
-      extra_env:
+      extraEnv:
         type: string
-      image_url:
+      imageUrl:
         type: string
       name:
         description: App
         type: string
-      organization_id:
+      namespace:
         type: string
       port:
         type: string
       profile:
         type: string
-      pv_access_mode:
+      pvAccessMode:
         type: string
-      pv_enabled:
+      pvEnabled:
         type: boolean
-      pv_mount_path:
+      pvMountPath:
         type: string
-      pv_size:
+      pvSize:
         type: string
-      pv_storage_class:
+      pvStorageClass:
         type: string
-      resource_spec:
+      resourceSpec:
+        description: tiny medium large
         type: string
       strategy:
-        enum:
-        - rolling-update
-        - blue-green
-        - canary
+        description: rolling-update blue-green canary
         type: string
-      target_cluster_id:
+      targetClusterId:
         type: string
       type:
-        enum:
-        - build
-        - deploy
-        - all
+        description: build deploy all
         type: string
       version:
         description: Task
         type: string
     required:
     - name
-    - organization_id
-    - target_cluster_id
+    - targetClusterId
+    type: object
+  domain.CreateApplicationRequest:
+    properties:
+      applicationType:
+        type: string
+      endpoint:
+        type: string
+      metadata:
+        type: string
     type: object
   domain.CreateCloudAccountRequest:
     properties:
       accessKeyId:
         maxLength: 128
         minLength: 16
+        type: string
+      awsAccountId:
+        maxLength: 12
+        minLength: 12
         type: string
       cloudService:
         enum:
@@ -445,6 +548,7 @@ definitions:
         type: string
     required:
     - accessKeyId
+    - awsAccountId
     - name
     - secretAccessKey
     type: object
@@ -477,6 +581,11 @@ definitions:
         type: integer
       userNodeMachineType:
         type: string
+    required:
+    - cloudAccountId
+    - name
+    - organizationId
+    - stackTemplateId
     type: object
   domain.CreateClusterResponse:
     properties:
@@ -490,8 +599,6 @@ definitions:
         minLength: 0
         type: string
       name:
-        maxLength: 20
-        minLength: 3
         type: string
       phone:
         type: string
@@ -513,13 +620,23 @@ definitions:
       stackTemplateId:
         type: string
       tksNodeCnt:
+        maximum: 6
+        minimum: 3
         type: integer
       tksNodeMachineType:
         type: string
       userNodeCnt:
+        maximum: 100
+        minimum: 0
         type: integer
       userNodeMachineType:
         type: string
+    required:
+    - cloudAccountId
+    - name
+    - stackTemplateId
+    - tksNodeCnt
+    - userNodeCnt
     type: object
   domain.CreateStackResponse:
     properties:
@@ -560,7 +677,7 @@ definitions:
       accountId:
         type: string
       department:
-        maxLength: 20
+        maxLength: 50
         minLength: 0
         type: string
       description:
@@ -570,8 +687,6 @@ definitions:
       email:
         type: string
       name:
-        maxLength: 20
-        minLength: 0
         type: string
       password:
         type: string
@@ -582,6 +697,7 @@ definitions:
         type: string
     required:
     - accountId
+    - email
     - password
     - role
     type: object
@@ -619,9 +735,47 @@ definitions:
         type: string
       interval:
         type: string
+      month:
+        type: string
       name:
         type: string
       organizationId:
+        type: string
+      updatedAt:
+        type: string
+      year:
+        type: string
+    type: object
+  domain.DashboardResource:
+    properties:
+      cpu:
+        type: string
+      memory:
+        type: string
+      stack:
+        type: string
+      storage:
+        type: string
+    type: object
+  domain.DashboardStackResponse:
+    properties:
+      cpu:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      memory:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      statusDesc:
+        type: string
+      storage:
         type: string
       updatedAt:
         type: string
@@ -643,10 +797,57 @@ definitions:
     - accessKeyId
     - secretAccessKey
     type: object
-  domain.DeleteStackRequest:
+  domain.FindIdRequest:
     properties:
-      id:
+      code:
         type: string
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - code
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.FindIdResponse:
+    properties:
+      accountId:
+        type: string
+    type: object
+  domain.FindPasswordRequest:
+    properties:
+      accountId:
+        type: string
+      code:
+        type: string
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - accountId
+    - code
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.GetAlertResponse:
+    properties:
+      alert:
+        $ref: '#/definitions/domain.AlertResponse'
+    type: object
+  domain.GetAlertsResponse:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/domain.AlertResponse'
+        type: array
     type: object
   domain.GetAppGroupResponse:
     properties:
@@ -658,6 +859,15 @@ definitions:
       appGroups:
         items:
           $ref: '#/definitions/domain.AppGroupResponse'
+        type: array
+    type: object
+  domain.GetAppServeAppResponse:
+    properties:
+      appServeApp:
+        $ref: '#/definitions/domain.AppServeApp'
+      stages:
+        items:
+          $ref: '#/definitions/domain.StageResponse'
         type: array
     type: object
   domain.GetApplicationsResponse:
@@ -698,6 +908,38 @@ definitions:
           $ref: '#/definitions/domain.DashboardChartResponse'
         type: array
     type: object
+  domain.GetDashboardResourcesResponse:
+    properties:
+      resources:
+        $ref: '#/definitions/domain.DashboardResource'
+    type: object
+  domain.GetDashboardStacksResponse:
+    properties:
+      stacks:
+        items:
+          $ref: '#/definitions/domain.DashboardStackResponse'
+        type: array
+    type: object
+  domain.GetMyProfileResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
+    type: object
   domain.GetOrganizationResponse:
     properties:
       organization:
@@ -718,16 +960,30 @@ definitions:
             type: string
           status:
             type: string
-          statusDescription:
+          statusDesc:
             type: string
           updatedAt:
             type: string
         type: object
     type: object
+  domain.GetStackKubeConfigResponse:
+    properties:
+      kubeConfig:
+        type: string
+    type: object
   domain.GetStackResponse:
     properties:
       stack:
         $ref: '#/definitions/domain.StackResponse'
+    type: object
+  domain.GetStackStatusResponse:
+    properties:
+      stackStatus:
+        type: string
+      stepStatus:
+        items:
+          $ref: '#/definitions/domain.StackStepStatus'
+        type: array
     type: object
   domain.GetStackTemplateResponse:
     properties:
@@ -806,7 +1062,7 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        type: integer
+        type: string
       updatedAt:
         type: string
     type: object
@@ -858,6 +1114,8 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/domain.Organization'
+          passwordExpired:
+            type: boolean
           role:
             $ref: '#/definitions/domain.Role'
           token:
@@ -882,7 +1140,7 @@ definitions:
         type: string
       status:
         type: integer
-      statusDescription:
+      statusDesc:
         type: string
       updatedAt:
         type: string
@@ -902,6 +1160,48 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.RollbackAppServeAppRequest:
+    properties:
+      taskId:
+        type: string
+    type: object
+  domain.SimpleCloudAccountResponse:
+    properties:
+      cloudService:
+        type: string
+      clusters:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+    type: object
+  domain.SimpleClusterResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+    type: object
+  domain.SimpleStackTemplateResponse:
+    properties:
+      cloudService:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      template:
+        type: string
+    type: object
   domain.SimpleUserResponse:
     properties:
       accountId:
@@ -911,7 +1211,7 @@ definitions:
       name:
         type: string
     type: object
-  domain.StackConf:
+  domain.StackConfResponse:
     properties:
       cpNodeCnt:
         type: integer
@@ -929,9 +1229,9 @@ definitions:
   domain.StackResponse:
     properties:
       cloudAccount:
-        $ref: '#/definitions/domain.CloudAccountResponse'
+        $ref: '#/definitions/domain.SimpleCloudAccountResponse'
       conf:
-        $ref: '#/definitions/domain.StackConf'
+        $ref: '#/definitions/domain.StackConfResponse'
       createdAt:
         type: string
       creator:
@@ -947,7 +1247,7 @@ definitions:
       primaryCluster:
         type: boolean
       stackTemplate:
-        $ref: '#/definitions/domain.StackTemplateResponse'
+        $ref: '#/definitions/domain.SimpleStackTemplateResponse'
       status:
         type: string
       statusDesc:
@@ -956,6 +1256,17 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
+    type: object
+  domain.StackStepStatus:
+    properties:
+      maxStep:
+        type: integer
+      stage:
+        type: string
+      status:
+        type: string
+      step:
+        type: integer
     type: object
   domain.StackTemplate:
     properties:
@@ -1047,6 +1358,21 @@ definitions:
       type:
         type: string
     type: object
+  domain.StageResponse:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/domain.ActionResponse'
+        type: array
+      name:
+        description: PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK
+          (롤백)
+        type: string
+      result:
+        type: string
+      status:
+        type: string
+    type: object
   domain.Unit:
     properties:
       data:
@@ -1056,43 +1382,41 @@ definitions:
       name:
         type: string
     type: object
+  domain.UpdateAlertRequest:
+    properties:
+      description:
+        type: string
+    type: object
   domain.UpdateAppServeAppEndpointRequest:
     properties:
-      endpoint_url:
+      endpointUrl:
         type: string
-      helm_revision:
+      helmRevision:
         type: integer
-      preview_endpoint_url:
+      previewEndpointUrl:
         type: string
-      task_id:
+      taskId:
         type: string
     required:
-    - task_id
+    - taskId
     type: object
   domain.UpdateAppServeAppRequest:
     properties:
       abort:
         type: boolean
-      app_config:
+      appConfig:
         type: string
-      app_secret:
+      appSecret:
         type: string
-      app_type:
+      appType:
         type: string
-      artifact_url:
+      artifactUrl:
         type: string
-      executable_path:
+      executablePath:
         type: string
-      extra_env:
+      extraEnv:
         type: string
-      id:
-        description: App
-        type: string
-      image_url:
-        type: string
-      name:
-        type: string
-      organization_id:
+      imageUrl:
         type: string
       port:
         type: string
@@ -1101,30 +1425,13 @@ definitions:
       promote:
         description: Update Strategy
         type: boolean
-      pv_access_mode:
-        type: string
-      pv_enabled:
-        type: boolean
-      pv_mount_path:
-        type: string
-      pv_size:
-        type: string
-      pv_storage_class:
-        type: string
-      resource_spec:
+      resourceSpec:
         type: string
       strategy:
-        enum:
-        - rolling-update
-        - blue-green
-        - canary
-        type: string
-      target_cluster_id:
+        description: Task
         type: string
       type:
-        type: string
-      version:
-        description: Task
+        description: App
         type: string
     type: object
   domain.UpdateAppServeAppStatusRequest:
@@ -1133,27 +1440,53 @@ definitions:
         type: string
       status:
         type: string
-      task_id:
+      taskId:
         type: string
     required:
     - status
-    - task_id
-    type: object
-  domain.UpdateApplicationRequest:
-    properties:
-      appGroupId:
-        type: string
-      applicationType:
-        type: string
-      endpoint:
-        type: string
-      metadata:
-        type: string
+    - taskId
     type: object
   domain.UpdateCloudAccountRequest:
     properties:
       description:
         type: string
+    type: object
+  domain.UpdateMyProfileRequest:
+    properties:
+      department:
+        maxLength: 50
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 30
+        minLength: 1
+        type: string
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  domain.UpdateMyProfileResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          department:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/domain.Organization'
+          role:
+            $ref: '#/definitions/domain.Role'
+        type: object
     type: object
   domain.UpdateOrganizationRequest:
     properties:
@@ -1162,8 +1495,8 @@ definitions:
         minLength: 0
         type: string
       name:
-        maxLength: 20
-        minLength: 3
+        maxLength: 30
+        minLength: 1
         type: string
       phone:
         type: string
@@ -1193,8 +1526,6 @@ definitions:
     - newPassword
     - originPassword
     type: object
-  domain.UpdatePasswordResponse:
-    type: object
   domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
@@ -1202,18 +1533,20 @@ definitions:
     type: object
   domain.UpdateStackRequest:
     properties:
-      id:
+      description:
         type: string
+    required:
+    - description
     type: object
   domain.UpdateStackTemplateRequest:
     properties:
       description:
         type: string
     type: object
-  domain.UpdateUserByAdminRequest:
+  domain.UpdateUserRequest:
     properties:
       department:
-        maxLength: 20
+        maxLength: 50
         minLength: 0
         type: string
       description:
@@ -1223,61 +1556,14 @@ definitions:
       email:
         type: string
       name:
-        maxLength: 20
-        minLength: 0
+        maxLength: 30
+        minLength: 1
         type: string
       role:
         enum:
         - admin
         - user
         type: string
-    type: object
-  domain.UpdateUserByAdminResponse:
-    properties:
-      user:
-        properties:
-          accountId:
-            type: string
-          createdAt:
-            type: string
-          department:
-            type: string
-          description:
-            type: string
-          email:
-            type: string
-          id:
-            type: string
-          name:
-            type: string
-          organization:
-            $ref: '#/definitions/domain.Organization'
-          role:
-            $ref: '#/definitions/domain.Role'
-          updatedAt:
-            type: string
-        type: object
-    type: object
-  domain.UpdateUserRequest:
-    properties:
-      department:
-        maxLength: 20
-        minLength: 0
-        type: string
-      description:
-        maxLength: 100
-        minLength: 0
-        type: string
-      email:
-        type: string
-      name:
-        maxLength: 20
-        minLength: 0
-        type: string
-      password:
-        type: string
-    required:
-    - password
     type: object
   domain.UpdateUserResponse:
     properties:
@@ -1327,11 +1613,65 @@ definitions:
         $ref: '#/definitions/domain.Organization'
       password:
         type: string
+      passwordExpired:
+        type: boolean
+      passwordUpdatedAt:
+        type: string
       role:
         $ref: '#/definitions/domain.Role'
       token:
         type: string
       updatedAt:
+        type: string
+    type: object
+  domain.VerifyIdentityForLostIdRequest:
+    properties:
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.VerifyIdentityForLostIdResponse:
+    properties:
+      validityPeriod:
+        type: string
+    type: object
+  domain.VerifyIdentityForLostPasswordRequest:
+    properties:
+      accountId:
+        type: string
+      email:
+        type: string
+      organizationId:
+        type: string
+      userName:
+        type: string
+    required:
+    - accountId
+    - email
+    - organizationId
+    - userName
+    type: object
+  domain.VerifyIdentityForLostPasswordResponse:
+    properties:
+      validityPeriod:
+        type: string
+    type: object
+  httpErrors.RestError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      status:
+        type: integer
+      text:
         type: string
     type: object
 host: tks-api-dev.taco-cat.xyz
@@ -1346,40 +1686,6 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
-  /admin/organizations/{organizationId}/users/{accountId}:
-    put:
-      consumes:
-      - application/json
-      description: Update user detail
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: accountId
-        in: path
-        name: accountId
-        required: true
-        type: string
-      - description: update user request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateUserByAdminRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.UpdateUserByAdminResponse'
-      security:
-      - JWT: []
-      summary: As admin, Update user detail
-      tags:
-      - Admin
   /app-groups:
     delete:
       consumes:
@@ -1500,14 +1806,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: Update application
+      description: Create application
       parameters:
       - description: body
         in: body
         name: object
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateApplicationRequest'
+          $ref: '#/definitions/domain.CreateApplicationRequest'
       produces:
       - application/json
       responses:
@@ -1515,181 +1821,119 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Update application
+      summary: Create application
       tags:
       - AppGroups
-  /app-serve-apps:
-    delete:
-      consumes:
-      - application/json
-      description: Uninstall appServeApp
-      parameters:
-      - description: body
-        in: body
-        name: object
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Uninstall appServeApp
-      tags:
-      - AppServeApps
-    get:
-      consumes:
-      - application/json
-      description: Get appServeApp list by giving params
-      parameters:
-      - description: organization_Id
-        in: query
-        name: organization_Id
-        type: string
-      - description: show_all
-        in: query
-        name: showAll
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/domain.AppServeApp'
-            type: array
-      security:
-      - JWT: []
-      summary: Get appServeApp list
-      tags:
-      - AppServeApps
+  /auth/find-id/code:
     post:
       consumes:
       - application/json
-      description: Install appServeApp
+      description: This API allows users to verify their identity for lost id by submitting
+        required information
       parameters:
-      - description: create appserve request
-        in: body
-        name: object
-        required: true
-        schema:
-          $ref: '#/definitions/domain.CreateAppServeAppRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      security:
-      - JWT: []
-      summary: Install appServeApp
-      tags:
-      - AppServeApps
-    put:
-      consumes:
-      - application/json
-      description: Update appServeApp
-      parameters:
-      - description: update appserve request
-        in: body
-        name: object
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdateAppServeAppRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Update appServeApp
-      tags:
-      - AppServeApps
-  /app-serve-apps/{appId}/endpoint:
-    patch:
-      consumes:
-      - application/json
-      description: Update app endpoint
-      parameters:
-      - description: appId
-        in: path
-        name: appId
-        required: true
-        type: string
-      - description: update app endpoint request
+      - description: Request body for verifying identity for lost id including {organization
+          ID, email, username}
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateAppServeAppEndpointRequest'
+          $ref: '#/definitions/domain.VerifyIdentityForLostIdRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Update app endpoint
+            $ref: '#/definitions/domain.VerifyIdentityForLostIdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to verify identity for lost id
       tags:
-      - AppServeApps
-  /app-serve-apps/{appId}/status:
-    patch:
+      - Auth
+  /auth/find-id/verification:
+    post:
       consumes:
       - application/json
-      description: Update app status
+      description: This API allows users to find their account ID by submitting required
+        information
       parameters:
-      - description: appId
-        in: path
-        name: appId
-        required: true
-        type: string
-      - description: update app status request
+      - description: Request body for finding the account ID including {organization
+          ID, email, username, 6 digit code}
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.UpdateAppServeAppStatusRequest'
+          $ref: '#/definitions/domain.FindIdRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Update app status
+            $ref: '#/definitions/domain.FindIdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to find forgotten ID
       tags:
-      - AppServeApps
-  /app-serve-apps/{appServeAppId}:
-    get:
+      - Auth
+  /auth/find-password/code:
+    post:
       consumes:
       - application/json
-      description: Get appServeApp by giving params
+      description: This API allows users to verify their identity for lost password
+        by submitting required information
+      parameters:
+      - description: Request body for verifying identity for lost password including
+          {organization ID, email, username, Account ID}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.VerifyIdentityForLostPasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.AppServeApp'
-      security:
-      - JWT: []
-      summary: Get appServeApp
+            $ref: '#/definitions/domain.VerifyIdentityForLostPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to verify identity for lost password
       tags:
-      - AppServeApps
+      - Auth
+  /auth/find-password/verification:
+    post:
+      consumes:
+      - application/json
+      description: This API allows users to reset their forgotten password by submitting
+        required information
+      parameters:
+      - description: Request body for finding the password including {organization
+          ID, email, username, Account ID, 6 digit code}
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.FindPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      summary: Request to find forgotten password
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -1724,6 +1968,8 @@ paths:
           description: OK
           schema:
             type: object
+      security:
+      - JWT: []
       summary: logout
       tags:
       - Auth
@@ -1972,6 +2218,370 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
+  /organizations/{organizationId}/alerts:
+    get:
+      consumes:
+      - application/json
+      description: Get Alerts
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAlertsResponse'
+      security:
+      - JWT: []
+      summary: Get Alerts
+      tags:
+      - Alerts
+  /organizations/{organizationId}/alerts/{alertId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Alert
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: alertId
+        in: path
+        name: alertId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Alert
+      tags:
+      - Alerts
+    get:
+      consumes:
+      - application/json
+      description: Get Alert
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: alertId
+        in: path
+        name: alertId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAlertResponse'
+      security:
+      - JWT: []
+      summary: Get Alert
+      tags:
+      - Alerts
+    put:
+      consumes:
+      - application/json
+      description: Update Alert
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAlertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Alert
+      tags:
+      - Alerts
+  /organizations/{organizationId}/alerts/{alertId}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Create alert action
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert action
+      tags:
+      - Alerts
+  /organizations/{organizationId}/app-serve-apps:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp list by giving params
+      parameters:
+      - description: organization_Id
+        in: query
+        name: organization_Id
+        type: string
+      - description: show_all
+        in: query
+        name: showAll
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppServeApp'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appServeApp list
+      tags:
+      - AppServeApps
+    post:
+      consumes:
+      - application/json
+      description: Install appServeApp
+      parameters:
+      - description: create appserve request
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Install appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appServeApp
+      parameters:
+      - description: body
+        in: body
+        name: object
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Uninstall appServeApp
+      tags:
+      - AppServeApps
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAppServeAppResponse'
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
+    put:
+      consumes:
+      - application/json
+      description: Update appServeApp
+      parameters:
+      - description: update appserve request
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/endpoint:
+    patch:
+      consumes:
+      - application/json
+      description: Update app endpoint
+      parameters:
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: update app endpoint request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppEndpointRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: Rollback appServeApp
+      parameters:
+      - description: rollback appserve request
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RollbackAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Rollback appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update app status
+      parameters:
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: update app status request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Update app status
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/app-id/exist:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check duplicate appServeAppName by giving params
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Check duplicate appServeAppName
+      tags:
+      - AppServeApps
   /organizations/{organizationId}/cloud-accounts:
     get:
       consumes:
@@ -2209,6 +2819,177 @@ paths:
       summary: Get chart data
       tags:
       - Dashboards
+  /organizations/{organizationId}/dashboard/resources:
+    get:
+      consumes:
+      - application/json
+      description: Get resources
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetDashboardResourcesResponse'
+      security:
+      - JWT: []
+      summary: Get resources
+      tags:
+      - Dashboards
+  /organizations/{organizationId}/dashboard/stacks:
+    get:
+      consumes:
+      - application/json
+      description: Get stacks
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetDashboardStacksResponse'
+      security:
+      - JWT: []
+      summary: Get stacks
+      tags:
+      - Dashboards
+  /organizations/{organizationId}/my-profile:
+    delete:
+      consumes:
+      - application/json
+      description: Delete myProfile
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      security:
+      - JWT: []
+      summary: Delete myProfile
+      tags:
+      - My-profile
+    get:
+      consumes:
+      - application/json
+      description: Get my profile detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetMyProfileResponse'
+      security:
+      - JWT: []
+      summary: Get my profile detail
+      tags:
+      - My-profile
+    put:
+      consumes:
+      - application/json
+      description: Update my profile detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 'Required fields: password due to double-check'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateMyProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UpdateMyProfileResponse'
+      security:
+      - JWT: []
+      summary: Update my profile detail
+      tags:
+      - My-profile
+  /organizations/{organizationId}/my-profile/next-password-change:
+    put:
+      consumes:
+      - application/json
+      description: Update user's password expired date to current date
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpErrors.RestError'
+      security:
+      - JWT: []
+      summary: Update user's password expired date to current date
+      tags:
+      - My-profile
+  /organizations/{organizationId}/my-profile/password:
+    put:
+      consumes:
+      - application/json
+      description: Update user password detail
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: update user password request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update user password detail
+      tags:
+      - My-profile
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:
@@ -2303,17 +3084,6 @@ paths:
         name: stackId
         required: true
         type: string
-      - description: Delete cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.DeleteStackRequest'
-      - description: stackId
-        in: path
-        name: stackId
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -2380,6 +3150,62 @@ paths:
       security:
       - JWT: []
       summary: Update Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/kube-config:
+    get:
+      consumes:
+      - application/json
+      description: Get KubeConfig by stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: organizationId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackKubeConfigResponse'
+      security:
+      - JWT: []
+      summary: Get KubeConfig by stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/status:
+    get:
+      consumes:
+      - application/json
+      description: Get Stack Status
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackStatusResponse'
+      security:
+      - JWT: []
+      summary: Get Stack Status
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/name/{name}/existence:
@@ -2524,7 +3350,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update user detail
+      description: Update user
       parameters:
       - description: organizationId
         in: path
@@ -2536,7 +3362,7 @@ paths:
         name: accountId
         required: true
         type: string
-      - description: update user request
+      - description: input
         in: body
         name: body
         required: true
@@ -2551,13 +3377,38 @@ paths:
             $ref: '#/definitions/domain.UpdateUserResponse'
       security:
       - JWT: []
-      summary: Update user detail
+      summary: Update user
       tags:
       - Users
-  /organizations/{organizationId}/users/{accountId}/existence:
-    get:
+  /organizations/{organizationId}/users/{accountId}/reset-password:
+    put:
       consumes:
       - application/json
+      description: Reset user's password as temporary password by admin and send email
+        to user
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: accountId
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Reset user's password as temporary password by admin
+      tags:
+      - Users
+  /organizations/{organizationId}/users/account-id/{accountId}/existence:
+    get:
       description: return true when accountId exists
       parameters:
       - description: organizationId
@@ -2575,43 +3426,37 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckExistedResponse'
       security:
       - JWT: []
       summary: Get user id existence
       tags:
       - Users
-  /organizations/{organizationId}/users/{accountId}/password:
-    put:
-      consumes:
-      - application/json
-      description: Update user password detail
+  /organizations/{organizationId}/users/email/{email}/existence:
+    get:
+      description: return true when email exists
       parameters:
       - description: organizationId
         in: path
         name: organizationId
         required: true
         type: string
-      - description: accountId
+      - description: email
         in: path
         name: accountId
         required: true
         type: string
-      - description: update user password request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/domain.UpdatePasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.UpdatePasswordResponse'
+            $ref: '#/definitions/domain.CheckExistedResponse'
       security:
       - JWT: []
-      summary: Update user password detail
+      summary: Get user email existence
       tags:
       - Users
   /stack-templates:
@@ -2718,6 +3563,27 @@ paths:
       summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
+  /system-api/organizations/{organizationId}/alerts:
+    post:
+      consumes:
+      - application/json
+      description: Create alert. ADMIN ONLY
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create alert. ADMIN ONLY
+      tags:
+      - Alerts
 securityDefinitions:
   JWT:
     in: header

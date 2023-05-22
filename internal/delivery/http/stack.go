@@ -36,19 +36,22 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
 	input := domain.CreateStackRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err))
+		ErrorJSON(w, err)
 		return
 	}
 
 	var dto domain.Stack
 	if err = domain.Map(input, &dto); err != nil {
+		log.Info(err)
+	}
+	if err = domain.Map(input, &dto.Conf); err != nil {
 		log.Info(err)
 	}
 	dto.OrganizationId = organizationId
@@ -80,7 +83,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 	log.Debug("[TODO] organization check", organizationId)
@@ -120,13 +123,13 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 	log.Debug("[TODO] organization check", organizationId)
 	strId, ok := vars["stackId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "", ""))
 		return
 	}
 
@@ -144,6 +147,46 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, http.StatusOK, out)
 }
 
+// GetStackStatus godoc
+// @Tags Stacks
+// @Summary Get Stack Status
+// @Description Get Stack Status
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
+// @Success 200 {object} domain.GetStackStatusResponse
+// @Router /organizations/{organizationId}/stacks/{stackId}/status [get]
+// @Security     JWT
+func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "", ""))
+		return
+	}
+
+	steps, status, err := h.usecase.GetStepStatus(domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	log.Info(status)
+
+	var out domain.GetStackStatusResponse
+	out.StepStatus = make([]domain.StackStepStatus, len(steps))
+	for i, step := range steps {
+		if err := domain.Map(step, &out.StepStatus[i]); err != nil {
+			log.Info(err)
+		}
+	}
+	out.StackStatus = status
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
 // UpdateStack godoc
 // @Tags Stacks
 // @Summary Update Stack
@@ -157,7 +200,46 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/stacks/{stackId} [put]
 // @Security     JWT
 func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("need implementation")))
+	vars := mux.Vars(r)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "", ""))
+		return
+	}
+	stackId := domain.StackId(strId)
+	if !stackId.Validate() {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "", ""))
+		return
+	}
+
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		return
+	}
+
+	input := domain.UpdateStackRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var dto domain.Stack
+	if err = domain.Map(input, &dto); err != nil {
+		log.Info(err)
+	}
+	dto.ID = stackId
+	dto.OrganizationId = organizationId
+
+	err = h.usecase.Update(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+
 }
 
 // DeleteStack godoc
@@ -168,27 +250,28 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Param stackId path string true "stackId"
-// @Param body body domain.DeleteStackRequest true "Delete cloud setting request"
-// @Param stackId path string true "stackId"
 // @Success 200 {object} nil
 // @Router /organizations/{organizationId}/stacks/{stackId} [delete]
 // @Security     JWT
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
-		return
-	}
-	log.Debug("[TODO] organization check", organizationId)
 	strId, ok := vars["stackId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "", ""))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
-	_, err := h.usecase.Get(domain.StackId(strId))
+	var dto domain.Stack
+	dto.ID = domain.StackId(strId)
+	dto.OrganizationId = organizationId
+
+	err := h.usecase.Delete(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -214,12 +297,12 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 	name, ok := vars["name"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "", ""))
 		return
 	}
 
@@ -236,6 +319,49 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.CheckStackNameResponse
 	out.Existed = exist
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// GetStackKubeConfig godoc
+// @Tags Stacks
+// @Summary Get KubeConfig by stack
+// @Description Get KubeConfig by stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "organizationId"
+// @Success 200 {object} domain.GetStackKubeConfigResponse
+// @Router /organizations/{organizationId}/stacks/{stackId}/kube-config [get]
+// @Security     JWT
+func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	_, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		return
+	}
+
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		return
+	}
+	stackId := domain.StackId(strId)
+	if !stackId.Validate() {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "", ""))
+		return
+	}
+
+	kubeConfig, err := h.usecase.GetKubeConfig(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out = domain.GetStackKubeConfigResponse{
+		KubeConfig: kubeConfig,
+	}
 
 	ResponseJSON(w, http.StatusOK, out)
 }

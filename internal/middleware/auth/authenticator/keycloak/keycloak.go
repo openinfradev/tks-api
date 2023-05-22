@@ -82,7 +82,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		// key is projectName and value is roleName
 		roleProjectMapping[slice[1]] = slice[0]
 	}
-	userAccountId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
+	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
 	if err != nil {
 		log.Errorf("failed to verify access token: %v", err)
 
@@ -93,7 +93,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		return nil, false, fmt.Errorf("session id is not found in token")
 	}
 
-	sessionIds, err := a.kc.GetSessions(userAccountId.String(), organizationId)
+	sessionIds, err := a.kc.GetSessions(userId.String(), organizationId)
 	if err != nil {
 		log.Errorf("failed to get sessions: %v", err)
 
@@ -114,7 +114,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	}
 
 	userInfo := &user.DefaultInfo{
-		UserId:             userAccountId,
+		UserId:             userId,
 		OrganizationId:     organizationId,
 		RoleProjectMapping: roleProjectMapping,
 	}

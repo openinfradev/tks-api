@@ -21,12 +21,15 @@ type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	IsAppServeAppExist(appId string) (bool, error)
+	IsAppServeAppNameExist(orgId string, appName string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
-	UpdateAppServeApp(app *domain.AppServeAppTask) (ret string, err error)
+	UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error)
 	UpdateAppServeAppEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
 	PromoteAppServeApp(appId string) (ret string, err error)
 	AbortAppServeApp(appId string) (ret string, err error)
+	RollbackAppServeApp(appId string, taskId string) (ret string, err error)
 }
 
 type AppServeAppUsecase struct {
@@ -100,8 +103,10 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"type=" + app.Type,
 		"strategy=" + app.AppServeAppTasks[0].Strategy,
 		"app_type=" + app.AppType,
+		"organization_id=" + app.OrganizationId,
 		"target_cluster_id=" + app.TargetClusterId,
 		"app_name=" + app.Name,
+		"namespace=" + app.Namespace,
 		"asa_id=" + appId,
 		"asa_task_id=" + taskId,
 		"artifact_url=" + app.AppServeAppTasks[0].ArtifactUrl,
@@ -153,6 +158,32 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 	return app, nil
 }
 
+func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
+	count, err := u.repo.IsAppServeAppExist(appId)
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (u *AppServeAppUsecase) IsAppServeAppNameExist(orgId string, appName string) (bool, error) {
+	count, err := u.repo.IsAppServeAppNameExist(orgId, appName)
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (u *AppServeAppUsecase) UpdateAppServeAppStatus(
 	appId string,
 	taskId string,
@@ -195,11 +226,13 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	}
 
 	if app == nil {
-		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId don't exists"))
+		return "", httpErrors.NewNoContentError(fmt.Errorf("the appId doesn't exist"), "", "")
 	}
 	// Validate app status
-	if app.Status == "WAIT_FOR_PROMOTE" || app.Status == "BLUEGREEN_FAILED" {
-		return "", fmt.Errorf("the app is in blue-green related state. Promote or abort first before deleting")
+	// TODO: Add common helper function for this kind of status validation
+	if app.Status == "BUILDING" || app.Status == "DEPLOYING" || app.Status == "BLUEGREEN_DEPLOYING" ||
+		app.Status == "BLUEGREEN_PROMOTING" || app.Status == "BLUEGREEN_ABORTING" {
+		return "작업 진행 중에는 앱을 삭제할 수 없습니다", fmt.Errorf("Can't delete app while the task is in progress.")
 	}
 
 	/********************
@@ -208,11 +241,11 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 
 	appTask := &domain.AppServeAppTask{
 		AppServeAppId: app.ID,
-		Version:       "",
-		ArtifactUrl:   "",
-		ImageUrl:      "",
+		Version:       strconv.Itoa(len(app.AppServeAppTasks) + 1),
+		ArtifactUrl:   app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ArtifactUrl,
+		ImageUrl:      app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ImageUrl,
 		Status:        "DELETING",
-		Profile:       "",
+		Profile:       app.AppServeAppTasks[len(app.AppServeAppTasks)-1].Profile,
 		Output:        "",
 		CreatedAt:     time.Now(),
 	}
@@ -231,8 +264,10 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		Parameters: []string{
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
+			"organization_id=" + app.OrganizationId,
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
@@ -246,9 +281,20 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) (ret string, err error) {
+func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error) {
 	if appTask == nil {
 		return "", errors.New("invalid parameters. appTask is nil")
+	}
+
+	app_, err := u.repo.GetAppServeAppById(app.ID)
+	if err != nil {
+		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
+	}
+
+	// Block update if the app's current status is one of those.
+	if app_.Status == "BLUEGREEN_WAIT" || app_.Status == "BLUEGREEN_PROMOTING" || app_.Status == "BLUEGREEN_ABORTING" ||
+		app_.Status == "CANARY_WAIT" || app_.Status == "CANARY_PROMOTING" || app_.Status == "CANARY_ABORTING" {
+		return "승인대기 또는 프로모트 작업 중에는 업그레이드를 수행할 수 없습니다", fmt.Errorf("Update not possible. The app is waiting for promote or in the middle of promote process.")
 	}
 
 	log.Info("Starting normal update process..")
@@ -260,11 +306,6 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 	if !(appTask.Strategy == "rolling-update" || appTask.Strategy == "blue-green" || appTask.Strategy == "canary") {
 		return "", fmt.Errorf("Error: 'strategy' should be one of these values." +
 			"\n\t- rolling-update\n\t- blue-green\n\t- canary")
-	}
-
-	app, err := u.repo.GetAppServeAppById(appTask.AppServeAppId)
-	if err != nil {
-		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
 	if app.Type != "deploy" {
@@ -300,8 +341,10 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 			"type=" + app.Type,
 			"strategy=" + appTask.Strategy,
 			"app_type=" + app.AppType,
+			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
 			"artifact_url=" + appTask.ArtifactUrl,
@@ -320,6 +363,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 			"pv_access_mode=" + appTask.PvAccessMode,
 			"pv_size=" + appTask.PvSize,
 			"pv_mount_path=" + appTask.PvMountPath,
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -328,8 +372,14 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(appTask *domain.AppServeAppTask) 
 	}
 	log.Info("Successfully submitted workflow: ", workflowId)
 
-	return fmt.Sprintf("The app '%s' is being updated. "+
-		"Confirm result by checking the app status after a while.", app.Name), nil
+	var message string
+	if appTask.Strategy == "rolling-update" {
+		message = fmt.Sprintf("The app '%s' is successfully updated", app.Name)
+	} else {
+		message = fmt.Sprintf("The app '%s' is being updated. "+
+			"Confirm result by checking the app status after a while.", app.Name)
+	}
+	return message, nil
 }
 
 func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err error) {
@@ -338,13 +388,15 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "WAIT_FOR_PROMOTE" {
-		return "", fmt.Errorf("the app is not in 'WAIT_FOR_PROMOTE' state. Exiting")
+	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_PROMOTE_FAILED" {
+		return "", fmt.Errorf("The app is not in blue-green related state. Exiting..")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
+	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info("latestTaskId = ", latestTaskId)
+	log.Info("strategy = ", strategy)
 
 	// Call argo workflow
 	workflow := "promote-java-app"
@@ -353,10 +405,14 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
+			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
+			"strategy=" + strategy,
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -375,13 +431,15 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "WAIT_FOR_PROMOTE" && app.Status != "BLUEGREEN_FAILED" {
+	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_ABORT_FAILED" {
 		return "", fmt.Errorf("the app is not in blue-green related state. Exiting")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
+	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info("latestTaskId = ", latestTaskId)
+	log.Info("strategy = ", strategy)
 
 	// Call argo workflow
 	workflow := "abort-java-app"
@@ -391,10 +449,14 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 	// Call argo workflow
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
+			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
+			"strategy=" + strategy,
+			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -404,4 +466,60 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
+}
+
+func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (ret string, err error) {
+	log.Info("Starting rollback process..")
+
+	app, err := u.repo.GetAppServeAppById(appId)
+	if err != nil {
+		return "", err
+	}
+
+	var task domain.AppServeAppTask
+	for _, t := range app.AppServeAppTasks {
+		if t.ID == taskId {
+			task = t
+			break
+		}
+	}
+
+	task.ID = ""
+	task.Output = ""
+	task.Status = "ROLLBACKING"
+	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
+	task.CreatedAt = time.Now()
+	task.UpdatedAt = nil
+
+	// 'Update' GRPC only creates ASA Task record
+	newTaskId, err := u.repo.CreateTask(&task)
+	if err != nil {
+		log.Info("taskId = ", newTaskId)
+		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)
+	}
+
+	// Call argo workflow
+	workflow := "rollback-java-app"
+
+	log.Info("Submitting workflow: ", workflow)
+
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+		Parameters: []string{
+			"organization_id=" + app.OrganizationId,
+			"target_cluster_id=" + app.TargetClusterId,
+			"app_name=" + app.Name,
+			"namespace=" + app.Namespace,
+			"asa_id=" + app.ID,
+			"asa_task_id=" + newTaskId,
+			"helm_revision=" + strconv.Itoa(int(task.HelmRevision)),
+			"tks_info_host=" + viper.GetString("external-address"),
+		},
+	})
+	if err != nil {
+		log.Error("Failed to submit workflow. Err:", err)
+		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
+	}
+	log.Info("Successfully submitted workflow: ", workflowId)
+
+	return fmt.Sprintf("Rollback app Request '%v' is successfully submitted", taskId), nil
 }

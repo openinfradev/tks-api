@@ -21,6 +21,7 @@ type IClusterRepository interface {
 	Get(id domain.ClusterId) (domain.Cluster, error)
 	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
+	Update(dto domain.Cluster) (err error)
 	Delete(id domain.ClusterId) error
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
 }
@@ -96,7 +97,7 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 // [TODO] Need refactoring about filters and pagination
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	res := r.db.Preload(clause.Associations).Order("updated_at desc, created_at desc").Find(&clusters, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Order("updated_at desc, created_at desc").Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -189,6 +190,16 @@ func (r *ClusterRepository) Delete(clusterId domain.ClusterId) error {
 	return nil
 }
 
+func (r *ClusterRepository) Update(dto domain.Cluster) error {
+	res := r.db.Model(&Cluster{}).
+		Where("id = ?", dto.ID).
+		Updates(map[string]interface{}{"Description": dto.Description, "UpdatorId": dto.UpdatorId})
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
 func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error {
 	res := r.db.Model(&Cluster{}).
 		Where("ID = ?", clusterId).
@@ -214,9 +225,9 @@ func reflectCluster(cluster Cluster) domain.Cluster {
 		Status:          cluster.Status,
 		StatusDesc:      cluster.StatusDesc,
 		CreatorId:       cluster.CreatorId,
-		Creator:         reflectUser(cluster.Creator),
+		Creator:         reflectSimpleUser(cluster.Creator),
 		UpdatorId:       cluster.UpdatorId,
-		Updator:         reflectUser(cluster.Updator),
+		Updator:         reflectSimpleUser(cluster.Updator),
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.ClusterConf{
@@ -227,5 +238,13 @@ func reflectCluster(cluster Cluster) domain.Cluster {
 			UserNodeCnt:         int(cluster.UserNodeCnt),
 			UserNodeMachineType: cluster.UserNodeMachineType,
 		},
+	}
+}
+
+func reflectSimpleCluster(cluster Cluster) domain.Cluster {
+	return domain.Cluster{
+		ID:             cluster.ID,
+		OrganizationId: cluster.OrganizationId,
+		Name:           cluster.Name,
 	}
 }

@@ -3,11 +3,13 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -62,6 +64,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"contract_id=" + organizationId,
+				"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 			},
 		})
 	if err != nil {
@@ -86,7 +89,7 @@ func (u *OrganizationUsecase) Fetch() (out *[]domain.Organization, err error) {
 func (u *OrganizationUsecase) Get(organizationId string) (res domain.Organization, err error) {
 	res, err = u.repo.Get(organizationId)
 	if err != nil {
-		return domain.Organization{}, httpErrors.NewNotFoundError(err)
+		return domain.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
 	return res, nil
 }
@@ -115,7 +118,7 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
 	_, err := u.Get(organizationId)
 	if err != nil {
-		return domain.Organization{}, httpErrors.NewNotFoundError(err)
+		return domain.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
 
 	res, err := u.repo.Update(organizationId, in)
@@ -128,12 +131,12 @@ func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrga
 
 func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clusterId string) (err error) {
 	if clusterId != "" && !helper.ValidateClusterId(clusterId) {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "", "")
 	}
 
 	organization, err := u.Get(organizationId)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "", "")
 	}
 
 	// [TODO] need refactoring about reflect

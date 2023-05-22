@@ -15,19 +15,23 @@ const (
 
 // 내부
 type CloudAccount struct {
-	ID             uuid.UUID
-	OrganizationId string
-	Name           string
-	Description    string
-	CloudService   string
-	Resource       string
-	Clusters       int
-	CreatorId      uuid.UUID
-	Creator        User
-	UpdatorId      uuid.UUID
-	Updator        User
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID              uuid.UUID
+	OrganizationId  string
+	Name            string
+	Description     string
+	CloudService    string
+	Resource        string
+	Clusters        int
+	AwsAccountId    string
+	AccessKeyId     string
+	SecretAccessKey string
+	SessionToken    string
+	CreatorId       uuid.UUID
+	Creator         User
+	UpdatorId       uuid.UUID
+	Updator         User
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type CloudAccountResponse struct {
@@ -44,6 +48,15 @@ type CloudAccountResponse struct {
 	UpdatedAt      time.Time          `json:"updatedAt"`
 }
 
+type SimpleCloudAccountResponse struct {
+	ID             string `json:"id"`
+	OrganizationId string `json:"organizationId"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	CloudService   string `json:"cloudService"`
+	Clusters       int    `json:"clusters"`
+}
+
 type GetCloudAccountsResponse struct {
 	CloudAccounts []CloudAccountResponse `json:"cloudAccounts"`
 }
@@ -53,9 +66,10 @@ type GetCloudAccountResponse struct {
 }
 
 type CreateCloudAccountRequest struct {
-	Name            string `json:"name" validate:"required"`
+	Name            string `json:"name" validate:"required,name"`
 	Description     string `json:"description"`
 	CloudService    string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
+	AwsAccountId    string `json:"awsAccountId" validate:"required,min=12,max=12"`
 	AccessKeyId     string `json:"accessKeyId" validate:"required,min=16,max=128"`
 	SecretAccessKey string `json:"secretAccessKey" validate:"required,min=16,max=128"`
 	SessionToken    string `json:"sessionToken" validate:"max=2000"`

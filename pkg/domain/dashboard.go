@@ -13,7 +13,7 @@ const (
 	ChartType_CPU
 	ChartType_POD
 	ChartType_MEMORY
-	ChartType_POD_RESTART
+	ChartType_POD_CALENDAR
 	ChartType_ERROR
 )
 
@@ -23,7 +23,7 @@ var chartType = [...]string{
 	"CPU",
 	"POD",
 	"MEMORY",
-	"POD_RESTART",
+	"POD_CALENDAR",
 	"ERROR",
 }
 
@@ -53,8 +53,23 @@ type DashboardChart struct {
 	Description    string
 	Duration       string // 1d, 7d, 30d ...
 	Interval       string // 1h, 1d, ...
+	Year           string
+	Month          string
 	ChartData      ChartData
 	UpdatedAt      time.Time
+}
+
+type DashboardStack struct {
+	ID          StackId
+	Name        string
+	Description string
+	Status      string
+	StatusDesc  string
+	Cpu         string
+	Memory      string
+	Storage     string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Unit struct {
@@ -79,6 +94,8 @@ type DashboardChartResponse struct {
 	Description    string    `json:"description"`
 	Duration       string    `json:"duration"`
 	Interval       string    `json:"interval"`
+	Year           string    `json:"year"`
+	Month          string    `json:"month"`
 	ChartData      ChartData `json:"chartData"`
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
@@ -89,4 +106,32 @@ type GetDashboardChartsResponse struct {
 
 type GetDashboardChartResponse struct {
 	Chart DashboardChartResponse `json:"chart"`
+}
+
+type DashboardResource struct {
+	Stack   string `json:"stack"`
+	Cpu     string `json:"cpu"`
+	Memory  string `json:"memory"`
+	Storage string `json:"storage"`
+}
+
+type GetDashboardResourcesResponse struct {
+	Resources DashboardResource `json:"resources"`
+}
+
+type DashboardStackResponse struct {
+	ID          StackId   `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Status      string    `json:"status"`
+	StatusDesc  string    `json:"statusDesc"`
+	Cpu         string    `json:"cpu"`
+	Memory      string    `json:"memory"`
+	Storage     string    `json:"storage"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type GetDashboardStacksResponse struct {
+	Stacks []DashboardStackResponse `json:"stacks"`
 }

@@ -1,10 +1,11 @@
-package helper
+package kubernetes
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/spf13/viper"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
@@ -56,7 +57,7 @@ func GetKubeConfig(clusterId string) ([]byte, error) {
 		return nil, err
 	}
 
-	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-kubeconfig", metav1.GetOptions{})
+	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-user-kubeconfig", metav1.GetOptions{})
 	if err != nil {
 		log.Error(err)
 		return nil, err

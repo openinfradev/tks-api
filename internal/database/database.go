@@ -54,6 +54,9 @@ func InitDB() (*gorm.DB, error) {
 
 func migrateSchema(db *gorm.DB) error {
 	// Auth
+	if err := db.AutoMigrate(&repository.CacheEmailCode{}); err != nil {
+		return err
+	}
 	if err := db.AutoMigrate(&repository.User{}); err != nil {
 		return err
 	}
@@ -104,5 +107,14 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&domain.AppServeAppTask{}); err != nil {
 		return err
 	}
+
+	// Alert
+	if err := db.AutoMigrate(&repository.Alert{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&repository.AlertAction{}); err != nil {
+		return err
+	}
+
 	return nil
 }

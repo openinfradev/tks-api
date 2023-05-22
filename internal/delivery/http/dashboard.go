@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -38,7 +39,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
@@ -52,8 +53,17 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	if interval == "" {
 		interval = "1d" // default
 	}
+	year := query.Get("year")
+	if year == "" {
+		year = "2023" // default
+	}
 
-	charts, err := h.usecase.GetCharts(organizationId, domain.ChartType_ALL, duration, interval)
+	month := query.Get("month")
+	if month == "" {
+		month = "4" // default
+	}
+
+	charts, err := h.usecase.GetCharts(organizationId, domain.ChartType_ALL, duration, interval, year, month)
 	if err != nil {
 		ErrorJSON(w, err)
 		return
@@ -88,18 +98,18 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
 	strType, ok := vars["chartType"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "", ""))
 		return
 	}
 	chartType := new(domain.ChartType).FromString(strType)
 	if chartType == domain.ChartType_ERROR {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType")))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "", ""))
 		return
 	}
 
@@ -114,18 +124,110 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 		interval = "1d" // default
 	}
 
-	charts, err := h.usecase.GetCharts(organizationId, chartType, duration, interval)
+	year := query.Get("year")
+	if year == "" {
+		year = "2023" // default
+	}
+
+	month := query.Get("month")
+	if month == "" {
+		month = "4" // default
+	}
+
+	charts, err := h.usecase.GetCharts(organizationId, chartType, duration, interval, year, month)
 	if err != nil {
+		if strings.Contains(err.Error(), "Invalid primary clusterId") {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			return
+		}
+
 		ErrorJSON(w, err)
 		return
 	}
 	if len(charts) < 1 {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("Not found chart")))
+		ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_NOT_FOUND_CHART", ""))
 		return
 	}
 
 	var out domain.DashboardChartResponse
 	if err := domain.Map(charts[0], &out); err != nil {
+		log.Info(err)
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// GetStacks godoc
+// @Tags Dashboards
+// @Summary Get stacks
+// @Description Get stacks
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200 {object} domain.GetDashboardStacksResponse
+// @Router /organizations/{organizationId}/dashboard/stacks [get]
+// @Security     JWT
+func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		return
+	}
+
+	stacks, err := h.usecase.GetStacks(organizationId)
+	if err != nil {
+		if strings.Contains(err.Error(), "Invalid primary clusterId") {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			return
+		}
+
+		ErrorJSON(w, err)
+		return
+	}
+
+	var out domain.GetDashboardStacksResponse
+	out.Stacks = make([]domain.DashboardStackResponse, len(stacks))
+	for i, stack := range stacks {
+		if err := domain.Map(stack, &out.Stacks[i]); err != nil {
+			log.Info(err)
+			continue
+		}
+		log.Info(out.Stacks[i])
+	}
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// GetResources godoc
+// @Tags Dashboards
+// @Summary Get resources
+// @Description Get resources
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Success 200 {object} domain.GetDashboardResourcesResponse
+// @Router /organizations/{organizationId}/dashboard/resources [get]
+// @Security     JWT
+func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		return
+	}
+
+	resources, err := h.usecase.GetResources(organizationId)
+	if err != nil {
+		if strings.Contains(err.Error(), "Invalid primary clusterId") {
+			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			return
+		}
+		ErrorJSON(w, err)
+		return
+	}
+	var out domain.GetDashboardResourcesResponse
+	if err := domain.Map(resources, &out.Resources); err != nil {
 		log.Info(err)
 	}
 

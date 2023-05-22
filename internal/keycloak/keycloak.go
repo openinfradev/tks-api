@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -29,6 +30,8 @@ type IKeycloak interface {
 	GetUsers(organizationId string) ([]*gocloak.User, error)
 	DeleteUser(organizationId string, userAccountId string) error
 	UpdateUser(organizationId string, user *gocloak.User) error
+	JoinGroup(organizationId string, userId string, groupName string) error
+	LeaveGroup(organizationId string, userId string, groupName string) error
 
 	VerifyAccessToken(token string, organizationId string) error
 	GetSessions(userId string, organizationId string) (*[]string, error)
@@ -40,8 +43,6 @@ type Keycloak struct {
 
 func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
 	ctx := context.Background()
-	log.Info("LoginAdmin called")
-	//JWTToken, err := k.client.Login(ctx, "admin-cli", "", DefaultMasterRealm, accountId, password)
 	JWTToken, err := k.client.LoginAdmin(ctx, accountId, password, DefaultMasterRealm)
 	if err != nil {
 		log.Error(err)
@@ -75,6 +76,11 @@ func (k *Keycloak) InitializeKeycloak() error {
 	token, err := k.loginAdmin(ctx)
 	if err != nil {
 		log.Fatal(err)
+		return err
+	}
+	// Initialize Master realm
+	err = k.client.UpdateRealm(ctx, token.AccessToken, defaultRealmSetting(DefaultMasterRealm))
+	if err != nil {
 		return err
 	}
 
@@ -145,12 +151,7 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 	}
 	accessToken := token.AccessToken
 
-	realmConfig := gocloak.RealmRepresentation{
-		Realm:               &organizationId,
-		Enabled:             gocloak.BoolP(true),
-		AccessTokenLifespan: gocloak.IntP(accessTokenLifespan),
-	}
-	realmUUID, err := k.client.CreateRealm(ctx, accessToken, realmConfig)
+	realmUUID, err := k.client.CreateRealm(ctx, accessToken, defaultRealmSetting(organizationId))
 	if err != nil {
 		return "", err
 	}
@@ -339,7 +340,7 @@ func (k *Keycloak) GetUser(organizationId string, accountId string) (*gocloak.Us
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, httpErrors.NewNotFoundError(fmt.Errorf("user %s not found", accountId))
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("user %s not found", accountId), "", "")
 	}
 	return users[0], nil
 }
@@ -356,7 +357,7 @@ func (k *Keycloak) GetUsers(organizationId string) ([]*gocloak.User, error) {
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, httpErrors.NewNotFoundError(fmt.Errorf("users not found"))
+		return nil, httpErrors.NewNotFoundError(fmt.Errorf("users not found"), "", "")
 	}
 
 	return users, nil
@@ -385,7 +386,7 @@ func (k *Keycloak) DeleteUser(organizationId string, userAccountId string) error
 	u, err := k.GetUser(organizationId, userAccountId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "", "")
 	}
 	err = k.client.DeleteUser(ctx, token.AccessToken, organizationId, *u.ID)
 	if err != nil {
@@ -435,6 +436,54 @@ func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 	err = k.client.LogoutUserSession(ctx, token.AccessToken, organizationId, sessionId)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (k *Keycloak) JoinGroup(organizationId string, userId string, groupName string) error {
+	ctx := context.Background()
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"), "", "")
+	}
+	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
+		Search: &groupName,
+	})
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	if len(groups) == 0 {
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"), "", "")
+	}
+	if err := k.client.AddUserToGroup(ctx, token.AccessToken, organizationId, userId, *groups[0].ID); err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	return nil
+}
+
+func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName string) error {
+	ctx := context.Background()
+	token, err := k.loginAdmin(ctx)
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"), "", "")
+	}
+	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
+		Search: &groupName,
+	})
+	if err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	if len(groups) == 0 {
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"), "", "")
+	}
+	if err := k.client.DeleteUserFromGroup(ctx, token.AccessToken, organizationId, userId, *groups[0].ID); err != nil {
+		log.Error(err)
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	return nil
 }
@@ -724,4 +773,14 @@ var defaultProtocolTksMapper = []gocloak.ProtocolMapperRepresentation{
 			"userinfo.token.claim": "false",
 		},
 	},
+}
+
+func defaultRealmSetting(realmId string) gocloak.RealmRepresentation {
+	return gocloak.RealmRepresentation{
+		Realm:                 gocloak.StringP(realmId),
+		Enabled:               gocloak.BoolP(true),
+		AccessTokenLifespan:   gocloak.IntP(accessTokenLifespan),
+		SsoSessionIdleTimeout: gocloak.IntP(ssoSessionIdleTimeout),
+		SsoSessionMaxLifespan: gocloak.IntP(ssoSessionMaxLifespan),
+	}
 }

@@ -3,6 +3,9 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
@@ -14,6 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
+
+const MAX_WORKFLOW_TIME = 30
 
 type ICloudAccountUsecase interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
@@ -41,57 +46,88 @@ func NewCloudAccountUsecase(r repository.Repository, argoClient argowf.ArgoClien
 func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
-
-	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
 
 	dto.Resource = "TODO server result or additional information"
 	dto.CreatorId = user.GetUserId()
 
 	_, err = u.GetByName(dto.OrganizationId, dto.Name)
 	if err == nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource)
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
 	cloudAccountId, err = u.repo.Create(dto)
 	if err != nil {
-		return uuid.Nil, httpErrors.NewInternalServerError(err)
+		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
 	log.Info("newly created CloudAccount ID:", cloudAccountId)
 
-	/*
-		workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-			"tks-create-contract-repo",
-			argowf.SubmitOptions{
-				Parameters: []string{
-					"contract_id=" + cloudAccountId,
-				},
-			})
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		"tks-create-aws-cloud-account",
+		argowf.SubmitOptions{
+			Parameters: []string{
+				"aws_region=" + "ap-northeast-2",
+				"tks_cloud_account_id=" + cloudAccountId.String(),
+				"aws_account_id=" + dto.AwsAccountId,
+				"aws_access_key_id=" + dto.AccessKeyId,
+				"aws_secret_access_key=" + dto.SecretAccessKey,
+				"aws_session_token=" + dto.SessionToken,
+			},
+		})
+	if err != nil {
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+	log.Info("submited workflow :", workflowId)
+	//workflowId := "tks-create-aws-cloud-account-dfw95"
+	// wait & get clusterId ( max 1min 	)
+	for i := 0; i < MAX_WORKFLOW_TIME; i++ {
+		time.Sleep(time.Second * 2)
+		workflow, err := u.argo.GetWorkflow("argo", workflowId)
 		if err != nil {
-			log.Error("failed to submit argo workflow template. err : ", err)
-			return "", fmt.Errorf("Failed to call argo workflow : %s", err)
+			return uuid.Nil, err
 		}
-		log.Info("submited workflow :", workflowId)
-		if err := u.repo.InitWorkflow(cloudAccountId, workflowId); err != nil {
-			return "", fmt.Errorf("Failed to initialize cloudAccount status to 'CREATING'. err : %s", err)
-		}
-	*/
 
-	return cloudAccountId, nil
+		if workflow.Status.Phase == "Succeeded" {
+			return cloudAccountId, nil
+		}
+
+		if workflow.Status.Phase == "Failed" {
+			logs, err := u.argo.GetWorkflowLog("argo", "main", workflowId)
+			if err != nil {
+				return uuid.Nil, errors.Wrap(err, "Failed to get workflow log")
+			}
+
+			arr := strings.Split(logs, "\n")
+			for _, line := range arr {
+				if strings.Contains(line, "Error:") {
+					return uuid.Nil, httpErrors.NewInternalServerError(fmt.Errorf("%s", line), "INVALID_CLIENT_TOKEN_ID", "")
+				}
+			}
+
+			return uuid.Nil, errors.Wrap(err, logs)
+		}
+
+		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
+			return uuid.Nil, fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
+		}
+	}
+
+	return uuid.Nil, fmt.Errorf("Failed to creating cloud account")
 }
 
 func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccount) error {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
 	dto.Resource = "TODO server result or additional information"
 	dto.UpdatorId = user.GetUserId()
 	err := u.repo.Update(dto)
 	if err != nil {
-		return httpErrors.NewInternalServerError(err)
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	return nil
 }
@@ -111,33 +147,41 @@ func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res
 	res, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err)
+			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
 		}
 		return domain.CloudAccount{}, err
 	}
+	res.Clusters = u.getClusterCnt(res.ID)
 	return
 }
 
-func (u *CloudAccountUsecase) Fetch(organizationId string) (res []domain.CloudAccount, err error) {
-	res, err = u.repo.Fetch(organizationId)
+func (u *CloudAccountUsecase) Fetch(organizationId string) (cloudAccounts []domain.CloudAccount, err error) {
+	cloudAccounts, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+
+	for i, cloudAccount := range cloudAccounts {
+		cloudAccounts[i].Clusters = u.getClusterCnt(cloudAccount.ID)
+	}
+	return
 }
 
 func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccount) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"))
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
 	_, err = u.Get(dto.ID)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err)
+		return httpErrors.NewNotFoundError(err, "", "")
 	}
-
 	dto.UpdatorId = user.GetUserId()
+
+	if u.getClusterCnt(dto.ID) > 0 {
+		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
+	}
 
 	err = u.repo.Delete(dto)
 	if err != nil {

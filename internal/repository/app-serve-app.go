@@ -2,8 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"time"
+
+	"github.com/openinfradev/tks-api/pkg/log"
+	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
@@ -12,9 +14,13 @@ type IAppServeAppRepository interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	IsAppServeAppExist(appId string) (int64, error)
+	IsAppServeAppNameExist(orgId string, appName string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
 	UpdateStatus(appId string, taskId string, status string, output string) error
 	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
+	GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, error)
+	GetTaskCountById(appId string) (int64, error)
 }
 
 type AppServeAppRepository struct {
@@ -37,7 +43,7 @@ func (r *AppServeAppRepository) CreateAppServeApp(app *domain.AppServeApp) (appI
 	return app.ID, app.AppServeAppTasks[0].ID, nil
 }
 
-// Update creates new appServeApp Task for existing appServeApp.
+// Update creates new appServeApp task for existing appServeApp.
 func (r *AppServeAppRepository) CreateTask(
 	task *domain.AppServeAppTask) (string, error) {
 	res := r.db.Create(task)
@@ -71,12 +77,17 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
 	var app domain.AppServeApp
 
-	if err := r.db.Where("id = ?", appId).First(&app).Error; err != nil {
-		return nil, fmt.Errorf("could not find AppServeApp with ID: %s", appId)
+	res := r.db.Where("id = ?", appId).First(&app)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
 	}
 
-	err := r.db.Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks)
-	if err != nil {
+	if err := r.db.Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks); err != nil {
+		log.Debug(err)
 		return nil, err
 	}
 
@@ -88,6 +99,33 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	//}
 
 	return &app, nil
+}
+
+func (r *AppServeAppRepository) IsAppServeAppExist(appId string) (int64, error) {
+	var result int64
+
+	res := r.db.Table("app_serve_apps").Where("id = ? AND status <> 'DELETE_SUCCESS'", appId).Count(&result)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return 0, res.Error
+	}
+	return result, nil
+}
+
+func (r *AppServeAppRepository) IsAppServeAppNameExist(orgId string, appName string) (int64, error) {
+	var result int64
+
+	queryString := fmt.Sprintf("organization_id = '%v' "+
+		"AND name = '%v' "+
+		"AND status <> 'DELETE_SUCCESS'", orgId, appName)
+
+	fmt.Println("query = ", queryString)
+	res := r.db.Table("app_serve_apps").Where(queryString).Count(&result)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return 0, res.Error
+	}
+	return result, nil
 }
 
 func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status string, output string) error {
@@ -177,4 +215,22 @@ func (r *AppServeAppRepository) UpdateEndpoint(appId string, taskId string, endp
 	}
 
 	return nil
+}
+
+func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, error) {
+	var task domain.AppServeAppTask
+
+	if err := r.db.Where("id = ?", taskId).First(&task).Error; err != nil {
+		return nil, fmt.Errorf("could not find AppServeAppTask with ID: %s", taskId)
+	}
+
+	return &task, nil
+}
+
+func (r *AppServeAppRepository) GetTaskCountById(appId string) (int64, error) {
+	var count int64
+	if err := r.db.Model(&domain.AppServeAppTask{}).Where("AppServeAppId = ?", appId).Count(&count); err != nil {
+		return 0, fmt.Errorf("could not select count AppServeAppTask with ID: %s", appId)
+	}
+	return count, nil
 }

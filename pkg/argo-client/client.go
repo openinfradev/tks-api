@@ -14,6 +14,7 @@ import (
 type ArgoClient interface {
 	GetWorkflowTemplates(namespace string) (*GetWorkflowTemplatesResponse, error)
 	GetWorkflow(namespace string, workflowName string) (*Workflow, error)
+	GetWorkflowLog(namespace string, container string, workflowName string) (logs string, err error)
 	GetWorkflows(namespace string) (*GetWorkflowsResponse, error)
 	SumbitWorkflowFromWftpl(wftplName string, opts SubmitOptions) (string, error)
 }
@@ -106,6 +107,33 @@ func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Wo
 	}
 
 	return &workflowRes, nil
+}
+
+func (c *ArgoClientImpl) GetWorkflowLog(namespace string, container string, workflowName string) (logs string, err error) {
+	log.Info(fmt.Sprintf("%s/api/v1/workflows/%s/%s/log?logOptions.container=%s", c.url, namespace, workflowName, container))
+	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s/log?logOptions.container=%s", c.url, namespace, workflowName, container))
+	if err != nil {
+		return logs, err
+	}
+	if res == nil {
+		return logs, fmt.Errorf("Failed to call argo workflow.")
+	}
+	if res.StatusCode != 200 {
+		return logs, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Error("error closing http body")
+		}
+	}()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return logs, err
+	}
+
+	return string(body[:]), nil
 }
 
 func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, error) {

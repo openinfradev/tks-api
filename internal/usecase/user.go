@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/Nerzal/gocloak/v13"
@@ -24,10 +25,21 @@ type IUserUsecase interface {
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
 	List(ctx context.Context, organizationId string) (*[]domain.User, error)
+	Get(userId uuid.UUID) (*domain.User, error)
+	Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error)
+	ResetPassword(userId uuid.UUID) error
+	ResetPasswordByAccountId(accountId string, organizationId string) error
+	Delete(userId uuid.UUID, organizationId string) error
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
+	GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error)
+
 	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
+	RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error
+	RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error
 	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
+	ValidateAccount(userId uuid.UUID, password string, organizationId string) error
+	ValidateAccountByAccountId(accountId string, password string, organizationId string) error
 
 	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 }
@@ -35,6 +47,109 @@ type IUserUsecase interface {
 type UserUsecase struct {
 	repo repository.IUserRepository
 	kc   keycloak.IKeycloak
+}
+
+func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
+		}
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	err = u.repo.UpdatePassword(userId, user.Organization.ID, user.Password, false)
+	if err != nil {
+		log.Errorf("failed to update password expired time: %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	return nil
+}
+
+func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error {
+	user, err := u.repo.Get(accountId, organizationId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
+		}
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	userId, err := uuid.Parse(user.ID)
+	if err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	return u.RenewalPasswordExpiredTime(ctx, userId)
+}
+
+func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
+		}
+	}
+	userInKeycloak, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
+		}
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	randomPassword := helper.GenerateRandomString(passwordLength)
+	userInKeycloak.Credentials = &[]gocloak.CredentialRepresentation{
+		{
+			Type:      gocloak.StringP("password"),
+			Value:     gocloak.StringP(randomPassword),
+			Temporary: gocloak.BoolP(false),
+		},
+	}
+	if err = u.kc.UpdateUser(user.Organization.ID, userInKeycloak); err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	if err = u.repo.UpdatePassword(userId, user.Organization.ID, user.Password, true); err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	if err = ses.SendEmailForTemporaryPassword(ses.Client, user.Email, randomPassword); err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	return nil
+}
+
+func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId string) error {
+	user, err := u.repo.Get(accountId, organizationId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
+		}
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	userId, err := uuid.Parse(user.ID)
+	if err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	return u.ResetPassword(userId)
+}
+
+func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		return err
+	}
+	_, err = u.kc.Login(user.AccountId, password, organizationId)
+	return err
+}
+
+func (u *UserUsecase) ValidateAccountByAccountId(accountId string, password string, organizationId string) error {
+	_, err := u.kc.Login(organizationId, accountId, password)
+	return err
 }
 
 func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) error {
@@ -74,9 +189,6 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 }
 
 func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
-
-	// 요청한 사ㅇㅏ가 허가 받지 않은 사용자라면 block
-
 	user := domain.User{
 		AccountId: "admin",
 		Password:  "admin",
@@ -144,8 +256,11 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string,
 	organizationId string) error {
+	if originPassword == newPassword {
+		return httpErrors.NewBadRequestError(fmt.Errorf("new password is same with origin password"), "", "")
+	}
 	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
-		return httpErrors.NewBadRequestError(httpErrors.BadRequest)
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid origin password"), "", "")
 	}
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
@@ -179,22 +294,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	roles, err := u.repo.FetchRoles()
-	if err != nil {
-		return err
-	}
-	for _, role := range *roles {
-		if role.Name == user.Role.Name {
-			user.Role.ID = role.ID
-		}
-	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
-	if err != nil {
-		return err
-	}
-
-	_, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, roleUuid, user.Email,
-		user.Department, user.Description)
+	err = u.repo.UpdatePassword(userUuid, organizationId, hashedPassword, false)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
 	}
@@ -211,6 +311,18 @@ func (u *UserUsecase) List(ctx context.Context, organizationId string) (*[]domai
 	return users, nil
 }
 
+func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return nil, httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error) {
 	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
 		u.repo.AccountIdFilter(accountId))
@@ -221,6 +333,26 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, orga
 	return &(*users)[0], nil
 }
 
+func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error) {
+	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
+		u.repo.EmailFilter(email))
+	if err != nil {
+		return nil, err
+	}
+
+	return &(*users)[0], nil
+}
+
+func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error) {
+	storedUser, err := u.Get(userId)
+	if err != nil {
+		return nil, err
+	}
+	user.AccountId = storedUser.AccountId
+
+	return u.UpdateByAccountId(ctx, storedUser.AccountId, user)
+}
+
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
@@ -229,13 +361,26 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 	_, err := u.kc.Login(user.AccountId, user.Password, userInfo.GetOrganizationId())
 	if err != nil {
-		return nil, httpErrors.NewBadRequestError(httpErrors.BadRequest)
+		return nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid password"), "", "")
 	}
+
+	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId)
+	if err != nil {
+		return nil, err
+	}
+	if originUser.Email == nil || *originUser.Email != user.Email {
+		originUser.Email = gocloak.StringP(user.Email)
+		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
-			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 		}
 		return nil, errors.Wrap(err, "getting users from repository failed")
 	}
@@ -266,6 +411,25 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	return user, nil
 }
 
+func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
+	user, err := u.repo.GetByUuid(userId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("not found user"), "", "")
+	}
+
+	err = u.repo.DeleteWithUuid(userId)
+	if err != nil {
+		return err
+	}
+
+	// Delete user in keycloak
+	err = u.kc.DeleteUser(organizationId, user.AccountId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error {
 	user, err := u.repo.Get(accountId, organizationId)
 	if err != nil {
@@ -302,11 +466,12 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 				Temporary: gocloak.BoolP(false),
 			},
 		},
+		Email:  gocloak.StringP(user.Email),
 		Groups: &groups,
 	})
 	if err != nil {
 		if _, err := u.kc.GetUser(user.Organization.ID, user.AccountId); err == nil {
-			return nil, httpErrors.NewConflictError(errors.New("user already exists"))
+			return nil, httpErrors.NewConflictError(errors.New("user already exists"), "", "")
 		}
 
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
@@ -355,11 +520,23 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 		return nil, fmt.Errorf("user in the context is  empty")
 	}
 
+	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId)
+	if err != nil {
+		return nil, err
+	}
+	if originUser.Email == nil || *originUser.Email != user.Email {
+		originUser.Email = gocloak.StringP(user.Email)
+		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
 		u.repo.AccountIdFilter(accountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
-			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound)
+			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 		}
 		return nil, errors.Wrap(err, "getting users from repository failed")
 	}
@@ -368,15 +545,16 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	} else if len(*users) > 1 {
 		return nil, fmt.Errorf("multiple users found")
 	}
-
 	if user.Role.Name != (*users)[0].Role.Name {
-		groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())}
-		if err := u.kc.UpdateUser(userInfo.GetOrganizationId(), &gocloak.User{
-			ID:     &(*users)[0].ID,
-			Groups: &groups,
-		}); err != nil {
-			log.Errorf("updating user in keycloak failed: %v", err)
-			return nil, httpErrors.NewInternalServerError(err)
+		originGroupName := fmt.Sprintf("%s@%s", (*users)[0].Role.Name, userInfo.GetOrganizationId())
+		newGroupName := fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())
+		if err := u.kc.LeaveGroup(userInfo.GetOrganizationId(), (*users)[0].ID, originGroupName); err != nil {
+			log.Errorf("leave group in keycloak failed: %v", err)
+			return nil, httpErrors.NewInternalServerError(err, "", "")
+		}
+		if err := u.kc.JoinGroup(userInfo.GetOrganizationId(), (*users)[0].ID, newGroupName); err != nil {
+			log.Errorf("join group in keycloak failed: %v", err)
+			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
 

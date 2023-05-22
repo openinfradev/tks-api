@@ -8,9 +8,11 @@ type Config struct {
 }
 
 const (
-	DefaultMasterRealm  = "master"
-	DefaultClientID     = "tks"
-	DefaultClientSecret = "secret"
-	AdminCliClientID    = "admin-cli"
-	accessTokenLifespan = 60 * 60 * 24
+	DefaultMasterRealm    = "master"
+	DefaultClientID       = "tks"
+	DefaultClientSecret   = "secret"
+	AdminCliClientID      = "admin-cli"
+	accessTokenLifespan   = 60 * 60 * 24 // 1 day
+	ssoSessionIdleTimeout = 60 * 60 * 8  // 8 hours
+	ssoSessionMaxLifespan = 60 * 60 * 24 // 1 day
 )

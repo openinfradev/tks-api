@@ -55,6 +55,14 @@ type StackTemplateResponse struct {
 	UpdatedAt    time.Time                      `json:"updatedAt"`
 }
 
+type SimpleStackTemplateResponse struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Template     string `json:"template"`
+	CloudService string `json:"cloudService"`
+}
+
 type GetStackTemplatesResponse struct {
 	StackTemplates []StackTemplateResponse `json:"stackTemplates"`
 }
@@ -64,7 +72,7 @@ type GetStackTemplateResponse struct {
 }
 
 type CreateStackTemplateRequest struct {
-	Name         string `json:"name" validate:"required"`
+	Name         string `json:"name" validate:"required,name"`
 	Description  string `json:"description"`
 	CloudService string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
 	Version      string `json:"version" validate:"required"`

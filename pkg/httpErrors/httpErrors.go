@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 )
 
@@ -35,14 +36,14 @@ type IRestError interface {
 	Status() int
 	Code() string
 	Error() string
-	Causes() interface{}
+	Text() string
 }
 
 type RestError struct {
-	ErrStatus  int         `json:"status"`
-	ErrCode    string      `json:"code"`
-	ErrMessage string      `json:"message"`
-	ErrCauses  interface{} `json:"-"`
+	ErrStatus  int    `json:"status"`
+	ErrCode    string `json:"code"`
+	ErrMessage string `json:"message"`
+	ErrText    string `json:"text"`
 }
 
 func (e RestError) Status() int {
@@ -57,86 +58,55 @@ func (e RestError) Error() string {
 	return e.ErrMessage
 }
 
-func (e RestError) Causes() interface{} {
-	return e.ErrCauses
+func (e RestError) Text() string {
+	return e.ErrText
 }
 
-func NewRestError(status int, code string, err error) IRestError {
+func NewRestError(status int, err error, code ErrorCode, text string) IRestError {
+	t := code.GetText()
+	if text != "" {
+		t = text
+	}
+	log.Info(t)
 	return RestError{
 		ErrStatus:  status,
-		ErrCode:    code,
+		ErrCode:    string(code),
 		ErrMessage: err.Error(),
-		ErrCauses:  err,
+		ErrText:    t,
 	}
 }
 
-func NewBadRequestError(err error) IRestError {
-	return RestError{
-		ErrStatus:  http.StatusBadRequest,
-		ErrCode:    "",
-		ErrMessage: err.Error(),
-		ErrCauses:  err,
-	}
+func NewBadRequestError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusBadRequest, err, ErrorCode(code), text)
 }
-
-func NewUnauthorizedError(err error) IRestError {
-	return RestError{
-		ErrStatus:  http.StatusUnauthorized,
-		ErrCode:    "",
-		ErrMessage: err.Error(),
-		ErrCauses:  err,
-	}
+func NewUnauthorizedError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusUnauthorized, err, ErrorCode(code), text)
 }
-
-func NewInternalServerError(err error) IRestError {
-	result := RestError{
-		ErrStatus:  http.StatusInternalServerError,
-		ErrCode:    "",
-		ErrMessage: err.Error(),
-		ErrCauses:  err,
-	}
-	return result
+func NewInternalServerError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusInternalServerError, err, ErrorCode(code), text)
 }
-
-func NewNotFoundError(err error) IRestError {
-	return RestError{
-		ErrStatus:  http.StatusNotFound,
-		ErrCode:    "",
-		ErrMessage: err.Error(),
-		ErrCauses:  err,
-	}
+func NewNotFoundError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusNotFound, err, ErrorCode(code), text)
 }
-
-func NewNoContentError(err error) IRestError {
-	return RestError{
-		ErrStatus:  http.StatusNoContent,
-		ErrCode:    "",
-		ErrMessage: err.Error(),
-		ErrCauses:  err,
-	}
+func NewNoContentError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusNoContent, err, ErrorCode(code), text)
 }
-
-func NewConflictError(err error) IRestError {
-	return RestError{
-		ErrStatus:  http.StatusConflict,
-		ErrCode:    "",
-		ErrMessage: err.Error(),
-		ErrCauses:  err,
-	}
+func NewConflictError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusConflict, err, ErrorCode(code), text)
+}
+func NewForbiddenError(err error, code string, text string) IRestError {
+	return NewRestError(http.StatusForbidden, err, ErrorCode(code), text)
 }
 
 /*
-func NewForbiddenError(causes interface{}) RestErr {
-	return ErrorJson{
-		ErrStatus: http.StatusForbidden,
-		ErrError:  Forbidden.Error(),
-		ErrCauses: causes,
+func NewTestError(err error, code string, v ...interface{}) IRestError {
+	errCode := ErrorCode(code)
+	return RestError{
+		ErrStatus:  http.StatusForbidden,
+		ErrCode:    code,
+		ErrMessage: err.Error(),
+		ErrText:    errCode.GetText(),
 	}
-}
-
-
-func reflectVariableName(interface{}) string {
-	return ""
 }
 */
 
@@ -148,12 +118,12 @@ func parseErrors(err error) IRestError {
 		if restErr, ok := err.(IRestError); ok {
 			return restErr
 		}
-		return NewInternalServerError(err)
+		return NewInternalServerError(err, "", "")
 	}
 }
 
 func parseSqlError(err error) IRestError {
-	return NewInternalServerError(errors.Wrap(err, "SQL ERROR"))
+	return NewInternalServerError(errors.Wrap(err, "SQL ERROR"), "", "")
 }
 
 func ErrorResponse(err error) (IRestError, int) {

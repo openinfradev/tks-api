@@ -2,12 +2,13 @@ package authenticator
 
 import (
 	"fmt"
+	"net/http"
+
 	internalHttp "github.com/openinfradev/tks-api/internal/delivery/http"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/user"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"net/http"
 )
 
 type Interface interface {
@@ -32,24 +33,24 @@ func (a *defaultAuthenticator) WithAuthentication(handler http.Handler) http.Han
 		resp, ok, err := a.auth.AuthenticateRequest(r)
 		if !ok {
 			log.Error(err)
-			internalHttp.ErrorJSON(w, httpErrors.NewUnauthorizedError(err))
+			internalHttp.ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "", ""))
 			return
 		}
 		r = r.WithContext(request.WithUser(r.Context(), resp.User))
 
 		_, ok = request.UserFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found")))
+			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
 			return
 		}
 		_, ok = request.TokenFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("token not found")))
+			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("token not found"), "", ""))
 			return
 		}
 		_, ok = request.SessionFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session not found")))
+			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session not found"), "", ""))
 			return
 		}
 		handler.ServeHTTP(w, r)
