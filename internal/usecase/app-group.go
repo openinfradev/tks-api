@@ -95,8 +95,9 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"revision=" + viper.GetString("revision"),
 		"app_group_id=" + dto.ID.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
-		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
-		"alert_slack=" + viper.GetString("alert_slack"),
+		//"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
+		"alert_tks=" + "https://tks-api-dev.taco-cat.xyz/system-api/1.0/alerts",
+		"alert_slack=" + viper.GetString("alert-slack"),
 	}
 
 	switch dto.AppGroupType {

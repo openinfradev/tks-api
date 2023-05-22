@@ -54,7 +54,7 @@ func init() {
 	flag.String("aws-secret-access-key", "", "access key of aws ses")
 
 	// alerts
-	flag.String("alert_slack", "", "slack url for LMA alert")
+	flag.String("alert-slack", "", "slack url for LMA alert")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	flag.Parse()
