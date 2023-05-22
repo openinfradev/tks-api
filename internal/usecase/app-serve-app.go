@@ -230,9 +230,19 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	}
 	// Validate app status
 	// TODO: Add common helper function for this kind of status validation
-	if app.Status == "BUILDING" || app.Status == "DEPLOYING" || app.Status == "BLUEGREEN_DEPLOYING" ||
-		app.Status == "BLUEGREEN_PROMOTING" || app.Status == "BLUEGREEN_ABORTING" {
+	if app.Status == "BUILDING" || app.Status == "DEPLOYING" ||
+		app.Status == "PROMOTING" || app.Status == "ABORTING" {
 		return "작업 진행 중에는 앱을 삭제할 수 없습니다", fmt.Errorf("Can't delete app while the task is in progress.")
+	}
+
+	log.Info("Updating app status to 'DELETING'..")
+
+	latestTaskId := app.AppServeAppTasks[0].ID
+	err = u.repo.UpdateStatus(appId, latestTaskId, "DELETING", "")
+	if err != nil {
+		log.Debug("appId = ", appId)
+		log.Debug("taskId = ", latestTaskId)
+		return "", fmt.Errorf("failed to update app status on PromoteAppServeApp. Err: %s", err)
 	}
 
 	/********************
@@ -292,8 +302,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 	}
 
 	// Block update if the app's current status is one of those.
-	if app_.Status == "BLUEGREEN_WAIT" || app_.Status == "BLUEGREEN_PROMOTING" || app_.Status == "BLUEGREEN_ABORTING" ||
-		app_.Status == "CANARY_WAIT" || app_.Status == "CANARY_PROMOTING" || app_.Status == "CANARY_ABORTING" {
+	if app_.Status == "PROMOTE_WAIT" || app_.Status == "PROMOTING" || app_.Status == "ABORTING" {
 		return "승인대기 또는 프로모트 작업 중에는 업그레이드를 수행할 수 없습니다", fmt.Errorf("Update not possible. The app is waiting for promote or in the middle of promote process.")
 	}
 
@@ -324,11 +333,23 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		}
 	}
 
-	// 'Update' GRPC only creates ASA Task record
 	taskId, err := u.repo.CreateTask(appTask)
 	if err != nil {
 		log.Info("taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
+	}
+
+	// Sync new task status to the parent app
+	// optionA: u.UpdateAppServeAppStatus() here!
+	// optionB: call UpdateAppServeAppStatus outside! (delivery/http)
+	// optionC: u.repo.UpdateStatus()??
+	log.Info("Updating app status to 'PREPARING'..")
+
+	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
+	if err != nil {
+		log.Debug("appId = ", app.ID)
+		log.Debug("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
@@ -388,8 +409,8 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_PROMOTE_FAILED" {
-		return "", fmt.Errorf("The app is not in blue-green related state. Exiting..")
+	if app.Status != "PROMOTE_WAIT" && app.Status != "PROMOTE_FAILED" {
+		return "", fmt.Errorf("The app is not waiting for promote. Exiting..")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
@@ -397,6 +418,15 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info("latestTaskId = ", latestTaskId)
 	log.Info("strategy = ", strategy)
+
+	log.Info("Updating app status to 'PREPARING'..")
+
+	err = u.repo.UpdateStatus(appId, latestTaskId, "PROMOTING", "")
+	if err != nil {
+		log.Debug("appId = ", appId)
+		log.Debug("taskId = ", latestTaskId)
+		return "", fmt.Errorf("failed to update app status on PromoteAppServeApp. Err: %s", err)
+	}
 
 	// Call argo workflow
 	workflow := "promote-java-app"
@@ -431,8 +461,8 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
-	if app.Status != "BLUEGREEN_WAIT" && app.Status != "BLUEGREEN_ABORT_FAILED" {
-		return "", fmt.Errorf("the app is not in blue-green related state. Exiting")
+	if app.Status != "PROMOTE_WAIT" && app.Status != "ABORT_FAILED" {
+		return "", fmt.Errorf("The app is not waiting for promote. Exiting..")
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
