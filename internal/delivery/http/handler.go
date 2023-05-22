@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -55,10 +56,11 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 
 	err = validate.Struct(in)
 	if err != nil {
-		errs := err.(validator_.ValidationErrors)
-		for _, e := range errs {
-			fmt.Println(e.Translate(trans))
-			return httpErrors.NewBadRequestError(err, "", e.Translate(trans))
+		var valErrs validator_.ValidationErrors
+		if errors.As(err, &valErrs) {
+			for _, e := range valErrs {
+				return httpErrors.NewBadRequestError(err, "", e.Translate(trans))
+			}
 		}
 	}
 

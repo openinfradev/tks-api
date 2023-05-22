@@ -7,6 +7,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	"github.com/opentracing/opentracing-go/log"
 )
 
 const REGEX_RFC1123 = `^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`
@@ -17,7 +18,10 @@ func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
 	trans, _ := uni.GetTranslator("en")
 
 	v := validator.New()
-	en_translations.RegisterDefaultTranslations(v, trans)
+	err := en_translations.RegisterDefaultTranslations(v, trans)
+	if err != nil {
+		log.Error(err)
+	}
 
 	// register custom validator
 	_ = v.RegisterValidation("rfc1123", validateRfc1123)
