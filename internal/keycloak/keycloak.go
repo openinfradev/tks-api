@@ -455,16 +455,6 @@ func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName st
 
 	return nil
 }
-
-func (k *Keycloak) loginAdmin(ctx context.Context) (*gocloak.JWT, error) {
-	token, err := k.client.LoginAdmin(ctx, k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm)
-	if err != nil {
-		log.Error("Login to keycloak as Admin is failed", err)
-	}
-
-	return token, err
-}
-
 func (k *Keycloak) ensureClientProtocolMappers(ctx context.Context, token *gocloak.JWT, realm string, clientId string,
 	scope string, mapper gocloak.ProtocolMapperRepresentation) error {
 	//TODO: Check current logic(if exist, do nothing) is fine
