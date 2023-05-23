@@ -83,7 +83,7 @@ func SendEmailForVerityIdentity(client *awsSes.Client, targetEmailAddress string
 }
 
 func SendEmailForTemporaryPassword(client *awsSes.Client, targetEmailAddress string, randomPassword string) error {
-	subject := "[TKS] 비밀번호 초기화"
+	subject := "[TKS] 임시 비밀번호 발급"
 	body := "임시 비밀번호가 발급되었습니다.\n" +
 		"로그인 후 비밀번호를 변경하여 사용하십시오.\n\n" +
 		"임시 비밀번호: " + randomPassword + "\n\n" +
