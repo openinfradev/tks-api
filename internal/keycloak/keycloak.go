@@ -43,7 +43,7 @@ type Keycloak struct {
 
 func (k *Keycloak) LogoutAdmin(token *gocloak.JWT) error {
 	ctx := context.Background()
-	err := k.client.Logout(ctx, DefaultClientID, DefaultClientSecret, DefaultMasterRealm, token.RefreshToken)
+	err := k.client.Logout(ctx, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm, token.RefreshToken)
 	return err
 }
 
@@ -481,6 +481,7 @@ func (k *Keycloak) GetSessions(userId string, organizationId string) (*[]string,
 	}
 	if err := k.LogoutAdmin(token); err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.Errorf("getsessions")
 		return nil, err
 	}
 	var sessionIds []string
