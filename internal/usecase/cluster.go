@@ -175,6 +175,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 				"template_name=" + stackTemplate.Template,
 				"git_account=" + viper.GetString("git-account"),
 				"creator=" + user.GetUserId().String(),
+				"cloud_account_id=" + dto.CloudAccountId.String(),
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
