@@ -44,10 +44,10 @@ jobs:
 
 
           if [[ ${{github.ref}} == *"develop"* ]]; then
-            cd cicd-manifests/${SERVICE}/overlay/development && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
-            cd cicd-manifests/${SERVICE}/overlay/ft && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
+            ( cd cicd-manifests/${SERVICE}/overlay/development && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} )
+            ( cd cicd-manifests/${SERVICE}/overlay/ft && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} )
           elif [[ ${{github.ref}} == *"main"* ]]; then
-            cd cicd-manifests/${SERVICE}/overlay/cicd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
+            ( cd cicd-manifests/${SERVICE}/overlay/cicd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} )
           fi
 
           git add .
