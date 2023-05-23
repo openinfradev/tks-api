@@ -594,7 +594,7 @@ definitions:
     type: object
   domain.CreateOrganizationRequest:
     properties:
-      adminEmail:
+      Email:
         type: string
       description:
         maxLength: 100
@@ -605,7 +605,7 @@ definitions:
       phone:
         type: string
     required:
-    - adminEmail
+    - Email
     - name
     type: object
   domain.CreateStackRequest:

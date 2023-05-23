@@ -3900,11 +3900,11 @@ const docTemplate = `{
         "domain.CreateOrganizationRequest": {
             "type": "object",
             "required": [
-                "adminEmail",
+                "Email",
                 "name"
             ],
             "properties": {
-                "adminEmail": {
+                "Email": {
                     "type": "string"
                 },
                 "description": {

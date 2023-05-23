@@ -65,7 +65,7 @@ type CreateOrganizationRequest struct {
 	Name        string `json:"name" validate:"required,name"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 	Phone       string `json:"phone"`
-	AdminEmail  string `json:"adminEmail" validate:"required,email"`
+	Email       string `json:"Email" validate:"required,email"`
 }
 
 type CreateOrganizationResponse struct {
