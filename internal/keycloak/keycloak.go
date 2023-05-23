@@ -4,18 +4,18 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
-
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"time"
 )
 
 type IKeycloak interface {
 	InitializeKeycloak() error
 
 	LoginAdmin(accountId string, password string) (*domain.User, error)
+	LogoutAdmin(token *gocloak.JWT) error
 	Login(accountId string, password string, organizationId string) (*domain.User, error)
 	Logout(sessionId string, organizationId string) error
 
@@ -37,8 +37,15 @@ type IKeycloak interface {
 	GetSessions(userId string, organizationId string) (*[]string, error)
 }
 type Keycloak struct {
-	config *Config
-	client *gocloak.GoCloak
+	config        *Config
+	client        *gocloak.GoCloak
+	adminCliToken *gocloak.JWT
+}
+
+func (k *Keycloak) LogoutAdmin(token *gocloak.JWT) error {
+	ctx := context.Background()
+	err := k.client.Logout(ctx, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm, token.RefreshToken)
+	return err
 }
 
 func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
@@ -73,12 +80,14 @@ func (k *Keycloak) InitializeKeycloak() error {
 	restyClient := k.client.RestyClient()
 	restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
+	var token *gocloak.JWT
+	var err error
+	if token, err = k.client.LoginAdmin(ctx, k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm); err != nil {
 		log.Fatal(err)
 		return err
 	}
-	// Initialize Master realm
+	k.adminCliToken = token
+
 	err = k.client.UpdateRealm(ctx, token.AccessToken, defaultRealmSetting(DefaultMasterRealm))
 	if err != nil {
 		return err
@@ -114,12 +123,6 @@ func (k *Keycloak) InitializeKeycloak() error {
 		}
 	}
 
-	if _, err := k.client.Login(ctx, DefaultClientID, DefaultClientSecret, DefaultMasterRealm,
-		k.config.AdminId, k.config.AdminPassword); err != nil {
-		log.Fatal(err)
-		return err
-	}
-
 	adminCliClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, AdminCliClientID, DefaultClientSecret)
 	if err != nil {
 		log.Fatal(err)
@@ -133,11 +136,26 @@ func (k *Keycloak) InitializeKeycloak() error {
 		}
 	}
 
-	if _, err := k.client.Login(ctx, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm,
-		k.config.AdminId, k.config.AdminPassword); err != nil {
-		log.Fatal(err)
-		return err
-	}
+	sec := getTokenExpiredDuration(k.adminCliToken)
+	count := 0
+	go func(count int, sec time.Duration) {
+		for {
+			log.Info("[Do Refresh]")
+			if token, err := k.client.RefreshToken(context.Background(), k.adminCliToken.RefreshToken, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm); err != nil {
+				log.Errorf("[Refresh]error is :%s(%T)", err.Error(), err)
+				log.Info("[Do Keycloak Admin CLI Login]")
+				k.adminCliToken, err = k.client.LoginAdmin(ctx, k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm)
+				if err != nil {
+					log.Errorf("[LoginAdmin]error is :%s(%T)", err.Error(), err)
+				}
+			} else {
+				k.adminCliToken = token
+			}
+			// Expired Duration의 90%에서 refresh를 수행한다.
+			time.Sleep(time.Duration(float64(sec) * 0.9))
+			count++
+		}
+	}(count, sec)
 
 	return nil
 }
@@ -145,35 +163,18 @@ func (k *Keycloak) InitializeKeycloak() error {
 func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 	//TODO implement me
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return "", err
-	}
-	accessToken := token.AccessToken
+	token := k.adminCliToken
 
-	realmUUID, err := k.client.CreateRealm(ctx, accessToken, defaultRealmSetting(organizationId))
+	realmUUID, err := k.client.CreateRealm(ctx, token.AccessToken, defaultRealmSetting(organizationId))
 	if err != nil {
 		return "", err
 	}
 
-	// After Create Realm, accesstoken got changed so that old token doesn't work properly.
-	token, err = k.loginAdmin(ctx)
-	if err != nil {
-		return "", err
-	}
-	accessToken = token.AccessToken
-
-	clientUUID, err := k.createDefaultClient(context.Background(), accessToken, organizationId, DefaultClientID, DefaultClientSecret)
+	clientUUID, err := k.createDefaultClient(context.Background(), token.AccessToken, organizationId, DefaultClientID, DefaultClientSecret)
 	if err != nil {
 		log.Error(err, "createDefaultClient")
 		return "", err
 	}
-
-	token, err = k.loginAdmin(ctx)
-	if err != nil {
-		return realmUUID, err
-	}
-	accessToken = token.AccessToken
 
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if *defaultMapper.Name == "org" {
@@ -186,36 +187,26 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 				"userinfo.token.claim": "false",
 			}
 		}
-		if _, err := k.createClientProtocolMapper(ctx, accessToken, organizationId, clientUUID, defaultMapper); err != nil {
+		if _, err := k.createClientProtocolMapper(ctx, token.AccessToken, organizationId, clientUUID, defaultMapper); err != nil {
 			return "", err
 		}
 	}
-	adminGroupUuid, err := k.createGroup(ctx, accessToken, organizationId, "admin@"+organizationId)
+	adminGroupUuid, err := k.createGroup(ctx, token.AccessToken, organizationId, "admin@"+organizationId)
 	if err != nil {
 		return realmUUID, err
 	}
 
-	token, err = k.loginAdmin(ctx)
-	if err != nil {
-		return realmUUID, err
-	}
-	accessToken = token.AccessToken
-
-	realmManagementClientUuid, err := k.getClientByClientId(ctx, accessToken, organizationId, "realm-management")
+	realmManagementClientUuid, err := k.getClientByClientId(ctx, token.AccessToken, organizationId, "realm-management")
 	if err != nil {
 		return realmUUID, err
 	}
 
-	//token, err = k.loginAdmin(ctx)
-	//if err != nil {
-	//	return realmUUID, err
-	//}
-	realmAdminRole, err := k.getClientRole(ctx, accessToken, organizationId, realmManagementClientUuid, "realm-admin")
+	realmAdminRole, err := k.getClientRole(ctx, token.AccessToken, organizationId, realmManagementClientUuid, "realm-admin")
 	if err != nil {
 		return realmUUID, err
 	}
 
-	err = k.addClientRoleToGroup(ctx, accessToken, organizationId, realmManagementClientUuid, adminGroupUuid,
+	err = k.addClientRoleToGroup(ctx, token.AccessToken, organizationId, realmManagementClientUuid, adminGroupUuid,
 		&gocloak.Role{
 			ID:   realmAdminRole.ID,
 			Name: realmAdminRole.Name,
@@ -225,24 +216,27 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 		return "", err
 	}
 
-	userGroupUuid, err := k.createGroup(ctx, accessToken, organizationId, "user@"+organizationId)
-	if err != nil {
-		return "", err
-	}
-	//adminGroup, err := k.ensureGroup(ctx, accessToken, organizationId, "admin@"+organizationId)
-
-	viewUserRole, err := k.getClientRole(ctx, accessToken, organizationId, realmManagementClientUuid, "view-users")
+	userGroupUuid, err := k.createGroup(ctx, token.AccessToken, organizationId, "user@"+organizationId)
 	if err != nil {
 		return "", err
 	}
 
-	err = k.addClientRoleToGroup(ctx, accessToken, organizationId, realmManagementClientUuid, userGroupUuid,
+	viewUserRole, err := k.getClientRole(ctx, token.AccessToken, organizationId, realmManagementClientUuid, "view-users")
+	if err != nil {
+		return "", err
+	}
+
+	err = k.addClientRoleToGroup(ctx, token.AccessToken, organizationId, realmManagementClientUuid, userGroupUuid,
 		&gocloak.Role{
 			ID:   viewUserRole.ID,
 			Name: viewUserRole.Name,
 		})
 
 	if err != nil {
+		return "", err
+	}
+	if err := k.LogoutAdmin(token); err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 		return "", err
 	}
 
@@ -256,23 +250,18 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 
 func (k *Keycloak) GetRealm(organizationId string) (*domain.Organization, error) {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
+	token := k.adminCliToken
 	realm, err := k.client.GetRealm(ctx, token.AccessToken, organizationId)
 	if err != nil {
 		return nil, err
 	}
+
 	return k.reflectOrganization(*realm), nil
 }
 
 func (k *Keycloak) GetRealms() ([]*domain.Organization, error) {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
+	token := k.adminCliToken
 	realms, err := k.client.GetRealms(ctx, token.AccessToken)
 	if err != nil {
 		return nil, err
@@ -281,17 +270,15 @@ func (k *Keycloak) GetRealms() ([]*domain.Organization, error) {
 	for _, realm := range realms {
 		organization = append(organization, k.reflectOrganization(*realm))
 	}
+
 	return organization, nil
 }
 
 func (k *Keycloak) UpdateRealm(organizationId string, organizationConfig domain.Organization) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return err
-	}
+	token := k.adminCliToken
 	realm := k.reflectRealmRepresentation(organizationConfig)
-	err = k.client.UpdateRealm(ctx, token.AccessToken, *realm)
+	err := k.client.UpdateRealm(ctx, token.AccessToken, *realm)
 	if err != nil {
 		return err
 	}
@@ -300,37 +287,30 @@ func (k *Keycloak) UpdateRealm(organizationId string, organizationConfig domain.
 
 func (k *Keycloak) DeleteRealm(organizationId string) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
+	token := k.adminCliToken
+	err := k.client.DeleteRealm(ctx, token.AccessToken, organizationId)
 	if err != nil {
 		return err
 	}
-	err = k.client.DeleteRealm(ctx, token.AccessToken, organizationId)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
 func (k *Keycloak) CreateUser(organizationId string, user *gocloak.User) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return err
-	}
+	token := k.adminCliToken
 	user.Enabled = gocloak.BoolP(true)
-	_, err = k.client.CreateUser(ctx, token.AccessToken, organizationId, *user)
+	_, err := k.client.CreateUser(ctx, token.AccessToken, organizationId, *user)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (k *Keycloak) GetUser(organizationId string, accountId string) (*gocloak.User, error) {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
+	token := k.adminCliToken
 
 	//TODO: this is rely on the fact that username is the same as userAccountId and unique
 	users, err := k.client.GetUsers(ctx, token.AccessToken, organizationId, gocloak.GetUsersParams{
@@ -339,23 +319,23 @@ func (k *Keycloak) GetUser(organizationId string, accountId string) (*gocloak.Us
 	if err != nil {
 		return nil, err
 	}
+
 	if len(users) == 0 {
 		return nil, httpErrors.NewNotFoundError(fmt.Errorf("user %s not found", accountId), "", "")
 	}
+
 	return users[0], nil
 }
 
 func (k *Keycloak) GetUsers(organizationId string) ([]*gocloak.User, error) {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
+	token := k.adminCliToken
 	//TODO: this is rely on the fact that username is the same as userAccountId and unique
 	users, err := k.client.GetUsers(ctx, token.AccessToken, organizationId, gocloak.GetUsersParams{})
 	if err != nil {
 		return nil, err
 	}
+
 	if len(users) == 0 {
 		return nil, httpErrors.NewNotFoundError(fmt.Errorf("users not found"), "", "")
 	}
@@ -365,24 +345,19 @@ func (k *Keycloak) GetUsers(organizationId string) ([]*gocloak.User, error) {
 
 func (k *Keycloak) UpdateUser(organizationId string, user *gocloak.User) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return err
-	}
+	token := k.adminCliToken
 	user.Enabled = gocloak.BoolP(true)
-	err = k.client.UpdateUser(ctx, token.AccessToken, organizationId, *user)
+	err := k.client.UpdateUser(ctx, token.AccessToken, organizationId, *user)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (k *Keycloak) DeleteUser(organizationId string, userAccountId string) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return err
-	}
+	token := k.adminCliToken
 	u, err := k.GetUser(organizationId, userAccountId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
@@ -410,15 +385,13 @@ func (k *Keycloak) VerifyAccessToken(token string, organizationId string) error 
 
 func (k *Keycloak) GetSessions(userId string, organizationId string) (*[]string, error) {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		return nil, err
-	}
+	token := k.adminCliToken
 	sessions, err := k.client.GetUserSessions(ctx, token.AccessToken, organizationId, userId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		return nil, err
 	}
+
 	var sessionIds []string
 	for _, session := range sessions {
 		sessionIds = append(sessionIds, *session.ID)
@@ -429,12 +402,13 @@ func (k *Keycloak) GetSessions(userId string, organizationId string) (*[]string,
 
 func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
+	token := k.adminCliToken
+	err := k.client.LogoutUserSession(ctx, token.AccessToken, organizationId, sessionId)
 	if err != nil {
 		return err
 	}
-	err = k.client.LogoutUserSession(ctx, token.AccessToken, organizationId, sessionId)
-	if err != nil {
+	if err := k.LogoutAdmin(token); err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
 		return err
 	}
 	return nil
@@ -442,11 +416,7 @@ func (k *Keycloak) Logout(sessionId string, organizationId string) error {
 
 func (k *Keycloak) JoinGroup(organizationId string, userId string, groupName string) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		log.Error(err)
-		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"), "", "")
-	}
+	token := k.adminCliToken
 	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
 		Search: &groupName,
 	})
@@ -461,16 +431,13 @@ func (k *Keycloak) JoinGroup(organizationId string, userId string, groupName str
 		log.Error(err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
+
 	return nil
 }
 
 func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName string) error {
 	ctx := context.Background()
-	token, err := k.loginAdmin(ctx)
-	if err != nil {
-		log.Error(err)
-		return httpErrors.NewInternalServerError(fmt.Errorf("internal server error"), "", "")
-	}
+	token := k.adminCliToken
 	groups, err := k.client.GetGroups(ctx, token.AccessToken, organizationId, gocloak.GetGroupsParams{
 		Search: &groupName,
 	})
@@ -485,18 +452,9 @@ func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName st
 		log.Error(err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
+
 	return nil
 }
-
-func (k *Keycloak) loginAdmin(ctx context.Context) (*gocloak.JWT, error) {
-	token, err := k.client.LoginAdmin(ctx, k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm)
-	if err != nil {
-		log.Error("Login to keycloak as Admin is failed", err)
-	}
-
-	return token, err
-}
-
 func (k *Keycloak) ensureClientProtocolMappers(ctx context.Context, token *gocloak.JWT, realm string, clientId string,
 	scope string, mapper gocloak.ProtocolMapperRepresentation) error {
 	//TODO: Check current logic(if exist, do nothing) is fine
@@ -783,4 +741,9 @@ func defaultRealmSetting(realmId string) gocloak.RealmRepresentation {
 		SsoSessionIdleTimeout: gocloak.IntP(ssoSessionIdleTimeout),
 		SsoSessionMaxLifespan: gocloak.IntP(ssoSessionMaxLifespan),
 	}
+}
+
+func getTokenExpiredDuration(token *gocloak.JWT) time.Duration {
+	log.Info("Token Expires In: ", token.ExpiresIn)
+	return time.Duration(token.ExpiresIn) * time.Second
 }
