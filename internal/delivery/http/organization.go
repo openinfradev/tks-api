@@ -58,7 +58,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 	organization.ID = organizationId
 	// Admin user 생성
-	_, err = h.userUsecase.CreateAdmin(organizationId)
+	_, err = h.userUsecase.CreateAdmin(organizationId, input.AdminEmail)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, err)
