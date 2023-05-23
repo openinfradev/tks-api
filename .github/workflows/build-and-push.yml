@@ -42,16 +42,21 @@ jobs:
           git clone "https://${{secrets.BOT_GITHUB_TOKEN}}@github.com/openinfradev/cicd-manifests.git"
 
 
-          TARGET='cicd'
           if [[ ${{github.ref}} == *"develop"* ]]; then
-            TARGET='development'
-          elif [[ ${{github.ref}} == *"ft"* ]]; then
-            TARGET='ft'
-          fi
-          cd cicd-manifests/${SERVICE}/overlay/${TARGET}
+            cd cicd-manifests/${SERVICE}/overlay/development
+            kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
+            git add kustomization.yaml
 
-          kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
-          git add kustomization.yaml
+            cd ../../../
+            cd cicd-manifests/${SERVICE}/overlay/ft
+            kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
+            git add kustomization.yaml
+          elif [[ ${{github.ref}} == *"main"* ]]; then
+            cd cicd-manifests/${SERVICE}/overlay/cicd
+            kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
+            git add kustomization.yaml
+          fi
+
           git commit --allow-empty -m "Set image tag to ${SERVICE} ${TAG}"
           git pull --rebase origin main
           git push origin main --force
