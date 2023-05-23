@@ -20,7 +20,7 @@ import (
 )
 
 type IUserUsecase interface {
-	CreateAdmin(organizationId string) (*domain.User, error)
+	CreateAdmin(organizationId string, email string) (*domain.User, error)
 	DeleteAdmin(organizationId string) error
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
@@ -188,10 +188,12 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 	return nil
 }
 
-func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
+func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.User, error) {
+	randomPassword := helper.GenerateRandomString(passwordLength)
 	user := domain.User{
 		AccountId: "admin",
-		Password:  "admin",
+		Password:  randomPassword,
+		Email:     email,
 		Role: domain.Role{
 			Name: "admin",
 		},
@@ -205,6 +207,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, orgainzationId)}
 	err := u.kc.CreateUser(orgainzationId, &gocloak.User{
 		Username: gocloak.StringP(user.AccountId),
+		Email:    gocloak.StringP(user.Email),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
 				Type:      gocloak.StringP("password"),
@@ -248,6 +251,10 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string) (*domain.User, error) {
 	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = ses.SendEmailForTemporaryPassword(ses.Client, user.Email, randomPassword); err != nil {
 		return nil, err
 	}
 

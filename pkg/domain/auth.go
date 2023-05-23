@@ -12,6 +12,7 @@ type LoginResponse struct {
 		Name            string       `json:"name"`
 		Token           string       `json:"token"`
 		Role            Role         `json:"role"`
+		Department      string       `json:"department"`
 		Organization    Organization `json:"organization"`
 		PasswordExpired bool         `json:"passwordExpired"`
 	} `json:"user"`

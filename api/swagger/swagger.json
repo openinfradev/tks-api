@@ -3893,9 +3893,13 @@
         "domain.CreateOrganizationRequest": {
             "type": "object",
             "required": [
+                "Email",
                 "name"
             ],
             "properties": {
+                "Email": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string",
                     "maxLength": 100,
@@ -4668,6 +4672,9 @@
                     "type": "object",
                     "properties": {
                         "accountId": {
+                            "type": "string"
+                        },
+                        "department": {
                             "type": "string"
                         },
                         "name": {
