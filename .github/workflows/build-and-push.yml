@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop
 env:
   SERVICE: tks-api
   TAG: ${{github.sha}}
