@@ -289,6 +289,10 @@ definitions:
         type: string
       sessionToken:
         type: string
+      status:
+        type: integer
+      statusDesc:
+        type: string
       updatedAt:
         type: string
       updator:
@@ -315,6 +319,8 @@ definitions:
       organizationId:
         type: string
       resource:
+        type: string
+      status:
         type: string
       updatedAt:
         type: string

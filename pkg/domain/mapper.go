@@ -130,5 +130,11 @@ func Map(src interface{}, dst interface{}) error {
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ApplicationType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
 			return new(ApplicationType).FromString(i.(string)), nil
 		},
+		{srcType: reflect.TypeOf((*CloudAccountStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(CloudAccountStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*CloudAccountStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(CloudAccountStatus).FromString(i.(string)), nil
+		},
 	})
 }

@@ -3,8 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
@@ -80,41 +78,12 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info("submited workflow :", workflowId)
-	//workflowId := "tks-create-aws-cloud-account-dfw95"
-	// wait & get clusterId ( max 1min 	)
-	for i := 0; i < MAX_WORKFLOW_TIME; i++ {
-		time.Sleep(time.Second * 2)
-		workflow, err := u.argo.GetWorkflow("argo", workflowId)
-		if err != nil {
-			return uuid.Nil, err
-		}
 
-		if workflow.Status.Phase == "Succeeded" {
-			return cloudAccountId, nil
-		}
-
-		if workflow.Status.Phase == "Failed" {
-			logs, err := u.argo.GetWorkflowLog("argo", "main", workflowId)
-			if err != nil {
-				return uuid.Nil, errors.Wrap(err, "Failed to get workflow log")
-			}
-
-			arr := strings.Split(logs, "\n")
-			for _, line := range arr {
-				if strings.Contains(line, "Error:") {
-					return uuid.Nil, httpErrors.NewInternalServerError(fmt.Errorf("%s", line), "INVALID_CLIENT_TOKEN_ID", "")
-				}
-			}
-
-			return uuid.Nil, errors.Wrap(err, logs)
-		}
-
-		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
-			return uuid.Nil, fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
-		}
+	if err := u.repo.InitWorkflow(cloudAccountId, workflowId, domain.CloudAccountStatus_CREATING); err != nil {
+		return uuid.Nil, errors.Wrap(err, "Failed to initialize status")
 	}
 
-	return uuid.Nil, fmt.Errorf("Failed to creating cloud account")
+	return cloudAccountId, nil
 }
 
 func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccount) error {
@@ -183,9 +152,26 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
 	}
 
-	err = u.repo.Delete(dto)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		"tks-delete-aws-cloud-account",
+		argowf.SubmitOptions{
+			Parameters: []string{
+				"aws_region=" + "ap-northeast-2",
+				"tks_cloud_account_id=" + dto.ID.String(),
+				"aws_account_id=" + dto.AwsAccountId,
+				"aws_access_key_id=" + dto.AccessKeyId,
+				"aws_secret_access_key=" + dto.SecretAccessKey,
+				"aws_session_token=" + dto.SessionToken,
+			},
+		})
 	if err != nil {
-		return err
+		log.Error("failed to submit argo workflow template. err : ", err)
+		return fmt.Errorf("Failed to call argo workflow : %s", err)
+	}
+	log.Info("submited workflow :", workflowId)
+
+	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
+		return errors.Wrap(err, "Failed to initialize status")
 	}
 
 	return nil

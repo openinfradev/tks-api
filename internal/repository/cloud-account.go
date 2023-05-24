@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,6 +18,7 @@ type ICloudAccountRepository interface {
 	Create(dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(dto domain.CloudAccount) (err error)
 	Delete(dto domain.CloudAccount) (err error)
+	InitWorkflow(cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) (err error)
 }
 
 type CloudAccountRepository struct {
@@ -39,6 +42,9 @@ type CloudAccount struct {
 	Description    string
 	Resource       string
 	CloudService   string
+	WorkflowId     string
+	Status         domain.CloudAccountStatus
+	StatusDesc     string
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -92,6 +98,7 @@ func (r *CloudAccountRepository) Create(dto domain.CloudAccount) (cloudAccountId
 		Description:    dto.Description,
 		CloudService:   dto.CloudService,
 		Resource:       dto.Resource,
+		Status:         domain.CloudAccountStatus_PENDING,
 		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudAccount)
 	if res.Error != nil {
@@ -118,6 +125,18 @@ func (r *CloudAccountRepository) Delete(dto domain.CloudAccount) (err error) {
 	return nil
 }
 
+func (r *CloudAccountRepository) InitWorkflow(cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) error {
+	res := r.db.Model(&CloudAccount{}).
+		Where("ID = ?", cloudAccountId).
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in cloud-account with id %s", &cloudAccountId)
+	}
+
+	return nil
+}
+
 func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
 	return domain.CloudAccount{
 		ID:             cloudAccount.ID,
@@ -126,6 +145,8 @@ func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
 		Description:    cloudAccount.Description,
 		Resource:       cloudAccount.Resource,
 		CloudService:   cloudAccount.CloudService,
+		Status:         cloudAccount.Status,
+		StatusDesc:     cloudAccount.StatusDesc,
 		Creator:        reflectSimpleUser(cloudAccount.Creator),
 		Updator:        reflectSimpleUser(cloudAccount.Updator),
 		CreatedAt:      cloudAccount.CreatedAt,

@@ -13,6 +13,37 @@ const (
 	CloudService_GCP       = "GCP"
 )
 
+// enum
+type CloudAccountStatus int32
+
+const (
+	CloudAccountStatus_PENDING CloudAccountStatus = iota
+	CloudAccountStatus_CREATING
+	CloudAccountStatus_CREATED
+	CloudAccountStatus_DELETING
+	CloudAccountStatus_DELETED
+	CloudAccountStatus_ERROR
+)
+
+var cloudAccountStatus = [...]string{
+	"PENDING",
+	"CREATING",
+	"CREATED",
+	"DELETING",
+	"DELETED",
+	"ERROR",
+}
+
+func (m CloudAccountStatus) String() string { return cloudAccountStatus[(m)] }
+func (m CloudAccountStatus) FromString(s string) CloudAccountStatus {
+	for i, v := range cloudAccountStatus {
+		if v == s {
+			return CloudAccountStatus(i)
+		}
+	}
+	return CloudAccountStatus_ERROR
+}
+
 // 내부
 type CloudAccount struct {
 	ID              uuid.UUID
@@ -26,6 +57,8 @@ type CloudAccount struct {
 	AccessKeyId     string
 	SecretAccessKey string
 	SessionToken    string
+	Status          CloudAccountStatus
+	StatusDesc      string
 	CreatorId       uuid.UUID
 	Creator         User
 	UpdatorId       uuid.UUID
@@ -42,6 +75,7 @@ type CloudAccountResponse struct {
 	CloudService   string             `json:"cloudService"`
 	Resource       string             `json:"resource"`
 	Clusters       int                `json:"clusters"`
+	Status         string             `json:"status"`
 	Creator        SimpleUserResponse `json:"creator"`
 	Updator        SimpleUserResponse `json:"updator"`
 	CreatedAt      time.Time          `json:"createdAt"`

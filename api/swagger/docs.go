@@ -3447,6 +3447,12 @@ const docTemplate = `{
                 "sessionToken": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
@@ -3486,6 +3492,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "resource": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "updatedAt": {
