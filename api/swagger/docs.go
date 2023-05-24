@@ -458,7 +458,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.LogoutResponse"
                         }
                     }
                 }
@@ -3447,6 +3447,12 @@ const docTemplate = `{
                 "sessionToken": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
@@ -3486,6 +3492,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "resource": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -3900,9 +3909,13 @@ const docTemplate = `{
         "domain.CreateOrganizationRequest": {
             "type": "object",
             "required": [
+                "Email",
                 "name"
             ],
             "properties": {
+                "Email": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string",
                     "maxLength": 100,
@@ -4677,6 +4690,9 @@ const docTemplate = `{
                         "accountId": {
                             "type": "string"
                         },
+                        "department": {
+                            "type": "string"
+                        },
                         "name": {
                             "type": "string"
                         },
@@ -4690,6 +4706,20 @@ const docTemplate = `{
                             "$ref": "#/definitions/domain.Role"
                         },
                         "token": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "domain.LogoutResponse": {
+            "type": "object",
+            "properties": {
+                "ssoUrls": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
                             "type": "string"
                         }
                     }
@@ -4872,6 +4902,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "grafanaUrl": {
                     "type": "string"
                 },
                 "id": {

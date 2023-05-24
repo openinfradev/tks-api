@@ -167,6 +167,18 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 		out.PrimaryCluster = true
 	}
 
+	for _, appGroup := range appGroups {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				return domain.Stack{}, err
+			}
+			if len(applications) > 0 {
+				out.GrafanaUrl = applications[0].Endpoint
+			}
+		}
+	}
+
 	return
 }
 
@@ -208,6 +220,18 @@ func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err err
 		outStack := reflectClusterToStack(cluster, appGroups)
 		if organization.PrimaryClusterId == cluster.ID.String() {
 			outStack.PrimaryCluster = true
+		}
+
+		for _, appGroup := range appGroups {
+			if appGroup.AppGroupType == domain.AppGroupType_LMA {
+				applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+				if err != nil {
+					return nil, err
+				}
+				if len(applications) > 0 {
+					outStack.GrafanaUrl = applications[0].Endpoint
+				}
+			}
 		}
 		out = append(out, outStack)
 	}
@@ -346,6 +370,11 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 		return out, "", err
 	}
 
+	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
+	if err != nil {
+		return out, "", err
+	}
+
 	// cluster status
 	step := parseStatusDescription(cluster.StatusDesc)
 	clusterStepStatus := domain.StackStepStatus{
@@ -366,7 +395,7 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
 			Step:    0,
-			MaxStep: domain.MAX_STEP_LMA_CREATE,
+			MaxStep: domain.MAX_STEP_LMA_CREATE_MEMBER,
 		})
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		// LMA + SERVICE_MESH
@@ -374,7 +403,7 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
 			Step:    0,
-			MaxStep: domain.MAX_STEP_LMA_CREATE,
+			MaxStep: domain.MAX_STEP_LMA_CREATE_MEMBER,
 		})
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
@@ -391,11 +420,13 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 				step := parseStatusDescription(appGroup.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
-				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE
+				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_MEMBER
+				if organization.PrimaryClusterId == cluster.ID.String() {
+					out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_PRIMARY
+				}
 				if appGroup.Status == domain.AppGroupStatus_DELETING {
 					out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
 				}
-
 				out[i].Step = step
 				if out[i].Step > out[i].MaxStep {
 					out[i].Step = out[i].MaxStep
@@ -406,6 +437,19 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 
 	status, _ := getStackStatus(cluster, appGroups)
 	stackStatus = status.String()
+
+	// sort
+	// deleting : service_mesh -> lma -> cluster
+	// installing : cluster -> lma -> service_mesh
+	if status == domain.StackStatus_APPGROUP_DELETING || status == domain.StackStatus_CLUSTER_DELETING {
+		reversed := make([]domain.StackStepStatus, len(out))
+		j := 0
+		for i := len(out) - 1; i >= 0; i-- {
+			reversed[j] = out[i]
+			j++
+		}
+		out = reversed
+	}
 
 	return
 }
@@ -437,16 +481,17 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 	}
 }
 
-func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (domain.StackStatus, string) {
-	for _, application := range applications {
-		if application.Status == domain.AppGroupStatus_INSTALLING {
-			return domain.StackStatus_APPGROUP_INSTALLING, application.StatusDesc
+// [TODO] more pretty
+func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain.StackStatus, string) {
+	for _, appGroup := range appGroups {
+		if appGroup.Status == domain.AppGroupStatus_INSTALLING {
+			return domain.StackStatus_APPGROUP_INSTALLING, appGroup.StatusDesc
 		}
-		if application.Status == domain.AppGroupStatus_DELETING {
-			return domain.StackStatus_APPGROUP_DELETING, application.StatusDesc
+		if appGroup.Status == domain.AppGroupStatus_DELETING {
+			return domain.StackStatus_APPGROUP_DELETING, appGroup.StatusDesc
 		}
-		if application.Status == domain.AppGroupStatus_ERROR {
-			return domain.StackStatus_APPGROUP_ERROR, application.StatusDesc
+		if appGroup.Status == domain.AppGroupStatus_ERROR {
+			return domain.StackStatus_APPGROUP_ERROR, appGroup.StatusDesc
 		}
 	}
 
@@ -465,12 +510,30 @@ func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (dom
 
 	// workflow 중간 중간 비는 status 처리...
 	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
-		if len(applications) != 1 {
+		if len(appGroups) < 1 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
+		} else {
+			for _, appGroup := range appGroups {
+				if appGroup.Status == domain.AppGroupStatus_DELETED {
+					return domain.StackStatus_CLUSTER_DELETING, "(0/0)"
+				}
+			}
 		}
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
-		if len(applications) != 2 {
+		if len(appGroups) < 2 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
+		} else {
+			deletedAppGroupCnt := 0
+			for _, appGroup := range appGroups {
+				if appGroup.Status == domain.AppGroupStatus_DELETED {
+					deletedAppGroupCnt++
+				}
+			}
+			if deletedAppGroupCnt == 1 {
+				return domain.StackStatus_APPGROUP_DELETING, "(0/0)"
+			} else if deletedAppGroupCnt == 2 {
+				return domain.StackStatus_CLUSTER_DELETING, "(0/0)"
+			}
 		}
 	}
 

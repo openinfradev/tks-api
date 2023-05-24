@@ -451,7 +451,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.LogoutResponse"
                         }
                     }
                 }
@@ -3440,6 +3440,12 @@
                 "sessionToken": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
@@ -3479,6 +3485,9 @@
                     "type": "string"
                 },
                 "resource": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -3893,9 +3902,13 @@
         "domain.CreateOrganizationRequest": {
             "type": "object",
             "required": [
+                "Email",
                 "name"
             ],
             "properties": {
+                "Email": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string",
                     "maxLength": 100,
@@ -4670,6 +4683,9 @@
                         "accountId": {
                             "type": "string"
                         },
+                        "department": {
+                            "type": "string"
+                        },
                         "name": {
                             "type": "string"
                         },
@@ -4683,6 +4699,20 @@
                             "$ref": "#/definitions/domain.Role"
                         },
                         "token": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "domain.LogoutResponse": {
+            "type": "object",
+            "properties": {
+                "ssoUrls": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
                             "type": "string"
                         }
                     }
@@ -4865,6 +4895,9 @@
                     "$ref": "#/definitions/domain.SimpleUserResponse"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "grafanaUrl": {
                     "type": "string"
                 },
                 "id": {

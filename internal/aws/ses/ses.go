@@ -16,6 +16,8 @@ var Client *awsSes.Client
 
 const (
 	senderEmailAddress = "tks-dev@sktelecom.com"
+
+	thanksContent = "TKS Cloud Service를 이용해 주셔서 감사합니다.\nTKS Cloud Service Team 드림"
 )
 
 func Initialize() error {
@@ -55,7 +57,7 @@ func SendEmailForVerityIdentity(client *awsSes.Client, targetEmailAddress string
 	subject := "[TKS][인증번호:" + code + "] – 요청하신 인증번호를 알려드립니다."
 	body := "아래의 인증번호를 인증번호 입력창에 입력해 주세요.\n\n" +
 		"인증번호: " + code + "\n\n" +
-		"TKS를 이용해 주셔서 감사합니다.\nTKS Team 드림"
+		thanksContent
 
 	input := &awsSes.SendEmailInput{
 		Destination: &types.Destination{
@@ -83,11 +85,48 @@ func SendEmailForVerityIdentity(client *awsSes.Client, targetEmailAddress string
 }
 
 func SendEmailForTemporaryPassword(client *awsSes.Client, targetEmailAddress string, randomPassword string) error {
-	subject := "[TKS] 비밀번호 초기화"
+	subject := "[TKS] 임시 비밀번호 발급"
 	body := "임시 비밀번호가 발급되었습니다.\n" +
 		"로그인 후 비밀번호를 변경하여 사용하십시오.\n\n" +
 		"임시 비밀번호: " + randomPassword + "\n\n" +
-		"TKS를 이용해 주셔서 감사합니다.\nTKS Team 드림"
+		thanksContent
+
+	input := &awsSes.SendEmailInput{
+		Destination: &types.Destination{
+			ToAddresses: []string{targetEmailAddress},
+		},
+		Message: &types.Message{
+			Body: &types.Body{
+				Text: &types.Content{
+					Data: aws.String(body),
+				},
+			},
+			Subject: &types.Content{
+				Data: aws.String(subject),
+			},
+		},
+		Source: aws.String(senderEmailAddress),
+	}
+
+	if _, err := client.SendEmail(context.Background(), input); err != nil {
+		log.Errorf("failed to send email, %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func SendEmailForGeneratingOrganization(client *awsSes.Client, organizationId string, organizationName string,
+	targetEmailAddress string, userAccountId string, randomPassword string) error {
+	subject := "[TKS] 조직이 생성되었습니다."
+	body := "조직이 생성되었습니다. \n" +
+		"조직 ID: " + organizationId +
+		"조직 이름: " + organizationName +
+		"아래 관리자 계정 정보로 로그인 후 사용바랍니다.\n" +
+		"관리자 ID: " + userAccountId + "\n" +
+		"관리자 이름: admin\n" +
+		"비밀번호: " + randomPassword + "\n\n" +
+		thanksContent
 
 	input := &awsSes.SendEmailInput{
 		Destination: &types.Destination{

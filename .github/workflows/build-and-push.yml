@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - develop
 env:
   SERVICE: tks-api
   TAG: ${{github.sha}}
@@ -41,17 +42,14 @@ jobs:
 
           git clone "https://${{secrets.BOT_GITHUB_TOKEN}}@github.com/openinfradev/cicd-manifests.git"
 
-
-          TARGET='cicd'
           if [[ ${{github.ref}} == *"develop"* ]]; then
-            TARGET='development'
-          elif [[ ${{github.ref}} == *"ft"* ]]; then
-            TARGET='ft'
+            ( cd cicd-manifests/${SERVICE}/overlay/development && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
+            ( cd cicd-manifests/${SERVICE}/overlay/ft && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
+          elif [[ ${{github.ref}} == *"main"* ]]; then
+            ( cd cicd-manifests/${SERVICE}/overlay/cicd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
           fi
-          cd cicd-manifests/${SERVICE}/overlay/${TARGET}
 
-          kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG}
-          git add kustomization.yaml
+          cd cicd-manifests
           git commit --allow-empty -m "Set image tag to ${SERVICE} ${TAG}"
           git pull --rebase origin main
           git push origin main --force

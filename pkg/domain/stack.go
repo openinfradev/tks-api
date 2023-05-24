@@ -61,7 +61,8 @@ func (m StackStatus) FromString(s string) StackStatus {
 
 const MAX_STEP_CLUSTER_CREATE = 14
 const MAX_STEP_CLUSTER_REMOVE = 11
-const MAX_STEP_LMA_CREATE = 36
+const MAX_STEP_LMA_CREATE_PRIMARY = 36
+const MAX_STEP_LMA_CREATE_MEMBER = 27
 const MAX_STEP_LMA_REMOVE = 9
 const MAX_STEP_SM_CREATE = 22
 const MAX_STEP_SM_REMOVE = 4
@@ -80,6 +81,7 @@ type Stack = struct {
 	StatusDesc      string
 	Conf            StackConf
 	PrimaryCluster  bool
+	GrafanaUrl      string
 	CreatorId       *uuid.UUID
 	Creator         User
 	UpdatorId       *uuid.UUID
@@ -141,6 +143,7 @@ type StackResponse struct {
 	StatusDesc     string                      `json:"statusDesc"`
 	PrimaryCluster bool                        `json:"primaryCluster"`
 	Conf           StackConfResponse           `json:"conf"`
+	GrafanaUrl     string                      `json:"grafanaUrl"`
 	Creator        SimpleUserResponse          `json:"creator,omitempty"`
 	Updator        SimpleUserResponse          `json:"updator,omitempty"`
 	CreatedAt      time.Time                   `json:"createdAt"`

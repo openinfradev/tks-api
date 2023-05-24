@@ -30,14 +30,16 @@ type IAlertUsecase interface {
 }
 
 type AlertUsecase struct {
-	repo        repository.IAlertRepository
-	clusterRepo repository.IClusterRepository
+	repo         repository.IAlertRepository
+	clusterRepo  repository.IClusterRepository
+	appGroupRepo repository.IAppGroupRepository
 }
 
 func NewAlertUsecase(r repository.Repository) IAlertUsecase {
 	return &AlertUsecase{
-		repo:        r.Alert,
-		clusterRepo: r.Cluster,
+		repo:         r.Alert,
+		clusterRepo:  r.Cluster,
+		appGroupRepo: r.AppGroup,
 	}
 }
 
@@ -80,6 +82,22 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			}
 		*/
 
+		grafanaUrl := ""
+		appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(clusterId))
+		if err == nil {
+			for _, appGroup := range appGroups {
+				if appGroup.AppGroupType == domain.AppGroupType_LMA {
+					applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+					if err != nil {
+						continue
+					}
+					if len(applications) > 0 {
+						grafanaUrl = applications[0].Endpoint
+					}
+				}
+			}
+		}
+
 		node := ""
 		if strings.Contains(alert.Labels.AlertName, "node") {
 			node = alert.Labels.Instance
@@ -96,7 +114,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			CheckPoint:     alert.Annotations.Checkpoint,
 			Summary:        alert.Annotations.Summary,
 			ClusterId:      domain.ClusterId(clusterId),
-			GrafanaUrl:     "http://localhost/grafana",
+			GrafanaUrl:     grafanaUrl,
 			RawData:        rawData,
 		}
 

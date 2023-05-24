@@ -3,7 +3,6 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -55,14 +54,21 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
 
-		//Mismatch password
-		if strings.Contains(err.Error(), "Mismatch password") {
-			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_MISMATCH_PASSWORD", ""))
-			return
-		}
-
 		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
+	}
+
+	var cookies []*http.Cookie
+	if targetCookies, err := h.usecase.SingleSignIn(input.OrganizationId, input.AccountId, input.Password); err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+	} else {
+		cookies = append(cookies, targetCookies...)
+	}
+
+	if len(cookies) > 0 {
+		for _, cookie := range cookies {
+			http.SetCookie(w, cookie)
+		}
 	}
 
 	var out domain.LoginResponse
@@ -79,12 +85,10 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 // @Description logout
 // @Accept json
 // @Produce json
-// @Success 200 {object} object
+// @Success 200 {object} domain.LogoutResponse
 // @Router /auth/logout [post]
 // @Security     JWT
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	// Do nothing
-	// Token is not able to be expired manually. Therefore, nothing to do currently.z
 	ctx := r.Context()
 
 	sessionId, ok := request.SessionFrom(ctx)
@@ -108,7 +112,21 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	var cookies []*http.Cookie
+	urls, targetCookies, err := h.usecase.SingleSignOut(organizationId)
+	if err != nil {
+		log.Errorf("error is :%s(%T)", err.Error(), err)
+	}
+	cookies = append(cookies, targetCookies...)
+	if len(cookies) > 0 {
+		for _, cookie := range cookies {
+			http.SetCookie(w, cookie)
+		}
+	}
+	var out domain.LogoutResponse
+	out.SsoUrls = urls
+
+	ResponseJSON(w, http.StatusOK, out)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -136,11 +154,6 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	accountId, err := h.usecase.FindId(input.Code, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-
-		if strings.Contains(err.Error(), "invalid code") {
-			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_MISMATCH_CODE", ""))
-			return
-		}
 
 		ErrorJSON(w, err)
 		return
@@ -172,12 +185,6 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	err = h.usecase.FindPassword(input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.Errorf("error is :%s(%T)", err.Error(), err)
-
-		if strings.Contains(err.Error(), "invalid code") {
-			ErrorJSON(w, httpErrors.NewUnauthorizedError(err, "A_MISMATCH_CODE", ""))
-			return
-		}
-
 		ErrorJSON(w, err)
 		return
 	}
