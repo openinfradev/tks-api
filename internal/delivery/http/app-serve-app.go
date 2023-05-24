@@ -307,14 +307,14 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 	}
 
 	var actions []domain.ActionResponse
-	if app.Status == "DEPLOY_SUCCESS" {
+	if stage.Status == "DEPLOY_SUCCESS" {
 		action := domain.ActionResponse{
 			Name: "ENDPOINT",
 			Uri:  app.EndpointUrl,
 			Type: "LINK",
 		}
 		actions = append(actions, action)
-	} else if app.Status == "PROMOTE_WAIT" && app.AppServeAppTasks[0].Strategy == "blue-green" {
+	} else if stage.Status == "PROMOTE_WAIT" && app.AppServeAppTasks[0].Strategy == "blue-green" {
 		action := domain.ActionResponse{
 			Name: "PREVIEW",
 			Uri:  app.PreviewEndpointUrl,
@@ -341,7 +341,7 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
 		}
 		actions = append(actions, action)
-	} else if app.Status == "PROMOTE_SUCCESS" {
+	} else if stage.Status == "PROMOTE_SUCCESS" {
 		action := domain.ActionResponse{
 			Name: "ENDPOINT",
 			Uri:  app.EndpointUrl,
