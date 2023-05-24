@@ -4895,6 +4895,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "grafanaUrl": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },

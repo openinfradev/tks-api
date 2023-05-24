@@ -167,6 +167,18 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 		out.PrimaryCluster = true
 	}
 
+	for _, appGroup := range appGroups {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				return domain.Stack{}, err
+			}
+			if len(applications) > 0 {
+				out.GrafanaUrl = applications[0].Endpoint
+			}
+		}
+	}
+
 	return
 }
 
@@ -208,6 +220,18 @@ func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err err
 		outStack := reflectClusterToStack(cluster, appGroups)
 		if organization.PrimaryClusterId == cluster.ID.String() {
 			outStack.PrimaryCluster = true
+		}
+
+		for _, appGroup := range appGroups {
+			if appGroup.AppGroupType == domain.AppGroupType_LMA {
+				applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+				if err != nil {
+					return nil, err
+				}
+				if len(applications) > 0 {
+					outStack.GrafanaUrl = applications[0].Endpoint
+				}
+			}
 		}
 		out = append(out, outStack)
 	}
@@ -346,6 +370,11 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 		return out, "", err
 	}
 
+	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
+	if err != nil {
+		return out, "", err
+	}
+
 	// cluster status
 	step := parseStatusDescription(cluster.StatusDesc)
 	clusterStepStatus := domain.StackStepStatus{
@@ -366,7 +395,7 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
 			Step:    0,
-			MaxStep: domain.MAX_STEP_LMA_CREATE,
+			MaxStep: domain.MAX_STEP_LMA_CREATE_MEMBER,
 		})
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		// LMA + SERVICE_MESH
@@ -374,7 +403,7 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 			Status:  domain.AppGroupStatus_PENDING.String(),
 			Stage:   "LMA",
 			Step:    0,
-			MaxStep: domain.MAX_STEP_LMA_CREATE,
+			MaxStep: domain.MAX_STEP_LMA_CREATE_MEMBER,
 		})
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
@@ -391,11 +420,13 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 				step := parseStatusDescription(appGroup.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
-				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE
+				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_MEMBER
+				if organization.PrimaryClusterId == cluster.ID.String() {
+					out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_PRIMARY
+				}
 				if appGroup.Status == domain.AppGroupStatus_DELETING {
 					out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
 				}
-
 				out[i].Step = step
 				if out[i].Step > out[i].MaxStep {
 					out[i].Step = out[i].MaxStep
