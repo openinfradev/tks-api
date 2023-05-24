@@ -255,9 +255,6 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	out.AppServeApp = *app
 	out.Stages = makeStages(app)
 
-	// Robert: temporary debug
-	fmt.Printf("stage response:\n %+v\n", out)
-
 	ResponseJSON(w, http.StatusOK, out)
 }
 
@@ -266,27 +263,31 @@ func makeStages(app *domain.AppServeApp) []domain.StageResponse {
 
 	var stage domain.StageResponse
 	var pipelines []string
+	taskStatus := app.AppServeAppTasks[0].Status
+	strategy := app.AppServeAppTasks[0].Strategy
 
-	if app.Type == "all" {
-		if app.AppServeAppTasks[0].Status == "ROLLBACKING" ||
-			app.AppServeAppTasks[0].Status == "ROLLBACK_SUCCESS" ||
-			app.AppServeAppTasks[0].Status == "ROLLBACK_FAILED" {
-			pipelines = []string{"rollback"}
-		} else if app.AppServeAppTasks[0].Status == "DELETING" ||
-			app.AppServeAppTasks[0].Status == "DELETE_SUCCESS" ||
-			app.AppServeAppTasks[0].Status == "DELETE_FAILED" {
-			pipelines = []string{"delete"}
-		} else if app.AppServeAppTasks[0].Strategy == "rolling-update" {
+	if taskStatus == "ROLLBACKING" ||
+		taskStatus == "ROLLBACK_SUCCESS" ||
+		taskStatus == "ROLLBACK_FAILED" {
+		pipelines = []string{"rollback"}
+	} else if taskStatus == "DELETING" ||
+		taskStatus == "DELETE_SUCCESS" ||
+		taskStatus == "DELETE_FAILED" {
+		pipelines = []string{"delete"}
+	} else if app.Type == "all" {
+		if strategy == "rolling-update" {
 			pipelines = []string{"build", "deploy"}
-		} else if app.AppServeAppTasks[0].Strategy == "blue-green" {
+		} else if strategy == "blue-green" {
 			pipelines = []string{"build", "deploy", "promote"}
 		}
 	} else if app.Type == "deploy" {
-		if app.AppServeAppTasks[0].Strategy == "rolling-update" {
+		if strategy == "rolling-update" {
 			pipelines = []string{"deploy"}
-		} else if app.AppServeAppTasks[0].Strategy == "blue-green" {
+		} else if strategy == "blue-green" {
 			pipelines = []string{"deploy", "promote"}
 		}
+	} else {
+		log.Error("Unexpected case happened while making stages!")
 	}
 
 	fmt.Printf("Pipeline stages: %v\n", pipelines)
