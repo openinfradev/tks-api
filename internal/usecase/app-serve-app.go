@@ -340,9 +340,6 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 	}
 
 	// Sync new task status to the parent app
-	// optionA: u.UpdateAppServeAppStatus() here!
-	// optionB: call UpdateAppServeAppStatus outside! (delivery/http)
-	// optionC: u.repo.UpdateStatus()??
 	log.Info("Updating app status to 'PREPARING'..")
 
 	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
@@ -506,6 +503,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 		return "", err
 	}
 
+	// Find target(dest) task
 	var task domain.AppServeAppTask
 	for _, t := range app.AppServeAppTasks {
 		if t.ID == taskId {
@@ -514,6 +512,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 		}
 	}
 
+	// Insert new values to the target task object
 	task.ID = ""
 	task.Output = ""
 	task.Status = "ROLLBACKING"
@@ -521,11 +520,20 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
 
-	// 'Update' GRPC only creates ASA Task record
+	// Creates new task record from the target task
 	newTaskId, err := u.repo.CreateTask(&task)
 	if err != nil {
 		log.Info("taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)
+	}
+
+	log.Info("Updating app status to 'ROLLBACKING'..")
+
+	err = u.repo.UpdateStatus(appId, newTaskId, "ROLLBACKING", "")
+	if err != nil {
+		log.Debug("appId = ", appId)
+		log.Debug("taskId = ", newTaskId)
+		return "", fmt.Errorf("failed to update app status on RollbackAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
