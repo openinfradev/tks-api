@@ -45,12 +45,13 @@ type IUserUsecase interface {
 }
 
 type UserUsecase struct {
-	repo repository.IUserRepository
-	kc   keycloak.IKeycloak
+	userRepository         repository.IUserRepository
+	organizationRepository repository.IOrganizationRepository
+	kc                     keycloak.IKeycloak
 }
 
 func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error {
-	user, err := u.repo.GetByUuid(userId)
+	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
@@ -58,7 +59,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	err = u.repo.UpdatePassword(userId, user.Organization.ID, user.Password, false)
+	err = u.userRepository.UpdatePassword(userId, user.Organization.ID, user.Password, false)
 	if err != nil {
 		log.Errorf("failed to update password expired time: %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -68,7 +69,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 }
 
 func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error {
-	user, err := u.repo.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
@@ -83,7 +84,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context,
 }
 
 func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
-	user, err := u.repo.GetByUuid(userId)
+	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
@@ -112,7 +113,7 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	if err = u.repo.UpdatePassword(userId, user.Organization.ID, user.Password, true); err != nil {
+	if err = u.userRepository.UpdatePassword(userId, user.Organization.ID, user.Password, true); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -124,7 +125,7 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 }
 
 func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId string) error {
-	user, err := u.repo.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
@@ -139,7 +140,7 @@ func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId 
 }
 
 func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
-	user, err := u.repo.GetByUuid(userId)
+	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		return err
 	}
@@ -156,7 +157,7 @@ func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) erro
 	// TODO: implement me as transaction
 	// TODO: clean users in keycloak
 
-	err := u.repo.Flush(organizationId)
+	err := u.userRepository.Flush(organizationId)
 	if err != nil {
 		return err
 	}
@@ -180,7 +181,7 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 		return errors.Wrap(err, "parse user id failed")
 	}
 
-	err = u.repo.DeleteWithUuid(userUuid)
+	err = u.userRepository.DeleteWithUuid(userUuid)
 	if err != nil {
 		return errors.Wrap(err, "delete user failed")
 	}
@@ -235,7 +236,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 		return nil, err
 	}
 
-	roles, err := u.repo.FetchRoles()
+	roles, err := u.userRepository.FetchRoles()
 	if err != nil {
 		return nil, err
 	}
@@ -248,13 +249,17 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 	if err != nil {
 		return nil, err
 	}
-	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
+	resUser, err := u.userRepository.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = ses.SendEmailForTemporaryPassword(ses.Client, user.Email, randomPassword); err != nil {
+	organizationInfo, err := u.organizationRepository.Get(orgainzationId)
+	if err != nil {
+		return nil, err
+	}
+	if err = ses.SendEmailForGeneratingOrganization(ses.Client, orgainzationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword); err != nil {
 		return nil, err
 	}
 
@@ -288,7 +293,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 
 	// update password in DB
 
-	user, err := u.repo.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
 		return errors.Wrap(err, "getting user from repository failed")
 	}
@@ -301,7 +306,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	err = u.repo.UpdatePassword(userUuid, organizationId, hashedPassword, false)
+	err = u.userRepository.UpdatePassword(userUuid, organizationId, hashedPassword, false)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
 	}
@@ -310,7 +315,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 }
 
 func (u *UserUsecase) List(ctx context.Context, organizationId string) (*[]domain.User, error) {
-	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId))
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId))
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +324,7 @@ func (u *UserUsecase) List(ctx context.Context, organizationId string) (*[]domai
 }
 
 func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {
-	user, err := u.repo.GetByUuid(userId)
+	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return nil, httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "", "")
@@ -331,8 +336,8 @@ func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {
 }
 
 func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error) {
-	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
-		u.repo.AccountIdFilter(accountId))
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
 		return nil, err
 	}
@@ -341,8 +346,8 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, orga
 }
 
 func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error) {
-	users, err := u.repo.List(u.repo.OrganizationFilter(organizationId),
-		u.repo.EmailFilter(email))
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+		u.userRepository.EmailFilter(email))
 	if err != nil {
 		return nil, err
 	}
@@ -383,8 +388,8 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		}
 	}
 
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
-		u.repo.AccountIdFilter(accountId))
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(userInfo.GetOrganizationId()),
+		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
 			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
@@ -409,7 +414,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, err
 	}
 
-	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
+	*user, err = u.userRepository.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -419,12 +424,12 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 }
 
 func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
-	user, err := u.repo.GetByUuid(userId)
+	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("not found user"), "", "")
 	}
 
-	err = u.repo.DeleteWithUuid(userId)
+	err = u.userRepository.DeleteWithUuid(userId)
 	if err != nil {
 		return err
 	}
@@ -438,7 +443,7 @@ func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
 	return nil
 }
 func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error {
-	user, err := u.repo.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
 		return err
 	}
@@ -447,7 +452,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 	if err != nil {
 		return err
 	}
-	err = u.repo.DeleteWithUuid(userUuid)
+	err = u.userRepository.DeleteWithUuid(userUuid)
 	if err != nil {
 		return err
 	}
@@ -498,7 +503,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		return nil, err
 	}
 
-	roles, err := u.repo.FetchRoles()
+	roles, err := u.userRepository.FetchRoles()
 	if err != nil {
 		return nil, err
 	}
@@ -512,7 +517,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 		return nil, err
 	}
 
-	resUser, err := u.repo.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
+	resUser, err := u.userRepository.CreateWithUuid(userUuid, user.AccountId, user.Name, hashedPassword, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
@@ -539,8 +544,8 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 		}
 	}
 
-	users, err := u.repo.List(u.repo.OrganizationFilter(userInfo.GetOrganizationId()),
-		u.repo.AccountIdFilter(accountId))
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(userInfo.GetOrganizationId()),
+		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
 			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
@@ -572,7 +577,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 
 	originPassword := (*users)[0].Password
 
-	roles, err := u.repo.FetchRoles()
+	roles, err := u.userRepository.FetchRoles()
 	if err != nil {
 		return nil, err
 	}
@@ -586,7 +591,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 		return nil, err
 	}
 
-	*user, err = u.repo.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
+	*user, err = u.userRepository.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -597,7 +602,8 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 
 func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {
 	return &UserUsecase{
-		repo: r.User,
-		kc:   kc,
+		userRepository:         r.User,
+		kc:                     kc,
+		organizationRepository: r.Organization,
 	}
 }
