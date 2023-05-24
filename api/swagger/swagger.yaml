@@ -1127,6 +1127,15 @@ definitions:
             type: string
         type: object
     type: object
+  domain.LogoutResponse:
+    properties:
+      ssoUrls:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
   domain.Organization:
     properties:
       createdAt:
@@ -1972,7 +1981,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            $ref: '#/definitions/domain.LogoutResponse'
       security:
       - JWT: []
       summary: logout

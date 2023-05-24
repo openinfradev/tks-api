@@ -18,6 +18,10 @@ type LoginResponse struct {
 	} `json:"user"`
 }
 
+type LogoutResponse struct {
+	SsoUrls map[string][]string `json:"ssoUrls"`
+}
+
 type VerifyIdentityForLostIdRequest struct {
 	OrganizationId string `json:"organizationId" validate:"required"`
 	Email          string `json:"email" validate:"required,email"`
