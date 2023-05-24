@@ -416,7 +416,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 	log.Info("latestTaskId = ", latestTaskId)
 	log.Info("strategy = ", strategy)
 
-	log.Info("Updating app status to 'PREPARING'..")
+	log.Info("Updating app status to 'PROMOTING'..")
 
 	err = u.repo.UpdateStatus(appId, latestTaskId, "PROMOTING", "")
 	if err != nil {
@@ -462,11 +462,20 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 		return "", fmt.Errorf("The app is not waiting for promote. Exiting..")
 	}
 
-	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
+	// Get the latest task ID so that the task status can be modified inside workflow once the abort process is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
 	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info("latestTaskId = ", latestTaskId)
 	log.Info("strategy = ", strategy)
+
+	log.Info("Updating app status to 'ABORTING'..")
+
+	err = u.repo.UpdateStatus(appId, latestTaskId, "ABORTING", "")
+	if err != nil {
+		log.Debug("appId = ", appId)
+		log.Debug("taskId = ", latestTaskId)
+		return "", fmt.Errorf("failed to update app status on AbortAppServeApp. Err: %s", err)
+	}
 
 	// Call argo workflow
 	workflow := "abort-java-app"
