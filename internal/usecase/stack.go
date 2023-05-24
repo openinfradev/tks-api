@@ -438,6 +438,19 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 	status, _ := getStackStatus(cluster, appGroups)
 	stackStatus = status.String()
 
+	// sort
+	// deleting : service_mesh -> lma -> cluster
+	// installing : cluster -> lma -> service_mesh
+	if status == domain.StackStatus_APPGROUP_DELETING || status == domain.StackStatus_CLUSTER_DELETING {
+		reversed := make([]domain.StackStepStatus, len(out))
+		j := 0
+		for i := len(out) - 1; i >= 0; i-- {
+			reversed[j] = out[i]
+			j++
+		}
+		out = reversed
+	}
+
 	return
 }
 
@@ -468,16 +481,17 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 	}
 }
 
-func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (domain.StackStatus, string) {
-	for _, application := range applications {
-		if application.Status == domain.AppGroupStatus_INSTALLING {
-			return domain.StackStatus_APPGROUP_INSTALLING, application.StatusDesc
+// [TODO] more pretty
+func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain.StackStatus, string) {
+	for _, appGroup := range appGroups {
+		if appGroup.Status == domain.AppGroupStatus_INSTALLING {
+			return domain.StackStatus_APPGROUP_INSTALLING, appGroup.StatusDesc
 		}
-		if application.Status == domain.AppGroupStatus_DELETING {
-			return domain.StackStatus_APPGROUP_DELETING, application.StatusDesc
+		if appGroup.Status == domain.AppGroupStatus_DELETING {
+			return domain.StackStatus_APPGROUP_DELETING, appGroup.StatusDesc
 		}
-		if application.Status == domain.AppGroupStatus_ERROR {
-			return domain.StackStatus_APPGROUP_ERROR, application.StatusDesc
+		if appGroup.Status == domain.AppGroupStatus_ERROR {
+			return domain.StackStatus_APPGROUP_ERROR, appGroup.StatusDesc
 		}
 	}
 
@@ -496,12 +510,30 @@ func getStackStatus(cluster domain.Cluster, applications []domain.AppGroup) (dom
 
 	// workflow 중간 중간 비는 status 처리...
 	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
-		if len(applications) != 1 {
+		if len(appGroups) < 1 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
+		} else {
+			for _, appGroup := range appGroups {
+				if appGroup.Status == domain.AppGroupStatus_DELETED {
+					return domain.StackStatus_CLUSTER_DELETING, "(0/0)"
+				}
+			}
 		}
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
-		if len(applications) != 2 {
+		if len(appGroups) < 2 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
+		} else {
+			deletedAppGroupCnt := 0
+			for _, appGroup := range appGroups {
+				if appGroup.Status == domain.AppGroupStatus_DELETED {
+					deletedAppGroupCnt++
+				}
+			}
+			if deletedAppGroupCnt == 1 {
+				return domain.StackStatus_APPGROUP_DELETING, "(0/0)"
+			} else if deletedAppGroupCnt == 2 {
+				return domain.StackStatus_CLUSTER_DELETING, "(0/0)"
+			}
 		}
 	}
 
