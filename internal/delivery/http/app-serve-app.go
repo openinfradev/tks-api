@@ -18,98 +18,48 @@ import (
 
 var (
 	StatusResult = map[string]string{
-		"BUILDING":                  "BUILDING",
-		"BUILD_SUCCESS":             "DONE",
-		"BUILD_FAILED":              "FAILED",
-		"DEPLOYING":                 "DEPLOYING",
-		"DEPLOY_SUCCESS":            "DONE",
-		"DEPLOY_FAILED":             "FAILED",
-		"BLUEGREEN_DEPLOYING":       "DEPLOYING",
-		"BLUEGREEN_WAIT":            "WAIT",
-		"BLUEGREEN_DEPLOY_FAILED":   "FAILED",
-		"BLUEGREEN_PROMOTING":       "PROMOTING",
-		"BLUEGREEN_PROMOTE_SUCCESS": "DONE",
-		"BLUEGREEN_PROMOTE_FAILED":  "FAILED",
-		"BLUEGREEN_ABORTING":        "ABORTING",
-		"BLUEGREEN_ABORT_SUCCESS":   "DONE",
-		"BLUEGREEN_ABORT_FAILED":    "FAILED",
-		"CANARY_DEPLOYING":          "DEPLOYING",
-		"CANARY_WAIT":               "WAIT",
-		"CANARY_DEPLOY_FAILED":      "FAILED",
-		"CANARY_PROMOTING":          "PROMOTING",
-		"CANARY_PROMOTE_SUCCESS":    "DONE",
-		"CANARY_PROMOTE_FAILED":     "FAILED",
-		"CANARY_ABORTING":           "ABORTING",
-		"CANARY_ABORT_SUCCESS":      "DONE",
-		"CANARY_ABORT_FAILED":       "FAILED",
-		"ROLLBACKING":               "ROLLBACKING",
-		"ROLLBACK_SUCCESS":          "DONE",
-		"ROLLBACK_FAILED":           "FAILED",
-		"DELETING":                  "DELETING",
-		"DELETE_FAILED":             "FAILED",
+		"BUILDING":         "PROGRESS",
+		"BUILD_SUCCESS":    "DONE",
+		"BUILD_FAILED":     "FAILED",
+		"DEPLOYING":        "PROGRESS",
+		"DEPLOY_SUCCESS":   "DONE",
+		"DEPLOY_FAILED":    "FAILED",
+		"PROMOTE_WAIT":     "WAITING",
+		"PROMOTING":        "PROGRESS",
+		"PROMOTE_SUCCESS":  "DONE",
+		"PROMOTE_FAILED":   "FAILED",
+		"ABORTING":         "PROGRESS",
+		"ABORT_SUCCESS":    "DONE",
+		"ABORT_FAILED":     "FAILED",
+		"ROLLBACKING":      "PROGRESS",
+		"ROLLBACK_SUCCESS": "DONE",
+		"ROLLBACK_FAILED":  "FAILED",
+		"DELETING":         "PROGRESS",
+		"DELETE_SUCCESS":   "DONE",
+		"DELETE_FAILED":    "FAILED",
+		"WAITING":          "WAITING",
 	}
-	StatusName = map[string]string{
-		"BUILDING":                  "BUILD",
-		"BUILD_SUCCESS":             "BUILD",
-		"BUILD_FAILED":              "BUILD",
-		"DEPLOYING":                 "DEPLOY",
-		"DEPLOY_SUCCESS":            "DEPLOY",
-		"DEPLOY_FAILED":             "DEPLOY",
-		"BLUEGREEN_DEPLOYING":       "PROMOTE",
-		"BLUEGREEN_WAIT":            "PROMOTE",
-		"BLUEGREEN_DEPLOY_FAILED":   "PROMOTE",
-		"BLUEGREEN_PROMOTING":       "PROMOTE",
-		"BLUEGREEN_PROMOTE_SUCCESS": "PROMOTE",
-		"BLUEGREEN_PROMOTE_FAILED":  "PROMOTE",
-		"BLUEGREEN_ABORTING":        "PROMOTE",
-		"BLUEGREEN_ABORT_SUCCESS":   "PROMOTE",
-		"BLUEGREEN_ABORT_FAILED":    "PROMOTE",
-		"CANARY_DEPLOYING":          "PROMOTE",
-		"CANARY_WAIT":               "PROMOTE",
-		"CANARY_DEPLOY_FAILED":      "PROMOTE",
-		"CANARY_PROMOTING":          "PROMOTE",
-		"CANARY_PROMOTE_SUCCESS":    "PROMOTE",
-		"CANARY_PROMOTE_FAILED":     "PROMOTE",
-		"CANARY_ABORTING":           "PROMOTE",
-		"CANARY_ABORT_SUCCESS":      "PROMOTE",
-		"CANARY_ABORT_FAILED":       "PROMOTE",
-		"ROLLBACKING":               "ROLLBACK",
-		"ROLLBACK_SUCCESS":          "ROLLBACK",
-		"ROLLBACK_FAILED":           "ROLLBACK",
-		"DELETING":                  "DELETE",
-		"DELETE_FAILED":             "DELETE",
-	}
-	StatusStages = map[string][]string{
-		"PREPARING":                 {},
-		"BUILDING":                  {"BUILDING"},
-		"BUILD_SUCCESS":             {"BUILD_SUCCESS"},
-		"BUILD_FAILED":              {"BUILD_FAILED"},
-		"DEPLOYING":                 {"BUILD_SUCCESS", "DEPLOYING"},
-		"DEPLOY_SUCCESS":            {"BUILD_SUCCESS", "DEPLOY_SUCCESS"},
-		"DEPLOY_FAILED":             {"BUILD_SUCCESS", "DEPLOY_FAILED"},
-		"BLUEGREEN_DEPLOYING":       {"BUILD_SUCCESS", "DEPLOYING"},
-		"BLUEGREEN_DEPLOY_FAILED":   {"BUILD_SUCCESS", "DEPLOY_FAILED"},
-		"BLUEGREEN_WAIT":            {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_WAIT"},
-		"BLUEGREEN_PROMOTING":       {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_PROMOTING"},
-		"BLUEGREEN_PROMOTE_SUCCESS": {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_PROMOTE_SUCCESS"},
-		"BLUEGREEN_PROMOTE_FAILED":  {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_PROMOTE_FAILED"},
-		"BLUEGREEN_ABORTING":        {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_ABORTING"},
-		"BLUEGREEN_ABORT_SUCCESS":   {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_ABORT_SUCCESS"},
-		"BLUEGREEN_ABORT_FAILED":    {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "BLUEGREEN_ABORT_FAILED"},
-		"CANARY_DEPLOYING":          {"BUILD_SUCCESS", "DEPLOYING"},
-		"CANARY_DEPLOY_FAILED":      {"BUILD_SUCCESS", "DEPLOY_FAILED"},
-		"CANARY_WAIT":               {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_WAIT"},
-		"CANARY_PROMOTING":          {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_PROMOTING"},
-		"CANARY_PROMOTE_SUCCESS":    {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_PROMOTE_SUCCESS"},
-		"CANARY_PROMOTE_FAILED":     {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_PROMOTE_FAILED"},
-		"CANARY_ABORTING":           {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_ABORTING"},
-		"CANARY_ABORT_SUCCESS":      {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_ABORT_SUCCESS"},
-		"CANARY_ABORT_FAILED":       {"BUILD_SUCCESS", "DEPLOY_SUCCESS", "CANARY_ABORT_FAILED"},
-		"ROLLBACKING":               {"ROLLBACKING"},
-		"ROLLBACK_SUCCESS":          {"ROLLBACK_SUCCESS"},
-		"ROLLBACK_FAILED":           {"ROLLBACK_FAILED"},
-		"DELETING":                  {"DELETING"},
-		"DELETE_FAILED":             {"DELETE_FAILED"},
+	StatusStages = map[string]map[string]string{
+		"PREPARING":        {"build": "WAITING", "deploy": "WAITING", "promote": "WAITING"},
+		"BUILDING":         {"build": "BUILDING", "deploy": "WAITING", "promote": "WAITING"},
+		"BUILD_SUCCESS":    {"build": "BUILD_SUCCESS", "deploy": "WAITING", "promote": "WAITING"},
+		"BUILD_FAILED":     {"build": "BUILD_FAILED", "deploy": "WAITING", "promote": "WAITING"},
+		"DEPLOYING":        {"build": "BUILD_SUCCESS", "deploy": "DEPLOYING", "promote": "WAITING"},
+		"DEPLOY_SUCCESS":   {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "WAITING"},
+		"DEPLOY_FAILED":    {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_FAILED", "promote": "WAITING"},
+		"PROMOTE_WAIT":     {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "PROMOTE_WAIT"},
+		"PROMOTING":        {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "PROMOTING"},
+		"PROMOTE_SUCCESS":  {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "PROMOTE_SUCCESS"},
+		"PROMOTE_FAILED":   {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "PROMOTE_FAILED"},
+		"ABORTING":         {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "ABORTING"},
+		"ABORT_SUCCESS":    {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "ABORT_SUCCESS"},
+		"ABORT_FAILED":     {"build": "BUILD_SUCCESS", "deploy": "DEPLOY_SUCCESS", "promote": "ABORT_FAILED"},
+		"ROLLBACKING":      {"rollback": "ROLLBACKING"},
+		"ROLLBACK_SUCCESS": {"rollback": "ROLLBACK_SUCCESS"},
+		"ROLLBACK_FAILED":  {"rollback": "ROLLBACK_FAILED"},
+		"DELETING":         {"delete": "DELETING"},
+		"DELETE_SUCCESS":   {"delete": "DELETE_SUCCESS"},
+		"DELETE_FAILED":    {"delete": "DELETE_FAILED"},
 	}
 )
 
@@ -293,7 +243,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	for idx, t := range app.AppServeAppTasks {
 		// Rollbacking to latest task should be blocked.
-		if idx > 0 && strings.Contains(t.Status, "SUCCESS") && t.Status != "BLUEGREEN_ABORT_SUCCESS" &&
+		if idx > 0 && strings.Contains(t.Status, "SUCCESS") && t.Status != "ABORT_SUCCESS" &&
 			t.Status != "ROLLBACK_SUCCESS" {
 			t.AvailableRollback = true
 		}
@@ -308,46 +258,64 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	ResponseJSON(w, http.StatusOK, out)
 }
 
-// Name             - Status (Result)
-// -------------------------------------------------------------------------------------
-// PREPARE (준비)              - PREPARING (DONE)
-// BUILD (빌드)                - BUILDING (BUILDING),              BUILD_SUCCESS (DONE),             BUILD_FAILED (FAILED)
-// DEPLOY (배포)               - DEPLOYING (DEPLOYING),            DEPLOY_SUCCESS (DONE),            DEPLOY_FAILED (FAILED)
-// BLUEGREEN_PROMOTE (프로모트) - BLUEGREEN_DEPLOYING (DEPLOYING),  BLUEGREEN_WAIT (WAIT),            BLUEGREEN_DEPLOY_FAILED (FAILED)
-// BLUEGREEN_PROMOTE (프로모트) - BLUEGREEN_PROMOTING (PROMOTING),  BLUEGREEN_PROMOTE_SUCCESS (DONE), BLUEGREEN_PROMOTE_FAILED (FAILED)
-// BLUEGREEN_PROMOTE (프로모트) - BLUEGREEN_ABORTING (ABORTING),    BLUEGREEN_ABORT_SUCCESS (DONE),   BLUEGREEN_ABORT_FAILED (FAILED)
-// CANARY_PROMOTE (카나리아)    - CANARY_DEPLOYING (DEPLOYING),     CANARY_WAIT (WAIT),               CANARY_DEPLOY_FAILED (FAILED)
-// CANARY_PROMOTE (카나리아)    - CANARY_PROMOTING (PROMOTING),     CANARY_PROMOTE_SUCCESS (DONE),    CANARY_PROMOTE_FAILED (FAILED)
-// CANARY_PROMOTE (카나리아)    - CANARY_ABORTING (ABORTING),       CANARY_ABORT_SUCCESS (DONE),      CANARY_ABORT_FAILED (FAILED)
-// ROLLBACK (롤백)             - ROLLBACKING (ROLLBACKING),        ROLLBACK_SUCCESS (DONE),          ROLLBACK_FAILED (FAILED)
 func makeStages(app *domain.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
 	var stage domain.StageResponse
-	for _, s := range StatusStages[app.Status] {
-		stage = makeStage(app, s)
+	var pipelines []string
+	taskStatus := app.AppServeAppTasks[0].Status
+	strategy := app.AppServeAppTasks[0].Strategy
+
+	if taskStatus == "ROLLBACKING" ||
+		taskStatus == "ROLLBACK_SUCCESS" ||
+		taskStatus == "ROLLBACK_FAILED" {
+		pipelines = []string{"rollback"}
+	} else if taskStatus == "DELETING" ||
+		taskStatus == "DELETE_SUCCESS" ||
+		taskStatus == "DELETE_FAILED" {
+		pipelines = []string{"delete"}
+	} else if app.Type == "all" {
+		if strategy == "rolling-update" {
+			pipelines = []string{"build", "deploy"}
+		} else if strategy == "blue-green" {
+			pipelines = []string{"build", "deploy", "promote"}
+		}
+	} else if app.Type == "deploy" {
+		if strategy == "rolling-update" {
+			pipelines = []string{"deploy"}
+		} else if strategy == "blue-green" {
+			pipelines = []string{"deploy", "promote"}
+		}
+	} else {
+		log.Error("Unexpected case happened while making stages!")
+	}
+
+	fmt.Printf("Pipeline stages: %v\n", pipelines)
+
+	for _, pl := range pipelines {
+		stage = makeStage(app, pl)
 		stages = append(stages, stage)
 	}
 
 	return stages
 }
 
-func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
+func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 	stage := domain.StageResponse{
-		Name:   StatusName[status],
-		Status: status,
-		Result: StatusResult[status],
+		Name:   pl,
+		Status: StatusStages[app.Status][pl],
+		Result: StatusResult[StatusStages[app.Status][pl]],
 	}
 
 	var actions []domain.ActionResponse
-	if status == "DEPLOY_SUCCESS" {
+	if stage.Status == "DEPLOY_SUCCESS" {
 		action := domain.ActionResponse{
 			Name: "ENDPOINT",
 			Uri:  app.EndpointUrl,
 			Type: "LINK",
 		}
 		actions = append(actions, action)
-	} else if status == "BLUEGREEN_WAIT" {
+	} else if stage.Status == "PROMOTE_WAIT" && app.AppServeAppTasks[0].Strategy == "blue-green" {
 		action := domain.ActionResponse{
 			Name: "PREVIEW",
 			Uri:  app.PreviewEndpointUrl,
@@ -374,7 +342,7 @@ func makeStage(app *domain.AppServeApp, status string) domain.StageResponse {
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
 		}
 		actions = append(actions, action)
-	} else if status == "BLUEGREEN_PROMOTE_SUCCESS" {
+	} else if stage.Status == "PROMOTE_SUCCESS" {
 		action := domain.ActionResponse{
 			Name: "ENDPOINT",
 			Uri:  app.EndpointUrl,
@@ -537,7 +505,8 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//}
 
 	// priority: 3. previous task
-	var latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
+	//var latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
+	var latestTask = app.AppServeAppTasks[0]
 	if err = domain.Map(latestTask, &task); err != nil {
 		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
