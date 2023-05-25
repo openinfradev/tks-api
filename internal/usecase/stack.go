@@ -324,6 +324,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"organization_id=" + dto.OrganizationId,
 			"cluster_id=" + dto.ID.String(),
+			"cloud_account_id=" + cluster.CloudAccount.ID.String(),
 		},
 	})
 	if err != nil {

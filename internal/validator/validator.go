@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"fmt"
 	"regexp"
+	"unicode/utf8"
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
@@ -61,8 +63,7 @@ func validateName(fl validator.FieldLevel) bool {
 	if fl.Field().String() == "" {
 		return false
 	}
-	if len(fl.Field().String()) > 30 {
-		return false
-	}
-	return true
+
+	fmt.Println(utf8.RuneCountInString(fl.Field().String()))
+	return utf8.RuneCountInString(fl.Field().String()) <= 30
 }
