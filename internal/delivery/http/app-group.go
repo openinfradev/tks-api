@@ -73,7 +73,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 
 	clusterId := urlParams.Get("clusterId")
 	if clusterId == "" || !helper.ValidateClusterId(clusterId) {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
 		return
 	}
 
@@ -109,12 +109,12 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 	appGroupId := domain.AppGroupId(strId)
 	if !appGroupId.Validate() {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 	appGroup, err := h.usecase.Get(appGroupId)
@@ -142,22 +142,22 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 // @Router /app-groups [delete]
 // @Security     JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	strId, ok := vars["appGroupId"]
+	user, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
-	user, ok := request.UserFrom(r.Context())
+	vars := mux.Vars(r)
+	strId, ok := vars["appGroupId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 
 	appGroupId := domain.AppGroupId(strId)
 	if !appGroupId.Validate() {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 
@@ -186,12 +186,12 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 	appGroupId := domain.AppGroupId(strId)
 	if !appGroupId.Validate() {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 
@@ -237,12 +237,12 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 	appGroupId := domain.AppGroupId(strId)
 	if !appGroupId.Validate() {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appGroupId"), "C_INVALID_APPGROUP_ID", ""))
 		return
 	}
 

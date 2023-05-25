@@ -94,13 +94,13 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionId, ok := request.SessionFrom(ctx)
 	if !ok {
 		log.Errorf("session id is not found")
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found"), "A_NO_SESSION", ""))
 		return
 	}
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
 		log.Errorf("user info is not found")
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found"), "A_NO_SESSION", ""))
 		return
 	}
 	organizationId := userInfo.GetOrganizationId()

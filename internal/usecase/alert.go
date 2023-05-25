@@ -134,20 +134,20 @@ func (u *AlertUsecase) Update(ctx context.Context, dto domain.Alert) error {
 func (u *AlertUsecase) Get(alertId uuid.UUID) (alert domain.Alert, err error) {
 	alert, err = u.repo.Get(alertId)
 	if err != nil {
-		return domain.Alert{}, err
+		return alert, err
 	}
 	u.makeAdditionalInfo(&alert)
 
 	return
 }
 
-func (u *AlertUsecase) GetByName(organizationId string, name string) (res domain.Alert, err error) {
-	res, err = u.repo.GetByName(organizationId, name)
+func (u *AlertUsecase) GetByName(organizationId string, name string) (out domain.Alert, err error) {
+	out, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Alert{}, httpErrors.NewNotFoundError(err, "", "")
+			return out, httpErrors.NewNotFoundError(err, "", "")
 		}
-		return domain.Alert{}, err
+		return out, err
 	}
 	return
 }
@@ -168,12 +168,12 @@ func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err 
 func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
 	_, err = u.Get(dto.ID)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err, "", "")
+		return httpErrors.NewNotFoundError(err, "AL_NOT_FOUND_ALERT", "")
 	}
 
 	*dto.UpdatorId = user.GetUserId()
@@ -189,12 +189,12 @@ func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error)
 func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return uuid.Nil, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
 	_, err = u.repo.Get(dto.AlertId)
 	if err != nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Not found alert"), "", "")
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Not found alert"), "AL_NOT_FOUND_ALERT", "")
 	}
 
 	userId := user.GetUserId()

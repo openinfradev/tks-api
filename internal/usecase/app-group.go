@@ -50,19 +50,19 @@ func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGro
 func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 
 	cluster, err := u.clusterRepo.Get(dto.ClusterId)
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to get cluster info")
+		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
 	}
 
 	resAppGroups, err := u.repo.Fetch(dto.ClusterId)
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to get appgroups")
+		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_APPGROUP", "")
 	}
 
 	for _, resAppGroup := range resAppGroups {
@@ -81,7 +81,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		err = u.repo.Update(dto)
 	}
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to create appGroup.")
+		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CREATE_APPGROUP", "")
 	}
 
 	workflowTemplate := ""
@@ -115,7 +115,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
 	if err != nil {
 		log.Error("failed to submit argo workflow template. err : ", err)
-		return "", errors.Wrap(err, "Failed to call argo workflow")
+		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CALL_WORKFLOW", "")
 	}
 
 	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {

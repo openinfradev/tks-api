@@ -1051,21 +1051,6 @@ definitions:
             type: string
         type: object
     type: object
-  domain.History:
-    properties:
-      accountId:
-        type: string
-      createdAt:
-        type: string
-      description:
-        type: string
-      historyType:
-        type: string
-      id:
-        type: string
-      updatedAt:
-        type: string
-    type: object
   domain.ListOrganizationBody:
     properties:
       createdAt:
@@ -2118,23 +2103,6 @@ paths:
       summary: Get cluster site values for creating
       tags:
       - Clusters
-  /histories:
-    get:
-      consumes:
-      - application/json
-      description: Get histories
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.History'
-      security:
-      - JWT: []
-      summary: Get histories
-      tags:
-      - Histories
   /organizations:
     get:
       consumes:

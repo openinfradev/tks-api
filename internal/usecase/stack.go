@@ -54,28 +54,28 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) ISta
 func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
 	_, err = u.GetByName(dto.OrganizationId, dto.Name)
 	if err == nil {
-		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
 	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
 	_, err = u.cloudAccountRepo.Get(dto.CloudAccountId)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "", "")
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
 	}
 
 	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get clusters"), "", "")
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
 	isPrimary := false
 	if len(clusters) == 0 {
@@ -112,7 +112,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	})
 	if err != nil {
 		log.Error(err)
-		return "", errors.Wrap(err, "Failed to call workflow. workflow")
+		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
 	log.Debug("Submitted workflow: ", workflowId)
 
@@ -147,19 +147,19 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Stack{}, httpErrors.NewNotFoundError(err, "", "")
+			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
 		}
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
 	if err != nil {
-		return domain.Stack{}, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "", "")
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
 	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId))
 	if err != nil {
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	out = reflectClusterToStack(cluster, appGroups)
@@ -171,7 +171,7 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 		if appGroup.AppGroupType == domain.AppGroupType_LMA {
 			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
 			if err != nil {
-				return domain.Stack{}, err
+				return out, err
 			}
 			if len(applications) > 0 {
 				out.GrafanaUrl = applications[0].Endpoint
@@ -186,14 +186,14 @@ func (u *StackUsecase) GetByName(organizationId string, name string) (out domain
 	cluster, err := u.clusterRepo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Stack{}, httpErrors.NewNotFoundError(err, "", "")
+			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
 		}
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
 	if err != nil {
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	out = reflectClusterToStack(cluster, appGroups)
@@ -203,7 +203,7 @@ func (u *StackUsecase) GetByName(organizationId string, name string) (out domain
 func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err error) {
 	organization, err := u.organizationRepo.Get(organizationId)
 	if err != nil {
-		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "", "")
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
@@ -247,7 +247,7 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 
 	_, err = u.clusterRepo.Get(domain.ClusterId(dto.ID))
 	if err != nil {
-		return errors.Wrap(err, "No cluster")
+		return httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
 	}
 
 	updatorId := user.GetUserId()
@@ -268,7 +268,7 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(dto.ID))
 	if err != nil {
-		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "", "")
+		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "S_FAILED_FETCH_CLUSTER", "")
 	}
 
 	// 지우려고 하는 stack 이 primary cluster 라면, organization 내에 cluster 가 자기 자신만 남아있을 경우이다.
@@ -286,11 +286,10 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			}
 
 			for _, cl := range clusters {
-				log.Infof("%s %s", cl.ID, cl.Status)
 				if cl.ID != cluster.ID &&
 					cl.Status != domain.ClusterStatus_DELETED &&
 					cl.Status != domain.ClusterStatus_ERROR {
-					return fmt.Errorf("Failed to delete 'Primary' cluster. The clusters remain in organization")
+					return httpErrors.NewBadRequestError(fmt.Errorf("Failed to delete 'Primary' cluster. The clusters remain in organization"), "S_REMAIN_CLUSTER_FOR_DELETION", "")
 				}
 			}
 			break

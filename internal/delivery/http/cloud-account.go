@@ -39,7 +39,7 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 	log.Debug("[TODO] organization check", organizationId)
@@ -120,13 +120,13 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
@@ -159,19 +159,19 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 	log.Debug("[TODO] organization check", organizationId)
 
-	cloudSeetingId, err := uuid.Parse(strId)
+	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
@@ -186,7 +186,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 	if err = domain.Map(input, &dto); err != nil {
 		log.Info(err)
 	}
-	dto.ID = cloudSeetingId
+	dto.ID = cloudAccountId
 	dto.OrganizationId = organizationId
 
 	err = h.usecase.Update(r.Context(), dto)
@@ -214,13 +214,13 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	parsedId, err := uuid.Parse(cloudAccountId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
@@ -261,13 +261,13 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	parsedId, err := uuid.Parse(cloudAccountId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
@@ -294,14 +294,14 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
 	vars := mux.Vars(r)
 	name, ok := vars["name"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "CA_INVALID_CLOUD_ACCOUNT_NAME", ""))
 		return
 	}
 
@@ -337,7 +337,7 @@ func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	awsAccountId, ok := vars["awsAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid accountId"), "", "사용 중인 AwsAccountId 입니다."))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid accountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 

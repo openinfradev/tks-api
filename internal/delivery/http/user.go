@@ -56,7 +56,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -120,12 +120,12 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -206,7 +206,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
@@ -246,7 +246,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
@@ -312,12 +312,12 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -343,7 +343,7 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
@@ -376,7 +376,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
@@ -445,7 +445,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 		return
 
 	}
@@ -495,7 +495,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
@@ -522,7 +522,7 @@ func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Req
 func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request context"), "", ""))
+		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request context"), "A_INVALID_TOKEN", ""))
 		return
 	}
 	if err := u.usecase.Delete(requestUserInfo.GetUserId(), requestUserInfo.GetOrganizationId()); err != nil {
@@ -547,12 +547,12 @@ func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	accountId, ok := vars["accountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -587,12 +587,12 @@ func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	email, ok := vars["email"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 

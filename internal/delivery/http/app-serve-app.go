@@ -88,7 +88,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -173,7 +173,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -219,14 +219,14 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	fmt.Printf("appId = [%s]\n", appId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 	app, err := h.usecase.GetAppServeAppById(appId)
@@ -235,7 +235,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if app == nil {
-		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no appId"), "D_NO_ASA", ""))
 		return
 	}
 
@@ -371,20 +371,20 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	urlParams := r.URL.Query()
 	appId := urlParams.Get("appId")
 	if appId == "" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	exist, err := h.usecase.IsAppServeAppExist(appId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "", ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -412,18 +412,18 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 	appName, ok := vars["name"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appName"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appName"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	existed, err := h.usecase.IsAppServeAppNameExist(organizationId, appName)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "", ""))
+		ErrorJSON(w, err)
 		return
 	}
 
@@ -449,13 +449,13 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
@@ -465,11 +465,11 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	// priority: 3. previous app
 	app, err := h.usecase.GetAppServeAppById(appId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "", ""))
+		ErrorJSON(w, err)
 		return
 	}
 	if len(app.AppServeAppTasks) < 1 {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "", ""))
+		ErrorJSON(w, err)
 	}
 
 	// priority: 1. Request
@@ -484,7 +484,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	appReq.SetDefaultValue()
 
 	if err = domain.Map(appReq, app); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		//ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
@@ -508,13 +508,13 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//var latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
 	var latestTask = app.AppServeAppTasks[0]
 	if err = domain.Map(latestTask, &task); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		//ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
 	// priority: 1. Request
 	if err = domain.Map(appReq, &task); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		//ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
@@ -567,13 +567,13 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
@@ -609,13 +609,13 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
@@ -655,13 +655,13 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
@@ -690,13 +690,13 @@ func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
@@ -707,7 +707,7 @@ func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.
 		return
 	}
 	if appReq.TaskId == "" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("no taskId"), "", ""))
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("no taskId"), "C_INVALID_ASA_TASK_ID", ""))
 		return
 	}
 

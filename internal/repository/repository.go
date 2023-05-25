@@ -14,5 +14,4 @@ type Repository struct {
 	CloudAccount  ICloudAccountRepository
 	StackTemplate IStackTemplateRepository
 	Alert         IAlertRepository
-	History       IHistoryRepository
 }
