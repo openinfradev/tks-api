@@ -107,7 +107,7 @@ type StackStepStatus struct {
 }
 
 type CreateStackRequest struct {
-	Name                string `json:"name" validate:"required,name"`
+	Name                string `json:"name" validate:"required,name,rfc1123"`
 	Description         string `json:"description"`
 	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
 	CloudAccountId      string `json:"cloudAccountId" validate:"required"`

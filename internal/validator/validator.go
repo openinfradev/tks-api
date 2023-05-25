@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"fmt"
 	"regexp"
 	"unicode/utf8"
 
@@ -51,7 +50,7 @@ func validateRfc1123(fl validator.FieldLevel) bool {
 	if fl.Field().String() == "" {
 		return false
 	}
-	if len(fl.Field().String()) > 30 {
+	if utf8.RuneCountInString(fl.Field().String()) > 30 {
 		return false
 	}
 	r, _ := regexp.Compile(REGEX_RFC1123)
@@ -64,6 +63,5 @@ func validateName(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	fmt.Println(utf8.RuneCountInString(fl.Field().String()))
 	return utf8.RuneCountInString(fl.Field().String()) <= 30
 }
