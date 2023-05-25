@@ -1695,6 +1695,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/force": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Force CloudAccount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudAccounts"
+                ],
+                "summary": "Delete Force CloudAccount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboard/charts": {
             "get": {
                 "security": [

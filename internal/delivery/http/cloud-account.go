@@ -246,6 +246,40 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	ResponseJSON(w, http.StatusOK, nil)
 }
 
+// DeleteForceCloudAccount godoc
+// @Tags CloudAccounts
+// @Summary Delete Force CloudAccount
+// @Description Delete Force CloudAccount
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param cloudAccountId path string true "cloudAccountId"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/force [delete]
+// @Security     JWT
+func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	cloudAccountId, ok := vars["cloudAccountId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "", ""))
+		return
+	}
+
+	parsedId, err := uuid.Parse(cloudAccountId)
+	if err != nil {
+		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "", ""))
+		return
+	}
+
+	err = h.usecase.DeleteForce(r.Context(), parsedId)
+	if err != nil {
+		ErrorJSON(w, err)
+		return
+	}
+
+	ResponseJSON(w, http.StatusOK, nil)
+}
+
 // CheckCloudAccountName godoc
 // @Tags CloudAccounts
 // @Summary Check name for cloudAccount

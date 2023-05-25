@@ -2740,6 +2740,32 @@ paths:
       summary: Update CloudAccount
       tags:
       - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/force:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Force CloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: cloudAccountId
+        in: path
+        name: cloudAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Force CloudAccount
+      tags:
+      - CloudAccounts
   /organizations/{organizationId}/cloud-accounts/name/{name}/existence:
     get:
       consumes:

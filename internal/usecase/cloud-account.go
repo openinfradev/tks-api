@@ -25,6 +25,7 @@ type ICloudAccountUsecase interface {
 	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.CloudAccount) error
 	Delete(ctx context.Context, dto domain.CloudAccount) error
+	DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) error
 }
 
 type CloudAccountUsecase struct {
@@ -172,6 +173,19 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 
 	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
+	}
+
+	return nil
+}
+
+func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) (err error) {
+	if u.getClusterCnt(cloudAccountId) > 0 {
+		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
+	}
+
+	err = u.repo.Delete(cloudAccountId)
+	if err != nil {
+		return err
 	}
 
 	return nil

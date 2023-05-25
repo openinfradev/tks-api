@@ -17,7 +17,7 @@ type ICloudAccountRepository interface {
 	Fetch(organizationId string) ([]domain.CloudAccount, error)
 	Create(dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(dto domain.CloudAccount) (err error)
-	Delete(dto domain.CloudAccount) (err error)
+	Delete(cloudAccountId uuid.UUID) (err error)
 	InitWorkflow(cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) (err error)
 }
 
@@ -117,8 +117,8 @@ func (r *CloudAccountRepository) Update(dto domain.CloudAccount) (err error) {
 	return nil
 }
 
-func (r *CloudAccountRepository) Delete(dto domain.CloudAccount) (err error) {
-	res := r.db.Delete(&CloudAccount{}, "id = ?", dto.ID)
+func (r *CloudAccountRepository) Delete(cloudAccountId uuid.UUID) (err error) {
+	res := r.db.Delete(&CloudAccount{}, "id = ?", cloudAccountId)
 	if res.Error != nil {
 		return res.Error
 	}
