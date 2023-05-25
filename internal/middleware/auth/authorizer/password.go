@@ -25,7 +25,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 			internalHttp.ErrorJSON(w, err)
 			return
 		}
-		//TODO: 임시로 admin 계정은 비밀번호 변경 기간을 무시하도록 함. 추후 설계 필요
+		//TODO: TKS control plane 동작을 위해, master 조직의 admin 계정은 비밀번호 변경 기간을 무시하도록 함.
 		if storedUser.Organization.ID == "master" && storedUser.AccountId == "admin" {
 			handler.ServeHTTP(w, r)
 			return
