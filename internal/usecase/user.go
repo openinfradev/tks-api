@@ -254,6 +254,10 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 	if err != nil {
 		return nil, err
 	}
+	err = u.userRepository.UpdatePassword(userUuid, user.Organization.ID, hashedPassword, true)
+	if err != nil {
+		return nil, err
+	}
 
 	organizationInfo, err := u.organizationRepository.Get(orgainzationId)
 	if err != nil {
