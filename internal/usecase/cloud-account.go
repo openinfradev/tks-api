@@ -21,6 +21,7 @@ const MAX_WORKFLOW_TIME = 30
 type ICloudAccountUsecase interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(organizationId string, name string) (domain.CloudAccount, error)
+	GetByAwsAccountId(awsAccountId string) (domain.CloudAccount, error)
 	Fetch(organizationId string) ([]domain.CloudAccount, error)
 	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.CloudAccount) error
@@ -53,7 +54,11 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 
 	_, err = u.GetByName(dto.OrganizationId, dto.Name)
 	if err == nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "조직내에 동일한 이름의 클라우드 어카운트가 존재합니다.")
+	}
+	_, err = u.GetByAwsAccountId(dto.AwsAccountId)
+	if err == nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "사용 중인 AwsAccountId 입니다. 관리자에게 문의하세요.")
 	}
 
 	cloudAccountId, err = u.repo.Create(dto)
@@ -125,6 +130,18 @@ func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res
 	return
 }
 
+func (u *CloudAccountUsecase) GetByAwsAccountId(awsAccountId string) (res domain.CloudAccount, err error) {
+	res, err = u.repo.GetByAwsAccountId(awsAccountId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
+		}
+		return domain.CloudAccount{}, err
+	}
+	res.Clusters = u.getClusterCnt(res.ID)
+	return
+}
+
 func (u *CloudAccountUsecase) Fetch(organizationId string) (cloudAccounts []domain.CloudAccount, err error) {
 	cloudAccounts, err = u.repo.Fetch(organizationId)
 	if err != nil {
@@ -179,6 +196,15 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 }
 
 func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) (err error) {
+	cloudAccount, err := u.repo.Get(cloudAccountId)
+	if err != nil {
+		return err
+	}
+
+	if cloudAccount.Status != domain.CloudAccountStatus_ERROR {
+		return fmt.Errorf("The status is not ERROR. %s", cloudAccount.Status)
+	}
+
 	if u.getClusterCnt(cloudAccountId) > 0 {
 		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
 	}

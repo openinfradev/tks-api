@@ -255,7 +255,7 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 // @Param organizationId path string true "organizationId"
 // @Param cloudAccountId path string true "cloudAccountId"
 // @Success 200 {object} nil
-// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/force [delete]
+// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error [delete]
 // @Security     JWT
 func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -288,7 +288,7 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 // @Produce json
 // @Param organizationId path string true "organizationId"
 // @Param name path string true "name"
-// @Success 200 {object} nil
+// @Success 200 {object} domain.CheckCloudAccountNameResponse
 // @Router /organizations/{organizationId}/cloud-accounts/name/{name}/existence [GET]
 // @Security     JWT
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
@@ -317,6 +317,42 @@ func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *ht
 	}
 
 	var out domain.CheckCloudAccountNameResponse
+	out.Existed = exist
+
+	ResponseJSON(w, http.StatusOK, out)
+}
+
+// CheckAwsAccountId godoc
+// @Tags CloudAccounts
+// @Summary Check awsAccountId for cloudAccount
+// @Description Check awsAccountId for cloudAccount
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param awsAccountId path string true "awsAccountId"
+// @Success 200 {object} domain.CheckCloudAccountAwsAccountIdResponse
+// @Router /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence [GET]
+// @Security     JWT
+func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	awsAccountId, ok := vars["awsAccountId"]
+	if !ok {
+		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid accountId"), "", "사용 중인 AwsAccountId 입니다."))
+		return
+	}
+
+	exist := true
+	_, err := h.usecase.GetByAwsAccountId(awsAccountId)
+	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			exist = false
+		} else {
+			ErrorJSON(w, err)
+			return
+		}
+	}
+
+	var out domain.CheckCloudAccountAwsAccountIdResponse
 	out.Existed = exist
 
 	ResponseJSON(w, http.StatusOK, out)

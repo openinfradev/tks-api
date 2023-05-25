@@ -254,6 +254,16 @@ definitions:
       yAxis:
         $ref: '#/definitions/domain.Axis'
     type: object
+  domain.CheckCloudAccountAwsAccountIdResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
+  domain.CheckCloudAccountNameResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
   domain.CheckExistedResponse:
     properties:
       existed:
@@ -2740,7 +2750,7 @@ paths:
       summary: Update CloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/force:
+  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error:
     delete:
       consumes:
       - application/json
@@ -2766,6 +2776,34 @@ paths:
       summary: Delete Force CloudAccount
       tags:
       - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check awsAccountId for cloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: awsAccountId
+        in: path
+        name: awsAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckCloudAccountAwsAccountIdResponse'
+      security:
+      - JWT: []
+      summary: Check awsAccountId for cloudAccount
+      tags:
+      - CloudAccounts
   /organizations/{organizationId}/cloud-accounts/name/{name}/existence:
     get:
       consumes:
@@ -2787,6 +2825,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckCloudAccountNameResponse'
       security:
       - JWT: []
       summary: Check name for cloudAccount

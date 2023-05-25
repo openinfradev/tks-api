@@ -14,6 +14,7 @@ import (
 type ICloudAccountRepository interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(organizationId string, name string) (domain.CloudAccount, error)
+	GetByAwsAccountId(awsAccountId string) (domain.CloudAccount, error)
 	Fetch(organizationId string) ([]domain.CloudAccount, error)
 	Create(dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(dto domain.CloudAccount) (err error)
@@ -79,9 +80,20 @@ func (r *CloudAccountRepository) GetByName(organizationId string, name string) (
 	return
 }
 
+func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out domain.CloudAccount, err error) {
+	var cloudAccount CloudAccount
+	res := r.db.Preload(clause.Associations).First(&cloudAccount, "aws_account_id = ?", awsAccountId)
+
+	if res.Error != nil {
+		return domain.CloudAccount{}, res.Error
+	}
+	out = reflectCloudAccount(cloudAccount)
+	return
+}
+
 func (r *CloudAccountRepository) Fetch(organizationId string) (out []domain.CloudAccount, err error) {
 	var cloudAccounts []CloudAccount
-	res := r.db.Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED)
 	if res.Error != nil {
 		return nil, res.Error
 	}

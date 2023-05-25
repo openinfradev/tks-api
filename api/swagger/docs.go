@@ -1521,6 +1521,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check awsAccountId for cloudAccount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudAccounts"
+                ],
+                "summary": "Check awsAccountId for cloudAccount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "awsAccountId",
+                        "name": "awsAccountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CheckCloudAccountAwsAccountIdResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/cloud-accounts/name/{name}/existence": {
             "get": {
                 "security": [
@@ -1557,7 +1601,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CheckCloudAccountNameResponse"
+                        }
                     }
                 }
             }
@@ -1695,7 +1742,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/force": {
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error": {
             "delete": {
                 "security": [
                     {
@@ -3432,6 +3479,22 @@ const docTemplate = `{
                 },
                 "yAxis": {
                     "$ref": "#/definitions/domain.Axis"
+                }
+            }
+        },
+        "domain.CheckCloudAccountAwsAccountIdResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "domain.CheckCloudAccountNameResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
                 }
             }
         },

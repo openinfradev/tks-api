@@ -126,3 +126,7 @@ type DeleteCloudAccountRequest struct {
 type CheckCloudAccountNameResponse struct {
 	Existed bool `json:"existed"`
 }
+
+type CheckCloudAccountAwsAccountIdResponse struct {
+	Existed bool `json:"existed"`
+}
