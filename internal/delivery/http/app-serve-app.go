@@ -130,14 +130,14 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
 		if task.Port == "" {
-			ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("error: 'port' param is mandatory"), "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: 'port' param is mandatory"), "", ""))
 			return
 		}
 	}
 
 	// Validate 'strategy' param
 	if task.Strategy != "rolling-update" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(
 			fmt.Errorf("error: 'strategy' should be 'rolling-update' on first deployment"), "", ""))
 		return
 	}
