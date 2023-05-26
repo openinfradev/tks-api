@@ -72,7 +72,7 @@ func GetClientFromClusterId(clusterId string) (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 
-	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-kubeconfig", metav1.GetOptions{})
+	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -97,7 +97,7 @@ func GetKubernetesVserionByClusterId(clusterId string) (string, error) {
 		return "", err
 	}
 
-	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-kubeconfig", metav1.GetOptions{})
+	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
 	if err != nil {
 		log.Error(err)
 		return "", err
