@@ -68,10 +68,10 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 			},
 		})
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", errors.Wrap(err, "Failed to call argo workflow")
 	}
-	log.Info("submited workflow :", workflowId)
+	log.InfoWithContext(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(organizationId, workflowId, domain.OrganizationStatus_CREATING); err != nil {
 		return "", errors.Wrap(err, "Failed to init workflow")

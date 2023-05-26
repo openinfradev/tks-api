@@ -39,38 +39,38 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 	var organization domain.Organization
 	if err = domain.Map(input, &organization); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 
 	organizationId, err := h.usecase.Create(ctx, &organization)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	organization.ID = organizationId
 	// Admin user 생성
 	_, err = h.userUsecase.CreateAdmin(organizationId, input.Email)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.CreateOrganizationResponse
 	if err = domain.Map(organization, &out); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetOrganizations godoc
@@ -85,9 +85,9 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
 	organizations, err := h.usecase.Fetch()
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -96,13 +96,13 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 
 	for i, organization := range *organizations {
 		if err = domain.Map(organization, &out.Organizations[i]); err != nil {
-			log.Error(err)
+			log.ErrorWithContext(r.Context(), err)
 		}
 
-		log.Info(organization)
+		log.InfoWithContext(r.Context(), organization)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetOrganization godoc
@@ -119,27 +119,27 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	organization, err := h.usecase.Get(organizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	var out domain.GetOrganizationResponse
 	if err = domain.Map(organization, &out.Organization); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // DeleteOrganization godoc
@@ -156,37 +156,37 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
+		ErrorJSON(w, r, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
 	err := h.userUsecase.DeleteAll(r.Context(), organizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	// organization 삭제
 	err = h.usecase.Delete(organizationId, token)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // UpdateOrganization godoc
@@ -204,34 +204,34 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	input := domain.UpdateOrganizationRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	organization, err := h.usecase.Update(organizationId, input)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.UpdateOrganizationResponse
 	if err = domain.Map(organization, &out); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdatePrimaryCluster godoc
@@ -249,26 +249,26 @@ func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *htt
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	input := domain.UpdatePrimaryClusterRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	err = h.usecase.UpdatePrimaryClusterId(organizationId, input.PrimaryClusterId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }

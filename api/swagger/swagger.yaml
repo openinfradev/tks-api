@@ -312,7 +312,7 @@ definitions:
     type: object
   domain.CloudAccountResponse:
     properties:
-      accessKeyId:
+      awsAccountId:
         type: string
       cloudService:
         type: string
@@ -1184,7 +1184,7 @@ definitions:
     type: object
   domain.SimpleCloudAccountResponse:
     properties:
-      accessKeyId:
+      awsAccountId:
         type: string
       cloudService:
         type: string

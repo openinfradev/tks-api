@@ -88,14 +88,14 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appReq := domain.CreateAppServeAppRequest{}
 	err := UnmarshalRequestInput(r, &appReq)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	var app domain.AppServeApp
 	if err = domain.Map(appReq, &app); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
@@ -116,7 +116,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	var task domain.AppServeAppTask
 	if err = domain.Map(appReq, &task); err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
@@ -130,31 +130,31 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
 		if app.AppServeAppTasks[0].Port == "" {
-			ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("error: 'port' param is mandatory"), "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: 'port' param is mandatory"), "", ""))
 			return
 		}
 	}
 
 	// Validate 'strategy' param
 	if app.AppServeAppTasks[0].Strategy != "rolling-update" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(
 			fmt.Errorf("error: 'strategy' should be 'rolling-update' on first deployment"), "", ""))
 		return
 	}
 
 	_, _, err = h.usecase.CreateAppServeApp(&app)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.CreateAppServeAppResponse
 	if err = domain.Map(app, &out); err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetAppServeApps godoc
@@ -173,7 +173,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -186,22 +186,22 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	showAll, err := strconv.ParseBool(showAllParam)
 	if err != nil {
-		log.Error("Failed to convert showAll params. Err: ", err)
-		ErrorJSON(w, err)
+		log.ErrorWithContext(r.Context(), "Failed to convert showAll params. Err: ", err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	apps, err := h.usecase.GetAppServeApps(organizationId, showAll)
 	if err != nil {
-		log.Error("Failed to get Failed to get app-serve-apps ", err)
-		ErrorJSON(w, err)
+		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = apps
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetAppServeApp godoc
@@ -219,23 +219,23 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	fmt.Printf("appId = [%s]\n", appId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 	app, err := h.usecase.GetAppServeAppById(appId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 	if app == nil {
-		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no appId"), "D_NO_ASA", ""))
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("no appId"), "D_NO_ASA", ""))
 		return
 	}
 
@@ -255,7 +255,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	out.AppServeApp = *app
 	out.Stages = makeStages(app)
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 func makeStages(app *domain.AppServeApp) []domain.StageResponse {
@@ -371,20 +371,20 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	urlParams := r.URL.Query()
 	appId := urlParams.Get("appId")
 	if appId == "" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	exist, err := h.usecase.IsAppServeAppExist(appId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -392,7 +392,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 		Exist bool `json:"exist"`
 	}{Exist: exist}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // IsAppServeAppNameExist godoc
@@ -412,18 +412,18 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 	appName, ok := vars["name"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appName"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appName"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	existed, err := h.usecase.IsAppServeAppNameExist(organizationId, appName)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -431,7 +431,7 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 		Existed bool `json:"existed"`
 	}{Existed: existed}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdateAppServeApp godoc
@@ -449,13 +449,13 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
@@ -465,18 +465,18 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	// priority: 3. previous app
 	app, err := h.usecase.GetAppServeAppById(appId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	if len(app.AppServeAppTasks) < 1 {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 	}
 
 	// priority: 1. Request
 	appReq := domain.UpdateAppServeAppRequest{}
 	err = UnmarshalRequestInput(r, &appReq)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -484,7 +484,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	appReq.SetDefaultValue()
 
 	if err = domain.Map(appReq, app); err != nil {
-		//ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
@@ -500,7 +500,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//	}
 	//}
 	//if err = domain.Map(latestTask, &task); err != nil {
-	//	ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+	//	ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 	//	return
 	//}
 
@@ -508,19 +508,19 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//var latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
 	var latestTask = app.AppServeAppTasks[0]
 	if err = domain.Map(latestTask, &task); err != nil {
-		//ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
 	// priority: 1. Request
 	if err = domain.Map(appReq, &task); err != nil {
-		//ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
 	//updateVersion, err := strconv.Atoi(latestTask.Version)
 	//if err != nil {
-	//	ErrorJSON(w, httpErrors.NewInternalServerError(err,""))
+	//	ErrorJSON(w, r, httpErrors.NewInternalServerError(err,""))
 	//}
 	//task.Version = strconv.Itoa(updateVersion + 1)
 	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
@@ -544,11 +544,11 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, res)
+	ResponseJSON(w, r, http.StatusOK, res)
 }
 
 // UpdateAppServeAppStatus godoc
@@ -567,30 +567,30 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	appStatusReq := domain.UpdateAppServeAppStatusRequest{}
 	err := UnmarshalRequestInput(r, &appStatusReq)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	res, err := h.usecase.UpdateAppServeAppStatus(appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, res)
+	ResponseJSON(w, r, http.StatusOK, res)
 }
 
 // UpdateAppServeAppEndpoint godoc
@@ -609,20 +609,20 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	appReq := domain.UpdateAppServeAppEndpointRequest{}
 	err := UnmarshalRequestInput(r, &appReq)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -633,11 +633,11 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 		appReq.PreviewEndpointUrl,
 		appReq.HelmRevision)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, res)
+	ResponseJSON(w, r, http.StatusOK, res)
 }
 
 // DeleteAppServeApp godoc
@@ -655,24 +655,24 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	res, err := h.usecase.DeleteAppServeApp(appId)
 	if err != nil {
-		log.Error("Failed to delete appId err : ", err)
-		ErrorJSON(w, err)
+		log.ErrorWithContext(r.Context(), "Failed to delete appId err : ", err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, res)
+	ResponseJSON(w, r, http.StatusOK, res)
 }
 
 // RollbackAppServeApp godoc
@@ -690,33 +690,33 @@ func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	appReq := domain.RollbackAppServeAppRequest{}
 	err := UnmarshalRequestInput(r, &appReq)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	if appReq.TaskId == "" {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("no taskId"), "C_INVALID_ASA_TASK_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("no taskId"), "C_INVALID_ASA_TASK_ID", ""))
 		return
 	}
 
 	res, err := h.usecase.RollbackAppServeApp(appId, appReq.TaskId)
 
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, res)
+	ResponseJSON(w, r, http.StatusOK, res)
 }

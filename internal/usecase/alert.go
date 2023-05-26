@@ -19,9 +19,9 @@ import (
 )
 
 type IAlertUsecase interface {
-	Get(alertId uuid.UUID) (domain.Alert, error)
-	GetByName(organizationId string, name string) (domain.Alert, error)
-	Fetch(organizationId string) ([]domain.Alert, error)
+	Get(ctx context.Context, alertId uuid.UUID) (domain.Alert, error)
+	GetByName(ctx context.Context, organizationId string, name string) (domain.Alert, error)
+	Fetch(ctx context.Context, organizationId string) ([]domain.Alert, error)
 	Create(ctx context.Context, dto domain.CreateAlertRequest) (err error)
 	Update(ctx context.Context, dto domain.Alert) error
 	Delete(ctx context.Context, dto domain.Alert) error
@@ -57,7 +57,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 		clusterId := alert.Labels.TacoCluster
 		organizationId, err := u.getOrganizationFromCluster(&allClusters, clusterId)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			continue
 		}
 
@@ -131,7 +131,7 @@ func (u *AlertUsecase) Update(ctx context.Context, dto domain.Alert) error {
 	return nil
 }
 
-func (u *AlertUsecase) Get(alertId uuid.UUID) (alert domain.Alert, err error) {
+func (u *AlertUsecase) Get(ctx context.Context, alertId uuid.UUID) (alert domain.Alert, err error) {
 	alert, err = u.repo.Get(alertId)
 	if err != nil {
 		return alert, err
@@ -141,7 +141,7 @@ func (u *AlertUsecase) Get(alertId uuid.UUID) (alert domain.Alert, err error) {
 	return
 }
 
-func (u *AlertUsecase) GetByName(organizationId string, name string) (out domain.Alert, err error) {
+func (u *AlertUsecase) GetByName(ctx context.Context, organizationId string, name string) (out domain.Alert, err error) {
 	out, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -152,7 +152,7 @@ func (u *AlertUsecase) GetByName(organizationId string, name string) (out domain
 	return
 }
 
-func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err error) {
+func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string) (alerts []domain.Alert, err error) {
 	alerts, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
@@ -171,7 +171,7 @@ func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error)
 		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	_, err = u.Get(dto.ID)
+	_, err = u.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "AL_NOT_FOUND_ALERT", "")
 	}
@@ -205,7 +205,7 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAc
 	if err != nil {
 		return uuid.Nil, err
 	}
-	log.Info("newly created alertActionId:", alertActionId)
+	log.InfoWithContext(ctx, "newly created alertActionId:", alertActionId)
 
 	return
 }

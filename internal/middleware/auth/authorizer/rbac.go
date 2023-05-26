@@ -18,7 +18,7 @@ func RBACFilter(handler http.Handler, repo repository.Repository) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestUserInfo, ok := request.UserFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
+			internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
 			return
 		}
 		role := requestUserInfo.GetRoleProjectMapping()[requestUserInfo.GetOrganizationId()]
@@ -34,7 +34,7 @@ func RBACFilter(handler http.Handler, repo repository.Repository) http.Handler {
 		if role == "admin" || role == "user" {
 			if orgId, ok := vars["organizationId"]; ok {
 				if orgId != requestUserInfo.GetOrganizationId() {
-					internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+					internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
 					return
 				}
 			} else {
@@ -47,7 +47,7 @@ func RBACFilter(handler http.Handler, repo repository.Repository) http.Handler {
 			switch r.Method {
 			case http.MethodPost, http.MethodPut, http.MethodDelete:
 				if role != "admin" {
-					internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+					internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
 					return
 				}
 			}

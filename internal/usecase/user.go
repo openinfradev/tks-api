@@ -61,7 +61,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 
 	err = u.userRepository.UpdatePassword(userId, user.Organization.ID, user.Password, false)
 	if err != nil {
-		log.Errorf("failed to update password expired time: %v", err)
+		log.ErrorfWithContext(ctx, "failed to update password expired time: %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -565,11 +565,11 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 		originGroupName := fmt.Sprintf("%s@%s", (*users)[0].Role.Name, userInfo.GetOrganizationId())
 		newGroupName := fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())
 		if err := u.kc.LeaveGroup(userInfo.GetOrganizationId(), (*users)[0].ID, originGroupName); err != nil {
-			log.Errorf("leave group in keycloak failed: %v", err)
+			log.ErrorfWithContext(ctx, "leave group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 		if err := u.kc.JoinGroup(userInfo.GetOrganizationId(), (*users)[0].ID, newGroupName); err != nil {
-			log.Errorf("join group in keycloak failed: %v", err)
+			log.ErrorfWithContext(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 	}

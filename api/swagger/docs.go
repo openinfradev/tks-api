@@ -3543,7 +3543,7 @@ const docTemplate = `{
         "domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
-                "accessKeyId": {
+                "awsAccountId": {
                     "type": "string"
                 },
                 "cloudService": {
@@ -4851,7 +4851,7 @@ const docTemplate = `{
         "domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
-                "accessKeyId": {
+                "awsAccountId": {
                     "type": "string"
                 },
                 "cloudService": {

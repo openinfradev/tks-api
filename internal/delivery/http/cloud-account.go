@@ -39,33 +39,33 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	input := domain.CreateCloudAccountRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var dto domain.CloudAccount
 	if err = domain.Map(input, &dto); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
 
 	cloudAccountId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.CreateCloudAccountResponse
 	out.ID = cloudAccountId.String()
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetCloudAccount godoc
@@ -82,14 +82,13 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
-	log.Debug("[TODO] organization check", organizationId)
 
-	cloudAccounts, err := h.usecase.Fetch(organizationId)
+	cloudAccounts, err := h.usecase.Fetch(r.Context(), organizationId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -97,12 +96,12 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	out.CloudAccounts = make([]domain.CloudAccountResponse, len(cloudAccounts))
 	for i, cloudAccount := range cloudAccounts {
 		if err := domain.Map(cloudAccount, &out.CloudAccounts[i]); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetCloudAccount godoc
@@ -120,28 +119,28 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
-	cloudAccount, err := h.usecase.Get(cloudAccountId)
+	cloudAccount, err := h.usecase.Get(r.Context(), cloudAccountId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.GetCloudAccountResponse
 	if err := domain.Map(cloudAccount, &out.CloudAccount); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdateCloudAccount godoc
@@ -159,43 +158,43 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
-	log.Debug("[TODO] organization check", organizationId)
+	log.DebugWithContext(r.Context(), "[TODO] organization check", organizationId)
 
 	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	input := domain.UpdateCloudAccountRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var dto domain.CloudAccount
 	if err = domain.Map(input, &dto); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 	dto.ID = cloudAccountId
 	dto.OrganizationId = organizationId
 
 	err = h.usecase.Update(r.Context(), dto)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // DeleteCloudAccount godoc
@@ -214,36 +213,36 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	parsedId, err := uuid.Parse(cloudAccountId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	input := domain.DeleteCloudAccountRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var dto domain.CloudAccount
 	if err = domain.Map(input, &dto); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 	dto.ID = parsedId
 
 	err = h.usecase.Delete(r.Context(), dto)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // DeleteForceCloudAccount godoc
@@ -261,23 +260,23 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	parsedId, err := uuid.Parse(cloudAccountId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	err = h.usecase.DeleteForce(r.Context(), parsedId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // CheckCloudAccountName godoc
@@ -294,24 +293,24 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
 		return
 	}
 
 	vars := mux.Vars(r)
 	name, ok := vars["name"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "CA_INVALID_CLOUD_ACCOUNT_NAME", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "CA_INVALID_CLOUD_ACCOUNT_NAME", ""))
 		return
 	}
 
 	exist := true
-	_, err := h.usecase.GetByName(user.GetOrganizationId(), name)
+	_, err := h.usecase.GetByName(r.Context(), user.GetOrganizationId(), name)
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
 			exist = false
 		} else {
-			ErrorJSON(w, err)
+			ErrorJSON(w, r, err)
 			return
 		}
 	}
@@ -319,7 +318,7 @@ func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *ht
 	var out domain.CheckCloudAccountNameResponse
 	out.Existed = exist
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // CheckAwsAccountId godoc
@@ -337,17 +336,17 @@ func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	awsAccountId, ok := vars["awsAccountId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid accountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid accountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
 		return
 	}
 
 	exist := true
-	_, err := h.usecase.GetByAwsAccountId(awsAccountId)
+	_, err := h.usecase.GetByAwsAccountId(r.Context(), awsAccountId)
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
 			exist = false
 		} else {
-			ErrorJSON(w, err)
+			ErrorJSON(w, r, err)
 			return
 		}
 	}
@@ -355,5 +354,5 @@ func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.R
 	var out domain.CheckCloudAccountAwsAccountIdResponse
 	out.Existed = exist
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }

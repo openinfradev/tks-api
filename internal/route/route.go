@@ -2,16 +2,17 @@ package route
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/openinfradev/tks-api/internal"
-
+	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal"
 	delivery "github.com/openinfradev/tks-api/internal/delivery/http"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth"
@@ -193,20 +194,20 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Info(fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
+		ctx := r.Context()
+		r = r.WithContext(context.WithValue(ctx, internal.ContextKeyRequestID, uuid.New().String()))
 
-		//xRequestID := uuid.New().String()
-		//r.Header.Set("X-REQUEST-ID", fmt.Sprint(xRequestID))
+		log.InfoWithContext(r.Context(), fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
 
 		body, err := io.ReadAll(r.Body)
 		if err == nil {
-			log.Info(fmt.Sprintf("body : %s", bytes.NewBuffer(body).String()))
+			log.InfoWithContext(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
 		}
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		next.ServeHTTP(w, r)
 
-		log.Infof("***** END [%s %s] *****", r.Method, r.RequestURI)
+		log.InfofWithContext(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }
 
@@ -216,7 +217,7 @@ func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			txHandle := db.Begin()
-			log.Debug("beginning database transaction")
+			log.DebugWithContext(r.Context(),"beginning database transaction")
 
 			defer func() {
 				if r := recover(); r != nil {
@@ -233,12 +234,12 @@ func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 			next.ServeHTTP(recorder, r)
 
 			if StatusInList(recorder.Status, []int{http.StatusOK}) {
-				log.Debug("committing transactions")
+				log.DebugWithContext(r.Context(),"committing transactions")
 				if err := txHandle.Commit().Error; err != nil {
-					log.Debug("trx commit error: ", err)
+					log.DebugWithContext(r.Context(),"trx commit error: ", err)
 				}
 			} else {
-				log.Debug("rolling back transaction due to status code: ", recorder.Status)
+				log.DebugWithContext(r.Context(),"rolling back transaction due to status code: ", recorder.Status)
 				txHandle.Rollback()
 			}
 		})

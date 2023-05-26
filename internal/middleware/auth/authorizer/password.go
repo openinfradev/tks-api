@@ -16,13 +16,13 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestUserInfo, ok := request.UserFrom(r.Context())
 		if !ok {
-			internalHttp.ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
+			internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
 			return
 		}
 
 		storedUser, err := repo.User.GetByUuid(requestUserInfo.GetUserId())
 		if err != nil {
-			internalHttp.ErrorJSON(w, err)
+			internalHttp.ErrorJSON(w, r, err)
 			return
 		}
 		//TODO: TKS control plane 동작을 위해, master 조직의 admin 계정은 비밀번호 변경 기간을 무시하도록 함.
@@ -37,7 +37,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 				internal.API_PREFIX + internal.API_VERSION + "/auth/logout",
 			}
 			if !(urlContains(allowedUrl, r.URL.Path) && r.Method == http.MethodPut) {
-				internalHttp.ErrorJSON(w, httpErrors.NewForbiddenError(fmt.Errorf("password expired"), "", ""))
+				internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("password expired"), "", ""))
 				return
 			}
 		}

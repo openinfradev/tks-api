@@ -2,6 +2,10 @@ package internal
 
 import "time"
 
+type ContextKey string
+
+const ContextKeyRequestID ContextKey = "REQUEST_ID"
+
 const (
 	PasswordExpiredDuration = 30 * 24 * time.Hour
 	EmailCodeExpireTime     = 5 * time.Minute

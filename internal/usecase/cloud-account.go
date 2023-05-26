@@ -19,10 +19,10 @@ import (
 const MAX_WORKFLOW_TIME = 30
 
 type ICloudAccountUsecase interface {
-	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
-	GetByName(organizationId string, name string) (domain.CloudAccount, error)
-	GetByAwsAccountId(awsAccountId string) (domain.CloudAccount, error)
-	Fetch(organizationId string) ([]domain.CloudAccount, error)
+	Get(ctx context.Context, cloudAccountId uuid.UUID) (domain.CloudAccount, error)
+	GetByName(ctx context.Context, organizationId string, name string) (domain.CloudAccount, error)
+	GetByAwsAccountId(ctx context.Context, awsAccountId string) (domain.CloudAccount, error)
+	Fetch(ctx context.Context, organizationId string) ([]domain.CloudAccount, error)
 	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.CloudAccount) error
 	Delete(ctx context.Context, dto domain.CloudAccount) error
@@ -52,11 +52,11 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 	dto.Resource = "TODO server result or additional information"
 	dto.CreatorId = user.GetUserId()
 
-	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "조직내에 동일한 이름의 클라우드 어카운트가 존재합니다.")
 	}
-	_, err = u.GetByAwsAccountId(dto.AwsAccountId)
+	_, err = u.GetByAwsAccountId(ctx, dto.AwsAccountId)
 	if err == nil {
 		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "사용 중인 AwsAccountId 입니다. 관리자에게 문의하세요.")
 	}
@@ -65,7 +65,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
-	log.Info("newly created CloudAccount ID:", cloudAccountId)
+	log.InfoWithContext(ctx, "newly created CloudAccount ID:", cloudAccountId)
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"tks-create-aws-cloud-account",
@@ -80,10 +80,10 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 			},
 		})
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
-	log.Info("submited workflow :", workflowId)
+	log.InfoWithContext(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(cloudAccountId, workflowId, domain.CloudAccountStatus_CREATING); err != nil {
 		return uuid.Nil, errors.Wrap(err, "Failed to initialize status")
@@ -107,7 +107,7 @@ func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccoun
 	return nil
 }
 
-func (u *CloudAccountUsecase) Get(cloudAccountId uuid.UUID) (res domain.CloudAccount, err error) {
+func (u *CloudAccountUsecase) Get(ctx context.Context, cloudAccountId uuid.UUID) (res domain.CloudAccount, err error) {
 	res, err = u.repo.Get(cloudAccountId)
 	if err != nil {
 		return domain.CloudAccount{}, err
@@ -118,7 +118,7 @@ func (u *CloudAccountUsecase) Get(cloudAccountId uuid.UUID) (res domain.CloudAcc
 	return
 }
 
-func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res domain.CloudAccount, err error) {
+func (u *CloudAccountUsecase) GetByName(ctx context.Context, organizationId string, name string) (res domain.CloudAccount, err error) {
 	res, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -130,7 +130,7 @@ func (u *CloudAccountUsecase) GetByName(organizationId string, name string) (res
 	return
 }
 
-func (u *CloudAccountUsecase) GetByAwsAccountId(awsAccountId string) (res domain.CloudAccount, err error) {
+func (u *CloudAccountUsecase) GetByAwsAccountId(ctx context.Context, awsAccountId string) (res domain.CloudAccount, err error) {
 	res, err = u.repo.GetByAwsAccountId(awsAccountId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -142,7 +142,7 @@ func (u *CloudAccountUsecase) GetByAwsAccountId(awsAccountId string) (res domain
 	return
 }
 
-func (u *CloudAccountUsecase) Fetch(organizationId string) (cloudAccounts []domain.CloudAccount, err error) {
+func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string) (cloudAccounts []domain.CloudAccount, err error) {
 	cloudAccounts, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.Get(dto.ID)
+	_, err = u.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
@@ -183,10 +183,10 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 			},
 		})
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
-	log.Info("submited workflow :", workflowId)
+	log.InfoWithContext(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")

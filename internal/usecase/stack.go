@@ -21,14 +21,14 @@ import (
 )
 
 type IStackUsecase interface {
-	Get(stackId domain.StackId) (domain.Stack, error)
-	GetByName(organizationId string, name string) (domain.Stack, error)
-	Fetch(organizationId string) ([]domain.Stack, error)
+	Get(ctx context.Context, stackId domain.StackId) (domain.Stack, error)
+	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
+	Fetch(ctx context.Context, organizationId string) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
-	GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
+	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
 }
 
 type StackUsecase struct {
@@ -57,7 +57,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
 	}
@@ -81,7 +81,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	if len(clusters) == 0 {
 		isPrimary = true
 	}
-	log.Debug("isPrimary ", isPrimary)
+	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
 	workflow := ""
 	if strings.Contains(stackTemplate.Template, "aws-reference") || strings.Contains(stackTemplate.Template, "eks-reference") {
@@ -89,13 +89,13 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	} else if strings.Contains(stackTemplate.Template, "aws-msa-reference") || strings.Contains(stackTemplate.Template, "eks-msa-reference") {
 		workflow = "tks-stack-create-aws-msa"
 	} else {
-		log.Error("Invalid template  : ", stackTemplate.Template)
+		log.ErrorWithContext(ctx, "Invalid template  : ", stackTemplate.Template)
 		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template), "", "")
 	}
 
 	var stackConf domain.StackConfResponse
 	if err = domain.Map(dto.Conf, &stackConf); err != nil {
-		log.Info(err)
+		log.InfoWithContext(ctx, err)
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
@@ -111,10 +111,10 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		},
 	})
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
-	log.Debug("Submitted workflow: ", workflowId)
+	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
 	dto.ID = domain.StackId("")
@@ -125,7 +125,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			return "", err
 		}
 
-		log.Debug("workflow ", workflow)
+		log.DebugWithContext(ctx, "workflow ", workflow)
 		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
 			return "", fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
 		}
@@ -143,7 +143,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	return dto.ID, nil
 }
 
-func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error) {
+func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -182,7 +182,7 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 	return
 }
 
-func (u *StackUsecase) GetByName(organizationId string, name string) (out domain.Stack, err error) {
+func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, name string) (out domain.Stack, err error) {
 	cluster, err := u.clusterRepo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -200,7 +200,7 @@ func (u *StackUsecase) GetByName(organizationId string, name string) (out domain
 	return
 }
 
-func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err error) {
+func (u *StackUsecase) Fetch(ctx context.Context, organizationId string) (out []domain.Stack, err error) {
 	organization, err := u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
@@ -314,7 +314,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		workflow = "tks-stack-delete-aws-msa"
 	} else {
-		log.Error("Invalid template  : ", cluster.StackTemplate.Template)
+		log.ErrorWithContext(ctx, "Invalid template  : ", cluster.StackTemplate.Template)
 		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stack-template %s", cluster.StackTemplate.Template), "", "")
 	}
 
@@ -327,10 +327,10 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		},
 	})
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return err
 	}
-	log.Debug("Submitted workflow: ", workflowId)
+	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < 60; i++ {
@@ -364,7 +364,7 @@ func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId
 }
 
 // [TODO] need more pretty...
-func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error) {
+func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
 		return out, "", err

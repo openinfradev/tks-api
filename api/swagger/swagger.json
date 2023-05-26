@@ -3536,7 +3536,7 @@
         "domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
-                "accessKeyId": {
+                "awsAccountId": {
                     "type": "string"
                 },
                 "cloudService": {
@@ -4844,7 +4844,7 @@
         "domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
-                "accessKeyId": {
+                "awsAccountId": {
                     "type": "string"
                 },
                 "cloudService": {

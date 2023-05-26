@@ -20,12 +20,12 @@ import (
 
 type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
-	Fetch(organizationId string) ([]domain.Cluster, error)
-	FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []domain.Cluster, err error)
+	Fetch(ctx context.Context, organizationId string) ([]domain.Cluster, error)
+	FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID) (out []domain.Cluster, err error)
 	Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
-	Get(clusterId domain.ClusterId) (out domain.Cluster, err error)
-	GetClusterSiteValues(clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
-	Delete(clusterId domain.ClusterId) (err error)
+	Get(ctx context.Context, clusterId domain.ClusterId) (out domain.Cluster, err error)
+	GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
+	Delete(ctx context.Context, clusterId domain.ClusterId) (err error)
 }
 
 type ClusterUsecase struct {
@@ -82,7 +82,7 @@ func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 	return u
 }
 
-func (u *ClusterUsecase) Fetch(organizationId string) (out []domain.Cluster, err error) {
+func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string) (out []domain.Cluster, err error) {
 	if organizationId == "" {
 		// [TODO] 사용자가 속한 organization 리스트
 		out, err = u.repo.Fetch()
@@ -96,7 +96,7 @@ func (u *ClusterUsecase) Fetch(organizationId string) (out []domain.Cluster, err
 	return out, nil
 }
 
-func (u *ClusterUsecase) FetchByCloudAccountId(cloudAccountId uuid.UUID) (out []domain.Cluster, err error) {
+func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID) (out []domain.Cluster, err error) {
 	if cloudAccountId == uuid.Nil {
 		return nil, fmt.Errorf("Invalid cloudAccountId")
 	}
@@ -180,10 +180,10 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 			},
 		})
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.Info("Successfully submited workflow: ", workflowId)
+	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
@@ -192,7 +192,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	return clusterId, nil
 }
 
-func (u *ClusterUsecase) Get(clusterId domain.ClusterId) (out domain.Cluster, err error) {
+func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (out domain.Cluster, err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
 		return domain.Cluster{}, err
@@ -201,7 +201,7 @@ func (u *ClusterUsecase) Get(clusterId domain.ClusterId) (out domain.Cluster, er
 	return cluster, nil
 }
 
-func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
+func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId) (err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
@@ -233,11 +233,11 @@ func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
 			},
 		})
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return errors.Wrap(err, "Failed to call argo workflow")
 	}
 
-	log.Debug("submited workflow name : ", workflowId)
+	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
 
 	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
@@ -246,8 +246,8 @@ func (u *ClusterUsecase) Delete(clusterId domain.ClusterId) (err error) {
 	return nil
 }
 
-func (u *ClusterUsecase) GetClusterSiteValues(clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error) {
-	cluster, err := u.Get(clusterId)
+func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error) {
+	cluster, err := u.Get(ctx, clusterId)
 	if err != nil {
 		return domain.ClusterSiteValuesResponse{}, errors.Wrap(err, "Failed to get cluster")
 	}
@@ -286,7 +286,7 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clus
 		numOfAz = int(rawConf.NumOfAz)
 
 		if numOfAz > 3 {
-			log.Error("Error: numOfAz cannot exceed 3.")
+			log.ErrorWithContext(ctx,"Error: numOfAz cannot exceed 3.")
 			temp_err := fmt.Errorf("Error: numOfAz cannot exceed 3.")
 			return nil, temp_err
 		}
@@ -311,19 +311,19 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clus
 	var found bool = false
 	for key, val := range azPerRegion {
 		if strings.Contains(key, region) {
-			log.Debug("Found region : ", key)
+			log.DebugWithContext(ctx,"Found region : ", key)
 			maxAzForSelectedRegion = val
-			log.Debug("Trimmed azNum var: ", maxAzForSelectedRegion)
+			log.DebugWithContext(ctx,"Trimmed azNum var: ", maxAzForSelectedRegion)
 			found = true
 		}
 	}
 
 	if !found {
-		log.Error("Couldn't find entry for region ", region)
+		log.ErrorWithContext(ctx,"Couldn't find entry for region ", region)
 	}
 
 	if numOfAz > maxAzForSelectedRegion {
-		log.Error("Invalid numOfAz: exceeded the number of Az in region ", region)
+		log.ErrorWithContext(ctx,"Invalid numOfAz: exceeded the number of Az in region ", region)
 		temp_err := fmt.Errorf("Invalid numOfAz: exceeded the number of Az in region %s", region)
 		return nil, temp_err
 	}
@@ -331,14 +331,14 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clus
 	// Validate if machineReplicas is multiple of number of AZ
 	replicas := int(rawConf.MachineReplicas)
 	if replicas == 0 {
-		log.Debug("No machineReplicas param. Using default values..")
+		log.DebugWithContext(ctx,"No machineReplicas param. Using default values..")
 	} else {
 		if remainder := replicas % numOfAz; remainder != 0 {
-			log.Error("Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
+			log.ErrorWithContext(ctx,"Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
 			temp_err := fmt.Errorf("Invalid machineReplicas: it should be multiple of numOfAz %d", numOfAz)
 			return nil, temp_err
 		} else {
-			log.Debug("Valid replicas and numOfAz. Caculating minSize & maxSize..")
+			log.DebugWithContext(ctx,"Valid replicas and numOfAz. Caculating minSize & maxSize..")
 			minSizePerAz = int(replicas / numOfAz)
 			maxSizePerAz = minSizePerAz * 5
 
@@ -347,8 +347,8 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clus
 				fmt.Printf("maxSizePerAz exceeded maximum value %d, so adjusted to %d", MAX_SIZE_PER_AZ, MAX_SIZE_PER_AZ)
 				maxSizePerAz = MAX_SIZE_PER_AZ
 			}
-			log.Debug("Derived minSizePerAz: ", minSizePerAz)
-			log.Debug("Derived maxSizePerAz: ", maxSizePerAz)
+			log.DebugWithContext(ctx,"Derived minSizePerAz: ", minSizePerAz)
+			log.DebugWithContext(ctx,"Derived maxSizePerAz: ", maxSizePerAz)
 		}
 	}
 

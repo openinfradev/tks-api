@@ -27,19 +27,19 @@ func init() {
 	trans, _ = uni.GetTranslator("en")
 }
 
-func ErrorJSON(w http.ResponseWriter, err error) {
+func ErrorJSON(w http.ResponseWriter, r *http.Request, err error) {
 	errorResponse, status := httpErrors.ErrorResponse(err)
-	ResponseJSON(w, status, errorResponse)
+	ResponseJSON(w, r, status, errorResponse)
 }
 
-func ResponseJSON(w http.ResponseWriter, httpStatus int, data interface{}) {
+func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data interface{}) {
 	out := data
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpStatus)
-	log.Info(fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(out)))
+	log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(out)))
 	if err := json.NewEncoder(w).Encode(out); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 }
 
@@ -107,7 +107,7 @@ func (h *APIHandler) AddHistory(r *http.Request, projectId string, historyType s
 
 		err := h.Repository.AddHistory(userId, projectId, historyType, description)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(r.Context(),err)
 			return err
 		}
 

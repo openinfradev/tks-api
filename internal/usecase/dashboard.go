@@ -22,9 +22,9 @@ import (
 )
 
 type IDashboardUsecase interface {
-	GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
-	GetStacks(organizationId string) (out []domain.DashboardStack, err error)
-	GetResources(organizationId string) (out domain.DashboardResource, err error)
+	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
+	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
+	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
 }
 
 type DashboardUsecase struct {
@@ -43,7 +43,7 @@ func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboar
 	}
 }
 
-func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
+func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
 	_, err = u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid organization")
@@ -65,7 +65,7 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 	return
 }
 
-func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.DashboardStack, err error) {
+func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error) {
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
 	if err != nil {
 		return out, err
@@ -98,7 +98,7 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 		stack := reflectClusterToStack(cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
 		if err := domain.Map(stack, &dashboardStack); err != nil {
-			log.Info(err)
+			log.InfoWithContext(ctx, err)
 		}
 
 		memory, disk := u.getStackMemoryDisk(stackMemoryDisk.Data.Result, cluster.ID.String())
@@ -113,7 +113,7 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 	return
 }
 
-func (u *DashboardUsecase) GetResources(organizationId string) (out domain.DashboardResource, err error) {
+func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
 		return out, err

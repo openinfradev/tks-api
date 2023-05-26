@@ -45,27 +45,27 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 		// webhook 으로 부터 받은 body parse
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(r.Context(),err)
 		}
 		bodyString := string(bodyBytes)
-		log.Info(bodyString)
+		log.InfoWithContext(r.Context(),bodyString)
 	*/
 
 	// 외부로부터(alert manager) 오는 데이터이므로, dto 변환없이 by-pass 처리한다.
 	input := domain.CreateAlertRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	err = h.usecase.Create(r.Context(), input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // GetAlert godoc
@@ -82,13 +82,13 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
 		return
 	}
 
-	alerts, err := h.usecase.Fetch(organizationId)
+	alerts, err := h.usecase.Fetch(r.Context(), organizationId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -96,16 +96,16 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	out.Alerts = make([]domain.AlertResponse, len(alerts))
 	for i, alert := range alerts {
 		if err := domain.Map(alert, &out.Alerts[i]); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(), err)
 		}
 
 		//out.Alerts[i].RawData = fmt.Sprintf("%s", alert.RawData)
-		log.Info(alert.FiredAt)
+		log.InfoWithContext(r.Context(), alert.FiredAt)
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
 			if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
-				log.Info(err)
+				log.InfoWithContext(r.Context(), err)
 			}
 		}
 		out.Alerts[i].AlertActions = outAlertActions
@@ -114,7 +114,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetAlert godoc
@@ -132,36 +132,36 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["alertId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId"), "", ""))
 		return
 	}
 
 	alertId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
 		return
 	}
 
-	alert, err := h.usecase.Get(alertId)
+	alert, err := h.usecase.Get(r.Context(), alertId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.GetAlertResponse
 	if err := domain.Map(alert, &out.Alert); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 	outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 	for j, alertAction := range alert.AlertActions {
 		if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 	out.Alert.AlertActions = outAlertActions
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdateAlert godoc
@@ -176,7 +176,7 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/alerts/{alertId} [put]
 // @Security     JWT
 func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, fmt.Errorf("Need implementation"))
+	ErrorJSON(w, r, fmt.Errorf("Need implementation"))
 }
 
 // DeleteAlert godoc
@@ -191,17 +191,17 @@ func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
 // @Router /organizations/{organizationId}/alerts/{alertId} [delete]
 // @Security     JWT
 func (h *AlertHandler) DeleteAlert(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, fmt.Errorf("Need implementation"))
+	ErrorJSON(w, r, fmt.Errorf("Need implementation"))
 }
 
 func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	log.Info("TEST ", body)
+	log.InfoWithContext(r.Context(), "TEST ", body)
 }
 
 // CreateAlertAction godoc
@@ -218,36 +218,36 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	strId, ok := vars["alertId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid alertId"), "", ""))
 		return
 	}
 
 	alertId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
 		return
 	}
 
 	input := domain.CreateAlertActionRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var dto domain.AlertAction
 	if err = domain.Map(input, &dto); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 	dto.AlertId = alertId
 
 	alertAction, err := h.usecase.CreateAlertAction(r.Context(), dto)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.CreateAlertActionResponse
 	out.ID = alertAction.String()
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }

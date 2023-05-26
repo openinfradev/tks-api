@@ -123,12 +123,12 @@ func (sws *LogicSshWsSession) receiveWsMsg(exitCh chan bool) {
 			//unmashal bytes into struct
 			/*
 					if err := json.Unmarshal(wsData, &msgObj); err != nil {
-						log.Error("unmarshal websocket message failed")
+						log.Error(r.Context(),"unmarshal websocket message failed")
 					}
 				//handle xterm.js stdin
 				decodeBytes, err := base64.StdEncoding.DecodeString(cmd)
 				if err != nil {
-					log.Error("websock cmd string base64 decoding failed")
+					log.Error(r.Context(),"websock cmd string base64 decoding failed")
 				}
 			*/
 
