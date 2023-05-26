@@ -92,7 +92,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 						continue
 					}
 					if len(applications) > 0 {
-						grafanaUrl = "http://" + applications[0].Endpoint
+						grafanaUrl = applications[0].Endpoint
 					}
 				}
 			}
