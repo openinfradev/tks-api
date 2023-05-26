@@ -120,8 +120,8 @@ func SendEmailForGeneratingOrganization(client *awsSes.Client, organizationId st
 	targetEmailAddress string, userAccountId string, randomPassword string) error {
 	subject := "[TKS] 조직이 생성되었습니다."
 	body := "조직이 생성되었습니다. \n" +
-		"조직 ID: " + organizationId +
-		"조직 이름: " + organizationName +
+		"조직 ID: " + organizationId + "\n" +
+		"조직 이름: " + organizationName + "\n\n" +
 		"아래 관리자 계정 정보로 로그인 후 사용바랍니다.\n" +
 		"관리자 ID: " + userAccountId + "\n" +
 		"관리자 이름: admin\n" +

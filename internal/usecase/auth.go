@@ -128,7 +128,9 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Insert token
 	user.Token = accountToken.Token
 
-	user.PasswordExpired = helper.IsDurationExpired(user.PasswordUpdatedAt, internal.PasswordExpiredDuration)
+	if !(organizationId == "master" && accountId == "admin") {
+		user.PasswordExpired = helper.IsDurationExpired(user.PasswordUpdatedAt, internal.PasswordExpiredDuration)
+	}
 
 	return user, nil
 }
