@@ -500,10 +500,6 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// priority
-	// 1. Request,  2. default value  3. previous app and task
-
-	// priority: 3. previous app
 	app, err := h.usecase.GetAppServeAppById(appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -513,7 +509,6 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		ErrorJSON(w, r, err)
 	}
 
-	// priority: 1. Request
 	appReq := domain.UpdateAppServeAppRequest{}
 	err = UnmarshalRequestInput(r, &appReq)
 	if err != nil {
@@ -521,8 +516,13 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// priority: 2. Default Value
-	appReq.SetDefaultValue()
+	// Instead of setting default value, some fields should be retrieved
+	// from existing app config.
+	//appReq.SetDefaultValue()
+
+	appReq.Type = app.Type
+	appReq.AppType = app.AppType
+	appReq.Namespace = app.Namespace
 
 	if err = domain.Map(appReq, app); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -545,15 +545,12 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//	return
 	//}
 
-	// priority: 3. previous task
-	//var latestTask = app.AppServeAppTasks[len(app.AppServeAppTasks)-1]
 	var latestTask = app.AppServeAppTasks[0]
 	if err = domain.Map(latestTask, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	// priority: 1. Request
 	if err = domain.Map(appReq, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
