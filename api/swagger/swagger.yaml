@@ -312,6 +312,8 @@ definitions:
     type: object
   domain.CloudAccountResponse:
     properties:
+      accessKeyId:
+        type: string
       cloudService:
         type: string
       clusters:
@@ -1182,6 +1184,8 @@ definitions:
     type: object
   domain.SimpleCloudAccountResponse:
     properties:
+      accessKeyId:
+        type: string
       cloudService:
         type: string
       clusters:

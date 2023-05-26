@@ -76,6 +76,7 @@ type CloudAccountResponse struct {
 	Resource       string             `json:"resource"`
 	Clusters       int                `json:"clusters"`
 	Status         string             `json:"status"`
+	AccessKeyId    string             `json:"accessKeyId"`
 	Creator        SimpleUserResponse `json:"creator"`
 	Updator        SimpleUserResponse `json:"updator"`
 	CreatedAt      time.Time          `json:"createdAt"`
@@ -88,6 +89,7 @@ type SimpleCloudAccountResponse struct {
 	Name           string `json:"name"`
 	Description    string `json:"description"`
 	CloudService   string `json:"cloudService"`
+	AccessKeyId    string `json:"accessKeyId"`
 	Clusters       int    `json:"clusters"`
 }
 
