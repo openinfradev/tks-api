@@ -174,7 +174,7 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 				return out, err
 			}
 			if len(applications) > 0 {
-				out.GrafanaUrl = applications[0].Endpoint
+				out.GrafanaUrl = "http://" + applications[0].Endpoint
 			}
 		}
 	}
