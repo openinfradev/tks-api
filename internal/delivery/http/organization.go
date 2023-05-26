@@ -134,10 +134,6 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		ErrorJSON(w, err)
 		return
 	}
-
-	log.Info("1")
-	log.Info(organization)
-
 	var out domain.GetOrganizationResponse
 	if err = domain.Map(organization, &out.Organization); err != nil {
 		log.Error(err)

@@ -193,7 +193,6 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 			log.Info(err)
 			continue
 		}
-		log.Info(out.Stacks[i])
 	}
 
 	ResponseJSON(w, http.StatusOK, out)

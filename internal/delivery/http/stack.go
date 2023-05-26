@@ -99,7 +99,6 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 			log.Info(err)
 			continue
 		}
-		log.Info(out.Stacks[i])
 	}
 
 	ResponseJSON(w, http.StatusOK, out)
@@ -163,8 +162,6 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, err)
 		return
 	}
-
-	log.Info(status)
 
 	var out domain.GetStackStatusResponse
 	out.StepStatus = make([]domain.StackStepStatus, len(steps))
