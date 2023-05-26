@@ -134,19 +134,12 @@ func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clus
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "", "")
 	}
 
-	organization, err := u.Get(organizationId)
+	_, err = u.Get(organizationId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
 
-	// [TODO] need refactoring about reflect
-	in := domain.UpdateOrganizationRequest{
-		Description:      organization.Description,
-		Phone:            organization.Phone,
-		PrimaryClusterId: clusterId,
-	}
-
-	_, err = u.repo.Update(organizationId, in)
+	err = u.repo.UpdatePrimaryClusterId(organizationId, clusterId)
 	if err != nil {
 		return err
 	}
