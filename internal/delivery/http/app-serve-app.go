@@ -509,6 +509,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		ErrorJSON(w, r, err)
 	}
 
+	// unmarshal request that only contains task-specific params
 	appReq := domain.UpdateAppServeAppRequest{}
 	err = UnmarshalRequestInput(r, &appReq)
 	if err != nil {
@@ -519,15 +520,6 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	// Instead of setting default value, some fields should be retrieved
 	// from existing app config.
 	//appReq.SetDefaultValue()
-
-	appReq.Type = app.Type
-	appReq.AppType = app.AppType
-	appReq.Namespace = app.Namespace
-
-	if err = domain.Map(appReq, app); err != nil {
-		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
 
 	var task domain.AppServeAppTask
 	//tasks := app.AppServeAppTasks
