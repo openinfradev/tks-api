@@ -273,30 +273,30 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 	organizationId, ok := vars["organizationId"]
 	fmt.Printf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
 	fmt.Printf("appId = [%s]\n", appId)
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
 		return
 	}
 	task, err := h.usecase.GetAppServeAppLatestTask(appId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "", ""))
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 	if task == nil {
-		ErrorJSON(w, httpErrors.NewNoContentError(fmt.Errorf("no task exists"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("no task exists"), "", ""))
 		return
 	}
 
 	var out domain.GetAppServeAppTaskResponse
 	out.AppServeAppTask = *task
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 func makeStages(app *domain.AppServeApp) []domain.StageResponse {

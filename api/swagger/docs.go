@@ -1327,6 +1327,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/app-serve-apps/{appId}/latest-task": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get latest task from appServeApp",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Get latest task from appServeApp",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAppServeAppTaskResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/app-serve-apps/{appId}/rollback": {
             "post": {
                 "security": [
@@ -4398,6 +4426,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetAppServeAppTaskResponse": {
+            "type": "object",
+            "properties": {
+                "appServeAppTask": {
+                    "$ref": "#/definitions/domain.AppServeAppTask"
+                }
+            }
+        },
         "domain.GetApplicationsResponse": {
             "type": "object",
             "properties": {
@@ -5159,7 +5195,7 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "description": "PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)",
+                    "description": "BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)",
                     "type": "string"
                 },
                 "result": {

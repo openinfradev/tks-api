@@ -891,6 +891,11 @@ definitions:
           $ref: '#/definitions/domain.StageResponse'
         type: array
     type: object
+  domain.GetAppServeAppTaskResponse:
+    properties:
+      appServeAppTask:
+        $ref: '#/definitions/domain.AppServeAppTask'
+    type: object
   domain.GetApplicationsResponse:
     properties:
       applications:
@@ -1386,8 +1391,7 @@ definitions:
           $ref: '#/definitions/domain.ActionResponse'
         type: array
       name:
-        description: PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK
-          (롤백)
+        description: BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
         type: string
       result:
         type: string
@@ -2486,6 +2490,23 @@ paths:
       security:
       - JWT: []
       summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/latest-task:
+    get:
+      consumes:
+      - application/json
+      description: Get latest task from appServeApp
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAppServeAppTaskResponse'
+      security:
+      - JWT: []
+      summary: Get latest task from appServeApp
       tags:
       - AppServeApps
   /organizations/{organizationId}/app-serve-apps/{appId}/rollback:
