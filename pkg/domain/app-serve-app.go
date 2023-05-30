@@ -135,10 +135,6 @@ type UpdateAppServeAppEndpointRequest struct {
 }
 
 type UpdateAppServeAppRequest struct {
-	// App
-	Type    string `json:"type"`
-	AppType string `json:"appType"`
-
 	// Task
 	Strategy       string `json:"strategy"`
 	ArtifactUrl    string `json:"artifactUrl"`
@@ -154,27 +150,6 @@ type UpdateAppServeAppRequest struct {
 	// Update Strategy
 	Promote bool `json:"promote"`
 	Abort   bool `json:"abort"`
-}
-
-func (u *UpdateAppServeAppRequest) SetDefaultValue() {
-	if u.Type == "" {
-		u.Type = "all"
-	}
-	if u.AppType == "" {
-		u.AppType = "springboot"
-	}
-	if u.Strategy == "" {
-		u.Strategy = "rolling-update"
-	}
-	if u.ResourceSpec == "" {
-		u.ResourceSpec = "medium"
-	}
-	if u.Profile == "" {
-		u.Profile = "default"
-	}
-	if u.Port == "" {
-		u.Port = "8080"
-	}
 }
 
 type RollbackAppServeAppRequest struct {
