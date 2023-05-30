@@ -14,6 +14,7 @@ type IAppServeAppRepository interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
 	IsAppServeAppExist(appId string) (int64, error)
 	IsAppServeAppNameExist(orgId string, appName string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
@@ -99,6 +100,21 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	//}
 
 	return &app, nil
+}
+
+func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
+	var task domain.AppServeAppTask
+
+	res := r.db.Order("created_at desc").First(&task)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+
+	return &task, nil
 }
 
 func (r *AppServeAppRepository) IsAppServeAppExist(appId string) (int64, error) {

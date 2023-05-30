@@ -190,8 +190,12 @@ type GetAppServeAppResponse struct {
 	Stages      []StageResponse `json:"stages"`
 }
 
+type GetAppServeAppTaskResponse struct {
+	AppServeAppTask AppServeAppTask `json:"appServeAppTask"`
+}
+
 type StageResponse struct {
-	Name    string            `json:"name"` // PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
+	Name    string            `json:"name"` // BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
 	Status  string            `json:"status"`
 	Result  string            `json:"result"`
 	Actions *[]ActionResponse `json:"actions"`
