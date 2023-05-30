@@ -5260,9 +5260,6 @@ const docTemplate = `{
                 "appSecret": {
                     "type": "string"
                 },
-                "appType": {
-                    "type": "string"
-                },
                 "artifactUrl": {
                     "type": "string"
                 },
@@ -5290,10 +5287,6 @@ const docTemplate = `{
                 },
                 "strategy": {
                     "description": "Task",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "App",
                     "type": "string"
                 }
             }

@@ -5253,9 +5253,6 @@
                 "appSecret": {
                     "type": "string"
                 },
-                "appType": {
-                    "type": "string"
-                },
                 "artifactUrl": {
                     "type": "string"
                 },
@@ -5283,10 +5280,6 @@
                 },
                 "strategy": {
                     "description": "Task",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "App",
                     "type": "string"
                 }
             }

@@ -1433,8 +1433,6 @@ definitions:
         type: string
       appSecret:
         type: string
-      appType:
-        type: string
       artifactUrl:
         type: string
       executablePath:
@@ -1454,9 +1452,6 @@ definitions:
         type: string
       strategy:
         description: Task
-        type: string
-      type:
-        description: App
         type: string
     type: object
   domain.UpdateAppServeAppStatusRequest:

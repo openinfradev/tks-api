@@ -160,7 +160,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.Get(ctx, dto.ID)
+	cloudAccount, err := u.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
@@ -176,7 +176,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccoun
 			Parameters: []string{
 				"aws_region=" + "ap-northeast-2",
 				"tks_cloud_account_id=" + dto.ID.String(),
-				"aws_account_id=" + dto.AwsAccountId,
+				"aws_account_id=" + cloudAccount.AwsAccountId,
 				"aws_access_key_id=" + dto.AccessKeyId,
 				"aws_secret_access_key=" + dto.SecretAccessKey,
 				"aws_session_token=" + dto.SessionToken,
