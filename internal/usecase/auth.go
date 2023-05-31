@@ -109,10 +109,10 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Authentication with DB
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
-		return domain.User{}, httpErrors.NewUnauthorizedError(err, "", "")
+		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID_PASSWORD", "")
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf("Mismatch password"), "", "")
+		return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_ID_PASSWORD", "")
 	}
 	var accountToken *domain.User
 	// Authentication with Keycloak
@@ -123,7 +123,7 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	}
 	if err != nil {
 		//TODO: implement not found handling
-		return domain.User{}, httpErrors.NewUnauthorizedError(err, "", "")
+		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID_PASSWORD", "")
 	}
 
 	// Insert token
@@ -148,7 +148,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return "", httpErrors.NewBadRequestError(err, "", "")
+		return "", httpErrors.NewBadRequestError(err, "A_NO_USER", "")
 	}
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
@@ -159,13 +159,13 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(err, "", "")
+		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
-	if !u.isValidEmailCode(emailCode) {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+	if !u.isExpiredEmailCode(emailCode) {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("expired code"), "A_EXPIRED_CODE", "")
 	}
 	if emailCode.Code != code {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_MISMATCH_CODE", "")
 	}
 	if err := u.authRepository.DeleteEmailCode(userUuid); err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
@@ -179,7 +179,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 		u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err, "", "")
+		return httpErrors.NewBadRequestError(err, "A_NO_USER", "")
 	}
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -191,19 +191,19 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return httpErrors.NewBadRequestError(err, "", "")
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	if !u.isValidEmailCode(emailCode) {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+	if !u.isExpiredEmailCode(emailCode) {
+		return httpErrors.NewBadRequestError(fmt.Errorf("expired code"), "A_EXPIRED_CODE", "")
 	}
 	if emailCode.Code != code {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_MISMATCH_CODE", "")
 	}
 	randomPassword := helper.GenerateRandomString(passwordLength)
 
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
-		return err
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	originUser.Credentials = &[]gocloak.CredentialRepresentation{
 		{
@@ -247,7 +247,7 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			u.userRepository.EmailFilter(email))
 	}
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err, "", "")
+		return httpErrors.NewBadRequestError(err, "A_NO_USER", "")
 	}
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -300,7 +300,7 @@ func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) (
 	return cookies, nil
 }
 
-func (u *AuthUsecase) isValidEmailCode(code repository.CacheEmailCode) bool {
+func (u *AuthUsecase) isExpiredEmailCode(code repository.CacheEmailCode) bool {
 	return !helper.IsDurationExpired(code.UpdatedAt, internal.EmailCodeExpireTime)
 }
 

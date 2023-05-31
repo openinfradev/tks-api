@@ -15,12 +15,16 @@ var errorMap = map[ErrorCode]string{
 	"C_INVALID_ASA_TASK_ID":       "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
 
 	// Auth
+	"A_INVALID_ID_PASSWORD":     "아이디 또는 비밀번호가 일치하지 않습니다.",
+	"A_SAME_OLD_PASSWORD":       "기존 비밀번호와 동일합니다.",
 	"A_INVALID_TOKEN":           "사용자 토큰 오류",
 	"A_INVALID_USER_CREDENTIAL": "비밀번호가 일치하지 않습니다.",
 	"A_INVALID_ORIGIN_PASSWORD": "기존 비밀번호가 일치하지 않습니다.",
 	"A_MISMATCH_PASSWORD":       "비밀번호가 일치하지 않습니다.",
 	"A_MISMATCH_CODE":           "인증번호가 일치하지 않습니다.",
 	"A_NO_SESSION":              "세션 정보를 찾을 수 없습니다.",
+	"A_NO_USER":                 "해당 사용자 정보를 찾을 수 없습니다.",
+	"A_EXPIRED_CODE":            "인증번호가 만료되었습니다.",
 
 	// CloudAccount
 	"CA_INVALID_CLIENT_TOKEN_ID":    "유효하지 않은 토큰입니다. AccessKeyId, SecretAccessKey, SessionToken 을 확인후 다시 입력하세요.",
