@@ -20,8 +20,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const CLOUD_ACCOUNT_INCLUSTER = "INCLUSTER"
-
 type IStackUsecase interface {
 	Get(ctx context.Context, stackId domain.StackId) (domain.Stack, error)
 	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
@@ -69,15 +67,9 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
-	cloudAccount, err := u.cloudAccountRepo.Get(dto.CloudAccountId)
+	_, err = u.cloudAccountRepo.Get(dto.CloudAccountId)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
-	}
-
-	// MAGIC KEYWORD
-	cloudAccountId := cloudAccount.ID.String()
-	if strings.Contains(cloudAccount.Name, CLOUD_ACCOUNT_INCLUSTER) {
-		cloudAccountId = "NULL"
 	}
 
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
@@ -111,7 +103,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"cluster_name=" + dto.Name,
 			"description=" + dto.Description,
 			"organization_id=" + dto.OrganizationId,
-			"cloud_account_id=" + cloudAccountId,
+			"cloud_account_id=" + dto.CloudAccountId.String(),
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
 			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),

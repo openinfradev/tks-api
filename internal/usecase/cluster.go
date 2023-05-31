@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
@@ -125,9 +126,16 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 	}
+
+	tksCloudAccountId := dto.CloudAccountId.String()
 	isExist := false
 	for _, ca := range cloudAccounts {
 		if ca.ID == dto.CloudAccountId {
+
+			// FOR TEST. ADD MAGIC KEYWORD
+			if strings.Contains(ca.Name, "INCLUSTER") {
+				tksCloudAccountId = "NULL"
+			}
 			isExist = true
 			break
 		}
@@ -175,7 +183,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 				"template_name=" + stackTemplate.Template,
 				"git_account=" + viper.GetString("git-account"),
 				"creator=" + user.GetUserId().String(),
-				"cloud_account_id=" + dto.CloudAccountId.String(),
+				"cloud_account_id=" + tksCloudAccountId,
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
