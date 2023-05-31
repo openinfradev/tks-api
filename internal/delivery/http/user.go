@@ -392,7 +392,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "A_INVALID_ID_PASSWORD", ""))
+		ErrorJSON(w, r, err)
 		return
 	}
 

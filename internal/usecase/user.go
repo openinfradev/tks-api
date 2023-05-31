@@ -54,7 +54,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
-			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -72,7 +72,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context,
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
-			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -87,13 +87,13 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 	}
 	userInKeycloak, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -128,7 +128,7 @@ func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId 
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -142,11 +142,11 @@ func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId 
 func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
 	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
-		return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 	}
 	_, err = u.kc.Login(user.AccountId, password, organizationId)
 	if err != nil {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid authentication"), "A_INVALID_ID_PASSWORD", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid password"), "A_INVALID_PASSWORD", "")
 	}
 	return nil
 }
@@ -279,7 +279,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		return httpErrors.NewBadRequestError(fmt.Errorf("new password is same with origin password"), "A_SAME_OLD_PASSWORD", "")
 	}
 	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid origin password"), "A_INVALID_ID_PASSWORD", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid origin password"), "A_INVALID_PASSWORD", "")
 	}
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
@@ -334,7 +334,7 @@ func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {
 	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			return nil, httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "A_NO_USER", "")
+			return nil, httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 		return nil, err
 	}

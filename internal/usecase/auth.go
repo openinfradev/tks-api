@@ -109,10 +109,10 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Authentication with DB
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
-		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID_PASSWORD", "")
+		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_ID_PASSWORD", "")
+		return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
 	}
 	var accountToken *domain.User
 	// Authentication with Keycloak
@@ -123,7 +123,7 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	}
 	if err != nil {
 		//TODO: implement not found handling
-		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID_PASSWORD", "")
+		return domain.User{}, err
 	}
 
 	// Insert token
@@ -148,7 +148,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return "", httpErrors.NewBadRequestError(err, "A_NO_USER", "")
+		return "", httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
@@ -179,7 +179,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 		u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err, "A_NO_USER", "")
+		return httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -247,7 +247,7 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			u.userRepository.EmailFilter(email))
 	}
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err, "A_NO_USER", "")
+		return httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
