@@ -58,10 +58,10 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 
 		now := time.Now()
 		log.Info(now)
-		modifiedTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, now.Location())
-		log.Info(modifiedTime)
+		//modifiedTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, now.Location())
+		//log.Info(modifiedTime)
 
-		chart, err := u.getChartFromPrometheus(modifiedTime, organizationId, strType, duration, interval, year, month)
+		chart, err := u.getChartFromPrometheus(now, organizationId, strType, duration, interval, year, month)
 		if err != nil {
 			return nil, err
 		}
@@ -206,12 +206,14 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 }
 
 func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId string, chartType string, duration string, interval string, year string, month string) (out domain.DashboardChart, err error) {
-	cacheKey := fmt.Sprintf("CACHE_KEY_CHART_%d_%s_%s_%s_%s_%s_%s", now.Unix(), organizationId, chartType, duration, interval, year, month)
-	value, found := u.cache.Get(cacheKey)
-	if found {
-		log.Info("CACHE HIT! cacheKey : " + cacheKey)
-		return value.(domain.DashboardChart), nil
-	}
+	/*
+		cacheKey := fmt.Sprintf("CACHE_KEY_CHART_%d_%s_%s_%s_%s_%s_%s", now.Unix(), organizationId, chartType, duration, interval, year, month)
+		value, found := u.cache.Get(cacheKey)
+		if found {
+			log.Info("CACHE HIT! cacheKey : " + cacheKey)
+			return value.(domain.DashboardChart), nil
+		}
+	*/
 
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
@@ -353,7 +355,6 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 			ChartData:      chartData,
 			UpdatedAt:      time.Now(),
 		}
-		u.cache.Set(cacheKey, out, gcache.DefaultExpiration)
 		return out, nil
 	default:
 		return domain.DashboardChart{}, fmt.Errorf("No data")
@@ -404,8 +405,6 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 		ChartData:      chartData,
 		UpdatedAt:      time.Now(),
 	}
-
-	u.cache.Set(cacheKey, out, gcache.DefaultExpiration)
 
 	return
 
