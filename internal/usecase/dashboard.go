@@ -21,8 +21,6 @@ import (
 	"k8s.io/utils/strings/slices"
 )
 
-const CACHE_SEC = 60
-
 type IDashboardUsecase interface {
 	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
 	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
@@ -56,12 +54,7 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 			continue
 		}
 
-		now := time.Now()
-		log.Info(now)
-		//modifiedTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, now.Location())
-		//log.Info(modifiedTime)
-
-		chart, err := u.getChartFromPrometheus(now, organizationId, strType, duration, interval, year, month)
+		chart, err := u.getChartFromPrometheus(organizationId, strType, duration, interval, year, month)
 		if err != nil {
 			return nil, err
 		}
@@ -205,26 +198,18 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	return
 }
 
-func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId string, chartType string, duration string, interval string, year string, month string) (out domain.DashboardChart, err error) {
-	/*
-		cacheKey := fmt.Sprintf("CACHE_KEY_CHART_%d_%s_%s_%s_%s_%s_%s", now.Unix(), organizationId, chartType, duration, interval, year, month)
-		value, found := u.cache.Get(cacheKey)
-		if found {
-			log.Info("CACHE HIT! cacheKey : " + cacheKey)
-			return value.(domain.DashboardChart), nil
-		}
-	*/
-
+func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return out, err
+		return res, err
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
-		return out, errors.Wrap(err, "failed to create thanos client")
+		return res, errors.Wrap(err, "failed to create thanos client")
 	}
 
+	now := time.Now()
 	chartData := domain.ChartData{}
 
 	durationSec := 60 * 60 * 24
@@ -275,9 +260,9 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 		start := 0
 		end := 0
 		if now.Year() < yearInt {
-			return out, fmt.Errorf("Invalid year")
+			return res, fmt.Errorf("Invalid year")
 		} else if now.Year() == yearInt && int(now.Month()) < monthInt {
-			return out, fmt.Errorf("Invalid month")
+			return res, fmt.Errorf("Invalid month")
 		} else if now.Year() == yearInt && int(now.Month()) == monthInt {
 			start = int(startDate.Unix())
 			end = int(now.Unix())
@@ -292,7 +277,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 
 		result, err := thanosClient.FetchRange(query, start, end, 60*60*24)
 		if err != nil {
-			return out, err
+			return res, err
 		}
 
 		for _, val := range result.Data.Result {
@@ -344,8 +329,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 				Data: []string{"100", "120", "100"},
 			})
 		*/
-
-		out = domain.DashboardChart{
+		return domain.DashboardChart{
 			ChartType:      domain.ChartType_POD_CALENDAR,
 			OrganizationId: organizationId,
 			Name:           "POD 기동 현황",
@@ -354,15 +338,14 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 			Month:          month,
 			ChartData:      chartData,
 			UpdatedAt:      time.Now(),
-		}
-		return out, nil
+		}, nil
 	default:
 		return domain.DashboardChart{}, fmt.Errorf("No data")
 	}
 
 	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 	if err != nil {
-		return out, err
+		return res, err
 	}
 
 	// 모든 x축 부터 계산
@@ -395,7 +378,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 	}
 	chartData.XAxis.Data = xAxisData
 
-	out = domain.DashboardChart{
+	return domain.DashboardChart{
 		ChartType:      new(domain.ChartType).FromString(chartType),
 		OrganizationId: organizationId,
 		Name:           chartType,
@@ -404,9 +387,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(now time.Time, organizationId 
 		Interval:       interval,
 		ChartData:      chartData,
 		UpdatedAt:      time.Now(),
-	}
-
-	return
+	}, nil
 
 }
 
@@ -422,7 +403,7 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		return out, errors.Wrap(err, "Failed to get organization")
 	}
 
-	//organization.PrimaryClusterId = "ct5uugoif"
+	//organization.PrimaryClusterId = "cmnl6zqmb"
 	if organization.PrimaryClusterId == "" {
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
