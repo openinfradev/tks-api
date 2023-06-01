@@ -32,6 +32,8 @@ func ErrorJSON(w http.ResponseWriter, r *http.Request, err error) {
 	ResponseJSON(w, r, status, errorResponse)
 }
 
+const MAX_LOG_LEN = 500
+
 func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data interface{}) {
 	out := data
 
@@ -39,8 +41,11 @@ func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data i
 	w.WriteHeader(httpStatus)
 
 	responseStr := helper.ModelToJson(out)
-
-	log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr[:500]))
+	if len(responseStr) > MAX_LOG_LEN {
+		log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr[:MAX_LOG_LEN-1]))
+	} else {
+		log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
+	}
 	log.DebugWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
 	if err := json.NewEncoder(w).Encode(out); err != nil {
 		log.ErrorWithContext(r.Context(), err)

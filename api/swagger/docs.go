@@ -3380,6 +3380,10 @@ const docTemplate = `{
                     "description": "URL of built image for app",
                     "type": "string"
                 },
+                "note": {
+                    "description": "additional note",
+                    "type": "string"
+                },
                 "output": {
                     "description": "output for task result",
                     "type": "string"
