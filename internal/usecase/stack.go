@@ -166,14 +166,19 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 		out.PrimaryCluster = true
 	}
 
-	for _, appGroup := range appGroups {
+	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId))
+	if err != nil {
+		return out, err
+	}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
 		if appGroup.AppGroupType == domain.AppGroupType_LMA {
 			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
 			if err != nil {
 				return out, err
 			}
 			if len(applications) > 0 {
-				out.GrafanaUrl = applications[0].Endpoint
+				out.GrafanaUrl = applications[0].Endpoint + "/d/tks-kubernetes/tks-kubernetes-view-cluster-global?var-taco_cluster=" + cluster.ID.String() + "&kiosk"
 			}
 		}
 	}

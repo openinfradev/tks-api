@@ -392,11 +392,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if strings.Contains(err.Error(), "Invalid user credentials") {
-			ErrorJSON(w, r, httpErrors.NewUnauthorizedError(err, "A_INVALID_USER_CREDENTIAL", ""))
-			return
-		}
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		ErrorJSON(w, r, err)
 		return
 	}
 
