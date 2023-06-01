@@ -329,6 +329,38 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 				Data: []string{"100", "120", "100"},
 			})
 		*/
+
+		/*
+			{
+				series : [
+					{
+						name : date,
+						data : [
+							"timestamp1",
+							"timestamp2"
+							"timestamp3"
+						]
+					},
+					{
+						name : podRestartCount,
+						data : [
+							"1",
+							"2"
+							"3"
+						]
+					},
+					{
+						name : totalPodCount,
+						data : [
+							"10",
+							"20"
+							"30"
+						]
+					},
+				]
+			}
+		*/
+
 		return domain.DashboardChart{
 			ChartType:      domain.ChartType_POD_CALENDAR,
 			OrganizationId: organizationId,

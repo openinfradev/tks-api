@@ -57,7 +57,7 @@ func GetKubeConfig(clusterId string) ([]byte, error) {
 		return nil, err
 	}
 
-	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-user-kubeconfig", metav1.GetOptions{})
+	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-user-kubeconfig", metav1.GetOptions{})
 	if err != nil {
 		log.Error(err)
 		return nil, err
