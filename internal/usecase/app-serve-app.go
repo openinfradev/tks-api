@@ -531,6 +531,9 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 		}
 	}
 
+	// Save target version
+	targetVer := task.Version
+
 	// Insert new values to the target task object
 	task.ID = ""
 	task.Output = ""
@@ -539,6 +542,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
 	task.HelmRevision = 0
+	task.Note = fmt.Sprintf("Rolled back to %s", targetVer)
 
 	// Creates new task record from the target task
 	newTaskId, err := u.repo.CreateTask(&task)
