@@ -342,6 +342,9 @@ func makeStages(app *domain.AppServeApp) []domain.StageResponse {
 }
 
 func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
+	taskStatus := app.AppServeAppTasks[0].Status
+	strategy := app.AppServeAppTasks[0].Strategy
+
 	stage := domain.StageResponse{
 		Name:   pl,
 		Status: StatusStages[app.Status][pl],
@@ -350,21 +353,42 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 
 	var actions []domain.ActionResponse
 	if stage.Status == "DEPLOY_SUCCESS" {
-		action := domain.ActionResponse{
-			Name: "ENDPOINT",
-			Uri:  app.EndpointUrl,
-			Type: "LINK",
-		}
-		actions = append(actions, action)
-	} else if stage.Status == "PROMOTE_WAIT" && app.AppServeAppTasks[0].Strategy == "blue-green" {
-		action := domain.ActionResponse{
-			Name: "PREVIEW",
-			Uri:  app.PreviewEndpointUrl,
-			Type: "LINK",
-		}
-		actions = append(actions, action)
+		if strategy == "rolling-update" {
+			action := domain.ActionResponse{
+				Name: "ENDPOINT",
+				Uri:  app.EndpointUrl,
+				Type: "LINK",
+			}
+			actions = append(actions, action)
+		} else if strategy == "blue-green" {
+			if taskStatus == "PROMOTE_SUCCESS" || taskStatus == "ABORT_SUCCESS" {
+				action := domain.ActionResponse{
+					Name: "ENDPOINT",
+					Uri:  app.EndpointUrl,
+					Type: "LINK",
+				}
+				actions = append(actions, action)
+			} else if taskStatus == "PROMOTE_WAIT" {
+				action := domain.ActionResponse{
+					Name: "OLD_EP",
+					Uri:  app.EndpointUrl,
+					Type: "LINK",
+				}
+				actions = append(actions, action)
 
-		action = domain.ActionResponse{
+				action = domain.ActionResponse{
+					Name: "NEW_EP",
+					Uri:  app.PreviewEndpointUrl,
+					Type: "LINK",
+				}
+				actions = append(actions, action)
+			}
+		} else {
+			log.Error("Not supported strategy!")
+		}
+
+	} else if stage.Status == "PROMOTE_WAIT" && strategy == "blue-green" {
+		action := domain.ActionResponse{
 			Name: "PROMOTE",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
 				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
@@ -381,13 +405,6 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
-		}
-		actions = append(actions, action)
-	} else if stage.Status == "PROMOTE_SUCCESS" {
-		action := domain.ActionResponse{
-			Name: "ENDPOINT",
-			Uri:  app.EndpointUrl,
-			Type: "LINK",
 		}
 		actions = append(actions, action)
 	}
