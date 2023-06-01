@@ -37,7 +37,11 @@ func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data i
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpStatus)
-	log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", helper.ModelToJson(out)))
+
+	responseStr := helper.ModelToJson(out)
+
+	log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr[:500]))
+	log.DebugWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
 	if err := json.NewEncoder(w).Encode(out); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}

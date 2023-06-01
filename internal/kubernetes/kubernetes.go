@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/viper"
 
@@ -120,12 +119,6 @@ func GetKubernetesVserionByClusterId(clusterId string) (string, error) {
 		return "", err
 	}
 
-	fmt.Printf("%#v\n", information)
-
-	fmt.Println("major", information.Major)
-	fmt.Println("minor", information.Minor)
-	fmt.Println("platform", information.Platform)
-
 	return information.GitVersion, nil
 }
 
@@ -147,12 +140,6 @@ func GetKubernetesVserion() (string, error) {
 		log.Error("Error while fetching server version information", err)
 		return "", err
 	}
-
-	fmt.Printf("%#v\n", information)
-
-	fmt.Println("major", information.Major)
-	fmt.Println("minor", information.Minor)
-	fmt.Println("platform", information.Platform)
 
 	return information.GitVersion, nil
 }

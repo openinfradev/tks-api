@@ -287,7 +287,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			end = int(endDate.Unix())
 		}
 
-		log.Infof("S : %d E : %d", start, end)
+		log.Debugf("S : %d E : %d", start, end)
 
 		query = "sum by (__name__) ({__name__=~\"kube_pod_container_status_restarts_total|kube_pod_status_phase\"})"
 

@@ -135,7 +135,7 @@ func (r *AppServeAppRepository) IsAppServeAppNameExist(orgId string, appName str
 		"AND name = '%v' "+
 		"AND status <> 'DELETE_SUCCESS'", orgId, appName)
 
-	fmt.Println("query = ", queryString)
+	log.Info("query = ", queryString)
 	res := r.db.Table("app_serve_apps").Where(queryString).Count(&result)
 	if res.Error != nil {
 		log.Debug(res.Error)
