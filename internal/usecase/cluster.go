@@ -231,8 +231,13 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	}
 
 	// FOR TEST. ADD MAGIC KEYWORD
+	// check cloudAccount
+	cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccountId)
+	if err != nil {
+		return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
+	}
 	tksCloudAccountId := cluster.CloudAccountId.String()
-	if strings.Contains(cluster.Name, "INCLUSTER") {
+	if strings.Contains(cloudAccount.Name, "INCLUSTER") {
 		tksCloudAccountId = "NULL"
 	}
 
