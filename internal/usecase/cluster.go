@@ -230,6 +230,12 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		}
 	}
 
+	// FOR TEST. ADD MAGIC KEYWORD
+	tksCloudAccountId := cluster.CloudAccountId.String()
+	if strings.Contains(cluster.Name, "INCLUSTER") {
+		tksCloudAccountId = "NULL"
+	}
+
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"tks-remove-usercluster",
 		argowf.SubmitOptions{
@@ -237,7 +243,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 				"app_group=tks-cluster-aws",
 				"tks_info_host=http://tks-api.tks.svc:9110",
 				"cluster_id=" + clusterId.String(),
-				"cloud_account_id=" + cluster.CloudAccountId.String(),
+				"cloud_account_id=" + tksCloudAccountId,
 			},
 		})
 	if err != nil {
