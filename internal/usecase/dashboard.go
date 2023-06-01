@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"time"
 
@@ -103,12 +104,27 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 
 		memory, disk := u.getStackMemoryDisk(stackMemoryDisk.Data.Result, cluster.ID.String())
 		cpu := u.getStackCpu(stackCpu.Data.Result, cluster.ID.String())
+
+		if cpu != "" {
+			cpu = cpu + " %"
+		}
+		if memory != "" {
+			memory = memory + " %"
+		}
+		if disk != "" {
+			disk = disk + " %"
+		}
+
 		dashboardStack.Cpu = cpu + " %"
 		dashboardStack.Memory = memory + " %"
 		dashboardStack.Storage = disk + " %"
 
 		out = append(out, dashboardStack)
 	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Status == domain.StackStatus_RUNNING.String()
+	})
 
 	return
 }
