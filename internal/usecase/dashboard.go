@@ -115,9 +115,9 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 			disk = disk + " %"
 		}
 
-		dashboardStack.Cpu = cpu + " %"
-		dashboardStack.Memory = memory + " %"
-		dashboardStack.Storage = disk + " %"
+		dashboardStack.Cpu = cpu
+		dashboardStack.Memory = memory
+		dashboardStack.Storage = disk
 
 		out = append(out, dashboardStack)
 	}
