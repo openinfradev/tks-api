@@ -542,7 +542,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
 	task.HelmRevision = 0
-	task.Note = fmt.Sprintf("Rolled back to %s", targetVer)
+	task.RollbackVersion = targetVer
 
 	// Creates new task record from the target task
 	newTaskId, err := u.repo.CreateTask(&task)
