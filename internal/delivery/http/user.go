@@ -460,7 +460,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	err = u.usecase.UpdatePasswordByAccountId(r.Context(), user.AccountId, input.OriginPassword, input.NewPassword, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		if strings.Contains(err.Error(), "invalid origin password") {
-			ErrorJSON(w, r, httpErrors.NewUnauthorizedError(err, "A_INVALID_ORIGIN_PASSWORD", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "A_INVALID_ORIGIN_PASSWORD", ""))
 			return
 		}
 
