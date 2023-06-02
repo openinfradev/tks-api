@@ -41,7 +41,7 @@ type AppServeAppTask struct {
 	ResourceSpec      string     `json:"resourceSpec,omitempty"`                  // resource spec of app pod
 	HelmRevision      int32      `gorm:"default:0" json:"helmRevision,omitempty"` // revision of deployed helm release
 	Strategy          string     `json:"strategy,omitempty"`                      // deployment strategy (eg, rolling-update)
-	RollbackVersion   string     `json:"note,omitempty"`                          // rollback target version
+	RollbackVersion   string     `json:"rollbackVersion,omitempty"`               // rollback target version
 	PvEnabled         bool       `json:"pvEnabled"`
 	PvStorageClass    string     `json:"pvStorageClass"`
 	PvAccessMode      string     `json:"pvAccessMode"`
