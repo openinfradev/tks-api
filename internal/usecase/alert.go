@@ -89,10 +89,12 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 				if appGroup.AppGroupType == domain.AppGroupType_LMA {
 					applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
 					if err != nil {
-						continue
+						break
 					}
 					if len(applications) > 0 {
-						grafanaUrl = applications[0].Endpoint
+						grafanaUrl = applications[0].Endpoint + "/d/tks-kubernetes/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId + "&kiosk"
+						log.InfoWithContext(ctx, "grafanaUrl : ", grafanaUrl)
+						break
 					}
 				}
 			}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -98,9 +99,6 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		if err := domain.Map(alert, &out.Alerts[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 		}
-
-		//out.Alerts[i].RawData = fmt.Sprintf("%s", alert.RawData)
-		log.InfoWithContext(r.Context(), alert.FiredAt)
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
@@ -234,6 +232,8 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 		ErrorJSON(w, r, err)
 		return
 	}
+
+	log.InfoWithContext(r.Context(), "alert : ", helper.ModelToJson(input))
 
 	var dto domain.AlertAction
 	if err = domain.Map(input, &dto); err != nil {
