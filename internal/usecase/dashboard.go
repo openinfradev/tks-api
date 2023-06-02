@@ -419,8 +419,14 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			}
 			yAxisData = append(yAxisData, u.getChartYValue(val.Values, xAxis, percentage))
 		}
+
+		clusterName, err := u.getClusterNameFromId(val.Metric.TacoCluster)
+		if err != nil {
+			clusterName = val.Metric.TacoCluster
+		}
+
 		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: val.Metric.TacoCluster,
+			Name: clusterName,
 			Data: yAxisData,
 		})
 	}
@@ -543,5 +549,22 @@ func (u *DashboardUsecase) getStackCpu(result []thanos.MetricDataResult, cluster
 			return cpu
 		}
 	}
+	return
+}
+
+func (u *DashboardUsecase) getClusterNameFromId(clusterId string) (clusterName string, err error) {
+	const prefix = "CACHE_KEY_CLUSTER_NAME_FROM_ID"
+	value, found := u.cache.Get(prefix + clusterId)
+	if found {
+		return value.(string), nil
+	}
+
+	cluster, err := u.clusterRepo.Get(domain.ClusterId(clusterId))
+	if err != nil {
+		return clusterName, errors.Wrap(err, "Failed to get cluster")
+	}
+	clusterName = cluster.Name
+
+	u.cache.Set(prefix+clusterId, clusterName, gcache.DefaultExpiration)
 	return
 }
