@@ -3380,10 +3380,6 @@ const docTemplate = `{
                     "description": "URL of built image for app",
                     "type": "string"
                 },
-                "note": {
-                    "description": "additional note",
-                    "type": "string"
-                },
                 "output": {
                     "description": "output for task result",
                     "type": "string"
@@ -3413,6 +3409,10 @@ const docTemplate = `{
                 },
                 "resourceSpec": {
                     "description": "resource spec of app pod",
+                    "type": "string"
+                },
+                "rollbackVersion": {
+                    "description": "rollback target version",
                     "type": "string"
                 },
                 "status": {

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
@@ -47,52 +48,6 @@ type AuthUsecase struct {
 	authRepository     repository.IAuthRepository
 	clusterRepository  repository.IClusterRepository
 	appgroupRepository repository.IAppGroupRepository
-}
-
-func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error) {
-	urls := make(map[string][]string)
-
-	clusters, err := u.clusterRepository.FetchByOrganizationId(organizationId)
-	log.Info("clusters", clusters)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(clusters) == 0 {
-		return nil, nil, nil
-	}
-	for _, cluster := range clusters {
-		appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
-		log.Info("appgroups", appgroups)
-		if err != nil {
-			return nil, nil, err
-		}
-		if len(appgroups) == 0 {
-			continue
-		}
-		for _, appgroup := range appgroups {
-			for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
-				apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
-				if err != nil {
-					return nil, nil, err
-				}
-				if urls[strings.ToLower(appType.String())] == nil {
-					urls[strings.ToLower(appType.String())] = []string{}
-				}
-				for _, app := range apps {
-					urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
-				}
-			}
-		}
-	}
-
-	cookies := []*http.Cookie{
-		{
-			Name:   KEYCLOAK_IDENTITY_COOKIE,
-			MaxAge: -1,
-		},
-	}
-
-	return urls, cookies, nil
 }
 
 func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase {
@@ -298,6 +253,57 @@ func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) (
 	}
 	cookies = append(cookies, cookie)
 	return cookies, nil
+}
+
+func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error) {
+	urls := make(map[string][]string)
+
+	clusters, err := u.clusterRepository.FetchByOrganizationId(organizationId)
+	log.Info("clusters", clusters)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(clusters) == 0 {
+		return nil, nil, nil
+	}
+	for _, cluster := range clusters {
+		appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
+		log.Info("appgroups", appgroups)
+		if err != nil {
+			return nil, nil, err
+		}
+		if len(appgroups) == 0 {
+			continue
+		}
+		for _, appgroup := range appgroups {
+			for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
+				apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
+				if err != nil {
+					return nil, nil, err
+				}
+				if urls[strings.ToLower(appType.String())] == nil {
+					urls[strings.ToLower(appType.String())] = []string{}
+				}
+				for _, app := range apps {
+					urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
+				}
+			}
+		}
+	}
+
+	cookies := []*http.Cookie{
+		{
+			Name:     KEYCLOAK_IDENTITY_COOKIE,
+			MaxAge:   -1,
+			Expires:  time.Now().AddDate(0, 0, -1),
+			Path:     "/auth/realms/" + organizationId,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		},
+	}
+
+	return urls, cookies, nil
 }
 
 func (u *AuthUsecase) isExpiredEmailCode(code repository.CacheEmailCode) bool {
