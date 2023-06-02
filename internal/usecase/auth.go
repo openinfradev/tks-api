@@ -165,7 +165,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("expired code"), "A_EXPIRED_CODE", "")
 	}
 	if emailCode.Code != code {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_MISMATCH_CODE", "")
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
 	if err := u.authRepository.DeleteEmailCode(userUuid); err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
@@ -197,7 +197,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewBadRequestError(fmt.Errorf("expired code"), "A_EXPIRED_CODE", "")
 	}
 	if emailCode.Code != code {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_MISMATCH_CODE", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
 	randomPassword := helper.GenerateRandomString(passwordLength)
 
