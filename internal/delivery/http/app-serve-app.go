@@ -573,6 +573,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
 	//task.AppServeAppId = app.ID
 	task.Status = "PREPARING"
+	task.RollbackVersion = ""
 	task.Output = ""
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
