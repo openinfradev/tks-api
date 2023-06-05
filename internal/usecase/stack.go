@@ -424,12 +424,20 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 				step := parseStatusDescription(appGroup.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
-				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_MEMBER
-				if organization.PrimaryClusterId == cluster.ID.String() {
-					out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_PRIMARY
-				}
-				if appGroup.Status == domain.AppGroupStatus_DELETING {
-					out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
+
+				if appGroup.AppGroupType == domain.AppGroupType_LMA {
+					out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_MEMBER
+					if organization.PrimaryClusterId == cluster.ID.String() {
+						out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_PRIMARY
+					}
+					if appGroup.Status == domain.AppGroupStatus_DELETING || cluster.Status == domain.ClusterStatus_DELETING {
+						out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
+					}
+				} else {
+					out[i].MaxStep = domain.MAX_STEP_SM_CREATE
+					if appGroup.Status == domain.AppGroupStatus_DELETING || cluster.Status == domain.ClusterStatus_DELETING {
+						out[i].MaxStep = domain.MAX_STEP_SM_REMOVE
+					}
 				}
 				out[i].Step = step
 				if out[i].Step > out[i].MaxStep {
