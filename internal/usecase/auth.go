@@ -38,8 +38,9 @@ type IAuthUsecase interface {
 }
 
 const (
-	passwordLength           = 8
-	KEYCLOAK_IDENTITY_COOKIE = "KEYCLOAK_IDENTITY"
+	passwordLength                  = 8
+	KEYCLOAK_IDENTITY_COOKIE        = "KEYCLOAK_IDENTITY"
+	KEYCLOAK_IDENTITY_LEGACY_COOKIE = "KEYCLOAK_IDENTITY_LEGACY"
 )
 
 type AuthUsecase struct {
@@ -242,16 +243,14 @@ func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 }
 
 func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error) {
-	var cookies []*http.Cookie
-
-	cookie, err := makingCookie(organizationId, accountId, password)
+	cookies, err := makingCookie(organizationId, accountId, password)
 	if err != nil {
 		return nil, err
 	}
-	if cookie == nil {
+	if len(cookies) == 0 {
 		return nil, fmt.Errorf("no cookie generated")
 	}
-	cookies = append(cookies, cookie)
+
 	return cookies, nil
 }
 
@@ -291,12 +290,22 @@ func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string,
 		}
 	}
 
+	// cookies to be deleted
 	cookies := []*http.Cookie{
 		{
 			Name:     KEYCLOAK_IDENTITY_COOKIE,
 			MaxAge:   -1,
 			Expires:  time.Now().AddDate(0, 0, -1),
-			Path:     "/auth/realms/" + organizationId,
+			Path:     "/auth/realms/" + organizationId + "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		},
+		{
+			Name:     KEYCLOAK_IDENTITY_LEGACY_COOKIE,
+			MaxAge:   -1,
+			Expires:  time.Now().AddDate(0, 0, -1),
+			Path:     "/auth/realms/" + organizationId + "/",
 			HttpOnly: true,
 			Secure:   true,
 			SameSite: http.SameSiteNoneMode,
@@ -340,7 +349,7 @@ func extractFormAction(htmlContent string) (string, error) {
 	return f(doc), nil
 }
 
-func makingCookie(organizationId, userName, password string) (*http.Cookie, error) {
+func makingCookie(organizationId, userName, password string) ([]*http.Cookie, error) {
 	stateCode, err := genStateString()
 	if err != nil {
 		return nil, err
@@ -410,15 +419,15 @@ func makingCookie(organizationId, userName, password string) (*http.Cookie, erro
 		return nil, err
 	}
 
-	cookies2 := resp.Cookies()
-	var targetCookie *http.Cookie
-	for _, cookie := range cookies2 {
-		if cookie.Name == KEYCLOAK_IDENTITY_COOKIE {
-			targetCookie = cookie
+	cookies = resp.Cookies()
+	var targetCookies []*http.Cookie
+	for _, cookie := range cookies {
+		if cookie.Name == KEYCLOAK_IDENTITY_COOKIE || cookie.Name == KEYCLOAK_IDENTITY_LEGACY_COOKIE {
+			targetCookies = append(targetCookies, cookie)
 		}
 	}
 
-	return targetCookie, nil
+	return targetCookies, nil
 }
 
 func genStateString() (string, error) {
