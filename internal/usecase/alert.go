@@ -30,9 +30,10 @@ type IAlertUsecase interface {
 }
 
 type AlertUsecase struct {
-	repo         repository.IAlertRepository
-	clusterRepo  repository.IClusterRepository
-	appGroupRepo repository.IAppGroupRepository
+	repo             repository.IAlertRepository
+	clusterRepo      repository.IClusterRepository
+	organizationRepo repository.IOrganizationRepository
+	appGroupRepo     repository.IAppGroupRepository
 }
 
 func NewAlertUsecase(r repository.Repository) IAlertUsecase {
@@ -61,6 +62,17 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			continue
 		}
 
+		organization, err := u.organizationRepo.Get(organizationId)
+		if err != nil {
+			log.ErrorWithContext(ctx, err)
+			continue
+		}
+		primaryCluster, err := u.clusterRepo.Get(domain.ClusterId(organization.PrimaryClusterId))
+		if err != nil {
+			log.ErrorWithContext(ctx, err)
+			continue
+		}
+
 		rawData, err := json.Marshal(alert)
 		if err != nil {
 			rawData = []byte{}
@@ -82,24 +94,6 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			}
 		*/
 
-		grafanaUrl := ""
-		appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(clusterId))
-		if err == nil {
-			for _, appGroup := range appGroups {
-				if appGroup.AppGroupType == domain.AppGroupType_LMA {
-					applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
-					if err != nil {
-						break
-					}
-					if len(applications) > 0 {
-						grafanaUrl = applications[0].Endpoint + "/d/tks-kubernetes/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId + "&kiosk"
-						log.InfoWithContext(ctx, "grafanaUrl : ", grafanaUrl)
-						break
-					}
-				}
-			}
-		}
-
 		node := ""
 		if strings.Contains(alert.Labels.AlertName, "node") {
 			node = alert.Labels.Instance
@@ -116,7 +110,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			CheckPoint:     alert.Annotations.Checkpoint,
 			Summary:        alert.Annotations.Summary,
 			ClusterId:      domain.ClusterId(clusterId),
-			GrafanaUrl:     grafanaUrl,
+			GrafanaUrl:     u.makeGrafanaUrl(ctx, primaryCluster, alert, domain.ClusterId(clusterId)),
 			RawData:        rawData,
 		}
 
@@ -244,4 +238,44 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 		alert.TakedSec = int((alert.AlertActions[0].CreatedAt).Sub(alert.CreatedAt).Seconds())
 		alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
 	}
+}
+
+func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster domain.Cluster, alert domain.CreateAlertRequestAlert, clusterId domain.ClusterId) (url string) {
+	primaryGrafanaEndpoint := ""
+	appGroups, err := u.appGroupRepo.Fetch(primaryCluster.ID)
+	if err == nil {
+		for _, appGroup := range appGroups {
+			if appGroup.AppGroupType == domain.AppGroupType_LMA {
+				applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+				if err != nil {
+					return ""
+				}
+				if len(applications) > 0 {
+					primaryGrafanaEndpoint = applications[0].Endpoint
+				}
+			}
+		}
+	}
+
+	// check type
+	url = primaryGrafanaEndpoint
+
+	// tks_node_dashboard/tks-kubernetes-view-nodes?orgId=1&refresh=30s&var-datasource=default&var-taco_cluster=c19rjkn4j&var-job=prometheus-node-exporter&var-hostname=All&var-node=10.0.168.71:9100&var-device=All&var-maxmount=%2F&var-show_hostname=prometheus-node-exporter-xt4vb
+
+	switch alert.Labels.AlertName {
+	case "node-memory-high-utilization":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "node-cpu-high-load":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "pod-restart-frequently":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "pvc-full":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "node-disk-full":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	default:
+		log.ErrorfWithContext(ctx, "Invalid alert name %s", alert.Labels.AlertName)
+	}
+
+	return
 }
