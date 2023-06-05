@@ -38,9 +38,10 @@ type AlertUsecase struct {
 
 func NewAlertUsecase(r repository.Repository) IAlertUsecase {
 	return &AlertUsecase{
-		repo:         r.Alert,
-		clusterRepo:  r.Cluster,
-		appGroupRepo: r.AppGroup,
+		repo:             r.Alert,
+		clusterRepo:      r.Cluster,
+		appGroupRepo:     r.AppGroup,
+		organizationRepo: r.Organization,
 	}
 }
 
