@@ -354,6 +354,11 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		}
 	}
 
+	// Remove Cluster & AppGroup status description
+	if err := u.appGroupRepo.InitWorkflowDescription(cluster.ID); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
+
 	return nil
 }
 

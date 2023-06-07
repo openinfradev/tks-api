@@ -203,7 +203,7 @@ func (r *ClusterRepository) Update(dto domain.Cluster) error {
 func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error {
 	res := r.db.Model(&Cluster{}).
 		Where("ID = ?", clusterId).
-		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId, "StatusDesc": ""})
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("nothing updated in cluster with id %s", clusterId)
