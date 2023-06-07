@@ -245,16 +245,6 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		return "작업 진행 중에는 앱을 삭제할 수 없습니다", fmt.Errorf("Can't delete app while the task is in progress.")
 	}
 
-	log.Info("Updating app status to 'DELETING'..")
-
-	latestTaskId := app.AppServeAppTasks[0].ID
-	err = u.repo.UpdateStatus(appId, latestTaskId, "DELETING", "")
-	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", latestTaskId)
-		return "", fmt.Errorf("failed to update app status on PromoteAppServeApp. Err: %s", err)
-	}
-
 	/********************
 	 * Start delete task *
 	 ********************/
@@ -262,10 +252,10 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	appTask := &domain.AppServeAppTask{
 		AppServeAppId: app.ID,
 		Version:       strconv.Itoa(len(app.AppServeAppTasks) + 1),
-		ArtifactUrl:   app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ArtifactUrl,
-		ImageUrl:      app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ImageUrl,
+		ArtifactUrl:   "",
+		ImageUrl:      app.AppServeAppTasks[0].ImageUrl,
 		Status:        "DELETING",
-		Profile:       app.AppServeAppTasks[len(app.AppServeAppTasks)-1].Profile,
+		Profile:       app.AppServeAppTasks[0].Profile,
 		Output:        "",
 		CreatedAt:     time.Now(),
 	}
