@@ -336,6 +336,14 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	}
 	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
+	// Remove Cluster & AppGroup status description
+	if err := u.appGroupRepo.InitWorkflowDescription(cluster.ID); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
+	if err := u.clusterRepo.InitWorkflowDescription(cluster.ID); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
+
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < 60; i++ {
 		time.Sleep(time.Second * 2)
@@ -352,11 +360,6 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			time.Sleep(time.Second * 5) // Buffer
 			break
 		}
-	}
-
-	// Remove Cluster & AppGroup status description
-	if err := u.appGroupRepo.InitWorkflowDescription(cluster.ID); err != nil {
-		log.ErrorWithContext(ctx, err)
 	}
 
 	return nil

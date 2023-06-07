@@ -24,6 +24,7 @@ type IClusterRepository interface {
 	Update(dto domain.Cluster) (err error)
 	Delete(id domain.ClusterId) error
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
+	InitWorkflowDescription(clusterId domain.ClusterId) error
 }
 
 type ClusterRepository struct {
@@ -207,6 +208,18 @@ func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId 
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("nothing updated in cluster with id %s", clusterId)
+	}
+
+	return nil
+}
+
+func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) error {
+	res := r.db.Model(&AppGroup{}).
+		Where("id = ?", clusterId).
+		Updates(map[string]interface{}{"WorkflowId": "", "StatusDesc": ""})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in cluster status with id %s", clusterId)
 	}
 
 	return nil
