@@ -178,7 +178,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 				return out, err
 			}
 			if len(applications) > 0 {
-				out.GrafanaUrl = applications[0].Endpoint + "/d/tks-kubernetes/tks-kubernetes-view-cluster-global?var-taco_cluster=" + cluster.ID.String() + "&kiosk"
+				out.GrafanaUrl = applications[0].Endpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + cluster.ID.String()
 			}
 		}
 	}
