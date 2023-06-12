@@ -268,12 +268,12 @@ func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster domain
 		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	case "node-cpu-high-load":
 		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
-	case "pod-restart-frequently":
-		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
-	case "pvc-full":
-		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	case "node-disk-full":
 		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "pod-restart-frequently":
+		url = primaryGrafanaEndpoint + "/d/tks_podv1_dashboard/tks-kubernetes-view-pods-v1?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "pvc-full":
+		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	default:
 		log.ErrorfWithContext(ctx, "Invalid alert name %s", alert.Labels.AlertName)
 	}
