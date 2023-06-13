@@ -523,6 +523,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 
 	// Save target version
 	targetVer := task.Version
+	targetRev := task.HelmRevision
 
 	// Insert new values to the target task object
 	task.ID = ""
@@ -563,7 +564,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + newTaskId,
-			"helm_revision=" + strconv.Itoa(int(task.HelmRevision)),
+			"helm_revision=" + strconv.Itoa(int(targetRev)),
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})
