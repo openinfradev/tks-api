@@ -466,9 +466,12 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 	if err != nil {
 		return out, errors.Wrap(err, "Failed to get client set for user cluster")
 	}
-	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query-frontend", metav1.GetOptions{})
 	if err != nil {
-		return out, errors.Wrap(err, "Failed to get services.")
+		service, err = clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+		if err != nil {
+			return out, errors.Wrap(err, "Failed to get services.")
+		}
 	}
 
 	// LoadBalaner 일경우, aws address 형태의 경우만 가정한다.
