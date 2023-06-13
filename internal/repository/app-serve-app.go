@@ -57,6 +57,7 @@ func (r *AppServeAppRepository) CreateTask(
 
 func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error) {
 	var apps []domain.AppServeApp
+	var clusters []Cluster
 
 	queryStr := fmt.Sprintf("organization_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId)
 	if showAll {
@@ -72,11 +73,29 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 		return apps, nil
 	}
 
+	// Add cluster names to apps list
+	//queryStr = fmt.Sprintf("organization_id = '%s' AND status <> domain.ClusterStatus_DELETED", organizationId)
+	queryStr = fmt.Sprintf("organization_id = '%s'", organizationId)
+	res = r.db.Order("created_at desc").Find(&clusters, queryStr)
+	if res.Error != nil {
+		return nil, fmt.Errorf("error while fetching clusters with organizationId: %s", organizationId)
+	}
+
+	for idx, app := range apps {
+		for _, cl := range clusters {
+			if string(cl.ID) == app.TargetClusterId {
+				apps[idx].TargetClusterName = cl.Name
+				break
+			}
+		}
+	}
+
 	return apps, nil
 }
 
 func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
 	var app domain.AppServeApp
+	var cluster Cluster
 
 	res := r.db.Where("id = ?", appId).First(&app)
 	if res.Error != nil {
@@ -92,12 +111,10 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 		return nil, err
 	}
 
-	//res := r.db.Order("app_serve_app_tasks.created_at asc").
-	//	Joins("Join app_serve_app_tasks On app_serve_app_tasks.app_serve_app_id = app_serve_apps.id").
-	//	First(&repoApp, "app_serve_apps.id = ?", appId)
-	//if res.RowsAffected == 0 || res.Error != nil {
-	//	return nil, fmt.Errorf("could not find AppServeApp with ID: %s", appId)
-	//}
+	// Add cluster name to app object
+	r.db.Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
+	app.TargetClusterName = cluster.Name
+	log.Infof("App struct with cluster name:\n%+v", app)
 
 	return &app, nil
 }
