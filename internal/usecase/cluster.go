@@ -277,19 +277,26 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	out.CpNodeMachineType = cluster.Conf.CpNodeMachineType
 	out.MpReplicas = cluster.Conf.TksNodeCnt
 	out.MpNodeMachineType = cluster.Conf.TksNodeMachineType
+
+	/*
+		// 기능 변경 : 20230614 : machine deployment 사용하지 않음. 단, aws-standard 는 사용할 여지가 있으므로 주석처리해둔다.
+		const MAX_AZ_NUM = 4
+		if cluster.Conf.UserNodeCnt <= MAX_AZ_NUM {
+			out.MdNumOfAz = cluster.Conf.UserNodeCnt
+			out.MdMinSizePerAz = 1
+			out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt
+		} else {
+			out.MdNumOfAz = MAX_AZ_NUM
+			out.MdMinSizePerAz = int(cluster.Conf.UserNodeCnt / MAX_AZ_NUM)
+			out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt * 5
+		}
+	*/
+
 	out.MdMachineType = cluster.Conf.UserNodeMachineType
+	out.MdNumOfAz = cluster.Conf.UserNodeCnt
+	out.MdMinSizePerAz = 1
+	out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt
 
-	const MAX_AZ_NUM = 4
-
-	if cluster.Conf.UserNodeCnt <= MAX_AZ_NUM {
-		out.MdNumOfAz = cluster.Conf.UserNodeCnt
-		out.MdMinSizePerAz = 1
-		out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt
-	} else {
-		out.MdNumOfAz = MAX_AZ_NUM
-		out.MdMinSizePerAz = int(cluster.Conf.UserNodeCnt / 3)
-		out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt * 5
-	}
 	return
 }
 
