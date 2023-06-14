@@ -74,8 +74,7 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 	}
 
 	// Add cluster names to apps list
-	//queryStr = fmt.Sprintf("organization_id = '%s' AND status <> domain.ClusterStatus_DELETED", organizationId)
-	queryStr = fmt.Sprintf("organization_id = '%s'", organizationId)
+	queryStr = fmt.Sprintf("organization_id = '%s' AND status <> '%d'", organizationId, domain.ClusterStatus_DELETED)
 	res = r.db.Order("created_at desc").Find(&clusters, queryStr)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while fetching clusters with organizationId: %s", organizationId)
