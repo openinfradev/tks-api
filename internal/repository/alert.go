@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -14,6 +16,7 @@ type IAlertRepository interface {
 	Get(alertId uuid.UUID) (domain.Alert, error)
 	GetByName(organizationId string, name string) (domain.Alert, error)
 	Fetch(organizationId string) ([]domain.Alert, error)
+	FetchPodRestart(organizationId string, start time.Time, end time.Time) ([]domain.Alert, error)
 	Create(dto domain.Alert) (alertId uuid.UUID, err error)
 	Update(dto domain.Alert) (err error)
 	Delete(dto domain.Alert) (err error)
@@ -101,6 +104,21 @@ func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err 
 	res := r.db.Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 		return db.Order("created_at ASC")
 	}).Preload("AlertActions.Taker").Preload(clause.Associations).Order("created_at desc").Find(&alerts, "organization_id = ?", organizationId)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	for _, alert := range alerts {
+		out = append(out, reflectAlert(alert))
+	}
+	return
+}
+
+func (r *AlertRepository) FetchPodRestart(organizationId string, start time.Time, end time.Time) (out []domain.Alert, err error) {
+	var alerts []Alert
+	res := r.db.Preload(clause.Associations).Order("created_at DESC").
+		Where("organization_id = ? AND created_at BETWEEN ? AND ?", organizationId, start, end).
+		Find(&alerts)
 	if res.Error != nil {
 		return nil, res.Error
 	}

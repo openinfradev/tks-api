@@ -3323,6 +3323,10 @@ const docTemplate = `{
                     "description": "target cluster to which the app is deployed",
                     "type": "string"
                 },
+                "targetClusterName": {
+                    "description": "target cluster name",
+                    "type": "string"
+                },
                 "type": {
                     "description": "type (build/deploy/all)",
                     "type": "string"
