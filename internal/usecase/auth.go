@@ -281,40 +281,6 @@ func (u *AuthUsecase) SingleSignOut(organizationId string) (string, []*http.Cook
 		}
 	}
 
-	//
-	//log.Info("clusters", clusters)
-	//if err != nil {
-	//	return nil, nil, err
-	//}
-	//if len(clusters) == 0 {
-	//	return nil, nil, nil
-	//}
-	//for _, cluster := range clusters {
-	//	appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
-	//	log.Info("appgroups", appgroups)
-	//	if err != nil {
-	//		return nil, nil, err
-	//	}
-	//	if len(appgroups) == 0 {
-	//		continue
-	//	}
-	//
-	//	for _, appgroup := range appgroups {
-	//		for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
-	//			apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
-	//			if err != nil {
-	//				return nil, nil, err
-	//			}
-	//			if urls[strings.ToLower(appType.String())] == nil {
-	//				urls[strings.ToLower(appType.String())] = []string{}
-	//			}
-	//			for _, app := range apps {
-	//				urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
-	//			}
-	//		}
-	//	}
-	//}
-
 	// cookies to be deleted
 	cookies := []*http.Cookie{
 		{
