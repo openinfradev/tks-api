@@ -34,7 +34,7 @@ type IAuthUsecase interface {
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
 	FetchRoles() (out []domain.Role, err error)
 	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
-	SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error)
+	SingleSignOut(organizationId string) (string, []*http.Cookie, error)
 }
 
 const (
@@ -44,20 +44,22 @@ const (
 )
 
 type AuthUsecase struct {
-	kc                 keycloak.IKeycloak
-	userRepository     repository.IUserRepository
-	authRepository     repository.IAuthRepository
-	clusterRepository  repository.IClusterRepository
-	appgroupRepository repository.IAppGroupRepository
+	kc                     keycloak.IKeycloak
+	userRepository         repository.IUserRepository
+	authRepository         repository.IAuthRepository
+	clusterRepository      repository.IClusterRepository
+	appgroupRepository     repository.IAppGroupRepository
+	organizationRepository repository.IOrganizationRepository
 }
 
 func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase {
 	return &AuthUsecase{
-		kc:                 kc,
-		userRepository:     r.User,
-		authRepository:     r.Auth,
-		clusterRepository:  r.Cluster,
-		appgroupRepository: r.AppGroup,
+		kc:                     kc,
+		userRepository:         r.User,
+		authRepository:         r.Auth,
+		clusterRepository:      r.Cluster,
+		appgroupRepository:     r.AppGroup,
+		organizationRepository: r.Organization,
 	}
 }
 
@@ -254,41 +256,64 @@ func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) (
 	return cookies, nil
 }
 
-func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error) {
-	urls := make(map[string][]string)
+func (u *AuthUsecase) SingleSignOut(organizationId string) (string, []*http.Cookie, error) {
+	var redirectUrl string
 
-	clusters, err := u.clusterRepository.FetchByOrganizationId(organizationId)
-	log.Info("clusters", clusters)
+	organization, err := u.organizationRepository.Get(organizationId)
 	if err != nil {
-		return nil, nil, err
+		return "", nil, err
 	}
-	if len(clusters) == 0 {
-		return nil, nil, nil
+
+	appGroupsInPrimaryCluster, err := u.appgroupRepository.Fetch(domain.ClusterId(organization.PrimaryClusterId))
+	if err != nil {
+		return "", nil, err
 	}
-	for _, cluster := range clusters {
-		appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
-		log.Info("appgroups", appgroups)
-		if err != nil {
-			return nil, nil, err
-		}
-		if len(appgroups) == 0 {
-			continue
-		}
-		for _, appgroup := range appgroups {
-			for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
-				apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
-				if err != nil {
-					return nil, nil, err
-				}
-				if urls[strings.ToLower(appType.String())] == nil {
-					urls[strings.ToLower(appType.String())] = []string{}
-				}
-				for _, app := range apps {
-					urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
-				}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appgroupRepository.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				return "", nil, err
+			}
+			if len(applications) > 0 {
+				redirectUrl = "http://" + applications[0].Endpoint + "/logout"
 			}
 		}
 	}
+
+	//
+	//log.Info("clusters", clusters)
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+	//if len(clusters) == 0 {
+	//	return nil, nil, nil
+	//}
+	//for _, cluster := range clusters {
+	//	appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
+	//	log.Info("appgroups", appgroups)
+	//	if err != nil {
+	//		return nil, nil, err
+	//	}
+	//	if len(appgroups) == 0 {
+	//		continue
+	//	}
+	//
+	//	for _, appgroup := range appgroups {
+	//		for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
+	//			apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
+	//			if err != nil {
+	//				return nil, nil, err
+	//			}
+	//			if urls[strings.ToLower(appType.String())] == nil {
+	//				urls[strings.ToLower(appType.String())] = []string{}
+	//			}
+	//			for _, app := range apps {
+	//				urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
+	//			}
+	//		}
+	//	}
+	//}
 
 	// cookies to be deleted
 	cookies := []*http.Cookie{
@@ -312,7 +337,7 @@ func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string,
 		},
 	}
 
-	return urls, cookies, nil
+	return redirectUrl, cookies, nil
 }
 
 func (u *AuthUsecase) isExpiredEmailCode(code repository.CacheEmailCode) bool {
