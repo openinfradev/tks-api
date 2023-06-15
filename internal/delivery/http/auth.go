@@ -112,7 +112,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cookies []*http.Cookie
-	urls, targetCookies, err := h.usecase.SingleSignOut(organizationId)
+	redirectUrl, targetCookies, err := h.usecase.SingleSignOut(organizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 	}
@@ -122,10 +122,9 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, cookie)
 		}
 	}
-	var out domain.LogoutResponse
-	out.SsoUrls = urls
-
-	ResponseJSON(w, r, http.StatusOK, out)
+	
+	http.Redirect(w, r, redirectUrl, http.StatusFound)
+	ResponseJSON(w, r, http.StatusFound, nil)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {

@@ -37,6 +37,9 @@ func init() {
 	flag.String("revision", "main", "revision")
 	flag.Int("migrate-db", 1, "If the values is true, enable db migration. recommend only development")
 
+	// console
+	flag.String("console-address", "https://tks-console-dev.taco-cat.xyz", "service address for console")
+
 	// app-serve-apps
 	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")
 	flag.String("harbor-pw-secret", "harbor-core", "name of harbor password secret")
