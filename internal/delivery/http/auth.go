@@ -122,9 +122,15 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, cookie)
 		}
 	}
-	
-	http.Redirect(w, r, redirectUrl, http.StatusFound)
-	ResponseJSON(w, r, http.StatusFound, nil)
+
+	//추후 사용을 위해 주석 처리
+	//http.Redirect(w, r, redirectUrl, http.StatusFound)
+	//ResponseJSON(w, r, http.StatusFound, nil)
+
+	//추후 사용을 위한 임시 코드
+	_ = redirectUrl
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
