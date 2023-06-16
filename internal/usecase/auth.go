@@ -367,9 +367,9 @@ func makingCookie(organizationId, userName, password string) ([]*http.Cookie, er
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Errorf("Error while creating new request: %v", err)
+		return nil, err
 	}
 	cookies := resp.Cookies()
-	log.Info(cookies)
 	if len(cookies) < 1 {
 		return nil, fmt.Errorf("no cookie found")
 	}
