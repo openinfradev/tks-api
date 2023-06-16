@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -358,7 +359,11 @@ func makingCookie(organizationId, userName, password string) ([]*http.Cookie, er
 	}
 
 	authCodeUrl := oauth2Config.AuthCodeURL(stateCode, oauth2.AccessTypeOnline)
-	client := &http.Client{}
+	// skip tls check
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: transport}
 	req, err := http.NewRequest("GET", authCodeUrl, nil)
 	if err != nil {
 		return nil, err
