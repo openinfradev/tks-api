@@ -120,7 +120,7 @@ func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err 
 func (r *AlertRepository) FetchPodRestart(organizationId string, start time.Time, end time.Time) (out []domain.Alert, err error) {
 	var alerts []Alert
 	res := r.db.Preload(clause.Associations).Order("created_at DESC").
-		Where("organization_id = ? AND created_at BETWEEN ? AND ?", organizationId, start, end).
+		Where("organization_id = ? AND name = 'pod-restart-frequently' AND created_at BETWEEN ? AND ?", organizationId, start, end).
 		Find(&alerts)
 	if res.Error != nil {
 		return nil, res.Error

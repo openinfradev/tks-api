@@ -333,6 +333,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 				}
 			}
 
+
 			{
 				series : [
 					{
@@ -389,6 +390,10 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 				break
 			}
 			baseDate := d.Format("2006-01-02")
+
+			if baseDate > now.Format("2006-01-02") {
+				break
+			}
 
 			cntPodRestart := 0
 			for _, alert := range alerts {
