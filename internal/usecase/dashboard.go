@@ -391,23 +391,23 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			}
 			baseDate := d.Format("2006-01-02")
 
-			if baseDate > now.Format("2006-01-02") {
-				break
-			}
-
+			cntPodRestartStr := ""
 			cntPodRestart := 0
-			for _, alert := range alerts {
-				strDate := alert.CreatedAt.Format("2006-01-02")
 
-				if strDate == baseDate {
-					cntPodRestart += 1
+			if baseDate <= now.Format("2006-01-02") {
+				for _, alert := range alerts {
+					strDate := alert.CreatedAt.Format("2006-01-02")
+
+					if strDate == baseDate {
+						cntPodRestart += 1
+					}
 				}
+				cntPodRestartStr = fmt.Sprintf("%d", int(cntPodRestart))
 			}
 
 			dd := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
 			xAxisData = append(xAxisData, strconv.Itoa(int(dd.Unix())))
-			yAxisData = append(yAxisData, fmt.Sprintf("%d", int(cntPodRestart)))
-
+			yAxisData = append(yAxisData, cntPodRestartStr)
 		}
 
 		chartData.XAxis.Data = xAxisData
