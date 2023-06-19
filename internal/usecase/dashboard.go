@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
 	gcache "github.com/patrickmn/go-cache"
@@ -22,15 +24,16 @@ import (
 )
 
 type IDashboardUsecase interface {
-	GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
-	GetStacks(organizationId string) (out []domain.DashboardStack, err error)
-	GetResources(organizationId string) (out domain.DashboardResource, err error)
+	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
+	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
+	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
 }
 
 type DashboardUsecase struct {
 	organizationRepo repository.IOrganizationRepository
 	clusterRepo      repository.IClusterRepository
 	appGroupRepo     repository.IAppGroupRepository
+	alertRepo        repository.IAlertRepository
 	cache            *gcache.Cache
 }
 
@@ -39,11 +42,12 @@ func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboar
 		organizationRepo: r.Organization,
 		clusterRepo:      r.Cluster,
 		appGroupRepo:     r.AppGroup,
+		alertRepo:        r.Alert,
 		cache:            cache,
 	}
 }
 
-func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
+func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
 	_, err = u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid organization")
@@ -65,7 +69,7 @@ func (u *DashboardUsecase) GetCharts(organizationId string, chartType domain.Cha
 	return
 }
 
-func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.DashboardStack, err error) {
+func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error) {
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
 	if err != nil {
 		return out, err
@@ -73,7 +77,8 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return out, err
+		log.ErrorWithContext(ctx, err)
+		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
@@ -98,25 +103,41 @@ func (u *DashboardUsecase) GetStacks(organizationId string) (out []domain.Dashbo
 		stack := reflectClusterToStack(cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
 		if err := domain.Map(stack, &dashboardStack); err != nil {
-			log.Info(err)
+			log.InfoWithContext(ctx, err)
 		}
 
 		memory, disk := u.getStackMemoryDisk(stackMemoryDisk.Data.Result, cluster.ID.String())
 		cpu := u.getStackCpu(stackCpu.Data.Result, cluster.ID.String())
-		dashboardStack.Cpu = cpu + " %"
-		dashboardStack.Memory = memory + " %"
-		dashboardStack.Storage = disk + " %"
+
+		if cpu != "" {
+			cpu = cpu + " %"
+		}
+		if memory != "" {
+			memory = memory + " %"
+		}
+		if disk != "" {
+			disk = disk + " %"
+		}
+
+		dashboardStack.Cpu = cpu
+		dashboardStack.Memory = memory
+		dashboardStack.Storage = disk
 
 		out = append(out, dashboardStack)
 	}
 
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Status == domain.StackStatus_RUNNING.String()
+	})
+
 	return
 }
 
-func (u *DashboardUsecase) GetResources(organizationId string) (out domain.DashboardResource, err error) {
+func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return out, err
+		log.ErrorWithContext(ctx, err)
+		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
@@ -201,7 +222,8 @@ func (u *DashboardUsecase) GetResources(organizationId string) (out domain.Dashb
 func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return res, err
+		log.Error(err)
+		return res, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
@@ -251,84 +273,189 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		query = "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
 
 	case domain.ChartType_POD_CALENDAR.String():
+		/*
+			// 입력받은 년,월 을 date 형식으로
+			yearInt, _ := strconv.Atoi(year)
+			monthInt, _ := strconv.Atoi(month)
+			startDate := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 0, 0, time.UTC)
+			endDate := startDate.Add(time.Hour * 24 * 30)
+
+			start := 0
+			end := 0
+			if now.Year() < yearInt {
+				return res, fmt.Errorf("Invalid year")
+			} else if now.Year() == yearInt && int(now.Month()) < monthInt {
+				return res, fmt.Errorf("Invalid month")
+			} else if now.Year() == yearInt && int(now.Month()) == monthInt {
+				start = int(startDate.Unix())
+				end = int(now.Unix())
+			} else {
+				start = int(startDate.Unix())
+				end = int(endDate.Unix())
+			}
+
+			log.Debugf("S : %d E : %d", start, end)
+
+			query = "sum by (__name__) ({__name__=~\"kube_pod_container_status_restarts_total|kube_pod_status_phase\"})"
+
+			result, err := thanosClient.FetchRange(query, start, end, 60*60*24)
+			if err != nil {
+				return res, err
+			}
+
+			for _, val := range result.Data.Result {
+				xAxisData := []string{}
+				yAxisData := []string{}
+
+				for _, vals := range val.Values {
+					x := int(math.Round(vals.([]interface{})[0].(float64)))
+					y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
+					if err != nil {
+						y = 0
+					}
+					xAxisData = append(xAxisData, strconv.Itoa(x))
+					yAxisData = append(yAxisData, fmt.Sprintf("%d", int(y)))
+				}
+
+				if val.Metric.Name == "kube_pod_container_status_restarts_total" {
+					chartData.XAxis.Data = xAxisData
+					chartData.Series = append(chartData.Series, domain.Unit{
+						Name: "date",
+						Data: xAxisData,
+					})
+					chartData.Series = append(chartData.Series, domain.Unit{
+						Name: "podRestartCount",
+						Data: yAxisData,
+					})
+				}
+
+				if val.Metric.Name == "kube_pod_status_phase" {
+					chartData.Series = append(chartData.Series, domain.Unit{
+						Name: "totalPodCount",
+						Data: yAxisData,
+					})
+				}
+			}
+
+
+			{
+				series : [
+					{
+						name : date,
+						data : [
+							"timestamp1",
+							"timestamp2"
+							"timestamp3"
+						]
+					},
+					{
+						name : podRestartCount,
+						data : [
+							"1",
+							"2"
+							"3"
+						]
+					},
+					{
+						name : totalPodCount,
+						data : [
+							"10",
+							"20"
+							"30"
+						]
+					},
+				]
+			}
+		*/
+
 		// 입력받은 년,월 을 date 형식으로
 		yearInt, _ := strconv.Atoi(year)
 		monthInt, _ := strconv.Atoi(month)
 		startDate := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 0, 0, time.UTC)
 		endDate := startDate.Add(time.Hour * 24 * 30)
 
-		start := 0
-		end := 0
 		if now.Year() < yearInt {
 			return res, fmt.Errorf("Invalid year")
 		} else if now.Year() == yearInt && int(now.Month()) < monthInt {
 			return res, fmt.Errorf("Invalid month")
-		} else if now.Year() == yearInt && int(now.Month()) == monthInt {
-			start = int(startDate.Unix())
-			end = int(now.Unix())
-		} else {
-			start = int(startDate.Unix())
-			end = int(endDate.Unix())
 		}
 
-		log.Infof("S : %d E : %d", start, end)
-
-		query = "sum by (__name__) ({__name__=~\"kube_pod_container_status_restarts_total|kube_pod_status_phase\"})"
-
-		result, err := thanosClient.FetchRange(query, start, end, 60*60*24)
+		alerts, err := u.alertRepo.FetchPodRestart(organizationId, startDate, endDate)
 		if err != nil {
 			return res, err
 		}
 
-		for _, val := range result.Data.Result {
-			xAxisData := []string{}
-			yAxisData := []string{}
+		xAxisData := []string{}
+		yAxisData := []string{}
 
-			for _, vals := range val.Values {
-				x := int(math.Round(vals.([]interface{})[0].(float64)))
-				y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-				if err != nil {
-					y = 0
+		for day := rangeDate(startDate, endDate); ; {
+			d := day()
+			if d.IsZero() {
+				break
+			}
+			baseDate := d.Format("2006-01-02")
+
+			cntPodRestartStr := ""
+			cntPodRestart := 0
+
+			if baseDate <= now.Format("2006-01-02") {
+				for _, alert := range alerts {
+					strDate := alert.CreatedAt.Format("2006-01-02")
+
+					if strDate == baseDate {
+						cntPodRestart += 1
+					}
 				}
-				xAxisData = append(xAxisData, strconv.Itoa(x))
-				yAxisData = append(yAxisData, fmt.Sprintf("%d", int(y)))
+				cntPodRestartStr = fmt.Sprintf("%d", int(cntPodRestart))
 			}
 
-			if val.Metric.Name == "kube_pod_container_status_restarts_total" {
-				chartData.XAxis.Data = xAxisData
-				chartData.Series = append(chartData.Series, domain.Unit{
-					Name: "date",
-					Data: xAxisData,
-				})
-				chartData.Series = append(chartData.Series, domain.Unit{
-					Name: "podRestartCount",
-					Data: yAxisData,
-				})
-			}
-
-			if val.Metric.Name == "kube_pod_status_phase" {
-				chartData.Series = append(chartData.Series, domain.Unit{
-					Name: "totalPodCount",
-					Data: yAxisData,
-				})
-			}
+			dd := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
+			xAxisData = append(xAxisData, strconv.Itoa(int(dd.Unix())))
+			yAxisData = append(yAxisData, cntPodRestartStr)
 		}
 
+		chartData.XAxis.Data = xAxisData
+		chartData.Series = append(chartData.Series, domain.Unit{
+			Name: "podRestartCount",
+			Data: yAxisData,
+		})
+
 		/*
-			chartData := domain.ChartData{}
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: "date",
-				Data: []string{"2021-04-01", "2021-04-02", "2021-04-03"},
-			})
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: "podRestartCount",
-				Data: []string{"1", "4", "0"},
-			})
-			chartData.Series = append(chartData.Series, domain.Unit{
-				Name: "totalPodCount",
-				Data: []string{"100", "120", "100"},
-			})
+			for _, alert := range alerts {
+				xAxisData := []string{}
+				yAxisData := []string{}
+
+				for _, vals := range val.Values {
+					x := int(math.Round(vals.([]interface{})[0].(float64)))
+					y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
+					if err != nil {
+						y = 0
+					}
+					xAxisData = append(xAxisData, strconv.Itoa(x))
+					yAxisData = append(yAxisData, fmt.Sprintf("%d", int(y)))
+				}
+
+				if val.Metric.Name == "kube_pod_container_status_restarts_total" {
+					chartData.XAxis.Data = xAxisData
+					chartData.Series = append(chartData.Series, domain.Unit{
+						Name: "date",
+						Data: xAxisData,
+					})
+					chartData.Series = append(chartData.Series, domain.Unit{
+						Name: "podRestartCount",
+						Data: yAxisData,
+					})
+				}
+
+				if val.Metric.Name == "kube_pod_status_phase" {
+					chartData.Series = append(chartData.Series, domain.Unit{
+						Name: "totalPodCount",
+						Data: yAxisData,
+					})
+				}
+			}
 		*/
+
 		return domain.DashboardChart{
 			ChartType:      domain.ChartType_POD_CALENDAR,
 			OrganizationId: organizationId,
@@ -371,8 +498,14 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			}
 			yAxisData = append(yAxisData, u.getChartYValue(val.Values, xAxis, percentage))
 		}
+
+		clusterName, err := u.getClusterNameFromId(val.Metric.TacoCluster)
+		if err != nil {
+			clusterName = val.Metric.TacoCluster
+		}
+
 		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: val.Metric.TacoCluster,
+			Name: clusterName,
 			Data: yAxisData,
 		})
 	}
@@ -412,9 +545,12 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 	if err != nil {
 		return out, errors.Wrap(err, "Failed to get client set for user cluster")
 	}
-	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query-frontend", metav1.GetOptions{})
 	if err != nil {
-		return out, errors.Wrap(err, "Failed to get services.")
+		service, err = clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+		if err != nil {
+			return out, errors.Wrap(err, "Failed to get services.")
+		}
 	}
 
 	// LoadBalaner 일경우, aws address 형태의 경우만 가정한다.
@@ -496,4 +632,37 @@ func (u *DashboardUsecase) getStackCpu(result []thanos.MetricDataResult, cluster
 		}
 	}
 	return
+}
+
+func (u *DashboardUsecase) getClusterNameFromId(clusterId string) (clusterName string, err error) {
+	const prefix = "CACHE_KEY_CLUSTER_NAME_FROM_ID"
+	value, found := u.cache.Get(prefix + clusterId)
+	if found {
+		return value.(string), nil
+	}
+
+	cluster, err := u.clusterRepo.Get(domain.ClusterId(clusterId))
+	if err != nil {
+		return clusterName, errors.Wrap(err, "Failed to get cluster")
+	}
+	clusterName = cluster.Name
+
+	u.cache.Set(prefix+clusterId, clusterName, gcache.DefaultExpiration)
+	return
+}
+
+func rangeDate(start, end time.Time) func() time.Time {
+	y, m, d := start.Date()
+	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	y, m, d = end.Date()
+	end = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+
+	return func() time.Time {
+		if start.After(end) {
+			return time.Time{}
+		}
+		date := start
+		start = start.AddDate(0, 0, 1)
+		return date
+	}
 }

@@ -39,7 +39,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
@@ -60,12 +60,12 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 
 	month := query.Get("month")
 	if month == "" {
-		month = "4" // default
+		month = "5" // default
 	}
 
-	charts, err := h.usecase.GetCharts(organizationId, domain.ChartType_ALL, duration, interval, year, month)
+	charts, err := h.usecase.GetCharts(r.Context(), organizationId, domain.ChartType_ALL, duration, interval, year, month)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -73,12 +73,12 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	out.Charts = make([]domain.DashboardChartResponse, len(charts))
 	for i, chart := range charts {
 		if err := domain.Map(chart, &out.Charts[i]); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetCharts godoc
@@ -98,18 +98,18 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	strType, ok := vars["chartType"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "D_INVALID_CHART_TYPE", ""))
 		return
 	}
 	chartType := new(domain.ChartType).FromString(strType)
 	if chartType == domain.ChartType_ERROR {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid chartType"), "D_INVALID_CHART_TYPE", ""))
 		return
 	}
 
@@ -134,27 +134,27 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 		month = "4" // default
 	}
 
-	charts, err := h.usecase.GetCharts(organizationId, chartType, duration, interval, year, month)
+	charts, err := h.usecase.GetCharts(r.Context(), organizationId, chartType, duration, interval, year, month)
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid primary clusterId") {
-			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
 			return
 		}
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	if len(charts) < 1 {
-		ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_NOT_FOUND_CHART", ""))
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "D_NOT_FOUND_CHART", ""))
 		return
 	}
 
 	var out domain.DashboardChartResponse
 	if err := domain.Map(charts[0], &out); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetStacks godoc
@@ -171,18 +171,18 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
-	stacks, err := h.usecase.GetStacks(organizationId)
+	stacks, err := h.usecase.GetStacks(r.Context(), organizationId)
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid primary clusterId") {
-			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
 			return
 		}
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -190,13 +190,12 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	out.Stacks = make([]domain.DashboardStackResponse, len(stacks))
 	for i, stack := range stacks {
 		if err := domain.Map(stack, &out.Stacks[i]); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(), err)
 			continue
 		}
-		log.Info(out.Stacks[i])
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetResources godoc
@@ -213,23 +212,23 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
-	resources, err := h.usecase.GetResources(organizationId)
+	resources, err := h.usecase.GetResources(r.Context(), organizationId)
 	if err != nil {
 		if strings.Contains(err.Error(), "Invalid primary clusterId") {
-			ErrorJSON(w, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", ""))
 			return
 		}
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	var out domain.GetDashboardResourcesResponse
 	if err := domain.Map(resources, &out.Resources); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }

@@ -76,6 +76,7 @@ type CloudAccountResponse struct {
 	Resource       string             `json:"resource"`
 	Clusters       int                `json:"clusters"`
 	Status         string             `json:"status"`
+	AwsAccountId   string             `json:"awsAccountId"`
 	Creator        SimpleUserResponse `json:"creator"`
 	Updator        SimpleUserResponse `json:"updator"`
 	CreatedAt      time.Time          `json:"createdAt"`
@@ -88,6 +89,7 @@ type SimpleCloudAccountResponse struct {
 	Name           string `json:"name"`
 	Description    string `json:"description"`
 	CloudService   string `json:"cloudService"`
+	AwsAccountId   string `json:"awsAccountId"`
 	Clusters       int    `json:"clusters"`
 }
 
@@ -124,5 +126,9 @@ type DeleteCloudAccountRequest struct {
 }
 
 type CheckCloudAccountNameResponse struct {
+	Existed bool `json:"existed"`
+}
+
+type CheckCloudAccountAwsAccountIdResponse struct {
 	Existed bool `json:"existed"`
 }

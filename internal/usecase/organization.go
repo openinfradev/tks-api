@@ -68,10 +68,10 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 			},
 		})
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", errors.Wrap(err, "Failed to call argo workflow")
 	}
-	log.Info("submited workflow :", workflowId)
+	log.InfoWithContext(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(organizationId, workflowId, domain.OrganizationStatus_CREATING); err != nil {
 		return "", errors.Wrap(err, "Failed to init workflow")
@@ -134,19 +134,12 @@ func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clus
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "", "")
 	}
 
-	organization, err := u.Get(organizationId)
+	_, err = u.Get(organizationId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
 
-	// [TODO] need refactoring about reflect
-	in := domain.UpdateOrganizationRequest{
-		Description:      organization.Description,
-		Phone:            organization.Phone,
-		PrimaryClusterId: clusterId,
-	}
-
-	_, err = u.repo.Update(organizationId, in)
+	err = u.repo.UpdatePrimaryClusterId(organizationId, clusterId)
 	if err != nil {
 		return err
 	}

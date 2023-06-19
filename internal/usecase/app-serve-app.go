@@ -21,6 +21,7 @@ type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
 	IsAppServeAppExist(appId string) (bool, error)
 	IsAppServeAppNameExist(orgId string, appName string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
@@ -158,6 +159,15 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 	return app, nil
 }
 
+func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
+	task, err := u.repo.GetAppServeAppLatestTask(appId)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
+}
+
 func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
 	count, err := u.repo.IsAppServeAppExist(appId)
 	if err != nil {
@@ -235,16 +245,6 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		return "작업 진행 중에는 앱을 삭제할 수 없습니다", fmt.Errorf("Can't delete app while the task is in progress.")
 	}
 
-	log.Info("Updating app status to 'DELETING'..")
-
-	latestTaskId := app.AppServeAppTasks[0].ID
-	err = u.repo.UpdateStatus(appId, latestTaskId, "DELETING", "")
-	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", latestTaskId)
-		return "", fmt.Errorf("failed to update app status on PromoteAppServeApp. Err: %s", err)
-	}
-
 	/********************
 	 * Start delete task *
 	 ********************/
@@ -252,10 +252,10 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	appTask := &domain.AppServeAppTask{
 		AppServeAppId: app.ID,
 		Version:       strconv.Itoa(len(app.AppServeAppTasks) + 1),
-		ArtifactUrl:   app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ArtifactUrl,
-		ImageUrl:      app.AppServeAppTasks[len(app.AppServeAppTasks)-1].ImageUrl,
+		ArtifactUrl:   "",
+		ImageUrl:      app.AppServeAppTasks[0].ImageUrl,
 		Status:        "DELETING",
-		Profile:       app.AppServeAppTasks[len(app.AppServeAppTasks)-1].Profile,
+		Profile:       app.AppServeAppTasks[0].Profile,
 		Output:        "",
 		CreatedAt:     time.Now(),
 	}
@@ -521,6 +521,10 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 		}
 	}
 
+	// Save target version
+	targetVer := task.Version
+	targetRev := task.HelmRevision
+
 	// Insert new values to the target task object
 	task.ID = ""
 	task.Output = ""
@@ -528,6 +532,8 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
+	task.HelmRevision = 0
+	task.RollbackVersion = targetVer
 
 	// Creates new task record from the target task
 	newTaskId, err := u.repo.CreateTask(&task)
@@ -558,7 +564,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + newTaskId,
-			"helm_revision=" + strconv.Itoa(int(task.HelmRevision)),
+			"helm_revision=" + strconv.Itoa(int(targetRev)),
 			"tks_info_host=" + viper.GetString("external-address"),
 		},
 	})

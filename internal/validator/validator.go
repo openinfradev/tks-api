@@ -2,6 +2,7 @@ package validator
 
 import (
 	"regexp"
+	"unicode/utf8"
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
@@ -49,7 +50,7 @@ func validateRfc1123(fl validator.FieldLevel) bool {
 	if fl.Field().String() == "" {
 		return false
 	}
-	if len(fl.Field().String()) > 30 {
+	if utf8.RuneCountInString(fl.Field().String()) > 30 {
 		return false
 	}
 	r, _ := regexp.Compile(REGEX_RFC1123)
@@ -61,8 +62,6 @@ func validateName(fl validator.FieldLevel) bool {
 	if fl.Field().String() == "" {
 		return false
 	}
-	if len(fl.Field().String()) > 30 {
-		return false
-	}
-	return true
+
+	return utf8.RuneCountInString(fl.Field().String()) <= 30
 }

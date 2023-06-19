@@ -646,34 +646,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/histories": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get histories",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Histories"
-                ],
-                "summary": "Get histories",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.History"
-                        }
-                    }
-                }
-            }
-        },
         "/organizations": {
             "get": {
                 "security": [
@@ -1355,6 +1327,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/app-serve-apps/{appId}/latest-task": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get latest task from appServeApp",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Get latest task from appServeApp",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAppServeAppTaskResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/app-serve-apps/{appId}/rollback": {
             "post": {
                 "security": [
@@ -1521,6 +1521,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check awsAccountId for cloudAccount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudAccounts"
+                ],
+                "summary": "Check awsAccountId for cloudAccount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "awsAccountId",
+                        "name": "awsAccountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CheckCloudAccountAwsAccountIdResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/cloud-accounts/name/{name}/existence": {
             "get": {
                 "security": [
@@ -1557,7 +1601,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CheckCloudAccountNameResponse"
+                        }
                     }
                 }
             }
@@ -1679,6 +1726,47 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.DeleteCloudAccountRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Force CloudAccount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudAccounts"
+                ],
+                "summary": "Delete Force CloudAccount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -3235,6 +3323,10 @@ const docTemplate = `{
                     "description": "target cluster to which the app is deployed",
                     "type": "string"
                 },
+                "targetClusterName": {
+                    "description": "target cluster name",
+                    "type": "string"
+                },
                 "type": {
                     "description": "type (build/deploy/all)",
                     "type": "string"
@@ -3323,6 +3415,10 @@ const docTemplate = `{
                     "description": "resource spec of app pod",
                     "type": "string"
                 },
+                "rollbackVersion": {
+                    "description": "rollback target version",
+                    "type": "string"
+                },
                 "status": {
                     "description": "status is app status",
                     "type": "string"
@@ -3391,6 +3487,22 @@ const docTemplate = `{
                 },
                 "yAxis": {
                     "$ref": "#/definitions/domain.Axis"
+                }
+            }
+        },
+        "domain.CheckCloudAccountAwsAccountIdResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "domain.CheckCloudAccountNameResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3467,6 +3579,9 @@ const docTemplate = `{
         "domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string"
                 },
@@ -4319,6 +4434,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetAppServeAppTaskResponse": {
+            "type": "object",
+            "properties": {
+                "appServeAppTask": {
+                    "$ref": "#/definitions/domain.AppServeAppTask"
+                }
+            }
+        },
         "domain.GetApplicationsResponse": {
             "type": "object",
             "properties": {
@@ -4572,29 +4695,6 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.History": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "historyType": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
         "domain.ListOrganizationBody": {
             "type": "object",
             "properties": {
@@ -4795,6 +4895,9 @@ const docTemplate = `{
         "domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
+                "awsAccountId": {
+                    "type": "string"
+                },
                 "cloudService": {
                     "type": "string"
                 },
@@ -5100,7 +5203,7 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "description": "PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)",
+                    "description": "BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)",
                     "type": "string"
                 },
                 "result": {
@@ -5165,9 +5268,6 @@ const docTemplate = `{
                 "appSecret": {
                     "type": "string"
                 },
-                "appType": {
-                    "type": "string"
-                },
                 "artifactUrl": {
                     "type": "string"
                 },
@@ -5195,10 +5295,6 @@ const docTemplate = `{
                 },
                 "strategy": {
                     "description": "Task",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "App",
                     "type": "string"
                 }
             }

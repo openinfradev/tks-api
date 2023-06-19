@@ -22,6 +22,7 @@ type IAppGroupRepository interface {
 	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (applications []domain.Application, err error)
 	UpsertApplication(dto domain.Application) error
 	InitWorkflow(appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error
+	InitWorkflowDescription(clusterId domain.ClusterId) error
 }
 
 type AppGroupRepository struct {
@@ -173,10 +174,22 @@ func (r *AppGroupRepository) UpsertApplication(dto domain.Application) error {
 func (r *AppGroupRepository) InitWorkflow(appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error {
 	res := r.db.Model(&AppGroup{}).
 		Where("ID = ?", appGroupId).
-		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
+		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId, "StatusDesc": ""})
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return fmt.Errorf("nothing updated in appgroup with id %s", appGroupId)
+	}
+
+	return nil
+}
+
+func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId) error {
+	res := r.db.Model(&AppGroup{}).
+		Where("cluster_id = ?", clusterId).
+		Updates(map[string]interface{}{"WorkflowId": "", "StatusDesc": ""})
+
+	if res.Error != nil || res.RowsAffected == 0 {
+		return fmt.Errorf("nothing updated in appgroup with id %s", clusterId)
 	}
 
 	return nil

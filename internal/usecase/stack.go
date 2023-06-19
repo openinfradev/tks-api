@@ -21,14 +21,14 @@ import (
 )
 
 type IStackUsecase interface {
-	Get(stackId domain.StackId) (domain.Stack, error)
-	GetByName(organizationId string, name string) (domain.Stack, error)
-	Fetch(organizationId string) ([]domain.Stack, error)
+	Get(ctx context.Context, stackId domain.StackId) (domain.Stack, error)
+	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
+	Fetch(ctx context.Context, organizationId string) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
-	GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
+	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
 }
 
 type StackUsecase struct {
@@ -54,34 +54,33 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) ISta
 func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	_, err = u.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
-		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
 	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
 	_, err = u.cloudAccountRepo.Get(dto.CloudAccountId)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "", "")
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
 	}
 
-	// [TODO] check primary cluster
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get clusters"), "", "")
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
 	isPrimary := false
 	if len(clusters) == 0 {
 		isPrimary = true
 	}
-	log.Debug("isPrimary ", isPrimary)
+	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
 	workflow := ""
 	if strings.Contains(stackTemplate.Template, "aws-reference") || strings.Contains(stackTemplate.Template, "eks-reference") {
@@ -89,13 +88,13 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	} else if strings.Contains(stackTemplate.Template, "aws-msa-reference") || strings.Contains(stackTemplate.Template, "eks-msa-reference") {
 		workflow = "tks-stack-create-aws-msa"
 	} else {
-		log.Error("Invalid template  : ", stackTemplate.Template)
+		log.ErrorWithContext(ctx, "Invalid template  : ", stackTemplate.Template)
 		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template), "", "")
 	}
 
 	var stackConf domain.StackConfResponse
 	if err = domain.Map(dto.Conf, &stackConf); err != nil {
-		log.Info(err)
+		log.InfoWithContext(ctx, err)
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
@@ -111,10 +110,10 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		},
 	})
 	if err != nil {
-		log.Error(err)
-		return "", errors.Wrap(err, "Failed to call workflow. workflow")
+		log.ErrorWithContext(ctx, err)
+		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
-	log.Debug("Submitted workflow: ", workflowId)
+	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
 	dto.ID = domain.StackId("")
@@ -125,7 +124,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			return "", err
 		}
 
-		log.Debug("workflow ", workflow)
+		log.DebugWithContext(ctx, "workflow ", workflow)
 		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
 			return "", fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
 		}
@@ -143,23 +142,23 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	return dto.ID, nil
 }
 
-func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error) {
+func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Stack{}, httpErrors.NewNotFoundError(err, "", "")
+			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
 		}
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
 	if err != nil {
-		return domain.Stack{}, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "", "")
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
 	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId))
 	if err != nil {
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	out = reflectClusterToStack(cluster, appGroups)
@@ -167,14 +166,19 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 		out.PrimaryCluster = true
 	}
 
-	for _, appGroup := range appGroups {
+	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId))
+	if err != nil {
+		return out, err
+	}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
 		if appGroup.AppGroupType == domain.AppGroupType_LMA {
 			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
 			if err != nil {
-				return domain.Stack{}, err
+				return out, err
 			}
 			if len(applications) > 0 {
-				out.GrafanaUrl = applications[0].Endpoint
+				out.GrafanaUrl = applications[0].Endpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + cluster.ID.String()
 			}
 		}
 	}
@@ -182,28 +186,28 @@ func (u *StackUsecase) Get(stackId domain.StackId) (out domain.Stack, err error)
 	return
 }
 
-func (u *StackUsecase) GetByName(organizationId string, name string) (out domain.Stack, err error) {
+func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, name string) (out domain.Stack, err error) {
 	cluster, err := u.clusterRepo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Stack{}, httpErrors.NewNotFoundError(err, "", "")
+			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
 		}
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
 	if err != nil {
-		return domain.Stack{}, err
+		return out, err
 	}
 
 	out = reflectClusterToStack(cluster, appGroups)
 	return
 }
 
-func (u *StackUsecase) Fetch(organizationId string) (out []domain.Stack, err error) {
+func (u *StackUsecase) Fetch(ctx context.Context, organizationId string) (out []domain.Stack, err error) {
 	organization, err := u.organizationRepo.Get(organizationId)
 	if err != nil {
-		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "", "")
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
@@ -247,7 +251,7 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 
 	_, err = u.clusterRepo.Get(domain.ClusterId(dto.ID))
 	if err != nil {
-		return errors.Wrap(err, "No cluster")
+		return httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
 	}
 
 	updatorId := user.GetUserId()
@@ -268,7 +272,7 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(dto.ID))
 	if err != nil {
-		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "", "")
+		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "S_FAILED_FETCH_CLUSTER", "")
 	}
 
 	// 지우려고 하는 stack 이 primary cluster 라면, organization 내에 cluster 가 자기 자신만 남아있을 경우이다.
@@ -286,11 +290,10 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			}
 
 			for _, cl := range clusters {
-				log.Infof("%s %s", cl.ID, cl.Status)
 				if cl.ID != cluster.ID &&
 					cl.Status != domain.ClusterStatus_DELETED &&
 					cl.Status != domain.ClusterStatus_ERROR {
-					return fmt.Errorf("Failed to delete 'Primary' cluster. The clusters remain in organization")
+					return httpErrors.NewBadRequestError(fmt.Errorf("Failed to delete 'Primary' cluster. The clusters remain in organization"), "S_REMAIN_CLUSTER_FOR_DELETION", "")
 				}
 			}
 			break
@@ -315,7 +318,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
 		workflow = "tks-stack-delete-aws-msa"
 	} else {
-		log.Error("Invalid template  : ", cluster.StackTemplate.Template)
+		log.ErrorWithContext(ctx, "Invalid template  : ", cluster.StackTemplate.Template)
 		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stack-template %s", cluster.StackTemplate.Template), "", "")
 	}
 
@@ -324,13 +327,22 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"organization_id=" + dto.OrganizationId,
 			"cluster_id=" + dto.ID.String(),
+			"cloud_account_id=" + cluster.CloudAccount.ID.String(),
 		},
 	})
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return err
 	}
-	log.Debug("Submitted workflow: ", workflowId)
+	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+
+	// Remove Cluster & AppGroup status description
+	if err := u.appGroupRepo.InitWorkflowDescription(cluster.ID); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
+	if err := u.clusterRepo.InitWorkflowDescription(cluster.ID); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
 
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < 60; i++ {
@@ -364,7 +376,7 @@ func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId
 }
 
 // [TODO] need more pretty...
-func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error) {
+func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
 		return out, "", err
@@ -420,12 +432,20 @@ func (u *StackUsecase) GetStepStatus(stackId domain.StackId) (out []domain.Stack
 				step := parseStatusDescription(appGroup.StatusDesc)
 
 				out[i].Status = appGroup.Status.String()
-				out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_MEMBER
-				if organization.PrimaryClusterId == cluster.ID.String() {
-					out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_PRIMARY
-				}
-				if appGroup.Status == domain.AppGroupStatus_DELETING {
-					out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
+
+				if appGroup.AppGroupType == domain.AppGroupType_LMA {
+					out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_MEMBER
+					if organization.PrimaryClusterId == cluster.ID.String() {
+						out[i].MaxStep = domain.MAX_STEP_LMA_CREATE_PRIMARY
+					}
+					if appGroup.Status == domain.AppGroupStatus_DELETING || cluster.Status == domain.ClusterStatus_DELETING {
+						out[i].MaxStep = domain.MAX_STEP_LMA_REMOVE
+					}
+				} else {
+					out[i].MaxStep = domain.MAX_STEP_SM_CREATE
+					if appGroup.Status == domain.AppGroupStatus_DELETING || cluster.Status == domain.ClusterStatus_DELETING {
+						out[i].MaxStep = domain.MAX_STEP_SM_REMOVE
+					}
 				}
 				out[i].Step = step
 				if out[i].Step > out[i].MaxStep {

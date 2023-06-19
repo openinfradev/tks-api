@@ -17,12 +17,12 @@ import (
 )
 
 type IAppGroupUsecase interface {
-	Fetch(clusterId domain.ClusterId) ([]domain.AppGroup, error)
+	Fetch(ctx context.Context, clusterId domain.ClusterId) ([]domain.AppGroup, error)
 	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
-	Get(id domain.AppGroupId) (out domain.AppGroup, err error)
-	Delete(organizationId string, id domain.AppGroupId) (err error)
-	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
-	UpdateApplication(dto domain.Application) (err error)
+	Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error)
+	Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error)
+	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
+	UpdateApplication(ctx context.Context, dto domain.Application) (err error)
 }
 
 type AppGroupUsecase struct {
@@ -39,7 +39,7 @@ func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) I
 	}
 }
 
-func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
+func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
 	out, err = u.repo.Fetch(clusterId)
 	if err != nil {
 		return nil, err
@@ -50,19 +50,19 @@ func (u *AppGroupUsecase) Fetch(clusterId domain.ClusterId) (out []domain.AppGro
 func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 
 	cluster, err := u.clusterRepo.Get(dto.ClusterId)
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to get cluster info")
+		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
 	}
 
 	resAppGroups, err := u.repo.Fetch(dto.ClusterId)
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to get appgroups")
+		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_APPGROUP", "")
 	}
 
 	for _, resAppGroup := range resAppGroups {
@@ -81,7 +81,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		err = u.repo.Update(dto)
 	}
 	if err != nil {
-		return "", errors.Wrap(err, "Failed to create appGroup.")
+		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CREATE_APPGROUP", "")
 	}
 
 	workflowTemplate := ""
@@ -95,6 +95,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"revision=" + viper.GetString("revision"),
 		"app_group_id=" + dto.ID.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
+		"console_url=" + viper.GetString("console-address"),
 		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
 		"alert_slack=" + viper.GetString("alert-slack"),
 	}
@@ -108,14 +109,14 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		workflowTemplate = "tks-service-mesh"
 
 	default:
-		log.Error("invalid appGroup type ", dto.AppGroupType.String())
+		log.ErrorWithContext(ctx, "invalid appGroup type ", dto.AppGroupType.String())
 		return "", errors.Wrap(err, fmt.Sprintf("Invalid appGroup type. %s", dto.AppGroupType.String()))
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
 	if err != nil {
-		log.Error("failed to submit argo workflow template. err : ", err)
-		return "", errors.Wrap(err, "Failed to call argo workflow")
+		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CALL_WORKFLOW", "")
 	}
 
 	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
@@ -125,7 +126,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 	return dto.ID, nil
 }
 
-func (u *AppGroupUsecase) Get(id domain.AppGroupId) (out domain.AppGroup, err error) {
+func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error) {
 	appGroup, err := u.repo.Get(id)
 	if err != nil {
 		return domain.AppGroup{}, err
@@ -133,7 +134,7 @@ func (u *AppGroupUsecase) Get(id domain.AppGroupId) (out domain.AppGroup, err er
 	return appGroup, nil
 }
 
-func (u *AppGroupUsecase) Delete(organizationId string, id domain.AppGroupId) (err error) {
+func (u *AppGroupUsecase) Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error) {
 	appGroup, err := u.repo.Get(id)
 	if err != nil {
 		return fmt.Errorf("No appGroup for deletiing : %s", id)
@@ -173,7 +174,7 @@ func (u *AppGroupUsecase) Delete(organizationId string, id domain.AppGroupId) (e
 		return fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 
-	log.Debug("submited workflow name : ", workflowId)
+	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
 
 	if err := u.repo.InitWorkflow(id, workflowId, domain.AppGroupStatus_DELETING); err != nil {
 		return fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
@@ -189,7 +190,7 @@ func (u *AppGroupUsecase) Delete(organizationId string, id domain.AppGroupId) (e
 	return nil
 }
 
-func (u *AppGroupUsecase) GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error) {
+func (u *AppGroupUsecase) GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error) {
 	out, err = u.repo.GetApplications(id, applicationType)
 	if err != nil {
 		return nil, err
@@ -197,7 +198,7 @@ func (u *AppGroupUsecase) GetApplications(id domain.AppGroupId, applicationType 
 	return
 }
 
-func (u *AppGroupUsecase) UpdateApplication(dto domain.Application) (err error) {
+func (u *AppGroupUsecase) UpdateApplication(ctx context.Context, dto domain.Application) (err error) {
 	err = u.repo.UpsertApplication(dto)
 	if err != nil {
 		return err

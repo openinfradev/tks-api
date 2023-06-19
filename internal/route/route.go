@@ -2,16 +2,17 @@ package route
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/openinfradev/tks-api/internal"
-
+	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal"
 	delivery "github.com/openinfradev/tks-api/internal/delivery/http"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth"
@@ -59,7 +60,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		CloudAccount:  repository.NewCloudAccountRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		Alert:         repository.NewAlertRepository(db),
-		History:       repository.NewHistoryRepository(db),
 	}
 	authMiddleware := auth.NewAuthMiddleware(
 		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
@@ -127,7 +127,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/app-id/exist", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.IsAppServeAppExist))).Methods(http.MethodGet)
+	// TODO: To be implemented
+	//	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/tasks/{taskId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeAppTask))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/latest-task", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeAppLatestTask))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/exist", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.IsAppServeAppExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/name/{name}/existence", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.IsAppServeAppNameExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.DeleteAppServeApp))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.UpdateAppServeApp))).Methods(http.MethodPut)
@@ -139,9 +142,11 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.GetCloudAccounts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.CreateCloudAccount))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/name/{name}/existence", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.CheckCloudAccountName))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.CheckAwsAccountId))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.GetCloudAccount))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.UpdateCloudAccount))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.DeleteCloudAccount))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.DeleteForceCloudAccount))).Methods(http.MethodDelete)
 
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(repoFactory))
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware.Handle(http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
@@ -192,20 +197,20 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Info(fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
+		ctx := r.Context()
+		r = r.WithContext(context.WithValue(ctx, internal.ContextKeyRequestID, uuid.New().String()))
 
-		//xRequestID := uuid.New().String()
-		//r.Header.Set("X-REQUEST-ID", fmt.Sprint(xRequestID))
+		log.InfoWithContext(r.Context(), fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
 
 		body, err := io.ReadAll(r.Body)
 		if err == nil {
-			log.Info(fmt.Sprintf("body : %s", bytes.NewBuffer(body).String()))
+			log.InfoWithContext(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
 		}
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 		next.ServeHTTP(w, r)
 
-		log.Infof("***** END [%s %s] *****", r.Method, r.RequestURI)
+		log.InfofWithContext(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }
 
@@ -215,7 +220,7 @@ func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			txHandle := db.Begin()
-			log.Debug("beginning database transaction")
+			log.DebugWithContext(r.Context(),"beginning database transaction")
 
 			defer func() {
 				if r := recover(); r != nil {
@@ -232,12 +237,12 @@ func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 			next.ServeHTTP(recorder, r)
 
 			if StatusInList(recorder.Status, []int{http.StatusOK}) {
-				log.Debug("committing transactions")
+				log.DebugWithContext(r.Context(),"committing transactions")
 				if err := txHandle.Commit().Error; err != nil {
-					log.Debug("trx commit error: ", err)
+					log.DebugWithContext(r.Context(),"trx commit error: ", err)
 				}
 			} else {
-				log.Debug("rolling back transaction due to status code: ", recorder.Status)
+				log.DebugWithContext(r.Context(),"rolling back transaction due to status code: ", recorder.Status)
 				txHandle.Rollback()
 			}
 		})

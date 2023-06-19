@@ -14,10 +14,11 @@ import (
 type ICloudAccountRepository interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(organizationId string, name string) (domain.CloudAccount, error)
+	GetByAwsAccountId(awsAccountId string) (domain.CloudAccount, error)
 	Fetch(organizationId string) ([]domain.CloudAccount, error)
 	Create(dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(dto domain.CloudAccount) (err error)
-	Delete(dto domain.CloudAccount) (err error)
+	Delete(cloudAccountId uuid.UUID) (err error)
 	InitWorkflow(cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) (err error)
 }
 
@@ -45,6 +46,7 @@ type CloudAccount struct {
 	WorkflowId     string
 	Status         domain.CloudAccountStatus
 	StatusDesc     string
+	AwsAccountId   string
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -78,9 +80,20 @@ func (r *CloudAccountRepository) GetByName(organizationId string, name string) (
 	return
 }
 
+func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out domain.CloudAccount, err error) {
+	var cloudAccount CloudAccount
+	res := r.db.Preload(clause.Associations).First(&cloudAccount, "aws_account_id = ?", awsAccountId)
+
+	if res.Error != nil {
+		return domain.CloudAccount{}, res.Error
+	}
+	out = reflectCloudAccount(cloudAccount)
+	return
+}
+
 func (r *CloudAccountRepository) Fetch(organizationId string) (out []domain.CloudAccount, err error) {
 	var cloudAccounts []CloudAccount
-	res := r.db.Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ?", organizationId)
+	res := r.db.Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -98,6 +111,7 @@ func (r *CloudAccountRepository) Create(dto domain.CloudAccount) (cloudAccountId
 		Description:    dto.Description,
 		CloudService:   dto.CloudService,
 		Resource:       dto.Resource,
+		AwsAccountId:   dto.AwsAccountId,
 		Status:         domain.CloudAccountStatus_PENDING,
 		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudAccount)
@@ -117,8 +131,8 @@ func (r *CloudAccountRepository) Update(dto domain.CloudAccount) (err error) {
 	return nil
 }
 
-func (r *CloudAccountRepository) Delete(dto domain.CloudAccount) (err error) {
-	res := r.db.Delete(&CloudAccount{}, "id = ?", dto.ID)
+func (r *CloudAccountRepository) Delete(cloudAccountId uuid.UUID) (err error) {
+	res := r.db.Delete(&CloudAccount{}, "id = ?", cloudAccountId)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -147,6 +161,7 @@ func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
 		CloudService:   cloudAccount.CloudService,
 		Status:         cloudAccount.Status,
 		StatusDesc:     cloudAccount.StatusDesc,
+		AwsAccountId:   cloudAccount.AwsAccountId,
 		Creator:        reflectSimpleUser(cloudAccount.Creator),
 		Updator:        reflectSimpleUser(cloudAccount.Updator),
 		CreatedAt:      cloudAccount.CreatedAt,

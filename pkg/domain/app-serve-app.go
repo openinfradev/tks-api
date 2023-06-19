@@ -9,15 +9,16 @@ import (
 
 type AppServeApp struct {
 	ID                 string            `gorm:"primarykey" json:"id,omitempty"`
-	Name               string            `json:"name,omitempty"`               // application name
-	Namespace          string            `json:"namespace,omitempty"`          // application namespace
-	OrganizationId     string            `json:"organizationId,omitempty"`     // contractId is a contract ID which this app belongs to
-	Type               string            `json:"type,omitempty"`               // type (build/deploy/all)
-	AppType            string            `json:"appType,omitempty"`            // appType (spring/springboot)
-	EndpointUrl        string            `json:"endpointUrl,omitempty"`        // endpoint URL of deployed app
-	PreviewEndpointUrl string            `json:"previewEndpointUrl,omitempty"` // preview svc endpoint URL in B/G deployment
-	TargetClusterId    string            `json:"targetClusterId,omitempty"`    // target cluster to which the app is deployed
-	Status             string            `json:"status,omitempty"`             // status is status of deployed app
+	Name               string            `json:"name,omitempty"`                           // application name
+	Namespace          string            `json:"namespace,omitempty"`                      // application namespace
+	OrganizationId     string            `json:"organizationId,omitempty"`                 // contractId is a contract ID which this app belongs to
+	Type               string            `json:"type,omitempty"`                           // type (build/deploy/all)
+	AppType            string            `json:"appType,omitempty"`                        // appType (spring/springboot)
+	EndpointUrl        string            `json:"endpointUrl,omitempty"`                    // endpoint URL of deployed app
+	PreviewEndpointUrl string            `json:"previewEndpointUrl,omitempty"`             // preview svc endpoint URL in B/G deployment
+	TargetClusterId    string            `json:"targetClusterId,omitempty"`                // target cluster to which the app is deployed
+	TargetClusterName  string            `gorm:"-:all" json:"targetClusterName,omitempty"` // target cluster name
+	Status             string            `json:"status,omitempty"`                         // status is status of deployed app
 	CreatedAt          time.Time         `gorm:"autoCreateTime:false" json:"createdAt" `
 	UpdatedAt          *time.Time        `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt          *time.Time        `json:"deletedAt"`
@@ -41,6 +42,7 @@ type AppServeAppTask struct {
 	ResourceSpec      string     `json:"resourceSpec,omitempty"`                  // resource spec of app pod
 	HelmRevision      int32      `gorm:"default:0" json:"helmRevision,omitempty"` // revision of deployed helm release
 	Strategy          string     `json:"strategy,omitempty"`                      // deployment strategy (eg, rolling-update)
+	RollbackVersion   string     `json:"rollbackVersion,omitempty"`               // rollback target version
 	PvEnabled         bool       `json:"pvEnabled"`
 	PvStorageClass    string     `json:"pvStorageClass"`
 	PvAccessMode      string     `json:"pvAccessMode"`
@@ -135,10 +137,6 @@ type UpdateAppServeAppEndpointRequest struct {
 }
 
 type UpdateAppServeAppRequest struct {
-	// App
-	Type    string `json:"type"`
-	AppType string `json:"appType"`
-
 	// Task
 	Strategy       string `json:"strategy"`
 	ArtifactUrl    string `json:"artifactUrl"`
@@ -156,27 +154,6 @@ type UpdateAppServeAppRequest struct {
 	Abort   bool `json:"abort"`
 }
 
-func (u *UpdateAppServeAppRequest) SetDefaultValue() {
-	if u.Type == "" {
-		u.Type = "all"
-	}
-	if u.AppType == "" {
-		u.AppType = "springboot"
-	}
-	if u.Strategy == "" {
-		u.Strategy = "rolling-update"
-	}
-	if u.ResourceSpec == "" {
-		u.ResourceSpec = "medium"
-	}
-	if u.Profile == "" {
-		u.Profile = "default"
-	}
-	if u.Port == "" {
-		u.Port = "8080"
-	}
-}
-
 type RollbackAppServeAppRequest struct {
 	TaskId string `json:"taskId"`
 }
@@ -190,8 +167,12 @@ type GetAppServeAppResponse struct {
 	Stages      []StageResponse `json:"stages"`
 }
 
+type GetAppServeAppTaskResponse struct {
+	AppServeAppTask AppServeAppTask `json:"appServeAppTask"`
+}
+
 type StageResponse struct {
-	Name    string            `json:"name"` // PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
+	Name    string            `json:"name"` // BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
 	Status  string            `json:"status"`
 	Result  string            `json:"result"`
 	Actions *[]ActionResponse `json:"actions"`

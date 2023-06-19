@@ -59,11 +59,11 @@ func (m StackStatus) FromString(s string) StackStatus {
 	return StackStatus_ERROR
 }
 
-const MAX_STEP_CLUSTER_CREATE = 14
+const MAX_STEP_CLUSTER_CREATE = 13
 const MAX_STEP_CLUSTER_REMOVE = 11
 const MAX_STEP_LMA_CREATE_PRIMARY = 36
 const MAX_STEP_LMA_CREATE_MEMBER = 27
-const MAX_STEP_LMA_REMOVE = 9
+const MAX_STEP_LMA_REMOVE = 11
 const MAX_STEP_SM_CREATE = 22
 const MAX_STEP_SM_REMOVE = 4
 
@@ -107,7 +107,7 @@ type StackStepStatus struct {
 }
 
 type CreateStackRequest struct {
-	Name                string `json:"name" validate:"required,name"`
+	Name                string `json:"name" validate:"required,name,rfc1123"`
 	Description         string `json:"description"`
 	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
 	CloudAccountId      string `json:"cloudAccountId" validate:"required"`

@@ -9,8 +9,8 @@ import (
 )
 
 type IStackTemplateUsecase interface {
-	Get(stackTemplate uuid.UUID) (domain.StackTemplate, error)
-	Fetch() ([]domain.StackTemplate, error)
+	Get(ctx context.Context, stackTemplate uuid.UUID) (domain.StackTemplate, error)
+	Fetch(ctx context.Context) ([]domain.StackTemplate, error)
 	Create(ctx context.Context, dto domain.StackTemplate) (stackTemplate uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.StackTemplate) error
 	Delete(ctx context.Context, dto domain.StackTemplate) error
@@ -34,7 +34,7 @@ func (u *StackTemplateUsecase) Update(ctx context.Context, dto domain.StackTempl
 	return nil
 }
 
-func (u *StackTemplateUsecase) Get(stackTemplate uuid.UUID) (res domain.StackTemplate, err error) {
+func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplate uuid.UUID) (res domain.StackTemplate, err error) {
 	res, err = u.repo.Get(stackTemplate)
 	if err != nil {
 		return domain.StackTemplate{}, err
@@ -42,7 +42,7 @@ func (u *StackTemplateUsecase) Get(stackTemplate uuid.UUID) (res domain.StackTem
 	return
 }
 
-func (u *StackTemplateUsecase) Fetch() (res []domain.StackTemplate, err error) {
+func (u *StackTemplateUsecase) Fetch(ctx context.Context) (res []domain.StackTemplate, err error) {
 	res, err = u.repo.Fetch()
 	if err != nil {
 		return nil, err

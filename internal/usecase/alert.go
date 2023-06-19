@@ -19,9 +19,9 @@ import (
 )
 
 type IAlertUsecase interface {
-	Get(alertId uuid.UUID) (domain.Alert, error)
-	GetByName(organizationId string, name string) (domain.Alert, error)
-	Fetch(organizationId string) ([]domain.Alert, error)
+	Get(ctx context.Context, alertId uuid.UUID) (domain.Alert, error)
+	GetByName(ctx context.Context, organizationId string, name string) (domain.Alert, error)
+	Fetch(ctx context.Context, organizationId string) ([]domain.Alert, error)
 	Create(ctx context.Context, dto domain.CreateAlertRequest) (err error)
 	Update(ctx context.Context, dto domain.Alert) error
 	Delete(ctx context.Context, dto domain.Alert) error
@@ -30,16 +30,18 @@ type IAlertUsecase interface {
 }
 
 type AlertUsecase struct {
-	repo         repository.IAlertRepository
-	clusterRepo  repository.IClusterRepository
-	appGroupRepo repository.IAppGroupRepository
+	repo             repository.IAlertRepository
+	clusterRepo      repository.IClusterRepository
+	organizationRepo repository.IOrganizationRepository
+	appGroupRepo     repository.IAppGroupRepository
 }
 
 func NewAlertUsecase(r repository.Repository) IAlertUsecase {
 	return &AlertUsecase{
-		repo:         r.Alert,
-		clusterRepo:  r.Cluster,
-		appGroupRepo: r.AppGroup,
+		repo:             r.Alert,
+		clusterRepo:      r.Cluster,
+		appGroupRepo:     r.AppGroup,
+		organizationRepo: r.Organization,
 	}
 }
 
@@ -57,7 +59,18 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 		clusterId := alert.Labels.TacoCluster
 		organizationId, err := u.getOrganizationFromCluster(&allClusters, clusterId)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
+			continue
+		}
+
+		organization, err := u.organizationRepo.Get(organizationId)
+		if err != nil {
+			log.ErrorWithContext(ctx, err)
+			continue
+		}
+		primaryCluster, err := u.clusterRepo.Get(domain.ClusterId(organization.PrimaryClusterId))
+		if err != nil {
+			log.ErrorWithContext(ctx, err)
 			continue
 		}
 
@@ -82,22 +95,6 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			}
 		*/
 
-		grafanaUrl := ""
-		appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(clusterId))
-		if err == nil {
-			for _, appGroup := range appGroups {
-				if appGroup.AppGroupType == domain.AppGroupType_LMA {
-					applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
-					if err != nil {
-						continue
-					}
-					if len(applications) > 0 {
-						grafanaUrl = applications[0].Endpoint
-					}
-				}
-			}
-		}
-
 		node := ""
 		if strings.Contains(alert.Labels.AlertName, "node") {
 			node = alert.Labels.Instance
@@ -114,7 +111,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			CheckPoint:     alert.Annotations.Checkpoint,
 			Summary:        alert.Annotations.Summary,
 			ClusterId:      domain.ClusterId(clusterId),
-			GrafanaUrl:     grafanaUrl,
+			GrafanaUrl:     u.makeGrafanaUrl(ctx, primaryCluster, alert, domain.ClusterId(clusterId)),
 			RawData:        rawData,
 		}
 
@@ -131,28 +128,28 @@ func (u *AlertUsecase) Update(ctx context.Context, dto domain.Alert) error {
 	return nil
 }
 
-func (u *AlertUsecase) Get(alertId uuid.UUID) (alert domain.Alert, err error) {
+func (u *AlertUsecase) Get(ctx context.Context, alertId uuid.UUID) (alert domain.Alert, err error) {
 	alert, err = u.repo.Get(alertId)
 	if err != nil {
-		return domain.Alert{}, err
+		return alert, err
 	}
 	u.makeAdditionalInfo(&alert)
 
 	return
 }
 
-func (u *AlertUsecase) GetByName(organizationId string, name string) (res domain.Alert, err error) {
-	res, err = u.repo.GetByName(organizationId, name)
+func (u *AlertUsecase) GetByName(ctx context.Context, organizationId string, name string) (out domain.Alert, err error) {
+	out, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.Alert{}, httpErrors.NewNotFoundError(err, "", "")
+			return out, httpErrors.NewNotFoundError(err, "", "")
 		}
-		return domain.Alert{}, err
+		return out, err
 	}
 	return
 }
 
-func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err error) {
+func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string) (alerts []domain.Alert, err error) {
 	alerts, err = u.repo.Fetch(organizationId)
 	if err != nil {
 		return nil, err
@@ -168,12 +165,12 @@ func (u *AlertUsecase) Fetch(organizationId string) (alerts []domain.Alert, err 
 func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	_, err = u.Get(dto.ID)
+	_, err = u.Get(ctx, dto.ID)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err, "", "")
+		return httpErrors.NewNotFoundError(err, "AL_NOT_FOUND_ALERT", "")
 	}
 
 	*dto.UpdatorId = user.GetUserId()
@@ -189,12 +186,12 @@ func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error)
 func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return uuid.Nil, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
 
 	_, err = u.repo.Get(dto.AlertId)
 	if err != nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Not found alert"), "", "")
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Not found alert"), "AL_NOT_FOUND_ALERT", "")
 	}
 
 	userId := user.GetUserId()
@@ -205,7 +202,7 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAc
 	if err != nil {
 		return uuid.Nil, err
 	}
-	log.Info("newly created alertActionId:", alertActionId)
+	log.InfoWithContext(ctx, "newly created alertActionId:", alertActionId)
 
 	return
 }
@@ -242,4 +239,44 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 		alert.TakedSec = int((alert.AlertActions[0].CreatedAt).Sub(alert.CreatedAt).Seconds())
 		alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
 	}
+}
+
+func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster domain.Cluster, alert domain.CreateAlertRequestAlert, clusterId domain.ClusterId) (url string) {
+	primaryGrafanaEndpoint := ""
+	appGroups, err := u.appGroupRepo.Fetch(primaryCluster.ID)
+	if err == nil {
+		for _, appGroup := range appGroups {
+			if appGroup.AppGroupType == domain.AppGroupType_LMA {
+				applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+				if err != nil {
+					return ""
+				}
+				if len(applications) > 0 {
+					primaryGrafanaEndpoint = applications[0].Endpoint
+				}
+			}
+		}
+	}
+
+	// check type
+	url = primaryGrafanaEndpoint
+
+	// tks_node_dashboard/tks-kubernetes-view-nodes?orgId=1&refresh=30s&var-datasource=default&var-taco_cluster=c19rjkn4j&var-job=prometheus-node-exporter&var-hostname=All&var-node=10.0.168.71:9100&var-device=All&var-maxmount=%2F&var-show_hostname=prometheus-node-exporter-xt4vb
+
+	switch alert.Labels.AlertName {
+	case "node-memory-high-utilization":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "node-cpu-high-load":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "node-disk-full":
+		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "pod-restart-frequently":
+		url = primaryGrafanaEndpoint + "/d/tks_podv1_dashboard/tks-kubernetes-view-pods-v1?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	case "pvc-full":
+		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId.String() + "&kiosk"
+	default:
+		log.ErrorfWithContext(ctx, "Invalid alert name %s", alert.Labels.AlertName)
+	}
+
+	return
 }

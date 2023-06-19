@@ -35,7 +35,7 @@ func NewStackTemplateHandler(h usecase.IStackTemplateUsecase) *StackTemplateHand
 // @Router /stack-templates [post]
 // @Security     JWT
 func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *http.Request) {
-	ErrorJSON(w, fmt.Errorf("need implementation"))
+	ErrorJSON(w, r, fmt.Errorf("need implementation"))
 }
 
 // GetStackTemplate godoc
@@ -48,9 +48,9 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 // @Router /stack-templates [get]
 // @Security     JWT
 func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.Request) {
-	stackTemplates, err := h.usecase.Fetch()
+	stackTemplates, err := h.usecase.Fetch(r.Context())
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
@@ -58,16 +58,16 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	out.StackTemplates = make([]domain.StackTemplateResponse, len(stackTemplates))
 	for i, stackTemplate := range stackTemplates {
 		if err := domain.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(), err)
 		}
 
 		err := json.Unmarshal(stackTemplate.Services, &out.StackTemplates[i].Services)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(r.Context(), err)
 		}
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetStackTemplate godoc
@@ -84,33 +84,33 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	strId, ok := vars["stackTemplateId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
 		return
 	}
 
 	stackTemplateId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
 		return
 	}
 
-	stackTemplate, err := h.usecase.Get(stackTemplateId)
+	stackTemplate, err := h.usecase.Get(r.Context(), stackTemplateId)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.GetStackTemplateResponse
 	if err := domain.Map(stackTemplate, &out.StackTemplate); err != nil {
-		log.Info(err)
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	err = json.Unmarshal(stackTemplate.Services, &out.StackTemplate.Services)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdateStackTemplate godoc
@@ -128,30 +128,30 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 		vars := mux.Vars(r)
 		strId, ok := vars["stackTemplateId"]
 		if !ok {
-			ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
 			return
 		}
 
 		stackTemplateId, err := uuid.Parse(strId)
 		if err != nil {
-			ErrorJSON(w, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
 			return
 		}
 
 		var dto domain.StackTemplate
 		if err := domain.Map(r, &dto); err != nil {
-			log.Info(err)
+			log.InfoWithContext(r.Context(),err)
 		}
 		dto.ID = stackTemplateId
 
 		err = h.usecase.Update(r.Context(), dto)
 		if err != nil {
-			ErrorJSON(w, err)
+			ErrorJSON(w, r, err)
 			return
 		}
 	*/
 
-	ErrorJSON(w, fmt.Errorf("need implementation"))
+	ErrorJSON(w, r, fmt.Errorf("need implementation"))
 }
 
 // DeleteStackTemplate godoc
@@ -168,9 +168,9 @@ func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *htt
 	vars := mux.Vars(r)
 	_, ok := vars["stackTemplateId"]
 	if !ok {
-		ErrorJSON(w, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
 		return
 	}
 
-	ErrorJSON(w, fmt.Errorf("need implementation"))
+	ErrorJSON(w, r, fmt.Errorf("need implementation"))
 }

@@ -15,6 +15,7 @@ type IOrganizationRepository interface {
 	Fetch() (res *[]domain.Organization, err error)
 	Get(organizationId string) (res domain.Organization, err error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
+	UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error
 	Delete(organizationId string) (err error)
 	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
@@ -100,10 +101,10 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 	res := r.db.Model(&Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
-			"name":               in.Name,
-			"description":        in.Description,
-			"phone":              in.Phone,
-			"primary_cluster_id": in.PrimaryClusterId})
+			"name":        in.Name,
+			"description": in.Description,
+			"phone":       in.Phone,
+		})
 
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -116,6 +117,20 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 	}
 
 	return r.reflect(organization), nil
+}
+
+func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error {
+	res := r.db.Model(&Organization{}).
+		Where("id = ?", organizationId).
+		Updates(map[string]interface{}{
+			"primary_cluster_id": primaryClusterId,
+		})
+
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+	return nil
 }
 
 func (r *OrganizationRepository) Delete(organizationId string) error {

@@ -2,16 +2,19 @@ package usecase
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
-	"github.com/openinfradev/tks-api/pkg/log"
-	"github.com/spf13/viper"
-	"golang.org/x/net/html"
-	"golang.org/x/oauth2"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
+
+	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/spf13/viper"
+	"golang.org/x/net/html"
+	"golang.org/x/oauth2"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
@@ -32,75 +35,32 @@ type IAuthUsecase interface {
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
 	FetchRoles() (out []domain.Role, err error)
 	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
-	SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error)
+	SingleSignOut(organizationId string) (string, []*http.Cookie, error)
 }
 
 const (
-	passwordLength           = 8
-	KEYCLOAK_IDENTITY_COOKIE = "KEYCLOAK_IDENTITY"
+	passwordLength                  = 8
+	KEYCLOAK_IDENTITY_COOKIE        = "KEYCLOAK_IDENTITY"
+	KEYCLOAK_IDENTITY_LEGACY_COOKIE = "KEYCLOAK_IDENTITY_LEGACY"
 )
 
 type AuthUsecase struct {
-	kc                 keycloak.IKeycloak
-	userRepository     repository.IUserRepository
-	authRepository     repository.IAuthRepository
-	clusterRepository  repository.IClusterRepository
-	appgroupRepository repository.IAppGroupRepository
-}
-
-func (u *AuthUsecase) SingleSignOut(organizationId string) (map[string][]string, []*http.Cookie, error) {
-	urls := make(map[string][]string)
-
-	clusters, err := u.clusterRepository.FetchByOrganizationId(organizationId)
-	log.Info("clusters", clusters)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(clusters) == 0 {
-		return nil, nil, nil
-	}
-	for _, cluster := range clusters {
-		appgroups, err := u.appgroupRepository.Fetch(cluster.ID)
-		log.Info("appgroups", appgroups)
-		if err != nil {
-			return nil, nil, err
-		}
-		if len(appgroups) == 0 {
-			continue
-		}
-		for _, appgroup := range appgroups {
-			for _, appType := range []domain.ApplicationType{domain.ApplicationType_GRAFANA, domain.ApplicationType_KIALI} {
-				apps, err := u.appgroupRepository.GetApplications(appgroup.ID, appType)
-				if err != nil {
-					return nil, nil, err
-				}
-				if urls[strings.ToLower(appType.String())] == nil {
-					urls[strings.ToLower(appType.String())] = []string{}
-				}
-				for _, app := range apps {
-					urls[strings.ToLower(appType.String())] = append(urls[strings.ToLower(appType.String())], app.Endpoint+"/logout")
-				}
-			}
-		}
-	}
-
-	cookies := []*http.Cookie{
-		{
-			Name:   KEYCLOAK_IDENTITY_COOKIE,
-			MaxAge: -1,
-		},
-	}
-
-	return urls, cookies, nil
+	kc                     keycloak.IKeycloak
+	userRepository         repository.IUserRepository
+	authRepository         repository.IAuthRepository
+	clusterRepository      repository.IClusterRepository
+	appgroupRepository     repository.IAppGroupRepository
+	organizationRepository repository.IOrganizationRepository
 }
 
 func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase {
 	return &AuthUsecase{
-		kc:                 kc,
-		userRepository:     r.User,
-		authRepository:     r.Auth,
-		clusterRepository:  r.Cluster,
-		appgroupRepository: r.AppGroup,
+		kc:                     kc,
+		userRepository:         r.User,
+		authRepository:         r.Auth,
+		clusterRepository:      r.Cluster,
+		appgroupRepository:     r.AppGroup,
+		organizationRepository: r.Organization,
 	}
 }
 
@@ -108,10 +68,10 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	// Authentication with DB
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
-		return domain.User{}, httpErrors.NewUnauthorizedError(err, "", "")
+		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewUnauthorizedError(fmt.Errorf("Mismatch password"), "", "")
+		return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
 	}
 	var accountToken *domain.User
 	// Authentication with Keycloak
@@ -122,13 +82,15 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	}
 	if err != nil {
 		//TODO: implement not found handling
-		return domain.User{}, httpErrors.NewUnauthorizedError(err, "", "")
+		return domain.User{}, err
 	}
 
 	// Insert token
 	user.Token = accountToken.Token
 
-	user.PasswordExpired = helper.IsDurationExpired(user.PasswordUpdatedAt, internal.PasswordExpiredDuration)
+	if !(organizationId == "master" && accountId == "admin") {
+		user.PasswordExpired = helper.IsDurationExpired(user.PasswordUpdatedAt, internal.PasswordExpiredDuration)
+	}
 
 	return user, nil
 }
@@ -145,7 +107,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return "", httpErrors.NewBadRequestError(err, "", "")
+		return "", httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
@@ -156,13 +118,13 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return "", httpErrors.NewBadRequestError(err, "", "")
+		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
-	if !u.isValidEmailCode(emailCode) {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+	if !u.isExpiredEmailCode(emailCode) {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("expired code"), "A_EXPIRED_CODE", "")
 	}
 	if emailCode.Code != code {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
 	if err := u.authRepository.DeleteEmailCode(userUuid); err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
@@ -176,7 +138,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 		u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err, "", "")
+		return httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -188,19 +150,19 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 	}
 	emailCode, err := u.authRepository.GetEmailCode(userUuid)
 	if err != nil {
-		return httpErrors.NewBadRequestError(err, "", "")
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	if !u.isValidEmailCode(emailCode) {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+	if !u.isExpiredEmailCode(emailCode) {
+		return httpErrors.NewBadRequestError(fmt.Errorf("expired code"), "A_EXPIRED_CODE", "")
 	}
 	if emailCode.Code != code {
-		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
 	randomPassword := helper.GenerateRandomString(passwordLength)
 
 	originUser, err := u.kc.GetUser(organizationId, accountId)
 	if err != nil {
-		return err
+		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	originUser.Credentials = &[]gocloak.CredentialRepresentation{
 		{
@@ -244,7 +206,7 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			u.userRepository.EmailFilter(email))
 	}
 	if err != nil && users == nil {
-		return httpErrors.NewBadRequestError(err, "", "")
+		return httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -284,20 +246,68 @@ func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
 }
 
 func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error) {
-	var cookies []*http.Cookie
-
-	cookie, err := makingCookie(organizationId, accountId, password)
+	cookies, err := makingCookie(organizationId, accountId, password)
 	if err != nil {
 		return nil, err
 	}
-	if cookie == nil {
+	if len(cookies) == 0 {
 		return nil, fmt.Errorf("no cookie generated")
 	}
-	cookies = append(cookies, cookie)
+
 	return cookies, nil
 }
 
-func (u *AuthUsecase) isValidEmailCode(code repository.CacheEmailCode) bool {
+func (u *AuthUsecase) SingleSignOut(organizationId string) (string, []*http.Cookie, error) {
+	var redirectUrl string
+
+	organization, err := u.organizationRepository.Get(organizationId)
+	if err != nil {
+		return "", nil, err
+	}
+
+	appGroupsInPrimaryCluster, err := u.appgroupRepository.Fetch(domain.ClusterId(organization.PrimaryClusterId))
+	if err != nil {
+		return "", nil, err
+	}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appgroupRepository.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				return "", nil, err
+			}
+			if len(applications) > 0 {
+				redirectUrl = "http://" + applications[0].Endpoint + "/logout"
+			}
+		}
+	}
+
+	// cookies to be deleted
+	cookies := []*http.Cookie{
+		{
+			Name:     KEYCLOAK_IDENTITY_COOKIE,
+			MaxAge:   -1,
+			Expires:  time.Now().AddDate(0, 0, -1),
+			Path:     "/auth/realms/" + organizationId + "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		},
+		{
+			Name:     KEYCLOAK_IDENTITY_LEGACY_COOKIE,
+			MaxAge:   -1,
+			Expires:  time.Now().AddDate(0, 0, -1),
+			Path:     "/auth/realms/" + organizationId + "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		},
+	}
+
+	return redirectUrl, cookies, nil
+}
+
+func (u *AuthUsecase) isExpiredEmailCode(code repository.CacheEmailCode) bool {
 	return !helper.IsDurationExpired(code.UpdatedAt, internal.EmailCodeExpireTime)
 }
 
@@ -331,7 +341,7 @@ func extractFormAction(htmlContent string) (string, error) {
 	return f(doc), nil
 }
 
-func makingCookie(organizationId, userName, password string) (*http.Cookie, error) {
+func makingCookie(organizationId, userName, password string) ([]*http.Cookie, error) {
 	stateCode, err := genStateString()
 	if err != nil {
 		return nil, err
@@ -349,7 +359,11 @@ func makingCookie(organizationId, userName, password string) (*http.Cookie, erro
 	}
 
 	authCodeUrl := oauth2Config.AuthCodeURL(stateCode, oauth2.AccessTypeOnline)
-	client := &http.Client{}
+	// skip tls check
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: transport}
 	req, err := http.NewRequest("GET", authCodeUrl, nil)
 	if err != nil {
 		return nil, err
@@ -358,9 +372,9 @@ func makingCookie(organizationId, userName, password string) (*http.Cookie, erro
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Errorf("Error while creating new request: %v", err)
+		return nil, err
 	}
 	cookies := resp.Cookies()
-	log.Info(cookies)
 	if len(cookies) < 1 {
 		return nil, fmt.Errorf("no cookie found")
 	}
@@ -401,15 +415,15 @@ func makingCookie(organizationId, userName, password string) (*http.Cookie, erro
 		return nil, err
 	}
 
-	cookies2 := resp.Cookies()
-	var targetCookie *http.Cookie
-	for _, cookie := range cookies2 {
-		if cookie.Name == KEYCLOAK_IDENTITY_COOKIE {
-			targetCookie = cookie
+	cookies = resp.Cookies()
+	var targetCookies []*http.Cookie
+	for _, cookie := range cookies {
+		if cookie.Name == KEYCLOAK_IDENTITY_COOKIE || cookie.Name == KEYCLOAK_IDENTITY_LEGACY_COOKIE {
+			targetCookies = append(targetCookies, cookie)
 		}
 	}
 
-	return targetCookie, nil
+	return targetCookies, nil
 }
 
 func genStateString() (string, error) {

@@ -144,6 +144,9 @@ definitions:
       targetClusterId:
         description: target cluster to which the app is deployed
         type: string
+      targetClusterName:
+        description: target cluster name
+        type: string
       type:
         description: type (build/deploy/all)
         type: string
@@ -207,6 +210,9 @@ definitions:
       resourceSpec:
         description: resource spec of app pod
         type: string
+      rollbackVersion:
+        description: rollback target version
+        type: string
       status:
         description: status is app status
         type: string
@@ -253,6 +259,16 @@ definitions:
         $ref: '#/definitions/domain.Axis'
       yAxis:
         $ref: '#/definitions/domain.Axis'
+    type: object
+  domain.CheckCloudAccountAwsAccountIdResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
+  domain.CheckCloudAccountNameResponse:
+    properties:
+      existed:
+        type: boolean
     type: object
   domain.CheckExistedResponse:
     properties:
@@ -302,6 +318,8 @@ definitions:
     type: object
   domain.CloudAccountResponse:
     properties:
+      awsAccountId:
+        type: string
       cloudService:
         type: string
       clusters:
@@ -879,6 +897,11 @@ definitions:
           $ref: '#/definitions/domain.StageResponse'
         type: array
     type: object
+  domain.GetAppServeAppTaskResponse:
+    properties:
+      appServeAppTask:
+        $ref: '#/definitions/domain.AppServeAppTask'
+    type: object
   domain.GetApplicationsResponse:
     properties:
       applications:
@@ -1041,21 +1064,6 @@ definitions:
             type: string
         type: object
     type: object
-  domain.History:
-    properties:
-      accountId:
-        type: string
-      createdAt:
-        type: string
-      description:
-        type: string
-      historyType:
-        type: string
-      id:
-        type: string
-      updatedAt:
-        type: string
-    type: object
   domain.ListOrganizationBody:
     properties:
       createdAt:
@@ -1187,6 +1195,8 @@ definitions:
     type: object
   domain.SimpleCloudAccountResponse:
     properties:
+      awsAccountId:
+        type: string
       cloudService:
         type: string
       clusters:
@@ -1387,8 +1397,7 @@ definitions:
           $ref: '#/definitions/domain.ActionResponse'
         type: array
       name:
-        description: PREPARE (준비), BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK
-          (롤백)
+        description: BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
         type: string
       result:
         type: string
@@ -1430,8 +1439,6 @@ definitions:
         type: string
       appSecret:
         type: string
-      appType:
-        type: string
       artifactUrl:
         type: string
       executablePath:
@@ -1451,9 +1458,6 @@ definitions:
         type: string
       strategy:
         description: Task
-        type: string
-      type:
-        description: App
         type: string
     type: object
   domain.UpdateAppServeAppStatusRequest:
@@ -2108,23 +2112,6 @@ paths:
       summary: Get cluster site values for creating
       tags:
       - Clusters
-  /histories:
-    get:
-      consumes:
-      - application/json
-      description: Get histories
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.History'
-      security:
-      - JWT: []
-      summary: Get histories
-      tags:
-      - Histories
   /organizations:
     get:
       consumes:
@@ -2506,6 +2493,23 @@ paths:
       summary: Update app endpoint
       tags:
       - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/latest-task:
+    get:
+      consumes:
+      - application/json
+      description: Get latest task from appServeApp
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAppServeAppTaskResponse'
+      security:
+      - JWT: []
+      summary: Get latest task from appServeApp
+      tags:
+      - AppServeApps
   /organizations/{organizationId}/app-serve-apps/{appId}/rollback:
     post:
       consumes:
@@ -2740,6 +2744,60 @@ paths:
       summary: Update CloudAccount
       tags:
       - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Force CloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: cloudAccountId
+        in: path
+        name: cloudAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Force CloudAccount
+      tags:
+      - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check awsAccountId for cloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: awsAccountId
+        in: path
+        name: awsAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckCloudAccountAwsAccountIdResponse'
+      security:
+      - JWT: []
+      summary: Check awsAccountId for cloudAccount
+      tags:
+      - CloudAccounts
   /organizations/{organizationId}/cloud-accounts/name/{name}/existence:
     get:
       consumes:
@@ -2761,6 +2819,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckCloudAccountNameResponse'
       security:
       - JWT: []
       summary: Check name for cloudAccount

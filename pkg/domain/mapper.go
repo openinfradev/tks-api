@@ -47,7 +47,7 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 						dstField.Set(reflect.ValueOf(converted))
 					}
 				} else {
-					log.Errorf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					log.Debugf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
 					continue
 				}
 			}

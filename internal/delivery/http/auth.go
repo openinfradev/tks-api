@@ -46,21 +46,20 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	var cookies []*http.Cookie
 	if targetCookies, err := h.usecase.SingleSignIn(input.OrganizationId, input.AccountId, input.Password); err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 	} else {
 		cookies = append(cookies, targetCookies...)
 	}
@@ -73,10 +72,10 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.LoginResponse
 	if err = domain.Map(user, &out.User); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(r.Context(), err)
 	}
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // Logout godoc
@@ -93,29 +92,29 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, ok := request.SessionFrom(ctx)
 	if !ok {
-		log.Errorf("session id is not found")
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found"), "", ""))
+		log.ErrorfWithContext(r.Context(), "session id is not found")
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found"), "A_NO_SESSION", ""))
 		return
 	}
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
-		log.Errorf("user info is not found")
-		ErrorJSON(w, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found"), "", ""))
+		log.ErrorfWithContext(r.Context(), "user info is not found")
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found"), "A_NO_SESSION", ""))
 		return
 	}
 	organizationId := userInfo.GetOrganizationId()
 
 	err := h.usecase.Logout(sessionId, organizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, httpErrors.NewBadRequestError(err, "", ""))
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
 	var cookies []*http.Cookie
-	urls, targetCookies, err := h.usecase.SingleSignOut(organizationId)
+	redirectUrl, targetCookies, err := h.usecase.SingleSignOut(organizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 	}
 	cookies = append(cookies, targetCookies...)
 	if len(cookies) > 0 {
@@ -123,10 +122,15 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, cookie)
 		}
 	}
-	var out domain.LogoutResponse
-	out.SsoUrls = urls
 
-	ResponseJSON(w, http.StatusOK, out)
+	//추후 사용을 위해 주석 처리
+	//http.Redirect(w, r, redirectUrl, http.StatusFound)
+	//ResponseJSON(w, r, http.StatusFound, nil)
+
+	//추후 사용을 위한 임시 코드
+	_ = redirectUrl
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -147,21 +151,21 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	accountId, err := h.usecase.FindId(input.Code, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	var out domain.FindIdResponse
 	out.AccountId = accountId
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // FindPassword godoc
@@ -178,18 +182,18 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	err = h.usecase.FindPassword(input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, http.StatusOK, nil)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // VerifyIdentityForLostId godoc
@@ -206,20 +210,20 @@ func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Req
 	input := domain.VerifyIdentityForLostIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	err = h.usecase.VerifyIdentity("", input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	var out domain.VerifyIdentityForLostIdResponse
 	out.ValidityPeriod = fmt.Sprintf("%.0f", internal.EmailCodeExpireTime.Seconds())
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // VerifyIdentityForLostPassword godoc
@@ -236,18 +240,18 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 	input := domain.VerifyIdentityForLostPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		ErrorJSON(w, err)
+		ErrorJSON(w, r, err)
 		return
 	}
 
 	err = h.usecase.VerifyIdentity(input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.Errorf("error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, err)
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
 		return
 	}
 	var out domain.VerifyIdentityForLostPasswordResponse
 	out.ValidityPeriod = fmt.Sprintf("%.0f", internal.EmailCodeExpireTime.Seconds())
 
-	ResponseJSON(w, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, out)
 }

@@ -82,7 +82,7 @@ func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int
 	query = url.QueryEscape(query) + rangeParam
 	url := c.url + "/api/v1/query_range?query=" + query
 
-	log.Info(url)
+	log.Info("url : ", url)
 	res, err := c.client.Get(url)
 	if err != nil {
 		return out, err
@@ -91,7 +91,6 @@ func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int
 		return out, fmt.Errorf("Failed to call thanos.")
 	}
 	if res.StatusCode != 200 {
-		log.Info(res)
 		return out, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
 	}
 
