@@ -12,6 +12,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
 	gcache "github.com/patrickmn/go-cache"
@@ -76,7 +77,8 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return out, err
+		log.ErrorWithContext(ctx, err)
+		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
@@ -134,7 +136,8 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return out, err
+		log.ErrorWithContext(ctx, err)
+		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
@@ -219,7 +222,8 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
-		return res, err
+		log.Error(err)
+		return res, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
