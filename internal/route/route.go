@@ -126,6 +126,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/count", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetNumOfAppsOnStack))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
 	// TODO: To be implemented
 	//	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/tasks/{taskId}", authMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeAppTask))).Methods(http.MethodGet)
