@@ -52,6 +52,7 @@ var errorMap = map[ErrorCode]string{
 	"S_FAILED_TO_CALL_WORKFLOW":     "스택 생성에 실패하였습니다. 관리자에게 문의하세요.",
 	"S_REMAIN_CLUSTER_FOR_DELETION": "프라이머리 클러스터를 지우기 위해서는 조직내의 모든 클러스터를 삭제해야 합니다.",
 	"S_FAILED_GET_CLUSTERS":         "클러스터를 가져오는데 실패했습니다.",
+	"S_FAILED_DELETE_EXISTED_ASA":   "지우고자 하는 스택에 남아 있는 앱서빙앱이 있습니다.",
 
 	// Alert
 	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",
