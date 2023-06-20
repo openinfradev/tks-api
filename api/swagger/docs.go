@@ -3532,6 +3532,9 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
+                "createdIAM": {
+                    "type": "boolean"
+                },
                 "creator": {
                     "$ref": "#/definitions/domain.User"
                 },
@@ -3590,6 +3593,9 @@ const docTemplate = `{
                 },
                 "createdAt": {
                     "type": "string"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "creator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
@@ -4903,6 +4909,9 @@ const docTemplate = `{
                 },
                 "clusters": {
                     "type": "integer"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"

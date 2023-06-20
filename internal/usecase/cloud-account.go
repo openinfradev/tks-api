@@ -210,8 +210,8 @@ func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uu
 		return err
 	}
 
-	if cloudAccount.Status != domain.CloudAccountStatus_ERROR {
-		return fmt.Errorf("The status is not ERROR. %s", cloudAccount.Status)
+	if cloudAccount.Status != domain.CloudAccountStatus_CREATE_ERROR {
+		return fmt.Errorf("The status is not CREATE_ERROR. %s", cloudAccount.Status)
 	}
 
 	if u.getClusterCnt(cloudAccountId) > 0 {

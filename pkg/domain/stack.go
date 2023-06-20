@@ -25,28 +25,30 @@ const (
 
 	StackStatus_APPGROUP_INSTALLING
 	StackStatus_APPGROUP_DELETING
-	StackStatus_APPGROUP_ERROR
+	StackStatus_APPGROUP_INSTALL_ERROR
+	StackStatus_APPGROUP_DELETE_ERROR
 
 	StackStatus_CLUSTER_INSTALLING
 	StackStatus_CLUSTER_DELETING
 	StackStatus_CLUSTER_DELETED
-	StackStatus_CLUSTER_ERROR
+	StackStatus_CLUSTER_INSTALL_ERROR
+	StackStatus_CLUSTER_DELETE_ERROR
 
 	StackStatus_RUNNING
-	StackStatus_ERROR
 )
 
 var stackStatus = [...]string{
 	"PENDING",
 	"APPGROUP_INSTALLING",
 	"APPGROUP_DELETING",
-	"APPGROUP_ERROR",
+	"APPGROUP_INSTALL_ERROR",
+	"APPGROUP_DELETE_ERROR",
 	"CLUSTER_INSTALLING",
 	"CLUSTER_DELETING",
 	"CLUSTER_DELETED",
-	"CLUSTER_ERROR",
+	"CLUSTER_INSTALL_ERROR",
+	"CLUSTER_DELETE_ERROR",
 	"RUNNING",
-	"ERROR",
 }
 
 func (m StackStatus) String() string { return stackStatus[(m)] }
@@ -56,7 +58,7 @@ func (m StackStatus) FromString(s string) StackStatus {
 			return StackStatus(i)
 		}
 	}
-	return StackStatus_ERROR
+	return StackStatus_PENDING
 }
 
 const MAX_STEP_CLUSTER_CREATE = 13

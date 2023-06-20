@@ -287,6 +287,8 @@ definitions:
         type: integer
       createdAt:
         type: string
+      createdIAM:
+        type: boolean
       creator:
         $ref: '#/definitions/domain.User'
       creatorId:
@@ -326,6 +328,8 @@ definitions:
         type: integer
       createdAt:
         type: string
+      createdIAM:
+        type: boolean
       creator:
         $ref: '#/definitions/domain.SimpleUserResponse'
       description:
@@ -1201,6 +1205,8 @@ definitions:
         type: string
       clusters:
         type: integer
+      createdIAM:
+        type: boolean
       description:
         type: string
       id:

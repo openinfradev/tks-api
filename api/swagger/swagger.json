@@ -3525,6 +3525,9 @@
                 "createdAt": {
                     "type": "string"
                 },
+                "createdIAM": {
+                    "type": "boolean"
+                },
                 "creator": {
                     "$ref": "#/definitions/domain.User"
                 },
@@ -3583,6 +3586,9 @@
                 },
                 "createdAt": {
                     "type": "string"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "creator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
@@ -4896,6 +4902,9 @@
                 },
                 "clusters": {
                     "type": "integer"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
