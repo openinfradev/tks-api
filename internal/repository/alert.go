@@ -106,7 +106,9 @@ func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err 
 	}).Preload("AlertActions.Taker").
 		Preload("Cluster", "status = 2").
 		Preload("Organization").
-		Order("created_at desc").Limit(1000).Find(&alerts, "organization_id = ?", organizationId)
+		Joins("join clusters on clusters.id = alerts.cluster_id AND clusters.status = 2").
+		Order("created_at desc").Limit(1000).
+		Find(&alerts, "alerts.organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error
 	}

@@ -47,6 +47,7 @@ type CloudAccount struct {
 	Status         domain.CloudAccountStatus
 	StatusDesc     string
 	AwsAccountId   string
+	CreatedIAM     bool
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -112,6 +113,7 @@ func (r *CloudAccountRepository) Create(dto domain.CloudAccount) (cloudAccountId
 		CloudService:   dto.CloudService,
 		Resource:       dto.Resource,
 		AwsAccountId:   dto.AwsAccountId,
+		CreatedIAM:     false,
 		Status:         domain.CloudAccountStatus_PENDING,
 		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudAccount)
@@ -162,6 +164,7 @@ func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
 		Status:         cloudAccount.Status,
 		StatusDesc:     cloudAccount.StatusDesc,
 		AwsAccountId:   cloudAccount.AwsAccountId,
+		CreatedIAM:     cloudAccount.CreatedIAM,
 		Creator:        reflectSimpleUser(cloudAccount.Creator),
 		Updator:        reflectSimpleUser(cloudAccount.Updator),
 		CreatedAt:      cloudAccount.CreatedAt,
