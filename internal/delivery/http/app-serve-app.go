@@ -312,7 +312,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
-	fmt.Printf("organizationId = [%v]\n", organizationId)
+	log.Debugf("organizationId = [%s]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
 		return
