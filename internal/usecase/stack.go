@@ -37,7 +37,6 @@ type StackUsecase struct {
 	cloudAccountRepo  repository.ICloudAccountRepository
 	organizationRepo  repository.IOrganizationRepository
 	stackTemplateRepo repository.IStackTemplateRepository
-	appServeAppRepo   repository.IAppServeAppRepository
 	argo              argowf.ArgoClient
 }
 
@@ -48,7 +47,6 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) ISta
 		cloudAccountRepo:  r.CloudAccount,
 		organizationRepo:  r.Organization,
 		stackTemplateRepo: r.StackTemplate,
-		appServeAppRepo:   r.AppServeApp,
 		argo:              argoClient,
 	}
 }
@@ -311,16 +309,6 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			if appGroup.Status != domain.AppGroupStatus_RUNNING {
 				return fmt.Errorf("Appgroup status is not 'RUNNING'. status [%s]", appGroup.Status.String())
 			}
-		}
-	}
-
-	appServeApps, err := u.appServeAppRepo.GetAppServeApps(dto.OrganizationId, true)
-	if err != nil {
-		return err
-	}
-	for _, app := range appServeApps {
-		if app.TargetClusterId == dto.ID.String() && app.Status != "ERROR" {
-			return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 		}
 	}
 
