@@ -15,6 +15,7 @@ type IAppServeAppRepository interface {
 	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
+	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(appId string) (int64, error)
 	IsAppServeAppNameExist(orgId string, appName string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
@@ -131,6 +132,18 @@ func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*domain.
 	}
 
 	return &task, nil
+}
+
+func (r *AppServeAppRepository) GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error) {
+	var apps []domain.AppServeApp
+
+	queryStr := fmt.Sprintf("organization_id = '%s' AND target_cluster_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId, clusterId)
+	res := r.db.Find(&apps, queryStr)
+	if res.Error != nil {
+		return -1, fmt.Errorf("Error while finding appServeApps with organizationId: %s", organizationId)
+	}
+
+	return res.RowsAffected, nil
 }
 
 func (r *AppServeAppRepository) IsAppServeAppExist(appId string) (int64, error) {

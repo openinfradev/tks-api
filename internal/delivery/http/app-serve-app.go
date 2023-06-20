@@ -299,6 +299,38 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
+// GetNumOfAppsOnStack godoc
+// @Tags AppServeApps
+// @Summary Get number of apps on given stack
+// @Description Get number of apps on given stack
+// @Accept json
+// @Produce json
+// @Success 200 {object} int64
+// @Router /organizations/{organizationId}/app-serve-apps/count [get]
+// @Security     JWT
+func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	log.Debugf("organizationId = [%s]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	stackId := urlParams.Get("stackId")
+	fmt.Printf("stackId = [%s]\n", stackId)
+
+	numApps, err := h.usecase.GetNumOfAppsOnStack(organizationId, stackId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, numApps)
+}
+
 func makeStages(app *domain.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
