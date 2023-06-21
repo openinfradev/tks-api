@@ -313,14 +313,12 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		}
 	}
 
-	appServeApps, err := u.appServeAppRepo.GetAppServeApps(dto.OrganizationId, true)
+	appsCnt, err := u.appServeAppRepo.GetNumOfAppsOnStack(dto.OrganizationId, dto.ID.String())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed to get numOfAppsOnStack")
 	}
-	for _, app := range appServeApps {
-		if app.TargetClusterId == dto.ID.String() && app.Status != "ERROR" {
-			return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
-		}
+	if appsCnt > 0 {
+		return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 	}
 
 	workflow := ""
