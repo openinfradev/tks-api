@@ -292,16 +292,15 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			}
 
 			for _, cl := range clusters {
-				if cl.ID != cluster.ID &&
-					cl.Status != domain.ClusterStatus_DELETED &&
-					cl.Status != domain.ClusterStatus_ERROR {
+				if cl.ID != cluster.ID && (cl.Status == domain.ClusterStatus_RUNNING ||
+					cl.Status == domain.ClusterStatus_INSTALLING ||
+					cl.Status == domain.ClusterStatus_DELETING) {
 					return httpErrors.NewBadRequestError(fmt.Errorf("Failed to delete 'Primary' cluster. The clusters remain in organization"), "S_REMAIN_CLUSTER_FOR_DELETION", "")
 				}
 			}
 			break
 		}
 	}
-
 	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(dto.ID))
 	if err != nil {
 		return errors.Wrap(err, "Failed to get appGroups")
@@ -314,14 +313,12 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		}
 	}
 
-	appServeApps, err := u.appServeAppRepo.GetAppServeApps(dto.OrganizationId, true)
+	appsCnt, err := u.appServeAppRepo.GetNumOfAppsOnStack(dto.OrganizationId, dto.ID.String())
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed to get numOfAppsOnStack")
 	}
-	for _, app := range appServeApps {
-		if app.TargetClusterId == dto.ID.String() && app.Status != "ERROR" {
-			return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
-		}
+	if appsCnt > 0 {
+		return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 	}
 
 	workflow := ""
@@ -522,8 +519,11 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 		if appGroup.Status == domain.AppGroupStatus_DELETING {
 			return domain.StackStatus_APPGROUP_DELETING, appGroup.StatusDesc
 		}
-		if appGroup.Status == domain.AppGroupStatus_ERROR {
-			return domain.StackStatus_APPGROUP_ERROR, appGroup.StatusDesc
+		if appGroup.Status == domain.AppGroupStatus_INSTALL_ERROR {
+			return domain.StackStatus_APPGROUP_INSTALL_ERROR, appGroup.StatusDesc
+		}
+		if appGroup.Status == domain.AppGroupStatus_DELETE_ERROR {
+			return domain.StackStatus_APPGROUP_DELETE_ERROR, appGroup.StatusDesc
 		}
 	}
 
@@ -536,8 +536,11 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 	if cluster.Status == domain.ClusterStatus_DELETED {
 		return domain.StackStatus_CLUSTER_DELETED, cluster.StatusDesc
 	}
-	if cluster.Status == domain.ClusterStatus_ERROR {
-		return domain.StackStatus_CLUSTER_ERROR, cluster.StatusDesc
+	if cluster.Status == domain.ClusterStatus_INSTALL_ERROR {
+		return domain.StackStatus_CLUSTER_INSTALL_ERROR, cluster.StatusDesc
+	}
+	if cluster.Status == domain.ClusterStatus_DELETE_ERROR {
+		return domain.StackStatus_CLUSTER_DELETE_ERROR, cluster.StatusDesc
 	}
 
 	// workflow 중간 중간 비는 status 처리...

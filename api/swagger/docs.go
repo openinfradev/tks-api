@@ -1135,6 +1135,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/app-serve-apps/count": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get number of apps on given stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Get number of apps on given stack",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/app-serve-apps/name/{name}/existence": {
             "get": {
                 "security": [
@@ -3532,6 +3560,9 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
+                "createdIAM": {
+                    "type": "boolean"
+                },
                 "creator": {
                     "$ref": "#/definitions/domain.User"
                 },
@@ -3590,6 +3621,9 @@ const docTemplate = `{
                 },
                 "createdAt": {
                     "type": "string"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "creator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
@@ -4903,6 +4937,9 @@ const docTemplate = `{
                 },
                 "clusters": {
                     "type": "integer"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"
