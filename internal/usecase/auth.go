@@ -349,7 +349,7 @@ func makingCookie(organizationId, userName, password string) ([]*http.Cookie, er
 	baseUrl := viper.GetString("keycloak-address") + "/realms/" + organizationId + "/protocol/openid-connect"
 	var oauth2Config = &oauth2.Config{
 		ClientID:     keycloak.DefaultClientID,
-		ClientSecret: keycloak.DefaultClientSecret,
+		ClientSecret: viper.GetString("keycloak-client-secret"),
 		RedirectURL:  viper.GetString("external-address") + internal.API_PREFIX + internal.API_VERSION + "/auth/callback",
 		Scopes:       []string{"openid"},
 		Endpoint: oauth2.Endpoint{
