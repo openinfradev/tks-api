@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+const CLOUD_ACCOUNT_INCLUSTER = "INCLUSTER"
+
 const (
 	CloudService_UNDEFINED = "UNDEFINED"
 	CloudService_AWS       = "AWS"

@@ -133,7 +133,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		if ca.ID == dto.CloudAccountId {
 
 			// FOR TEST. ADD MAGIC KEYWORD
-			if strings.Contains(ca.Name, "INCLUSTER") {
+			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
 				tksCloudAccountId = "NULL"
 			}
 			isExist = true
@@ -237,7 +237,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
 	}
 	tksCloudAccountId := cluster.CloudAccountId.String()
-	if strings.Contains(cloudAccount.Name, "INCLUSTER") {
+	if strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
 		tksCloudAccountId = "NULL"
 	}
 
