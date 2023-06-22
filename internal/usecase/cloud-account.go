@@ -69,7 +69,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccoun
 	log.InfoWithContext(ctx, "newly created CloudAccount ID:", cloudAccountId)
 
 	// FOR TEST. ADD MAGIC KEYWORD
-	if strings.Contains(dto.Name, "INCLUSTER") {
+	if strings.Contains(dto.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
 		if err := u.repo.InitWorkflow(cloudAccountId, "", domain.CloudAccountStatus_CREATED); err != nil {
 			return uuid.Nil, errors.Wrap(err, "Failed to initialize status")
 		}
@@ -210,7 +210,8 @@ func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uu
 		return err
 	}
 
-	if cloudAccount.Status != domain.CloudAccountStatus_CREATE_ERROR {
+	if !strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) &&
+		cloudAccount.Status != domain.CloudAccountStatus_CREATE_ERROR {
 		return fmt.Errorf("The status is not CREATE_ERROR. %s", cloudAccount.Status)
 	}
 
