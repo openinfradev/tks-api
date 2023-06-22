@@ -83,7 +83,7 @@ func (r *CloudAccountRepository) GetByName(organizationId string, name string) (
 
 func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out domain.CloudAccount, err error) {
 	var cloudAccount CloudAccount
-	res := r.db.Preload(clause.Associations).First(&cloudAccount, "aws_account_id = ?", awsAccountId)
+	res := r.db.Preload(clause.Associations).First(&cloudAccount, "aws_account_id = ? AND status != ?", awsAccountId, domain.CloudAccountStatus_DELETED)
 
 	if res.Error != nil {
 		return domain.CloudAccount{}, res.Error
