@@ -421,22 +421,22 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 
 	} else if stage.Status == "PROMOTE_WAIT" && strategy == "blue-green" {
 		action := domain.ActionResponse{
-			Name: "PROMOTE",
-			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
-				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
-			Type:   "API",
-			Method: "PUT",
-			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
-		}
-		actions = append(actions, action)
-
-		action = domain.ActionResponse{
 			Name: "ABORT",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
 				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
+		}
+		actions = append(actions, action)
+
+		action = domain.ActionResponse{
+			Name: "PROMOTE",
+			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
+				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+			Type:   "API",
+			Method: "PUT",
+			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
 		}
 		actions = append(actions, action)
 	}
