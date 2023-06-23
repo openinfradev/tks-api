@@ -277,6 +277,15 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		return "", errors.Wrap(err, "Failed to create delete task.")
 	}
 
+	log.Info("Updating app status to 'DELETING'..")
+
+	err = u.repo.UpdateStatus(appId, taskId, "DELETING", "")
+	if err != nil {
+		log.Debug("appId = ", appId)
+		log.Debug("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app status on DeleteAppServeApp. Err: %s", err)
+	}
+
 	workflow := "delete-java-app"
 	log.Info("Submitting workflow: ", workflow)
 
