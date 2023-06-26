@@ -327,6 +327,9 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 
 	urlParams := r.URL.Query()
 	stackId := urlParams.Get("stackId")
+	if stackId == "" {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("StackId must be provided."), "", ""))
+	}
 	fmt.Printf("stackId = [%s]\n", stackId)
 
 	numApps, err := h.usecase.GetNumOfAppsOnStack(organizationId, stackId)
