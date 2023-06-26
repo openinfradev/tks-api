@@ -1,9 +1,10 @@
-name: Build image
+name: Build Image
 on:
   pull_request_target:
     branches:
       - main
       - develop
+      - release
 
 env:
   SERVICE: tks-api
