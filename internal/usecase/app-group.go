@@ -167,6 +167,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, organizationId string, id 
 		"cluster_id=" + clusterId.String(),
 		"app_group_id=" + id.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
+		"base_repo_branch=" + viper.GetString("revision"),
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
