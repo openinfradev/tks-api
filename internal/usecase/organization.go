@@ -64,7 +64,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"contract_id=" + organizationId,
-				"revision=" + viper.GetString("revision"),
+				"base_repo_branch=" + viper.GetString("revision"),
 				"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 			},
 		})
