@@ -92,7 +92,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"cluster_id=" + dto.ClusterId.String(),
 		"github_account=" + viper.GetString("git-account"),
 		"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + dto.ClusterId.String() + "-manifests",
-		"revision=" + viper.GetString("revision"),
+		"base_repo_branch=" + viper.GetString("revision"),
 		"app_group_id=" + dto.ID.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 		"console_url=" + viper.GetString("console-address"),
