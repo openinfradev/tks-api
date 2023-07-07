@@ -2272,6 +2272,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: limit
+        in: query
+        name: limit
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:

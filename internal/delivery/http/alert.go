@@ -77,6 +77,11 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param limit query string false "limit"
+// @Param page query string false "page"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} domain.GetAlertsResponse
 // @Router /organizations/{organizationId}/alerts [get]
 // @Security     JWT
