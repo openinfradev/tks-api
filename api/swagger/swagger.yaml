@@ -828,6 +828,13 @@ definitions:
     - accessKeyId
     - secretAccessKey
     type: object
+  domain.FilterResponse:
+    properties:
+      column:
+        type: string
+      value:
+        type: string
+    type: object
   domain.FindIdRequest:
     properties:
       code:
@@ -879,6 +886,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.AlertResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetAppGroupResponse:
     properties:
@@ -1176,6 +1185,25 @@ definitions:
         type: string
       updatedAt:
         type: string
+    type: object
+  domain.PaginationResponse:
+    properties:
+      filters:
+        items:
+          $ref: '#/definitions/domain.FilterResponse'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      sortColumn:
+        type: string
+      sortOrder:
+        type: string
+      totalPages:
+        type: integer
+      totalRows:
+        type: integer
     type: object
   domain.Role:
     properties:
@@ -2244,6 +2272,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: limit
+        in: query
+        name: limit
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
