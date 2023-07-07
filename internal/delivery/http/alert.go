@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -87,7 +88,10 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alerts, err := h.usecase.Fetch(r.Context(), organizationId)
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+
+	alerts, err := h.usecase.Fetch(r.Context(), organizationId, &pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -110,6 +114,10 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		if len(outAlertActions) > 0 {
 			out.Alerts[i].LastTaker = outAlertActions[0].Taker
 		}
+	}
+
+	if err := domain.Map(pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

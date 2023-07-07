@@ -10,6 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -21,7 +22,7 @@ import (
 type IAlertUsecase interface {
 	Get(ctx context.Context, alertId uuid.UUID) (domain.Alert, error)
 	GetByName(ctx context.Context, organizationId string, name string) (domain.Alert, error)
-	Fetch(ctx context.Context, organizationId string) ([]domain.Alert, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Alert, error)
 	Create(ctx context.Context, dto domain.CreateAlertRequest) (err error)
 	Update(ctx context.Context, dto domain.Alert) error
 	Delete(ctx context.Context, dto domain.Alert) error
@@ -149,8 +150,8 @@ func (u *AlertUsecase) GetByName(ctx context.Context, organizationId string, nam
 	return
 }
 
-func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string) (alerts []domain.Alert, err error) {
-	alerts, err = u.repo.Fetch(organizationId)
+func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (alerts []domain.Alert, err error) {
+	alerts, err = u.repo.Fetch(organizationId, pg)
 	if err != nil {
 		return nil, err
 	}

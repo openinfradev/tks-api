@@ -4461,6 +4461,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.FilterResponse": {
+            "type": "object",
+            "properties": {
+                "column": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.FindIdRequest": {
             "type": "object",
             "required": [
@@ -4535,6 +4546,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.AlertResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4995,6 +5009,35 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.PaginationResponse": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.FilterResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "sortColumn": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "string"
+                },
+                "totalPages": {
+                    "type": "integer"
+                },
+                "totalRows": {
+                    "type": "integer"
                 }
             }
         },
