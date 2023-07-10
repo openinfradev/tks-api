@@ -1044,6 +1044,8 @@ definitions:
     type: object
   domain.GetStacksResponse:
     properties:
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
       stacks:
         items:
           $ref: '#/definitions/domain.StackResponse'
@@ -1192,9 +1194,9 @@ definitions:
         items:
           $ref: '#/definitions/domain.FilterResponse'
         type: array
-      limit:
+      pageNumber:
         type: integer
-      page:
+      pageSize:
         type: integer
       sortColumn:
         type: string
@@ -2272,11 +2274,11 @@ paths:
         name: organizationId
         required: true
         type: string
-      - description: limit
+      - description: pageSize
         in: query
         name: limit
         type: string
-      - description: page
+      - description: pageNumber
         in: query
         name: page
         type: string
@@ -3256,6 +3258,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:

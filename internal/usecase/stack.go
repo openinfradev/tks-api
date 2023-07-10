@@ -10,6 +10,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -23,7 +24,7 @@ import (
 type IStackUsecase interface {
 	Get(ctx context.Context, stackId domain.StackId) (domain.Stack, error)
 	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
-	Fetch(ctx context.Context, organizationId string) ([]domain.Stack, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
@@ -74,7 +75,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, nil)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
@@ -207,13 +208,13 @@ func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, nam
 	return
 }
 
-func (u *StackUsecase) Fetch(ctx context.Context, organizationId string) (out []domain.Stack, err error) {
+func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Stack, err error) {
 	organization, err := u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, pg)
 	if err != nil {
 		return out, err
 	}
@@ -287,7 +288,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	for _, organization := range *organizations {
 		if organization.PrimaryClusterId == cluster.ID.String() {
 
-			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID)
+			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID, nil)
 			if err != nil {
 				return errors.Wrap(err, "Failed to get organizations")
 			}

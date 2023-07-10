@@ -858,13 +858,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "limit",
+                        "description": "pageSize",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "page",
+                        "description": "pageNumber",
                         "name": "page",
                         "in": "query"
                     },
@@ -2403,6 +2403,39 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4828,6 +4861,9 @@ const docTemplate = `{
         "domain.GetStacksResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "stacks": {
                     "type": "array",
                     "items": {
@@ -5054,10 +5090,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/domain.FilterResponse"
                     }
                 },
-                "limit": {
+                "pageNumber": {
                     "type": "integer"
                 },
-                "page": {
+                "pageSize": {
                     "type": "integer"
                 },
                 "sortColumn": {

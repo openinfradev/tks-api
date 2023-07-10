@@ -103,29 +103,6 @@ func (r *AlertRepository) GetByName(organizationId string, name string) (out dom
 	return
 }
 
-/*
-	var historiesWithUser []HistoryWithUser
-
-	var total int64
-	r.db.Find(&History{}, "project_id = '' OR project_id = ?", projectId).Count(&total)
-
-	pagination.TotalRows = total
-	pagination.TotalPages = int(math.Ceil(float64(total) / float64(pagination.Limit)))
-
-	log.Info(total)
-	log.Info(pagination.Limit)
-
-	res := r.db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort()).
-		Model(&History{}).
-		Select("histories.*, users.account_id").Joins("left join users on histories.user_id::text=users.id::text").Where("project_id = '' OR project_id = ?", projectId).
-		Scan(&historiesWithUser)
-
-	if res.RowsAffected == 0 || res.Error != nil {
-		return nil, fmt.Errorf("No history")
-	}
-
-*/
-
 func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.Alert, err error) {
 	var alerts []Alert
 	var total int64
