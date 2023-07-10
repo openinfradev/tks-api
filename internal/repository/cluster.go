@@ -2,12 +2,14 @@ package repository
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -16,8 +18,8 @@ import (
 type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
 	Fetch() (res []domain.Cluster, err error)
-	FetchByOrganizationId(organizationId string) (res []domain.Cluster, err error)
 	FetchByCloudAccountId(cloudAccountId uuid.UUID) (res []domain.Cluster, err error)
+	FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (res []domain.Cluster, err error)
 	Get(id domain.ClusterId) (domain.Cluster, error)
 	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
@@ -95,10 +97,24 @@ func (r *ClusterRepository) Fetch() (out []domain.Cluster, err error) {
 	return out, nil
 }
 
-// [TODO] Need refactoring about filters and pagination
-func (r *ClusterRepository) FetchByOrganizationId(organizationId string) (out []domain.Cluster, err error) {
+func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	res := r.db.Preload(clause.Associations).Order("updated_at desc, created_at desc").Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED)
+	var total int64
+
+	if pg == nil {
+		*pg = pagination.NewDefaultPagination()
+	}
+
+	r.db.Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED).Count(&total)
+
+	pg.TotalRows = total
+	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+
+	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
+		Preload(clause.Associations).Order("updated_at desc, created_at desc").
+		Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED)
 
 	if res.Error != nil {
 		return nil, res.Error

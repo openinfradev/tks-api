@@ -1,8 +1,8 @@
 package domain
 
 type PaginationResponse struct {
-	Limit      int              `json:"limit"`
-	Page       int              `json:"page"`
+	Limit      int              `json:"pageSize"`
+	Page       int              `json:"pageNumber"`
 	SortColumn string           `json:"sortColumn"`
 	SortOrder  string           `json:"sortOrder"`
 	Filters    []FilterResponse `json:"filters,omitempty"`

@@ -153,7 +153,8 @@ type StackResponse struct {
 }
 
 type GetStacksResponse struct {
-	Stacks []StackResponse `json:"stacks"`
+	Stacks     []StackResponse    `json:"stacks"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type GetStackResponse struct {

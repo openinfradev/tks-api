@@ -88,7 +88,7 @@ func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string) (out 
 		// [TODO] 사용자가 속한 organization 리스트
 		out, err = u.repo.Fetch()
 	} else {
-		out, err = u.repo.FetchByOrganizationId(organizationId)
+		out, err = u.repo.FetchByOrganizationId(organizationId, nil)
 	}
 
 	if err != nil {
