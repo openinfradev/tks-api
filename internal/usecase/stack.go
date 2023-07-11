@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -160,7 +159,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
-	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId))
+	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId), nil)
 	if err != nil {
 		return out, err
 	}
@@ -170,7 +169,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 		out.PrimaryCluster = true
 	}
 
-	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId))
+	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId), nil)
 	if err != nil {
 		return out, err
 	}
@@ -199,7 +198,7 @@ func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, nam
 		return out, err
 	}
 
-	appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
+	appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
 	if err != nil {
 		return out, err
 	}
@@ -220,7 +219,7 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 	}
 
 	for _, cluster := range clusters {
-		appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
+		appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -280,7 +279,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	}
 
 	// 지우려고 하는 stack 이 primary cluster 라면, organization 내에 cluster 가 자기 자신만 남아있을 경우이다.
-	organizations, err := u.organizationRepo.Fetch()
+	organizations, err := u.organizationRepo.Fetch(nil)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get organizations")
 	}
@@ -303,7 +302,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 			break
 		}
 	}
-	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(dto.ID))
+	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(dto.ID), nil)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get appGroups")
 	}
@@ -436,7 +435,7 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 		})
 	}
 
-	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId))
+	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId), nil)
 	for _, appGroup := range appGroups {
 		for i, step := range out {
 			if step.Stage == appGroup.AppGroupType.String() {

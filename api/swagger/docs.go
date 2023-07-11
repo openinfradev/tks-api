@@ -47,6 +47,39 @@ const docTemplate = `{
                         "description": "clusterId",
                         "name": "clusterId",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -488,6 +521,39 @@ const docTemplate = `{
                         "description": "organizationId",
                         "name": "organizationId",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -664,6 +730,41 @@ const docTemplate = `{
                     "Organizations"
                 ],
                 "summary": "Get organization list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1088,6 +1189,39 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "Show all apps including deleted apps",
                         "name": "showAll",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
                         "in": "query"
                     }
                 ],
@@ -1629,6 +1763,39 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2784,6 +2951,39 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3121,6 +3321,41 @@ const docTemplate = `{
                     "StackTemplates"
                 ],
                 "summary": "Get StackTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -4634,6 +4869,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.AppGroupResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4686,6 +4924,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.CloudAccountResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4697,6 +4938,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.ClusterResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4850,6 +5094,9 @@ const docTemplate = `{
         "domain.GetStackTemplatesResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "stackTemplates": {
                     "type": "array",
                     "items": {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -157,6 +158,11 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} []domain.ListUserBody
 // @Router /organizations/{organizationId}/users [get]
 // @Security     JWT
@@ -168,7 +174,9 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := u.usecase.List(r.Context(), organizationId)
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+	users, err := u.usecase.List(r.Context(), organizationId, pg)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ResponseJSON(w, r, http.StatusNoContent, domain.ListUserResponse{})
@@ -186,6 +194,10 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		if err = domain.Map(user, &out.Users[i]); err != nil {
 			log.ErrorWithContext(r.Context(), err)
 		}
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

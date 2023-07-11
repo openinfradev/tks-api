@@ -62,7 +62,7 @@ func (p *Pagination) GetFilter() []Filter {
 		limit : 10,
 	}
 */
-func NewPagination(urlParams *url.Values) Pagination {
+func NewPagination(urlParams *url.Values) *Pagination {
 	var pg Pagination
 
 	pg.SortColumn = urlParams.Get("sortColumn")
@@ -97,11 +97,11 @@ func NewPagination(urlParams *url.Values) Pagination {
 		_ = json.Unmarshal([]byte(filter), &pg.Filters)
 	}
 
-	return pg
+	return &pg
 }
 
-func NewDefaultPagination() Pagination {
-	return Pagination{
+func NewDefaultPagination() *Pagination {
+	return &Pagination{
 		SortColumn: "created_at",
 		SortOrder:  "ASC",
 		Page:       1,

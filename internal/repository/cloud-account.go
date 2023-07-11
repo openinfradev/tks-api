@@ -2,11 +2,13 @@ package repository
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
@@ -15,7 +17,7 @@ type ICloudAccountRepository interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(organizationId string, name string) (domain.CloudAccount, error)
 	GetByAwsAccountId(awsAccountId string) (domain.CloudAccount, error)
-	Fetch(organizationId string) ([]domain.CloudAccount, error)
+	Fetch(organizationId string, pg *pagination.Pagination) ([]domain.CloudAccount, error)
 	Create(dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(dto domain.CloudAccount) (err error)
 	Delete(cloudAccountId uuid.UUID) (err error)
@@ -92,9 +94,21 @@ func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out dom
 	return
 }
 
-func (r *CloudAccountRepository) Fetch(organizationId string) (out []domain.CloudAccount, err error) {
+func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.CloudAccount, err error) {
 	var cloudAccounts []CloudAccount
-	res := r.db.Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED)
+	var total int64
+
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+	r.db.Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED).Count(&total)
+
+	pg.TotalRows = total
+	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
+		Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED)
 	if res.Error != nil {
 		return nil, res.Error
 	}

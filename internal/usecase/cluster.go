@@ -8,6 +8,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -21,8 +22,8 @@ import (
 
 type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
-	Fetch(ctx context.Context, organizationId string) ([]domain.Cluster, error)
-	FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID) (out []domain.Cluster, err error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Cluster, error)
+	FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error)
 	Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Get(ctx context.Context, clusterId domain.ClusterId) (out domain.Cluster, err error)
 	GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
@@ -83,12 +84,12 @@ func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 	return u
 }
 
-func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string) (out []domain.Cluster, err error) {
+func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	if organizationId == "" {
 		// [TODO] 사용자가 속한 organization 리스트
-		out, err = u.repo.Fetch()
+		out, err = u.repo.Fetch(pg)
 	} else {
-		out, err = u.repo.FetchByOrganizationId(organizationId, nil)
+		out, err = u.repo.FetchByOrganizationId(organizationId, pg)
 	}
 
 	if err != nil {
@@ -97,12 +98,12 @@ func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string) (out 
 	return out, nil
 }
 
-func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID) (out []domain.Cluster, err error) {
+func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	if cloudAccountId == uuid.Nil {
 		return nil, fmt.Errorf("Invalid cloudAccountId")
 	}
 
-	out, err = u.repo.Fetch()
+	out, err = u.repo.Fetch(pg)
 
 	if err != nil {
 		return nil, err
@@ -122,7 +123,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	}
 
 	// check cloudAccount
-	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId)
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId, nil)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 	}
@@ -220,7 +221,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		return fmt.Errorf("The cluster can not be deleted. cluster status : %s", cluster.Status)
 	}
 
-	resAppGroups, err := u.appGroupRepo.Fetch(clusterId)
+	resAppGroups, err := u.appGroupRepo.Fetch(clusterId, nil)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get appgroup")
 	}

@@ -96,7 +96,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 	}
 
 	for _, cluster := range clusters {
-		appGroups, err := u.appGroupRepo.Fetch(cluster.ID)
+		appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
 		if err != nil {
 			return nil, err
 		}

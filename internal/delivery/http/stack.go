@@ -95,8 +95,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-
-	stacks, err := h.usecase.Fetch(r.Context(), organizationId, &pg)
+	stacks, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -111,7 +110,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := domain.Map(pg, &out.Pagination); err != nil {
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

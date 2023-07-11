@@ -95,8 +95,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-
-	alerts, err := h.usecase.Fetch(r.Context(), organizationId, &pg)
+	alerts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -121,7 +120,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := domain.Map(pg, &out.Pagination); err != nil {
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

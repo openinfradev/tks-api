@@ -51,7 +51,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 		return fmt.Errorf("No data found")
 	}
 
-	allClusters, err := u.clusterRepo.Fetch()
+	allClusters, err := u.clusterRepo.Fetch(nil)
 	if err != nil {
 		return fmt.Errorf("No clusters")
 	}
@@ -244,7 +244,7 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 
 func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster domain.Cluster, alert domain.CreateAlertRequestAlert, clusterId domain.ClusterId) (url string) {
 	primaryGrafanaEndpoint := ""
-	appGroups, err := u.appGroupRepo.Fetch(primaryCluster.ID)
+	appGroups, err := u.appGroupRepo.Fetch(primaryCluster.ID, nil)
 	if err == nil {
 		for _, appGroup := range appGroups {
 			if appGroup.AppGroupType == domain.AppGroupType_LMA {
