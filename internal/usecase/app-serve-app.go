@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -19,7 +20,7 @@ import (
 
 type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
+	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
 	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
@@ -142,8 +143,8 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 	return appId, app.Name, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error) {
-	apps, err := u.repo.GetAppServeApps(organizationId, showAll)
+func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error) {
+	apps, err := u.repo.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {
 		fmt.Println(apps)
 	}

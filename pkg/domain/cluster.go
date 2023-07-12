@@ -162,7 +162,8 @@ type ClusterSiteValuesResponse struct {
 }
 
 type GetClustersResponse struct {
-	Clusters []ClusterResponse `json:"clusters"`
+	Clusters   []ClusterResponse  `json:"clusters"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type GetClusterResponse struct {

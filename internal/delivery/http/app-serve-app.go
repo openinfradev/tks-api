@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/openinfradev/tks-api/internal"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -166,6 +167,11 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Produce json
 // @Param organizationId path string true "Organization ID"
 // @Param showAll query boolean false "Show all apps including deleted apps"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} []domain.AppServeApp
 // @Router /organizations/{organizationId}/app-serve-apps [get]
 // @Security     JWT
@@ -191,8 +197,9 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		ErrorJSON(w, r, err)
 		return
 	}
+	pg := pagination.NewPagination(&urlParams)
 
-	apps, err := h.usecase.GetAppServeApps(organizationId, showAll)
+	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
@@ -201,6 +208,10 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = apps
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

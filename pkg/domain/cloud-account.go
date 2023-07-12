@@ -102,6 +102,7 @@ type SimpleCloudAccountResponse struct {
 
 type GetCloudAccountsResponse struct {
 	CloudAccounts []CloudAccountResponse `json:"cloudAccounts"`
+	Pagination    PaginationResponse     `json:"pagination"`
 }
 
 type GetCloudAccountResponse struct {

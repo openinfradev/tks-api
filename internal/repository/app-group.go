@@ -8,13 +8,14 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IAppGroupRepository interface {
-	Fetch(clusterId domain.ClusterId) (res []domain.AppGroup, err error)
+	Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (res []domain.AppGroup, err error)
 	Get(id domain.AppGroupId) (domain.AppGroup, error)
 	Create(dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Update(dto domain.AppGroup) (err error)
@@ -74,7 +75,7 @@ func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // Logics
-func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
+func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (out []domain.AppGroup, err error) {
 	var appGroups []AppGroup
 	out = []domain.AppGroup{}
 

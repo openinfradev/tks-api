@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -17,7 +17,7 @@ import (
 )
 
 type IAppGroupUsecase interface {
-	Fetch(ctx context.Context, clusterId domain.ClusterId) ([]domain.AppGroup, error)
+	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) ([]domain.AppGroup, error)
 	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error)
 	Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error)
@@ -39,8 +39,8 @@ func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) I
 	}
 }
 
-func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
-	out, err = u.repo.Fetch(clusterId)
+func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (out []domain.AppGroup, err error) {
+	out, err = u.repo.Fetch(clusterId, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
 	}
 
-	resAppGroups, err := u.repo.Fetch(dto.ClusterId)
+	resAppGroups, err := u.repo.Fetch(dto.ClusterId, nil)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_APPGROUP", "")
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -23,7 +24,7 @@ type ICloudAccountUsecase interface {
 	Get(ctx context.Context, cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(ctx context.Context, organizationId string, name string) (domain.CloudAccount, error)
 	GetByAwsAccountId(ctx context.Context, awsAccountId string) (domain.CloudAccount, error)
-	Fetch(ctx context.Context, organizationId string) ([]domain.CloudAccount, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.CloudAccount, error)
 	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.CloudAccount) error
 	Delete(ctx context.Context, dto domain.CloudAccount) error
@@ -151,8 +152,8 @@ func (u *CloudAccountUsecase) GetByAwsAccountId(ctx context.Context, awsAccountI
 	return
 }
 
-func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string) (cloudAccounts []domain.CloudAccount, err error) {
-	cloudAccounts, err = u.repo.Fetch(organizationId)
+func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (cloudAccounts []domain.CloudAccount, err error) {
+	cloudAccounts, err = u.repo.Fetch(organizationId, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +231,7 @@ func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uu
 func (u *CloudAccountUsecase) getClusterCnt(cloudAccountId uuid.UUID) (cnt int) {
 	cnt = 0
 
-	clusters, err := u.clusterRepo.FetchByCloudAccountId(cloudAccountId)
+	clusters, err := u.clusterRepo.FetchByCloudAccountId(cloudAccountId, nil)
 	if err != nil {
 		log.Error("Failed to get clusters by cloudAccountId. err : ", err)
 		return cnt

@@ -900,6 +900,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.AppGroupResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetAppServeAppResponse:
     properties:
@@ -933,6 +935,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.CloudAccountResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetClustersResponse:
     properties:
@@ -940,6 +944,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.ClusterResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetDashboardChartResponse:
     properties:
@@ -1037,6 +1043,8 @@ definitions:
     type: object
   domain.GetStackTemplatesResponse:
     properties:
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
       stackTemplates:
         items:
           $ref: '#/definitions/domain.StackTemplateResponse'
@@ -1779,6 +1787,28 @@ paths:
         in: query
         name: clusterId
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2045,6 +2075,28 @@ paths:
         in: query
         name: organizationId
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2153,6 +2205,29 @@ paths:
       consumes:
       - application/json
       description: Get organization list
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2423,6 +2498,28 @@ paths:
         in: query
         name: showAll
         type: boolean
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2767,6 +2864,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -3502,6 +3621,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -3716,6 +3857,29 @@ paths:
       consumes:
       - application/json
       description: Get StackTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:

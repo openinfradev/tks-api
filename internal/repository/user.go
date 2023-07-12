@@ -1,14 +1,16 @@
 package repository
 
 import (
+	"fmt"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"gorm.io/gorm"
-
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"gorm.io/gorm"
 )
 
 // Interface
@@ -16,7 +18,7 @@ type IUserRepository interface {
 	Create(accountId string, organizationId string, password string, name string) (domain.User, error)
 	CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
 		department string, description string, organizationId string, roleId uuid.UUID) (domain.User, error)
-	List(...FilterFunc) (out *[]domain.User, err error)
+	List(pg *pagination.Pagination, filters ...FilterFunc) (out *[]domain.User, err error)
 	Get(accountId string, organizationId string) (domain.User, error)
 	GetByUuid(userId uuid.UUID) (domain.User, error)
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID, email string,
@@ -140,11 +142,24 @@ func (r *UserRepository) NameFilter(name string) FilterFunc {
 		return user.Where("name = ?", name)
 	}
 }
-func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
-	var users []User
+
+func (r *UserRepository) List(pg *pagination.Pagination, filters ...FilterFunc) (*[]domain.User, error) {
 	var res *gorm.DB
+	var users []User
+	var total int64
+
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+
 	if filters == nil {
-		res = r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&users)
+		r.db.Find(&users).Count(&total)
+
+		pg.TotalRows = total
+		pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+		orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+		res = r.db.Model(&User{}).Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
+			Preload("Organization").Preload("Role").Find(&users)
 	} else {
 		combinedFilter := func(filters ...FilterFunc) FilterFunc {
 			return func(user *gorm.DB) *gorm.DB {
@@ -155,7 +170,14 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 			}
 		}
 		cFunc := combinedFilter(filters...)
-		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
+		cFunc(r.db.Model(&User{})).Find(&total)
+
+		pg.TotalRows = total
+		pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+		orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+		res = cFunc(r.db.Model(&User{}).Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
+			Preload("Organization").Preload("Role")).Find(&users)
+
 	}
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)

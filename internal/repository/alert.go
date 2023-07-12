@@ -107,7 +107,9 @@ func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination
 	var alerts []Alert
 	var total int64
 
-	// [TODO] filter
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
 	r.db.Find(&alerts, "organization_id = ?", organizationId).Count(&total)
 
 	pg.TotalRows = total

@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type IStackTemplateUsecase interface {
 	Get(ctx context.Context, stackTemplate uuid.UUID) (domain.StackTemplate, error)
-	Fetch(ctx context.Context) ([]domain.StackTemplate, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) ([]domain.StackTemplate, error)
 	Create(ctx context.Context, dto domain.StackTemplate) (stackTemplate uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.StackTemplate) error
 	Delete(ctx context.Context, dto domain.StackTemplate) error
@@ -42,8 +43,8 @@ func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplate uuid.UUID)
 	return
 }
 
-func (u *StackTemplateUsecase) Fetch(ctx context.Context) (res []domain.StackTemplate, err error) {
-	res, err = u.repo.Fetch()
+func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (res []domain.StackTemplate, err error) {
+	res, err = u.repo.Fetch(pg)
 	if err != nil {
 		return nil, err
 	}

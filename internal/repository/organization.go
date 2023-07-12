@@ -1,18 +1,20 @@
 package repository
 
 import (
-	"github.com/openinfradev/tks-api/pkg/log"
+	"fmt"
+	"math"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
-
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
+	"gorm.io/gorm"
 )
 
 // Interfaces
 type IOrganizationRepository interface {
 	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (domain.Organization, error)
-	Fetch() (res *[]domain.Organization, err error)
+	Fetch(pg *pagination.Pagination) (res *[]domain.Organization, err error)
 	Get(organizationId string) (res domain.Organization, err error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
 	UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error
@@ -69,11 +71,21 @@ func (r *OrganizationRepository) Create(organizationId string, name string, crea
 	return r.reflect(organization), nil
 }
 
-func (r *OrganizationRepository) Fetch() (*[]domain.Organization, error) {
+func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Organization, error) {
 	var organizations []Organization
 	var out []domain.Organization
+	var total int64
 
-	res := r.db.Find(&organizations)
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+	r.db.Find(&organizations).Count(&total)
+
+	pg.TotalRows = total
+	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&organizations)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error

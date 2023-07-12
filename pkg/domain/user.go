@@ -94,7 +94,8 @@ type GetUserResponse struct {
 }
 
 type ListUserResponse struct {
-	Users []ListUserBody `json:"users"`
+	Users      []ListUserBody     `json:"users"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 type ListUserBody struct {
 	ID           string       `json:"id"`

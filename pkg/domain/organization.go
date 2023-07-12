@@ -88,6 +88,7 @@ type GetOrganizationResponse struct {
 }
 type ListOrganizationResponse struct {
 	Organizations []ListOrganizationBody `json:"organizations"`
+	Pagination    PaginationResponse     `json:"pagination"`
 }
 type ListOrganizationBody struct {
 	ID               string    `json:"id"`
