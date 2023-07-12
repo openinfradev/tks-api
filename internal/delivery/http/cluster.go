@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -28,6 +29,11 @@ func NewClusterHandler(h usecase.IClusterUsecase) *ClusterHandler {
 // @Accept json
 // @Produce json
 // @Param organizationId query string false "organizationId"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} domain.GetClustersResponse
 // @Router /clusters [get]
 // @Security     JWT
@@ -35,7 +41,8 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
 	organizationId := urlParams.Get("organizationId")
-	clusters, err := h.usecase.Fetch(r.Context(), organizationId)
+	pg := pagination.NewPagination(&urlParams)
+	clusters, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -48,6 +55,10 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

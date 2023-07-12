@@ -159,7 +159,8 @@ type RollbackAppServeAppRequest struct {
 }
 
 type GetAppServeAppsResponse struct {
-	AppServeApps []AppServeApp `json:"appServeApps"`
+	AppServeApps []AppServeApp      `json:"appServeApps"`
+	Pagination   PaginationResponse `json:"pagination"`
 }
 
 type GetAppServeAppResponse struct {

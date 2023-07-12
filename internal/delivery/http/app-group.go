@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -65,6 +66,11 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param clusterId query string false "clusterId"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} domain.GetAppGroupsResponse
 // @Router /app-groups [get]
 // @Security     JWT
@@ -76,8 +82,9 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
 		return
 	}
+	pg := pagination.NewPagination(&urlParams)
 
-	appGroups, err := h.usecase.Fetch(r.Context(), domain.ClusterId(clusterId))
+	appGroups, err := h.usecase.Fetch(r.Context(), domain.ClusterId(clusterId), pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -90,6 +97,10 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

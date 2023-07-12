@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -8,14 +10,16 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IAlertRepository interface {
 	Get(alertId uuid.UUID) (domain.Alert, error)
 	GetByName(organizationId string, name string) (domain.Alert, error)
-	Fetch(organizationId string) ([]domain.Alert, error)
+	Fetch(organizationId string, pg *pagination.Pagination) ([]domain.Alert, error)
 	FetchPodRestart(organizationId string, start time.Time, end time.Time) ([]domain.Alert, error)
 	Create(dto domain.Alert) (alertId uuid.UUID, err error)
 	Update(dto domain.Alert) (err error)
@@ -99,15 +103,30 @@ func (r *AlertRepository) GetByName(organizationId string, name string) (out dom
 	return
 }
 
-func (r *AlertRepository) Fetch(organizationId string) (out []domain.Alert, err error) {
+func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.Alert, err error) {
 	var alerts []Alert
-	res := r.db.Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
-		return db.Order("created_at ASC")
-	}).Preload("AlertActions.Taker").
+	var total int64
+
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+	r.db.Find(&alerts, "organization_id = ?", organizationId).Count(&total)
+
+	pg.TotalRows = total
+	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+
+	log.Info(total)
+	log.Info(pg.Limit)
+
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+
+	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
+		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC")
+		}).Preload("AlertActions.Taker").
 		Preload("Cluster", "status = 2").
 		Preload("Organization").
 		Joins("join clusters on clusters.id = alerts.cluster_id AND clusters.status = 2").
-		Order("created_at desc").Limit(1000).
 		Find(&alerts, "alerts.organization_id = ?", organizationId)
 	if res.Error != nil {
 		return nil, res.Error

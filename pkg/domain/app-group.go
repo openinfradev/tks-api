@@ -184,7 +184,8 @@ type CreateApplicationRequest struct {
 }
 
 type GetAppGroupsResponse struct {
-	AppGroups []AppGroupResponse `json:"appGroups"`
+	AppGroups  []AppGroupResponse `json:"appGroups"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type GetAppGroupResponse struct {

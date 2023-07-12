@@ -155,7 +155,8 @@ type AlertActionResponse struct {
 }
 
 type GetAlertsResponse struct {
-	Alerts []AlertResponse `json:"alerts"`
+	Alerts     []AlertResponse    `json:"alerts"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type GetAlertResponse struct {
