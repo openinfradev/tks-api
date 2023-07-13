@@ -1,10 +1,17 @@
 package pagination
 
 import (
-	"encoding/json"
 	"net/url"
 	"strconv"
+	"strings"
+
+	"github.com/openinfradev/tks-api/internal/helper"
 )
+
+const SORT_COLUMN = "sortColumn"
+const SORT_ORDER = "sortOrder"
+const PAGE_NUMBER = "pageNumber"
+const PAGE_SIZE = "pageSize"
 
 type Pagination struct {
 	Limit      int
@@ -18,7 +25,7 @@ type Pagination struct {
 
 type Filter struct {
 	Column string
-	Value  string
+	Values []string
 }
 
 var DEFAULT_LIMIT = 10
@@ -50,54 +57,50 @@ func (p *Pagination) GetSortOrder() string {
 	return p.SortOrder
 }
 
-func (p *Pagination) GetFilter() []Filter {
+func (p *Pagination) GetFilters() []Filter {
 	return p.Filters
 }
 
-/*
-	{
-		sortingColumn : "id",
-		order : "ASC",
-		page : 1,
-		limit : 10,
-	}
-*/
 func NewPagination(urlParams *url.Values) *Pagination {
-	var pg Pagination
+	pg := NewDefaultPagination()
 
-	pg.SortColumn = urlParams.Get("sortColumn")
-	if pg.SortColumn == "" {
-		pg.SortColumn = "created_at"
-	}
-	pg.SortOrder = urlParams.Get("sortOrder")
-	if pg.SortOrder == "" {
-		pg.SortOrder = "ASC"
-	}
-
-	page := urlParams.Get("pageNumber")
-	if page == "" {
-		pg.Page = 1
-	} else {
-		pg.Page, _ = strconv.Atoi(page)
-	}
-
-	limit := urlParams.Get("pageSize")
-	if limit == "" {
-		pg.Limit = DEFAULT_LIMIT
-	} else {
-		limitNum, err := strconv.Atoi(limit)
-		if err == nil {
-			pg.Limit = limitNum
+	for key, value := range *urlParams {
+		switch key {
+		case SORT_COLUMN:
+			if value[0] == "" {
+				pg.SortColumn = "created_at"
+			} else {
+				pg.SortColumn = value[0]
+			}
+		case SORT_ORDER:
+			if value[0] == "" {
+				pg.SortOrder = "ASC"
+			} else {
+				pg.SortOrder = value[0]
+			}
+		case PAGE_NUMBER:
+			if value[0] == "" {
+				pg.Page = 1
+			} else {
+				pg.Page, _ = strconv.Atoi(value[0])
+			}
+		case PAGE_SIZE:
+			if value[0] == "" {
+				pg.Page = DEFAULT_LIMIT
+			} else {
+				if limitNum, err := strconv.Atoi(value[0]); err == nil {
+					pg.Limit = limitNum
+				}
+			}
+		default:
+			pg.Filters = append(pg.Filters, Filter{
+				Column: helper.ToSnakeCase(strings.Replace(key, "[]", "", -1)),
+				Values: value,
+			})
 		}
 	}
 
-	// [TODO] filter
-	filter := urlParams.Get("filter")
-	if filter != "" {
-		_ = json.Unmarshal([]byte(filter), &pg.Filters)
-	}
-
-	return &pg
+	return pg
 }
 
 func NewDefaultPagination() *Pagination {

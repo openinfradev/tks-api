@@ -11,6 +11,6 @@ type PaginationResponse struct {
 }
 
 type FilterResponse struct {
-	Column string `json:"column"`
-	Value  string `json:"value"`
+	Column string   `json:"column"`
+	Values []string `json:"values"`
 }

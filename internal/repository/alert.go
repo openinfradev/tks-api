@@ -12,7 +12,6 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -105,29 +104,24 @@ func (r *AlertRepository) GetByName(organizationId string, name string) (out dom
 
 func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.Alert, err error) {
 	var alerts []Alert
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&alerts, "organization_id = ?", organizationId).Count(&total)
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
-
-	log.Info(total)
-	log.Info(pg.Limit)
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
+	filterFunc := CombinedGormFilter("alerts", pg.GetFilters())
+	db := filterFunc(r.db.Model(&Alert{}).
 		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")
 		}).Preload("AlertActions.Taker").
 		Preload("Cluster", "status = 2").
 		Preload("Organization").
 		Joins("join clusters on clusters.id = alerts.cluster_id AND clusters.status = 2").
-		Find(&alerts, "alerts.organization_id = ?", organizationId)
+		Where("alerts.organization_id = ?", organizationId))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&alerts)
 	if res.Error != nil {
 		return nil, res.Error
 	}

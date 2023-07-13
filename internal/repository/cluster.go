@@ -86,19 +86,17 @@ func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 
 func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&clusters).Count(&total)
+	filterFunc := CombinedGormFilter("clusters", pg.GetFilters())
+	db := filterFunc(r.db.Model(&Cluster{}))
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+	db.Count(&pg.TotalRows)
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-		Preload(clause.Associations).Find(&clusters)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -106,71 +104,58 @@ func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Clust
 		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
-	return out, nil
+	return
 }
 
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED).Count(&total)
+	pg.SortColumn = "updated_at"
+	pg.SortOrder = "DESC"
+	filterFunc := CombinedGormFilter("clusters", pg.GetFilters())
+	db := filterFunc(r.db.Model(&Cluster{}).Preload(clause.Associations).
+		Where("organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED))
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+	db.Count(&pg.TotalRows)
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-		Preload(clause.Associations).Order("updated_at desc, created_at desc").
-		Find(&clusters, "organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED)
-
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
-	if res.RowsAffected == 0 {
-		return out, nil
-	}
-
 	for _, cluster := range clusters {
 		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
-
 	return
 }
 
 func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&clusters, "cloud_account_id = ?", cloudAccountId).Count(&total)
+	pg.SortColumn = "updated_at"
+	pg.SortOrder = "DESC"
+	filterFunc := CombinedGormFilter("clusters", pg.GetFilters())
+	db := filterFunc(r.db.Model(&Cluster{}).Preload("CloudAccount").
+		Where("cloud_account_id = ?", cloudAccountId))
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+	db.Count(&pg.TotalRows)
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-		Preload("CloudAccount").Order("updated_at desc, created_at desc").Find(&clusters, "cloud_account_id = ?", cloudAccountId)
-
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
-	if res.RowsAffected == 0 {
-		return out, nil
-	}
-
 	for _, cluster := range clusters {
 		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
-
 	return
 }
 

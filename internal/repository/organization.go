@@ -74,20 +74,18 @@ func (r *OrganizationRepository) Create(organizationId string, name string, crea
 func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Organization, error) {
 	var organizations []Organization
 	var out []domain.Organization
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&organizations).Count(&total)
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+	filterFunc := CombinedGormFilter("organizations", pg.GetFilters())
+	db := filterFunc(r.db.Model(&Organization{}))
+	db.Count(&pg.TotalRows)
 
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&organizations)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&organizations)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	for _, organization := range organizations {

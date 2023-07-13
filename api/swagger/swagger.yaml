@@ -832,8 +832,10 @@ definitions:
     properties:
       column:
         type: string
-      value:
-        type: string
+      values:
+        items:
+          type: string
+        type: array
     type: object
   domain.FindIdRequest:
     properties:

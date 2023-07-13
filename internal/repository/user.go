@@ -153,7 +153,7 @@ func (r *UserRepository) List(pg *pagination.Pagination, filters ...FilterFunc) 
 	}
 
 	if filters == nil {
-		r.db.Find(&users).Count(&total)
+		r.db.Model(&User{}).Count(&total)
 
 		pg.TotalRows = total
 		pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
@@ -170,7 +170,7 @@ func (r *UserRepository) List(pg *pagination.Pagination, filters ...FilterFunc) 
 			}
 		}
 		cFunc := combinedFilter(filters...)
-		cFunc(r.db.Model(&User{})).Find(&total)
+		cFunc(r.db.Model(&User{})).Count(&total)
 
 		pg.TotalRows = total
 		pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
