@@ -82,10 +82,13 @@ func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pa
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter("app_groups", pg.GetFilters())
+	filterFunc := CombinedGormFilter(pg.GetFilters())
 	db := filterFunc(r.db.Model(&AppGroup{}).
 		Where("cluster_id = ?", clusterId))
 	db.Count(&pg.TotalRows)
+
+	r.db.Model(&AppGroup{}).
+		Where("cluster_id = ?", clusterId).Where("id").Where("app_groups.status").Where("app_groups.deleted")
 
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)

@@ -71,45 +71,13 @@ func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out domain.Sta
 }
 
 // [TODO] organizationId 별로 생성하지 않고, 하나의 stackTemplate 을 모든 organization 에서 재사용한다. ( 5월 한정, 추후 rearchitecture 필요)
-
-/*
-	var alerts []Alert
-	if pg == nil {
-		pg = pagination.NewDefaultPagination()
-	}
-
-	filterFunc := CombinedGormFilter("alerts", pg.GetFilters())
-	db := filterFunc(r.db.Model(&Alert{}).
-		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC")
-		}).Preload("AlertActions.Taker").
-		Preload("Cluster", "status = 2").
-		Preload("Organization").
-		Joins("join clusters on clusters.id = alerts.cluster_id AND clusters.status = 2").
-		Where("alerts.organization_id = ?", organizationId))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&alerts)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-
-	for _, alert := range alerts {
-		out = append(out, reflectAlert(alert))
-	}
-	return
-
-*/
-
 func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain.StackTemplate, err error) {
 	var stackTemplates []StackTemplate
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters())
+	filterFunc := CombinedGormFilter(pg.GetFilters())
 	db := filterFunc(r.db.Model(&StackTemplate{}))
 	db.Count(&pg.TotalRows)
 

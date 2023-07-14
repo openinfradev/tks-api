@@ -21,18 +21,18 @@ type Repository struct {
 	Alert         IAlertRepository
 }
 
-func CombinedGormFilter(baseTableName string, filters []pagination.Filter) FilterFunc {
+func CombinedGormFilter(filters []pagination.Filter) FilterFunc {
 	return func(db *gorm.DB) *gorm.DB {
 		for _, filter := range filters {
 			if len(filter.Values) > 1 {
-				inQuery := fmt.Sprintf("%s.%s in (", baseTableName, filter.Column)
+				inQuery := fmt.Sprintf("%s in (", filter.Column)
 				for _, val := range filter.Values {
 					inQuery = inQuery + fmt.Sprintf("'%s',", val)
 				}
 				inQuery = inQuery[:len(inQuery)-1] + ")"
 				db = db.Where(inQuery)
 			} else {
-				db = db.Where(fmt.Sprintf("%s.%s = '%s'", baseTableName, filter.Column, filter.Values[0]))
+				db = db.Where(fmt.Sprintf("%s = '%s'", filter.Column, filter.Values[0]))
 			}
 		}
 		return db
