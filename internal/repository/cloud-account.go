@@ -96,19 +96,18 @@ func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out dom
 
 func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.CloudAccount, err error) {
 	var cloudAccounts []CloudAccount
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED).Count(&total)
+	filterFunc := CombinedGormFilter(pg.GetFilters())
+	db := filterFunc(r.db.Model(&CloudAccount{}).
+		Preload(clause.Associations).
+		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED))
+	db.Count(&pg.TotalRows)
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
-
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-		Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&cloudAccounts)
 	if res.Error != nil {
 		return nil, res.Error
 	}

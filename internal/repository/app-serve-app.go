@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -56,15 +57,20 @@ func (r *AppServeAppRepository) CreateTask(
 	return task.ID, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error) {
-	var apps []domain.AppServeApp
+func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) (apps []domain.AppServeApp, err error) {
 	var clusters []Cluster
-
-	queryStr := fmt.Sprintf("organization_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId)
-	if showAll {
-		queryStr = fmt.Sprintf("organization_id = '%s'", organizationId)
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
 	}
-	res := r.db.Order("created_at desc").Find(&apps, queryStr)
+
+	filterFunc := CombinedGormFilter(pg.GetFilters())
+	db := filterFunc(r.db.Model(&domain.AppServeApp{}).
+		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&apps)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
 	}
@@ -75,8 +81,8 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 	}
 
 	// Add cluster names to apps list
-	queryStr = fmt.Sprintf("organization_id = '%s' AND status <> '%d'", organizationId, domain.ClusterStatus_DELETED)
-	res = r.db.Order("created_at desc").Find(&clusters, queryStr)
+	queryStr := fmt.Sprintf("organization_id = '%s' AND status <> '%d'", organizationId, domain.ClusterStatus_DELETED)
+	res = r.db.Find(&clusters, queryStr)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while fetching clusters with organizationId: %s", organizationId)
 	}
@@ -90,7 +96,7 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 		}
 	}
 
-	return apps, nil
+	return
 }
 
 func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {

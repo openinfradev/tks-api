@@ -123,6 +123,15 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	if err := domain.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
+	/*
+		outFilters := make([]domain.FilterResponse, len(pg.Filters))
+		for j, filter := range pg.Filters {
+			if err := domain.Map(filter, &outFilters[j]); err != nil {
+				log.InfoWithContext(r.Context(), err)
+			}
+		}
+		out.Pagination.Filters = outFilters
+	*/
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

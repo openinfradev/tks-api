@@ -4768,8 +4768,11 @@ const docTemplate = `{
                 "column": {
                     "type": "string"
                 },
-                "value": {
-                    "type": "string"
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
