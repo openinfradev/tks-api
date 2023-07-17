@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"encoding/json"
 
 	"strconv"
 	"strings"
@@ -88,6 +89,26 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 	}
 
+	// Preprocess extraEnv param
+	extEnv := app.AppServeAppTasks[0].ExtraEnv
+	log.Debug("extraEnv received: ", extEnv)
+
+	tempMap := map[string]string{}
+	json.Unmarshal([]byte(extEnv), &tempMap)
+	log.Debugf("extraEnv marshalled: %v", tempMap)
+
+	newExtEnv := map[string]string{}
+	for key, val := range tempMap {
+		newkey := "\"" + key + "\""
+		newval := "\"" + val + "\""
+		newExtEnv[newkey] = newval
+	}
+
+	mJson, _ := json.Marshal(newExtEnv)
+	newExtEnvStr := string(mJson)
+
+	log.Debug("After transform, extraEnv: ", newExtEnvStr)
+
 	// TODO: Validate PV params
 
 	appId, taskId, err := u.repo.CreateAppServeApp(app)
@@ -116,7 +137,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"image_url=" + app.AppServeAppTasks[0].ImageUrl,
 		"port=" + app.AppServeAppTasks[0].Port,
 		"profile=" + app.AppServeAppTasks[0].Profile,
-		"extra_env=" + app.AppServeAppTasks[0].ExtraEnv,
+		"extra_env=" + newExtEnvStr,
 		"app_config=" + app.AppServeAppTasks[0].AppConfig,
 		"app_secret=" + app.AppServeAppTasks[0].AppSecret,
 		"resource_spec=" + app.AppServeAppTasks[0].ResourceSpec,
