@@ -89,12 +89,20 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 	}
 
-	// Preprocess extraEnv param
+	appId, taskId, err := u.repo.CreateAppServeApp(app)
+	if err != nil {
+		log.Error(err)
+		return "", "", errors.Wrap(err, "Failed to create app.")
+	}
+
+	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
+
+	/* Preprocess extraEnv param */
 	extEnv := app.AppServeAppTasks[0].ExtraEnv
 	log.Debug("extraEnv received: ", extEnv)
 
 	tempMap := map[string]string{}
-	err := json.Unmarshal([]byte(extEnv), &tempMap)
+	err = json.Unmarshal([]byte(extEnv), &tempMap)
 	if err != nil {
 		log.Error(err)
 		return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
@@ -110,18 +118,9 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 
 	mJson, _ := json.Marshal(newExtEnv)
 	newExtEnvStr := string(mJson)
-
 	log.Debug("After transform, extraEnv: ", newExtEnvStr)
 
 	// TODO: Validate PV params
-
-	appId, taskId, err := u.repo.CreateAppServeApp(app)
-	if err != nil {
-		log.Error(err)
-		return "", "", errors.Wrap(err, "Failed to create app.")
-	}
-
-	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
 
 	// Call argo workflow
 	workflow := "serve-java-app"
@@ -394,6 +393,30 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
+	// Preprocess extraEnv param
+	extEnv := appTask.ExtraEnv
+	log.Debug("extraEnv received: ", extEnv)
+
+	tempMap := map[string]string{}
+	err = json.Unmarshal([]byte(extEnv), &tempMap)
+	if err != nil {
+		log.Error(err)
+		return "", errors.Wrap(err, "Failed to process extraEnv param.")
+	}
+	log.Debugf("extraEnv marshalled: %v", tempMap)
+
+	newExtEnv := map[string]string{}
+	for key, val := range tempMap {
+		newkey := "\"" + key + "\""
+		newval := "\"" + val + "\""
+		newExtEnv[newkey] = newval
+	}
+
+	mJson, _ := json.Marshal(newExtEnv)
+	newExtEnvStr := string(mJson)
+
+	log.Debug("After transform, extraEnv: ", newExtEnvStr)
+
 	// Call argo workflow
 	workflow := "serve-java-app"
 
@@ -414,7 +437,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 			"image_url=" + appTask.ImageUrl,
 			"port=" + appTask.Port,
 			"profile=" + appTask.Profile,
-			"extra_env=" + appTask.ExtraEnv,
+			"extra_env=" + newExtEnvStr,
 			"app_config=" + appTask.AppConfig,
 			"app_secret=" + appTask.AppSecret,
 			"resource_spec=" + appTask.ResourceSpec,
