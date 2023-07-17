@@ -81,7 +81,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 // @Param page query string false "pageNumber"
 // @Param soertColumn query string false "sortColumn"
 // @Param sortOrder query string false "sortOrder"
-// @Param filters query []string false "filters"
+// @Param combinedFilter query string false "combinedFilter"
 // @Success 200 {object} domain.GetStacksResponse
 // @Router /organizations/{organizationId}/stacks [get]
 // @Security     JWT
@@ -94,7 +94,11 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlParams := r.URL.Query()
-	pg := pagination.NewPagination(&urlParams)
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
 	stacks, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)

@@ -94,7 +94,12 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlParams := r.URL.Query()
-	pg := pagination.NewPagination(&urlParams)
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+
 	alerts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)

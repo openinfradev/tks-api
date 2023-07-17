@@ -41,7 +41,11 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
 	organizationId := urlParams.Get("organizationId")
-	pg := pagination.NewPagination(&urlParams)
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
 	clusters, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)

@@ -99,7 +99,7 @@ func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pag
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	filterFunc := CombinedGormFilter(pg.GetFilters())
+	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&CloudAccount{}).
 		Preload(clause.Associations).
 		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED))

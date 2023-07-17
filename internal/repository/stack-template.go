@@ -77,7 +77,7 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters())
+	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&StackTemplate{}))
 	db.Count(&pg.TotalRows)
 

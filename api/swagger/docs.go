@@ -2596,12 +2596,9 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "description": "filters",
-                        "name": "filters",
+                        "type": "string",
+                        "description": "combinedFilter",
+                        "name": "combinedFilter",
                         "in": "query"
                     }
                 ],
