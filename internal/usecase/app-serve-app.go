@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 
 	"strconv"
 	"strings"
@@ -94,7 +94,11 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 	log.Debug("extraEnv received: ", extEnv)
 
 	tempMap := map[string]string{}
-	json.Unmarshal([]byte(extEnv), &tempMap)
+	err := json.Unmarshal([]byte(extEnv), &tempMap)
+	if err != nil {
+		log.Error(err)
+		return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
+	}
 	log.Debugf("extraEnv marshalled: %v", tempMap)
 
 	newExtEnv := map[string]string{}
