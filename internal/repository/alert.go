@@ -108,7 +108,7 @@ func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters())
+	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Alert{}).
 		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")

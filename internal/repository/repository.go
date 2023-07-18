@@ -21,8 +21,9 @@ type Repository struct {
 	Alert         IAlertRepository
 }
 
-func CombinedGormFilter(filters []pagination.Filter) FilterFunc {
+func CombinedGormFilter(filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {
 	return func(db *gorm.DB) *gorm.DB {
+		// and query
 		for _, filter := range filters {
 			if len(filter.Values) > 1 {
 				inQuery := fmt.Sprintf("%s in (", filter.Column)
@@ -35,6 +36,18 @@ func CombinedGormFilter(filters []pagination.Filter) FilterFunc {
 				db = db.Where(fmt.Sprintf("%s = '%s'", filter.Column, filter.Values[0]))
 			}
 		}
+
+		// or query
+		// id = '123' or description = '345'
+		if len(combinedFilter.Columns) > 0 {
+			orQuery := ""
+			for _, column := range combinedFilter.Columns {
+				orQuery = orQuery + fmt.Sprintf("%s like '%%%s%%' OR ", column, combinedFilter.Value)
+			}
+			orQuery = orQuery[:len(orQuery)-3]
+			db = db.Where(orQuery)
+		}
+
 		return db
 	}
 }

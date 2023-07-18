@@ -1,6 +1,7 @@
 package pagination
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -12,20 +13,27 @@ const SORT_COLUMN = "sortColumn"
 const SORT_ORDER = "sortOrder"
 const PAGE_NUMBER = "pageNumber"
 const PAGE_SIZE = "pageSize"
+const COMBINED_FILTER = "combinedFilter"
 
 type Pagination struct {
-	Limit      int
-	Page       int
-	SortColumn string
-	SortOrder  string
-	Filters    []Filter
-	TotalRows  int64
-	TotalPages int
+	Limit          int
+	Page           int
+	SortColumn     string
+	SortOrder      string
+	Filters        []Filter
+	CombinedFilter CombinedFilter
+	TotalRows      int64
+	TotalPages     int
 }
 
 type Filter struct {
 	Column string
 	Values []string
+}
+
+type CombinedFilter struct {
+	Columns []string
+	Value   string
 }
 
 var DEFAULT_LIMIT = 10
@@ -61,7 +69,7 @@ func (p *Pagination) GetFilters() []Filter {
 	return p.Filters
 }
 
-func NewPagination(urlParams *url.Values) *Pagination {
+func NewPagination(urlParams *url.Values) (*Pagination, error) {
 	pg := NewDefaultPagination()
 
 	for key, value := range *urlParams {
@@ -92,6 +100,22 @@ func NewPagination(urlParams *url.Values) *Pagination {
 					pg.Limit = limitNum
 				}
 			}
+		case COMBINED_FILTER:
+			if len(value[0]) > 0 {
+				//"combinedFilter=key1,key2:value"
+				filterArray := strings.Split(value[0], ":")
+				if len(filterArray) == 2 {
+					keys := strings.Split(filterArray[0], ",")
+					value := filterArray[1]
+
+					pg.CombinedFilter = CombinedFilter{
+						Columns: keys,
+						Value:   value,
+					}
+				} else {
+					return nil, fmt.Errorf("Invalid query string : combinedFilter ")
+				}
+			}
 		default:
 			pg.Filters = append(pg.Filters, Filter{
 				Column: helper.ToSnakeCase(strings.Replace(key, "[]", "", -1)),
@@ -100,7 +124,7 @@ func NewPagination(urlParams *url.Values) *Pagination {
 		}
 	}
 
-	return pg
+	return pg, nil
 }
 
 func NewDefaultPagination() *Pagination {

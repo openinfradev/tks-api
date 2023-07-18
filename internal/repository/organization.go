@@ -78,7 +78,7 @@ func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Org
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters())
+	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Organization{}))
 	db.Count(&pg.TotalRows)
 

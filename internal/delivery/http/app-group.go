@@ -82,7 +82,11 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
 		return
 	}
-	pg := pagination.NewPagination(&urlParams)
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
 
 	appGroups, err := h.usecase.Fetch(r.Context(), domain.ClusterId(clusterId), pg)
 	if err != nil {
