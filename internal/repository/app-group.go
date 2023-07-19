@@ -82,7 +82,7 @@ func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pa
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("app_groups", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&AppGroup{}).
 		Where("cluster_id = ?", clusterId))
 	db.Count(&pg.TotalRows)

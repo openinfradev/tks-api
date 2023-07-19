@@ -39,8 +39,8 @@ type StackTemplate struct {
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string
-	Description    string
+	Name           string       `gorm:"index"`
+	Description    string       `gorm:"index"`
 	Template       string
 	Version        string
 	CloudService   string
@@ -77,7 +77,7 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&StackTemplate{}))
 	db.Count(&pg.TotalRows)
 

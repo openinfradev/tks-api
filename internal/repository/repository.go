@@ -21,19 +21,21 @@ type Repository struct {
 	Alert         IAlertRepository
 }
 
-func CombinedGormFilter(filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {
+func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {
 	return func(db *gorm.DB) *gorm.DB {
 		// and query
 		for _, filter := range filters {
 			if len(filter.Values) > 1 {
-				inQuery := fmt.Sprintf("%s in (", filter.Column)
+				inQuery := fmt.Sprintf("%s.%s::text in (", table, filter.Column)
 				for _, val := range filter.Values {
-					inQuery = inQuery + fmt.Sprintf("'%s',", val)
+					inQuery = inQuery + fmt.Sprintf("LOWER('%s'),", val)
 				}
 				inQuery = inQuery[:len(inQuery)-1] + ")"
 				db = db.Where(inQuery)
 			} else {
-				db = db.Where(fmt.Sprintf("%s = '%s'", filter.Column, filter.Values[0]))
+				if len(filter.Values[0]) > 0 {
+					db = db.Where(fmt.Sprintf("%s.%s::text like LOWER('%%%s%%')", table, filter.Column, filter.Values[0]))
+				}
 			}
 		}
 
@@ -42,7 +44,7 @@ func CombinedGormFilter(filters []pagination.Filter, combinedFilter pagination.C
 		if len(combinedFilter.Columns) > 0 {
 			orQuery := ""
 			for _, column := range combinedFilter.Columns {
-				orQuery = orQuery + fmt.Sprintf("%s like '%%%s%%' OR ", column, combinedFilter.Value)
+				orQuery = orQuery + fmt.Sprintf("%s.%s::text like LOWER('%%%s%%') OR ", table, column, combinedFilter.Value)
 			}
 			orQuery = orQuery[:len(orQuery)-3]
 			db = db.Where(orQuery)

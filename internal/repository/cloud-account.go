@@ -41,8 +41,8 @@ type CloudAccount struct {
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string
-	Description    string
+	Name           string       `gorm:"index"`
+	Description    string       `gorm:"index"`
 	Resource       string
 	CloudService   string
 	WorkflowId     string
@@ -99,7 +99,7 @@ func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pag
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("cloud_accounts", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&CloudAccount{}).
 		Preload(clause.Associations).
 		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED))
