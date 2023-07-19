@@ -72,7 +72,7 @@ func SendEmailForVerityIdentity(client *awsSes.Client, targetEmailAddress string
 	}
 
 	data := TemplateData{
-		AuthCode: fmt.Sprintf("%s", code),
+		AuthCode: code,
 	}
 
 	var tpl bytes.Buffer
@@ -104,7 +104,7 @@ func SendEmailForTemporaryPassword(client *awsSes.Client, targetEmailAddress str
 	}
 
 	data := TemplateData{
-		TemporaryPassword: fmt.Sprintf("%s", randomPassword),
+		TemporaryPassword: randomPassword,
 	}
 
 	var tpl bytes.Buffer
@@ -141,11 +141,11 @@ func SendEmailForGeneratingOrganization(client *awsSes.Client, organizationId st
 	}
 
 	data := TemplateData{
-		OrganizationId:   fmt.Sprintf("%s", organizationId),
-		Id:               fmt.Sprintf("%s", userAccountId),
-		Password:         fmt.Sprintf("%s", randomPassword),
-		OrganizationName: fmt.Sprintf("%s", organizationName),
-		AdminName:        fmt.Sprintf("%s", userAccountId),
+		OrganizationId:   organizationId,
+		Id:               userAccountId,
+		Password:         randomPassword,
+		OrganizationName: organizationName,
+		AdminName:        userAccountId,
 	}
 
 	var tpl bytes.Buffer
