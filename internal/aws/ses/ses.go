@@ -1,8 +1,11 @@
 package ses
 
 import (
+	"bytes"
 	"context"
+	"embed"
 	"fmt"
+	"html/template"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,12 +16,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+//go:embed contents/*.html
+var templateFS embed.FS
+
 var Client *awsSes.Client
 
 const (
 	senderEmailAddress = "tks-dev@sktelecom.com"
-
-	thanksContent = "TKS Cloud Service를 이용해 주셔서 감사합니다.\nTKS Cloud Service Team 드림"
 )
 
 func Initialize() error {
@@ -55,90 +59,118 @@ func Initialize() error {
 	return nil
 }
 func SendEmailForVerityIdentity(client *awsSes.Client, targetEmailAddress string, code string) error {
-	subject := "[TKS][인증번호:" + code + "] – 요청하신 인증번호를 알려드립니다."
-	body := "아래의 인증번호를 인증번호 입력창에 입력해 주세요.\n\n" +
-		"인증번호: " + code + "\n\n" +
-		thanksContent
+	subject := "[TKS] [인증번호:" + code + "] 인증번호가 발급되었습니다."
 
-	input := &awsSes.SendEmailInput{
-		Destination: &types.Destination{
-			ToAddresses: []string{targetEmailAddress},
-		},
-		Message: &types.Message{
-			Body: &types.Body{
-				Text: &types.Content{
-					Data: aws.String(body),
-				},
-			},
-			Subject: &types.Content{
-				Data: aws.String(subject),
-			},
-		},
-		Source: aws.String(senderEmailAddress),
-	}
-
-	if _, err := client.SendEmail(context.Background(), input); err != nil {
-		log.Errorf("failed to send email, %v", err)
+	tmpl, err := template.ParseFS(templateFS, "contents/authcode.html")
+	if err != nil {
+		log.Errorf("failed to parse template, %v", err)
 		return err
 	}
 
+	type TemplateData struct {
+		AuthCode string
+	}
+
+	data := TemplateData{
+		AuthCode: fmt.Sprintf("%s", code),
+	}
+
+	var tpl bytes.Buffer
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Errorf("failed to execute template, %v", err)
+		return err
+	}
+
+	body := tpl.String()
+
+	err = sendEmail(client, targetEmailAddress, subject, body)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func SendEmailForTemporaryPassword(client *awsSes.Client, targetEmailAddress string, randomPassword string) error {
-	subject := "[TKS] 임시 비밀번호 발급"
-	body := "임시 비밀번호가 발급되었습니다.\n" +
-		"로그인 후 비밀번호를 변경하여 사용하십시오.\n\n" +
-		"임시 비밀번호: " + randomPassword + "\n\n" +
-		thanksContent
+	subject := "[TKS] 임시 비밀번호가 발급되었습니다."
 
-	input := &awsSes.SendEmailInput{
-		Destination: &types.Destination{
-			ToAddresses: []string{targetEmailAddress},
-		},
-		Message: &types.Message{
-			Body: &types.Body{
-				Text: &types.Content{
-					Data: aws.String(body),
-				},
-			},
-			Subject: &types.Content{
-				Data: aws.String(subject),
-			},
-		},
-		Source: aws.String(senderEmailAddress),
-	}
-
-	if _, err := client.SendEmail(context.Background(), input); err != nil {
-		log.Errorf("failed to send email, %v", err)
+	tmpl, err := template.ParseFS(templateFS, "contents/temporary_password.html")
+	if err != nil {
+		log.Errorf("failed to parse template, %v", err)
 		return err
 	}
 
+	type TemplateData struct {
+		TemporaryPassword string
+	}
+
+	data := TemplateData{
+		TemporaryPassword: fmt.Sprintf("%s", randomPassword),
+	}
+
+	var tpl bytes.Buffer
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Errorf("failed to execute template, %v", err)
+		return err
+	}
+
+	body := tpl.String()
+
+	err = sendEmail(client, targetEmailAddress, subject, body)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func SendEmailForGeneratingOrganization(client *awsSes.Client, organizationId string, organizationName string,
 	targetEmailAddress string, userAccountId string, randomPassword string) error {
 	subject := "[TKS] 조직이 생성되었습니다."
-	body := "조직이 생성되었습니다. \n" +
-		"조직코드: " + organizationId + "\n" +
-		"이름: " + organizationName + "\n" +
-		"관리자 아이디: " + userAccountId + "\n" +
-		"관리자 이름: admin\n\n" +
-		"아래 관리자 계정 정보로 로그인 후 사용하시기 바랍니다.\n" +
-		"조직코드: " + organizationId + "\n" +
-		"아이디: " + userAccountId + "\n" +
-		"비밀번호: " + randomPassword + "\n\n" +
-		thanksContent
 
+	tmpl, err := template.ParseFS(templateFS, "contents/organization_creation.html")
+	if err != nil {
+		log.Errorf("failed to parse template, %v", err)
+		return err
+	}
+
+	type TemplateData struct {
+		OrganizationId   string
+		Id               string
+		Password         string
+		OrganizationName string
+		AdminName        string
+	}
+
+	data := TemplateData{
+		OrganizationId:   fmt.Sprintf("%s", organizationId),
+		Id:               fmt.Sprintf("%s", userAccountId),
+		Password:         fmt.Sprintf("%s", randomPassword),
+		OrganizationName: fmt.Sprintf("%s", organizationName),
+		AdminName:        fmt.Sprintf("%s", userAccountId),
+	}
+
+	var tpl bytes.Buffer
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Errorf("failed to execute template, %v", err)
+		return err
+	}
+	body := tpl.String()
+
+	err = sendEmail(client, targetEmailAddress, subject, body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func sendEmail(client *awsSes.Client, targetEmailAddress string, subject string, htmlBody string) error {
 	input := &awsSes.SendEmailInput{
 		Destination: &types.Destination{
 			ToAddresses: []string{targetEmailAddress},
 		},
 		Message: &types.Message{
 			Body: &types.Body{
-				Text: &types.Content{
-					Data: aws.String(body),
+				Html: &types.Content{
+					Data: aws.String(htmlBody),
 				},
 			},
 			Subject: &types.Content{
