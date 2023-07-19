@@ -57,6 +57,7 @@ type Alert struct {
 	Summary        string
 	AlertActions   []AlertAction `gorm:"foreignKey:AlertId"`
 	RawData        datatypes.JSON
+	Status         domain.AlertActionStatus `gorm:"index"`
 }
 
 func (c *Alert) BeforeCreate(tx *gorm.DB) (err error) {
@@ -108,7 +109,7 @@ func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("alerts", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Alert{}).
 		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")
@@ -117,6 +118,7 @@ func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination
 		Preload("Organization").
 		Joins("join clusters on clusters.id = alerts.cluster_id AND clusters.status = 2").
 		Where("alerts.organization_id = ?", organizationId))
+
 	db.Count(&pg.TotalRows)
 
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
@@ -161,6 +163,7 @@ func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error
 		CheckPoint:     dto.CheckPoint,
 		Summary:        dto.Summary,
 		RawData:        dto.RawData,
+		Status:         domain.AlertActionStatus_CREATED,
 	}
 	res := r.db.Create(&alert)
 	if res.Error != nil {
@@ -198,6 +201,13 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
+	res = r.db.Model(&Alert{}).
+		Where("id = ?", dto.AlertId).
+		Update("status", dto.Status)
+	if res.Error != nil {
+		return uuid.Nil, res.Error
+	}
+
 	return alert.ID, nil
 }
 
@@ -223,6 +233,7 @@ func reflectAlert(alert Alert) domain.Alert {
 		Summary:        alert.Summary,
 		AlertActions:   outAlertActions,
 		RawData:        alert.RawData,
+		Status:         alert.Status,
 		CreatedAt:      alert.CreatedAt,
 		UpdatedAt:      alert.UpdatedAt,
 	}

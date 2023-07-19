@@ -46,10 +46,10 @@ type Cluster struct {
 	gorm.Model
 
 	ID                  domain.ClusterId `gorm:"primarykey"`
-	Name                string
+	Name                string           `gorm:"index"`
 	OrganizationId      string
 	Organization        Organization `gorm:"foreignKey:OrganizationId"`
-	Description         string
+	Description         string       `gorm:"index"`
 	WorkflowId          string
 	Status              domain.ClusterStatus
 	StatusDesc          string
@@ -89,7 +89,7 @@ func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Clust
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Cluster{}))
 
 	db.Count(&pg.TotalRows)
@@ -114,7 +114,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pag
 	}
 	pg.SortColumn = "updated_at"
 	pg.SortOrder = "DESC"
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Cluster{}).Preload(clause.Associations).
 		Where("organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED))
 
@@ -140,7 +140,7 @@ func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *
 	}
 	pg.SortColumn = "updated_at"
 	pg.SortOrder = "DESC"
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Cluster{}).Preload("CloudAccount").
 		Where("cloud_account_id = ?", cloudAccountId))
 

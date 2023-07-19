@@ -63,7 +63,7 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter(pg.GetFilters(), pg.CombinedFilter)
+	filterFunc := CombinedGormFilter("app_serve_apps", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&domain.AppServeApp{}).
 		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId))
 	db.Count(&pg.TotalRows)
