@@ -20,7 +20,7 @@ type IAppGroupUsecase interface {
 	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) ([]domain.AppGroup, error)
 	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error)
-	Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error)
+	Delete(ctx context.Context, id domain.AppGroupId) (err error)
 	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
 	UpdateApplication(ctx context.Context, dto domain.Application) (err error)
 }
@@ -134,13 +134,16 @@ func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out do
 	return appGroup, nil
 }
 
-func (u *AppGroupUsecase) Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error) {
+func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err error) {
 	appGroup, err := u.repo.Get(id)
 	if err != nil {
 		return fmt.Errorf("No appGroup for deletiing : %s", id)
 	}
-
-	clusterId := appGroup.ClusterId
+	cluster, err := u.clusterRepo.Get(appGroup.ClusterId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
+	}
+	organizationId := cluster.OrganizationId
 
 	// Call argo workflow template
 	workflowTemplate := ""
@@ -164,7 +167,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, organizationId string, id 
 		"organization_id=" + organizationId,
 		"app_group=" + appGroupName,
 		"github_account=" + viper.GetString("git-account"),
-		"cluster_id=" + clusterId.String(),
+		"cluster_id=" + cluster.ID.String(),
 		"app_group_id=" + id.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 		"base_repo_branch=" + viper.GetString("revision"),
