@@ -120,7 +120,6 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	// Add cluster name to app object
 	r.db.Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
 	app.TargetClusterName = cluster.Name
-	log.Infof("App struct with cluster name:\n%+v", app)
 
 	return &app, nil
 }
