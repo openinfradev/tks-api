@@ -3905,6 +3905,12 @@ const docTemplate = `{
         "domain.ChartData": {
             "type": "object",
             "properties": {
+                "podCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.PodCount"
+                    }
+                },
                 "series": {
                     "type": "array",
                     "items": {
@@ -5353,6 +5359,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "totalRows": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.PodCount": {
+            "type": "object",
+            "properties": {
+                "day": {
+                    "type": "integer"
+                },
+                "value": {
                     "type": "integer"
                 }
             }

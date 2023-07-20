@@ -81,10 +81,16 @@ type Axis struct {
 	Data []string `json:"data"`
 }
 
+type PodCount struct {
+	Day   int `json:"day"`
+	Value int `json:"value"`
+}
+
 type ChartData struct {
-	XAxis  Axis   `json:"xAxis"`
-	YAxis  Axis   `json:"yAxis"`
-	Series []Unit `json:"series"`
+	XAxis     *Axis      `json:"xAxis,omitempty"`
+	YAxis     *Axis      `json:"yAxis,omitempty"`
+	Series    []Unit     `json:"series,omitempty"`
+	PodCounts []PodCount `json:"podCounts,omitempty"`
 }
 
 type DashboardChartResponse struct {

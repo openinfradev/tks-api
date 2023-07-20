@@ -251,6 +251,10 @@ definitions:
     type: object
   domain.ChartData:
     properties:
+      podCounts:
+        items:
+          $ref: '#/definitions/domain.PodCount'
+        type: array
       series:
         items:
           $ref: '#/definitions/domain.Unit'
@@ -1215,6 +1219,13 @@ definitions:
       totalPages:
         type: integer
       totalRows:
+        type: integer
+    type: object
+  domain.PodCount:
+    properties:
+      day:
+        type: integer
+      value:
         type: integer
     type: object
   domain.Role:
