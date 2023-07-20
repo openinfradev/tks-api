@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -157,12 +156,6 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 // @Router /app-groups [delete]
 // @Security     JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
-	user, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", ""))
-		return
-	}
-
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
 	if !ok {
@@ -176,7 +169,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err := h.usecase.Delete(r.Context(), user.GetOrganizationId(), appGroupId)
+	err := h.usecase.Delete(r.Context(), appGroupId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to delete appGroup err : ", err)
 		ErrorJSON(w, r, err)
