@@ -89,7 +89,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 
 			// FOR TEST. ADD MAGIC KEYWORD
 			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-				tksCloudAccountId = "NULL"
+				tksCloudAccountId = ""
 			}
 			isExist = true
 			break
