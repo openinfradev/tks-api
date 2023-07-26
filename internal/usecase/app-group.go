@@ -26,16 +26,18 @@ type IAppGroupUsecase interface {
 }
 
 type AppGroupUsecase struct {
-	repo        repository.IAppGroupRepository
-	clusterRepo repository.IClusterRepository
-	argo        argowf.ArgoClient
+	repo             repository.IAppGroupRepository
+	clusterRepo      repository.IClusterRepository
+	cloudAccountRepo repository.ICloudAccountRepository
+	argo             argowf.ArgoClient
 }
 
 func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppGroupUsecase {
 	return &AppGroupUsecase{
-		repo:        r.AppGroup,
-		clusterRepo: r.Cluster,
-		argo:        argoClient,
+		repo:             r.AppGroup,
+		clusterRepo:      r.Cluster,
+		cloudAccountRepo: r.CloudAccount,
+		argo:             argoClient,
 	}
 }
 
@@ -75,6 +77,28 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		}
 	}
 
+	// check cloudAccount
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
+	}
+	tksCloudAccountId := cluster.CloudAccountId.String()
+	isExist := false
+	for _, ca := range cloudAccounts {
+		if ca.ID == cluster.CloudAccountId {
+
+			// FOR TEST. ADD MAGIC KEYWORD
+			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+				tksCloudAccountId = "NULL"
+			}
+			isExist = true
+			break
+		}
+	}
+	if !isExist {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+	}
+
 	if dto.ID == "" {
 		dto.ID, err = u.repo.Create(dto)
 	} else {
@@ -98,6 +122,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"console_url=" + viper.GetString("console-address"),
 		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
 		"alert_slack=" + viper.GetString("alert-slack"),
+		"cloud_account_id=" + tksCloudAccountId,
 	}
 
 	switch dto.AppGroupType {
