@@ -170,6 +170,28 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 	}
 	organizationId := cluster.OrganizationId
 
+	// check cloudAccount
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
+	}
+	tksCloudAccountId := cluster.CloudAccountId.String()
+	isExist := false
+	for _, ca := range cloudAccounts {
+		if ca.ID == cluster.CloudAccountId {
+
+			// FOR TEST. ADD MAGIC KEYWORD
+			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+				tksCloudAccountId = ""
+			}
+			isExist = true
+			break
+		}
+	}
+	if !isExist {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+	}
+
 	// Call argo workflow template
 	workflowTemplate := ""
 	appGroupName := ""
@@ -196,6 +218,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 		"app_group_id=" + id.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 		"base_repo_branch=" + viper.GetString("revision"),
+		"cloud_account_id=" + tksCloudAccountId,
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
