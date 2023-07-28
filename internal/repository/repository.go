@@ -26,7 +26,7 @@ func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilte
 		// and query
 		for _, filter := range filters {
 			if len(filter.Values) > 1 {
-				inQuery := fmt.Sprintf("%s.%s::text in (", table, filter.Column)
+				inQuery := fmt.Sprintf("LOWER(%s.%s::text) in (", table, filter.Column)
 				for _, val := range filter.Values {
 					inQuery = inQuery + fmt.Sprintf("LOWER('%s'),", val)
 				}
@@ -34,7 +34,7 @@ func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilte
 				db = db.Where(inQuery)
 			} else {
 				if len(filter.Values[0]) > 0 {
-					db = db.Where(fmt.Sprintf("%s.%s::text like LOWER('%%%s%%')", table, filter.Column, filter.Values[0]))
+					db = db.Where(fmt.Sprintf("LOWER(%s.%s::text) like LOWER('%%%s%%')", table, filter.Column, filter.Values[0]))
 				}
 			}
 		}
@@ -44,7 +44,7 @@ func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilte
 		if len(combinedFilter.Columns) > 0 {
 			orQuery := ""
 			for _, column := range combinedFilter.Columns {
-				orQuery = orQuery + fmt.Sprintf("%s.%s::text like LOWER('%%%s%%') OR ", table, column, combinedFilter.Value)
+				orQuery = orQuery + fmt.Sprintf("LOWER(%s.%s::text) like LOWER('%%%s%%') OR ", table, column, combinedFilter.Value)
 			}
 			orQuery = orQuery[:len(orQuery)-3]
 			db = db.Where(orQuery)
