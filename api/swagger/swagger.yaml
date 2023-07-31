@@ -251,6 +251,10 @@ definitions:
     type: object
   domain.ChartData:
     properties:
+      podCounts:
+        items:
+          $ref: '#/definitions/domain.PodCount'
+        type: array
       series:
         items:
           $ref: '#/definitions/domain.Unit'
@@ -832,8 +836,10 @@ definitions:
     properties:
       column:
         type: string
-      value:
-        type: string
+      values:
+        items:
+          type: string
+        type: array
     type: object
   domain.FindIdRequest:
     properties:
@@ -1213,6 +1219,13 @@ definitions:
       totalPages:
         type: integer
       totalRows:
+        type: integer
+    type: object
+  domain.PodCount:
+    properties:
+      day:
+        type: integer
+      value:
         type: integer
     type: object
   domain.Role:
@@ -3393,12 +3406,10 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - description: combinedFilter
         in: query
-        items:
-          type: string
-        name: filters
-        type: array
+        name: combinedFilter
+        type: string
       produces:
       - application/json
       responses:

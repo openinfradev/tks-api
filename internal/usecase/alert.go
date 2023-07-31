@@ -225,7 +225,7 @@ func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, st
 
 func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 	alert.FiredAt = &alert.CreatedAt
-	alert.Status = domain.AlertActionStatus_CREATED
+	//alert.Status = domain.AlertActionStatus_CREATED
 
 	if len(alert.AlertActions) > 0 {
 		alert.TakedAt = &alert.AlertActions[0].CreatedAt
@@ -238,7 +238,7 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 
 		alert.LastTaker = alert.AlertActions[len(alert.AlertActions)-1].Taker
 		alert.TakedSec = int((alert.AlertActions[0].CreatedAt).Sub(alert.CreatedAt).Seconds())
-		alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
+		//alert.Status = alert.AlertActions[len(alert.AlertActions)-1].Status
 	}
 }
 

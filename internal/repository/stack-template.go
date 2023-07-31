@@ -39,8 +39,8 @@ type StackTemplate struct {
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string
-	Description    string
+	Name           string       `gorm:"index"`
+	Description    string       `gorm:"index"`
 	Template       string
 	Version        string
 	CloudService   string
@@ -73,19 +73,17 @@ func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out domain.Sta
 // [TODO] organizationId 별로 생성하지 않고, 하나의 stackTemplate 을 모든 organization 에서 재사용한다. ( 5월 한정, 추후 rearchitecture 필요)
 func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain.StackTemplate, err error) {
 	var stackTemplates []StackTemplate
-	var total int64
-
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	r.db.Find(&stackTemplates).Count(&total)
 
-	pg.TotalRows = total
-	pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
+	filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&StackTemplate{}))
+	db.Count(&pg.TotalRows)
 
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := r.db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-		Preload(clause.Associations).Find(&stackTemplates)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}

@@ -8,6 +8,7 @@
 *.njsproj
 *.sln
 *.sw?
+*.sh
 
 web
 main

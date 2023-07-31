@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"strconv"
@@ -88,8 +89,6 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 	}
 
-	// TODO: Validate PV params
-
 	appId, taskId, err := u.repo.CreateAppServeApp(app)
 	if err != nil {
 		log.Error(err)
@@ -97,6 +96,33 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 	}
 
 	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
+
+	extEnv := app.AppServeAppTasks[0].ExtraEnv
+	if extEnv != "" {
+		/* Preprocess extraEnv param */
+		log.Debug("extraEnv received: ", extEnv)
+
+		tempMap := map[string]string{}
+		err = json.Unmarshal([]byte(extEnv), &tempMap)
+		if err != nil {
+			log.Error(err)
+			return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
+		}
+		log.Debugf("extraEnv marshalled: %v", tempMap)
+
+		newExtEnv := map[string]string{}
+		for key, val := range tempMap {
+			newkey := "\"" + key + "\""
+			newval := "\"" + val + "\""
+			newExtEnv[newkey] = newval
+		}
+
+		mJson, _ := json.Marshal(newExtEnv)
+		extEnv := string(mJson)
+		log.Debug("After transform, extraEnv: ", extEnv)
+	}
+
+	// TODO: Validate PV params
 
 	// Call argo workflow
 	workflow := "serve-java-app"
@@ -116,7 +142,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"image_url=" + app.AppServeAppTasks[0].ImageUrl,
 		"port=" + app.AppServeAppTasks[0].Port,
 		"profile=" + app.AppServeAppTasks[0].Profile,
-		"extra_env=" + app.AppServeAppTasks[0].ExtraEnv,
+		"extra_env=" + extEnv,
 		"app_config=" + app.AppServeAppTasks[0].AppConfig,
 		"app_secret=" + app.AppServeAppTasks[0].AppSecret,
 		"resource_spec=" + app.AppServeAppTasks[0].ResourceSpec,
@@ -369,6 +395,32 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
+	extEnv := appTask.ExtraEnv
+	if extEnv != "" {
+		/* Preprocess extraEnv param */
+		log.Debug("extraEnv received: ", extEnv)
+
+		tempMap := map[string]string{}
+		err = json.Unmarshal([]byte(extEnv), &tempMap)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to process extraEnv param.")
+		}
+		log.Debugf("extraEnv marshalled: %v", tempMap)
+
+		newExtEnv := map[string]string{}
+		for key, val := range tempMap {
+			newkey := "\"" + key + "\""
+			newval := "\"" + val + "\""
+			newExtEnv[newkey] = newval
+		}
+
+		mJson, _ := json.Marshal(newExtEnv)
+		extEnv = string(mJson)
+
+		log.Debug("After transform, extraEnv: ", extEnv)
+	}
+
 	// Call argo workflow
 	workflow := "serve-java-app"
 
@@ -389,7 +441,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 			"image_url=" + appTask.ImageUrl,
 			"port=" + appTask.Port,
 			"profile=" + appTask.Profile,
-			"extra_env=" + appTask.ExtraEnv,
+			"extra_env=" + extEnv,
 			"app_config=" + appTask.AppConfig,
 			"app_secret=" + appTask.AppSecret,
 			"resource_spec=" + appTask.ResourceSpec,

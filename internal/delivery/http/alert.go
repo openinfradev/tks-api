@@ -94,7 +94,29 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlParams := r.URL.Query()
-	pg := pagination.NewPagination(&urlParams)
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+	// convert status
+	for i, filter := range pg.GetFilters() {
+		if filter.Column == "status" {
+			for j, value := range filter.Values {
+				switch value {
+				case "CREATED":
+					pg.GetFilters()[i].Values[j] = "0"
+				case "INPROGRESS":
+					pg.GetFilters()[i].Values[j] = "1"
+				case "CLOSED":
+					pg.GetFilters()[i].Values[j] = "2"
+				case "ERROR":
+					pg.GetFilters()[i].Values[j] = "3"
+				}
+			}
+		}
+	}
+
 	alerts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -123,6 +145,15 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	if err := domain.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
+	/*
+		outFilters := make([]domain.FilterResponse, len(pg.Filters))
+		for j, filter := range pg.Filters {
+			if err := domain.Map(filter, &outFilters[j]); err != nil {
+				log.InfoWithContext(r.Context(), err)
+			}
+		}
+		out.Pagination.Filters = outFilters
+	*/
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

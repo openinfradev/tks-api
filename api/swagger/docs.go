@@ -2596,12 +2596,9 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "description": "filters",
-                        "name": "filters",
+                        "type": "string",
+                        "description": "combinedFilter",
+                        "name": "combinedFilter",
                         "in": "query"
                     }
                 ],
@@ -3908,6 +3905,12 @@ const docTemplate = `{
         "domain.ChartData": {
             "type": "object",
             "properties": {
+                "podCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.PodCount"
+                    }
+                },
                 "series": {
                     "type": "array",
                     "items": {
@@ -4768,8 +4771,11 @@ const docTemplate = `{
                 "column": {
                     "type": "string"
                 },
-                "value": {
-                    "type": "string"
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -5353,6 +5359,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "totalRows": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.PodCount": {
+            "type": "object",
+            "properties": {
+                "day": {
+                    "type": "integer"
+                },
+                "value": {
                     "type": "integer"
                 }
             }

@@ -197,7 +197,11 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		ErrorJSON(w, r, err)
 		return
 	}
-	pg := pagination.NewPagination(&urlParams)
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
 
 	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {

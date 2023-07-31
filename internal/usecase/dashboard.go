@@ -273,101 +273,6 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		query = "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
 
 	case domain.ChartType_POD_CALENDAR.String():
-		/*
-			// 입력받은 년,월 을 date 형식으로
-			yearInt, _ := strconv.Atoi(year)
-			monthInt, _ := strconv.Atoi(month)
-			startDate := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 0, 0, time.UTC)
-			endDate := startDate.Add(time.Hour * 24 * 30)
-
-			start := 0
-			end := 0
-			if now.Year() < yearInt {
-				return res, fmt.Errorf("Invalid year")
-			} else if now.Year() == yearInt && int(now.Month()) < monthInt {
-				return res, fmt.Errorf("Invalid month")
-			} else if now.Year() == yearInt && int(now.Month()) == monthInt {
-				start = int(startDate.Unix())
-				end = int(now.Unix())
-			} else {
-				start = int(startDate.Unix())
-				end = int(endDate.Unix())
-			}
-
-			log.Debugf("S : %d E : %d", start, end)
-
-			query = "sum by (__name__) ({__name__=~\"kube_pod_container_status_restarts_total|kube_pod_status_phase\"})"
-
-			result, err := thanosClient.FetchRange(query, start, end, 60*60*24)
-			if err != nil {
-				return res, err
-			}
-
-			for _, val := range result.Data.Result {
-				xAxisData := []string{}
-				yAxisData := []string{}
-
-				for _, vals := range val.Values {
-					x := int(math.Round(vals.([]interface{})[0].(float64)))
-					y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-					if err != nil {
-						y = 0
-					}
-					xAxisData = append(xAxisData, strconv.Itoa(x))
-					yAxisData = append(yAxisData, fmt.Sprintf("%d", int(y)))
-				}
-
-				if val.Metric.Name == "kube_pod_container_status_restarts_total" {
-					chartData.XAxis.Data = xAxisData
-					chartData.Series = append(chartData.Series, domain.Unit{
-						Name: "date",
-						Data: xAxisData,
-					})
-					chartData.Series = append(chartData.Series, domain.Unit{
-						Name: "podRestartCount",
-						Data: yAxisData,
-					})
-				}
-
-				if val.Metric.Name == "kube_pod_status_phase" {
-					chartData.Series = append(chartData.Series, domain.Unit{
-						Name: "totalPodCount",
-						Data: yAxisData,
-					})
-				}
-			}
-
-
-			{
-				series : [
-					{
-						name : date,
-						data : [
-							"timestamp1",
-							"timestamp2"
-							"timestamp3"
-						]
-					},
-					{
-						name : podRestartCount,
-						data : [
-							"1",
-							"2"
-							"3"
-						]
-					},
-					{
-						name : totalPodCount,
-						data : [
-							"10",
-							"20"
-							"30"
-						]
-					},
-				]
-			}
-		*/
-
 		// 입력받은 년,월 을 date 형식으로
 		yearInt, _ := strconv.Atoi(year)
 		monthInt, _ := strconv.Atoi(month)
@@ -385,20 +290,24 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			return res, err
 		}
 
-		xAxisData := []string{}
-		yAxisData := []string{}
+		organization, err := u.organizationRepo.Get(organizationId)
+		if err != nil {
+			return res, err
+		}
 
+		log.Info(organization.CreatedAt.Format("2006-01-02"))
+
+		podCounts := []domain.PodCount{}
 		for day := rangeDate(startDate, endDate); ; {
 			d := day()
 			if d.IsZero() {
 				break
 			}
-			baseDate := d.Format("2006-01-02")
 
-			cntPodRestartStr := ""
+			baseDate := d.Format("2006-01-02")
 			cntPodRestart := 0
 
-			if baseDate <= now.Format("2006-01-02") {
+			if baseDate <= now.Format("2006-01-02") && baseDate >= organization.CreatedAt.Format("2006-01-02") {
 				for _, alert := range alerts {
 					strDate := alert.CreatedAt.Format("2006-01-02")
 
@@ -406,55 +315,16 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 						cntPodRestart += 1
 					}
 				}
-				cntPodRestartStr = fmt.Sprintf("%d", int(cntPodRestart))
+				pd := domain.PodCount{
+					Day:   d.Day(),
+					Value: int(cntPodRestart),
+				}
+				podCounts = append(podCounts, pd)
 			}
-
-			dd := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
-			xAxisData = append(xAxisData, strconv.Itoa(int(dd.Unix())))
-			yAxisData = append(yAxisData, cntPodRestartStr)
 		}
-
-		chartData.XAxis.Data = xAxisData
-		chartData.Series = append(chartData.Series, domain.Unit{
-			Name: "podRestartCount",
-			Data: yAxisData,
-		})
-
-		/*
-			for _, alert := range alerts {
-				xAxisData := []string{}
-				yAxisData := []string{}
-
-				for _, vals := range val.Values {
-					x := int(math.Round(vals.([]interface{})[0].(float64)))
-					y, err := strconv.ParseFloat(vals.([]interface{})[1].(string), 32)
-					if err != nil {
-						y = 0
-					}
-					xAxisData = append(xAxisData, strconv.Itoa(x))
-					yAxisData = append(yAxisData, fmt.Sprintf("%d", int(y)))
-				}
-
-				if val.Metric.Name == "kube_pod_container_status_restarts_total" {
-					chartData.XAxis.Data = xAxisData
-					chartData.Series = append(chartData.Series, domain.Unit{
-						Name: "date",
-						Data: xAxisData,
-					})
-					chartData.Series = append(chartData.Series, domain.Unit{
-						Name: "podRestartCount",
-						Data: yAxisData,
-					})
-				}
-
-				if val.Metric.Name == "kube_pod_status_phase" {
-					chartData.Series = append(chartData.Series, domain.Unit{
-						Name: "totalPodCount",
-						Data: yAxisData,
-					})
-				}
-			}
-		*/
+		chartData.XAxis = nil
+		chartData.YAxis = nil
+		chartData.PodCounts = podCounts
 
 		return domain.DashboardChart{
 			ChartType:      domain.ChartType_POD_CALENDAR,
@@ -508,7 +378,9 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			Name: clusterName,
 			Data: yAxisData,
 		})
+
 	}
+	chartData.XAxis = &domain.Axis{}
 	chartData.XAxis.Data = xAxisData
 
 	return domain.DashboardChart{

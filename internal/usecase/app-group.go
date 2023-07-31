@@ -20,22 +20,24 @@ type IAppGroupUsecase interface {
 	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) ([]domain.AppGroup, error)
 	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error)
-	Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error)
+	Delete(ctx context.Context, id domain.AppGroupId) (err error)
 	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
 	UpdateApplication(ctx context.Context, dto domain.Application) (err error)
 }
 
 type AppGroupUsecase struct {
-	repo        repository.IAppGroupRepository
-	clusterRepo repository.IClusterRepository
-	argo        argowf.ArgoClient
+	repo             repository.IAppGroupRepository
+	clusterRepo      repository.IClusterRepository
+	cloudAccountRepo repository.ICloudAccountRepository
+	argo             argowf.ArgoClient
 }
 
 func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppGroupUsecase {
 	return &AppGroupUsecase{
-		repo:        r.AppGroup,
-		clusterRepo: r.Cluster,
-		argo:        argoClient,
+		repo:             r.AppGroup,
+		clusterRepo:      r.Cluster,
+		cloudAccountRepo: r.CloudAccount,
+		argo:             argoClient,
 	}
 }
 
@@ -75,6 +77,28 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		}
 	}
 
+	// check cloudAccount
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
+	}
+	tksCloudAccountId := cluster.CloudAccountId.String()
+	isExist := false
+	for _, ca := range cloudAccounts {
+		if ca.ID == cluster.CloudAccountId {
+
+			// FOR TEST. ADD MAGIC KEYWORD
+			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+				tksCloudAccountId = ""
+			}
+			isExist = true
+			break
+		}
+	}
+	if !isExist {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+	}
+
 	if dto.ID == "" {
 		dto.ID, err = u.repo.Create(dto)
 	} else {
@@ -98,6 +122,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"console_url=" + viper.GetString("console-address"),
 		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
 		"alert_slack=" + viper.GetString("alert-slack"),
+		"cloud_account_id=" + tksCloudAccountId,
 	}
 
 	switch dto.AppGroupType {
@@ -134,13 +159,38 @@ func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out do
 	return appGroup, nil
 }
 
-func (u *AppGroupUsecase) Delete(ctx context.Context, organizationId string, id domain.AppGroupId) (err error) {
+func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err error) {
 	appGroup, err := u.repo.Get(id)
 	if err != nil {
 		return fmt.Errorf("No appGroup for deletiing : %s", id)
 	}
+	cluster, err := u.clusterRepo.Get(appGroup.ClusterId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
+	}
+	organizationId := cluster.OrganizationId
 
-	clusterId := appGroup.ClusterId
+	// check cloudAccount
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
+	}
+	tksCloudAccountId := cluster.CloudAccountId.String()
+	isExist := false
+	for _, ca := range cloudAccounts {
+		if ca.ID == cluster.CloudAccountId {
+
+			// FOR TEST. ADD MAGIC KEYWORD
+			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+				tksCloudAccountId = ""
+			}
+			isExist = true
+			break
+		}
+	}
+	if !isExist {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+	}
 
 	// Call argo workflow template
 	workflowTemplate := ""
@@ -164,10 +214,11 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, organizationId string, id 
 		"organization_id=" + organizationId,
 		"app_group=" + appGroupName,
 		"github_account=" + viper.GetString("git-account"),
-		"cluster_id=" + clusterId.String(),
+		"cluster_id=" + cluster.ID.String(),
 		"app_group_id=" + id.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 		"base_repo_branch=" + viper.GetString("revision"),
+		"cloud_account_id=" + tksCloudAccountId,
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)

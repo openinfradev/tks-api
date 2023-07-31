@@ -9,7 +9,7 @@ import (
 
 type AppServeApp struct {
 	ID                 string            `gorm:"primarykey" json:"id,omitempty"`
-	Name               string            `json:"name,omitempty"`                           // application name
+	Name               string            `gorm:"index" json:"name,omitempty"`              // application name
 	Namespace          string            `json:"namespace,omitempty"`                      // application namespace
 	OrganizationId     string            `json:"organizationId,omitempty"`                 // contractId is a contract ID which this app belongs to
 	Type               string            `json:"type,omitempty"`                           // type (build/deploy/all)
@@ -18,7 +18,7 @@ type AppServeApp struct {
 	PreviewEndpointUrl string            `json:"previewEndpointUrl,omitempty"`             // preview svc endpoint URL in B/G deployment
 	TargetClusterId    string            `json:"targetClusterId,omitempty"`                // target cluster to which the app is deployed
 	TargetClusterName  string            `gorm:"-:all" json:"targetClusterName,omitempty"` // target cluster name
-	Status             string            `json:"status,omitempty"`                         // status is status of deployed app
+	Status             string            `gorm:"index" json:"status,omitempty"`            // status is status of deployed app
 	CreatedAt          time.Time         `gorm:"autoCreateTime:false" json:"createdAt" `
 	UpdatedAt          *time.Time        `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt          *time.Time        `json:"deletedAt"`
