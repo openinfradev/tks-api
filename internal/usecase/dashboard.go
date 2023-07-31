@@ -277,7 +277,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		yearInt, _ := strconv.Atoi(year)
 		monthInt, _ := strconv.Atoi(month)
 		startDate := time.Date(yearInt, time.Month(monthInt), 1, 0, 0, 0, 0, time.UTC)
-		endDate := startDate.Add(time.Hour * 24 * 30)
+		endDate := time.Date(yearInt, time.Month(monthInt+1), 1, 0, 0, 0, 0, time.UTC)
 
 		if now.Year() < yearInt {
 			return res, fmt.Errorf("Invalid year")
