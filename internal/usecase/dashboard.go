@@ -185,36 +185,36 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	if err != nil {
 		return out, err
 	}
-	memory := 0
+	memory := float64(0)
 	for _, val := range result.Data.Result {
 		memoryVal, err := strconv.Atoi(val.Value[1].(string))
 		if err != nil {
 			continue
 		}
 		if memoryVal > 0 {
-			memoryVal = memoryVal / 1024 / 1024 / 1024
-			memory = memory + memoryVal
+			memory_ := float64(memoryVal) / float64(1024) / float64(1024) / float64(1024)
+			memory = memory + memory_
 		}
 	}
-	out.Memory = fmt.Sprintf("%d GB", memory)
+	out.Memory = fmt.Sprintf("%v GiB", math.Round(memory))
 
 	// Storage
 	result, err = thanosClient.Get("sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
 	if err != nil {
 		return out, err
 	}
-	storage := 0
+	storage := float64(0)
 	for _, val := range result.Data.Result {
 		storageVal, err := strconv.Atoi(val.Value[1].(string))
 		if err != nil {
 			continue
 		}
 		if storageVal > 0 {
-			storageVal = storageVal / 1024 / 1024 / 1024
-			storage = storage + storageVal
+			storage_ := float64(storageVal) / float64(1024) / float64(1024) / float64(1024)
+			storage = storage + storage_
 		}
 	}
-	out.Storage = fmt.Sprintf("%d GB", storage)
+	out.Storage = fmt.Sprintf("%v GiB", math.Round(storage))
 
 	return
 }
