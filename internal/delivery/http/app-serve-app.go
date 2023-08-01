@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -128,6 +129,13 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	task.CreatedAt = now
 
 	app.AppServeAppTasks = append(app.AppServeAppTasks, task)
+
+	// Validate name param
+	re, _ := regexp.Compile("^[a-z][a-z0-9-]*$")
+	if !(re.MatchString(app.Name)) {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name should consist of alphanumeric characters and hyphens only"), "", ""))
+		return
+	}
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
