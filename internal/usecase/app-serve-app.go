@@ -89,21 +89,13 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 	}
 
-	appId, taskId, err := u.repo.CreateAppServeApp(app)
-	if err != nil {
-		log.Error(err)
-		return "", "", errors.Wrap(err, "Failed to create app.")
-	}
-
-	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
-
 	extEnv := app.AppServeAppTasks[0].ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
 		log.Debug("extraEnv received: ", extEnv)
 
 		tempMap := map[string]string{}
-		err = json.Unmarshal([]byte(extEnv), &tempMap)
+		err := json.Unmarshal([]byte(extEnv), &tempMap)
 		if err != nil {
 			log.Error(err)
 			return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
@@ -121,6 +113,14 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		extEnv := string(mJson)
 		log.Debug("After transform, extraEnv: ", extEnv)
 	}
+
+	appId, taskId, err := u.repo.CreateAppServeApp(app)
+	if err != nil {
+		log.Error(err)
+		return "", "", errors.Wrap(err, "Failed to create app.")
+	}
+
+	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
 
 	// TODO: Validate PV params
 
@@ -379,22 +379,6 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		}
 	}
 
-	taskId, err := u.repo.CreateTask(appTask)
-	if err != nil {
-		log.Info("taskId = ", taskId)
-		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
-	}
-
-	// Sync new task status to the parent app
-	log.Info("Updating app status to 'PREPARING'..")
-
-	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
-	if err != nil {
-		log.Debug("appId = ", app.ID)
-		log.Debug("taskId = ", taskId)
-		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
-	}
-
 	extEnv := appTask.ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
@@ -419,6 +403,22 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		extEnv = string(mJson)
 
 		log.Debug("After transform, extraEnv: ", extEnv)
+	}
+
+	taskId, err := u.repo.CreateTask(appTask)
+	if err != nil {
+		log.Info("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
+	}
+
+	// Sync new task status to the parent app
+	log.Info("Updating app status to 'PREPARING'..")
+
+	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
+	if err != nil {
+		log.Debug("appId = ", app.ID)
+		log.Debug("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
