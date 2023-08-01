@@ -137,6 +137,16 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if exist {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name '%s' already exists.", app.Name), "", ""))
+		return
+	}
+
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
 		if task.Port == "" {
