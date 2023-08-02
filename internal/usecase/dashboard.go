@@ -267,7 +267,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		query = "avg by (taco_cluster) (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
 
 	case domain.ChartType_POD.String():
-		query = "avg by (taco_cluster) (increase(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		query = "sum by (taco_cluster) (changes(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
 
 	case domain.ChartType_TRAFFIC.String():
 		query = "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
@@ -340,7 +340,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		return domain.DashboardChart{}, fmt.Errorf("No data")
 	}
 
-	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix())+10000, intervalSec)
 	if err != nil {
 		return res, err
 	}
