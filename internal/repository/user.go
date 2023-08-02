@@ -195,9 +195,6 @@ func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizat
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
-	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
-	}
 
 	var out []domain.User
 	for _, user := range users {
