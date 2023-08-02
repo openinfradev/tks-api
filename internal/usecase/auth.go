@@ -104,7 +104,7 @@ func (u *AuthUsecase) Logout(accessToken string, organizationName string) error 
 	return nil
 }
 func (u *AuthUsecase) FindId(code string, email string, userName string, organizationId string) (string, error) {
-	users, err := u.userRepository.List(nil, u.userRepository.OrganizationFilter(organizationId),
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
 		return "", httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
@@ -134,7 +134,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 }
 
 func (u *AuthUsecase) FindPassword(code string, accountId string, email string, userName string, organizationId string) error {
-	users, err := u.userRepository.List(nil, u.userRepository.OrganizationFilter(organizationId),
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 		u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
@@ -198,10 +198,10 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	var err error
 
 	if accountId == "" {
-		users, err = u.userRepository.List(nil, u.userRepository.OrganizationFilter(organizationId),
+		users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 			u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	} else {
-		users, err = u.userRepository.List(nil, u.userRepository.OrganizationFilter(organizationId),
+		users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 			u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 			u.userRepository.EmailFilter(email))
 	}

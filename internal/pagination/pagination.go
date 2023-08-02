@@ -105,7 +105,7 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 				//"combinedFilter=key1,key2:value"
 				filterArray := strings.Split(value[0], ":")
 				if len(filterArray) == 2 {
-					keys := strings.Split(filterArray[0], ",")
+					keys := strings.Split(helper.ToSnakeCase(strings.Replace(filterArray[0], "[]", "", -1)), ",")
 					value := filterArray[1]
 
 					pg.CombinedFilter = CombinedFilter{

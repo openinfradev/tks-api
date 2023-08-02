@@ -180,7 +180,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
-	users, err := u.usecase.List(r.Context(), organizationId, pg)
+	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ResponseJSON(w, r, http.StatusNoContent, domain.ListUserResponse{})
