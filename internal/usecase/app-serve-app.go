@@ -110,7 +110,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 
 		mJson, _ := json.Marshal(newExtEnv)
-		extEnv := string(mJson)
+		extEnv = string(mJson)
 		log.Debug("After transform, extraEnv: ", extEnv)
 	}
 
@@ -401,7 +401,6 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 
 		mJson, _ := json.Marshal(newExtEnv)
 		extEnv = string(mJson)
-
 		log.Debug("After transform, extraEnv: ", extEnv)
 	}
 
