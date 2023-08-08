@@ -51,6 +51,7 @@ jobs:
             ( cd cicd-manifests/${SERVICE}/overlay/ft && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
           elif [[ ${{github.ref}} == *"main"* ]]; then
             ( cd cicd-manifests/${SERVICE}/overlay/cicd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
+            ( cd cicd-manifests/${SERVICE}/overlay/prd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
           fi
 
           cd cicd-manifests
