@@ -65,6 +65,7 @@ type SimpleStackTemplateResponse struct {
 
 type GetStackTemplatesResponse struct {
 	StackTemplates []StackTemplateResponse `json:"stackTemplates"`
+	Pagination     PaginationResponse      `json:"pagination"`
 }
 
 type GetStackTemplateResponse struct {

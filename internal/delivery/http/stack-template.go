@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -44,11 +45,23 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 // @Description Get StackTemplates
 // @Accept json
 // @Produce json
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} domain.GetStackTemplatesResponse
 // @Router /stack-templates [get]
 // @Security     JWT
 func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.Request) {
-	stackTemplates, err := h.usecase.Fetch(r.Context())
+	urlParams := r.URL.Query()
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+
+	stackTemplates, err := h.usecase.Fetch(r.Context(), pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -65,6 +78,10 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 		if err != nil {
 			log.ErrorWithContext(r.Context(), err)
 		}
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

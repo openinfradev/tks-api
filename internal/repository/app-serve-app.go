@@ -2,19 +2,21 @@ package repository
 
 import (
 	"fmt"
+	"math"
 	"time"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
-
-	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type IAppServeAppRepository interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
+	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
+	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(appId string) (int64, error)
 	IsAppServeAppNameExist(orgId string, appName string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
@@ -55,15 +57,20 @@ func (r *AppServeAppRepository) CreateTask(
 	return task.ID, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error) {
-	var apps []domain.AppServeApp
+func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) (apps []domain.AppServeApp, err error) {
 	var clusters []Cluster
-
-	queryStr := fmt.Sprintf("organization_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId)
-	if showAll {
-		queryStr = fmt.Sprintf("organization_id = '%s'", organizationId)
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
 	}
-	res := r.db.Order("created_at desc").Find(&apps, queryStr)
+
+	filterFunc := CombinedGormFilter("app_serve_apps", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&domain.AppServeApp{}).
+		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&apps)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
 	}
@@ -74,8 +81,8 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 	}
 
 	// Add cluster names to apps list
-	queryStr = fmt.Sprintf("organization_id = '%s' AND status <> '%d'", organizationId, domain.ClusterStatus_DELETED)
-	res = r.db.Order("created_at desc").Find(&clusters, queryStr)
+	queryStr := fmt.Sprintf("organization_id = '%s' AND status <> '%d'", organizationId, domain.ClusterStatus_DELETED)
+	res = r.db.Find(&clusters, queryStr)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while fetching clusters with organizationId: %s", organizationId)
 	}
@@ -89,7 +96,7 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 		}
 	}
 
-	return apps, nil
+	return
 }
 
 func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
@@ -113,7 +120,6 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	// Add cluster name to app object
 	r.db.Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
 	app.TargetClusterName = cluster.Name
-	log.Infof("App struct with cluster name:\n%+v", app)
 
 	return &app, nil
 }
@@ -131,6 +137,18 @@ func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*domain.
 	}
 
 	return &task, nil
+}
+
+func (r *AppServeAppRepository) GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error) {
+	var apps []domain.AppServeApp
+
+	queryStr := fmt.Sprintf("organization_id = '%s' AND target_cluster_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId, clusterId)
+	res := r.db.Find(&apps, queryStr)
+	if res.Error != nil {
+		return -1, fmt.Errorf("Error while finding appServeApps with organizationId: %s", organizationId)
+	}
+
+	return res.RowsAffected, nil
 }
 
 func (r *AppServeAppRepository) IsAppServeAppExist(appId string) (int64, error) {

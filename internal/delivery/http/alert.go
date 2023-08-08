@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -76,6 +77,11 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} domain.GetAlertsResponse
 // @Router /organizations/{organizationId}/alerts [get]
 // @Security     JWT
@@ -87,7 +93,31 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alerts, err := h.usecase.Fetch(r.Context(), organizationId)
+	urlParams := r.URL.Query()
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+	// convert status
+	for i, filter := range pg.GetFilters() {
+		if filter.Column == "status" {
+			for j, value := range filter.Values {
+				switch value {
+				case "CREATED":
+					pg.GetFilters()[i].Values[j] = "0"
+				case "INPROGRESS":
+					pg.GetFilters()[i].Values[j] = "1"
+				case "CLOSED":
+					pg.GetFilters()[i].Values[j] = "2"
+				case "ERROR":
+					pg.GetFilters()[i].Values[j] = "3"
+				}
+			}
+		}
+	}
+
+	alerts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -111,6 +141,19 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 			out.Alerts[i].LastTaker = outAlertActions[0].Taker
 		}
 	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+	/*
+		outFilters := make([]domain.FilterResponse, len(pg.Filters))
+		for j, filter := range pg.Filters {
+			if err := domain.Map(filter, &outFilters[j]); err != nil {
+				log.InfoWithContext(r.Context(), err)
+			}
+		}
+		out.Pagination.Filters = outFilters
+	*/
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

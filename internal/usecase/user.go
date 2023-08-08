@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/openinfradev/tks-api/internal/aws/ses"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -25,6 +25,7 @@ type IUserUsecase interface {
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *domain.User) (*domain.User, error)
 	List(ctx context.Context, organizationId string) (*[]domain.User, error)
+	ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]domain.User, error)
 	Get(userId uuid.UUID) (*domain.User, error)
 	Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error)
 	ResetPassword(userId uuid.UUID) error
@@ -321,13 +322,22 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	return nil
 }
 
-func (u *UserUsecase) List(ctx context.Context, organizationId string) (*[]domain.User, error) {
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId))
+func (u *UserUsecase) List(ctx context.Context, organizationId string) (users *[]domain.User, err error) {
+	users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId))
 	if err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return
+}
+
+func (u *UserUsecase) ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (users *[]domain.User, err error) {
+	users, err = u.userRepository.ListWithPagination(pg, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	return
 }
 
 func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {

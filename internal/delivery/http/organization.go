@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -79,11 +80,23 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 // @Description Get organization list
 // @Accept json
 // @Produce json
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} []domain.ListOrganizationBody
 // @Router /organizations [get]
 // @Security     JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
-	organizations, err := h.usecase.Fetch()
+	urlParams := r.URL.Query()
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+
+	organizations, err := h.usecase.Fetch(pg)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
@@ -100,6 +113,10 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 		}
 
 		log.InfoWithContext(r.Context(), organization)
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

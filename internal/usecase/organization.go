@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-
-	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 type IOrganizationUsecase interface {
 	Create(context.Context, *domain.Organization) (organizationId string, err error)
-	Fetch() (*[]domain.Organization, error)
+	Fetch(pg *pagination.Pagination) (*[]domain.Organization, error)
 	Get(organizationId string) (domain.Organization, error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
 	UpdatePrimaryClusterId(organizationId string, clusterId string) (err error)
@@ -64,6 +64,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"contract_id=" + organizationId,
+				"base_repo_branch=" + viper.GetString("revision"),
 				"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 			},
 		})
@@ -79,8 +80,8 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 
 	return organizationId, nil
 }
-func (u *OrganizationUsecase) Fetch() (out *[]domain.Organization, err error) {
-	organizations, err := u.repo.Fetch()
+func (u *OrganizationUsecase) Fetch(pg *pagination.Pagination) (out *[]domain.Organization, err error) {
+	organizations, err := u.repo.Fetch(pg)
 	if err != nil {
 		return nil, err
 	}

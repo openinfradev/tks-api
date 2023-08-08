@@ -47,6 +47,39 @@ const docTemplate = `{
                         "description": "clusterId",
                         "name": "clusterId",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -488,6 +521,39 @@ const docTemplate = `{
                         "description": "organizationId",
                         "name": "organizationId",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -664,6 +730,41 @@ const docTemplate = `{
                     "Organizations"
                 ],
                 "summary": "Get organization list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -855,6 +956,39 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1046,14 +1180,48 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "organization_Id",
-                        "name": "organization_Id",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show all apps including deleted apps",
+                        "name": "showAll",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "show_all",
-                        "name": "showAll",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
                         "in": "query"
                     }
                 ],
@@ -1088,7 +1256,14 @@ const docTemplate = `{
                 "summary": "Install appServeApp",
                 "parameters": [
                     {
-                        "description": "create appserve request",
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to create app",
                         "name": "object",
                         "in": "body",
                         "required": true,
@@ -1107,14 +1282,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/app-serve-apps/app-id/exist": {
+        "/organizations/{organizationId}/app-serve-apps/count": {
             "get": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Get appServeApp by giving params",
+                "description": "Get number of apps on given stack",
                 "consumes": [
                     "application/json"
                 ],
@@ -1124,12 +1299,28 @@ const docTemplate = `{
                 "tags": [
                     "AppServeApps"
                 ],
-                "summary": "Get appServeApp",
+                "summary": "Get number of apps on given stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stack ID",
+                        "name": "stackId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "boolean"
+                            "type": "integer"
                         }
                     }
                 }
@@ -1156,7 +1347,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "organizationId",
+                        "description": "Organization ID",
                         "name": "organizationId",
                         "in": "path",
                         "required": true
@@ -1197,6 +1388,22 @@ const docTemplate = `{
                     "AppServeApps"
                 ],
                 "summary": "Get appServeApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1225,7 +1432,21 @@ const docTemplate = `{
                 "summary": "Update appServeApp",
                 "parameters": [
                     {
-                        "description": "update appserve request",
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to update app",
                         "name": "object",
                         "in": "body",
                         "required": true,
@@ -1238,7 +1459,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     }
                 }
@@ -1262,20 +1483,25 @@ const docTemplate = `{
                 "summary": "Uninstall appServeApp",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "object",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     }
                 }
@@ -1302,13 +1528,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "appId",
                         "name": "appId",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "update app endpoint request",
+                        "description": "Request body to update app endpoint",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1321,7 +1554,35 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/app-serve-apps/{appId}/exist": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get appServeApp by giving params",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Get appServeApp",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
                         }
                     }
                 }
@@ -1345,6 +1606,22 @@ const docTemplate = `{
                     "AppServeApps"
                 ],
                 "summary": "Get latest task from appServeApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1375,7 +1652,21 @@ const docTemplate = `{
                 "summary": "Rollback appServeApp",
                 "parameters": [
                     {
-                        "description": "rollback appserve request",
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to rollback app",
                         "name": "object",
                         "in": "body",
                         "required": true,
@@ -1388,7 +1679,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     }
                 }
@@ -1415,13 +1706,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "appId",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
                         "name": "appId",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "update app status request",
+                        "description": "Request body to update app status",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1434,7 +1732,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object"
+                            "type": "string"
                         }
                     }
                 }
@@ -1465,6 +1763,39 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2239,6 +2570,36 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "combinedFilter",
+                        "name": "combinedFilter",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2587,6 +2948,39 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2924,6 +3318,41 @@ const docTemplate = `{
                     "StackTemplates"
                 ],
                 "summary": "Get StackTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -3476,6 +3905,12 @@ const docTemplate = `{
         "domain.ChartData": {
             "type": "object",
             "properties": {
+                "podCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.PodCount"
+                    }
+                },
                 "series": {
                     "type": "array",
                     "items": {
@@ -3531,6 +3966,9 @@ const docTemplate = `{
                 },
                 "createdAt": {
                     "type": "string"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "creator": {
                     "$ref": "#/definitions/domain.User"
@@ -3590,6 +4028,9 @@ const docTemplate = `{
                 },
                 "createdAt": {
                     "type": "string"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "creator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
@@ -4324,6 +4765,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.FilterResponse": {
+            "type": "object",
+            "properties": {
+                "column": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "domain.FindIdRequest": {
             "type": "object",
             "required": [
@@ -4398,6 +4853,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.AlertResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4417,6 +4875,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.AppGroupResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4469,6 +4930,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.CloudAccountResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4480,6 +4944,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.ClusterResponse"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -4633,6 +5100,9 @@ const docTemplate = `{
         "domain.GetStackTemplatesResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "stackTemplates": {
                     "type": "array",
                     "items": {
@@ -4644,6 +5114,9 @@ const docTemplate = `{
         "domain.GetStacksResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "stacks": {
                     "type": "array",
                     "items": {
@@ -4861,6 +5334,46 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.PaginationResponse": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.FilterResponse"
+                    }
+                },
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "sortColumn": {
+                    "type": "string"
+                },
+                "sortOrder": {
+                    "type": "string"
+                },
+                "totalPages": {
+                    "type": "integer"
+                },
+                "totalRows": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.PodCount": {
+            "type": "object",
+            "properties": {
+                "day": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.Role": {
             "type": "object",
             "properties": {
@@ -4903,6 +5416,9 @@ const docTemplate = `{
                 },
                 "clusters": {
                     "type": "integer"
+                },
+                "createdIAM": {
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"

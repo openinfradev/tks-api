@@ -251,6 +251,10 @@ definitions:
     type: object
   domain.ChartData:
     properties:
+      podCounts:
+        items:
+          $ref: '#/definitions/domain.PodCount'
+        type: array
       series:
         items:
           $ref: '#/definitions/domain.Unit'
@@ -287,6 +291,8 @@ definitions:
         type: integer
       createdAt:
         type: string
+      createdIAM:
+        type: boolean
       creator:
         $ref: '#/definitions/domain.User'
       creatorId:
@@ -326,6 +332,8 @@ definitions:
         type: integer
       createdAt:
         type: string
+      createdIAM:
+        type: boolean
       creator:
         $ref: '#/definitions/domain.SimpleUserResponse'
       description:
@@ -824,6 +832,15 @@ definitions:
     - accessKeyId
     - secretAccessKey
     type: object
+  domain.FilterResponse:
+    properties:
+      column:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
+    type: object
   domain.FindIdRequest:
     properties:
       code:
@@ -875,6 +892,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.AlertResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetAppGroupResponse:
     properties:
@@ -887,6 +906,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.AppGroupResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetAppServeAppResponse:
     properties:
@@ -920,6 +941,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.CloudAccountResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetClustersResponse:
     properties:
@@ -927,6 +950,8 @@ definitions:
         items:
           $ref: '#/definitions/domain.ClusterResponse'
         type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetDashboardChartResponse:
     properties:
@@ -1024,6 +1049,8 @@ definitions:
     type: object
   domain.GetStackTemplatesResponse:
     properties:
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
       stackTemplates:
         items:
           $ref: '#/definitions/domain.StackTemplateResponse'
@@ -1031,6 +1058,8 @@ definitions:
     type: object
   domain.GetStacksResponse:
     properties:
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
       stacks:
         items:
           $ref: '#/definitions/domain.StackResponse'
@@ -1173,6 +1202,32 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.PaginationResponse:
+    properties:
+      filters:
+        items:
+          $ref: '#/definitions/domain.FilterResponse'
+        type: array
+      pageNumber:
+        type: integer
+      pageSize:
+        type: integer
+      sortColumn:
+        type: string
+      sortOrder:
+        type: string
+      totalPages:
+        type: integer
+      totalRows:
+        type: integer
+    type: object
+  domain.PodCount:
+    properties:
+      day:
+        type: integer
+      value:
+        type: integer
+    type: object
   domain.Role:
     properties:
       createdAt:
@@ -1201,6 +1256,8 @@ definitions:
         type: string
       clusters:
         type: integer
+      createdIAM:
+        type: boolean
       description:
         type: string
       id:
@@ -1743,6 +1800,28 @@ paths:
         in: query
         name: clusterId
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2009,6 +2088,28 @@ paths:
         in: query
         name: organizationId
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2117,6 +2218,29 @@ paths:
       consumes:
       - application/json
       description: Get organization list
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2238,6 +2362,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2356,14 +2502,37 @@ paths:
       - application/json
       description: Get appServeApp list by giving params
       parameters:
-      - description: organization_Id
-        in: query
-        name: organization_Id
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
         type: string
-      - description: show_all
+      - description: Show all apps including deleted apps
         in: query
         name: showAll
+        type: boolean
+      - description: pageSize
+        in: query
+        name: limit
         type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -2383,7 +2552,12 @@ paths:
       - application/json
       description: Install appServeApp
       parameters:
-      - description: create appserve request
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Request body to create app
         in: body
         name: object
         required: true
@@ -2407,19 +2581,23 @@ paths:
       - application/json
       description: Uninstall appServeApp
       parameters:
-      - description: body
-        in: body
-        name: object
+      - description: Organization ID
+        in: path
+        name: organizationId
         required: true
-        schema:
-          type: string
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: object
+            type: string
       security:
       - JWT: []
       summary: Uninstall appServeApp
@@ -2429,6 +2607,17 @@ paths:
       consumes:
       - application/json
       description: Get appServeApp by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2446,7 +2635,17 @@ paths:
       - application/json
       description: Update appServeApp
       parameters:
-      - description: update appserve request
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Request body to update app
         in: body
         name: object
         required: true
@@ -2458,7 +2657,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            type: string
       security:
       - JWT: []
       summary: Update appServeApp
@@ -2470,12 +2669,17 @@ paths:
       - application/json
       description: Update app endpoint
       parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: appId
         in: path
         name: appId
         required: true
         type: string
-      - description: update app endpoint request
+      - description: Request body to update app endpoint
         in: body
         name: body
         required: true
@@ -2487,10 +2691,27 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            type: string
       security:
       - JWT: []
       summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/app-serve-apps/{appId}/exist:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Get appServeApp
       tags:
       - AppServeApps
   /organizations/{organizationId}/app-serve-apps/{appId}/latest-task:
@@ -2498,6 +2719,17 @@ paths:
       consumes:
       - application/json
       description: Get latest task from appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2516,7 +2748,17 @@ paths:
       - application/json
       description: Rollback appServeApp
       parameters:
-      - description: rollback appserve request
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Request body to rollback app
         in: body
         name: object
         required: true
@@ -2528,7 +2770,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            type: string
       security:
       - JWT: []
       summary: Rollback appServeApp
@@ -2540,12 +2782,17 @@ paths:
       - application/json
       description: Update app status
       parameters:
-      - description: appId
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: App ID
         in: path
         name: appId
         required: true
         type: string
-      - description: update app status request
+      - description: Request body to update app status
         in: body
         name: body
         required: true
@@ -2557,27 +2804,38 @@ paths:
         "200":
           description: OK
           schema:
-            type: object
+            type: string
       security:
       - JWT: []
       summary: Update app status
       tags:
       - AppServeApps
-  /organizations/{organizationId}/app-serve-apps/app-id/exist:
+  /organizations/{organizationId}/app-serve-apps/count:
     get:
       consumes:
       - application/json
-      description: Get appServeApp by giving params
+      description: Get number of apps on given stack
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Stack ID
+        in: query
+        name: stackId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: boolean
+            type: integer
       security:
       - JWT: []
-      summary: Get appServeApp
+      summary: Get number of apps on given stack
       tags:
       - AppServeApps
   /organizations/{organizationId}/app-serve-apps/name/{name}/existence:
@@ -2586,7 +2844,7 @@ paths:
       - application/json
       description: Check duplicate appServeAppName by giving params
       parameters:
-      - description: organizationId
+      - description: Organization ID
         in: path
         name: organizationId
         required: true
@@ -2619,6 +2877,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -3110,6 +3390,26 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: combinedFilter
+        in: query
+        name: combinedFilter
+        type: string
       produces:
       - application/json
       responses:
@@ -3332,6 +3632,28 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
@@ -3546,6 +3868,29 @@ paths:
       consumes:
       - application/json
       description: Get StackTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -75,6 +76,11 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} domain.GetCloudAccountsResponse
 // @Router /organizations/{organizationId}/cloud-accounts [get]
 // @Security     JWT
@@ -86,7 +92,13 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	cloudAccounts, err := h.usecase.Fetch(r.Context(), organizationId)
+	urlParams := r.URL.Query()
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+	cloudAccounts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -99,6 +111,10 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

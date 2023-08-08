@@ -2,19 +2,21 @@ package repository
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IAppGroupRepository interface {
-	Fetch(clusterId domain.ClusterId) (res []domain.AppGroup, err error)
+	Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (res []domain.AppGroup, err error)
 	Get(id domain.AppGroupId) (domain.AppGroup, error)
 	Create(dto domain.AppGroup) (id domain.AppGroupId, err error)
 	Update(dto domain.AppGroup) (err error)
@@ -74,14 +76,27 @@ func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // Logics
-func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId) (out []domain.AppGroup, err error) {
+func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (out []domain.AppGroup, err error) {
 	var appGroups []AppGroup
-	out = []domain.AppGroup{}
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
 
-	res := r.db.Find(&appGroups, "cluster_id = ?", clusterId)
+	filterFunc := CombinedGormFilter("app_groups", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&AppGroup{}).
+		Where("cluster_id = ?", clusterId))
+	db.Count(&pg.TotalRows)
+
+	r.db.Model(&AppGroup{}).
+		Where("cluster_id = ?", clusterId).Where("id").Where("app_groups.status").Where("app_groups.deleted")
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&appGroups)
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
 	for _, appGroup := range appGroups {
 		outAppGroup := reflectAppGroup(appGroup)
 		out = append(out, outAppGroup)

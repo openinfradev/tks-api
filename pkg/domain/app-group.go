@@ -26,7 +26,8 @@ const (
 	AppGroupStatus_RUNNING
 	AppGroupStatus_DELETING
 	AppGroupStatus_DELETED
-	AppGroupStatus_ERROR
+	AppGroupStatus_INSTALL_ERROR
+	AppGroupStatus_DELETE_ERROR
 )
 
 var appGroupStatus = [...]string{
@@ -35,7 +36,8 @@ var appGroupStatus = [...]string{
 	"RUNNING",
 	"DELETING",
 	"DELETED",
-	"ERROR",
+	"INSTALL_ERROR",
+	"DELETE_ERROR",
 }
 
 func (m AppGroupStatus) String() string { return appGroupStatus[(m)] }
@@ -182,7 +184,8 @@ type CreateApplicationRequest struct {
 }
 
 type GetAppGroupsResponse struct {
-	AppGroups []AppGroupResponse `json:"appGroups"`
+	AppGroups  []AppGroupResponse `json:"appGroups"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type GetAppGroupResponse struct {

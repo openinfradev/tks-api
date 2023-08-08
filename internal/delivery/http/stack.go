@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -76,6 +77,11 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param organizationId path string true "organizationId"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param combinedFilter query string false "combinedFilter"
 // @Success 200 {object} domain.GetStacksResponse
 // @Router /organizations/{organizationId}/stacks [get]
 // @Security     JWT
@@ -86,7 +92,14 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
-	stacks, err := h.usecase.Fetch(r.Context(), organizationId)
+
+	urlParams := r.URL.Query()
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+	stacks, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -99,6 +112,10 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+	}
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

@@ -2,11 +2,13 @@ package repository
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
@@ -15,7 +17,7 @@ type ICloudAccountRepository interface {
 	Get(cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(organizationId string, name string) (domain.CloudAccount, error)
 	GetByAwsAccountId(awsAccountId string) (domain.CloudAccount, error)
-	Fetch(organizationId string) ([]domain.CloudAccount, error)
+	Fetch(organizationId string, pg *pagination.Pagination) ([]domain.CloudAccount, error)
 	Create(dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(dto domain.CloudAccount) (err error)
 	Delete(cloudAccountId uuid.UUID) (err error)
@@ -39,14 +41,15 @@ type CloudAccount struct {
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string
-	Description    string
+	Name           string       `gorm:"index"`
+	Description    string       `gorm:"index"`
 	Resource       string
 	CloudService   string
 	WorkflowId     string
 	Status         domain.CloudAccountStatus
 	StatusDesc     string
 	AwsAccountId   string
+	CreatedIAM     bool
 	CreatorId      *uuid.UUID `gorm:"type:uuid"`
 	Creator        User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
@@ -82,7 +85,7 @@ func (r *CloudAccountRepository) GetByName(organizationId string, name string) (
 
 func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out domain.CloudAccount, err error) {
 	var cloudAccount CloudAccount
-	res := r.db.Preload(clause.Associations).First(&cloudAccount, "aws_account_id = ?", awsAccountId)
+	res := r.db.Preload(clause.Associations).First(&cloudAccount, "aws_account_id = ? AND status != ?", awsAccountId, domain.CloudAccountStatus_DELETED)
 
 	if res.Error != nil {
 		return domain.CloudAccount{}, res.Error
@@ -91,9 +94,20 @@ func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out dom
 	return
 }
 
-func (r *CloudAccountRepository) Fetch(organizationId string) (out []domain.CloudAccount, err error) {
+func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.CloudAccount, err error) {
 	var cloudAccounts []CloudAccount
-	res := r.db.Preload(clause.Associations).Find(&cloudAccounts, "organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED)
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+	filterFunc := CombinedGormFilter("cloud_accounts", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&CloudAccount{}).
+		Preload(clause.Associations).
+		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&cloudAccounts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -112,6 +126,7 @@ func (r *CloudAccountRepository) Create(dto domain.CloudAccount) (cloudAccountId
 		CloudService:   dto.CloudService,
 		Resource:       dto.Resource,
 		AwsAccountId:   dto.AwsAccountId,
+		CreatedIAM:     false,
 		Status:         domain.CloudAccountStatus_PENDING,
 		CreatorId:      &dto.CreatorId}
 	res := r.db.Create(&cloudAccount)
@@ -162,6 +177,7 @@ func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
 		Status:         cloudAccount.Status,
 		StatusDesc:     cloudAccount.StatusDesc,
 		AwsAccountId:   cloudAccount.AwsAccountId,
+		CreatedIAM:     cloudAccount.CreatedIAM,
 		Creator:        reflectSimpleUser(cloudAccount.Creator),
 		Updator:        reflectSimpleUser(cloudAccount.Updator),
 		CreatedAt:      cloudAccount.CreatedAt,

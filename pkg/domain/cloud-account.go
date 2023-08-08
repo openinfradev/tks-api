@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+const CLOUD_ACCOUNT_INCLUSTER = "INCLUSTER"
+
 const (
 	CloudService_UNDEFINED = "UNDEFINED"
 	CloudService_AWS       = "AWS"
@@ -22,7 +24,8 @@ const (
 	CloudAccountStatus_CREATED
 	CloudAccountStatus_DELETING
 	CloudAccountStatus_DELETED
-	CloudAccountStatus_ERROR
+	CloudAccountStatus_CREATE_ERROR
+	CloudAccountStatus_DELETE_ERROR
 )
 
 var cloudAccountStatus = [...]string{
@@ -31,7 +34,8 @@ var cloudAccountStatus = [...]string{
 	"CREATED",
 	"DELETING",
 	"DELETED",
-	"ERROR",
+	"CREATE_ERROR",
+	"DELETE_ERROR",
 }
 
 func (m CloudAccountStatus) String() string { return cloudAccountStatus[(m)] }
@@ -41,7 +45,7 @@ func (m CloudAccountStatus) FromString(s string) CloudAccountStatus {
 			return CloudAccountStatus(i)
 		}
 	}
-	return CloudAccountStatus_ERROR
+	return CloudAccountStatus_PENDING
 }
 
 // 내부
@@ -59,6 +63,7 @@ type CloudAccount struct {
 	SessionToken    string
 	Status          CloudAccountStatus
 	StatusDesc      string
+	CreatedIAM      bool
 	CreatorId       uuid.UUID
 	Creator         User
 	UpdatorId       uuid.UUID
@@ -77,6 +82,7 @@ type CloudAccountResponse struct {
 	Clusters       int                `json:"clusters"`
 	Status         string             `json:"status"`
 	AwsAccountId   string             `json:"awsAccountId"`
+	CreatedIAM     bool               `json:"createdIAM"`
 	Creator        SimpleUserResponse `json:"creator"`
 	Updator        SimpleUserResponse `json:"updator"`
 	CreatedAt      time.Time          `json:"createdAt"`
@@ -90,11 +96,13 @@ type SimpleCloudAccountResponse struct {
 	Description    string `json:"description"`
 	CloudService   string `json:"cloudService"`
 	AwsAccountId   string `json:"awsAccountId"`
+	CreatedIAM     bool   `json:"createdIAM"`
 	Clusters       int    `json:"clusters"`
 }
 
 type GetCloudAccountsResponse struct {
 	CloudAccounts []CloudAccountResponse `json:"cloudAccounts"`
+	Pagination    PaginationResponse     `json:"pagination"`
 }
 
 type GetCloudAccountResponse struct {

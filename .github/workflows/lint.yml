@@ -1,4 +1,4 @@
-name: golangci-lint
+name: Lint
 on:
   push:
     tags:
@@ -6,12 +6,12 @@ on:
     branches:
       - main
       - develop
-      - "release**"
+      - release
   pull_request:
     branches:
       - main
       - develop
-      - "release**"
+      - release
 jobs:
   golangci:
     name: lint

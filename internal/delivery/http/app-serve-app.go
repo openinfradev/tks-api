@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/openinfradev/tks-api/internal"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -79,7 +81,8 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 // @Description Install appServeApp
 // @Accept json
 // @Produce json
-// @Param object body domain.CreateAppServeAppRequest true "create appserve request"
+// @Param organizationId path string true "Organization ID"
+// @Param object body domain.CreateAppServeAppRequest true "Request body to create app"
 // @Success 200 {object} string
 // @Router /organizations/{organizationId}/app-serve-apps [post]
 // @Security     JWT
@@ -127,6 +130,23 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	app.AppServeAppTasks = append(app.AppServeAppTasks, task)
 
+	// Validate name param
+	re, _ := regexp.Compile("^[a-z][a-z0-9-]*$")
+	if !(re.MatchString(app.Name)) {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name should consist of alphanumeric characters and hyphens only"), "", ""))
+		return
+	}
+
+	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if exist {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name '%s' already exists.", app.Name), "", ""))
+		return
+	}
+
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
 		if task.Port == "" {
@@ -163,8 +183,13 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Description Get appServeApp list by giving params
 // @Accept json
 // @Produce json
-// @Param organization_Id query string false "organization_Id"
-// @Param showAll query string false "show_all"
+// @Param organizationId path string true "Organization ID"
+// @Param showAll query boolean false "Show all apps including deleted apps"
+// @Param limit query string false "pageSize"
+// @Param page query string false "pageNumber"
+// @Param soertColumn query string false "sortColumn"
+// @Param sortOrder query string false "sortOrder"
+// @Param filters query []string false "filters"
 // @Success 200 {object} []domain.AppServeApp
 // @Router /organizations/{organizationId}/app-serve-apps [get]
 // @Security     JWT
@@ -190,8 +215,13 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		ErrorJSON(w, r, err)
 		return
 	}
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
 
-	apps, err := h.usecase.GetAppServeApps(organizationId, showAll)
+	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
@@ -200,6 +230,10 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = apps
+
+	if err := domain.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -210,6 +244,8 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Description Get appServeApp by giving params
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "Organization ID"
+// @Param appId path string true "App ID"
 // @Success 200 {object} domain.GetAppServeAppResponse
 // @Router /organizations/{organizationId}/app-serve-apps/{appId} [get]
 // @Security     JWT
@@ -264,6 +300,8 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Description Get latest task from appServeApp
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "Organization ID"
+// @Param appId path string true "App ID"
 // @Success 200 {object} domain.GetAppServeAppTaskResponse
 // @Router /organizations/{organizationId}/app-serve-apps/{appId}/latest-task [get]
 // @Security     JWT
@@ -297,6 +335,43 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 	out.AppServeAppTask = *task
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetNumOfAppsOnStack godoc
+// @Tags AppServeApps
+// @Summary Get number of apps on given stack
+// @Description Get number of apps on given stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "Organization ID"
+// @Param stackId query string true "Stack ID"
+// @Success 200 {object} int64
+// @Router /organizations/{organizationId}/app-serve-apps/count [get]
+// @Security     JWT
+func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	log.Debugf("organizationId = [%s]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	stackId := urlParams.Get("stackId")
+	if stackId == "" {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("StackId must be provided."), "", ""))
+	}
+	fmt.Printf("stackId = [%s]\n", stackId)
+
+	numApps, err := h.usecase.GetNumOfAppsOnStack(organizationId, stackId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, numApps)
 }
 
 func makeStages(app *domain.AppServeApp) []domain.StageResponse {
@@ -389,22 +464,22 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 
 	} else if stage.Status == "PROMOTE_WAIT" && strategy == "blue-green" {
 		action := domain.ActionResponse{
-			Name: "PROMOTE",
-			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
-				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
-			Type:   "API",
-			Method: "PUT",
-			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
-		}
-		actions = append(actions, action)
-
-		action = domain.ActionResponse{
 			Name: "ABORT",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
 				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
+		}
+		actions = append(actions, action)
+
+		action = domain.ActionResponse{
+			Name: "PROMOTE",
+			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
+				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+			Type:   "API",
+			Method: "PUT",
+			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
 		}
 		actions = append(actions, action)
 	}
@@ -421,7 +496,7 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 // @Accept json
 // @Produce json
 // @Success 200 {object} bool
-// @Router /organizations/{organizationId}/app-serve-apps/app-id/exist [get]
+// @Router /organizations/{organizationId}/app-serve-apps/{appId}/exist [get]
 // @Security     JWT
 func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -459,7 +534,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 // @Description Check duplicate appServeAppName by giving params
 // @Accept json
 // @Produce json
-// @Param organizationId path string true "organizationId"
+// @Param organizationId path string true "Organization ID"
 // @Param name path string true "name"
 // @Success 200 {object} bool
 // @Router /organizations/{organizationId}/app-serve-apps/name/{name}/existence [get]
@@ -498,8 +573,10 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 // @Description Update appServeApp
 // @Accept json
 // @Produce json
-// @Param object body domain.UpdateAppServeAppRequest true "update appserve request"
-// @Success 200 {object} object
+// @Param organizationId path string true "Organization ID"
+// @Param appId path string true "App ID"
+// @Param object body domain.UpdateAppServeAppRequest true "Request body to update app"
+// @Success 200 {object} string
 // @Router /organizations/{organizationId}/app-serve-apps/{appId} [put]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
@@ -605,9 +682,10 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Description Update app status
 // @Accept json
 // @Produce json
-// @Param appId path string true "appId"
-// @Param body body domain.UpdateAppServeAppStatusRequest true "update app status request"
-// @Success 200 {object} object
+// @Param organizationId path string true "Organization ID"
+// @Param appId path string true "App ID"
+// @Param body body domain.UpdateAppServeAppStatusRequest true "Request body to update app status"
+// @Success 200 {object} string
 // @Router /organizations/{organizationId}/app-serve-apps/{appId}/status [patch]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
@@ -647,9 +725,10 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 // @Description Update app endpoint
 // @Accept json
 // @Produce json
+// @Param organizationId path string true "Organization ID"
 // @Param appId path string true "appId"
-// @Param body body domain.UpdateAppServeAppEndpointRequest true "update app endpoint request"
-// @Success 200 {object} object
+// @Param body body domain.UpdateAppServeAppEndpointRequest true "Request body to update app endpoint"
+// @Success 200 {object} string
 // @Router /organizations/{organizationId}/app-serve-apps/{appId}/endpoint [patch]
 // @Security     JWT
 func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -694,8 +773,9 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 // @Description Uninstall appServeApp
 // @Accept json
 // @Produce json
-// @Param object body string true "body"
-// @Success 200 {object} object
+// @Param organizationId path string true "Organization ID"
+// @Param appId path string true "App ID"
+// @Success 200 {object} string
 // @Router /organizations/{organizationId}/app-serve-apps/{appId} [delete]
 // @Security     JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
@@ -729,8 +809,10 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 // @Description Rollback appServeApp
 // @Accept json
 // @Produce json
-// @Param object body domain.RollbackAppServeAppRequest true "rollback appserve request"
-// @Success 200 {object} object
+// @Param organizationId path string true "Organization ID"
+// @Param appId path string true "App ID"
+// @Param object body domain.RollbackAppServeAppRequest true "Request body to rollback app"
+// @Success 200 {object} string
 // @Router /organizations/{organizationId}/app-serve-apps/{appId}/rollback [post]
 // @Security     JWT
 func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.Request) {

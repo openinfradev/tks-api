@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -19,9 +21,10 @@ import (
 
 type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error)
+	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
 	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
+	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(appId string) (bool, error)
 	IsAppServeAppNameExist(orgId string, appName string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
@@ -86,7 +89,30 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 	}
 
-	// TODO: Validate PV params
+	extEnv := app.AppServeAppTasks[0].ExtraEnv
+	if extEnv != "" {
+		/* Preprocess extraEnv param */
+		log.Debug("extraEnv received: ", extEnv)
+
+		tempMap := map[string]string{}
+		err := json.Unmarshal([]byte(extEnv), &tempMap)
+		if err != nil {
+			log.Error(err)
+			return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
+		}
+		log.Debugf("extraEnv marshalled: %v", tempMap)
+
+		newExtEnv := map[string]string{}
+		for key, val := range tempMap {
+			newkey := "\"" + key + "\""
+			newval := "\"" + val + "\""
+			newExtEnv[newkey] = newval
+		}
+
+		mJson, _ := json.Marshal(newExtEnv)
+		extEnv = string(mJson)
+		log.Debug("After transform, extraEnv: ", extEnv)
+	}
 
 	appId, taskId, err := u.repo.CreateAppServeApp(app)
 	if err != nil {
@@ -95,6 +121,8 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 	}
 
 	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
+
+	// TODO: Validate PV params
 
 	// Call argo workflow
 	workflow := "serve-java-app"
@@ -114,7 +142,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"image_url=" + app.AppServeAppTasks[0].ImageUrl,
 		"port=" + app.AppServeAppTasks[0].Port,
 		"profile=" + app.AppServeAppTasks[0].Profile,
-		"extra_env=" + app.AppServeAppTasks[0].ExtraEnv,
+		"extra_env=" + extEnv,
 		"app_config=" + app.AppServeAppTasks[0].AppConfig,
 		"app_secret=" + app.AppServeAppTasks[0].AppSecret,
 		"resource_spec=" + app.AppServeAppTasks[0].ResourceSpec,
@@ -141,8 +169,8 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 	return appId, app.Name, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool) ([]domain.AppServeApp, error) {
-	apps, err := u.repo.GetAppServeApps(organizationId, showAll)
+func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error) {
+	apps, err := u.repo.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {
 		fmt.Println(apps)
 	}
@@ -166,6 +194,15 @@ func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*domain.App
 	}
 
 	return task, nil
+}
+
+func (u *AppServeAppUsecase) GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error) {
+	numApps, err := u.repo.GetNumOfAppsOnStack(organizationId, clusterId)
+	if err != nil {
+		return -1, err
+	}
+
+	return numApps, nil
 }
 
 func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
@@ -267,6 +304,15 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		return "", errors.Wrap(err, "Failed to create delete task.")
 	}
 
+	log.Info("Updating app status to 'DELETING'..")
+
+	err = u.repo.UpdateStatus(appId, taskId, "DELETING", "")
+	if err != nil {
+		log.Debug("appId = ", appId)
+		log.Debug("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app status on DeleteAppServeApp. Err: %s", err)
+	}
+
 	workflow := "delete-java-app"
 	log.Info("Submitting workflow: ", workflow)
 
@@ -333,6 +379,31 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		}
 	}
 
+	extEnv := appTask.ExtraEnv
+	if extEnv != "" {
+		/* Preprocess extraEnv param */
+		log.Debug("extraEnv received: ", extEnv)
+
+		tempMap := map[string]string{}
+		err = json.Unmarshal([]byte(extEnv), &tempMap)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to process extraEnv param.")
+		}
+		log.Debugf("extraEnv marshalled: %v", tempMap)
+
+		newExtEnv := map[string]string{}
+		for key, val := range tempMap {
+			newkey := "\"" + key + "\""
+			newval := "\"" + val + "\""
+			newExtEnv[newkey] = newval
+		}
+
+		mJson, _ := json.Marshal(newExtEnv)
+		extEnv = string(mJson)
+		log.Debug("After transform, extraEnv: ", extEnv)
+	}
+
 	taskId, err := u.repo.CreateTask(appTask)
 	if err != nil {
 		log.Info("taskId = ", taskId)
@@ -369,7 +440,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 			"image_url=" + appTask.ImageUrl,
 			"port=" + appTask.Port,
 			"profile=" + appTask.Profile,
-			"extra_env=" + appTask.ExtraEnv,
+			"extra_env=" + extEnv,
 			"app_config=" + appTask.AppConfig,
 			"app_secret=" + appTask.AppSecret,
 			"resource_spec=" + appTask.ResourceSpec,

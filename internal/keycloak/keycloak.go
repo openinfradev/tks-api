@@ -58,7 +58,7 @@ func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, 
 
 func (k *Keycloak) Login(accountId string, password string, organizationId string) (*domain.User, error) {
 	ctx := context.Background()
-	JWTToken, err := k.client.Login(ctx, DefaultClientID, DefaultClientSecret, organizationId, accountId, password)
+	JWTToken, err := k.client.Login(ctx, DefaultClientID, k.config.ClientSecret, organizationId, accountId, password)
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -109,7 +109,7 @@ func (k *Keycloak) InitializeKeycloak() error {
 
 	var redirectURIs []string
 	redirectURIs = append(redirectURIs, viper.GetString("external-address")+"/*")
-	tksClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, DefaultClientID, DefaultClientSecret, &redirectURIs)
+	tksClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, DefaultClientID, k.config.ClientSecret, &redirectURIs)
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -122,7 +122,7 @@ func (k *Keycloak) InitializeKeycloak() error {
 		}
 	}
 
-	adminCliClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, AdminCliClientID, DefaultClientSecret, nil)
+	adminCliClient, err := k.ensureClient(ctx, token, DefaultMasterRealm, AdminCliClientID, k.config.ClientSecret, nil)
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -139,7 +139,7 @@ func (k *Keycloak) InitializeKeycloak() error {
 	_ = getRefreshTokenExpiredDuration(k.adminCliToken)
 	go func() {
 		for {
-			if token, err := k.client.RefreshToken(context.Background(), k.adminCliToken.RefreshToken, AdminCliClientID, DefaultClientSecret, DefaultMasterRealm); err != nil {
+			if token, err := k.client.RefreshToken(context.Background(), k.adminCliToken.RefreshToken, AdminCliClientID, k.config.ClientSecret, DefaultMasterRealm); err != nil {
 				log.Errorf("[Refresh]error is :%s(%T)", err.Error(), err)
 				log.Info("[Do Keycloak Admin CLI Login]")
 				k.adminCliToken, err = k.client.LoginAdmin(ctx, k.config.AdminId, k.config.AdminPassword, DefaultMasterRealm)
@@ -168,7 +168,7 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 
 	var redirectURIs []string
 	redirectURIs = append(redirectURIs, viper.GetString("external-address")+"/*")
-	clientUUID, err := k.createDefaultClient(context.Background(), token.AccessToken, organizationId, DefaultClientID, DefaultClientSecret, &redirectURIs)
+	clientUUID, err := k.createDefaultClient(context.Background(), token.AccessToken, organizationId, DefaultClientID, k.config.ClientSecret, &redirectURIs)
 	if err != nil {
 		log.Error(err, "createDefaultClient")
 		return "", err
@@ -366,7 +366,7 @@ func (k *Keycloak) DeleteUser(organizationId string, userAccountId string) error
 
 func (k *Keycloak) VerifyAccessToken(token string, organizationId string) error {
 	ctx := context.Background()
-	rptResult, err := k.client.RetrospectToken(ctx, token, DefaultClientID, DefaultClientSecret, organizationId)
+	rptResult, err := k.client.RetrospectToken(ctx, token, DefaultClientID, k.config.ClientSecret, organizationId)
 	if err != nil {
 		return err
 	}

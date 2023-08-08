@@ -26,7 +26,8 @@ const (
 	ClusterStatus_RUNNING
 	ClusterStatus_DELETING
 	ClusterStatus_DELETED
-	ClusterStatus_ERROR
+	ClusterStatus_INSTALL_ERROR
+	ClusterStatus_DELETE_ERROR
 )
 
 var clusterStatus = [...]string{
@@ -35,7 +36,8 @@ var clusterStatus = [...]string{
 	"RUNNING",
 	"DELETING",
 	"DELETED",
-	"ERROR",
+	"INSTALL_ERROR",
+	"DELETE_ERROR",
 }
 
 func (m ClusterStatus) String() string { return clusterStatus[(m)] }
@@ -45,7 +47,7 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 			return ClusterStatus(i)
 		}
 	}
-	return ClusterStatus_ERROR
+	return ClusterStatus_PENDING
 }
 
 // model
@@ -160,7 +162,8 @@ type ClusterSiteValuesResponse struct {
 }
 
 type GetClustersResponse struct {
-	Clusters []ClusterResponse `json:"clusters"`
+	Clusters   []ClusterResponse  `json:"clusters"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type GetClusterResponse struct {

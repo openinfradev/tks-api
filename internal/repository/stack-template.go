@@ -1,18 +1,22 @@
 package repository
 
 import (
+	"fmt"
+	"math"
+
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 // Interfaces
 type IStackTemplateRepository interface {
 	Get(stackTemplateId uuid.UUID) (domain.StackTemplate, error)
-	Fetch() ([]domain.StackTemplate, error)
+	Fetch(pg *pagination.Pagination) ([]domain.StackTemplate, error)
 	Create(dto domain.StackTemplate) (stackTemplateId uuid.UUID, err error)
 	Update(dto domain.StackTemplate) (err error)
 	Delete(dto domain.StackTemplate) (err error)
@@ -35,8 +39,8 @@ type StackTemplate struct {
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string
-	Description    string
+	Name           string       `gorm:"index"`
+	Description    string       `gorm:"index"`
 	Template       string
 	Version        string
 	CloudService   string
@@ -67,9 +71,19 @@ func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out domain.Sta
 }
 
 // [TODO] organizationId 별로 생성하지 않고, 하나의 stackTemplate 을 모든 organization 에서 재사용한다. ( 5월 한정, 추후 rearchitecture 필요)
-func (r *StackTemplateRepository) Fetch() (out []domain.StackTemplate, err error) {
+func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain.StackTemplate, err error) {
 	var stackTemplates []StackTemplate
-	res := r.db.Preload(clause.Associations).Find(&stackTemplates)
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+
+	filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&StackTemplate{}))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}
