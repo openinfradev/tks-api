@@ -356,6 +356,11 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			}
 		}
 	}
+	sort.Slice(xAxisData, func(i, j int) bool {
+		a, _ := strconv.Atoi(xAxisData[i])
+		b, _ := strconv.Atoi(xAxisData[j])
+		return a < b
+	})
 
 	// cluster 별 y축 계산
 	for _, val := range result.Data.Result {
