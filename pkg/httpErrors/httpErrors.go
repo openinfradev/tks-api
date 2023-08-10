@@ -63,11 +63,16 @@ func (e RestError) Text() string {
 }
 
 func NewRestError(status int, err error, code ErrorCode, text string) IRestError {
+	if code == "" && text == "" {
+		code = ErrorCode("C_INTERNAL_ERROR")
+	}
+
 	t := code.GetText()
 	if text != "" {
 		t = text
 	}
 	log.Info(t)
+
 	return RestError{
 		ErrStatus:  status,
 		ErrCode:    string(code),
