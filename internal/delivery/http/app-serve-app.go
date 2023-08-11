@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -89,7 +90,7 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	fmt.Printf("organizationId = [%v]\n", organizationId)
+	log.Debugf("organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
@@ -109,6 +110,8 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
+
+	log.Infof("Processing CREATE request for app '%s'...", app.Name)
 
 	now := time.Now()
 	app.OrganizationId = organizationId
@@ -146,6 +149,25 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name '%s' already exists.", app.Name), "", ""))
 		return
 	}
+
+	// Check if the namespace is already used in the target cluster
+	ns := ""
+	nsExist := true
+	for nsExist {
+		// Generate unique namespace based on name and random number
+		src := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(src)
+		ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
+
+		nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+	}
+
+	log.Infof("Using namespace: %s", ns)
+	app.Namespace = ns
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
