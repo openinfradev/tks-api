@@ -243,6 +243,10 @@ func (u *AppServeAppUsecase) IsAppServeAppNamespaceExist(clusterId string, new_n
 	}
 
 	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Error(err)
+		return false, err
+	}
 	for _, ns := range namespaces.Items {
 		if new_ns == ns.ObjectMeta.Name {
 			log.Debugf("Namespace %s already exists.", new_ns)
