@@ -92,9 +92,6 @@ type CreateAppServeAppRequest struct {
 }
 
 func (c *CreateAppServeAppRequest) SetDefaultValue() {
-	if c.Namespace == "" {
-		c.Namespace = c.Name
-	}
 	if c.Type == "" {
 		c.Type = "all"
 	}

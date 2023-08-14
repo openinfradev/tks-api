@@ -61,7 +61,7 @@ func (m StackStatus) FromString(s string) StackStatus {
 	return StackStatus_PENDING
 }
 
-const MAX_STEP_CLUSTER_CREATE = 16
+const MAX_STEP_CLUSTER_CREATE = 15
 const MAX_STEP_CLUSTER_REMOVE = 11
 const MAX_STEP_LMA_CREATE_PRIMARY = 42
 const MAX_STEP_LMA_CREATE_MEMBER = 27
