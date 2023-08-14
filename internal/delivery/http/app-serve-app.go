@@ -450,22 +450,8 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 
 	var actions []domain.ActionResponse
 	if stage.Status == "DEPLOY_SUCCESS" {
-		if strategy == "rolling-update" {
-			action := domain.ActionResponse{
-				Name: "ENDPOINT",
-				Uri:  app.EndpointUrl,
-				Type: "LINK",
-			}
-			actions = append(actions, action)
-		} else if strategy == "blue-green" {
-			if taskStatus == "PROMOTE_SUCCESS" || taskStatus == "ABORT_SUCCESS" {
-				action := domain.ActionResponse{
-					Name: "ENDPOINT",
-					Uri:  app.EndpointUrl,
-					Type: "LINK",
-				}
-				actions = append(actions, action)
-			} else if taskStatus == "PROMOTE_WAIT" {
+		if strategy == "blue-green" {
+			if taskStatus == "PROMOTE_WAIT" {
 				action := domain.ActionResponse{
 					Name: "OLD_EP",
 					Uri:  app.EndpointUrl,
