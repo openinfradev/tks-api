@@ -82,7 +82,7 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 			}
 		case SORT_ORDER:
 			if value[0] == "" {
-				pg.SortOrder = "ASC"
+				pg.SortOrder = "DESC"
 			} else {
 				pg.SortOrder = value[0]
 			}
@@ -130,7 +130,7 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 func NewDefaultPagination() *Pagination {
 	return &Pagination{
 		SortColumn: "created_at",
-		SortOrder:  "ASC",
+		SortOrder:  "DESC",
 		Page:       1,
 		Limit:      MAX_LIMIT,
 	}
