@@ -261,7 +261,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 	switch chartType {
 	case domain.ChartType_CPU.String():
 		//query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
-		query = "avg by (taco_cluster) (1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h]))"
+		query = "avg by (taco_cluster) (1-irate(node_cpu_seconds_total{mode=\"idle\"}[1h]))"
 
 	case domain.ChartType_MEMORY.String():
 		query = "avg by (taco_cluster) (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
@@ -270,7 +270,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		query = "sum by (taco_cluster) (changes(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
 
 	case domain.ChartType_TRAFFIC.String():
-		query = "avg by (taco_cluster) (rate(container_network_receive_bytes_total[1h]))"
+		query = "avg by (taco_cluster) (irate(container_network_receive_bytes_total[1h]))"
 
 	case domain.ChartType_POD_CALENDAR.String():
 		// 입력받은 년,월 을 date 형식으로
