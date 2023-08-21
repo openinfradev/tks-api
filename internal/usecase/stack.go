@@ -691,6 +691,9 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 // [TODO] more pretty
 func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain.StackStatus, string) {
 	for _, appGroup := range appGroups {
+		if appGroup.Status == domain.AppGroupStatus_PENDING && cluster.Status == domain.ClusterStatus_RUNNING {
+			return domain.StackStatus_APPGROUP_INSTALLING, appGroup.StatusDesc
+		}
 		if appGroup.Status == domain.AppGroupStatus_INSTALLING {
 			return domain.StackStatus_APPGROUP_INSTALLING, appGroup.StatusDesc
 		}
