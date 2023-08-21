@@ -1618,8 +1618,6 @@ definitions:
     properties:
       description:
         type: string
-    required:
-    - description
     type: object
   domain.UpdateStackTemplateRequest:
     properties:
