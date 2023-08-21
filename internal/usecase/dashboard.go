@@ -252,8 +252,6 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		intervalSec = 60 * 60
 	case "1d":
 		intervalSec = 60 * 60 * 24
-	case "7h":
-		intervalSec = 60 * 60 * 24 * 7
 	}
 
 	query := ""
@@ -261,16 +259,16 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 	switch chartType {
 	case domain.ChartType_CPU.String():
 		//query := "sum (avg(1-rate(node_cpu_seconds_total{mode=\"idle\"}[1h])) by (taco_cluster))"
-		query = "avg by (taco_cluster) (1-irate(node_cpu_seconds_total{mode=\"idle\"}[1h]))"
+		query = "avg by (taco_cluster) (1-irate(node_cpu_seconds_total{mode=\"idle\"}[" + interval + "]))"
 
 	case domain.ChartType_MEMORY.String():
 		query = "avg by (taco_cluster) (sum(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) by (taco_cluster) / sum(node_memory_MemTotal_bytes) by (taco_cluster))"
 
 	case domain.ChartType_POD.String():
-		query = "sum by (taco_cluster) (changes(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[1h]))"
+		query = "sum by (taco_cluster) (changes(kube_pod_container_status_restarts_total{namespace!=\"kube-system\"}[" + interval + "]))"
 
 	case domain.ChartType_TRAFFIC.String():
-		query = "avg by (taco_cluster) (irate(container_network_receive_bytes_total[1h]))"
+		query = "avg by (taco_cluster) (irate(container_network_receive_bytes_total[" + interval + "]))"
 
 	case domain.ChartType_POD_CALENDAR.String():
 		// 입력받은 년,월 을 date 형식으로
@@ -340,7 +338,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		return domain.DashboardChart{}, fmt.Errorf("No data")
 	}
 
-	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix())+10000, intervalSec)
+	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 	if err != nil {
 		return res, err
 	}

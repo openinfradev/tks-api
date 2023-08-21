@@ -162,7 +162,7 @@ type GetStackResponse struct {
 }
 
 type UpdateStackRequest struct {
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description"`
 }
 
 type CheckStackNameResponse struct {
