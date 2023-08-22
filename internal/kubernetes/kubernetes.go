@@ -2,6 +2,8 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 
@@ -48,6 +50,46 @@ func GetClientAdminCluster() (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 	return clientset, nil
+}
+
+func GetAwsSecret() (awsAccessKeyId string, awsSecretAccessKey string, err error) {
+	clientset, err := GetClientAdminCluster()
+	if err != nil {
+		return "", "", err
+	}
+
+	secrets, err := clientset.CoreV1().Secrets("argo").Get(context.TODO(), "awsconfig-secret", metav1.GetOptions{})
+	if err != nil {
+		log.Error(err)
+		return "", "", err
+	}
+
+	strCredentials := string(secrets.Data["credentials"][:])
+	arr := strings.Split(strCredentials, "\n")
+	if len(arr) < 3 {
+		return "", "", err
+	}
+
+	fmt.Sscanf(arr[1], "aws_access_key_id = %s", &awsAccessKeyId)
+	fmt.Sscanf(arr[2], "aws_secret_access_key = %s", &awsSecretAccessKey)
+
+	return
+}
+
+func GetAwsAccountIdSecret() (awsAccountId string, err error) {
+	clientset, err := GetClientAdminCluster()
+	if err != nil {
+		return "", err
+	}
+
+	secrets, err := clientset.CoreV1().Secrets("argo").Get(context.TODO(), "tks-aws-user", metav1.GetOptions{})
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+
+	awsAccountId = string(secrets.Data["account_id"][:])
+	return
 }
 
 func GetKubeConfig(clusterId string) ([]byte, error) {

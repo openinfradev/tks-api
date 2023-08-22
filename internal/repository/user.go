@@ -18,7 +18,8 @@ type IUserRepository interface {
 	Create(accountId string, organizationId string, password string, name string) (domain.User, error)
 	CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
 		department string, description string, organizationId string, roleId uuid.UUID) (domain.User, error)
-	List(pg *pagination.Pagination, filters ...FilterFunc) (out *[]domain.User, err error)
+	List(filters ...FilterFunc) (out *[]domain.User, err error)
+	ListWithPagination(pg *pagination.Pagination, organizationId string) (out *[]domain.User, err error)
 	Get(accountId string, organizationId string) (domain.User, error)
 	GetByUuid(userId uuid.UUID) (domain.User, error)
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId uuid.UUID, email string,
@@ -143,23 +144,11 @@ func (r *UserRepository) NameFilter(name string) FilterFunc {
 	}
 }
 
-func (r *UserRepository) List(pg *pagination.Pagination, filters ...FilterFunc) (*[]domain.User, error) {
-	var res *gorm.DB
+func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 	var users []User
-	var total int64
-
-	if pg == nil {
-		pg = pagination.NewDefaultPagination()
-	}
-
+	var res *gorm.DB
 	if filters == nil {
-		r.db.Model(&User{}).Count(&total)
-
-		pg.TotalRows = total
-		pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
-		orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-		res = r.db.Model(&User{}).Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-			Preload("Organization").Preload("Role").Find(&users)
+		res = r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&users)
 	} else {
 		combinedFilter := func(filters ...FilterFunc) FilterFunc {
 			return func(user *gorm.DB) *gorm.DB {
@@ -170,14 +159,7 @@ func (r *UserRepository) List(pg *pagination.Pagination, filters ...FilterFunc) 
 			}
 		}
 		cFunc := combinedFilter(filters...)
-		cFunc(r.db.Model(&User{})).Count(&total)
-
-		pg.TotalRows = total
-		pg.TotalPages = int(math.Ceil(float64(total) / float64(pg.Limit)))
-		orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-		res = cFunc(r.db.Model(&User{}).Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).
-			Preload("Organization").Preload("Role")).Find(&users)
-
+		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -194,6 +176,34 @@ func (r *UserRepository) List(pg *pagination.Pagination, filters ...FilterFunc) 
 
 	return &out, nil
 }
+
+func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizationId string) (*[]domain.User, error) {
+	var users []User
+
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+
+	filterFunc := CombinedGormFilter("users", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&User{}).Where("organization_id = ?", organizationId))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Preload("Organization").Preload("Role").Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&users)
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return nil, res.Error
+	}
+
+	var out []domain.User
+	for _, user := range users {
+		out = append(out, r.reflect(user))
+	}
+
+	return &out, nil
+}
+
 func (r *UserRepository) Get(accountId string, organizationId string) (domain.User, error) {
 	user, err := r.getUserByAccountId(accountId, organizationId)
 	if err != nil {

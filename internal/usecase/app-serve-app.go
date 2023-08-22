@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -10,7 +11,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -27,6 +30,7 @@ type IAppServeAppUsecase interface {
 	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(appId string) (bool, error)
 	IsAppServeAppNameExist(orgId string, appName string) (bool, error)
+	IsAppServeAppNamespaceExist(clusterId string, namespace string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
 	UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error)
@@ -89,21 +93,13 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 	}
 
-	appId, taskId, err := u.repo.CreateAppServeApp(app)
-	if err != nil {
-		log.Error(err)
-		return "", "", errors.Wrap(err, "Failed to create app.")
-	}
-
-	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
-
 	extEnv := app.AppServeAppTasks[0].ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
 		log.Debug("extraEnv received: ", extEnv)
 
 		tempMap := map[string]string{}
-		err = json.Unmarshal([]byte(extEnv), &tempMap)
+		err := json.Unmarshal([]byte(extEnv), &tempMap)
 		if err != nil {
 			log.Error(err)
 			return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
@@ -118,9 +114,17 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		}
 
 		mJson, _ := json.Marshal(newExtEnv)
-		extEnv := string(mJson)
+		extEnv = string(mJson)
 		log.Debug("After transform, extraEnv: ", extEnv)
 	}
+
+	appId, taskId, err := u.repo.CreateAppServeApp(app)
+	if err != nil {
+		log.Error(err)
+		return "", "", errors.Wrap(err, "Failed to create app.")
+	}
+
+	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
 
 	// TODO: Validate PV params
 
@@ -228,6 +232,28 @@ func (u *AppServeAppUsecase) IsAppServeAppNameExist(orgId string, appName string
 		return true, nil
 	}
 
+	return false, nil
+}
+
+func (u *AppServeAppUsecase) IsAppServeAppNamespaceExist(clusterId string, new_ns string) (bool, error) {
+	clientset, err := kubernetes.GetClientFromClusterId(clusterId)
+	if err != nil {
+		log.Error(err)
+		return false, err
+	}
+
+	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		log.Error(err)
+		return false, err
+	}
+	for _, ns := range namespaces.Items {
+		if new_ns == ns.ObjectMeta.Name {
+			log.Debugf("Namespace %s already exists.", new_ns)
+			return true, nil
+		}
+	}
+	log.Debugf("Namespace %s is available", new_ns)
 	return false, nil
 }
 
@@ -379,22 +405,6 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 		}
 	}
 
-	taskId, err := u.repo.CreateTask(appTask)
-	if err != nil {
-		log.Info("taskId = ", taskId)
-		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
-	}
-
-	// Sync new task status to the parent app
-	log.Info("Updating app status to 'PREPARING'..")
-
-	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
-	if err != nil {
-		log.Debug("appId = ", app.ID)
-		log.Debug("taskId = ", taskId)
-		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
-	}
-
 	extEnv := appTask.ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
@@ -417,8 +427,23 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 
 		mJson, _ := json.Marshal(newExtEnv)
 		extEnv = string(mJson)
-
 		log.Debug("After transform, extraEnv: ", extEnv)
+	}
+
+	taskId, err := u.repo.CreateTask(appTask)
+	if err != nil {
+		log.Info("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
+	}
+
+	// Sync new task status to the parent app
+	log.Info("Updating app status to 'PREPARING'..")
+
+	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
+	if err != nil {
+		log.Debug("appId = ", app.ID)
+		log.Debug("taskId = ", taskId)
+		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow

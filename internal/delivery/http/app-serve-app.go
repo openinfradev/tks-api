@@ -2,7 +2,9 @@ package http
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -88,7 +90,7 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	fmt.Printf("organizationId = [%v]\n", organizationId)
+	log.Debugf("organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
@@ -109,6 +111,8 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	log.Infof("Processing CREATE request for app '%s'...", app.Name)
+
 	now := time.Now()
 	app.OrganizationId = organizationId
 	app.EndpointUrl = "N/A"
@@ -128,6 +132,42 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	task.CreatedAt = now
 
 	app.AppServeAppTasks = append(app.AppServeAppTasks, task)
+
+	// Validate name param
+	re, _ := regexp.Compile("^[a-z][a-z0-9-]*$")
+	if !(re.MatchString(app.Name)) {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name should consist of alphanumeric characters and hyphens only"), "", ""))
+		return
+	}
+
+	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if exist {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("error: name '%s' already exists.", app.Name), "", ""))
+		return
+	}
+
+	// Check if the namespace is already used in the target cluster
+	ns := ""
+	nsExist := true
+	for nsExist {
+		// Generate unique namespace based on name and random number
+		src := rand.NewSource(time.Now().UnixNano())
+		r1 := rand.New(src)
+		ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
+
+		nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+	}
+
+	log.Infof("Using namespace: %s", ns)
+	app.Namespace = ns
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
@@ -410,22 +450,8 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 
 	var actions []domain.ActionResponse
 	if stage.Status == "DEPLOY_SUCCESS" {
-		if strategy == "rolling-update" {
-			action := domain.ActionResponse{
-				Name: "ENDPOINT",
-				Uri:  app.EndpointUrl,
-				Type: "LINK",
-			}
-			actions = append(actions, action)
-		} else if strategy == "blue-green" {
-			if taskStatus == "PROMOTE_SUCCESS" || taskStatus == "ABORT_SUCCESS" {
-				action := domain.ActionResponse{
-					Name: "ENDPOINT",
-					Uri:  app.EndpointUrl,
-					Type: "LINK",
-				}
-				actions = append(actions, action)
-			} else if taskStatus == "PROMOTE_WAIT" {
+		if strategy == "blue-green" {
+			if taskStatus == "PROMOTE_WAIT" {
 				action := domain.ActionResponse{
 					Name: "OLD_EP",
 					Uri:  app.EndpointUrl,

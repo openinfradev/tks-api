@@ -4,6 +4,7 @@ type ErrorCode string
 
 var errorMap = map[ErrorCode]string{
 	// Common
+	"C_INTERNAL_ERROR":            "예상하지 못한 오류가 발생했습니다. 문제가 계속되면 관리자에게 문의해주세요.",
 	"C_INVALID_ACCOUNT_ID":        "유효하지 않은 어카운트 아이디입니다. 어카운트 아이디를 확인하세요.",
 	"C_INVALID_STACK_ID":          "유효하지 않은 스택 아이디입니다. 스택 아이디를 확인하세요.",
 	"C_INVALID_CLUSTER_ID":        "유효하지 않은 클러스터 아이디입니다. 클러스터 아이디를 확인하세요.",
@@ -53,6 +54,7 @@ var errorMap = map[ErrorCode]string{
 	"S_REMAIN_CLUSTER_FOR_DELETION": "프라이머리 클러스터를 지우기 위해서는 조직내의 모든 클러스터를 삭제해야 합니다.",
 	"S_FAILED_GET_CLUSTERS":         "클러스터를 가져오는데 실패했습니다.",
 	"S_FAILED_DELETE_EXISTED_ASA":   "지우고자 하는 스택에 남아 있는 앱서빙앱이 있습니다.",
+	"S_NOT_ENOUGH_QUOTA":            "AWS 의 resource quota 가 부족합니다. 관리자에게 문의하세요.",
 
 	// Alert
 	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",

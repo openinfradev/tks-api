@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"strings"
+
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -28,13 +30,18 @@ func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilte
 			if len(filter.Values) > 1 {
 				inQuery := fmt.Sprintf("LOWER(%s.%s::text) in (", table, filter.Column)
 				for _, val := range filter.Values {
-					inQuery = inQuery + fmt.Sprintf("LOWER('%s'),", val)
+					inQuery = inQuery + fmt.Sprintf("LOWER($$%s$$),", val)
 				}
 				inQuery = inQuery[:len(inQuery)-1] + ")"
 				db = db.Where(inQuery)
 			} else {
 				if len(filter.Values[0]) > 0 {
-					db = db.Where(fmt.Sprintf("LOWER(%s.%s::text) like LOWER('%%%s%%')", table, filter.Column, filter.Values[0]))
+					if strings.Contains(filter.Values[0], "%") {
+						filterVal := strings.Replace(filter.Values[0], "%", "`%", -1)
+						db = db.Where(fmt.Sprintf("LOWER(%s.%s::text) like LOWER($$%%%s%%$$) escape '`'", table, filter.Column, filterVal))
+					} else {
+						db = db.Where(fmt.Sprintf("LOWER(%s.%s::text) like LOWER($$%%%s%%$$)", table, filter.Column, filter.Values[0]))
+					}
 				}
 			}
 		}
@@ -44,7 +51,12 @@ func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilte
 		if len(combinedFilter.Columns) > 0 {
 			orQuery := ""
 			for _, column := range combinedFilter.Columns {
-				orQuery = orQuery + fmt.Sprintf("LOWER(%s.%s::text) like LOWER('%%%s%%') OR ", table, column, combinedFilter.Value)
+				if strings.Contains(combinedFilter.Value, "%") {
+					filterVal := strings.Replace(combinedFilter.Value, "%", "`%", -1)
+					orQuery = orQuery + fmt.Sprintf("LOWER(%s.%s::text) like LOWER($$%%%s%%$$) escape '`' OR ", table, column, filterVal)
+				} else {
+					orQuery = orQuery + fmt.Sprintf("LOWER(%s.%s::text) like LOWER($$%%%s%%$$) OR ", table, column, combinedFilter.Value)
+				}
 			}
 			orQuery = orQuery[:len(orQuery)-3]
 			db = db.Where(orQuery)

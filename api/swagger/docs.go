@@ -5962,9 +5962,6 @@ const docTemplate = `{
         },
         "domain.UpdateStackRequest": {
             "type": "object",
-            "required": [
-                "description"
-            ],
             "properties": {
                 "description": {
                     "type": "string"

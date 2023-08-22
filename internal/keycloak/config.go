@@ -13,6 +13,6 @@ const (
 	DefaultClientSecret   = "secret"
 	AdminCliClientID      = "admin-cli"
 	accessTokenLifespan   = 60 * 60 * 24 // 1 day
-	ssoSessionIdleTimeout = 60 * 60 * 8  // 8 hours
+	ssoSessionIdleTimeout = 60 * 60 * 24 // 1 day
 	ssoSessionMaxLifespan = 60 * 60 * 24 // 1 day
 )

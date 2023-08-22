@@ -61,9 +61,9 @@ func (m StackStatus) FromString(s string) StackStatus {
 	return StackStatus_PENDING
 }
 
-const MAX_STEP_CLUSTER_CREATE = 13
+const MAX_STEP_CLUSTER_CREATE = 15
 const MAX_STEP_CLUSTER_REMOVE = 11
-const MAX_STEP_LMA_CREATE_PRIMARY = 39
+const MAX_STEP_LMA_CREATE_PRIMARY = 42
 const MAX_STEP_LMA_CREATE_MEMBER = 27
 const MAX_STEP_LMA_REMOVE = 11
 const MAX_STEP_SM_CREATE = 22
@@ -162,7 +162,7 @@ type GetStackResponse struct {
 }
 
 type UpdateStackRequest struct {
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description"`
 }
 
 type CheckStackNameResponse struct {

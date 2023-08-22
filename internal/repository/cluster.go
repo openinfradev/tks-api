@@ -112,7 +112,7 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pag
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	pg.SortColumn = "updated_at"
+	pg.SortColumn = "created_at"
 	pg.SortOrder = "DESC"
 	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Cluster{}).Preload(clause.Associations).
@@ -138,7 +138,7 @@ func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
-	pg.SortColumn = "updated_at"
+	pg.SortColumn = "created_at"
 	pg.SortOrder = "DESC"
 	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&Cluster{}).Preload("CloudAccount").
