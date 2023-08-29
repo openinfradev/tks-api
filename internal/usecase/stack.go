@@ -333,7 +333,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 
 	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
 	if err != nil {
-		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", domain.ClusterId(stackId))), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
 	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId), nil)
