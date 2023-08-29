@@ -49,8 +49,10 @@ type AppServeAppUsecase struct {
 
 func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppServeAppUsecase {
 	return &AppServeAppUsecase{
-		repo: r.AppServeApp,
-		argo: argoClient,
+		repo:             r.AppServeApp,
+		organizationRepo: r.Organization,
+		appGroupRepo:     r.AppGroup,
+		argo:             argoClient,
 	}
 }
 
