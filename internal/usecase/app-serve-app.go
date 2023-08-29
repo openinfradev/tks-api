@@ -41,8 +41,10 @@ type IAppServeAppUsecase interface {
 }
 
 type AppServeAppUsecase struct {
-	repo repository.IAppServeAppRepository
-	argo argowf.ArgoClient
+	repo             repository.IAppServeAppRepository
+	organizationRepo repository.IOrganizationRepository
+	appGroupRepo     repository.IAppGroupRepository
+	argo             argowf.ArgoClient
 }
 
 func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppServeAppUsecase {
@@ -183,12 +185,37 @@ func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
-	app, err := u.repo.GetAppServeAppById(appId)
+	asa, err := u.repo.GetAppServeAppById(appId)
 	if err != nil {
 		return nil, err
 	}
 
-	return app, nil
+	/************************
+	* Construct grafana URL *
+	************************/
+	organization, err := u.organizationRepo.Get(asa.OrganizationId)
+	if err != nil {
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for app %s", asa.Name)), "S_FAILED_FETCH_ORGANIZATION", "")
+	}
+
+	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId), nil)
+	if err != nil {
+		return asa, err
+	}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				return asa, err
+			}
+			if len(applications) > 0 {
+				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_container_dashboard/tks-kubernetes-view-container?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10"
+			}
+		}
+	}
+
+	return asa, nil
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
