@@ -212,7 +212,7 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 				return asa, err
 			}
 			if len(applications) > 0 {
-				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_container_dashboard/tks-kubernetes-view-container?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10"
+				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_appserving_dashboard/tks-appserving-dashboard?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10"
 			}
 		}
 	}
