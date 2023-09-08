@@ -93,12 +93,15 @@ type Stack = struct {
 }
 
 type StackConf struct {
-	CpNodeCnt           int
-	CpNodeMachineType   string
-	TksNodeCnt          int
-	TksNodeMachineType  string
-	UserNodeCnt         int
-	UserNodeMachineType string
+	TksCpNode        int
+	TksCpNodeMax     int
+	TksCpNodeType    string
+	TksInfraNode     int
+	TksInfraNodeMax  int
+	TksInfraNodeType string
+	TksUserNode      int
+	TksUserNodeMax   int
+	TksUserNodeType  string
 }
 
 type StackStepStatus struct {
@@ -109,16 +112,19 @@ type StackStepStatus struct {
 }
 
 type CreateStackRequest struct {
-	Name                string `json:"name" validate:"required,name,rfc1123"`
-	Description         string `json:"description"`
-	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
-	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
-	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
-	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
-	TksNodeCnt          int    `json:"tksNodeCnt" validate:"required,min=3,max=6"`
-	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
-	UserNodeCnt         int    `json:"userNodeCnt" validate:"required,min=0,max=100"`
-	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
+	Name             string `json:"name" validate:"required,name,rfc1123"`
+	Description      string `json:"description"`
+	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
+	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
+	TksCpNode        int    `json:"tksCpNode,omitempty"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int    `json:"tksInfraNode" validate:"required,min=1,max=3"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int    `json:"tksUserNode" validate:"required,min=0,max=100"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
 }
 
 type CreateStackResponse struct {
@@ -126,12 +132,15 @@ type CreateStackResponse struct {
 }
 
 type StackConfResponse struct {
-	CpNodeCnt           int    `json:"cpNodeCnt"`
-	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
-	TksNodeCnt          int    `json:"tksNodeCnt"`
-	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
-	UserNodeCnt         int    `json:"userNodeCnt"`
-	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
+	TksCpNode        int    `json:"tksCpNode,omitempty"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int    `json:"tksInfraNode" validate:"required,min=1,max=3"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int    `json:"tksUserNode" validate:"required,min=0,max=100"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
 }
 
 type StackResponse struct {

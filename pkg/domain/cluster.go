@@ -72,48 +72,63 @@ type Cluster struct {
 }
 
 type ClusterConf struct {
-	CpNodeCnt           int
-	CpNodeMachineType   string
-	TksNodeCnt          int
-	TksNodeMachineType  string
-	UserNodeCnt         int
-	UserNodeMachineType string
+	TksCpNode        int
+	TksCpNodeMax     int
+	TksCpNodeType    string
+	TksInfraNode     int
+	TksInfraNodeMax  int
+	TksInfraNodeType string
+	TksUserNode      int
+	TksUserNodeMax   int
+	TksUserNodeType  string
 }
 
 // [TODO] annotaion 으로 가능하려나?
 func (m *ClusterConf) SetDefault() {
-	if m.CpNodeCnt == 0 {
-		m.CpNodeCnt = 3
+	if m.TksCpNode == 0 {
+		m.TksCpNode = 3
 	}
-	if m.TksNodeCnt == 0 {
-		m.TksNodeCnt = 3
+	if m.TksCpNodeMax == 0 {
+		m.TksCpNodeMax = m.TksCpNode
 	}
-	if m.UserNodeCnt == 0 {
-		m.UserNodeCnt = 1
+	if m.TksInfraNode == 0 {
+		m.TksInfraNode = 3
 	}
-	if m.CpNodeMachineType == "" {
-		m.CpNodeMachineType = "t3.xlarge"
+	if m.TksInfraNodeMax == 0 {
+		m.TksInfraNodeMax = m.TksInfraNode
 	}
-	if m.TksNodeMachineType == "" {
-		m.TksNodeMachineType = "t3.2xlarge"
+	if m.TksUserNode == 0 {
+		m.TksUserNode = 1
 	}
-	if m.UserNodeMachineType == "" {
-		m.UserNodeMachineType = "t3.large"
+	if m.TksUserNodeMax == 0 {
+		m.TksUserNodeMax = m.TksUserNode
+	}
+	if m.TksCpNodeType == "" {
+		m.TksCpNodeType = "t3.xlarge"
+	}
+	if m.TksInfraNodeType == "" {
+		m.TksInfraNodeType = "t3.2xlarge"
+	}
+	if m.TksUserNodeType == "" {
+		m.TksUserNodeType = "t3.large"
 	}
 }
 
 type CreateClusterRequest struct {
-	OrganizationId      string `json:"organizationId" validate:"required"`
-	StackTemplateId     string `json:"stackTemplateId" validate:"required"`
-	Name                string `json:"name" validate:"required,name"`
-	Description         string `json:"description"`
-	CloudAccountId      string `json:"cloudAccountId" validate:"required"`
-	CpNodeCnt           int    `json:"cpNodeCnt,omitempty"`
-	CpNodeMachineType   string `json:"cpNodeMachineType,omitempty"`
-	TksNodeCnt          int    `json:"tksNodeCnt,omitempty"`
-	TksNodeMachineType  string `json:"tksNodeMachineType,omitempty"`
-	UserNodeCnt         int    `json:"userNodeCnt,omitempty"`
-	UserNodeMachineType string `json:"userNodeMachineType,omitempty"`
+	OrganizationId   string `json:"organizationId" validate:"required"`
+	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
+	Name             string `json:"name" validate:"required,name"`
+	Description      string `json:"description"`
+	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
+	TksCpNode        int    `json:"tksCpNode"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int    `json:"tksInfraNode"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int    `json:"tksUserNode"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
 }
 
 type CreateClusterResponse struct {
@@ -121,9 +136,15 @@ type CreateClusterResponse struct {
 }
 
 type ClusterConfResponse struct {
-	CpNodeCnt   int `json:"cpNodeCnt"`
-	TksNodeCnt  int `json:"tksNodeCnt"`
-	UserNodeCnt int `json:"userpNodeCnt"`
+	TksCpNode        int    `json:"tksCpNode"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int    `json:"tksInfraNode"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int    `json:"tksUserNode"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
 }
 
 type ClusterResponse struct {
@@ -149,16 +170,17 @@ type SimpleClusterResponse struct {
 }
 
 type ClusterSiteValuesResponse struct {
-	SshKeyName        string `json:"sshKeyName"`
-	ClusterRegion     string `json:"clusterRegion"`
-	CpReplicas        int    `json:"cpReplicas"`
-	CpNodeMachineType string `json:"cpNodeMachineType"`
-	MpReplicas        int    `json:"mpReplicas"`
-	MpNodeMachineType string `json:"mpNodeMachineType"`
-	MdNumOfAz         int    `json:"mdNumOfAz"`
-	MdMinSizePerAz    int    `json:"mdMinSizePerAz"`
-	MdMaxSizePerAz    int    `json:"mdMaxSizePerAz"`
-	MdMachineType     string `json:"mdMachineType"`
+	SshKeyName       string `json:"sshKeyName"`
+	ClusterRegion    string `json:"clusterRegion"`
+	TksCpNode        int    `json:"tksCpNode"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int    `json:"tksInfraNode"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int    `json:"tksUserNode"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
 }
 
 type GetClustersResponse struct {

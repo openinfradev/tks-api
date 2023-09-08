@@ -162,7 +162,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"pv_access_mode=" + app.AppServeAppTasks[0].PvAccessMode,
 		"pv_size=" + app.AppServeAppTasks[0].PvSize,
 		"pv_mount_path=" + app.AppServeAppTasks[0].PvMountPath,
-		"tks_info_host=" + viper.GetString("external-address"),
+		"tks_api_url=" + viper.GetString("external-address"),
 	}
 
 	log.Info("Submitting workflow: ", workflow)
@@ -379,7 +379,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
 			"organization_id=" + app.OrganizationId,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -507,7 +507,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 			"pv_access_mode=" + appTask.PvAccessMode,
 			"pv_size=" + appTask.PvSize,
 			"pv_mount_path=" + appTask.PvMountPath,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -565,7 +565,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
 			"strategy=" + strategy,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -618,7 +618,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
 			"strategy=" + strategy,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -691,7 +691,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 			"asa_id=" + app.ID,
 			"asa_task_id=" + newTaskId,
 			"helm_revision=" + strconv.Itoa(int(targetRev)),
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {

@@ -681,9 +681,15 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.StackConf{
-			CpNodeCnt:   cluster.Conf.CpNodeCnt,
-			TksNodeCnt:  cluster.Conf.TksNodeCnt,
-			UserNodeCnt: cluster.Conf.UserNodeCnt,
+			TksCpNode:        cluster.Conf.TksCpNode,
+			TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
+			TksCpNodeType:    cluster.Conf.TksCpNodeType,
+			TksInfraNode:     cluster.Conf.TksInfraNode,
+			TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
+			TksInfraNodeType: cluster.Conf.TksInfraNodeType,
+			TksUserNode:      cluster.Conf.TksUserNode,
+			TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
+			TksUserNodeType:  cluster.Conf.TksUserNodeType,
 		},
 	}
 }
