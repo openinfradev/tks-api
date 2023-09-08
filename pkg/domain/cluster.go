@@ -85,24 +85,18 @@ type ClusterConf struct {
 
 // [TODO] annotaion 으로 가능하려나?
 func (m *ClusterConf) SetDefault() {
-	if m.TksCpNode == 0 {
-		m.TksCpNode = 3
-	}
-	if m.TksCpNodeMax == 0 {
-		m.TksCpNodeMax = m.TksCpNode
-	}
+	m.TksCpNodeMax = m.TksCpNode
+
 	if m.TksInfraNode == 0 {
 		m.TksInfraNode = 3
 	}
-	if m.TksInfraNodeMax == 0 {
-		m.TksInfraNodeMax = m.TksInfraNode
-	}
+	m.TksInfraNodeMax = m.TksInfraNode
+
 	if m.TksUserNode == 0 {
 		m.TksUserNode = 1
 	}
-	if m.TksUserNodeMax == 0 {
-		m.TksUserNodeMax = m.TksUserNode
-	}
+	m.TksUserNodeMax = m.TksUserNode
+
 	if m.TksCpNodeType == "" {
 		m.TksCpNodeType = "t3.xlarge"
 	}

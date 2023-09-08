@@ -116,7 +116,7 @@ type CreateStackRequest struct {
 	Description      string `json:"description"`
 	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
 	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
-	TksCpNode        int    `json:"tksCpNode,omitempty"`
+	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
 	TksInfraNode     int    `json:"tksInfraNode" validate:"required,min=1,max=3"`
@@ -132,7 +132,7 @@ type CreateStackResponse struct {
 }
 
 type StackConfResponse struct {
-	TksCpNode        int    `json:"tksCpNode,omitempty"`
+	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
 	TksInfraNode     int    `json:"tksInfraNode" validate:"required,min=1,max=3"`
