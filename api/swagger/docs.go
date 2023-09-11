@@ -3725,6 +3725,10 @@ const docTemplate = `{
                     "description": "endpoint URL of deployed app",
                     "type": "string"
                 },
+                "grafanaUrl": {
+                    "description": "grafana dashboard URL for deployed app",
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },

@@ -11,6 +11,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -131,8 +132,7 @@ func (r *StackTemplateRepository) Delete(dto domain.StackTemplate) (err error) {
 	return nil
 }
 
-func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
-	// hardcoded sample json : [{"type":"LMA","applications":[{"name":"Logging","description":"Logging 설명","version":"v1"},{"name":"Monitoring","description":"Monitoring 설명","version":"v1"},{"name":"Grafana","description":"Grafana 설명","version":"v1"}]},{"type":"SERVICE_MESH","applications":[{"name":"Istio","description":"Istio 설명","version":"v1"},{"name":"Jaeger","description":"Jaeger 설명","version":"v1"}]}]
+func reflectStackTemplate2(stackTemplate StackTemplate) (out domain.StackTemplate) {
 	return domain.StackTemplate{
 		ID:             stackTemplate.ID,
 		OrganizationId: stackTemplate.OrganizationId,
@@ -150,4 +150,12 @@ func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
 		CreatedAt:      stackTemplate.CreatedAt,
 		UpdatedAt:      stackTemplate.UpdatedAt,
 	}
+}
+
+func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate) {
+	if err := domain.Map(stackTemplate, &out); err != nil {
+		log.Error(err)
+	}
+	out.Services = stackTemplate.Services
+	return
 }

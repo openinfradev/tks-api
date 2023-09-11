@@ -164,16 +164,11 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 	return nil
 }
 
-func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {
-	return domain.Organization{
-		ID:               organization.ID,
-		Name:             organization.Name,
-		Description:      organization.Description,
-		Phone:            organization.Phone,
-		PrimaryClusterId: organization.PrimaryClusterId,
-		Status:           organization.Status,
-		Creator:          organization.Creator.String(),
-		CreatedAt:        organization.CreatedAt,
-		UpdatedAt:        organization.UpdatedAt,
+func (r *OrganizationRepository) reflect(organization Organization) (out domain.Organization) {
+	if err := domain.Map(organization, &out); err != nil {
+		log.Error(err)
 	}
+	out.Creator = organization.Creator.String()
+	return
+
 }

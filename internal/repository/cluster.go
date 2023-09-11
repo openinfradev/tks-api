@@ -247,33 +247,15 @@ func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) 
 	return nil
 }
 
-func reflectCluster(cluster Cluster) domain.Cluster {
-	return domain.Cluster{
-		ID:              cluster.ID,
-		OrganizationId:  cluster.OrganizationId,
-		Name:            cluster.Name,
-		Description:     cluster.Description,
-		CloudAccountId:  cluster.CloudAccountId,
-		CloudAccount:    reflectCloudAccount(cluster.CloudAccount),
-		StackTemplateId: cluster.StackTemplateId,
-		StackTemplate:   reflectStackTemplate(cluster.StackTemplate),
-		Status:          cluster.Status,
-		StatusDesc:      cluster.StatusDesc,
-		CreatorId:       cluster.CreatorId,
-		Creator:         reflectSimpleUser(cluster.Creator),
-		UpdatorId:       cluster.UpdatorId,
-		Updator:         reflectSimpleUser(cluster.Updator),
-		CreatedAt:       cluster.CreatedAt,
-		UpdatedAt:       cluster.UpdatedAt,
-		Conf: domain.ClusterConf{
-			CpNodeCnt:           int(cluster.CpNodeCnt),
-			CpNodeMachineType:   cluster.CpNodeMachineType,
-			TksNodeCnt:          int(cluster.TksNodeCnt),
-			TksNodeMachineType:  cluster.TksNodeMachineType,
-			UserNodeCnt:         int(cluster.UserNodeCnt),
-			UserNodeMachineType: cluster.UserNodeMachineType,
-		},
+func reflectCluster(cluster Cluster) (out domain.Cluster) {
+	if err := domain.Map(cluster, &out); err != nil {
+		log.Error(err)
 	}
+
+	if err := domain.Map(cluster, &out.Conf); err != nil {
+		log.Error(err)
+	}
+	return
 }
 
 func reflectSimpleCluster(cluster Cluster) domain.Cluster {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"gorm.io/datatypes"
 )
 
 type ConverterMap map[compositeKey]func(interface{}) (interface{}, error)
@@ -16,6 +17,11 @@ type compositeKey struct {
 }
 
 func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) error {
+	// not support type
+	if _, ok := src.(datatypes.JSON); ok {
+		return nil
+	}
+
 	srcVal := reflect.ValueOf(src)
 	srcType := srcVal.Type()
 
@@ -39,6 +45,25 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 					return err
 				}
 			} else {
+				if functionExists(srcField.Interface(), "String") &&
+					functionExists(srcField.Interface(), "FromString") &&
+					dstField.Type().Kind() == reflect.String {
+					mthd := reflect.ValueOf(srcField.Interface()).MethodByName("String").Call([]reflect.Value{})
+					if len(mthd) > 0 {
+						dstField.Set(mthd[0])
+						continue
+					}
+				}
+				if functionExists(dstField.Interface(), "String") &&
+					functionExists(dstField.Interface(), "FromString") &&
+					srcField.Type().Kind() == reflect.String {
+					mthd := reflect.ValueOf(dstField.Interface()).MethodByName("FromString").Call([]reflect.Value{srcField})
+					if len(mthd) > 0 {
+						dstField.Set(mthd[0])
+						continue
+					}
+				}
+
 				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
 				if converter, ok := converterMap[converterKey]; ok {
 					if converted, err := converter(srcField.Interface()); err != nil {
@@ -76,65 +101,16 @@ func Map(src interface{}, dst interface{}) error {
 			val, _ := uuid.Parse(i.(string))
 			return val, nil
 		},
-		{srcType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(OrganizationStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return organizationStatusMap[i.(string)], nil
-		},
 		{srcType: reflect.TypeOf((*Role)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
 			return i.(Role).Name, nil
 		},
 		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*Role)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
 			return Role{Name: i.(string)}, nil
 		},
-		{srcType: reflect.TypeOf((*ClusterStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(ClusterStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ClusterStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(ClusterStatus).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*AppGroupStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(AppGroupStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AppGroupStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(AppGroupStatus).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*AppGroupType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(AppGroupType).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AppGroupType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(AppGroupType).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*StackStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(StackStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*StackStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(StackStatus).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*ChartType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(ChartType).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ChartType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(ChartType).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(AlertActionStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(AlertActionStatus).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*ApplicationType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(ApplicationType).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ApplicationType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(ApplicationType).FromString(i.(string)), nil
-		},
-		{srcType: reflect.TypeOf((*CloudAccountStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(CloudAccountStatus).String(), nil
-		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*CloudAccountStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return new(CloudAccountStatus).FromString(i.(string)), nil
-		},
 	})
+}
+
+func functionExists(obj interface{}, funcName string) bool {
+	mthd := reflect.ValueOf(obj).MethodByName(funcName)
+	return mthd.IsValid()
 }
