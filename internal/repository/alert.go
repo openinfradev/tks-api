@@ -218,8 +218,8 @@ func reflectAlert(alert Alert) (out domain.Alert) {
 		log.Error(err)
 	}
 
-	outAlertActions := make([]domain.AlertAction, len(alert.AlertActions))
-	if err := serializer.Map(outAlertActions, &out.AlertActions); err != nil {
+	out.AlertActions = make([]domain.AlertAction, len(alert.AlertActions))
+	if err := serializer.Map(alert.AlertActions, &out.AlertActions); err != nil {
 		log.Error(err)
 	}
 	return

@@ -264,11 +264,3 @@ func reflectCluster(cluster Cluster) (out domain.Cluster) {
 	}
 	return
 }
-
-func reflectSimpleCluster(cluster Cluster) domain.Cluster {
-	return domain.Cluster{
-		ID:             cluster.ID,
-		OrganizationId: cluster.OrganizationId,
-		Name:           cluster.Name,
-	}
-}

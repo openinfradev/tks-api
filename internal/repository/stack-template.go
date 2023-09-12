@@ -133,26 +133,6 @@ func (r *StackTemplateRepository) Delete(dto domain.StackTemplate) (err error) {
 	return nil
 }
 
-func reflectStackTemplate2(stackTemplate StackTemplate) (out domain.StackTemplate) {
-	return domain.StackTemplate{
-		ID:             stackTemplate.ID,
-		OrganizationId: stackTemplate.OrganizationId,
-		Name:           stackTemplate.Name,
-		Description:    stackTemplate.Description,
-		Template:       stackTemplate.Template,
-		CloudService:   stackTemplate.CloudService,
-		Platform:       stackTemplate.Platform,
-		Version:        stackTemplate.Version,
-		KubeVersion:    stackTemplate.KubeVersion,
-		KubeType:       stackTemplate.KubeType,
-		Services:       stackTemplate.Services,
-		Creator:        reflectSimpleUser(stackTemplate.Creator),
-		Updator:        reflectSimpleUser(stackTemplate.Updator),
-		CreatedAt:      stackTemplate.CreatedAt,
-		UpdatedAt:      stackTemplate.UpdatedAt,
-	}
-}
-
 func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate) {
 	if err := serializer.Map(stackTemplate, &out); err != nil {
 		log.Error(err)
