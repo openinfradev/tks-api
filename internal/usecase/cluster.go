@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -276,7 +277,7 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	out.SshKeyName = "tks-seoul"
 	out.ClusterRegion = "ap-northeast-2"
 
-	if err := domain.Map(cluster.Conf, &out); err != nil {
+	if err := serializer.Map(cluster.Conf, &out); err != nil {
 		log.ErrorWithContext(ctx, err)
 	}
 

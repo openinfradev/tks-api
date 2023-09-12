@@ -13,6 +13,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -106,7 +107,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	(appReq).SetDefaultValue()
 
 	var app domain.AppServeApp
-	if err = domain.Map(appReq, &app); err != nil {
+	if err = serializer.Map(appReq, &app); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -121,7 +122,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	app.CreatedAt = now
 
 	var task domain.AppServeAppTask
-	if err = domain.Map(appReq, &task); err != nil {
+	if err = serializer.Map(appReq, &task); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -191,7 +192,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 
 	var out domain.CreateAppServeAppResponse
-	if err = domain.Map(app, &out); err != nil {
+	if err = serializer.Map(app, &out); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -253,7 +254,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = apps
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -634,18 +635,18 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//		break
 	//	}
 	//}
-	//if err = domain.Map(latestTask, &task); err != nil {
+	//if err = serializer.Map(latestTask, &task); err != nil {
 	//	ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 	//	return
 	//}
 
 	var latestTask = app.AppServeAppTasks[0]
-	if err = domain.Map(latestTask, &task); err != nil {
+	if err = serializer.Map(latestTask, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	if err = domain.Map(appReq, &task); err != nil {
+	if err = serializer.Map(appReq, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}

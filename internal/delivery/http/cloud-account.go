@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -52,7 +53,7 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 	}
 
 	var dto domain.CloudAccount
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
@@ -107,13 +108,13 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	var out domain.GetCloudAccountsResponse
 	out.CloudAccounts = make([]domain.CloudAccountResponse, len(cloudAccounts))
 	for i, cloudAccount := range cloudAccounts {
-		if err := domain.Map(cloudAccount, &out.CloudAccounts[i]); err != nil {
+		if err := serializer.Map(cloudAccount, &out.CloudAccounts[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -152,7 +153,7 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 	}
 
 	var out domain.GetCloudAccountResponse
-	if err := domain.Map(cloudAccount, &out.CloudAccount); err != nil {
+	if err := serializer.Map(cloudAccount, &out.CloudAccount); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -198,7 +199,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 	}
 
 	var dto domain.CloudAccount
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.ID = cloudAccountId
@@ -247,7 +248,7 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	}
 
 	var dto domain.CloudAccount
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.ID = parsedId

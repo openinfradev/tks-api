@@ -21,6 +21,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -105,7 +106,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 
 	var stackConf domain.StackConfResponse
-	if err = domain.Map(dto.Conf, &stackConf); err != nil {
+	if err = serializer.Map(dto.Conf, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
 

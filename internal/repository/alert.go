@@ -11,7 +11,9 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -211,43 +213,14 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 	return alert.ID, nil
 }
 
-func reflectAlert(alert Alert) domain.Alert {
+func reflectAlert(alert Alert) (out domain.Alert) {
+	if err := serializer.Map(alert, &out); err != nil {
+		log.Error(err)
+	}
+
 	outAlertActions := make([]domain.AlertAction, len(alert.AlertActions))
-	for i, alertAction := range alert.AlertActions {
-		outAlertActions[i] = reflectAlertAction(alertAction)
+	if err := serializer.Map(outAlertActions, &out.AlertActions); err != nil {
+		log.Error(err)
 	}
-
-	return domain.Alert{
-		ID:             alert.ID,
-		OrganizationId: alert.OrganizationId,
-		Name:           alert.Name,
-		Description:    alert.Description,
-		Message:        alert.Message,
-		Code:           alert.Code,
-		Grade:          alert.Grade,
-		ClusterId:      alert.ClusterId,
-		Cluster:        reflectSimpleCluster(alert.Cluster),
-		GrafanaUrl:     alert.GrafanaUrl,
-		Node:           alert.Node,
-		CheckPoint:     alert.CheckPoint,
-		Summary:        alert.Summary,
-		AlertActions:   outAlertActions,
-		RawData:        alert.RawData,
-		Status:         alert.Status,
-		CreatedAt:      alert.CreatedAt,
-		UpdatedAt:      alert.UpdatedAt,
-	}
-}
-
-func reflectAlertAction(alertAction AlertAction) domain.AlertAction {
-	return domain.AlertAction{
-		ID:        alertAction.ID,
-		AlertId:   alertAction.AlertId,
-		Content:   alertAction.Content,
-		Status:    alertAction.Status,
-		TakerId:   alertAction.TakerId,
-		Taker:     reflectSimpleUser(alertAction.Taker),
-		CreatedAt: alertAction.CreatedAt,
-		UpdatedAt: alertAction.UpdatedAt,
-	}
+	return
 }
