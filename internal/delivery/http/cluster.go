@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -55,13 +56,13 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetClustersResponse
 	out.Clusters = make([]domain.ClusterResponse, len(clusters))
 	for i, cluster := range clusters {
-		if err := domain.Map(cluster, &out.Clusters[i]); err != nil {
+		if err := serializer.Map(cluster, &out.Clusters[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -93,7 +94,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetClusterResponse
-	if err := domain.Map(cluster, &out.Cluster); err != nil {
+	if err := serializer.Map(cluster, &out.Cluster); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -149,11 +150,11 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto domain.Cluster
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
-	if err = domain.Map(input, &dto.Conf); err != nil {
+	if err = serializer.Map(input, &dto.Conf); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

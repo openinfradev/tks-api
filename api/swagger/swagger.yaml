@@ -395,27 +395,45 @@ definitions:
     type: object
   domain.ClusterConf:
     properties:
-      cpNodeCnt:
+      tksCpNode:
         type: integer
-      cpNodeMachineType:
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
         type: string
-      tksNodeCnt:
+      tksInfraNode:
         type: integer
-      tksNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
         type: string
-      userNodeCnt:
+      tksUserNode:
         type: integer
-      userNodeMachineType:
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     type: object
   domain.ClusterConfResponse:
     properties:
-      cpNodeCnt:
+      tksCpNode:
         type: integer
-      tksNodeCnt:
+      tksCpNodeMax:
         type: integer
-      userpNodeCnt:
+      tksCpNodeType:
+        type: string
+      tksInfraNode:
         type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
+        type: string
     type: object
   domain.ClusterResponse:
     properties:
@@ -450,23 +468,25 @@ definitions:
     properties:
       clusterRegion:
         type: string
-      cpNodeMachineType:
-        type: string
-      cpReplicas:
-        type: integer
-      mdMachineType:
-        type: string
-      mdMaxSizePerAz:
-        type: integer
-      mdMinSizePerAz:
-        type: integer
-      mdNumOfAz:
-        type: integer
-      mpNodeMachineType:
-        type: string
-      mpReplicas:
-        type: integer
       sshKeyName:
+        type: string
+      tksCpNode:
+        type: integer
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
+        type: string
+      tksInfraNode:
+        type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     type: object
   domain.CreateAppGroupRequest:
@@ -596,10 +616,6 @@ definitions:
     properties:
       cloudAccountId:
         type: string
-      cpNodeCnt:
-        type: integer
-      cpNodeMachineType:
-        type: string
       description:
         type: string
       name:
@@ -608,13 +624,23 @@ definitions:
         type: string
       stackTemplateId:
         type: string
-      tksNodeCnt:
+      tksCpNode:
         type: integer
-      tksNodeMachineType:
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
         type: string
-      userNodeCnt:
+      tksInfraNode:
         type: integer
-      userNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     required:
     - cloudAccountId
@@ -647,34 +673,40 @@ definitions:
     properties:
       cloudAccountId:
         type: string
-      cpNodeCnt:
-        type: integer
-      cpNodeMachineType:
-        type: string
       description:
         type: string
       name:
         type: string
       stackTemplateId:
         type: string
-      tksNodeCnt:
-        maximum: 6
-        minimum: 3
+      tksCpNode:
         type: integer
-      tksNodeMachineType:
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
         type: string
-      userNodeCnt:
+      tksInfraNode:
+        maximum: 3
+        minimum: 1
+        type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
         maximum: 100
         minimum: 0
         type: integer
-      userNodeMachineType:
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     required:
     - cloudAccountId
     - name
     - stackTemplateId
-    - tksNodeCnt
-    - userNodeCnt
+    - tksInfraNode
+    - tksUserNode
     type: object
   domain.CreateStackResponse:
     properties:
@@ -1303,18 +1335,31 @@ definitions:
     type: object
   domain.StackConfResponse:
     properties:
-      cpNodeCnt:
+      tksCpNode:
         type: integer
-      cpNodeMachineType:
-        type: string
-      tksNodeCnt:
+      tksCpNodeMax:
         type: integer
-      tksNodeMachineType:
+      tksCpNodeType:
         type: string
-      userNodeCnt:
+      tksInfraNode:
+        maximum: 3
+        minimum: 1
         type: integer
-      userNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
         type: string
+      tksUserNode:
+        maximum: 100
+        minimum: 0
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
+        type: string
+    required:
+    - tksInfraNode
+    - tksUserNode
     type: object
   domain.StackResponse:
     properties:

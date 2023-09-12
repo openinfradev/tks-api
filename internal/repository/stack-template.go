@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -153,7 +154,7 @@ func reflectStackTemplate2(stackTemplate StackTemplate) (out domain.StackTemplat
 }
 
 func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate) {
-	if err := domain.Map(stackTemplate, &out); err != nil {
+	if err := serializer.Map(stackTemplate, &out); err != nil {
 		log.Error(err)
 	}
 	out.Services = stackTemplate.Services

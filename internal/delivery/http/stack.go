@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -49,10 +50,10 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto domain.Stack
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
-	if err = domain.Map(input, &dto.Conf); err != nil {
+	if err = serializer.Map(input, &dto.Conf); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
@@ -108,13 +109,13 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStacksResponse
 	out.Stacks = make([]domain.StackResponse, len(stacks))
 	for i, stack := range stacks {
-		if err := domain.Map(stack, &out.Stacks[i]); err != nil {
+		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -147,7 +148,7 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetStackResponse
-	if err := domain.Map(stack, &out.Stack); err != nil {
+	if err := serializer.Map(stack, &out.Stack); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -183,7 +184,7 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStackStatusResponse
 	out.StepStatus = make([]domain.StackStepStatus, len(steps))
 	for i, step := range steps {
-		if err := domain.Map(step, &out.StepStatus[i]); err != nil {
+		if err := serializer.Map(step, &out.StepStatus[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 		}
 	}
@@ -231,7 +232,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto domain.Stack
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.ID = stackId

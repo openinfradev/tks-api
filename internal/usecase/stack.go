@@ -21,6 +21,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -105,7 +106,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 
 	var stackConf domain.StackConfResponse
-	if err = domain.Map(dto.Conf, &stackConf); err != nil {
+	if err = serializer.Map(dto.Conf, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
 
@@ -681,9 +682,15 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 		CreatedAt:       cluster.CreatedAt,
 		UpdatedAt:       cluster.UpdatedAt,
 		Conf: domain.StackConf{
-			CpNodeCnt:   cluster.Conf.CpNodeCnt,
-			TksNodeCnt:  cluster.Conf.TksNodeCnt,
-			UserNodeCnt: cluster.Conf.UserNodeCnt,
+			TksCpNode:        cluster.Conf.TksCpNode,
+			TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
+			TksCpNodeType:    cluster.Conf.TksCpNodeType,
+			TksInfraNode:     cluster.Conf.TksInfraNode,
+			TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
+			TksInfraNodeType: cluster.Conf.TksInfraNodeType,
+			TksUserNode:      cluster.Conf.TksUserNode,
+			TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
+			TksUserNodeType:  cluster.Conf.TksUserNodeType,
 		},
 	}
 }

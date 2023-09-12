@@ -4124,22 +4124,31 @@ const docTemplate = `{
         "domain.ClusterConf": {
             "type": "object",
             "properties": {
-                "cpNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "cpNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
+                "tksInfraNode": {
                     "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksUserNode": {
                     "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4147,14 +4156,32 @@ const docTemplate = `{
         "domain.ClusterConfResponse": {
             "type": "object",
             "properties": {
-                "cpNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "tksNodeCnt": {
+                "tksCpNodeMax": {
                     "type": "integer"
                 },
-                "userpNodeCnt": {
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
                     "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
+                    "type": "string"
                 }
             }
         },
@@ -4208,31 +4235,34 @@ const docTemplate = `{
                 "clusterRegion": {
                     "type": "string"
                 },
-                "cpNodeMachineType": {
-                    "type": "string"
-                },
-                "cpReplicas": {
-                    "type": "integer"
-                },
-                "mdMachineType": {
-                    "type": "string"
-                },
-                "mdMaxSizePerAz": {
-                    "type": "integer"
-                },
-                "mdMinSizePerAz": {
-                    "type": "integer"
-                },
-                "mdNumOfAz": {
-                    "type": "integer"
-                },
-                "mpNodeMachineType": {
-                    "type": "string"
-                },
-                "mpReplicas": {
-                    "type": "integer"
-                },
                 "sshKeyName": {
+                    "type": "string"
+                },
+                "tksCpNode": {
+                    "type": "integer"
+                },
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
+                    "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4426,12 +4456,6 @@ const docTemplate = `{
                 "cloudAccountId": {
                     "type": "string"
                 },
-                "cpNodeCnt": {
-                    "type": "integer"
-                },
-                "cpNodeMachineType": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -4444,16 +4468,31 @@ const docTemplate = `{
                 "stackTemplateId": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksInfraNode": {
                     "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4495,17 +4534,11 @@ const docTemplate = `{
                 "cloudAccountId",
                 "name",
                 "stackTemplateId",
-                "tksNodeCnt",
-                "userNodeCnt"
+                "tksInfraNode",
+                "tksUserNode"
             ],
             "properties": {
                 "cloudAccountId": {
-                    "type": "string"
-                },
-                "cpNodeCnt": {
-                    "type": "integer"
-                },
-                "cpNodeMachineType": {
                     "type": "string"
                 },
                 "description": {
@@ -4517,20 +4550,35 @@ const docTemplate = `{
                 "stackTemplateId": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
-                    "type": "integer",
-                    "maximum": 6,
-                    "minimum": 3
+                "tksCpNode": {
+                    "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksInfraNode": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
                     "type": "integer",
                     "maximum": 100,
                     "minimum": 0
                 },
-                "userNodeMachineType": {
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -5488,23 +5536,40 @@ const docTemplate = `{
         },
         "domain.StackConfResponse": {
             "type": "object",
+            "required": [
+                "tksInfraNode",
+                "tksUserNode"
+            ],
             "properties": {
-                "cpNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "cpNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
+                "tksInfraNode": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "tksInfraNodeMax": {
                     "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksInfraNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksUserNode": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "tksUserNodeMax": {
                     "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }

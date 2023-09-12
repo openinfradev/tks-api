@@ -10,6 +10,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -211,14 +212,14 @@ func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId)
 }
 
 func reflectAppGroup(appGroup AppGroup) (out domain.AppGroup) {
-	if err := domain.Map(appGroup, &out); err != nil {
+	if err := serializer.Map(appGroup, &out); err != nil {
 		log.Error(err)
 	}
 	return
 }
 
 func reflectApplication(application Application) (out domain.Application) {
-	if err := domain.Map(application, &out); err != nil {
+	if err := serializer.Map(application, &out); err != nil {
 		log.Error(err)
 	}
 	out.Metadata = application.Metadata.String()

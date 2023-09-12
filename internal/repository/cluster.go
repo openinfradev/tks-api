@@ -10,6 +10,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -45,28 +46,31 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 type Cluster struct {
 	gorm.Model
 
-	ID                  domain.ClusterId `gorm:"primarykey"`
-	Name                string           `gorm:"index"`
-	OrganizationId      string
-	Organization        Organization `gorm:"foreignKey:OrganizationId"`
-	Description         string       `gorm:"index"`
-	WorkflowId          string
-	Status              domain.ClusterStatus
-	StatusDesc          string
-	CloudAccountId      uuid.UUID
-	CloudAccount        CloudAccount `gorm:"foreignKey:CloudAccountId"`
-	StackTemplateId     uuid.UUID
-	StackTemplate       StackTemplate `gorm:"foreignKey:StackTemplateId"`
-	CpNodeCnt           int
-	CpNodeMachineType   string
-	TksNodeCnt          int
-	TksNodeMachineType  string
-	UserNodeCnt         int
-	UserNodeMachineType string
-	CreatorId           *uuid.UUID `gorm:"type:uuid"`
-	Creator             User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId           *uuid.UUID `gorm:"type:uuid"`
-	Updator             User       `gorm:"foreignKey:UpdatorId"`
+	ID               domain.ClusterId `gorm:"primarykey"`
+	Name             string           `gorm:"index"`
+	OrganizationId   string
+	Organization     Organization `gorm:"foreignKey:OrganizationId"`
+	Description      string       `gorm:"index"`
+	WorkflowId       string
+	Status           domain.ClusterStatus
+	StatusDesc       string
+	CloudAccountId   uuid.UUID
+	CloudAccount     CloudAccount `gorm:"foreignKey:CloudAccountId"`
+	StackTemplateId  uuid.UUID
+	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
+	TksCpNode        int
+	TksCpNodeMax     int
+	TksCpNodeType    string
+	TksInfraNode     int
+	TksInfraNodeMax  int
+	TksInfraNodeType string
+	TksUserNode      int
+	TksUserNodeMax   int
+	TksUserNodeType  string
+	CreatorId        *uuid.UUID `gorm:"type:uuid"`
+	Creator          User       `gorm:"foreignKey:CreatorId"`
+	UpdatorId        *uuid.UUID `gorm:"type:uuid"`
+	Updator          User       `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -181,20 +185,23 @@ func (r *ClusterRepository) GetByName(organizationId string, name string) (out d
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
 	cluster := Cluster{
-		OrganizationId:      dto.OrganizationId,
-		Name:                dto.Name,
-		Description:         dto.Description,
-		CloudAccountId:      dto.CloudAccountId,
-		StackTemplateId:     dto.StackTemplateId,
-		CreatorId:           dto.CreatorId,
-		UpdatorId:           nil,
-		Status:              domain.ClusterStatus_PENDING,
-		CpNodeCnt:           dto.Conf.CpNodeCnt,
-		CpNodeMachineType:   dto.Conf.CpNodeMachineType,
-		TksNodeCnt:          dto.Conf.TksNodeCnt,
-		TksNodeMachineType:  dto.Conf.TksNodeMachineType,
-		UserNodeCnt:         dto.Conf.UserNodeCnt,
-		UserNodeMachineType: dto.Conf.UserNodeMachineType,
+		OrganizationId:   dto.OrganizationId,
+		Name:             dto.Name,
+		Description:      dto.Description,
+		CloudAccountId:   dto.CloudAccountId,
+		StackTemplateId:  dto.StackTemplateId,
+		CreatorId:        dto.CreatorId,
+		UpdatorId:        nil,
+		Status:           domain.ClusterStatus_PENDING,
+		TksCpNode:        dto.Conf.TksCpNode,
+		TksCpNodeMax:     dto.Conf.TksCpNodeMax,
+		TksCpNodeType:    dto.Conf.TksCpNodeType,
+		TksInfraNode:     dto.Conf.TksInfraNode,
+		TksInfraNodeMax:  dto.Conf.TksInfraNodeMax,
+		TksInfraNodeType: dto.Conf.TksInfraNodeType,
+		TksUserNode:      dto.Conf.TksUserNode,
+		TksUserNodeMax:   dto.Conf.TksUserNodeMax,
+		TksUserNodeType:  dto.Conf.TksUserNodeType,
 	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
@@ -248,11 +255,11 @@ func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) 
 }
 
 func reflectCluster(cluster Cluster) (out domain.Cluster) {
-	if err := domain.Map(cluster, &out); err != nil {
+	if err := serializer.Map(cluster, &out); err != nil {
 		log.Error(err)
 	}
 
-	if err := domain.Map(cluster, &out.Conf); err != nil {
+	if err := serializer.Map(cluster, &out.Conf); err != nil {
 		log.Error(err)
 	}
 	return

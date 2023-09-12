@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -213,12 +214,12 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 }
 
 func reflectAlert(alert Alert) (out domain.Alert) {
-	if err := domain.Map(alert, &out); err != nil {
+	if err := serializer.Map(alert, &out); err != nil {
 		log.Error(err)
 	}
 
 	outAlertActions := make([]domain.AlertAction, len(alert.AlertActions))
-	if err := domain.Map(outAlertActions, &out.AlertActions); err != nil {
+	if err := serializer.Map(outAlertActions, &out.AlertActions); err != nil {
 		log.Error(err)
 	}
 	return

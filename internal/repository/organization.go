@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
@@ -165,7 +166,7 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 }
 
 func (r *OrganizationRepository) reflect(organization Organization) (out domain.Organization) {
-	if err := domain.Map(organization, &out); err != nil {
+	if err := serializer.Map(organization, &out); err != nil {
 		log.Error(err)
 	}
 	out.Creator = organization.Creator.String()

@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -168,7 +169,7 @@ func (r *CloudAccountRepository) InitWorkflow(cloudAccountId uuid.UUID, workflow
 }
 
 func reflectCloudAccount(cloudAccount CloudAccount) (out domain.CloudAccount) {
-	if err := domain.Map(cloudAccount, &out); err != nil {
+	if err := serializer.Map(cloudAccount, &out); err != nil {
 		log.Error(err)
 	}
 	return

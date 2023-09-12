@@ -1,10 +1,11 @@
-package domain
+package serializer
 
 import (
 	"fmt"
 	"reflect"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/datatypes"
 )
@@ -101,11 +102,11 @@ func Map(src interface{}, dst interface{}) error {
 			val, _ := uuid.Parse(i.(string))
 			return val, nil
 		},
-		{srcType: reflect.TypeOf((*Role)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
-			return i.(Role).Name, nil
+		{srcType: reflect.TypeOf((*domain.Role)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(domain.Role).Name, nil
 		},
-		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*Role)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
-			return Role{Name: i.(string)}, nil
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*domain.Role)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return domain.Role{Name: i.(string)}, nil
 		},
 	})
 }

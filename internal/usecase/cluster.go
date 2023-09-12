@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -177,7 +178,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
-				fmt.Sprintf("tks_info_host=%s", viper.GetString("external-address")),
+				fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 				"contract_id=" + dto.OrganizationId,
 				"cluster_id=" + clusterId.String(),
 				"site_name=" + clusterId.String(),
@@ -248,7 +249,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		argowf.SubmitOptions{
 			Parameters: []string{
 				"app_group=tks-cluster-aws",
-				"tks_info_host=http://tks-api.tks.svc:9110",
+				"tks_api_url=http://tks-api.tks.svc:9110",
 				"cluster_id=" + clusterId.String(),
 				"cloud_account_id=" + tksCloudAccountId,
 			},
@@ -268,17 +269,17 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 }
 
 func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error) {
-	cluster, err := u.Get(ctx, clusterId)
+	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
 		return domain.ClusterSiteValuesResponse{}, errors.Wrap(err, "Failed to get cluster")
 	}
 
 	out.SshKeyName = "tks-seoul"
 	out.ClusterRegion = "ap-northeast-2"
-	out.CpReplicas = cluster.Conf.CpNodeCnt
-	out.CpNodeMachineType = cluster.Conf.CpNodeMachineType
-	out.MpReplicas = cluster.Conf.TksNodeCnt
-	out.MpNodeMachineType = cluster.Conf.TksNodeMachineType
+
+	if err := serializer.Map(cluster.Conf, &out); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
 
 	/*
 		// 기능 변경 : 20230614 : machine deployment 사용하지 않음. 단, aws-standard 는 사용할 여지가 있으므로 주석처리해둔다.
@@ -293,12 +294,6 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 			out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt * 5
 		}
 	*/
-
-	out.MdMachineType = cluster.Conf.UserNodeMachineType
-	out.MdNumOfAz = cluster.Conf.UserNodeCnt
-	out.MdMinSizePerAz = 1
-	out.MdMaxSizePerAz = cluster.Conf.UserNodeCnt
-
 	return
 }
 
