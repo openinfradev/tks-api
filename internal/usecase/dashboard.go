@@ -11,6 +11,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -102,7 +103,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		}
 		stack := reflectClusterToStack(cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
-		if err := domain.Map(stack, &dashboardStack); err != nil {
+		if err := serializer.Map(stack, &dashboardStack); err != nil {
 			log.InfoWithContext(ctx, err)
 		}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -78,7 +79,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user domain.User
-	if err = domain.Map(input, &user); err != nil {
+	if err = serializer.Map(input, &user); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 	user.Organization = domain.Organization{
@@ -98,7 +99,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.CreateUserResponse
-	if err = domain.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(*resUser, &out.User); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 
@@ -144,7 +145,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetUserResponse
-	if err = domain.Map(*user, &out.User); err != nil {
+	if err = serializer.Map(*user, &out.User); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 
@@ -190,12 +191,12 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	var out domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		if err = domain.Map(user, &out.Users[i]); err != nil {
+		if err = serializer.Map(user, &out.Users[i]); err != nil {
 			log.ErrorWithContext(r.Context(), err)
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -277,7 +278,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user domain.User
-	if err = domain.Map(input, &user); err != nil {
+	if err = serializer.Map(input, &user); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -299,7 +300,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateUserResponse
-	if err = domain.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(*resUser, &out.User); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -364,7 +365,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetMyProfileResponse
-	if err = domain.Map(*user, &out.User); err != nil {
+	if err = serializer.Map(*user, &out.User); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -409,7 +410,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user domain.User
-	if err = domain.Map(input, &user); err != nil {
+	if err = serializer.Map(input, &user); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -429,7 +430,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateMyProfileResponse
-	if err = domain.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(*resUser, &out.User); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return

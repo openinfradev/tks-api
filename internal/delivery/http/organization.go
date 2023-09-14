@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -47,7 +48,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	ctx := r.Context()
 	var organization domain.Organization
-	if err = domain.Map(input, &organization); err != nil {
+	if err = serializer.Map(input, &organization); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 
@@ -67,7 +68,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	var out domain.CreateOrganizationResponse
-	if err = domain.Map(organization, &out); err != nil {
+	if err = serializer.Map(organization, &out); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 
@@ -108,14 +109,14 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 	out.Organizations = make([]domain.ListOrganizationBody, len(*organizations))
 
 	for i, organization := range *organizations {
-		if err = domain.Map(organization, &out.Organizations[i]); err != nil {
+		if err = serializer.Map(organization, &out.Organizations[i]); err != nil {
 			log.ErrorWithContext(r.Context(), err)
 		}
 
 		log.InfoWithContext(r.Context(), organization)
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -152,7 +153,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 	var out domain.GetOrganizationResponse
-	if err = domain.Map(organization, &out.Organization); err != nil {
+	if err = serializer.Map(organization, &out.Organization); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 
@@ -244,7 +245,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	var out domain.UpdateOrganizationResponse
-	if err = domain.Map(organization, &out); err != nil {
+	if err = serializer.Map(organization, &out); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 

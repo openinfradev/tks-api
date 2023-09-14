@@ -6,6 +6,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -71,7 +72,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.LoginResponse
-	if err = domain.Map(user, &out.User); err != nil {
+	if err = serializer.Map(user, &out.User); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
 

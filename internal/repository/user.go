@@ -506,16 +506,3 @@ func (r *UserRepository) reflectRole(role Role) domain.Role {
 		UpdatedAt:   role.UpdatedAt,
 	}
 }
-
-func reflectSimpleUser(user User) domain.User {
-	return domain.User{
-		ID:          user.ID.String(),
-		AccountId:   user.AccountId,
-		Name:        user.Name,
-		Email:       user.Email,
-		Department:  user.Department,
-		Description: user.Description,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
-	}
-}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -253,42 +254,13 @@ func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) 
 	return nil
 }
 
-func reflectCluster(cluster Cluster) domain.Cluster {
-	return domain.Cluster{
-		ID:              cluster.ID,
-		OrganizationId:  cluster.OrganizationId,
-		Name:            cluster.Name,
-		Description:     cluster.Description,
-		CloudAccountId:  cluster.CloudAccountId,
-		CloudAccount:    reflectCloudAccount(cluster.CloudAccount),
-		StackTemplateId: cluster.StackTemplateId,
-		StackTemplate:   reflectStackTemplate(cluster.StackTemplate),
-		Status:          cluster.Status,
-		StatusDesc:      cluster.StatusDesc,
-		CreatorId:       cluster.CreatorId,
-		Creator:         reflectSimpleUser(cluster.Creator),
-		UpdatorId:       cluster.UpdatorId,
-		Updator:         reflectSimpleUser(cluster.Updator),
-		CreatedAt:       cluster.CreatedAt,
-		UpdatedAt:       cluster.UpdatedAt,
-		Conf: domain.ClusterConf{
-			TksCpNode:        int(cluster.TksCpNode),
-			TksCpNodeMax:     int(cluster.TksCpNodeMax),
-			TksCpNodeType:    cluster.TksCpNodeType,
-			TksInfraNode:     int(cluster.TksInfraNode),
-			TksInfraNodeMax:  int(cluster.TksInfraNodeMax),
-			TksInfraNodeType: cluster.TksInfraNodeType,
-			TksUserNode:      int(cluster.TksUserNode),
-			TksUserNodeMax:   int(cluster.TksUserNodeMax),
-			TksUserNodeType:  cluster.TksUserNodeType,
-		},
+func reflectCluster(cluster Cluster) (out domain.Cluster) {
+	if err := serializer.Map(cluster, &out); err != nil {
+		log.Error(err)
 	}
-}
 
-func reflectSimpleCluster(cluster Cluster) domain.Cluster {
-	return domain.Cluster{
-		ID:             cluster.ID,
-		OrganizationId: cluster.OrganizationId,
-		Name:           cluster.Name,
+	if err := serializer.Map(cluster, &out.Conf); err != nil {
+		log.Error(err)
 	}
+	return
 }

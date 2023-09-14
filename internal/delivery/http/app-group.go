@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -42,7 +43,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 	}
 
 	var dto domain.AppGroup
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -96,13 +97,13 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetAppGroupsResponse
 	out.AppGroups = make([]domain.AppGroupResponse, len(appGroups))
 	for i, appGroup := range appGroups {
-		if err := domain.Map(appGroup, &out.AppGroups[i]); err != nil {
+		if err := serializer.Map(appGroup, &out.AppGroups[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -138,7 +139,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetAppGroupResponse
-	if err := domain.Map(appGroup, &out.AppGroup); err != nil {
+	if err := serializer.Map(appGroup, &out.AppGroup); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -222,7 +223,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 	var out domain.GetApplicationsResponse
 	out.Applications = make([]domain.ApplicationResponse, len(applications))
 	for i, application := range applications {
-		if err := domain.Map(application, &out.Applications[i]); err != nil {
+		if err := serializer.Map(application, &out.Applications[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
@@ -262,7 +263,7 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 	}
 
 	var dto domain.Application
-	if err := domain.Map(input, &dto); err != nil {
+	if err := serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.AppGroupId = appGroupId
