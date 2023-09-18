@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/mail"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,7 +20,6 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
-	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -182,7 +182,12 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = ses.SendEmailForTemporaryPassword(ses.Client, email, randomPassword); err != nil {
+	mailer := mail.New()
+	if mail.MakeTemporaryPasswordMessage(mailer, email, randomPassword); err != nil {
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	if err := mailer.SendMail(); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -230,7 +235,15 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
-	if err := ses.SendEmailForVerityIdentity(ses.Client, email, code); err != nil {
+
+	mailer := mail.New()
+	if mail.MakeVerityIdentityMessage(mailer, email, code); err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	if err := mailer.SendMail(); err != nil {
+		log.Errorf("mailer.SendMail error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
