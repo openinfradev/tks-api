@@ -3,13 +3,14 @@ package mail
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsSes "github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var awsClient *awsSes.Client
