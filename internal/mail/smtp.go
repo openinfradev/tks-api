@@ -21,7 +21,6 @@ var (
 )
 
 type Mailer interface {
-	SetMessage(m *MessageInfo)
 	SendMail() error
 }
 
@@ -40,10 +39,6 @@ type SmtpMailer struct {
 	Password string
 
 	message *MessageInfo
-}
-
-func (s *SmtpMailer) SetMessage(m *MessageInfo) {
-	s.message = m
 }
 
 func (s *SmtpMailer) SendMail() error {
@@ -109,41 +104,42 @@ func Initialize() error {
 	return nil
 }
 
-func New() Mailer {
+func New(m *MessageInfo) Mailer {
 	var mailer Mailer
 
 	switch mailProvider {
 	case "aws":
-		mailer = NewAwsMailer()
+		mailer = NewAwsMailer(m)
 		log.Infof("aws ses mailer, %v", mailer)
 
 	case "smtp":
-		mailer = NewSmtpMailer()
+		mailer = NewSmtpMailer(m)
 		log.Infof("smtp mailer, %v", mailer)
 	}
 
 	return mailer
 }
 
-func NewSmtpMailer() *SmtpMailer {
+func NewSmtpMailer(m *MessageInfo) *SmtpMailer {
 	mailer := &SmtpMailer{
 		client:   goClient,
 		Host:     host,
 		Port:     port,
 		Username: username,
 		Password: password,
+		message:  m,
 	}
 
 	return mailer
 }
 
-func MakeVerityIdentityMessage(mailer Mailer, to, code string) error {
+func MakeVerityIdentityMessage(to, code string) (*MessageInfo, error) {
 	subject := "[TKS] [인증번호:" + code + "] 인증번호가 발급되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/authcode.html")
 	if err != nil {
 		log.Errorf("failed to parse template, %v", err)
-		return err
+		return nil, err
 	}
 
 	data := map[string]string{"AuthCode": code}
@@ -151,23 +147,26 @@ func MakeVerityIdentityMessage(mailer Mailer, to, code string) error {
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {
 		log.Errorf("failed to execute template, %v", err)
-		return err
+		return nil, err
 	}
 
-	mailer.SetMessage(
-		&MessageInfo{from, to, subject, tpl.String()},
-	)
+	m := &MessageInfo{
+		From:    from,
+		To:      to,
+		Subject: subject,
+		Body:    tpl.String(),
+	}
 
-	return nil
+	return m, nil
 }
 
-func MakeTemporaryPasswordMessage(mailer Mailer, to, randomPassword string) error {
+func MakeTemporaryPasswordMessage(to, randomPassword string) (*MessageInfo, error) {
 	subject := "[TKS] 임시 비밀번호가 발급되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/temporary_password.html")
 	if err != nil {
 		log.Errorf("failed to parse template, %v", err)
-		return err
+		return nil, err
 	}
 
 	data := map[string]string{"TemporaryPassword": randomPassword}
@@ -175,24 +174,28 @@ func MakeTemporaryPasswordMessage(mailer Mailer, to, randomPassword string) erro
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {
 		log.Errorf("failed to execute template, %v", err)
-		return err
+		return nil, err
 	}
 
-	mailer.SetMessage(
-		&MessageInfo{from, to, subject, tpl.String()},
-	)
+	m := &MessageInfo{
+		From:    from,
+		To:      to,
+		Subject: subject,
+		Body:    tpl.String(),
+	}
 
-	return nil
+	return m, nil
 }
 
-func MakeGeneratingOrganizationMessage(mailer Mailer, organizationId string, organizationName string,
-	to string, userAccountId string, randomPassword string) error {
+func MakeGeneratingOrganizationMessage(
+	organizationId string, organizationName string,
+	to string, userAccountId string, randomPassword string) (*MessageInfo, error) {
 	subject := "[TKS] 조직이 생성되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/organization_creation.html")
 	if err != nil {
 		log.Errorf("failed to parse template, %v", err)
-		return err
+		return nil, err
 	}
 
 	data := map[string]string{
@@ -206,12 +209,15 @@ func MakeGeneratingOrganizationMessage(mailer Mailer, organizationId string, org
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {
 		log.Errorf("failed to execute template, %v", err)
-		return err
+		return nil, err
 	}
 
-	mailer.SetMessage(
-		&MessageInfo{from, to, subject, tpl.String()},
-	)
+	m := &MessageInfo{
+		From:    from,
+		To:      to,
+		Subject: subject,
+		Body:    tpl.String(),
+	}
 
-	return nil
+	return m, nil
 }

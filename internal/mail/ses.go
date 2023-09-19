@@ -19,10 +19,6 @@ type AwsMailer struct {
 	message *MessageInfo
 }
 
-func (a *AwsMailer) SetMessage(m *MessageInfo) {
-	a.message = m
-}
-
 func (a *AwsMailer) SendMail() error {
 	input := &awsSes.SendEmailInput{
 		Destination: &types.Destination{
@@ -83,9 +79,10 @@ func initialize() error {
 	return nil
 }
 
-func NewAwsMailer() *AwsMailer {
+func NewAwsMailer(m *MessageInfo) *AwsMailer {
 	mailer := &AwsMailer{
-		client: awsClient,
+		client:  awsClient,
+		message: m,
 	}
 
 	return mailer

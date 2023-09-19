@@ -182,10 +182,13 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	mailer := mail.New()
-	if mail.MakeTemporaryPasswordMessage(mailer, email, randomPassword); err != nil {
+	message, err := mail.MakeTemporaryPasswordMessage(email, randomPassword)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
+
+	mailer := mail.New(message)
 
 	if err := mailer.SendMail(); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -236,11 +239,13 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 		}
 	}
 
-	mailer := mail.New()
-	if mail.MakeVerityIdentityMessage(mailer, email, code); err != nil {
+	message, err := mail.MakeVerityIdentityMessage(email, code)
+	if err != nil {
 		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
+
+	mailer := mail.New(message)
 
 	if err := mailer.SendMail(); err != nil {
 		log.Errorf("mailer.SendMail error. %v", err)

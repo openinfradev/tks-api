@@ -118,10 +118,13 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	mailer := mail.New()
-	if mail.MakeTemporaryPasswordMessage(mailer, user.Email, randomPassword); err != nil {
+	message, err := mail.MakeTemporaryPasswordMessage(user.Email, randomPassword)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
+
+	mailer := mail.New(message)
 
 	if err := mailer.SendMail(); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -273,10 +276,12 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 		return nil, err
 	}
 
-	mailer := mail.New()
-	if mail.MakeGeneratingOrganizationMessage(mailer, orgainzationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword); err != nil {
+	message, err := mail.MakeGeneratingOrganizationMessage(orgainzationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
+	if err != nil {
 		return nil, httpErrors.NewInternalServerError(err, "", "")
 	}
+
+	mailer := mail.New(message)
 
 	if err := mailer.SendMail(); err != nil {
 		return nil, httpErrors.NewInternalServerError(err, "", "")
