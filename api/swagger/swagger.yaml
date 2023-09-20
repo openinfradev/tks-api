@@ -707,6 +707,8 @@ definitions:
       platform:
         type: string
       template:
+        type: string
+      templateType:
         enum:
         - STANDARD
         - MSA

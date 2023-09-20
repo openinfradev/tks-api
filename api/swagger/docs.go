@@ -4633,6 +4633,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "template": {
+                    "type": "string"
+                },
+                "templateType": {
                     "type": "string",
                     "enum": [
                         "STANDARD",

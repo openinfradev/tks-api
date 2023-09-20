@@ -148,7 +148,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.UpdateCloudAccount))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.DeleteCloudAccount))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.DeleteForceCloudAccount))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.GetResourceQuota))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quotas", authMiddleware.Handle(http.HandlerFunc(cloudAccountHandler.GetResourceQuota))).Methods(http.MethodGet)
 
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(repoFactory))
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", authMiddleware.Handle(http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
