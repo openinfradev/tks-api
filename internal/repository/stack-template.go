@@ -44,6 +44,7 @@ type StackTemplate struct {
 	Name           string       `gorm:"index"`
 	Description    string       `gorm:"index"`
 	Template       string
+	TemplateType   string
 	Version        string
 	CloudService   string
 	Platform       string
@@ -104,6 +105,7 @@ func (r *StackTemplateRepository) Create(dto domain.StackTemplate) (stackTemplat
 		CloudService:   dto.CloudService,
 		Platform:       dto.Platform,
 		Template:       dto.Template,
+		TemplateType:   dto.TemplateType,
 		CreatorId:      &dto.CreatorId,
 		UpdatorId:      nil}
 	res := r.db.Create(&stackTemplate)
