@@ -95,25 +95,35 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
+	// Check service quota
+	if err = u.checkAwsResourceQuota(ctx, cloudAccount); err != nil {
+		return "", err
+	}
+
+	// Make stack nodes
+	stackConf := domain.StackConfResponse{
+		TksCpNode:    dto.NodesIO.TksCpNode.Count,
+		TksInfraNode: dto.NodesIO.TksInfraNode.Count,
+		TksUserNode:  dto.NodesIO.TksUserNode.Count,
+	}
+
+	log.Info(stackConf)
+
 	workflow := ""
-	if strings.Contains(stackTemplate.Template, "aws-reference") || strings.Contains(stackTemplate.Template, "eks-reference") {
+	if stackTemplate.TemplateType == domain.STACK_TEMPLATE_TYPE_STANDARD && stackTemplate.CloudService == "AWS" {
 		workflow = "tks-stack-create-aws"
-	} else if strings.Contains(stackTemplate.Template, "aws-msa-reference") || strings.Contains(stackTemplate.Template, "eks-msa-reference") {
-		workflow = "tks-stack-create-aws-msa"
+	} else if stackTemplate.TemplateType == domain.STACK_TEMPLATE_TYPE_STANDARD && stackTemplate.CloudService == "BYOH" {
+		workflow = "tks-stack-create-byoh"
+	} else if stackTemplate.TemplateType == domain.STACK_TEMPLATE_TYPE_MSA && stackTemplate.CloudService == "AWS" {
+		workflow = "tks-stack-create-msa-aws"
+	} else if stackTemplate.TemplateType == domain.STACK_TEMPLATE_TYPE_MSA && stackTemplate.CloudService == "BYOH" {
+		workflow = "tks-stack-create-msa-byoh"
 	} else {
 		log.ErrorWithContext(ctx, "Invalid template  : ", stackTemplate.Template)
 		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template), "", "")
 	}
 
-	var stackConf domain.StackConfResponse
-	if err = serializer.Map(dto.Conf, &stackConf); err != nil {
-		log.InfoWithContext(ctx, err)
-	}
-
-	// Check service quota
-	if err = u.checkAwsResourceQuota(ctx, cloudAccount); err != nil {
-		return "", err
-	}
+	return
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
@@ -662,37 +672,48 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 	return
 }
 
-func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) domain.Stack {
-	status, statusDesc := getStackStatus(cluster, appGroups)
-	return domain.Stack{
-		ID:              domain.StackId(cluster.ID),
-		OrganizationId:  cluster.OrganizationId,
-		Name:            cluster.Name,
-		Description:     cluster.Description,
-		Status:          status,
-		StatusDesc:      statusDesc,
-		CloudAccountId:  cluster.CloudAccountId,
-		CloudAccount:    cluster.CloudAccount,
-		StackTemplateId: cluster.StackTemplateId,
-		StackTemplate:   cluster.StackTemplate,
-		CreatorId:       cluster.CreatorId,
-		Creator:         cluster.Creator,
-		UpdatorId:       cluster.UpdatorId,
-		Updator:         cluster.Updator,
-		CreatedAt:       cluster.CreatedAt,
-		UpdatedAt:       cluster.UpdatedAt,
-		Conf: domain.StackConf{
-			TksCpNode:        cluster.Conf.TksCpNode,
-			TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
-			TksCpNodeType:    cluster.Conf.TksCpNodeType,
-			TksInfraNode:     cluster.Conf.TksInfraNode,
-			TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
-			TksInfraNodeType: cluster.Conf.TksInfraNodeType,
-			TksUserNode:      cluster.Conf.TksUserNode,
-			TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
-			TksUserNodeType:  cluster.Conf.TksUserNodeType,
-		},
+func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) (out domain.Stack) {
+	if err := serializer.Map(cluster, &out); err != nil {
+		log.Error(err)
 	}
+	status, statusDesc := getStackStatus(cluster, appGroups)
+
+	out.ID = domain.StackId(cluster.ID)
+	out.Status = status
+	out.StatusDesc = statusDesc
+
+	/*
+		return domain.Stack{
+			ID:              domain.StackId(cluster.ID),
+			OrganizationId:  cluster.OrganizationId,
+			Name:            cluster.Name,
+			Description:     cluster.Description,
+			Status:          status,
+			StatusDesc:      statusDesc,
+			CloudAccountId:  cluster.CloudAccountId,
+			CloudAccount:    cluster.CloudAccount,
+			StackTemplateId: cluster.StackTemplateId,
+			StackTemplate:   cluster.StackTemplate,
+			CreatorId:       cluster.CreatorId,
+			Creator:         cluster.Creator,
+			UpdatorId:       cluster.UpdatorId,
+			Updator:         cluster.Updator,
+			CreatedAt:       cluster.CreatedAt,
+			UpdatedAt:       cluster.UpdatedAt,
+			Conf: domain.StackConf{
+				TksCpNode:        cluster.Conf.TksCpNode,
+				TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
+				TksCpNodeType:    cluster.Conf.TksCpNodeType,
+				TksInfraNode:     cluster.Conf.TksInfraNode,
+				TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
+				TksInfraNodeType: cluster.Conf.TksInfraNodeType,
+				TksUserNode:      cluster.Conf.TksUserNode,
+				TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
+				TksUserNodeType:  cluster.Conf.TksUserNodeType,
+			},
+		}
+	*/
+	return
 }
 
 // [TODO] more pretty

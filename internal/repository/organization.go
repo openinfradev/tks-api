@@ -166,6 +166,9 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 }
 
 func (r *OrganizationRepository) reflect(organization Organization) (out domain.Organization) {
+	if err := serializer.Map(organization.Model, &out); err != nil {
+		log.Error(err)
+	}
 	if err := serializer.Map(organization, &out); err != nil {
 		log.Error(err)
 	}

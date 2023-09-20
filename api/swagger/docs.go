@@ -2114,6 +2114,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get resource quota by cloudAccount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudAccounts"
+                ],
+                "summary": "Get resource quota by cloudAccount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetCloudAccountResourceQuotaResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboard/charts": {
             "get": {
                 "security": [
@@ -4533,9 +4577,8 @@ const docTemplate = `{
             "required": [
                 "cloudAccountId",
                 "name",
-                "stackTemplateId",
-                "tksInfraNode",
-                "tksUserNode"
+                "nodes",
+                "stackTemplateId"
             ],
             "properties": {
                 "cloudAccountId": {
@@ -4547,38 +4590,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "nodes": {
+                    "$ref": "#/definitions/domain.StackNodesIO"
+                },
                 "stackTemplateId": {
-                    "type": "string"
-                },
-                "tksCpNode": {
-                    "type": "integer"
-                },
-                "tksCpNodeMax": {
-                    "type": "integer"
-                },
-                "tksCpNodeType": {
-                    "type": "string"
-                },
-                "tksInfraNode": {
-                    "type": "integer",
-                    "maximum": 3,
-                    "minimum": 1
-                },
-                "tksInfraNodeMax": {
-                    "type": "integer"
-                },
-                "tksInfraNodeType": {
-                    "type": "string"
-                },
-                "tksUserNode": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 0
-                },
-                "tksUserNodeMax": {
-                    "type": "integer"
-                },
-                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4618,7 +4633,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "template": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "STANDARD",
+                        "MSA"
+                    ]
                 },
                 "version": {
                     "type": "string"
@@ -4963,6 +4982,17 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.ApplicationResponse"
                     }
+                }
+            }
+        },
+        "domain.GetCloudAccountResourceQuotaResponse": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "resourceQuota": {
+                    "$ref": "#/definitions/domain.ResourceQuota"
                 }
             }
         },
@@ -5426,6 +5456,34 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.ResourceQuota": {
+            "type": "object",
+            "properties": {
+                "quotas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ResourceQuotaAttr"
+                    }
+                }
+            }
+        },
+        "domain.ResourceQuotaAttr": {
+            "type": "object",
+            "properties": {
+                "quota": {
+                    "type": "integer"
+                },
+                "required": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "usage": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.Role": {
             "type": "object",
             "properties": {
@@ -5574,6 +5632,34 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.StackNodeIO": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "hostNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "domain.StackNodesIO": {
+            "type": "object",
+            "properties": {
+                "tksCpNode": {
+                    "$ref": "#/definitions/domain.StackNodeIO"
+                },
+                "tksInfraNode": {
+                    "$ref": "#/definitions/domain.StackNodeIO"
+                },
+                "tksUserNode": {
+                    "$ref": "#/definitions/domain.StackNodeIO"
+                }
+            }
+        },
         "domain.StackResponse": {
             "type": "object",
             "properties": {
@@ -5686,6 +5772,9 @@ const docTemplate = `{
                 "template": {
                     "type": "string"
                 },
+                "templateType": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
@@ -5737,6 +5826,9 @@ const docTemplate = `{
                     }
                 },
                 "template": {
+                    "type": "string"
+                },
+                "templateType": {
                     "type": "string"
                 },
                 "updatedAt": {

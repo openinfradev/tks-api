@@ -6,6 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
+const STACK_TEMPLATE_TYPE_STANDARD = "STANDARD"
+const STACK_TEMPLATE_TYPE_MSA = "MSA"
+
 // 내부
 type StackTemplate struct {
 	ID             uuid.UUID

@@ -136,6 +136,9 @@ func (r *StackTemplateRepository) Delete(dto domain.StackTemplate) (err error) {
 }
 
 func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate) {
+	if err := serializer.Map(stackTemplate.Model, &out); err != nil {
+		log.Error(err)
+	}
 	if err := serializer.Map(stackTemplate, &out); err != nil {
 		log.Error(err)
 	}
