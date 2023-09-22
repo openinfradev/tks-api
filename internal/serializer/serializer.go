@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"gorm.io/datatypes"
 )
 
 type ConverterMap map[compositeKey]func(interface{}) (interface{}, error)
@@ -18,13 +17,12 @@ type compositeKey struct {
 }
 
 func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) error {
-	// not support type
-	if _, ok := src.(datatypes.JSON); ok {
-		return nil
-	}
-
 	srcVal := reflect.ValueOf(src)
 	srcType := srcVal.Type()
+
+	if srcType.Kind() == reflect.Slice {
+		return fmt.Errorf("not support src type (Slice)")
+	}
 
 	dstVal := reflect.ValueOf(dst)
 	if dstVal.Kind() != reflect.Ptr || dstVal.IsNil() {

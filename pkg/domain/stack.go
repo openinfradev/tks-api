@@ -75,14 +75,14 @@ type Stack = struct {
 	Name            string
 	Description     string
 	OrganizationId  string
+	CloudService    string
 	CloudAccountId  uuid.UUID
 	CloudAccount    CloudAccount
 	StackTemplateId uuid.UUID
 	StackTemplate   StackTemplate
 	Status          StackStatus
 	StatusDesc      string
-	Nodes           []StackNode
-	NodesIO         StackNodesIO
+	Conf            StackConf
 	PrimaryCluster  bool
 	GrafanaUrl      string
 	CreatorId       *uuid.UUID
@@ -93,6 +93,17 @@ type Stack = struct {
 	UpdatedAt       time.Time
 }
 
+type StackConf struct {
+	TksCpNode        int
+	TksCpNodeMax     int
+	TksCpNodeType    string
+	TksInfraNode     int
+	TksInfraNodeMax  int
+	TksInfraNodeType string
+	TksUserNode      int
+	TksUserNodeMax   int
+	TksUserNodeType  string
+}
 type StackStepStatus struct {
 	Status  string `json:"status"`
 	Stage   string `json:"stage"`
@@ -100,28 +111,21 @@ type StackStepStatus struct {
 	MaxStep int    `json:"maxStep"`
 }
 
-type StackNode struct {
-	StackNodeType string `json:"type" validate:"oneof=TKS_CP_NODE TKS_INFRA_NODE TKS_USER_NODE"`
-	HostName      []string
-}
-
-type StackNodeIO struct {
-	Count    int      `json:"count"`
-	HostName []string `json:"hostNames"`
-}
-
-type StackNodesIO struct {
-	TksCpNode    StackNodeIO `json:"tksCpNode"`
-	TksInfraNode StackNodeIO `json:"tksInfraNode"`
-	TksUserNode  StackNodeIO `json:"tksUserNode"`
-}
-
 type CreateStackRequest struct {
-	Name            string       `json:"name" validate:"required,name,rfc1123"`
-	Description     string       `json:"description"`
-	StackTemplateId string       `json:"stackTemplateId" validate:"required"`
-	CloudAccountId  string       `json:"cloudAccountId" validate:"required"`
-	NodesIO         StackNodesIO `json:"nodes" validate:"required"`
+	Name             string `json:"name" validate:"required,name,rfc1123"`
+	Description      string `json:"description"`
+	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
+	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
+	TksCpNode        int    `json:"tksCpNode"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int    `json:"tksInfraNode"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int    `json:"tksUserNode"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
 }
 
 type CreateStackResponse struct {

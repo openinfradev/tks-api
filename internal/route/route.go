@@ -166,6 +166,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", authMiddleware.Handle(http.HandlerFunc(stackHandler.DeleteStack))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/kube-config", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackKubeConfig))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/status", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackStatus))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.SetFavorite))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.DeleteFavorite))).Methods(http.MethodDelete)
 
 	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory, cache))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", authMiddleware.Handle(http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)

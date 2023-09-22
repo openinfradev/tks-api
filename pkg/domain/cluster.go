@@ -50,9 +50,32 @@ func (m ClusterStatus) FromString(s string) ClusterStatus {
 	return ClusterStatus_PENDING
 }
 
+type ClusterType int32
+
+const (
+	ClusterType_USER = iota
+	ClusterType_ADMIN
+)
+
+var clusterType = [...]string{
+	"USER",
+	"ADMIN",
+}
+
+func (m ClusterType) String() string { return clusterType[(m)] }
+func (m ClusterType) FromString(s string) ClusterType {
+	for i, v := range clusterType {
+		if v == s {
+			return ClusterType(i)
+		}
+	}
+	return ClusterType_USER
+}
+
 // model
 type Cluster struct {
 	ID              ClusterId
+	CloudService    string
 	OrganizationId  string
 	Name            string
 	Description     string
@@ -65,6 +88,7 @@ type Cluster struct {
 	Conf            ClusterConf
 	CreatorId       *uuid.UUID
 	Creator         User
+	ClusterType     ClusterType
 	UpdatorId       *uuid.UUID
 	Updator         User
 	CreatedAt       time.Time
@@ -110,10 +134,12 @@ func (m *ClusterConf) SetDefault() {
 
 type CreateClusterRequest struct {
 	OrganizationId   string `json:"organizationId" validate:"required"`
+	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
 	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
 	Name             string `json:"name" validate:"required,name"`
 	Description      string `json:"description"`
 	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
+	ClusterType      string `json:"clusterType"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
@@ -143,6 +169,7 @@ type ClusterConfResponse struct {
 
 type ClusterResponse struct {
 	ID             ClusterId                   `json:"id"`
+	CloudService   string                      `json:"cloudService"`
 	OrganizationId string                      `json:"organizationId"`
 	Name           string                      `json:"name"`
 	Description    string                      `json:"description"`
@@ -151,6 +178,7 @@ type ClusterResponse struct {
 	Status         string                      `json:"status"`
 	StatusDesc     string                      `json:"statusDesc"`
 	Conf           ClusterConfResponse         `json:"conf"`
+	ClusterType    string                      `json:"clusterType"`
 	Creator        SimpleUserResponse          `json:"creator"`
 	Updator        SimpleUserResponse          `json:"updator"`
 	CreatedAt      time.Time                   `json:"createdAt"`

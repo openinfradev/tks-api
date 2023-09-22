@@ -159,6 +159,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// [TODO] set default value
+	dto.ClusterType = domain.ClusterType_USER
 	dto.Conf.SetDefault()
 	log.InfoWithContext(r.Context(), dto.Conf)
 

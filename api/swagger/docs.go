@@ -2879,6 +2879,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/{stackId}/favorite": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Set favorite stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Set favorite stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete favorite stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Delete favorite stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
@@ -4118,6 +4198,12 @@ const docTemplate = `{
                 "cloudAccountId": {
                     "type": "string"
                 },
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusterType": {
+                    "type": "integer"
+                },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConf"
                 },
@@ -4234,6 +4320,12 @@ const docTemplate = `{
             "properties": {
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
+                },
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusterType": {
+                    "type": "string"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConfResponse"
@@ -4492,12 +4584,23 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "cloudAccountId",
+                "cloudService",
                 "name",
                 "organizationId",
                 "stackTemplateId"
             ],
             "properties": {
                 "cloudAccountId": {
+                    "type": "string"
+                },
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "BYOH"
+                    ]
+                },
+                "clusterType": {
                     "type": "string"
                 },
                 "description": {
@@ -4576,13 +4679,20 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "cloudAccountId",
+                "cloudService",
                 "name",
-                "nodes",
                 "stackTemplateId"
             ],
             "properties": {
                 "cloudAccountId": {
                     "type": "string"
+                },
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "BYOH"
+                    ]
                 },
                 "description": {
                     "type": "string"
@@ -4590,10 +4700,34 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "nodes": {
-                    "$ref": "#/definitions/domain.StackNodesIO"
-                },
                 "stackTemplateId": {
+                    "type": "string"
+                },
+                "tksCpNode": {
+                    "type": "integer"
+                },
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
+                    "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -5632,34 +5766,6 @@ const docTemplate = `{
                 },
                 "tksUserNodeType": {
                     "type": "string"
-                }
-            }
-        },
-        "domain.StackNodeIO": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "hostNames": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "domain.StackNodesIO": {
-            "type": "object",
-            "properties": {
-                "tksCpNode": {
-                    "$ref": "#/definitions/domain.StackNodeIO"
-                },
-                "tksInfraNode": {
-                    "$ref": "#/definitions/domain.StackNodeIO"
-                },
-                "tksUserNode": {
-                    "$ref": "#/definitions/domain.StackNodeIO"
                 }
             }
         },

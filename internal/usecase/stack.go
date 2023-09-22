@@ -31,6 +31,8 @@ type IStackUsecase interface {
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
 	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
+	SetFavorite(ctx context.Context, stackId domain.StackId) error
+	DeleteFavorite(ctx context.Context, stackId domain.StackId) error
 }
 
 type StackUsecase struct {
@@ -66,7 +68,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	_, err = u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
@@ -87,20 +89,19 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
 	// Make stack nodes
-	stackConf := domain.StackConfResponse{
-		TksCpNode:    dto.NodesIO.TksCpNode.Count,
-		TksInfraNode: dto.NodesIO.TksInfraNode.Count,
-		TksUserNode:  dto.NodesIO.TksUserNode.Count,
+	var stackConf domain.StackConfResponse
+	if err = domain.Map(dto.Conf, &stackConf); err != nil {
+		log.InfoWithContext(ctx, err)
 	}
 
 	workflow := ""
-	if stackTemplate.CloudService == "AWS" {
+	if dto.CloudService == "AWS" {
 		workflow = "tks-stack-create-aws"
-	} else if stackTemplate.CloudService == "BYOH" {
+	} else if dto.CloudService == "BYOH" {
 		workflow = "tks-stack-create-byoh"
 	} else {
-		log.ErrorWithContext(ctx, "Invalid template  : ", stackTemplate.Template)
-		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template), "", "")
+		log.ErrorWithContext(ctx, "Invalid cloud service  : ", dto.CloudService)
+		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid cloud service. %s", dto.CloudService), "", "")
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
@@ -327,21 +328,21 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	}
 
 	workflow := ""
-	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+	if cluster.CloudService == "AWS" {
 		workflow = "tks-stack-delete-aws"
-	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
-		workflow = "tks-stack-delete-aws-msa"
+	} else if cluster.CloudService == "BYOH" {
+		workflow = "tks-stack-delete-byoh"
 	} else {
-		log.ErrorWithContext(ctx, "Invalid template  : ", cluster.StackTemplate.Template)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stack-template %s", cluster.StackTemplate.Template), "", "")
+		log.ErrorWithContext(ctx, "Invalid cluodService  : ", cluster.CloudService)
+		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid cloudService. %s", cluster.CloudService), "", "")
 	}
-
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"organization_id=" + dto.OrganizationId,
 			"cluster_id=" + dto.ID.String(),
 			"cloud_account_id=" + cluster.CloudAccount.ID.String(),
+			"stack_template_id=" + cluster.StackTemplate.ID.String(),
 		},
 	})
 	if err != nil {
@@ -486,6 +487,34 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 	}
 
 	return
+}
+
+func (u *StackUsecase) SetFavorite(ctx context.Context, stackId domain.StackId) error {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	err := u.clusterRepo.SetFavorite(domain.ClusterId(stackId), user.GetUserId())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *StackUsecase) DeleteFavorite(ctx context.Context, stackId domain.StackId) error {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	err := u.clusterRepo.DeleteFavorite(domain.ClusterId(stackId), user.GetUserId())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) (out domain.Stack) {

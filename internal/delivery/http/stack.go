@@ -368,3 +368,57 @@ func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
+
+// SetFavorite godoc
+// @Tags Stacks
+// @Summary Set favorite stack
+// @Description Set favorite stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/stacks/{stackId}/favorite [post]
+// @Security     JWT
+func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.SetFavorite(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// DeleteFavorite godoc
+// @Tags Stacks
+// @Summary Delete favorite stack
+// @Description Delete favorite stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/stacks/{stackId}/favorite [delete]
+// @Security     JWT
+func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.DeleteFavorite(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
