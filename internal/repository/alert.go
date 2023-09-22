@@ -57,7 +57,7 @@ type Alert struct {
 	CheckPoint     string
 	GrafanaUrl     string
 	Summary        string
-	AlertActions   []AlertAction `gorm:"foreignKey:AlertId"`
+	AlertActions   []AlertAction
 	RawData        datatypes.JSON
 	Status         domain.AlertActionStatus `gorm:"index"`
 }
@@ -222,8 +222,15 @@ func reflectAlert(alert Alert) (out domain.Alert) {
 	}
 
 	out.AlertActions = make([]domain.AlertAction, len(alert.AlertActions))
-	if err := serializer.Map(alert.AlertActions, &out.AlertActions); err != nil {
-		log.Error(err)
+	for i, alertAction := range alert.AlertActions {
+		if err := serializer.Map(alertAction.Model, &out.AlertActions[i]); err != nil {
+			log.Error(err)
+			continue
+		}
+		if err := serializer.Map(alertAction, &out.AlertActions[i]); err != nil {
+			log.Error(err)
+			continue
+		}
 	}
 	return
 }

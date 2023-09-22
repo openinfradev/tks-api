@@ -362,6 +362,10 @@ definitions:
         $ref: '#/definitions/domain.CloudAccount'
       cloudAccountId:
         type: string
+      cloudService:
+        type: string
+      clusterType:
+        type: integer
       conf:
         $ref: '#/definitions/domain.ClusterConf'
       createdAt:
@@ -439,6 +443,10 @@ definitions:
     properties:
       cloudAccount:
         $ref: '#/definitions/domain.SimpleCloudAccountResponse'
+      cloudService:
+        type: string
+      clusterType:
+        type: string
       conf:
         $ref: '#/definitions/domain.ClusterConfResponse'
       createdAt:
@@ -616,6 +624,13 @@ definitions:
     properties:
       cloudAccountId:
         type: string
+      cloudService:
+        enum:
+        - AWS
+        - BYOH
+        type: string
+      clusterType:
+        type: string
       description:
         type: string
       name:
@@ -644,6 +659,7 @@ definitions:
         type: string
     required:
     - cloudAccountId
+    - cloudService
     - name
     - organizationId
     - stackTemplateId
@@ -673,18 +689,39 @@ definitions:
     properties:
       cloudAccountId:
         type: string
+      cloudService:
+        enum:
+        - AWS
+        - BYOH
+        type: string
       description:
         type: string
       name:
         type: string
-      nodes:
-        $ref: '#/definitions/domain.StackNodesIO'
       stackTemplateId:
+        type: string
+      tksCpNode:
+        type: integer
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
+        type: string
+      tksInfraNode:
+        type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     required:
     - cloudAccountId
+    - cloudService
     - name
-    - nodes
     - stackTemplateId
     type: object
   domain.CreateStackResponse:
@@ -1369,24 +1406,6 @@ definitions:
     required:
     - tksInfraNode
     - tksUserNode
-    type: object
-  domain.StackNodeIO:
-    properties:
-      count:
-        type: integer
-      hostNames:
-        items:
-          type: string
-        type: array
-    type: object
-  domain.StackNodesIO:
-    properties:
-      tksCpNode:
-        $ref: '#/definitions/domain.StackNodeIO'
-      tksInfraNode:
-        $ref: '#/definitions/domain.StackNodeIO'
-      tksUserNode:
-        $ref: '#/definitions/domain.StackNodeIO'
     type: object
   domain.StackResponse:
     properties:
@@ -3637,6 +3656,57 @@ paths:
       security:
       - JWT: []
       summary: Update Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/favorite:
+    delete:
+      consumes:
+      - application/json
+      description: Delete favorite stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete favorite stack
+      tags:
+      - Stacks
+    post:
+      consumes:
+      - application/json
+      description: Set favorite stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Set favorite stack
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/{stackId}/kube-config:
