@@ -6,6 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
+const STACK_TEMPLATE_TYPE_STANDARD = "STANDARD"
+const STACK_TEMPLATE_TYPE_MSA = "MSA"
+
 // 내부
 type StackTemplate struct {
 	ID             uuid.UUID
@@ -13,6 +16,7 @@ type StackTemplate struct {
 	Name           string
 	Description    string
 	Template       string
+	TemplateType   string
 	CloudService   string
 	Version        string
 	Platform       string
@@ -43,6 +47,7 @@ type StackTemplateResponse struct {
 	Name         string                         `json:"name"`
 	Description  string                         `json:"description"`
 	Template     string                         `json:"template"`
+	TemplateType string                         `json:"templateType"`
 	CloudService string                         `json:"cloudService"`
 	Version      string                         `json:"version"`
 	Platform     string                         `json:"platform"`
@@ -79,6 +84,7 @@ type CreateStackTemplateRequest struct {
 	Version      string `json:"version" validate:"required"`
 	Platform     string `json:"platform" validate:"required"`
 	Template     string `json:"template" validate:"required"`
+	TemplateType string `json:"templateType" validate:"oneof=STANDARD MSA"`
 }
 
 type CreateStackTemplateResponse struct {

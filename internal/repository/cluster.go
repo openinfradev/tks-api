@@ -255,6 +255,9 @@ func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) 
 }
 
 func reflectCluster(cluster Cluster) (out domain.Cluster) {
+	if err := serializer.Map(cluster.Model, &out); err != nil {
+		log.Error(err)
+	}
 	if err := serializer.Map(cluster, &out); err != nil {
 		log.Error(err)
 	}

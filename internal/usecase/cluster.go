@@ -152,20 +152,6 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
 
-	/***************************
-	 * Pre-process cluster conf *
-	 ***************************/
-	/*
-		clConf, err := u.constructClusterConf(&domain.ClusterConf{
-			Region:          dto.Conf.Region,
-			NumOfAz:         dto.Conf.NumOfAz,
-			SshKeyName:      "",
-			MachineType:     dto.Conf.MachineType,
-			MachineReplicas: dto.Conf.MachineReplicas,
-		},
-		)
-	*/
-
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 	clusterId, err = u.repo.Create(dto)

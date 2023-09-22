@@ -212,6 +212,9 @@ func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId)
 }
 
 func reflectAppGroup(appGroup AppGroup) (out domain.AppGroup) {
+	if err := serializer.Map(appGroup.Model, &out); err != nil {
+		log.Error(err)
+	}
 	if err := serializer.Map(appGroup, &out); err != nil {
 		log.Error(err)
 	}

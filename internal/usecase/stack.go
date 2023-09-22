@@ -6,16 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -80,7 +71,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
-	cloudAccount, err := u.cloudAccountRepo.Get(dto.CloudAccountId)
+	_, err = u.cloudAccountRepo.Get(dto.CloudAccountId)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
 	}
@@ -95,24 +86,21 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
+	// Make stack nodes
+	stackConf := domain.StackConfResponse{
+		TksCpNode:    dto.NodesIO.TksCpNode.Count,
+		TksInfraNode: dto.NodesIO.TksInfraNode.Count,
+		TksUserNode:  dto.NodesIO.TksUserNode.Count,
+	}
+
 	workflow := ""
-	if strings.Contains(stackTemplate.Template, "aws-reference") || strings.Contains(stackTemplate.Template, "eks-reference") {
+	if stackTemplate.CloudService == "AWS" {
 		workflow = "tks-stack-create-aws"
-	} else if strings.Contains(stackTemplate.Template, "aws-msa-reference") || strings.Contains(stackTemplate.Template, "eks-msa-reference") {
-		workflow = "tks-stack-create-aws-msa"
+	} else if stackTemplate.CloudService == "BYOH" {
+		workflow = "tks-stack-create-byoh"
 	} else {
 		log.ErrorWithContext(ctx, "Invalid template  : ", stackTemplate.Template)
 		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template), "", "")
-	}
-
-	var stackConf domain.StackConfResponse
-	if err = serializer.Map(dto.Conf, &stackConf); err != nil {
-		log.InfoWithContext(ctx, err)
-	}
-
-	// Check service quota
-	if err = u.checkAwsResourceQuota(ctx, cloudAccount); err != nil {
-		return "", err
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
@@ -159,168 +147,6 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 
 	return dto.ID, nil
-}
-
-func (u *StackUsecase) checkAwsResourceQuota(ctx context.Context, cloudAccount domain.CloudAccount) (err error) {
-	awsAccessKeyId, awsSecretAccessKey, _ := kubernetes.GetAwsSecret()
-	if err != nil || awsAccessKeyId == "" || awsSecretAccessKey == "" {
-		log.ErrorWithContext(ctx, err)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid aws secret."), "", "")
-	}
-
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
-			Value: aws.Credentials{
-				AccessKeyID: awsAccessKeyId, SecretAccessKey: awsSecretAccessKey,
-			},
-		}))
-	if err != nil {
-		log.ErrorWithContext(ctx, err)
-	}
-
-	stsSvc := sts.NewFromConfig(cfg)
-
-	if !strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-		log.InfoWithContext(ctx, "Use assume role. awsAccountId : ", cloudAccount.AwsAccountId)
-		creds := stscreds.NewAssumeRoleProvider(stsSvc, "arn:aws:iam::"+cloudAccount.AwsAccountId+":role/controllers.cluster-api-provider-aws.sigs.k8s.io")
-		cfg.Credentials = aws.NewCredentialsCache(creds)
-	}
-	client := servicequotas.NewFromConfig(cfg)
-
-	quotaMap := map[string]string{
-		"L-69A177A2": "elasticloadbalancing", // NLB
-		"L-E9E9831D": "elasticloadbalancing", // Classic
-		"L-A4707A72": "vpc",                  // IGW
-		"L-1194D53C": "eks",                  // Cluster
-		"L-0263D0A3": "ec2",                  // Elastic IP
-	}
-
-	// current usage
-	type CurrentUsage struct {
-		NLB     int
-		CLB     int
-		IGW     int
-		Cluster int
-		EIP     int
-	}
-
-	// get current usage
-	currentUsage := CurrentUsage{}
-	{
-		c := elasticloadbalancingv2.NewFromConfig(cfg)
-		pageSize := int32(100)
-		res, err := c.DescribeLoadBalancers(ctx, &elasticloadbalancingv2.DescribeLoadBalancersInput{
-			PageSize: &pageSize,
-		}, func(o *elasticloadbalancingv2.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, elb := range res.LoadBalancers {
-			switch elb.Type {
-			case "network":
-				currentUsage.NLB += 1
-			}
-		}
-	}
-
-	{
-		c := elasticloadbalancing.NewFromConfig(cfg)
-		pageSize := int32(100)
-		res, err := c.DescribeLoadBalancers(ctx, &elasticloadbalancing.DescribeLoadBalancersInput{
-			PageSize: &pageSize,
-		}, func(o *elasticloadbalancing.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-		currentUsage.CLB = len(res.LoadBalancerDescriptions)
-	}
-
-	{
-		c := ec2.NewFromConfig(cfg)
-		res, err := c.DescribeInternetGateways(ctx, &ec2.DescribeInternetGatewaysInput{}, func(o *ec2.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-		currentUsage.IGW = len(res.InternetGateways)
-	}
-
-	{
-		c := eks.NewFromConfig(cfg)
-		res, err := c.ListClusters(ctx, &eks.ListClustersInput{}, func(o *eks.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-		currentUsage.Cluster = len(res.Clusters)
-	}
-
-	{
-		c := ec2.NewFromConfig(cfg)
-		res, err := c.DescribeAddresses(ctx, &ec2.DescribeAddressesInput{}, func(o *ec2.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			log.ErrorWithContext(ctx, err)
-			return err
-		}
-		currentUsage.EIP = len(res.Addresses)
-	}
-
-	for key, val := range quotaMap {
-		res, err := getServiceQuota(client, key, val)
-		if err != nil {
-			return err
-		}
-		log.DebugfWithContext(ctx, "%s %s %v", *res.Quota.QuotaName, *res.Quota.QuotaCode, *res.Quota.Value)
-
-		quotaValue := int(*res.Quota.Value)
-
-		// stack 1개 생성하는데 필요한 quota
-		// Classic 1
-		// Network 5
-		// IGW 1
-		// EIP 3
-		// Cluster 1
-		switch key {
-		case "L-69A177A2": // NLB
-			log.InfofWithContext(ctx, "NLB : usage %d, quota %d", currentUsage.NLB, quotaValue)
-			if quotaValue < currentUsage.NLB+5 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (NLB). current[%d], quota[%d]", currentUsage.NLB, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-E9E9831D": // Classic
-			log.InfofWithContext(ctx, "CLB : usage %d, quota %d", currentUsage.CLB, quotaValue)
-			if quotaValue < currentUsage.CLB+1 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (Classic ELB). current[%d], quota[%d]", currentUsage.CLB, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-A4707A72": // IGW
-			log.InfofWithContext(ctx, "IGW : usage %d, quota %d", currentUsage.IGW, quotaValue)
-			if quotaValue < currentUsage.IGW+1 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (Internet Gateway). current[%d], quota[%d]", currentUsage.IGW, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-1194D53C": // Cluster
-			log.InfofWithContext(ctx, "Cluster : usage %d, quota %d", currentUsage.Cluster, quotaValue)
-			if quotaValue < currentUsage.Cluster+1 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (EKS cluster quota). current[%d], quota[%d]", currentUsage.Cluster, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-0263D0A3": // Elastic IP
-			log.InfofWithContext(ctx, "Elastic IP : usage %d, quota %d", currentUsage.EIP, quotaValue)
-			if quotaValue < currentUsage.EIP+3 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (Elastic IP). current[%d], quota[%d]", currentUsage.EIP, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		}
-
-	}
-
-	//return fmt.Errorf("Always return err")
-	return nil
 }
 
 func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {
@@ -662,37 +488,48 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 	return
 }
 
-func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) domain.Stack {
-	status, statusDesc := getStackStatus(cluster, appGroups)
-	return domain.Stack{
-		ID:              domain.StackId(cluster.ID),
-		OrganizationId:  cluster.OrganizationId,
-		Name:            cluster.Name,
-		Description:     cluster.Description,
-		Status:          status,
-		StatusDesc:      statusDesc,
-		CloudAccountId:  cluster.CloudAccountId,
-		CloudAccount:    cluster.CloudAccount,
-		StackTemplateId: cluster.StackTemplateId,
-		StackTemplate:   cluster.StackTemplate,
-		CreatorId:       cluster.CreatorId,
-		Creator:         cluster.Creator,
-		UpdatorId:       cluster.UpdatorId,
-		Updator:         cluster.Updator,
-		CreatedAt:       cluster.CreatedAt,
-		UpdatedAt:       cluster.UpdatedAt,
-		Conf: domain.StackConf{
-			TksCpNode:        cluster.Conf.TksCpNode,
-			TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
-			TksCpNodeType:    cluster.Conf.TksCpNodeType,
-			TksInfraNode:     cluster.Conf.TksInfraNode,
-			TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
-			TksInfraNodeType: cluster.Conf.TksInfraNodeType,
-			TksUserNode:      cluster.Conf.TksUserNode,
-			TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
-			TksUserNodeType:  cluster.Conf.TksUserNodeType,
-		},
+func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) (out domain.Stack) {
+	if err := serializer.Map(cluster, &out); err != nil {
+		log.Error(err)
 	}
+	status, statusDesc := getStackStatus(cluster, appGroups)
+
+	out.ID = domain.StackId(cluster.ID)
+	out.Status = status
+	out.StatusDesc = statusDesc
+
+	/*
+		return domain.Stack{
+			ID:              domain.StackId(cluster.ID),
+			OrganizationId:  cluster.OrganizationId,
+			Name:            cluster.Name,
+			Description:     cluster.Description,
+			Status:          status,
+			StatusDesc:      statusDesc,
+			CloudAccountId:  cluster.CloudAccountId,
+			CloudAccount:    cluster.CloudAccount,
+			StackTemplateId: cluster.StackTemplateId,
+			StackTemplate:   cluster.StackTemplate,
+			CreatorId:       cluster.CreatorId,
+			Creator:         cluster.Creator,
+			UpdatorId:       cluster.UpdatorId,
+			Updator:         cluster.Updator,
+			CreatedAt:       cluster.CreatedAt,
+			UpdatedAt:       cluster.UpdatedAt,
+			Conf: domain.StackConf{
+				TksCpNode:        cluster.Conf.TksCpNode,
+				TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
+				TksCpNodeType:    cluster.Conf.TksCpNodeType,
+				TksInfraNode:     cluster.Conf.TksInfraNode,
+				TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
+				TksInfraNodeType: cluster.Conf.TksInfraNodeType,
+				TksUserNode:      cluster.Conf.TksUserNode,
+				TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
+				TksUserNodeType:  cluster.Conf.TksUserNodeType,
+			},
+		}
+	*/
+	return
 }
 
 // [TODO] more pretty

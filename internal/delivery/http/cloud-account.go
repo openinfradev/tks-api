@@ -373,3 +373,43 @@ func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.R
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
+
+// GetResourceQuota godoc
+// @Tags CloudAccounts
+// @Summary Get resource quota by cloudAccount
+// @Description Get resource quota by cloudAccount
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param cloudAccountId path string true "cloudAccountId"
+// @Success 200 {object} domain.GetCloudAccountResourceQuotaResponse
+// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota [GET]
+// @Security     JWT
+func (h *CloudAccountHandler) GetResourceQuota(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["cloudAccountId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudAccountId"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		return
+	}
+
+	cloudAccountId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_CLOUD_ACCOUNT_ID", ""))
+		return
+	}
+
+	available, resourceQuota, err := h.usecase.GetResourceQuota(r.Context(), cloudAccountId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetCloudAccountResourceQuotaResponse
+	if err := serializer.Map(resourceQuota, &out.ResourceQuota); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+	out.Available = available
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}

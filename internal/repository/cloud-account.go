@@ -169,6 +169,9 @@ func (r *CloudAccountRepository) InitWorkflow(cloudAccountId uuid.UUID, workflow
 }
 
 func reflectCloudAccount(cloudAccount CloudAccount) (out domain.CloudAccount) {
+	if err := serializer.Map(cloudAccount.Model, &out); err != nil {
+		log.Error(err)
+	}
 	if err := serializer.Map(cloudAccount, &out); err != nil {
 		log.Error(err)
 	}

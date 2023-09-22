@@ -677,36 +677,15 @@ definitions:
         type: string
       name:
         type: string
+      nodes:
+        $ref: '#/definitions/domain.StackNodesIO'
       stackTemplateId:
-        type: string
-      tksCpNode:
-        type: integer
-      tksCpNodeMax:
-        type: integer
-      tksCpNodeType:
-        type: string
-      tksInfraNode:
-        maximum: 3
-        minimum: 1
-        type: integer
-      tksInfraNodeMax:
-        type: integer
-      tksInfraNodeType:
-        type: string
-      tksUserNode:
-        maximum: 100
-        minimum: 0
-        type: integer
-      tksUserNodeMax:
-        type: integer
-      tksUserNodeType:
         type: string
     required:
     - cloudAccountId
     - name
+    - nodes
     - stackTemplateId
-    - tksInfraNode
-    - tksUserNode
     type: object
   domain.CreateStackResponse:
     properties:
@@ -728,6 +707,11 @@ definitions:
       platform:
         type: string
       template:
+        type: string
+      templateType:
+        enum:
+        - STANDARD
+        - MSA
         type: string
       version:
         type: string
@@ -964,6 +948,13 @@ definitions:
         items:
           $ref: '#/definitions/domain.ApplicationResponse'
         type: array
+    type: object
+  domain.GetCloudAccountResourceQuotaResponse:
+    properties:
+      available:
+        type: boolean
+      resourceQuota:
+        $ref: '#/definitions/domain.ResourceQuota'
     type: object
   domain.GetCloudAccountResponse:
     properties:
@@ -1263,6 +1254,24 @@ definitions:
       value:
         type: integer
     type: object
+  domain.ResourceQuota:
+    properties:
+      quotas:
+        items:
+          $ref: '#/definitions/domain.ResourceQuotaAttr'
+        type: array
+    type: object
+  domain.ResourceQuotaAttr:
+    properties:
+      quota:
+        type: integer
+      required:
+        type: integer
+      type:
+        type: string
+      usage:
+        type: integer
+    type: object
   domain.Role:
     properties:
       createdAt:
@@ -1361,6 +1370,24 @@ definitions:
     - tksInfraNode
     - tksUserNode
     type: object
+  domain.StackNodeIO:
+    properties:
+      count:
+        type: integer
+      hostNames:
+        items:
+          type: string
+        type: array
+    type: object
+  domain.StackNodesIO:
+    properties:
+      tksCpNode:
+        $ref: '#/definitions/domain.StackNodeIO'
+      tksInfraNode:
+        $ref: '#/definitions/domain.StackNodeIO'
+      tksUserNode:
+        $ref: '#/definitions/domain.StackNodeIO'
+    type: object
   domain.StackResponse:
     properties:
       cloudAccount:
@@ -1435,6 +1462,8 @@ definitions:
         type: array
       template:
         type: string
+      templateType:
+        type: string
       updatedAt:
         type: string
       updator:
@@ -1469,6 +1498,8 @@ definitions:
           $ref: '#/definitions/domain.StackTemplateServiceResponse'
         type: array
       template:
+        type: string
+      templateType:
         type: string
       updatedAt:
         type: string
@@ -3094,6 +3125,34 @@ paths:
       security:
       - JWT: []
       summary: Delete Force CloudAccount
+      tags:
+      - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota:
+    get:
+      consumes:
+      - application/json
+      description: Get resource quota by cloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: cloudAccountId
+        in: path
+        name: cloudAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetCloudAccountResourceQuotaResponse'
+      security:
+      - JWT: []
+      summary: Get resource quota by cloudAccount
       tags:
       - CloudAccounts
   /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence:

@@ -214,6 +214,9 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 }
 
 func reflectAlert(alert Alert) (out domain.Alert) {
+	if err := serializer.Map(alert.Model, &out); err != nil {
+		log.Error(err)
+	}
 	if err := serializer.Map(alert, &out); err != nil {
 		log.Error(err)
 	}

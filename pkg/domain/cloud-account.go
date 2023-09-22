@@ -72,6 +72,17 @@ type CloudAccount struct {
 	UpdatedAt       time.Time
 }
 
+type ResourceQuotaAttr struct {
+	Type     string `json:"type"`
+	Usage    int    `json:"usage"`
+	Quota    int    `json:"quota"`
+	Required int    `json:"required"`
+}
+
+type ResourceQuota struct {
+	Quotas []ResourceQuotaAttr `json:"quotas"`
+}
+
 type CloudAccountResponse struct {
 	ID             string             `json:"id"`
 	OrganizationId string             `json:"organizationId"`
@@ -139,4 +150,9 @@ type CheckCloudAccountNameResponse struct {
 
 type CheckCloudAccountAwsAccountIdResponse struct {
 	Existed bool `json:"existed"`
+}
+
+type GetCloudAccountResourceQuotaResponse struct {
+	Available     bool          `json:"available"`
+	ResourceQuota ResourceQuota `json:"resourceQuota"`
 }
