@@ -19,9 +19,9 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
-	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/mail"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -182,7 +182,15 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = ses.SendEmailForTemporaryPassword(ses.Client, email, randomPassword); err != nil {
+	message, err := mail.MakeTemporaryPasswordMessage(email, randomPassword)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -230,7 +238,17 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
-	if err := ses.SendEmailForVerityIdentity(ses.Client, email, code); err != nil {
+
+	message, err := mail.MakeVerityIdentityMessage(email, code)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
+		log.Errorf("mailer.SendMail error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 

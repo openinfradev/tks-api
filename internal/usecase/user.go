@@ -7,9 +7,9 @@ import (
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/mail"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -118,7 +118,15 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = ses.SendEmailForTemporaryPassword(ses.Client, user.Email, randomPassword); err != nil {
+	message, err := mail.MakeTemporaryPasswordMessage(user.Email, randomPassword)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -267,8 +275,16 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 	if err != nil {
 		return nil, err
 	}
-	if err = ses.SendEmailForGeneratingOrganization(ses.Client, orgainzationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword); err != nil {
-		return nil, err
+
+	message, err := mail.MakeGeneratingOrganizationMessage(orgainzationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
+	if err != nil {
+		return nil, httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
+		return nil, httpErrors.NewInternalServerError(err, "", "")
 	}
 
 	return &resUser, nil

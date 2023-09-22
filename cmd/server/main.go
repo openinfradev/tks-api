@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/openinfradev/tks-api/internal/aws/ses"
-
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	_ "github.com/openinfradev/tks-api/api/swagger"
 	"github.com/openinfradev/tks-api/internal/database"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/mail"
 	"github.com/openinfradev/tks-api/internal/route"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -52,7 +51,14 @@ func init() {
 	flag.String("keycloak-password", "admin", "password of keycloak")
 	flag.String("keycloak-client-secret", keycloak.DefaultClientSecret, "realm of keycloak")
 
-	// aws ses
+	flag.String("mail-provider", "aws", "mail provider")
+	// mail (smtp)
+	flag.String("smtp-host", "", "smtp hosts")
+	flag.Int("smtp-port", 0, "smtp port")
+	flag.String("smtp-username", "", "smtp username")
+	flag.String("smtp-password", "", "smtp password")
+	flag.String("smtp-from-email", "", "smtp from email")
+	// mail (aws ses)
 	flag.String("aws-region", "ap-northeast-2", "region of aws ses")
 	flag.String("aws-access-key-id", "", "access key id of aws ses")
 	flag.String("aws-secret-access-key", "", "access key of aws ses")
@@ -127,7 +133,7 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to initialize keycloak : ", err)
 	}
-	err = ses.Initialize()
+	err = mail.Initialize()
 	if err != nil {
 		log.Fatal("failed to initialize ses : ", err)
 	}
