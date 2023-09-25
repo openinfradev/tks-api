@@ -49,6 +49,13 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if input.CloudService == domain.CloudService_BYOH {
+		if input.AdminClusterUrl == "" {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid adminClusterUrl"), "C_INVALID_ADMINCLUSTER_URL", ""))
+			return
+		}
+	}
+
 	var dto domain.Stack
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)

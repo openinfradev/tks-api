@@ -62,6 +62,7 @@ type Cluster struct {
 	StackTemplateId  uuid.UUID
 	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
 	Favorites        *[]ClusterFavorite
+	ByohHosts        *[]ClusterByohHost
 	ClusterType      domain.ClusterType `gorm:"default:0"`
 	TksCpNode        int
 	TksCpNodeMax     int
@@ -91,6 +92,14 @@ type ClusterFavorite struct {
 	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
 	UserId    uuid.UUID `gorm:"type:uuid"`
 	User      User      `gorm:"foreignKey:UserId"`
+}
+
+type ClusterByohHost struct {
+	ID        uuid.UUID `gorm:"primarykey"`
+	ClusterId domain.ClusterId
+	Cluster   Cluster `gorm:"foreignKey:ClusterId"`
+	Type      string
+	HostName  string
 }
 
 func (c *ClusterFavorite) BeforeCreate(tx *gorm.DB) (err error) {

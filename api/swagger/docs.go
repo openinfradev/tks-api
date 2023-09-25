@@ -4687,6 +4687,9 @@ const docTemplate = `{
                 "stackTemplateId"
             ],
             "properties": {
+                "adminClusterUrl": {
+                    "type": "string"
+                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -5775,6 +5778,9 @@ const docTemplate = `{
         "domain.StackResponse": {
             "type": "object",
             "properties": {
+                "adminClusterUrl": {
+                    "type": "string"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
