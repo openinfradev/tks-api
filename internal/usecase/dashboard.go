@@ -111,13 +111,13 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		cpu := u.getStackCpu(stackCpu.Data.Result, cluster.ID.String())
 
 		if cpu != "" {
-			cpu = cpu + " %"
+			cpu = cpu + "%"
 		}
 		if memory != "" {
-			memory = memory + " %"
+			memory = memory + "%"
 		}
 		if disk != "" {
-			disk = disk + " %"
+			disk = disk + "%"
 		}
 
 		dashboardStack.Cpu = cpu

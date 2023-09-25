@@ -89,6 +89,9 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&repository.ClusterFavorite{}); err != nil {
 		return err
 	}
+	if err := db.AutoMigrate(&repository.ClusterHost{}); err != nil {
+		return err
+	}
 
 	// Services
 	if err := db.AutoMigrate(&repository.AppGroup{}); err != nil {
