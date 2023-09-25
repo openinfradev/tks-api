@@ -226,7 +226,7 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 		return out, err
 	}
 
-	stackResources, err := u.dashbordUsecase.GetStacks(ctx, organizationId)
+	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, organizationId)
 
 	for _, cluster := range clusters {
 		appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
