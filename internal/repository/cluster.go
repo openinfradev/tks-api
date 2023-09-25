@@ -61,7 +61,8 @@ type Cluster struct {
 	CloudAccount     CloudAccount `gorm:"foreignKey:CloudAccountId"`
 	StackTemplateId  uuid.UUID
 	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
-	Favorite         *[]ClusterFavorite
+	Favorites        *[]ClusterFavorite
+	ByohHosts        *[]ClusterByohHost
 	ClusterType      domain.ClusterType `gorm:"default:0"`
 	TksCpNode        int
 	TksCpNodeMax     int
@@ -91,6 +92,14 @@ type ClusterFavorite struct {
 	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
 	UserId    uuid.UUID `gorm:"type:uuid"`
 	User      User      `gorm:"foreignKey:UserId"`
+}
+
+type ClusterByohHost struct {
+	ID        uuid.UUID `gorm:"primarykey"`
+	ClusterId domain.ClusterId
+	Cluster   Cluster `gorm:"foreignKey:ClusterId"`
+	Type      string
+	HostName  string
 }
 
 func (c *ClusterFavorite) BeforeCreate(tx *gorm.DB) (err error) {
@@ -315,6 +324,10 @@ func (r *ClusterRepository) DeleteFavorite(clusterId domain.ClusterId, userId uu
 }
 
 func reflectCluster(cluster Cluster) (out domain.Cluster) {
+	if err := serializer.Map(cluster.Model, &out); err != nil {
+		log.Error(err)
+	}
+
 	if err := serializer.Map(cluster, &out); err != nil {
 		log.Error(err)
 	}
@@ -322,5 +335,13 @@ func reflectCluster(cluster Cluster) (out domain.Cluster) {
 	if err := serializer.Map(cluster, &out.Conf); err != nil {
 		log.Error(err)
 	}
+
+	if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+		out.Favorited = true
+
+	} else {
+		out.Favorited = false
+	}
+
 	return
 }

@@ -4212,6 +4212,9 @@
                 "description": {
                     "type": "string"
                 },
+                "favorited": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -4677,6 +4680,9 @@
                 "stackTemplateId"
             ],
             "properties": {
+                "adminClusterUrl": {
+                    "type": "string"
+                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -5765,6 +5771,9 @@
         "domain.StackResponse": {
             "type": "object",
             "properties": {
+                "adminClusterUrl": {
+                    "type": "string"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
@@ -5779,6 +5788,9 @@
                 },
                 "description": {
                     "type": "string"
+                },
+                "favorited": {
+                    "type": "boolean"
                 },
                 "grafanaUrl": {
                     "type": "string"

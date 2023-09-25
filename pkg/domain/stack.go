@@ -91,6 +91,8 @@ type Stack = struct {
 	Updator         User
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	Favorited       bool
+	AdminClusterUrl string
 }
 
 type StackConf struct {
@@ -126,6 +128,7 @@ type CreateStackRequest struct {
 	TksUserNode      int    `json:"tksUserNode"`
 	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
 	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+	AdminClusterUrl  string `json:"adminClusterUrl,omitempty"`
 }
 
 type CreateStackResponse struct {
@@ -145,21 +148,23 @@ type StackConfResponse struct {
 }
 
 type StackResponse struct {
-	ID             StackId                     `json:"id"`
-	Name           string                      `json:"name"`
-	Description    string                      `json:"description"`
-	OrganizationId string                      `json:"organizationId"`
-	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate,omitempty"`
-	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount,omitempty"`
-	Status         string                      `json:"status"`
-	StatusDesc     string                      `json:"statusDesc"`
-	PrimaryCluster bool                        `json:"primaryCluster"`
-	Conf           StackConfResponse           `json:"conf"`
-	GrafanaUrl     string                      `json:"grafanaUrl"`
-	Creator        SimpleUserResponse          `json:"creator,omitempty"`
-	Updator        SimpleUserResponse          `json:"updator,omitempty"`
-	CreatedAt      time.Time                   `json:"createdAt"`
-	UpdatedAt      time.Time                   `json:"updatedAt"`
+	ID              StackId                     `json:"id"`
+	Name            string                      `json:"name"`
+	Description     string                      `json:"description"`
+	OrganizationId  string                      `json:"organizationId"`
+	StackTemplate   SimpleStackTemplateResponse `json:"stackTemplate,omitempty"`
+	CloudAccount    SimpleCloudAccountResponse  `json:"cloudAccount,omitempty"`
+	Status          string                      `json:"status"`
+	StatusDesc      string                      `json:"statusDesc"`
+	PrimaryCluster  bool                        `json:"primaryCluster"`
+	Conf            StackConfResponse           `json:"conf"`
+	GrafanaUrl      string                      `json:"grafanaUrl"`
+	Creator         SimpleUserResponse          `json:"creator,omitempty"`
+	Updator         SimpleUserResponse          `json:"updator,omitempty"`
+	Favorited       bool                        `json:"favorited"`
+	AdminClusterUrl string                      `json:"adminClusterUrl,omitempty"`
+	CreatedAt       time.Time                   `json:"createdAt"`
+	UpdatedAt       time.Time                   `json:"updatedAt"`
 }
 
 type GetStacksResponse struct {

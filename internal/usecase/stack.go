@@ -115,6 +115,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"creator=" + user.GetUserId().String(),
 			"base_repo_branch=" + viper.GetString("revision"),
 			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
+			"cloud_service=" + dto.CloudService,
 		},
 	})
 	if err != nil {

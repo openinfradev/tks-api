@@ -159,23 +159,42 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
-	// Call argo workflow
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
-		"create-tks-usercluster",
-		argowf.SubmitOptions{
-			Parameters: []string{
-				fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
-				"contract_id=" + dto.OrganizationId,
-				"cluster_id=" + clusterId.String(),
-				"site_name=" + clusterId.String(),
-				"template_name=" + stackTemplate.Template,
-				"git_account=" + viper.GetString("git-account"),
-				"creator=" + user.GetUserId().String(),
-				"cloud_account_id=" + tksCloudAccountId,
-				"base_repo_branch=" + viper.GetString("revision"),
-				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
-			},
-		})
+	workflowId := ""
+	if dto.CloudService == domain.CloudService_BYOH {
+		workflowId, err = u.argo.SumbitWorkflowFromWftpl(
+			"bootstrap-tks-usercluster",
+			argowf.SubmitOptions{
+				Parameters: []string{
+					fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
+					"contract_id=" + dto.OrganizationId,
+					"cluster_id=" + clusterId.String(),
+					"site_name=" + clusterId.String(),
+					"template_name=" + stackTemplate.Template,
+					"git_account=" + viper.GetString("git-account"),
+					"creator=" + user.GetUserId().String(),
+					"cloud_account_id=" + tksCloudAccountId,
+					"base_repo_branch=" + viper.GetString("revision"),
+					//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
+				},
+			})
+	} else {
+		workflowId, err = u.argo.SumbitWorkflowFromWftpl(
+			"create-tks-usercluster",
+			argowf.SubmitOptions{
+				Parameters: []string{
+					fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
+					"contract_id=" + dto.OrganizationId,
+					"cluster_id=" + clusterId.String(),
+					"site_name=" + clusterId.String(),
+					"template_name=" + stackTemplate.Template,
+					"git_account=" + viper.GetString("git-account"),
+					"creator=" + user.GetUserId().String(),
+					"cloud_account_id=" + tksCloudAccountId,
+					"base_repo_branch=" + viper.GetString("revision"),
+					//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
+				},
+			})
+	}
 	if err != nil {
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
