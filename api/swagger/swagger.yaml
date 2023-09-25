@@ -376,6 +376,8 @@ definitions:
         type: string
       description:
         type: string
+      favorited:
+        type: boolean
       id:
         type: string
       name:
@@ -1419,6 +1421,8 @@ definitions:
         $ref: '#/definitions/domain.SimpleUserResponse'
       description:
         type: string
+      favorited:
+        type: boolean
       grafanaUrl:
         type: string
       id:

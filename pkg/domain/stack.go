@@ -91,6 +91,7 @@ type Stack = struct {
 	Updator         User
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	Favorited       bool
 }
 
 type StackConf struct {
@@ -158,6 +159,7 @@ type StackResponse struct {
 	GrafanaUrl     string                      `json:"grafanaUrl"`
 	Creator        SimpleUserResponse          `json:"creator,omitempty"`
 	Updator        SimpleUserResponse          `json:"updator,omitempty"`
+	Favorited      bool                        `json:"favorited"`
 	CreatedAt      time.Time                   `json:"createdAt"`
 	UpdatedAt      time.Time                   `json:"updatedAt"`
 }

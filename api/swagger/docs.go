@@ -4219,6 +4219,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "favorited": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -5786,6 +5789,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "favorited": {
+                    "type": "boolean"
                 },
                 "grafanaUrl": {
                     "type": "string"

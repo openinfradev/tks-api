@@ -4212,6 +4212,9 @@
                 "description": {
                     "type": "string"
                 },
+                "favorited": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -5779,6 +5782,9 @@
                 },
                 "description": {
                     "type": "string"
+                },
+                "favorited": {
+                    "type": "boolean"
                 },
                 "grafanaUrl": {
                     "type": "string"

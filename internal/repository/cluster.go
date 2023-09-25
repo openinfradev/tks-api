@@ -61,7 +61,7 @@ type Cluster struct {
 	CloudAccount     CloudAccount `gorm:"foreignKey:CloudAccountId"`
 	StackTemplateId  uuid.UUID
 	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
-	Favorite         *[]ClusterFavorite
+	Favorites        *[]ClusterFavorite
 	ClusterType      domain.ClusterType `gorm:"default:0"`
 	TksCpNode        int
 	TksCpNodeMax     int
@@ -315,6 +315,10 @@ func (r *ClusterRepository) DeleteFavorite(clusterId domain.ClusterId, userId uu
 }
 
 func reflectCluster(cluster Cluster) (out domain.Cluster) {
+	if err := serializer.Map(cluster.Model, &out); err != nil {
+		log.Error(err)
+	}
+
 	if err := serializer.Map(cluster, &out); err != nil {
 		log.Error(err)
 	}
@@ -322,5 +326,13 @@ func reflectCluster(cluster Cluster) (out domain.Cluster) {
 	if err := serializer.Map(cluster, &out.Conf); err != nil {
 		log.Error(err)
 	}
+
+	if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+		out.Favorited = true
+
+	} else {
+		out.Favorited = false
+	}
+
 	return
 }

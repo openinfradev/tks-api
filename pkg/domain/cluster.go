@@ -86,6 +86,7 @@ type Cluster struct {
 	Status          ClusterStatus
 	StatusDesc      string
 	Conf            ClusterConf
+	Favorited       bool
 	CreatorId       *uuid.UUID
 	Creator         User
 	ClusterType     ClusterType
