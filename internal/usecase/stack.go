@@ -43,9 +43,10 @@ type StackUsecase struct {
 	stackTemplateRepo repository.IStackTemplateRepository
 	appServeAppRepo   repository.IAppServeAppRepository
 	argo              argowf.ArgoClient
+	dashbordUsecase   IDashboardUsecase
 }
 
-func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) IStackUsecase {
+func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient, dashbordUsecase IDashboardUsecase) IStackUsecase {
 	return &StackUsecase{
 		clusterRepo:       r.Cluster,
 		appGroupRepo:      r.AppGroup,
@@ -54,6 +55,7 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) ISta
 		stackTemplateRepo: r.StackTemplate,
 		appServeAppRepo:   r.AppServeApp,
 		argo:              argoClient,
+		dashbordUsecase:   dashbordUsecase,
 	}
 }
 
@@ -224,6 +226,8 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 		return out, err
 	}
 
+	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, organizationId)
+
 	for _, cluster := range clusters {
 		appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
 		if err != nil {
@@ -246,6 +250,15 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 				}
 			}
 		}
+
+		for _, resource := range stackResources {
+			if resource.ID == domain.StackId(cluster.ID) {
+				if err := serializer.Map(resource, &outStack.Resource); err != nil {
+					log.Error(err)
+				}
+			}
+		}
+
 		out = append(out, outStack)
 	}
 

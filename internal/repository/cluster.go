@@ -62,7 +62,7 @@ type Cluster struct {
 	StackTemplateId  uuid.UUID
 	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
 	Favorites        *[]ClusterFavorite
-	ByohHosts        *[]ClusterByohHost
+	ByohHosts        *[]ClusterHost
 	ClusterType      domain.ClusterType `gorm:"default:0"`
 	TksCpNode        int
 	TksCpNodeMax     int
@@ -94,7 +94,7 @@ type ClusterFavorite struct {
 	User      User      `gorm:"foreignKey:UserId"`
 }
 
-type ClusterByohHost struct {
+type ClusterHost struct {
 	ID        uuid.UUID `gorm:"primarykey"`
 	ClusterId domain.ClusterId
 	Cluster   Cluster `gorm:"foreignKey:ClusterId"`

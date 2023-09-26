@@ -93,6 +93,7 @@ type Stack = struct {
 	UpdatedAt       time.Time
 	Favorited       bool
 	AdminClusterUrl string
+	Resource        DashboardStackResponse
 }
 
 type StackConf struct {
@@ -163,6 +164,7 @@ type StackResponse struct {
 	Updator         SimpleUserResponse          `json:"updator,omitempty"`
 	Favorited       bool                        `json:"favorited"`
 	AdminClusterUrl string                      `json:"adminClusterUrl,omitempty"`
+	Resource        DashboardStackResponse      `json:"resource,omitempty"`
 	CreatedAt       time.Time                   `json:"createdAt"`
 	UpdatedAt       time.Time                   `json:"updatedAt"`
 }

@@ -1437,6 +1437,8 @@ definitions:
         type: string
       primaryCluster:
         type: boolean
+      resource:
+        $ref: '#/definitions/domain.DashboardStackResponse'
       stackTemplate:
         $ref: '#/definitions/domain.SimpleStackTemplateResponse'
       status:

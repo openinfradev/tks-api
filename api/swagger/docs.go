@@ -5814,6 +5814,9 @@ const docTemplate = `{
                 "primaryCluster": {
                     "type": "boolean"
                 },
+                "resource": {
+                    "$ref": "#/definitions/domain.DashboardStackResponse"
+                },
                 "stackTemplate": {
                     "$ref": "#/definitions/domain.SimpleStackTemplateResponse"
                 },
