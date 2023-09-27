@@ -61,6 +61,33 @@ func (m StackStatus) FromString(s string) StackStatus {
 	return StackStatus_PENDING
 }
 
+type StackNodeStatus int32
+
+const (
+	StackNodeStatus_PENDING StackNodeStatus = iota
+
+	StackNodeStatus_REGISTERING
+	StackNodeStatus_REGISTERED
+
+	StackNodeStatus_RUNNING
+)
+
+var stackNodeStatus = [...]string{
+	"PENDING",
+	"INPROGRESS",
+	"COMPLETED",
+}
+
+func (m StackNodeStatus) String() string { return stackNodeStatus[(m)] }
+func (m StackNodeStatus) FromString(s string) StackNodeStatus {
+	for i, v := range stackNodeStatus {
+		if v == s {
+			return StackNodeStatus(i)
+		}
+	}
+	return StackNodeStatus_PENDING
+}
+
 const MAX_STEP_CLUSTER_CREATE = 15
 const MAX_STEP_CLUSTER_REMOVE = 11
 const MAX_STEP_LMA_CREATE_PRIMARY = 42
@@ -94,6 +121,7 @@ type Stack = struct {
 	Favorited       bool
 	AdminClusterUrl string
 	Resource        DashboardStackResponse
+	Nodes           StackNodeResponse
 }
 
 type StackConf struct {
@@ -169,6 +197,16 @@ type StackResponse struct {
 	UpdatedAt       time.Time                   `json:"updatedAt"`
 }
 
+type StackNodeResponse struct {
+	ID         string `json:"id"`
+	Type       string `json:"type"`
+	Targeted   int    `json:"targeted"`
+	Registered int    `json:"registered"`
+	Status     string `json:"status"`
+	Command    string `json:"command"`
+	Validity   int    `json:"validity"`
+}
+
 type GetStacksResponse struct {
 	Stacks     []StackResponse    `json:"stacks"`
 	Pagination PaginationResponse `json:"pagination"`
@@ -193,4 +231,9 @@ type GetStackKubeConfigResponse struct {
 type GetStackStatusResponse struct {
 	StackStatus string            `json:"stackStatus"`
 	StepStatus  []StackStepStatus `json:"stepStatus"`
+}
+
+type GetStackNodesResponse struct {
+	Nodes      []StackNodeResponse `json:"nodes"`
+	NodeStatus string              `json:"nodeStatus"`
 }
