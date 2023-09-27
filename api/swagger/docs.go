@@ -3003,6 +3003,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/{stackId}/nodes": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get nodes information for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Get nodes information for BYOH",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetStackNodesResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks/{stackId}/status": {
             "get": {
                 "security": [
@@ -5292,6 +5336,20 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetStackNodesResponse": {
+            "type": "object",
+            "properties": {
+                "nodeStatus": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackNodeResponse"
+                    }
+                }
+            }
+        },
         "domain.GetStackResponse": {
             "type": "object",
             "properties": {
@@ -5772,6 +5830,32 @@ const docTemplate = `{
                 },
                 "tksUserNodeType": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.StackNodeResponse": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "registered": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targeted": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validity": {
+                    "type": "integer"
                 }
             }
         },

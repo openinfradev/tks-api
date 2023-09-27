@@ -1095,6 +1095,15 @@ definitions:
       kubeConfig:
         type: string
     type: object
+  domain.GetStackNodesResponse:
+    properties:
+      nodeStatus:
+        type: string
+      nodes:
+        items:
+          $ref: '#/definitions/domain.StackNodeResponse'
+        type: array
+    type: object
   domain.GetStackResponse:
     properties:
       stack:
@@ -1410,6 +1419,23 @@ definitions:
     required:
     - tksInfraNode
     - tksUserNode
+    type: object
+  domain.StackNodeResponse:
+    properties:
+      command:
+        type: string
+      id:
+        type: string
+      registered:
+        type: integer
+      status:
+        type: string
+      targeted:
+        type: integer
+      type:
+        type: string
+      validity:
+        type: integer
     type: object
   domain.StackResponse:
     properties:
@@ -3745,6 +3771,34 @@ paths:
       security:
       - JWT: []
       summary: Get KubeConfig by stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/nodes:
+    get:
+      consumes:
+      - application/json
+      description: Get nodes information for BYOH
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetStackNodesResponse'
+      security:
+      - JWT: []
+      summary: Get nodes information for BYOH
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/{stackId}/status:

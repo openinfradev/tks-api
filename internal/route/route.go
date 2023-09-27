@@ -183,6 +183,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/status", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetStackStatus))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.SetFavorite))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.DeleteFavorite))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/nodes", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetNodes))).Methods(http.MethodGet)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets
