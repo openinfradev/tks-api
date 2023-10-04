@@ -4725,7 +4725,6 @@ const docTemplate = `{
         "domain.CreateStackRequest": {
             "type": "object",
             "required": [
-                "cloudAccountId",
                 "cloudService",
                 "name",
                 "stackTemplateId"
