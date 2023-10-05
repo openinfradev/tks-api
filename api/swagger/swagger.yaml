@@ -723,7 +723,6 @@ definitions:
       tksUserNodeType:
         type: string
     required:
-    - cloudAccountId
     - cloudService
     - name
     - stackTemplateId

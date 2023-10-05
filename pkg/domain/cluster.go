@@ -139,7 +139,7 @@ type CreateClusterRequest struct {
 	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
 	Name             string `json:"name" validate:"required,name"`
 	Description      string `json:"description"`
-	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
+	CloudAccountId   string `json:"cloudAccountId"`
 	ClusterType      string `json:"clusterType"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`

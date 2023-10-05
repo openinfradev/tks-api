@@ -164,10 +164,20 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	log.InfoWithContext(r.Context(), dto.Conf)
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
-	clusterId, err := h.usecase.Create(r.Context(), dto)
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
+	clusterId := domain.ClusterId("")
+	if input.CloudService == domain.CloudService_BYOH {
+		clusterId, err = h.usecase.CreateByoh(r.Context(), dto)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+	} else {
+		clusterId, err = h.usecase.Create(r.Context(), dto)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
 	}
 
 	var out domain.CreateClusterResponse

@@ -147,7 +147,7 @@ type CreateStackRequest struct {
 	Description      string `json:"description"`
 	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
 	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
-	CloudAccountId   string `json:"cloudAccountId" validate:"required"`
+	CloudAccountId   string `json:"cloudAccountId"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
