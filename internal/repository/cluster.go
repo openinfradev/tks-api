@@ -26,8 +26,10 @@ type IClusterRepository interface {
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Update(dto domain.Cluster) (err error)
 	Delete(id domain.ClusterId) error
+
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
 	InitWorkflowDescription(clusterId domain.ClusterId) error
+
 	SetFavorite(clusterId domain.ClusterId, userId uuid.UUID) error
 	DeleteFavorite(clusterId domain.ClusterId, userId uuid.UUID) error
 }
@@ -57,13 +59,13 @@ type Cluster struct {
 	WorkflowId       string
 	Status           domain.ClusterStatus
 	StatusDesc       string
-	CloudAccountId   uuid.UUID
+	CloudAccountId   *uuid.UUID
 	CloudAccount     CloudAccount `gorm:"foreignKey:CloudAccountId"`
 	StackTemplateId  uuid.UUID
 	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
 	Favorites        *[]ClusterFavorite
-	ByohHosts        *[]ClusterHost
 	ClusterType      domain.ClusterType `gorm:"default:0"`
+	ClusterEndpoint  string
 	TksCpNode        int
 	TksCpNodeMax     int
 	TksCpNodeType    string
@@ -92,14 +94,6 @@ type ClusterFavorite struct {
 	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
 	UserId    uuid.UUID `gorm:"type:uuid"`
 	User      User      `gorm:"foreignKey:UserId"`
-}
-
-type ClusterHost struct {
-	ID        uuid.UUID `gorm:"primarykey"`
-	ClusterId domain.ClusterId
-	Cluster   Cluster `gorm:"foreignKey:ClusterId"`
-	Type      string
-	HostName  string
 }
 
 func (c *ClusterFavorite) BeforeCreate(tx *gorm.DB) (err error) {
@@ -222,12 +216,14 @@ func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.Cluster
 		OrganizationId:   dto.OrganizationId,
 		Name:             dto.Name,
 		Description:      dto.Description,
-		CloudAccountId:   dto.CloudAccountId,
+		CloudAccountId:   &dto.CloudAccountId,
 		StackTemplateId:  dto.StackTemplateId,
 		CreatorId:        dto.CreatorId,
 		UpdatorId:        nil,
 		Status:           domain.ClusterStatus_PENDING,
 		ClusterType:      dto.ClusterType,
+		CloudService:     dto.CloudService,
+		ClusterEndpoint:  dto.ClusterEndpoint,
 		TksCpNode:        dto.Conf.TksCpNode,
 		TksCpNodeMax:     dto.Conf.TksCpNodeMax,
 		TksCpNodeType:    dto.Conf.TksCpNodeType,
@@ -335,6 +331,7 @@ func reflectCluster(cluster Cluster) (out domain.Cluster) {
 	if err := serializer.Map(cluster, &out.Conf); err != nil {
 		log.Error(err)
 	}
+	out.StackTemplate.Services = cluster.StackTemplate.Services
 
 	if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
 		out.Favorited = true

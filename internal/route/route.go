@@ -74,6 +74,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/ping", authHandler.PingToken).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", authMiddleware.Handle(http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/refresh", authMiddleware.Handle(http.HandlerFunc(authHandler.RefreshToken))).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id/verification", authHandler.FindId).Methods(http.MethodPost)

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -58,23 +59,10 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 	dto.OrganizationId = organizationId
 
-	stackId := domain.StackId("")
-	if input.CloudService == domain.CloudService_BYOH {
-		if input.AdminClusterUrl == "" {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid adminClusterUrl"), "C_INVALID_ADMINCLUSTER_URL", ""))
-			return
-		}
-		stackId, err = h.usecase.CreateByoh(r.Context(), dto)
-		if err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
-	} else {
-		stackId, err = h.usecase.Create(r.Context(), dto)
-		if err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
+	stackId, err := h.usecase.Create(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
 	}
 
 	out := domain.CreateStackResponse{
@@ -162,6 +150,11 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetStackResponse
 	if err := serializer.Map(stack, &out.Stack); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	err = json.Unmarshal(stack.StackTemplate.Services, &out.Stack.StackTemplate.Services)
+	if err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -463,39 +456,14 @@ func (h *StackHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// [TODO] for integration
-	out := domain.GetStackNodesResponse{
-		NodeStatus: "INPROGRESS",
-		Nodes: []domain.StackNodeResponse{
-			{
-				ID:         "1",
-				Type:       "TKS_CP_NODE",
-				Targeted:   3,
-				Registered: 1,
-				Status:     "INPROGRESS",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-			{
-				ID:         "2",
-				Type:       "TKS_INFRA_NODE",
-				Targeted:   0,
-				Registered: 0,
-				Status:     "PENDING",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-			{
-				ID:         "3",
-				Type:       "TKS_USER_NODE",
-				Targeted:   3,
-				Registered: 3,
-				Status:     "COMPLETED",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-		},
+	stack, err := h.usecase.GetNodes(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
 	}
+
+	var out domain.GetStackNodesResponse
+	out.Nodes = stack.Nodes
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

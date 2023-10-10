@@ -16,6 +16,7 @@ import (
 type IAuthHandler interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Logout(w http.ResponseWriter, r *http.Request)
+	PingToken(w http.ResponseWriter, r *http.Request)
 	RefreshToken(w http.ResponseWriter, r *http.Request)
 	FindId(w http.ResponseWriter, r *http.Request)
 	FindPassword(w http.ResponseWriter, r *http.Request)
@@ -255,4 +256,31 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 	out.ValidityPeriod = fmt.Sprintf("%.0f", internal.EmailCodeExpireTime.Seconds())
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Login godoc
+// @Tags Auth
+// @Summary ping with token
+// @Description ping with token
+// @Accept json
+// @Produce json
+// @Param body body domain.PingTokenRequest true "token info"
+// @Success 200 {object} nil
+// @Router /auth/ping [post]
+func (h *AuthHandler) PingToken(w http.ResponseWriter, r *http.Request) {
+	input := domain.PingTokenRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = h.usecase.PingToken(input.Token, input.OrganizationId)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }

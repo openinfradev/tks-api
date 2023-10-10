@@ -61,11 +61,12 @@ type StackTemplateResponse struct {
 }
 
 type SimpleStackTemplateResponse struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Description  string `json:"description"`
-	Template     string `json:"template"`
-	CloudService string `json:"cloudService"`
+	ID           string                         `json:"id"`
+	Name         string                         `json:"name"`
+	Description  string                         `json:"description"`
+	Template     string                         `json:"template"`
+	CloudService string                         `json:"cloudService"`
+	Services     []StackTemplateServiceResponse `json:"services"`
 }
 
 type GetStackTemplatesResponse struct {

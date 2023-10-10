@@ -7,6 +7,10 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
+const NODE_TYPE_TKS_CP_NODE = "TKS_CP_NODE"
+const NODE_TYPE_TKS_INFRA_NODE = "TKS_INFRA_NODE"
+const NODE_TYPE_TKS_USER_NODE = "TKS_USER_NODE"
+
 type ClusterId string
 
 func (c ClusterId) String() string {
@@ -28,6 +32,9 @@ const (
 	ClusterStatus_DELETED
 	ClusterStatus_INSTALL_ERROR
 	ClusterStatus_DELETE_ERROR
+	ClusterStatus_BOOTSTRAPPING
+	ClusterStatus_BOOTSTRAPPED
+	ClusterStatus_BOOTSTRAP_ERROR
 )
 
 var clusterStatus = [...]string{
@@ -38,6 +45,9 @@ var clusterStatus = [...]string{
 	"DELETED",
 	"INSTALL_ERROR",
 	"DELETE_ERROR",
+	"BOOTSTRAPPING",
+	"BOOTSTRAPPED",
+	"BOOTSTRAP_ERROR",
 }
 
 func (m ClusterStatus) String() string { return clusterStatus[(m)] }
@@ -94,6 +104,7 @@ type Cluster struct {
 	Updator         User
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	ClusterEndpoint string
 }
 
 type ClusterConf struct {
@@ -141,6 +152,7 @@ type CreateClusterRequest struct {
 	Description      string `json:"description"`
 	CloudAccountId   string `json:"cloudAccountId"`
 	ClusterType      string `json:"clusterType"`
+	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
@@ -169,21 +181,22 @@ type ClusterConfResponse struct {
 }
 
 type ClusterResponse struct {
-	ID             ClusterId                   `json:"id"`
-	CloudService   string                      `json:"cloudService"`
-	OrganizationId string                      `json:"organizationId"`
-	Name           string                      `json:"name"`
-	Description    string                      `json:"description"`
-	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount"`
-	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate"`
-	Status         string                      `json:"status"`
-	StatusDesc     string                      `json:"statusDesc"`
-	Conf           ClusterConfResponse         `json:"conf"`
-	ClusterType    string                      `json:"clusterType"`
-	Creator        SimpleUserResponse          `json:"creator"`
-	Updator        SimpleUserResponse          `json:"updator"`
-	CreatedAt      time.Time                   `json:"createdAt"`
-	UpdatedAt      time.Time                   `json:"updatedAt"`
+	ID              ClusterId                   `json:"id"`
+	CloudService    string                      `json:"cloudService"`
+	OrganizationId  string                      `json:"organizationId"`
+	Name            string                      `json:"name"`
+	Description     string                      `json:"description"`
+	CloudAccount    SimpleCloudAccountResponse  `json:"cloudAccount"`
+	StackTemplate   SimpleStackTemplateResponse `json:"stackTemplate"`
+	Status          string                      `json:"status"`
+	StatusDesc      string                      `json:"statusDesc"`
+	Conf            ClusterConfResponse         `json:"conf"`
+	ClusterType     string                      `json:"clusterType"`
+	Creator         SimpleUserResponse          `json:"creator"`
+	Updator         SimpleUserResponse          `json:"updator"`
+	CreatedAt       time.Time                   `json:"createdAt"`
+	UpdatedAt       time.Time                   `json:"updatedAt"`
+	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
 }
 
 type SimpleClusterResponse struct {

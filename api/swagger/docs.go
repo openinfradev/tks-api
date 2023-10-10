@@ -497,6 +497,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/ping": {
+            "post": {
+                "description": "ping with token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "ping with token",
+                "parameters": [
+                    {
+                        "description": "token info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PingTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/clusters": {
             "get": {
                 "security": [
@@ -4245,6 +4276,9 @@ const docTemplate = `{
                 "cloudService": {
                     "type": "string"
                 },
+                "clusterEndpoint": {
+                    "type": "string"
+                },
                 "clusterType": {
                     "type": "integer"
                 },
@@ -4409,6 +4443,9 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },
@@ -4630,7 +4667,6 @@ const docTemplate = `{
         "domain.CreateClusterRequest": {
             "type": "object",
             "required": [
-                "cloudAccountId",
                 "cloudService",
                 "name",
                 "organizationId",
@@ -4688,6 +4724,9 @@ const docTemplate = `{
                 },
                 "tksUserNodeType": {
                     "type": "string"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },
@@ -4730,9 +4769,6 @@ const docTemplate = `{
                 "stackTemplateId"
             ],
             "properties": {
-                "adminClusterUrl": {
-                    "type": "string"
-                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -4777,6 +4813,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "tksUserNodeType": {
+                    "type": "string"
+                },
+                "userClusterEndpoint": {
                     "type": "string"
                 }
             }
@@ -5338,13 +5377,10 @@ const docTemplate = `{
         "domain.GetStackNodesResponse": {
             "type": "object",
             "properties": {
-                "nodeStatus": {
-                    "type": "string"
-                },
                 "nodes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackNodeResponse"
+                        "$ref": "#/definitions/domain.StackNode"
                     }
                 }
             }
@@ -5645,6 +5681,21 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.PingTokenRequest": {
+            "type": "object",
+            "required": [
+                "organizationId",
+                "token"
+            ],
+            "properties": {
+                "organizationId": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.PodCount": {
             "type": "object",
             "properties": {
@@ -5773,6 +5824,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                    }
+                },
                 "template": {
                     "type": "string"
                 }
@@ -5832,16 +5889,33 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackNodeResponse": {
+        "domain.StackHost": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.StackNode": {
             "type": "object",
             "properties": {
                 "command": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "string"
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackHost"
+                    }
                 },
                 "registered": {
+                    "type": "integer"
+                },
+                "registering": {
                     "type": "integer"
                 },
                 "status": {
@@ -5861,9 +5935,6 @@ const docTemplate = `{
         "domain.StackResponse": {
             "type": "object",
             "properties": {
-                "adminClusterUrl": {
-                    "type": "string"
-                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
@@ -5914,6 +5985,9 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },

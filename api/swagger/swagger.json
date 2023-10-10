@@ -490,6 +490,37 @@
                 }
             }
         },
+        "/auth/ping": {
+            "post": {
+                "description": "ping with token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "ping with token",
+                "parameters": [
+                    {
+                        "description": "token info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PingTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/clusters": {
             "get": {
                 "security": [
@@ -4238,6 +4269,9 @@
                 "cloudService": {
                     "type": "string"
                 },
+                "clusterEndpoint": {
+                    "type": "string"
+                },
                 "clusterType": {
                     "type": "integer"
                 },
@@ -4402,6 +4436,9 @@
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },
@@ -4623,7 +4660,6 @@
         "domain.CreateClusterRequest": {
             "type": "object",
             "required": [
-                "cloudAccountId",
                 "cloudService",
                 "name",
                 "organizationId",
@@ -4681,6 +4717,9 @@
                 },
                 "tksUserNodeType": {
                     "type": "string"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },
@@ -4723,9 +4762,6 @@
                 "stackTemplateId"
             ],
             "properties": {
-                "adminClusterUrl": {
-                    "type": "string"
-                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -4770,6 +4806,9 @@
                     "type": "integer"
                 },
                 "tksUserNodeType": {
+                    "type": "string"
+                },
+                "userClusterEndpoint": {
                     "type": "string"
                 }
             }
@@ -5331,13 +5370,10 @@
         "domain.GetStackNodesResponse": {
             "type": "object",
             "properties": {
-                "nodeStatus": {
-                    "type": "string"
-                },
                 "nodes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackNodeResponse"
+                        "$ref": "#/definitions/domain.StackNode"
                     }
                 }
             }
@@ -5638,6 +5674,21 @@
                 }
             }
         },
+        "domain.PingTokenRequest": {
+            "type": "object",
+            "required": [
+                "organizationId",
+                "token"
+            ],
+            "properties": {
+                "organizationId": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.PodCount": {
             "type": "object",
             "properties": {
@@ -5766,6 +5817,12 @@
                 "name": {
                     "type": "string"
                 },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                    }
+                },
                 "template": {
                     "type": "string"
                 }
@@ -5825,16 +5882,33 @@
                 }
             }
         },
-        "domain.StackNodeResponse": {
+        "domain.StackHost": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.StackNode": {
             "type": "object",
             "properties": {
                 "command": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "string"
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackHost"
+                    }
                 },
                 "registered": {
+                    "type": "integer"
+                },
+                "registering": {
                     "type": "integer"
                 },
                 "status": {
@@ -5854,9 +5928,6 @@
         "domain.StackResponse": {
             "type": "object",
             "properties": {
-                "adminClusterUrl": {
-                    "type": "string"
-                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
@@ -5907,6 +5978,9 @@
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },

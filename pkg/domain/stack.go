@@ -35,6 +35,9 @@ const (
 	StackStatus_CLUSTER_DELETE_ERROR
 
 	StackStatus_RUNNING
+
+	StackStatus_CLUSTER_BOOTSTRAPING
+	StackStatus_CLUSTER_BOOTSTRAED
 )
 
 var stackStatus = [...]string{
@@ -49,6 +52,8 @@ var stackStatus = [...]string{
 	"CLUSTER_INSTALL_ERROR",
 	"CLUSTER_DELETE_ERROR",
 	"RUNNING",
+	"BOOTSTRAPING",
+	"BOOTSTRAPED",
 }
 
 func (m StackStatus) String() string { return stackStatus[(m)] }
@@ -59,33 +64,6 @@ func (m StackStatus) FromString(s string) StackStatus {
 		}
 	}
 	return StackStatus_PENDING
-}
-
-type StackNodeStatus int32
-
-const (
-	StackNodeStatus_PENDING StackNodeStatus = iota
-
-	StackNodeStatus_REGISTERING
-	StackNodeStatus_REGISTERED
-
-	StackNodeStatus_RUNNING
-)
-
-var stackNodeStatus = [...]string{
-	"PENDING",
-	"INPROGRESS",
-	"COMPLETED",
-}
-
-func (m StackNodeStatus) String() string { return stackNodeStatus[(m)] }
-func (m StackNodeStatus) FromString(s string) StackNodeStatus {
-	for i, v := range stackNodeStatus {
-		if v == s {
-			return StackNodeStatus(i)
-		}
-	}
-	return StackNodeStatus_PENDING
 }
 
 const MAX_STEP_CLUSTER_CREATE = 15
@@ -119,9 +97,9 @@ type Stack = struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	Favorited       bool
-	AdminClusterUrl string
+	ClusterEndpoint string
 	Resource        DashboardStackResponse
-	Nodes           StackNodeResponse
+	Nodes           []StackNode
 }
 
 type StackConf struct {
@@ -142,12 +120,29 @@ type StackStepStatus struct {
 	MaxStep int    `json:"maxStep"`
 }
 
+type StackHost struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type StackNode struct {
+	Type        string      `json:"type"`
+	Targeted    int         `json:"targeted"`
+	Registered  int         `json:"registered"`
+	Registering int         `json:"registering"`
+	Status      string      `json:"status"`
+	Command     string      `json:"command"`
+	Validity    int         `json:"validity"`
+	Hosts       []StackHost `json:"hosts"`
+}
+
 type CreateStackRequest struct {
 	Name             string `json:"name" validate:"required,name,rfc1123"`
 	Description      string `json:"description"`
 	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
 	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
 	CloudAccountId   string `json:"cloudAccountId"`
+	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
@@ -157,7 +152,6 @@ type CreateStackRequest struct {
 	TksUserNode      int    `json:"tksUserNode"`
 	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
 	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
-	AdminClusterUrl  string `json:"adminClusterUrl,omitempty"`
 }
 
 type CreateStackResponse struct {
@@ -191,20 +185,10 @@ type StackResponse struct {
 	Creator         SimpleUserResponse          `json:"creator,omitempty"`
 	Updator         SimpleUserResponse          `json:"updator,omitempty"`
 	Favorited       bool                        `json:"favorited"`
-	AdminClusterUrl string                      `json:"adminClusterUrl,omitempty"`
+	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
 	Resource        DashboardStackResponse      `json:"resource,omitempty"`
 	CreatedAt       time.Time                   `json:"createdAt"`
 	UpdatedAt       time.Time                   `json:"updatedAt"`
-}
-
-type StackNodeResponse struct {
-	ID         string `json:"id"`
-	Type       string `json:"type"`
-	Targeted   int    `json:"targeted"`
-	Registered int    `json:"registered"`
-	Status     string `json:"status"`
-	Command    string `json:"command"`
-	Validity   int    `json:"validity"`
 }
 
 type GetStacksResponse struct {
@@ -234,6 +218,5 @@ type GetStackStatusResponse struct {
 }
 
 type GetStackNodesResponse struct {
-	Nodes      []StackNodeResponse `json:"nodes"`
-	NodeStatus string              `json:"nodeStatus"`
+	Nodes []StackNode `json:"nodes"`
 }

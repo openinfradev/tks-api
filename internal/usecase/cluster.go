@@ -152,6 +152,9 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
+	if stackTemplate.CloudService != dto.CloudService {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService for stackTemplate "), "", "")
+	}
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
@@ -204,6 +207,10 @@ func (u *ClusterUsecase) CreateByoh(ctx context.Context, dto domain.Cluster) (cl
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
+	log.Infof("%s %s", stackTemplate.CloudService, dto.CloudService)
+	if stackTemplate.CloudService != dto.CloudService {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService for stackTemplate "), "", "")
+	}
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
@@ -234,7 +241,7 @@ func (u *ClusterUsecase) CreateByoh(ctx context.Context, dto domain.Cluster) (cl
 	}
 	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_BOOTSTRAPPING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
