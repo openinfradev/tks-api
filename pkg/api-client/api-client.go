@@ -79,31 +79,33 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 }
 
 func (c *ApiClientImpl) Post(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("POST", path, input)
+	return c.callWithBody("api", "POST", path, input)
 }
 
 func (c *ApiClientImpl) Delete(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("DELETE", path, input)
+	return c.callWithBody("api", "DELETE", path, input)
 }
 
 func (c *ApiClientImpl) Put(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("PUT", path, input)
+	return c.callWithBody("api", "PUT", path, input)
 }
 
 func (c *ApiClientImpl) Patch(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("PATCH", path, input)
+	return c.callWithBody("api", "PATCH", path, input)
 }
 
-func (c *ApiClientImpl) callWithBody(method string, path string, input interface{}) (out interface{}, err error) {
+func (c *ApiClientImpl) callWithBody(prefix string, method string, path string, input interface{}) (out interface{}, err error) {
 	pbytes, _ := json.Marshal(input)
 	buff := bytes.NewBuffer(pbytes)
 
-	req, err := http.NewRequest(method, fmt.Sprintf("%s/api/1.0/%s", c.url, path), buff)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s/%s/1.0/%s", c.url, prefix, path), buff)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	if prefix == "api" {
+		req.Header.Add("Authorization", "Bearer "+c.token)
+	}
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err

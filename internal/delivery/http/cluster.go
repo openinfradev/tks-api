@@ -131,7 +131,7 @@ func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Req
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// GetCluster godoc
+// CreateCluster godoc
 // @Tags Clusters
 // @Summary Create cluster
 // @Description Create cluster
@@ -166,7 +166,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId := domain.ClusterId("")
 	if input.CloudService == domain.CloudService_BYOH {
-		clusterId, err = h.usecase.CreateByoh(r.Context(), dto)
+		clusterId, err = h.usecase.Bootstrap(r.Context(), dto)
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -184,6 +184,33 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	out.ID = clusterId.String()
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// InstallCluster godoc
+// @Tags Clusters
+// @Summary Install cluster on tks cluster
+// @Description Install cluster on tks cluster
+// @Accept json
+// @Produce json
+// @Param clusterId path string true "clusterId"
+// @Success 200 {object} nil
+// @Router /clusters/{clusterId}/install [post]
+// @Security     JWT
+func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	err := h.usecase.Install(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // DeleteCluster godoc

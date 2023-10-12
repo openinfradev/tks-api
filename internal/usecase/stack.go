@@ -29,6 +29,7 @@ type IStackUsecase interface {
 	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
+	Install(ctx context.Context, stackId domain.StackId) (err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
@@ -90,7 +91,10 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 
 	if dto.CloudService == domain.CloudService_BYOH {
 		if dto.ClusterEndpoint == "" {
-			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid userClusterDomain"), "C_INVALID_ADMINCLUSTER_URL", "")
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid userClusterDomain"), "S_INVALID_ADMINCLUSTER_URL", "")
+		}
+		if dto.ClusterId == "" {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "S_INVALID_CLUSTER_ID", "")
 		}
 	} else {
 		if _, err = u.cloudAccountRepo.Get(dto.CloudAccountId); err != nil {
@@ -104,7 +108,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		log.InfoWithContext(ctx, err)
 	}
 
-	workflow := "tks-stack-create-aws"
+	workflow := "tks-stack-create"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
@@ -150,6 +154,61 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 
 	return dto.ID, nil
+}
+
+func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err error) {
+	cluster, err := u.Get(ctx, stackId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", "")
+	}
+
+	_, err = u.stackTemplateRepo.Get(cluster.StackTemplateId)
+	if err != nil {
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
+	}
+
+	clusters, err := u.clusterRepo.FetchByOrganizationId(cluster.OrganizationId, nil)
+	if err != nil {
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
+	}
+	isPrimary := false
+	if len(clusters) == 0 {
+		isPrimary = true
+	}
+	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
+
+	if cluster.CloudService != domain.CloudService_BYOH {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "S_INVALID_CLOUD_SERVICE", "")
+	}
+
+	// Make stack nodes
+	var stackConf domain.StackConfResponse
+	if err = domain.Map(cluster.Conf, &stackConf); err != nil {
+		log.InfoWithContext(ctx, err)
+	}
+
+	workflow := "tks-stack-create"
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+		Parameters: []string{
+			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
+			"cluster_name=" + cluster.Name,
+			"description=" + cluster.Description,
+			"organization_id=" + cluster.OrganizationId,
+			"cloud_account_id=NULL",
+			"stack_template_id=" + cluster.StackTemplateId.String(),
+			"creator=" + (*cluster.CreatorId).String(),
+			"base_repo_branch=" + viper.GetString("revision"),
+			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
+			"cloud_service=" + cluster.CloudService,
+		},
+	})
+	if err != nil {
+		log.ErrorWithContext(ctx, err)
+		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
+	}
+	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+
+	return nil
 }
 
 func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {

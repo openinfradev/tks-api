@@ -382,6 +382,8 @@ definitions:
         type: boolean
       id:
         type: string
+      isStack:
+        type: boolean
       name:
         type: string
       organizationId:
@@ -461,6 +463,8 @@ definitions:
         type: string
       id:
         type: string
+      isStack:
+        type: boolean
       name:
         type: string
       organizationId:
@@ -639,6 +643,8 @@ definitions:
         type: string
       description:
         type: string
+      isStack:
+        type: boolean
       name:
         type: string
       organizationId:
@@ -700,6 +706,8 @@ definitions:
         enum:
         - AWS
         - BYOH
+        type: string
+      clusterId:
         type: string
       description:
         type: string
@@ -2367,6 +2375,27 @@ paths:
       security:
       - JWT: []
       summary: Get cluster
+      tags:
+      - Clusters
+  /clusters/{clusterId}/install:
+    post:
+      consumes:
+      - application/json
+      description: Install cluster on tks cluster
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Install cluster on tks cluster
       tags:
       - Clusters
   /clusters/{clusterId}/site-values:

@@ -58,7 +58,6 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
-
 	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -70,6 +69,24 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// SYSTEM-API
+func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.Install(r.Context(), domain.StackId(stackId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // GetStack godoc

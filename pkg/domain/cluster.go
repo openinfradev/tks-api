@@ -105,6 +105,7 @@ type Cluster struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	ClusterEndpoint string
+	IsStack         bool
 }
 
 type ClusterConf struct {
@@ -153,6 +154,7 @@ type CreateClusterRequest struct {
 	CloudAccountId   string `json:"cloudAccountId"`
 	ClusterType      string `json:"clusterType"`
 	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
+	IsStack          bool   `json:"isStack,omitempty"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
@@ -197,6 +199,7 @@ type ClusterResponse struct {
 	CreatedAt       time.Time                   `json:"createdAt"`
 	UpdatedAt       time.Time                   `json:"updatedAt"`
 	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
+	IsStack         bool                        `json:"isStack,omitempty"`
 }
 
 type SimpleClusterResponse struct {
@@ -230,4 +233,9 @@ type GetClusterResponse struct {
 
 type GetClusterSiteValuesResponse struct {
 	ClusterSiteValues ClusterSiteValuesResponse `json:"clusterSiteValues"`
+}
+
+type InstallClusterRequest struct {
+	ClusterId      string `json:"clusterId" validate:"required"`
+	OrganizationId string `json:"organizationId" validate:"required"`
 }

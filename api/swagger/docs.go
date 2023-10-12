@@ -706,6 +706,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/clusters/{clusterId}/install": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Install cluster on tks cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Install cluster on tks cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/clusters/{clusterId}/site-values": {
             "get": {
                 "security": [
@@ -4303,6 +4337,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "isStack": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -4422,6 +4459,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -4689,6 +4729,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "isStack": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -4778,6 +4821,9 @@ const docTemplate = `{
                         "AWS",
                         "BYOH"
                     ]
+                },
+                "clusterId": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"

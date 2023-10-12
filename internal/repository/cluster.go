@@ -66,6 +66,7 @@ type Cluster struct {
 	Favorites        *[]ClusterFavorite
 	ClusterType      domain.ClusterType `gorm:"default:0"`
 	ClusterEndpoint  string
+	IsStack          bool `gorm:"default:false"`
 	TksCpNode        int
 	TksCpNodeMax     int
 	TksCpNodeType    string
@@ -224,6 +225,7 @@ func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.Cluster
 		ClusterType:      dto.ClusterType,
 		CloudService:     dto.CloudService,
 		ClusterEndpoint:  dto.ClusterEndpoint,
+		IsStack:          dto.IsStack,
 		TksCpNode:        dto.Conf.TksCpNode,
 		TksCpNodeMax:     dto.Conf.TksCpNodeMax,
 		TksCpNodeType:    dto.Conf.TksCpNodeType,

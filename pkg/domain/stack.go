@@ -79,6 +79,7 @@ type Stack = struct {
 	ID              StackId
 	Name            string
 	Description     string
+	ClusterId       string
 	OrganizationId  string
 	CloudService    string
 	CloudAccountId  uuid.UUID
@@ -139,6 +140,7 @@ type StackNode struct {
 type CreateStackRequest struct {
 	Name             string `json:"name" validate:"required,name,rfc1123"`
 	Description      string `json:"description"`
+	ClusterId        string `json:"clusterId"`
 	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
 	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
 	CloudAccountId   string `json:"cloudAccountId"`

@@ -113,8 +113,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware.Handle(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/site-values", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusterSiteValues))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware.Handle(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/site-values", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusterSiteValues))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/install", authMiddleware.Handle(http.HandlerFunc(clusterHandler.InstallCluster))).Methods(http.MethodPost)
 
 	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", authMiddleware.Handle(http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
@@ -185,6 +186,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.SetFavorite))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.DeleteFavorite))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/nodes", authMiddleware.Handle(http.HandlerFunc(stackHandler.GetNodes))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/install", authMiddleware.Handle(http.HandlerFunc(stackHandler.InstallStack))).Methods(http.MethodPost)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets
