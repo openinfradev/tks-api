@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -20,7 +19,6 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	byoh "github.com/vmware-tanzu/cluster-api-provider-bringyourownhost/apis/infrastructure/v1beta1"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +34,6 @@ type IStackUsecase interface {
 	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
 	SetFavorite(ctx context.Context, stackId domain.StackId) error
 	DeleteFavorite(ctx context.Context, stackId domain.StackId) error
-	GetNodes(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error)
 }
 
 type StackUsecase struct {
@@ -92,9 +89,6 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	if dto.CloudService == domain.CloudService_BYOH {
 		if dto.ClusterEndpoint == "" {
 			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid userClusterDomain"), "S_INVALID_ADMINCLUSTER_URL", "")
-		}
-		if dto.ClusterId == "" {
-			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "S_INVALID_CLUSTER_ID", "")
 		}
 	} else {
 		if _, err = u.cloudAccountRepo.Get(dto.CloudAccountId); err != nil {
@@ -187,19 +181,16 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 		log.InfoWithContext(ctx, err)
 	}
 
-	workflow := "tks-stack-create"
+	workflow := "tks-stack-install"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
-			"cluster_name=" + cluster.Name,
+			"cluster_id=" + cluster.ID.String(),
 			"description=" + cluster.Description,
 			"organization_id=" + cluster.OrganizationId,
-			"cloud_account_id=NULL",
 			"stack_template_id=" + cluster.StackTemplateId.String(),
 			"creator=" + (*cluster.CreatorId).String(),
 			"base_repo_branch=" + viper.GetString("revision"),
-			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
-			"cloud_service=" + cluster.CloudService,
 		},
 	})
 	if err != nil {
@@ -581,148 +572,6 @@ func (u *StackUsecase) DeleteFavorite(ctx context.Context, stackId domain.StackI
 	}
 
 	return nil
-}
-
-func (u *StackUsecase) GetNodes(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {
-	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
-		}
-		return out, err
-	}
-	if cluster.CloudService != domain.CloudService_BYOH {
-		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "", "")
-	}
-
-	client, err := kubernetes.GetClientAdminCluster()
-	if err != nil {
-		return out, err
-	}
-
-	hosts := byoh.ByoHostList{}
-	data, err := client.RESTClient().
-		Get().
-		AbsPath("/apis/infrastructure.cluster.x-k8s.io/v1beta1").
-		Namespace("default").
-		//Namespace(cluster.ID). [TODO]
-		Resource("byohosts").
-		DoRaw(ctx)
-
-	if err := json.Unmarshal(data, &hosts); err != nil {
-		return out, err
-	}
-
-	/* FOR DEBUG
-	for _, host := range hosts.Items {
-		log.Info(host.Name)
-		log.Info(host.Labels)
-		log.Info(host.Status.Conditions[0].Type)
-	}
-	*/
-
-	stackNodeStatus := func(targeted int, registered int) string {
-		if targeted <= registered {
-			return "COMPLETED"
-		}
-		return "INPROGRESS"
-	}
-
-	tksCpNodeRegistered, tksCpNodeRegistering, tksCpHosts := 0, 0, make([]domain.StackHost, 0)
-	tksInfraNodeRegistered, tksInfraNodeRegistering, tksInfraHosts := 0, 0, make([]domain.StackHost, 0)
-	tksUserNodeRegistered, tksUserNodeRegistering, tksUserHosts := 0, 0, make([]domain.StackHost, 0)
-	for _, host := range hosts.Items {
-		hostStatus := host.Status.Conditions[0].Type
-		registered, registering := 0, 0
-		if hostStatus == "K8sNodeBootstrapSucceeded" {
-			registered = 1
-		} else {
-			registering = 1
-		}
-
-		switch host.Labels["role"] {
-		case "tks":
-			tksCpNodeRegistered = tksCpNodeRegistered + registered
-			tksCpNodeRegistering = tksCpNodeRegistering + registering
-			tksCpHosts = append(tksCpHosts, domain.StackHost{Name: host.Name, Status: string(hostStatus)})
-		case "worker":
-			tksInfraNodeRegistered = tksInfraNodeRegistered + registered
-			tksInfraNodeRegistering = tksInfraNodeRegistering + registering
-			tksInfraHosts = append(tksInfraHosts, domain.StackHost{Name: host.Name, Status: string(hostStatus)})
-		case "3":
-			tksUserNodeRegistered = tksUserNodeRegistered + registered
-			tksUserNodeRegistering = tksUserNodeRegistering + registering
-			tksUserHosts = append(tksUserHosts, domain.StackHost{Name: host.Name, Status: string(hostStatus)})
-		}
-	}
-
-	out.Nodes = []domain.StackNode{
-		{
-			Type:        "TKS_CP_NODE",
-			Targeted:    cluster.Conf.TksCpNode,
-			Registered:  tksCpNodeRegistered,
-			Registering: tksCpNodeRegistering,
-			Status:      stackNodeStatus(cluster.Conf.TksCpNode, tksCpNodeRegistered),
-			Command:     "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-			Validity:    3600,
-			Hosts:       tksCpHosts,
-		},
-		{
-			Type:        "TKS_INFRA_NODE",
-			Targeted:    cluster.Conf.TksInfraNode,
-			Registered:  tksInfraNodeRegistered,
-			Registering: tksInfraNodeRegistering,
-			Status:      stackNodeStatus(cluster.Conf.TksInfraNode, tksUserNodeRegistered),
-			Command:     "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-tks-worker",
-			Validity:    3600,
-			Hosts:       tksInfraHosts,
-		},
-		{
-			Type:        "TKS_USER_NODE",
-			Targeted:    cluster.Conf.TksUserNode,
-			Registered:  tksUserNodeRegistered,
-			Registering: tksUserNodeRegistering,
-			Status:      stackNodeStatus(cluster.Conf.TksUserNode, tksUserNodeRegistered),
-			Command:     "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-user-worker",
-			Validity:    3600,
-			Hosts:       tksInfraHosts,
-		},
-	}
-
-	// [TODO] for integration
-	/*
-		out.Nodes = []domain.StackNodeResponse{
-			{
-				ID:         "1",
-				Type:       "TKS_CP_NODE",
-				Targeted:   3,
-				Registered: 1,
-				Status:     "INPROGRESS",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-			{
-				ID:         "2",
-				Type:       "TKS_INFRA_NODE",
-				Targeted:   0,
-				Registered: 0,
-				Status:     "PENDING",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-			{
-				ID:         "3",
-				Type:       "TKS_USER_NODE",
-				Targeted:   3,
-				Registered: 3,
-				Status:     "COMPLETED",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-		}
-	*/
-
-	return
 }
 
 func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) (out domain.Stack) {

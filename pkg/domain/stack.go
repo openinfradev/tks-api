@@ -100,7 +100,6 @@ type Stack = struct {
 	Favorited       bool
 	ClusterEndpoint string
 	Resource        DashboardStackResponse
-	Nodes           []StackNode
 }
 
 type StackConf struct {
@@ -119,22 +118,6 @@ type StackStepStatus struct {
 	Stage   string `json:"stage"`
 	Step    int    `json:"step"`
 	MaxStep int    `json:"maxStep"`
-}
-
-type StackHost struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
-}
-
-type StackNode struct {
-	Type        string      `json:"type"`
-	Targeted    int         `json:"targeted"`
-	Registered  int         `json:"registered"`
-	Registering int         `json:"registering"`
-	Status      string      `json:"status"`
-	Command     string      `json:"command"`
-	Validity    int         `json:"validity"`
-	Hosts       []StackHost `json:"hosts"`
 }
 
 type CreateStackRequest struct {
@@ -217,8 +200,4 @@ type GetStackKubeConfigResponse struct {
 type GetStackStatusResponse struct {
 	StackStatus string            `json:"stackStatus"`
 	StepStatus  []StackStepStatus `json:"stepStatus"`
-}
-
-type GetStackNodesResponse struct {
-	Nodes []StackNode `json:"nodes"`
 }

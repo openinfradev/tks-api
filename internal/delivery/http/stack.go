@@ -448,39 +448,3 @@ func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
 	}
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
-
-// GetNodes godoc
-// @Tags Stacks
-// @Summary Get nodes information for BYOH
-// @Description Get nodes information for BYOH
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} domain.GetStackNodesResponse
-// @Router /organizations/{organizationId}/stacks/{stackId}/nodes [get]
-// @Security     JWT
-func (h *StackHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	strId, ok := vars["stackId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-	stackId := domain.StackId(strId)
-	if !stackId.Validate() {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
-		return
-	}
-
-	stack, err := h.usecase.GetNodes(r.Context(), domain.StackId(strId))
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var out domain.GetStackNodesResponse
-	out.Nodes = stack.Nodes
-
-	ResponseJSON(w, r, http.StatusOK, out)
-}

@@ -240,6 +240,98 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
+// CreateBootstrapKubeconfig godoc
+// @Tags Clusters
+// @Summary Create bootstrap kubeconfig for BYOH
+// @Description Create bootstrap kubeconfig for BYOH
+// @Accept json
+// @Produce json
+// @Success 200 {object} domain.CreateBootstrapKubeconfigResponse
+// @Router /clusters/{clusterId}/bootstrap-kubeconfig [post]
+// @Security     JWT
+func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	kubeconfig, err := h.usecase.CreateBootstrapKubeconfig(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.CreateBootstrapKubeconfigResponse
+	out.Data = kubeconfig
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetBootstrapKubeconfig godoc
+// @Tags Clusters
+// @Summary Get bootstrap kubeconfig for BYOH
+// @Description Get bootstrap kubeconfig for BYOH
+// @Accept json
+// @Produce json
+// @Success 200 {object} domain.GetBootstrapKubeconfigResponse
+// @Router /clusters/{clusterId}/bootstrap-kubeconfig [get]
+// @Security     JWT
+func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	bootstrapKubeconfig, err := h.usecase.GetBootstrapKubeconfig(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetBootstrapKubeconfigResponse
+	out.Data = bootstrapKubeconfig
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetNodes godoc
+// @Tags Clusters
+// @Summary Get nodes information for BYOH
+// @Description Get nodes information for BYOH
+// @Accept json
+// @Produce json
+// @Param clusterId path string true "clusterId"
+// @Success 200 {object} domain.GetClusterNodesResponse
+// @Router /clusters/{clusterId}/nodes [get]
+// @Security     JWT
+func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	clusterId := domain.ClusterId(strId)
+	if !clusterId.Validate() {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	nodes, err := h.usecase.GetNodes(r.Context(), domain.ClusterId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetClusterNodesResponse
+	out.Nodes = nodes
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {
 	// GetKubernetesInfo godoc
 	// @Tags Clusters

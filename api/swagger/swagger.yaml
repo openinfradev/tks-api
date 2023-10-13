@@ -252,6 +252,11 @@ definitions:
           type: string
         type: array
     type: object
+  domain.BootstrapKubeconfig:
+    properties:
+      expiration:
+        type: string
+    type: object
   domain.ChartData:
     properties:
       podCounts:
@@ -445,6 +450,34 @@ definitions:
       tksUserNodeType:
         type: string
     type: object
+  domain.ClusterHost:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.ClusterNode:
+    properties:
+      command:
+        type: string
+      hosts:
+        items:
+          $ref: '#/definitions/domain.ClusterHost'
+        type: array
+      registered:
+        type: integer
+      registering:
+        type: integer
+      status:
+        type: string
+      targeted:
+        type: integer
+      type:
+        type: string
+      validity:
+        type: string
+    type: object
   domain.ClusterResponse:
     properties:
       cloudAccount:
@@ -591,6 +624,11 @@ definitions:
         type: string
       metadata:
         type: string
+    type: object
+  domain.CreateBootstrapKubeconfigResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.BootstrapKubeconfig'
     type: object
   domain.CreateCloudAccountRequest:
     properties:
@@ -1002,6 +1040,11 @@ definitions:
           $ref: '#/definitions/domain.ApplicationResponse'
         type: array
     type: object
+  domain.GetBootstrapKubeconfigResponse:
+    properties:
+      data:
+        $ref: '#/definitions/domain.BootstrapKubeconfig'
+    type: object
   domain.GetCloudAccountResourceQuotaResponse:
     properties:
       available:
@@ -1022,6 +1065,13 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/domain.PaginationResponse'
+    type: object
+  domain.GetClusterNodesResponse:
+    properties:
+      nodes:
+        items:
+          $ref: '#/definitions/domain.ClusterNode'
+        type: array
     type: object
   domain.GetClustersResponse:
     properties:
@@ -1106,13 +1156,6 @@ definitions:
     properties:
       kubeConfig:
         type: string
-    type: object
-  domain.GetStackNodesResponse:
-    properties:
-      nodes:
-        items:
-          $ref: '#/definitions/domain.StackNode'
-        type: array
     type: object
   domain.GetStackResponse:
     properties:
@@ -1443,34 +1486,6 @@ definitions:
     required:
     - tksInfraNode
     - tksUserNode
-    type: object
-  domain.StackHost:
-    properties:
-      name:
-        type: string
-      status:
-        type: string
-    type: object
-  domain.StackNode:
-    properties:
-      command:
-        type: string
-      hosts:
-        items:
-          $ref: '#/definitions/domain.StackHost'
-        type: array
-      registered:
-        type: integer
-      registering:
-        type: integer
-      status:
-        type: string
-      targeted:
-        type: integer
-      type:
-        type: string
-      validity:
-        type: integer
     type: object
   domain.StackResponse:
     properties:
@@ -2377,6 +2392,39 @@ paths:
       summary: Get cluster
       tags:
       - Clusters
+  /clusters/{clusterId}/bootstrap-kubeconfig:
+    get:
+      consumes:
+      - application/json
+      description: Get bootstrap kubeconfig for BYOH
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetBootstrapKubeconfigResponse'
+      security:
+      - JWT: []
+      summary: Get bootstrap kubeconfig for BYOH
+      tags:
+      - Clusters
+    post:
+      consumes:
+      - application/json
+      description: Create bootstrap kubeconfig for BYOH
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateBootstrapKubeconfigResponse'
+      security:
+      - JWT: []
+      summary: Create bootstrap kubeconfig for BYOH
+      tags:
+      - Clusters
   /clusters/{clusterId}/install:
     post:
       consumes:
@@ -2396,6 +2444,29 @@ paths:
       security:
       - JWT: []
       summary: Install cluster on tks cluster
+      tags:
+      - Clusters
+  /clusters/{clusterId}/nodes:
+    get:
+      consumes:
+      - application/json
+      description: Get nodes information for BYOH
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetClusterNodesResponse'
+      security:
+      - JWT: []
+      summary: Get nodes information for BYOH
       tags:
       - Clusters
   /clusters/{clusterId}/site-values:
@@ -3847,34 +3918,6 @@ paths:
       security:
       - JWT: []
       summary: Get KubeConfig by stack
-      tags:
-      - Stacks
-  /organizations/{organizationId}/stacks/{stackId}/nodes:
-    get:
-      consumes:
-      - application/json
-      description: Get nodes information for BYOH
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: stackId
-        in: path
-        name: stackId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.GetStackNodesResponse'
-      security:
-      - JWT: []
-      summary: Get nodes information for BYOH
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/{stackId}/status:

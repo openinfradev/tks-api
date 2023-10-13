@@ -213,11 +213,16 @@ func (r *ClusterRepository) GetByName(organizationId string, name string) (out d
 }
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
+	var cloudAccountId *uuid.UUID
+	cloudAccountId = &dto.CloudAccountId
+	if dto.CloudService == domain.CloudService_BYOH {
+		cloudAccountId = nil
+	}
 	cluster := Cluster{
 		OrganizationId:   dto.OrganizationId,
 		Name:             dto.Name,
 		Description:      dto.Description,
-		CloudAccountId:   &dto.CloudAccountId,
+		CloudAccountId:   cloudAccountId,
 		StackTemplateId:  dto.StackTemplateId,
 		CreatorId:        dto.CreatorId,
 		UpdatorId:        nil,

@@ -120,6 +120,26 @@ type ClusterConf struct {
 	TksUserNodeType  string
 }
 
+type ClusterHost struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type ClusterNode struct {
+	Type        string        `json:"type"`
+	Targeted    int           `json:"targeted"`
+	Registered  int           `json:"registered"`
+	Registering int           `json:"registering"`
+	Status      string        `json:"status"`
+	Command     string        `json:"command"`
+	Validity    string        `json:"validity"`
+	Hosts       []ClusterHost `json:"hosts"`
+}
+
+type BootstrapKubeconfig struct {
+	Expiration string `json:"expiration"`
+}
+
 // [TODO] annotaion 으로 가능하려나?
 func (m *ClusterConf) SetDefault() {
 	m.TksCpNodeMax = m.TksCpNode
@@ -238,4 +258,16 @@ type GetClusterSiteValuesResponse struct {
 type InstallClusterRequest struct {
 	ClusterId      string `json:"clusterId" validate:"required"`
 	OrganizationId string `json:"organizationId" validate:"required"`
+}
+
+type CreateBootstrapKubeconfigResponse struct {
+	Data BootstrapKubeconfig `json:"data"`
+}
+
+type GetBootstrapKubeconfigResponse struct {
+	Data BootstrapKubeconfig `json:"data"`
+}
+
+type GetClusterNodesResponse struct {
+	Nodes []ClusterNode `json:"nodes"`
 }
