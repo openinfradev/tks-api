@@ -71,7 +71,6 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// SYSTEM-API
 func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	stackId, ok := vars["stackId"]
@@ -130,6 +129,11 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
+		}
+
+		err = json.Unmarshal(stack.StackTemplate.Services, &out.Stacks[i].StackTemplate.Services)
+		if err != nil {
+			log.InfoWithContext(r.Context(), err)
 		}
 	}
 

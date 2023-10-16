@@ -575,11 +575,11 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 			tksCpNodeRegistered = tksCpNodeRegistered + registered
 			tksCpNodeRegistering = tksCpNodeRegistering + registering
 			tksCpHosts = append(tksCpHosts, domain.ClusterHost{Name: host.Name, Status: string(hostStatus)})
-		case "tks-worker":
+		case "tks":
 			tksInfraNodeRegistered = tksInfraNodeRegistered + registered
 			tksInfraNodeRegistering = tksInfraNodeRegistering + registering
 			tksInfraHosts = append(tksInfraHosts, domain.ClusterHost{Name: host.Name, Status: string(hostStatus)})
-		case "user-worker":
+		case "worker":
 			tksUserNodeRegistered = tksUserNodeRegistered + registered
 			tksUserNodeRegistering = tksUserNodeRegistering + registering
 			tksUserHosts = append(tksUserHosts, domain.ClusterHost{Name: host.Name, Status: string(hostStatus)})
@@ -591,7 +591,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 		return out, err
 	}
 
-	command := fmt.Sprintf("curl -fL %s/api/packages/%s/generic/byoh_hostagent_install.sh/%s/byoh_hostagent-install-%s.sh | sh -s %s-",
+	command := fmt.Sprintf("curl -fL %s/api/packages/%s/generic/byoh_hostagent_install/%s/byoh_hostagent-install-%s.sh | sh -s %s-",
 		viper.GetString("external-gitea-url"),
 		viper.GetString("git-account"),
 		string(cluster.ID),
@@ -615,7 +615,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 			Registered:  tksInfraNodeRegistered,
 			Registering: tksInfraNodeRegistering,
 			Status:      clusterNodeStatus(cluster.Conf.TksInfraNode, tksInfraNodeRegistered),
-			Command:     command + "tks-worker",
+			Command:     command + "tks",
 			Validity:    bootstrapKubeconfig.Expiration,
 			Hosts:       tksInfraHosts,
 		},
@@ -625,7 +625,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 			Registered:  tksUserNodeRegistered,
 			Registering: tksUserNodeRegistering,
 			Status:      clusterNodeStatus(cluster.Conf.TksUserNode, tksUserNodeRegistered),
-			Command:     command + "user-worker",
+			Command:     command + "worker",
 			Validity:    bootstrapKubeconfig.Expiration,
 			Hosts:       tksUserHosts,
 		},
