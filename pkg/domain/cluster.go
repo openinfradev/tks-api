@@ -84,28 +84,29 @@ func (m ClusterType) FromString(s string) ClusterType {
 
 // model
 type Cluster struct {
-	ID              ClusterId
-	CloudService    string
-	OrganizationId  string
-	Name            string
-	Description     string
-	CloudAccountId  uuid.UUID
-	CloudAccount    CloudAccount
-	StackTemplateId uuid.UUID
-	StackTemplate   StackTemplate
-	Status          ClusterStatus
-	StatusDesc      string
-	Conf            ClusterConf
-	Favorited       bool
-	CreatorId       *uuid.UUID
-	Creator         User
-	ClusterType     ClusterType
-	UpdatorId       *uuid.UUID
-	Updator         User
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	ClusterEndpoint string
-	IsStack         bool
+	ID                     ClusterId
+	CloudService           string
+	OrganizationId         string
+	Name                   string
+	Description            string
+	CloudAccountId         uuid.UUID
+	CloudAccount           CloudAccount
+	StackTemplateId        uuid.UUID
+	StackTemplate          StackTemplate
+	Status                 ClusterStatus
+	StatusDesc             string
+	Conf                   ClusterConf
+	Favorited              bool
+	CreatorId              *uuid.UUID
+	Creator                User
+	ClusterType            ClusterType
+	UpdatorId              *uuid.UUID
+	Updator                User
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+	ByoClusterEndpointHost string
+	ByoClusterEndpointPort int
+	IsStack                bool
 }
 
 type ClusterConf struct {
@@ -132,12 +133,12 @@ type ClusterNode struct {
 	Registering int           `json:"registering"`
 	Status      string        `json:"status"`
 	Command     string        `json:"command"`
-	Validity    string        `json:"validity"`
+	Validity    int           `json:"validity"`
 	Hosts       []ClusterHost `json:"hosts"`
 }
 
 type BootstrapKubeconfig struct {
-	Expiration string `json:"expiration"`
+	Expiration int `json:"expiration"`
 }
 
 // [TODO] annotaion 으로 가능하려나?
@@ -166,24 +167,25 @@ func (m *ClusterConf) SetDefault() {
 }
 
 type CreateClusterRequest struct {
-	OrganizationId   string `json:"organizationId" validate:"required"`
-	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
-	Name             string `json:"name" validate:"required,name"`
-	Description      string `json:"description"`
-	CloudAccountId   string `json:"cloudAccountId"`
-	ClusterType      string `json:"clusterType"`
-	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
-	IsStack          bool   `json:"isStack,omitempty"`
-	TksCpNode        int    `json:"tksCpNode"`
-	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode     int    `json:"tksInfraNode"`
-	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode      int    `json:"tksUserNode"`
-	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+	OrganizationId         string `json:"organizationId" validate:"required"`
+	CloudService           string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId        string `json:"stackTemplateId" validate:"required"`
+	Name                   string `json:"name" validate:"required,name"`
+	Description            string `json:"description"`
+	CloudAccountId         string `json:"cloudAccountId"`
+	ClusterType            string `json:"clusterType"`
+	ByoClusterEndpointHost string `json:"byoClusterEndpointHost,omitempty"`
+	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort,omitempty"`
+	IsStack                bool   `json:"isStack,omitempty"`
+	TksCpNode              int    `json:"tksCpNode"`
+	TksCpNodeMax           int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType          string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode           int    `json:"tksInfraNode"`
+	TksInfraNodeMax        int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType       string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode            int    `json:"tksUserNode"`
+	TksUserNodeMax         int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
 }
 
 type CreateClusterResponse struct {
@@ -203,23 +205,24 @@ type ClusterConfResponse struct {
 }
 
 type ClusterResponse struct {
-	ID              ClusterId                   `json:"id"`
-	CloudService    string                      `json:"cloudService"`
-	OrganizationId  string                      `json:"organizationId"`
-	Name            string                      `json:"name"`
-	Description     string                      `json:"description"`
-	CloudAccount    SimpleCloudAccountResponse  `json:"cloudAccount"`
-	StackTemplate   SimpleStackTemplateResponse `json:"stackTemplate"`
-	Status          string                      `json:"status"`
-	StatusDesc      string                      `json:"statusDesc"`
-	Conf            ClusterConfResponse         `json:"conf"`
-	ClusterType     string                      `json:"clusterType"`
-	Creator         SimpleUserResponse          `json:"creator"`
-	Updator         SimpleUserResponse          `json:"updator"`
-	CreatedAt       time.Time                   `json:"createdAt"`
-	UpdatedAt       time.Time                   `json:"updatedAt"`
-	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
-	IsStack         bool                        `json:"isStack,omitempty"`
+	ID                     ClusterId                   `json:"id"`
+	CloudService           string                      `json:"cloudService"`
+	OrganizationId         string                      `json:"organizationId"`
+	Name                   string                      `json:"name"`
+	Description            string                      `json:"description"`
+	CloudAccount           SimpleCloudAccountResponse  `json:"cloudAccount"`
+	StackTemplate          SimpleStackTemplateResponse `json:"stackTemplate"`
+	Status                 string                      `json:"status"`
+	StatusDesc             string                      `json:"statusDesc"`
+	Conf                   ClusterConfResponse         `json:"conf"`
+	ClusterType            string                      `json:"clusterType"`
+	Creator                SimpleUserResponse          `json:"creator"`
+	Updator                SimpleUserResponse          `json:"updator"`
+	CreatedAt              time.Time                   `json:"createdAt"`
+	UpdatedAt              time.Time                   `json:"updatedAt"`
+	ByoClusterEndpointHost string                      `json:"byoClusterEndpointHost,omitempty"`
+	ByoClusterEndpointInt  int                         `json:"byoClusterEndpointPort,omitempty"`
+	IsStack                bool                        `json:"isStack,omitempty"`
 }
 
 type SimpleClusterResponse struct {
@@ -229,17 +232,19 @@ type SimpleClusterResponse struct {
 }
 
 type ClusterSiteValuesResponse struct {
-	SshKeyName       string `json:"sshKeyName"`
-	ClusterRegion    string `json:"clusterRegion"`
-	TksCpNode        int    `json:"tksCpNode"`
-	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode     int    `json:"tksInfraNode"`
-	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode      int    `json:"tksUserNode"`
-	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+	SshKeyName             string `json:"sshKeyName"`
+	ClusterRegion          string `json:"clusterRegion"`
+	TksCpNode              int    `json:"tksCpNode"`
+	TksCpNodeMax           int    `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType          string `json:"tksCpNodeType,omitempty"`
+	TksInfraNode           int    `json:"tksInfraNode"`
+	TksInfraNodeMax        int    `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType       string `json:"tksInfraNodeType,omitempty"`
+	TksUserNode            int    `json:"tksUserNode"`
+	TksUserNodeMax         int    `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
+	ByoClusterEndpointHost string `json:"byoClusterEndpointHost,omitempty"`
+	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort,omitempty"`
 }
 
 type GetClustersResponse struct {

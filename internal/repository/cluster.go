@@ -20,7 +20,7 @@ type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
 	Fetch(pg *pagination.Pagination) (res []domain.Cluster, err error)
 	FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *pagination.Pagination) (res []domain.Cluster, err error)
-	FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (res []domain.Cluster, err error)
+	FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (res []domain.Cluster, err error)
 	Get(id domain.ClusterId) (domain.Cluster, error)
 	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
@@ -50,36 +50,37 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 type Cluster struct {
 	gorm.Model
 
-	ID               domain.ClusterId `gorm:"primarykey"`
-	Name             string           `gorm:"index"`
-	CloudService     string           `gorm:"default:AWS"`
-	OrganizationId   string
-	Organization     Organization `gorm:"foreignKey:OrganizationId"`
-	Description      string       `gorm:"index"`
-	WorkflowId       string
-	Status           domain.ClusterStatus
-	StatusDesc       string
-	CloudAccountId   *uuid.UUID
-	CloudAccount     CloudAccount `gorm:"foreignKey:CloudAccountId"`
-	StackTemplateId  uuid.UUID
-	StackTemplate    StackTemplate `gorm:"foreignKey:StackTemplateId"`
-	Favorites        *[]ClusterFavorite
-	ClusterType      domain.ClusterType `gorm:"default:0"`
-	ClusterEndpoint  string
-	IsStack          bool `gorm:"default:false"`
-	TksCpNode        int
-	TksCpNodeMax     int
-	TksCpNodeType    string
-	TksInfraNode     int
-	TksInfraNodeMax  int
-	TksInfraNodeType string
-	TksUserNode      int
-	TksUserNodeMax   int
-	TksUserNodeType  string
-	CreatorId        *uuid.UUID `gorm:"type:uuid"`
-	Creator          User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId        *uuid.UUID `gorm:"type:uuid"`
-	Updator          User       `gorm:"foreignKey:UpdatorId"`
+	ID                     domain.ClusterId `gorm:"primarykey"`
+	Name                   string           `gorm:"index"`
+	CloudService           string           `gorm:"default:AWS"`
+	OrganizationId         string
+	Organization           Organization `gorm:"foreignKey:OrganizationId"`
+	Description            string       `gorm:"index"`
+	WorkflowId             string
+	Status                 domain.ClusterStatus
+	StatusDesc             string
+	CloudAccountId         *uuid.UUID
+	CloudAccount           CloudAccount `gorm:"foreignKey:CloudAccountId"`
+	StackTemplateId        uuid.UUID
+	StackTemplate          StackTemplate `gorm:"foreignKey:StackTemplateId"`
+	Favorites              *[]ClusterFavorite
+	ClusterType            domain.ClusterType `gorm:"default:0"`
+	ByoClusterEndpointHost string
+	ByoClusterEndpointPort int
+	IsStack                bool `gorm:"default:false"`
+	TksCpNode              int
+	TksCpNodeMax           int
+	TksCpNodeType          string
+	TksInfraNode           int
+	TksInfraNodeMax        int
+	TksInfraNodeType       string
+	TksUserNode            int
+	TksUserNodeMax         int
+	TksUserNodeType        string
+	CreatorId              *uuid.UUID `gorm:"type:uuid"`
+	Creator                User       `gorm:"foreignKey:CreatorId"`
+	UpdatorId              *uuid.UUID `gorm:"type:uuid"`
+	Updator                User       `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
@@ -135,8 +136,7 @@ func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Clust
 	return
 }
 
-func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
-	userId := "79a404aa-7184-4d0f-9e73-2671e32f7da5"
+func (r *ClusterRepository) FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
@@ -219,27 +219,28 @@ func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.Cluster
 		cloudAccountId = nil
 	}
 	cluster := Cluster{
-		OrganizationId:   dto.OrganizationId,
-		Name:             dto.Name,
-		Description:      dto.Description,
-		CloudAccountId:   cloudAccountId,
-		StackTemplateId:  dto.StackTemplateId,
-		CreatorId:        dto.CreatorId,
-		UpdatorId:        nil,
-		Status:           domain.ClusterStatus_PENDING,
-		ClusterType:      dto.ClusterType,
-		CloudService:     dto.CloudService,
-		ClusterEndpoint:  dto.ClusterEndpoint,
-		IsStack:          dto.IsStack,
-		TksCpNode:        dto.Conf.TksCpNode,
-		TksCpNodeMax:     dto.Conf.TksCpNodeMax,
-		TksCpNodeType:    dto.Conf.TksCpNodeType,
-		TksInfraNode:     dto.Conf.TksInfraNode,
-		TksInfraNodeMax:  dto.Conf.TksInfraNodeMax,
-		TksInfraNodeType: dto.Conf.TksInfraNodeType,
-		TksUserNode:      dto.Conf.TksUserNode,
-		TksUserNodeMax:   dto.Conf.TksUserNodeMax,
-		TksUserNodeType:  dto.Conf.TksUserNodeType,
+		OrganizationId:         dto.OrganizationId,
+		Name:                   dto.Name,
+		Description:            dto.Description,
+		CloudAccountId:         cloudAccountId,
+		StackTemplateId:        dto.StackTemplateId,
+		CreatorId:              dto.CreatorId,
+		UpdatorId:              nil,
+		Status:                 domain.ClusterStatus_PENDING,
+		ClusterType:            dto.ClusterType,
+		CloudService:           dto.CloudService,
+		ByoClusterEndpointHost: dto.ByoClusterEndpointHost,
+		ByoClusterEndpointPort: dto.ByoClusterEndpointPort,
+		IsStack:                dto.IsStack,
+		TksCpNode:              dto.Conf.TksCpNode,
+		TksCpNodeMax:           dto.Conf.TksCpNodeMax,
+		TksCpNodeType:          dto.Conf.TksCpNodeType,
+		TksInfraNode:           dto.Conf.TksInfraNode,
+		TksInfraNodeMax:        dto.Conf.TksInfraNodeMax,
+		TksInfraNodeType:       dto.Conf.TksInfraNodeType,
+		TksUserNode:            dto.Conf.TksUserNode,
+		TksUserNodeMax:         dto.Conf.TksUserNodeMax,
+		TksUserNodeType:        dto.Conf.TksUserNodeType,
 	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {

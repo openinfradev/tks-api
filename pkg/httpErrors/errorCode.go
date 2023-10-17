@@ -44,6 +44,9 @@ var errorMap = map[ErrorCode]string{
 	// AppServeApp
 	"D_NO_ASA": "요청한 앱아이디에 해당하는 어플리케이션이 없습니다.",
 
+	// Cluster
+	"CL_INVALID_BYOH_CLUSTER_ENDPOINT": "BYOH 타입의 클러스터 생성을 위한 cluster endpoint 가 유효하지 않습니다.",
+
 	// Stack
 	"S_INVALID_STACK_TEMPLATE":      "스택 템플릿을 가져올 수 없습니다.",
 	"S_INVALID_CLOUD_ACCOUNT":       "클라우드 계정설정을 가져올 수 없습니다.",

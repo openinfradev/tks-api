@@ -36,8 +36,8 @@ const (
 
 	StackStatus_RUNNING
 
-	StackStatus_CLUSTER_BOOTSTRAPING
-	StackStatus_CLUSTER_BOOTSTRAED
+	StackStatus_CLUSTER_BOOTSTRAPPING
+	StackStatus_CLUSTER_BOOTSTRAPPED
 )
 
 var stackStatus = [...]string{
@@ -52,8 +52,8 @@ var stackStatus = [...]string{
 	"CLUSTER_INSTALL_ERROR",
 	"CLUSTER_DELETE_ERROR",
 	"RUNNING",
-	"BOOTSTRAPING",
-	"BOOTSTRAPED",
+	"BOOTSTRAPPING",
+	"BOOTSTRAPPED",
 }
 
 func (m StackStatus) String() string { return stackStatus[(m)] }

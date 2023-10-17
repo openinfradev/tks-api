@@ -456,3 +456,16 @@ func (u *CloudAccountUsecase) getClusterCnt(cloudAccountId uuid.UUID) (cnt int) 
 
 	return cnt
 }
+
+func getServiceQuota(client *servicequotas.Client, quotaCode string, serviceCode string) (res *servicequotas.GetServiceQuotaOutput, err error) {
+	res, err = client.GetServiceQuota(context.TODO(), &servicequotas.GetServiceQuotaInput{
+		QuotaCode:   &quotaCode,
+		ServiceCode: &serviceCode,
+	}, func(o *servicequotas.Options) {
+		o.Region = "ap-northeast-2"
+	})
+	if err != nil {
+		return nil, err
+	}
+	return
+}

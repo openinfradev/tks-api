@@ -4190,7 +4190,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expiration": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -4356,6 +4356,12 @@ const docTemplate = `{
         "domain.Cluster": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.CloudAccount"
                 },
@@ -4363,9 +4369,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "cloudService": {
-                    "type": "string"
-                },
-                "clusterEndpoint": {
                     "type": "string"
                 },
                 "clusterType": {
@@ -4527,13 +4530,19 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "validity": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
         "domain.ClusterResponse": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
@@ -4581,15 +4590,18 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
-                },
-                "userClusterEndpoint": {
-                    "type": "string"
                 }
             }
         },
         "domain.ClusterSiteValuesResponse": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "clusterRegion": {
                     "type": "string"
                 },
@@ -4819,6 +4831,12 @@ const docTemplate = `{
                 "stackTemplateId"
             ],
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -4872,9 +4890,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "tksUserNodeType": {
-                    "type": "string"
-                },
-                "userClusterEndpoint": {
                     "type": "string"
                 }
             }
