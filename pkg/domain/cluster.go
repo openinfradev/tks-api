@@ -7,6 +7,10 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
+const NODE_TYPE_TKS_CP_NODE = "TKS_CP_NODE"
+const NODE_TYPE_TKS_INFRA_NODE = "TKS_INFRA_NODE"
+const NODE_TYPE_TKS_USER_NODE = "TKS_USER_NODE"
+
 type ClusterId string
 
 func (c ClusterId) String() string {
@@ -28,6 +32,9 @@ const (
 	ClusterStatus_DELETED
 	ClusterStatus_INSTALL_ERROR
 	ClusterStatus_DELETE_ERROR
+	ClusterStatus_BOOTSTRAPPING
+	ClusterStatus_BOOTSTRAPPED
+	ClusterStatus_BOOTSTRAP_ERROR
 )
 
 var clusterStatus = [...]string{
@@ -38,6 +45,9 @@ var clusterStatus = [...]string{
 	"DELETED",
 	"INSTALL_ERROR",
 	"DELETE_ERROR",
+	"BOOTSTRAPPING",
+	"BOOTSTRAPPED",
+	"BOOTSTRAP_ERROR",
 }
 
 func (m ClusterStatus) String() string { return clusterStatus[(m)] }
@@ -94,6 +104,8 @@ type Cluster struct {
 	Updator         User
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	ClusterEndpoint string
+	IsStack         bool
 }
 
 type ClusterConf struct {
@@ -106,6 +118,26 @@ type ClusterConf struct {
 	TksUserNode      int
 	TksUserNodeMax   int
 	TksUserNodeType  string
+}
+
+type ClusterHost struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type ClusterNode struct {
+	Type        string        `json:"type"`
+	Targeted    int           `json:"targeted"`
+	Registered  int           `json:"registered"`
+	Registering int           `json:"registering"`
+	Status      string        `json:"status"`
+	Command     string        `json:"command"`
+	Validity    string        `json:"validity"`
+	Hosts       []ClusterHost `json:"hosts"`
+}
+
+type BootstrapKubeconfig struct {
+	Expiration string `json:"expiration"`
 }
 
 // [TODO] annotaion 으로 가능하려나?
@@ -141,6 +173,8 @@ type CreateClusterRequest struct {
 	Description      string `json:"description"`
 	CloudAccountId   string `json:"cloudAccountId"`
 	ClusterType      string `json:"clusterType"`
+	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
+	IsStack          bool   `json:"isStack,omitempty"`
 	TksCpNode        int    `json:"tksCpNode"`
 	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
 	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
@@ -169,21 +203,23 @@ type ClusterConfResponse struct {
 }
 
 type ClusterResponse struct {
-	ID             ClusterId                   `json:"id"`
-	CloudService   string                      `json:"cloudService"`
-	OrganizationId string                      `json:"organizationId"`
-	Name           string                      `json:"name"`
-	Description    string                      `json:"description"`
-	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount"`
-	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate"`
-	Status         string                      `json:"status"`
-	StatusDesc     string                      `json:"statusDesc"`
-	Conf           ClusterConfResponse         `json:"conf"`
-	ClusterType    string                      `json:"clusterType"`
-	Creator        SimpleUserResponse          `json:"creator"`
-	Updator        SimpleUserResponse          `json:"updator"`
-	CreatedAt      time.Time                   `json:"createdAt"`
-	UpdatedAt      time.Time                   `json:"updatedAt"`
+	ID              ClusterId                   `json:"id"`
+	CloudService    string                      `json:"cloudService"`
+	OrganizationId  string                      `json:"organizationId"`
+	Name            string                      `json:"name"`
+	Description     string                      `json:"description"`
+	CloudAccount    SimpleCloudAccountResponse  `json:"cloudAccount"`
+	StackTemplate   SimpleStackTemplateResponse `json:"stackTemplate"`
+	Status          string                      `json:"status"`
+	StatusDesc      string                      `json:"statusDesc"`
+	Conf            ClusterConfResponse         `json:"conf"`
+	ClusterType     string                      `json:"clusterType"`
+	Creator         SimpleUserResponse          `json:"creator"`
+	Updator         SimpleUserResponse          `json:"updator"`
+	CreatedAt       time.Time                   `json:"createdAt"`
+	UpdatedAt       time.Time                   `json:"updatedAt"`
+	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
+	IsStack         bool                        `json:"isStack,omitempty"`
 }
 
 type SimpleClusterResponse struct {
@@ -217,4 +253,21 @@ type GetClusterResponse struct {
 
 type GetClusterSiteValuesResponse struct {
 	ClusterSiteValues ClusterSiteValuesResponse `json:"clusterSiteValues"`
+}
+
+type InstallClusterRequest struct {
+	ClusterId      string `json:"clusterId" validate:"required"`
+	OrganizationId string `json:"organizationId" validate:"required"`
+}
+
+type CreateBootstrapKubeconfigResponse struct {
+	Data BootstrapKubeconfig `json:"data"`
+}
+
+type GetBootstrapKubeconfigResponse struct {
+	Data BootstrapKubeconfig `json:"data"`
+}
+
+type GetClusterNodesResponse struct {
+	Nodes []ClusterNode `json:"nodes"`
 }

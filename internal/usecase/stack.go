@@ -27,7 +27,7 @@ type IStackUsecase interface {
 	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
-	CreateByoh(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
+	Install(ctx context.Context, stackId domain.StackId) (err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
@@ -76,11 +76,6 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
-	_, err = u.cloudAccountRepo.Get(dto.CloudAccountId)
-	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
-	}
-
 	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, nil)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
@@ -91,13 +86,23 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
+	if dto.CloudService == domain.CloudService_BYOH {
+		if dto.ClusterEndpoint == "" {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid userClusterDomain"), "S_INVALID_ADMINCLUSTER_URL", "")
+		}
+	} else {
+		if _, err = u.cloudAccountRepo.Get(dto.CloudAccountId); err != nil {
+			return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
+		}
+	}
+
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
 	if err = domain.Map(dto.Conf, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
 
-	workflow := "tks-stack-create-aws"
+	workflow := "tks-stack-create"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
@@ -145,25 +150,20 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	return dto.ID, nil
 }
 
-func (u *StackUsecase) CreateByoh(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error) {
-	user, ok := request.UserFrom(ctx)
-	if !ok {
-		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
-	}
-
-	_, err = u.GetByName(ctx, dto.OrganizationId, dto.Name)
-	if err == nil {
-		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
-	}
-
-	_, err = u.stackTemplateRepo.Get(dto.StackTemplateId)
+func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err error) {
+	cluster, err := u.Get(ctx, stackId)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, nil)
+	_, err = u.stackTemplateRepo.Get(cluster.StackTemplateId)
 	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
+	}
+
+	clusters, err := u.clusterRepo.FetchByOrganizationId(cluster.OrganizationId, nil)
+	if err != nil {
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
 	isPrimary := false
 	if len(clusters) == 0 {
@@ -171,58 +171,35 @@ func (u *StackUsecase) CreateByoh(ctx context.Context, dto domain.Stack) (stackI
 	}
 	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
+	if cluster.CloudService != domain.CloudService_BYOH {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "S_INVALID_CLOUD_SERVICE", "")
+	}
+
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
-	if err = domain.Map(dto.Conf, &stackConf); err != nil {
+	if err = domain.Map(cluster.Conf, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
 
-	workflow := "tks-stack-create-byoh"
+	workflow := "tks-stack-install"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
-			"cluster_name=" + dto.Name,
-			"description=" + dto.Description,
-			"organization_id=" + dto.OrganizationId,
-			"cloud_account_id=" + dto.CloudAccountId.String(),
-			"stack_template_id=" + dto.StackTemplateId.String(),
-			"creator=" + user.GetUserId().String(),
+			"cluster_id=" + cluster.ID.String(),
+			"description=" + cluster.Description,
+			"organization_id=" + cluster.OrganizationId,
+			"stack_template_id=" + cluster.StackTemplateId.String(),
+			"creator=" + (*cluster.CreatorId).String(),
 			"base_repo_branch=" + viper.GetString("revision"),
-			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
-			"cloud_service=" + dto.CloudService,
 		},
 	})
 	if err != nil {
 		log.ErrorWithContext(ctx, err)
-		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
+		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
 	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
-	// wait & get clusterId ( max 1min 	)
-	dto.ID = domain.StackId("")
-	for i := 0; i < 60; i++ {
-		time.Sleep(time.Second * 5)
-		workflow, err := u.argo.GetWorkflow("argo", workflowId)
-		if err != nil {
-			return "", err
-		}
-
-		log.DebugWithContext(ctx, "workflow ", workflow)
-		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
-			return "", fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
-		}
-
-		cluster, err := u.clusterRepo.GetByName(dto.OrganizationId, dto.Name)
-		if err != nil {
-			continue
-		}
-		if cluster.Name == dto.Name {
-			dto.ID = domain.StackId(cluster.ID)
-			break
-		}
-	}
-
-	return dto.ID, nil
+	return nil
 }
 
 func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {
@@ -413,15 +390,9 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 	}
 
-	workflow := ""
-	if cluster.CloudService == "AWS" {
-		workflow = "tks-stack-delete-aws"
-	} else if cluster.CloudService == "BYOH" {
-		workflow = "tks-stack-delete-byoh"
-	} else {
-		log.ErrorWithContext(ctx, "Invalid cluodService  : ", cluster.CloudService)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid cloudService. %s", cluster.CloudService), "", "")
-	}
+	// [TODO] BYOH 삭제는 어떻게 처리하는게 좋은가?
+
+	workflow := "tks-stack-delete"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
@@ -607,6 +578,7 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 	if err := serializer.Map(cluster, &out); err != nil {
 		log.Error(err)
 	}
+
 	status, statusDesc := getStackStatus(cluster, appGroups)
 
 	out.ID = domain.StackId(cluster.ID)

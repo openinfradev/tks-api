@@ -30,6 +30,7 @@ import (
 type IAuthUsecase interface {
 	Login(accountId string, password string, organizationId string) (domain.User, error)
 	Logout(accessToken string, organizationId string) error
+	PingToken(accessToken string, organizationId string) error
 	FindId(code string, email string, userName string, organizationId string) (string, error)
 	FindPassword(code string, accountId string, email string, userName string, organizationId string) error
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
@@ -103,6 +104,15 @@ func (u *AuthUsecase) Logout(accessToken string, organizationName string) error 
 	}
 	return nil
 }
+
+func (u *AuthUsecase) PingToken(accessToken string, organizationId string) error {
+	if err := u.kc.VerifyAccessToken(accessToken, organizationId); err != nil {
+		log.Errorf("failed to verify access token: %v", err)
+		return err
+	}
+	return nil
+}
+
 func (u *AuthUsecase) FindId(code string, email string, userName string, organizationId string) (string, error) {
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))

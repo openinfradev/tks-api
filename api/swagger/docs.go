@@ -497,6 +497,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/ping": {
+            "post": {
+                "description": "ping with token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "ping with token",
+                "parameters": [
+                    {
+                        "description": "token info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PingTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/clusters": {
             "get": {
                 "security": [
@@ -670,6 +701,131 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.Cluster"
+                        }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/bootstrap-kubeconfig": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get bootstrap kubeconfig for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Get bootstrap kubeconfig for BYOH",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetBootstrapKubeconfigResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create bootstrap kubeconfig for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Create bootstrap kubeconfig for BYOH",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateBootstrapKubeconfigResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/install": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Install cluster on tks cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Install cluster on tks cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/nodes": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get nodes information for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Get nodes information for BYOH",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetClusterNodesResponse"
                         }
                     }
                 }
@@ -3003,50 +3159,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/{stackId}/nodes": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get nodes information for BYOH",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Stacks"
-                ],
-                "summary": "Get nodes information for BYOH",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "stackId",
-                        "name": "stackId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.GetStackNodesResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/organizations/{organizationId}/stacks/{stackId}/status": {
             "get": {
                 "security": [
@@ -4074,6 +4186,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.BootstrapKubeconfig": {
+            "type": "object",
+            "properties": {
+                "expiration": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.ChartData": {
             "type": "object",
             "properties": {
@@ -4245,6 +4365,9 @@ const docTemplate = `{
                 "cloudService": {
                     "type": "string"
                 },
+                "clusterEndpoint": {
+                    "type": "string"
+                },
                 "clusterType": {
                     "type": "integer"
                 },
@@ -4268,6 +4391,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -4362,6 +4488,49 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.ClusterHost": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ClusterNode": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ClusterHost"
+                    }
+                },
+                "registered": {
+                    "type": "integer"
+                },
+                "registering": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targeted": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validity": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.ClusterResponse": {
             "type": "object",
             "properties": {
@@ -4389,6 +4558,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "isStack": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -4409,6 +4581,9 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },
@@ -4575,6 +4750,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CreateBootstrapKubeconfigResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.BootstrapKubeconfig"
+                }
+            }
+        },
         "domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
@@ -4630,7 +4813,6 @@ const docTemplate = `{
         "domain.CreateClusterRequest": {
             "type": "object",
             "required": [
-                "cloudAccountId",
                 "cloudService",
                 "name",
                 "organizationId",
@@ -4652,6 +4834,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -4687,6 +4872,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "tksUserNodeType": {
+                    "type": "string"
+                },
+                "userClusterEndpoint": {
                     "type": "string"
                 }
             }
@@ -4730,9 +4918,6 @@ const docTemplate = `{
                 "stackTemplateId"
             ],
             "properties": {
-                "adminClusterUrl": {
-                    "type": "string"
-                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -4742,6 +4927,9 @@ const docTemplate = `{
                         "AWS",
                         "BYOH"
                     ]
+                },
+                "clusterId": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -4777,6 +4965,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "tksUserNodeType": {
+                    "type": "string"
+                },
+                "userClusterEndpoint": {
                     "type": "string"
                 }
             }
@@ -5171,6 +5362,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetBootstrapKubeconfigResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/domain.BootstrapKubeconfig"
+                }
+            }
+        },
         "domain.GetCloudAccountResourceQuotaResponse": {
             "type": "object",
             "properties": {
@@ -5201,6 +5400,17 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/domain.PaginationResponse"
+                }
+            }
+        },
+        "domain.GetClusterNodesResponse": {
+            "type": "object",
+            "properties": {
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ClusterNode"
+                    }
                 }
             }
         },
@@ -5332,20 +5542,6 @@ const docTemplate = `{
             "properties": {
                 "kubeConfig": {
                     "type": "string"
-                }
-            }
-        },
-        "domain.GetStackNodesResponse": {
-            "type": "object",
-            "properties": {
-                "nodeStatus": {
-                    "type": "string"
-                },
-                "nodes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/domain.StackNodeResponse"
-                    }
                 }
             }
         },
@@ -5645,6 +5841,21 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.PingTokenRequest": {
+            "type": "object",
+            "required": [
+                "organizationId",
+                "token"
+            ],
+            "properties": {
+                "organizationId": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.PodCount": {
             "type": "object",
             "properties": {
@@ -5773,6 +5984,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                    }
+                },
                 "template": {
                     "type": "string"
                 }
@@ -5832,38 +6049,9 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackNodeResponse": {
-            "type": "object",
-            "properties": {
-                "command": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "registered": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "targeted": {
-                    "type": "integer"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "validity": {
-                    "type": "integer"
-                }
-            }
-        },
         "domain.StackResponse": {
             "type": "object",
             "properties": {
-                "adminClusterUrl": {
-                    "type": "string"
-                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
@@ -5914,6 +6102,9 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },

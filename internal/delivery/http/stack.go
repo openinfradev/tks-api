@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -57,24 +58,10 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
-
-	stackId := domain.StackId("")
-	if input.CloudService == domain.CloudService_BYOH {
-		if input.AdminClusterUrl == "" {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid adminClusterUrl"), "C_INVALID_ADMINCLUSTER_URL", ""))
-			return
-		}
-		stackId, err = h.usecase.CreateByoh(r.Context(), dto)
-		if err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
-	} else {
-		stackId, err = h.usecase.Create(r.Context(), dto)
-		if err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
+	stackId, err := h.usecase.Create(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
 	}
 
 	out := domain.CreateStackResponse{
@@ -82,6 +69,23 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.Install(r.Context(), domain.StackId(stackId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // GetStack godoc
@@ -126,6 +130,11 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+
+		err = json.Unmarshal(stack.StackTemplate.Services, &out.Stacks[i].StackTemplate.Services)
+		if err != nil {
+			log.InfoWithContext(r.Context(), err)
+		}
 	}
 
 	if err := serializer.Map(*pg, &out.Pagination); err != nil {
@@ -162,6 +171,11 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetStackResponse
 	if err := serializer.Map(stack, &out.Stack); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	err = json.Unmarshal(stack.StackTemplate.Services, &out.Stack.StackTemplate.Services)
+	if err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -437,65 +451,4 @@ func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ResponseJSON(w, r, http.StatusOK, nil)
-}
-
-// GetNodes godoc
-// @Tags Stacks
-// @Summary Get nodes information for BYOH
-// @Description Get nodes information for BYOH
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} domain.GetStackNodesResponse
-// @Router /organizations/{organizationId}/stacks/{stackId}/nodes [get]
-// @Security     JWT
-func (h *StackHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	strId, ok := vars["stackId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-	stackId := domain.StackId(strId)
-	if !stackId.Validate() {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
-		return
-	}
-
-	// [TODO] for integration
-	out := domain.GetStackNodesResponse{
-		NodeStatus: "INPROGRESS",
-		Nodes: []domain.StackNodeResponse{
-			{
-				ID:         "1",
-				Type:       "TKS_CP_NODE",
-				Targeted:   3,
-				Registered: 1,
-				Status:     "INPROGRESS",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-			{
-				ID:         "2",
-				Type:       "TKS_INFRA_NODE",
-				Targeted:   0,
-				Registered: 0,
-				Status:     "PENDING",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-			{
-				ID:         "3",
-				Type:       "TKS_USER_NODE",
-				Targeted:   3,
-				Registered: 3,
-				Status:     "COMPLETED",
-				Command:    "curl -fL http://192.168.0.77/tks-byoh-hostagent-install.sh | sh -s CLUSTER-ID-control-plane",
-				Validity:   3000,
-			},
-		},
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
 }
