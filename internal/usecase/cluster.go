@@ -192,6 +192,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 				"creator=" + user.GetUserId().String(),
 				"cloud_account_id=" + tksCloudAccountId,
 				"base_repo_branch=" + viper.GetString("revision"),
+				"keycloak_url=" + viper.GetString("keycloak-address"),
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
@@ -355,6 +356,8 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 				"tks_api_url=http://tks-api.tks.svc:9110",
 				"cluster_id=" + clusterId.String(),
 				"cloud_account_id=" + tksCloudAccountId,
+				"keycloak_url=" + viper.GetString("keycloak-address"),
+				"contract_id=" + cluster.OrganizationId,
 			},
 		})
 	if err != nil {
