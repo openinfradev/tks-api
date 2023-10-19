@@ -78,25 +78,28 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 	}
 
 	// check cloudAccount
-	cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
-	if err != nil {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
-	}
-	tksCloudAccountId := cluster.CloudAccountId.String()
-	isExist := false
-	for _, ca := range cloudAccounts {
-		if ca.ID == cluster.CloudAccountId {
-
-			// FOR TEST. ADD MAGIC KEYWORD
-			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-				tksCloudAccountId = ""
-			}
-			isExist = true
-			break
+	tksCloudAccountId := ""
+	if cluster.CloudService != domain.CloudService_BYOH {
+		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+		if err != nil {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 		}
-	}
-	if !isExist {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+		tksCloudAccountId = cluster.CloudAccountId.String()
+		isExist := false
+		for _, ca := range cloudAccounts {
+			if ca.ID == cluster.CloudAccountId {
+
+				// FOR TEST. ADD MAGIC KEYWORD
+				if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+					tksCloudAccountId = ""
+				}
+				isExist = true
+				break
+			}
+		}
+		if !isExist {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+		}
 	}
 
 	if dto.ID == "" {

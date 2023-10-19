@@ -255,7 +255,7 @@ definitions:
   domain.BootstrapKubeconfig:
     properties:
       expiration:
-        type: string
+        type: integer
     type: object
   domain.ChartData:
     properties:
@@ -363,13 +363,15 @@ definitions:
     type: object
   domain.Cluster:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       cloudAccount:
         $ref: '#/definitions/domain.CloudAccount'
       cloudAccountId:
         type: string
       cloudService:
-        type: string
-      clusterEndpoint:
         type: string
       clusterType:
         type: integer
@@ -476,10 +478,14 @@ definitions:
       type:
         type: string
       validity:
-        type: string
+        type: integer
     type: object
   domain.ClusterResponse:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       cloudAccount:
         $ref: '#/definitions/domain.SimpleCloudAccountResponse'
       cloudService:
@@ -512,11 +518,13 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
-      userClusterEndpoint:
-        type: string
     type: object
   domain.ClusterSiteValuesResponse:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       clusterRegion:
         type: string
       sshKeyName:
@@ -670,6 +678,10 @@ definitions:
     type: object
   domain.CreateClusterRequest:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       cloudAccountId:
         type: string
       cloudService:
@@ -706,8 +718,6 @@ definitions:
       tksUserNodeMax:
         type: integer
       tksUserNodeType:
-        type: string
-      userClusterEndpoint:
         type: string
     required:
     - cloudService

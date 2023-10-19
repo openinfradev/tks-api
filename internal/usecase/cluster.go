@@ -98,11 +98,16 @@ func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 }
 
 func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+
 	if organizationId == "" {
 		// [TODO] 사용자가 속한 organization 리스트
 		out, err = u.repo.Fetch(pg)
 	} else {
-		out, err = u.repo.FetchByOrganizationId(organizationId, pg)
+		out, err = u.repo.FetchByOrganizationId(organizationId, user.GetUserId(), pg)
 	}
 
 	if err != nil {
@@ -218,7 +223,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto domain.Cluster) (clu
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
-	log.Infof("%s %s", stackTemplate.CloudService, dto.CloudService)
+	log.InfofWithContext(ctx, "%s %s", stackTemplate.CloudService, dto.CloudService)
 	if stackTemplate.CloudService != dto.CloudService {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService for stackTemplate "), "", "")
 	}
@@ -379,6 +384,10 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 		log.ErrorWithContext(ctx, err)
 	}
 
+	if err := serializer.Map(cluster, &out); err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
+
 	/*
 		// 기능 변경 : 20230614 : machine deployment 사용하지 않음. 단, aws-standard 는 사용할 여지가 있으므로 주석처리해둔다.
 		const MAX_AZ_NUM = 4
@@ -466,7 +475,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 		return out, err
 	}
 
-	log.Info(helper.ModelToJson(kubeconfig.Status.BootstrapKubeconfigData))
+	log.DebugWithContext(ctx, helper.ModelToJson(kubeconfig.Status.BootstrapKubeconfigData))
 
 	type BootstrapKubeconfigUser struct {
 		Users []struct {
@@ -485,16 +494,28 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 	}
 
 	token := kubeconfigData.Users[0].User.Token[:6]
-	//token = "5zg8tr" // FOR TEST
-	log.Info(token)
+	log.InfoWithContext(ctx, "token : ", token)
 
 	secrets, err := client.CoreV1().Secrets("kube-system").Get(context.TODO(), "bootstrap-token-"+token, metav1.GetOptions{})
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return out, err
 	}
 
-	out.Expiration = string(secrets.Data["expiration"][:])
+	log.Info(secrets.Data["expiration"][:])
+
+	// 2023-10-17T11:05:33Z
+	now := time.Now()
+	expiration, err := time.Parse(time.RFC3339, string(secrets.Data["expiration"][:]))
+	if err != nil {
+		return out, err
+	}
+
+	period, err := time.ParseDuration(expiration.Sub(now).String())
+	if err != nil {
+		return out, err
+	}
+	out.Expiration = int(period.Seconds())
 
 	return out, nil
 }
@@ -553,7 +574,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 	for _, host := range hosts.Items {
 		label := host.Labels["role"]
 		arr := strings.Split(host.Labels["role"], "-")
-		if len(arr) < 3 {
+		if len(arr) < 2 {
 			continue
 		}
 		clusterId := arr[0]
@@ -561,14 +582,24 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 		if label[9] != '-' || clusterId != string(cluster.ID) {
 			continue
 		}
+		/*
+			if host.Name == "ip-10-0-12-87.ap-northeast-2.compute.internal" {
+				continue
+			}
+
+			role := host.Labels["role"] // [FOR TEST]
+		*/
 
 		hostStatus := host.Status.Conditions[0].Type
 		registered, registering := 0, 0
-		if hostStatus == "K8sNodeBootstrapSucceeded" {
+		// K8sComponentsInstallationSucceeded
+		if hostStatus == "K8sNodeBootstrapSucceeded" || hostStatus == "K8sComponentsInstallationSucceeded" {
 			registered = 1
 		} else {
 			registering = 1
 		}
+
+		log.Info(role)
 
 		switch role {
 		case "control-plane":

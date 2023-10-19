@@ -33,7 +33,7 @@ func init() {
 	flag.String("jwt-secret", "tks-api-secret", "secret value of jwt")
 	flag.String("git-base-url", "https://github.com", "git base url")
 	flag.String("git-account", "decapod10", "git account of admin cluster")
-	flag.String("external-gitea-url", "http://gitea-dev.taco-cat.xyz", "gitea url for byoh agent download")
+	flag.String("external-gitea-url", "http://ip-10-0-76-86.ap-northeast-2.compute.internal:30303", "gitea url for byoh agent download")
 	flag.String("revision", "main", "revision")
 	flag.String("aws-secret", "awsconfig-secret", "aws secret")
 	flag.Int("migrate-db", 1, "If the values is true, enable db migration. recommend only development")

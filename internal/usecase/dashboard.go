@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -71,7 +72,7 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 }
 
 func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error) {
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
 	}
@@ -147,7 +148,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	}
 
 	// Stack
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
 	}

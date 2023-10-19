@@ -3,10 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -76,7 +77,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, user.GetUserId(), nil)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
@@ -88,7 +89,11 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 
 	if dto.CloudService == domain.CloudService_BYOH {
 		if dto.ClusterEndpoint == "" {
-			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid userClusterDomain"), "S_INVALID_ADMINCLUSTER_URL", "")
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterEndpoint"), "S_INVALID_ADMINCLUSTER_URL", "")
+		}
+		arr := strings.Split(dto.ClusterEndpoint, ":")
+		if len(arr) != 2 {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterEndpoint"), "S_INVALID_ADMINCLUSTER_URL", "")
 		}
 	} else {
 		if _, err = u.cloudAccountRepo.Get(dto.CloudAccountId); err != nil {
@@ -115,6 +120,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"base_repo_branch=" + viper.GetString("revision"),
 			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
 			"cloud_service=" + dto.CloudService,
+			"cluster_endpoint=" + dto.ClusterEndpoint,
 		},
 	})
 	if err != nil {
@@ -161,7 +167,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 		return httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(cluster.OrganizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(cluster.OrganizationId, uuid.Nil, nil)
 	if err != nil {
 		return httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
@@ -265,12 +271,17 @@ func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, nam
 }
 
 func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Stack, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return out, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
 	organization, err := u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, pg)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, user.GetUserId(), pg)
 	if err != nil {
 		return out, err
 	}
@@ -311,6 +322,10 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 		out = append(out, outStack)
 	}
 
+	sort.Slice(out, func(i, j int) bool {
+		return string(out[i].ID) == organization.PrimaryClusterId
+	})
+
 	return
 }
 
@@ -341,6 +356,11 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 }
 
 func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(dto.ID))
 	if err != nil {
 		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "S_FAILED_FETCH_CLUSTER", "")
@@ -355,7 +375,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	for _, organization := range *organizations {
 		if organization.PrimaryClusterId == cluster.ID.String() {
 
-			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID, nil)
+			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID, user.GetUserId(), nil)
 			if err != nil {
 				return errors.Wrap(err, "Failed to get organizations")
 			}
@@ -473,7 +493,7 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 	out = append(out, clusterStepStatus)
 
 	// make default appgroup status
-	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+	if cluster.StackTemplate.TemplateType == "STANDARD" {
 		// LMA
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
@@ -481,7 +501,7 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 			Step:    0,
 			MaxStep: domain.MAX_STEP_LMA_CREATE_MEMBER,
 		})
-	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
+	} else {
 		// LMA + SERVICE_MESH
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
@@ -639,6 +659,12 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 		}
 	}
 
+	if cluster.Status == domain.ClusterStatus_BOOTSTRAPPING {
+		return domain.StackStatus_CLUSTER_BOOTSTRAPPING, cluster.StatusDesc
+	}
+	if cluster.Status == domain.ClusterStatus_BOOTSTRAPPED {
+		return domain.StackStatus_CLUSTER_BOOTSTRAPPED, cluster.StatusDesc
+	}
 	if cluster.Status == domain.ClusterStatus_INSTALLING {
 		return domain.StackStatus_CLUSTER_INSTALLING, cluster.StatusDesc
 	}
@@ -698,19 +724,6 @@ func parseStatusDescription(statusDesc string) (step int) {
 	_, err := fmt.Sscanf(statusDesc, "(%d/%d)", &step, &maxStep)
 	if err != nil {
 		step = 0
-	}
-	return
-}
-
-func getServiceQuota(client *servicequotas.Client, quotaCode string, serviceCode string) (res *servicequotas.GetServiceQuotaOutput, err error) {
-	res, err = client.GetServiceQuota(context.TODO(), &servicequotas.GetServiceQuotaInput{
-		QuotaCode:   &quotaCode,
-		ServiceCode: &serviceCode,
-	}, func(o *servicequotas.Options) {
-		o.Region = "ap-northeast-2"
-	})
-	if err != nil {
-		return nil, err
 	}
 	return
 }

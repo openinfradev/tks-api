@@ -4183,7 +4183,7 @@
             "type": "object",
             "properties": {
                 "expiration": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -4349,6 +4349,12 @@
         "domain.Cluster": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.CloudAccount"
                 },
@@ -4356,9 +4362,6 @@
                     "type": "string"
                 },
                 "cloudService": {
-                    "type": "string"
-                },
-                "clusterEndpoint": {
                     "type": "string"
                 },
                 "clusterType": {
@@ -4520,13 +4523,19 @@
                     "type": "string"
                 },
                 "validity": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
         "domain.ClusterResponse": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
                 },
@@ -4574,15 +4583,18 @@
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
-                },
-                "userClusterEndpoint": {
-                    "type": "string"
                 }
             }
         },
         "domain.ClusterSiteValuesResponse": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "clusterRegion": {
                     "type": "string"
                 },
@@ -4812,6 +4824,12 @@
                 "stackTemplateId"
             ],
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccountId": {
                     "type": "string"
                 },
@@ -4865,9 +4883,6 @@
                     "type": "integer"
                 },
                 "tksUserNodeType": {
-                    "type": "string"
-                },
-                "userClusterEndpoint": {
                     "type": "string"
                 }
             }

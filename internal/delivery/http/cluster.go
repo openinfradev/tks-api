@@ -166,6 +166,10 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId := domain.ClusterId("")
 	if input.CloudService == domain.CloudService_BYOH {
+		if dto.ByoClusterEndpointHost == "" || dto.ByoClusterEndpointPort == 0 {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid byoh cluster endpoint"), "CL_INVALID_BYOH_CLUSTER_ENDPOINT", ""))
+			return
+		}
 		clusterId, err = h.usecase.Bootstrap(r.Context(), dto)
 		if err != nil {
 			ErrorJSON(w, r, err)
