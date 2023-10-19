@@ -682,7 +682,7 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 	}
 
 	// workflow 중간 중간 비는 status 처리...
-	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+	if cluster.StackTemplate.TemplateType == "STANDARD" {
 		if len(appGroups) < 1 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
 		} else {
@@ -692,7 +692,7 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 				}
 			}
 		}
-	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
+	} else if cluster.StackTemplate.TemplateType == "MSA" {
 		if len(appGroups) < 2 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
 		} else {
