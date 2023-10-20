@@ -340,13 +340,16 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 
 	// FOR TEST. ADD MAGIC KEYWORD
 	// check cloudAccount
-	cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccountId)
-	if err != nil {
-		return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
-	}
-	tksCloudAccountId := cluster.CloudAccountId.String()
-	if strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-		tksCloudAccountId = "NULL"
+	tksCloudAccountId := "NULL"
+	if cluster.CloudService != domain.CloudService_BYOH {
+		cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccountId)
+		if err != nil {
+			return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
+		}
+		tksCloudAccountId = cluster.CloudAccountId.String()
+		if strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+			tksCloudAccountId = "NULL"
+		}
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
@@ -626,7 +629,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 		return out, err
 	}
 
-	command := fmt.Sprintf("curl -fL %s/api/packages/%s/generic/byoh_hostagent_install/%s/byoh_hostagent-install-%s.sh | sh -s %s-",
+	command := fmt.Sprintf("curl -fL %s/api/packages/%s/generic/byoh_hostagent_install/%s/byoh_hostagent-install-%s.sh | sh -s -- --role %s-",
 		viper.GetString("external-gitea-url"),
 		viper.GetString("git-account"),
 		string(cluster.ID),
