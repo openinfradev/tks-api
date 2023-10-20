@@ -79,7 +79,9 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 
 	// check cloudAccount
 	tksCloudAccountId := ""
+	tksObjectStore := "minio"
 	if cluster.CloudService != domain.CloudService_BYOH {
+		tksObjectStore = "aws"
 		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
 		if err != nil {
 			return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
@@ -126,6 +128,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
 		"alert_slack=" + viper.GetString("alert-slack"),
 		"cloud_account_id=" + tksCloudAccountId,
+		"object_store=" + tksObjectStore,
 	}
 
 	switch dto.AppGroupType {
