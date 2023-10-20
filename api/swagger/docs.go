@@ -4765,7 +4765,7 @@ const docTemplate = `{
         "domain.CreateBootstrapKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "data": {
+                "kubeconfig": {
                     "$ref": "#/definitions/domain.BootstrapKubeconfig"
                 }
             }
@@ -5380,7 +5380,7 @@ const docTemplate = `{
         "domain.GetBootstrapKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "data": {
+                "kubeconfig": {
                     "$ref": "#/definitions/domain.BootstrapKubeconfig"
                 }
             }

@@ -266,11 +266,11 @@ type InstallClusterRequest struct {
 }
 
 type CreateBootstrapKubeconfigResponse struct {
-	Data BootstrapKubeconfig `json:"data"`
+	Data BootstrapKubeconfig `json:"kubeconfig"`
 }
 
 type GetBootstrapKubeconfigResponse struct {
-	Data BootstrapKubeconfig `json:"data"`
+	Data BootstrapKubeconfig `json:"kubeconfig"`
 }
 
 type GetClusterNodesResponse struct {

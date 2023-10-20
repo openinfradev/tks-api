@@ -635,7 +635,7 @@ definitions:
     type: object
   domain.CreateBootstrapKubeconfigResponse:
     properties:
-      data:
+      kubeconfig:
         $ref: '#/definitions/domain.BootstrapKubeconfig'
     type: object
   domain.CreateCloudAccountRequest:
@@ -1052,7 +1052,7 @@ definitions:
     type: object
   domain.GetBootstrapKubeconfigResponse:
     properties:
-      data:
+      kubeconfig:
         $ref: '#/definitions/domain.BootstrapKubeconfig'
     type: object
   domain.GetCloudAccountResourceQuotaResponse:
