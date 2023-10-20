@@ -228,7 +228,8 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 				Temporary: gocloak.BoolP(false),
 			},
 		},
-		Groups: &groups,
+		Groups:    &groups,
+		FirstName: gocloak.StringP(user.Name),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating user in keycloak failed")
@@ -413,8 +414,9 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if err != nil {
 		return nil, err
 	}
-	if originUser.Email == nil || *originUser.Email != user.Email {
+	if (originUser.Email == nil || *originUser.Email != user.Email) || (originUser.FirstName == nil || *originUser.FirstName != user.Name) {
 		originUser.Email = gocloak.StringP(user.Email)
+		originUser.FirstName = gocloak.StringP(user.Name)
 		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
 		if err != nil {
 			return nil, err
@@ -511,8 +513,9 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 				Temporary: gocloak.BoolP(false),
 			},
 		},
-		Email:  gocloak.StringP(user.Email),
-		Groups: &groups,
+		Email:     gocloak.StringP(user.Email),
+		Groups:    &groups,
+		FirstName: gocloak.StringP(user.Name),
 	})
 	if err != nil {
 		if _, err := u.kc.GetUser(user.Organization.ID, user.AccountId); err == nil {
@@ -569,8 +572,9 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	if err != nil {
 		return nil, err
 	}
-	if originUser.Email == nil || *originUser.Email != user.Email {
+	if (originUser.Email == nil || *originUser.Email != user.Email) || (originUser.FirstName == nil || *originUser.FirstName != user.Name) {
 		originUser.Email = gocloak.StringP(user.Email)
+		originUser.FirstName = gocloak.StringP(user.Name)
 		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
 		if err != nil {
 			return nil, err
