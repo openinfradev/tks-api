@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -64,7 +64,7 @@ func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTem
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Wo
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (c *ArgoClientImpl) GetWorkflowLog(namespace string, container string, work
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return logs, err
 	}
@@ -154,7 +154,7 @@ func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, 
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOp
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}

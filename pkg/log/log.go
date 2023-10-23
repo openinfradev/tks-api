@@ -2,7 +2,7 @@ package log
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -109,5 +109,5 @@ func Fatalf(format string, v ...interface{}) {
 }
 
 func Disable() {
-	logger.Out = ioutil.Discard
+	logger.Out = io.Discard
 }

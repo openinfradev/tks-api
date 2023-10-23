@@ -1,6 +1,6 @@
 module github.com/openinfradev/tks-api
 
-go 1.20
+go 1.19
 
 require (
 	github.com/Nerzal/gocloak/v13 v13.1.0
