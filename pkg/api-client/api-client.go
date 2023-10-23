@@ -17,6 +17,7 @@ type ApiClient interface {
 	Delete(path string, input interface{}) (out interface{}, err error)
 	Put(path string, input interface{}) (out interface{}, err error)
 	Patch(path string, input interface{}) (out interface{}, err error)
+	SetToken(token string)
 }
 
 type ApiClientImpl struct {
@@ -26,7 +27,7 @@ type ApiClientImpl struct {
 }
 
 // New
-func New(host string, token string) (ApiClient, error) {
+func NewWithToken(host string, token string) (ApiClient, error) {
 	return &ApiClientImpl{
 		client: &http.Client{
 			Timeout: 30 * time.Second,
@@ -37,6 +38,23 @@ func New(host string, token string) (ApiClient, error) {
 		url:   host,
 		token: token,
 	}, nil
+}
+
+func New(host string) (ApiClient, error) {
+	return &ApiClientImpl{
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				MaxIdleConns: 10,
+			},
+		},
+		url:   host,
+		token: "",
+	}, nil
+}
+
+func (c *ApiClientImpl) SetToken(token string) {
+	c.token = token
 }
 
 func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
