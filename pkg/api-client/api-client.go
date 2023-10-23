@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -72,7 +72,7 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 		return nil, fmt.Errorf("Failed to call api server.")
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (c *ApiClientImpl) callWithBody(prefix string, method string, path string, 
 		return nil, fmt.Errorf("Failed to call api server.")
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
