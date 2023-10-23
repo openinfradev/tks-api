@@ -41,14 +41,18 @@ type IAppServeAppUsecase interface {
 }
 
 type AppServeAppUsecase struct {
-	repo repository.IAppServeAppRepository
-	argo argowf.ArgoClient
+	repo             repository.IAppServeAppRepository
+	organizationRepo repository.IOrganizationRepository
+	appGroupRepo     repository.IAppGroupRepository
+	argo             argowf.ArgoClient
 }
 
 func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient) IAppServeAppUsecase {
 	return &AppServeAppUsecase{
-		repo: r.AppServeApp,
-		argo: argoClient,
+		repo:             r.AppServeApp,
+		organizationRepo: r.Organization,
+		appGroupRepo:     r.AppGroup,
+		argo:             argoClient,
 	}
 }
 
@@ -158,7 +162,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 		"pv_access_mode=" + app.AppServeAppTasks[0].PvAccessMode,
 		"pv_size=" + app.AppServeAppTasks[0].PvSize,
 		"pv_mount_path=" + app.AppServeAppTasks[0].PvMountPath,
-		"tks_info_host=" + viper.GetString("external-address"),
+		"tks_api_url=" + viper.GetString("external-address"),
 	}
 
 	log.Info("Submitting workflow: ", workflow)
@@ -183,12 +187,37 @@ func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
-	app, err := u.repo.GetAppServeAppById(appId)
+	asa, err := u.repo.GetAppServeAppById(appId)
 	if err != nil {
 		return nil, err
 	}
 
-	return app, nil
+	/************************
+	* Construct grafana URL *
+	************************/
+	organization, err := u.organizationRepo.Get(asa.OrganizationId)
+	if err != nil {
+		return asa, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for app %s", asa.Name)), "S_FAILED_FETCH_ORGANIZATION", "")
+	}
+
+	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId), nil)
+	if err != nil {
+		return asa, err
+	}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				return asa, err
+			}
+			if len(applications) > 0 {
+				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_appserving_dashboard/tks-appserving-dashboard?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10"
+			}
+		}
+	}
+
+	return asa, nil
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
@@ -350,7 +379,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
 			"organization_id=" + app.OrganizationId,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -478,7 +507,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask 
 			"pv_access_mode=" + appTask.PvAccessMode,
 			"pv_size=" + appTask.PvSize,
 			"pv_mount_path=" + appTask.PvMountPath,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -536,7 +565,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
 			"strategy=" + strategy,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -589,7 +618,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
 			"strategy=" + strategy,
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {
@@ -662,7 +691,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 			"asa_id=" + app.ID,
 			"asa_task_id=" + newTaskId,
 			"helm_revision=" + strconv.Itoa(int(targetRev)),
-			"tks_info_host=" + viper.GetString("external-address"),
+			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
 	if err != nil {

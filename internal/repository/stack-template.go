@@ -10,7 +10,9 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -42,6 +44,7 @@ type StackTemplate struct {
 	Name           string       `gorm:"index"`
 	Description    string       `gorm:"index"`
 	Template       string
+	TemplateType   string
 	Version        string
 	CloudService   string
 	Platform       string
@@ -102,6 +105,7 @@ func (r *StackTemplateRepository) Create(dto domain.StackTemplate) (stackTemplat
 		CloudService:   dto.CloudService,
 		Platform:       dto.Platform,
 		Template:       dto.Template,
+		TemplateType:   dto.TemplateType,
 		CreatorId:      &dto.CreatorId,
 		UpdatorId:      nil}
 	res := r.db.Create(&stackTemplate)
@@ -131,23 +135,13 @@ func (r *StackTemplateRepository) Delete(dto domain.StackTemplate) (err error) {
 	return nil
 }
 
-func reflectStackTemplate(stackTemplate StackTemplate) domain.StackTemplate {
-	// hardcoded sample json : [{"type":"LMA","applications":[{"name":"Logging","description":"Logging 설명","version":"v1"},{"name":"Monitoring","description":"Monitoring 설명","version":"v1"},{"name":"Grafana","description":"Grafana 설명","version":"v1"}]},{"type":"SERVICE_MESH","applications":[{"name":"Istio","description":"Istio 설명","version":"v1"},{"name":"Jaeger","description":"Jaeger 설명","version":"v1"}]}]
-	return domain.StackTemplate{
-		ID:             stackTemplate.ID,
-		OrganizationId: stackTemplate.OrganizationId,
-		Name:           stackTemplate.Name,
-		Description:    stackTemplate.Description,
-		Template:       stackTemplate.Template,
-		CloudService:   stackTemplate.CloudService,
-		Platform:       stackTemplate.Platform,
-		Version:        stackTemplate.Version,
-		KubeVersion:    stackTemplate.KubeVersion,
-		KubeType:       stackTemplate.KubeType,
-		Services:       stackTemplate.Services,
-		Creator:        reflectSimpleUser(stackTemplate.Creator),
-		Updator:        reflectSimpleUser(stackTemplate.Updator),
-		CreatedAt:      stackTemplate.CreatedAt,
-		UpdatedAt:      stackTemplate.UpdatedAt,
+func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate) {
+	if err := serializer.Map(stackTemplate.Model, &out); err != nil {
+		log.Error(err)
 	}
+	if err := serializer.Map(stackTemplate, &out); err != nil {
+		log.Error(err)
+	}
+	out.Services = stackTemplate.Services
+	return
 }

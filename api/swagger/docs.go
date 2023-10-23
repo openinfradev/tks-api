@@ -497,6 +497,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/ping": {
+            "post": {
+                "description": "ping with token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "ping with token",
+                "parameters": [
+                    {
+                        "description": "token info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.PingTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/clusters": {
             "get": {
                 "security": [
@@ -670,6 +701,131 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.Cluster"
+                        }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/bootstrap-kubeconfig": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get bootstrap kubeconfig for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Get bootstrap kubeconfig for BYOH",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetBootstrapKubeconfigResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create bootstrap kubeconfig for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Create bootstrap kubeconfig for BYOH",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateBootstrapKubeconfigResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/install": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Install cluster on tks cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Install cluster on tks cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/nodes": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get nodes information for BYOH",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Get nodes information for BYOH",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetClusterNodesResponse"
                         }
                     }
                 }
@@ -2114,6 +2270,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get resource quota by cloudAccount",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CloudAccounts"
+                ],
+                "summary": "Get resource quota by cloudAccount",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "cloudAccountId",
+                        "name": "cloudAccountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetCloudAccountResourceQuotaResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboard/charts": {
             "get": {
                 "security": [
@@ -2812,6 +3012,86 @@ const docTemplate = `{
                     "Stacks"
                 ],
                 "summary": "Delete Stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/stacks/{stackId}/favorite": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Set favorite stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Set favorite stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete favorite stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Delete favorite stack",
                 "parameters": [
                     {
                         "type": "string",
@@ -3725,6 +4005,10 @@ const docTemplate = `{
                     "description": "endpoint URL of deployed app",
                     "type": "string"
                 },
+                "grafanaUrl": {
+                    "description": "grafana dashboard URL for deployed app",
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -3902,6 +4186,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.BootstrapKubeconfig": {
+            "type": "object",
+            "properties": {
+                "expiration": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.ChartData": {
             "type": "object",
             "properties": {
@@ -4064,11 +4356,23 @@ const docTemplate = `{
         "domain.Cluster": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.CloudAccount"
                 },
                 "cloudAccountId": {
                     "type": "string"
+                },
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusterType": {
+                    "type": "integer"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConf"
@@ -4085,8 +4389,14 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "favorited": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -4120,22 +4430,31 @@ const docTemplate = `{
         "domain.ClusterConf": {
             "type": "object",
             "properties": {
-                "cpNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "cpNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
+                "tksInfraNode": {
                     "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksUserNode": {
                     "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4143,13 +4462,74 @@ const docTemplate = `{
         "domain.ClusterConfResponse": {
             "type": "object",
             "properties": {
-                "cpNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "tksNodeCnt": {
+                "tksCpNodeMax": {
                     "type": "integer"
                 },
-                "userpNodeCnt": {
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
+                    "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ClusterHost": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ClusterNode": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ClusterHost"
+                    }
+                },
+                "registered": {
+                    "type": "integer"
+                },
+                "registering": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targeted": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validity": {
                     "type": "integer"
                 }
             }
@@ -4157,8 +4537,20 @@ const docTemplate = `{
         "domain.ClusterResponse": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
+                },
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusterType": {
+                    "type": "string"
                 },
                 "conf": {
                     "$ref": "#/definitions/domain.ClusterConfResponse"
@@ -4174,6 +4566,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -4201,34 +4596,43 @@ const docTemplate = `{
         "domain.ClusterSiteValuesResponse": {
             "type": "object",
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "clusterRegion": {
                     "type": "string"
                 },
-                "cpNodeMachineType": {
-                    "type": "string"
-                },
-                "cpReplicas": {
-                    "type": "integer"
-                },
-                "mdMachineType": {
-                    "type": "string"
-                },
-                "mdMaxSizePerAz": {
-                    "type": "integer"
-                },
-                "mdMinSizePerAz": {
-                    "type": "integer"
-                },
-                "mdNumOfAz": {
-                    "type": "integer"
-                },
-                "mpNodeMachineType": {
-                    "type": "string"
-                },
-                "mpReplicas": {
-                    "type": "integer"
-                },
                 "sshKeyName": {
+                    "type": "string"
+                },
+                "tksCpNode": {
+                    "type": "integer"
+                },
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
+                    "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4358,6 +4762,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CreateBootstrapKubeconfigResponse": {
+            "type": "object",
+            "properties": {
+                "kubeconfig": {
+                    "$ref": "#/definitions/domain.BootstrapKubeconfig"
+                }
+            }
+        },
         "domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
@@ -4413,23 +4825,36 @@ const docTemplate = `{
         "domain.CreateClusterRequest": {
             "type": "object",
             "required": [
-                "cloudAccountId",
+                "cloudService",
                 "name",
                 "organizationId",
                 "stackTemplateId"
             ],
             "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
                 "cloudAccountId": {
                     "type": "string"
                 },
-                "cpNodeCnt": {
-                    "type": "integer"
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "BYOH"
+                    ]
                 },
-                "cpNodeMachineType": {
+                "clusterType": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -4440,16 +4865,31 @@ const docTemplate = `{
                 "stackTemplateId": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksInfraNode": {
                     "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -4488,20 +4928,22 @@ const docTemplate = `{
         "domain.CreateStackRequest": {
             "type": "object",
             "required": [
-                "cloudAccountId",
+                "cloudService",
                 "name",
-                "stackTemplateId",
-                "tksNodeCnt",
-                "userNodeCnt"
+                "stackTemplateId"
             ],
             "properties": {
                 "cloudAccountId": {
                     "type": "string"
                 },
-                "cpNodeCnt": {
-                    "type": "integer"
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "BYOH"
+                    ]
                 },
-                "cpNodeMachineType": {
+                "clusterId": {
                     "type": "string"
                 },
                 "description": {
@@ -4513,20 +4955,34 @@ const docTemplate = `{
                 "stackTemplateId": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
-                    "type": "integer",
-                    "maximum": 6,
-                    "minimum": 3
+                "tksCpNode": {
+                    "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
-                    "type": "integer",
-                    "maximum": 100,
-                    "minimum": 0
+                "tksInfraNode": {
+                    "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
+                    "type": "string"
+                },
+                "userClusterEndpoint": {
                     "type": "string"
                 }
             }
@@ -4567,6 +5023,13 @@ const docTemplate = `{
                 },
                 "template": {
                     "type": "string"
+                },
+                "templateType": {
+                    "type": "string",
+                    "enum": [
+                        "STANDARD",
+                        "MSA"
+                    ]
                 },
                 "version": {
                     "type": "string"
@@ -4914,6 +5377,25 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetBootstrapKubeconfigResponse": {
+            "type": "object",
+            "properties": {
+                "kubeconfig": {
+                    "$ref": "#/definitions/domain.BootstrapKubeconfig"
+                }
+            }
+        },
+        "domain.GetCloudAccountResourceQuotaResponse": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "resourceQuota": {
+                    "$ref": "#/definitions/domain.ResourceQuota"
+                }
+            }
+        },
         "domain.GetCloudAccountResponse": {
             "type": "object",
             "properties": {
@@ -4933,6 +5415,17 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/domain.PaginationResponse"
+                }
+            }
+        },
+        "domain.GetClusterNodesResponse": {
+            "type": "object",
+            "properties": {
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ClusterNode"
+                    }
                 }
             }
         },
@@ -5363,6 +5856,21 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.PingTokenRequest": {
+            "type": "object",
+            "required": [
+                "organizationId",
+                "token"
+            ],
+            "properties": {
+                "organizationId": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.PodCount": {
             "type": "object",
             "properties": {
@@ -5370,6 +5878,34 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.ResourceQuota": {
+            "type": "object",
+            "properties": {
+                "quotas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ResourceQuotaAttr"
+                    }
+                }
+            }
+        },
+        "domain.ResourceQuotaAttr": {
+            "type": "object",
+            "properties": {
+                "quota": {
+                    "type": "integer"
+                },
+                "required": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "usage": {
                     "type": "integer"
                 }
             }
@@ -5463,6 +5999,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                    }
+                },
                 "template": {
                     "type": "string"
                 }
@@ -5484,23 +6026,40 @@ const docTemplate = `{
         },
         "domain.StackConfResponse": {
             "type": "object",
+            "required": [
+                "tksInfraNode",
+                "tksUserNode"
+            ],
             "properties": {
-                "cpNodeCnt": {
+                "tksCpNode": {
                     "type": "integer"
                 },
-                "cpNodeMachineType": {
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
                     "type": "string"
                 },
-                "tksNodeCnt": {
+                "tksInfraNode": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "tksInfraNodeMax": {
                     "type": "integer"
                 },
-                "tksNodeMachineType": {
+                "tksInfraNodeType": {
                     "type": "string"
                 },
-                "userNodeCnt": {
+                "tksUserNode": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0
+                },
+                "tksUserNodeMax": {
                     "type": "integer"
                 },
-                "userNodeMachineType": {
+                "tksUserNodeType": {
                     "type": "string"
                 }
             }
@@ -5523,6 +6082,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "favorited": {
+                    "type": "boolean"
+                },
                 "grafanaUrl": {
                     "type": "string"
                 },
@@ -5538,6 +6100,9 @@ const docTemplate = `{
                 "primaryCluster": {
                     "type": "boolean"
                 },
+                "resource": {
+                    "$ref": "#/definitions/domain.DashboardStackResponse"
+                },
                 "stackTemplate": {
                     "$ref": "#/definitions/domain.SimpleStackTemplateResponse"
                 },
@@ -5552,6 +6117,9 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
                 }
             }
         },
@@ -5617,6 +6185,9 @@ const docTemplate = `{
                 "template": {
                     "type": "string"
                 },
+                "templateType": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },
@@ -5668,6 +6239,9 @@ const docTemplate = `{
                     }
                 },
                 "template": {
+                    "type": "string"
+                },
+                "templateType": {
                     "type": "string"
                 },
                 "updatedAt": {

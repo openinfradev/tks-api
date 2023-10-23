@@ -10,6 +10,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -19,14 +20,18 @@ type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
 	Fetch(pg *pagination.Pagination) (res []domain.Cluster, err error)
 	FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *pagination.Pagination) (res []domain.Cluster, err error)
-	FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (res []domain.Cluster, err error)
+	FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (res []domain.Cluster, err error)
 	Get(id domain.ClusterId) (domain.Cluster, error)
 	GetByName(organizationId string, name string) (domain.Cluster, error)
 	Create(dto domain.Cluster) (clusterId domain.ClusterId, err error)
 	Update(dto domain.Cluster) (err error)
 	Delete(id domain.ClusterId) error
+
 	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
 	InitWorkflowDescription(clusterId domain.ClusterId) error
+
+	SetFavorite(clusterId domain.ClusterId, userId uuid.UUID) error
+	DeleteFavorite(clusterId domain.ClusterId, userId uuid.UUID) error
 }
 
 type ClusterRepository struct {
@@ -45,32 +50,56 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 type Cluster struct {
 	gorm.Model
 
-	ID                  domain.ClusterId `gorm:"primarykey"`
-	Name                string           `gorm:"index"`
-	OrganizationId      string
-	Organization        Organization `gorm:"foreignKey:OrganizationId"`
-	Description         string       `gorm:"index"`
-	WorkflowId          string
-	Status              domain.ClusterStatus
-	StatusDesc          string
-	CloudAccountId      uuid.UUID
-	CloudAccount        CloudAccount `gorm:"foreignKey:CloudAccountId"`
-	StackTemplateId     uuid.UUID
-	StackTemplate       StackTemplate `gorm:"foreignKey:StackTemplateId"`
-	CpNodeCnt           int
-	CpNodeMachineType   string
-	TksNodeCnt          int
-	TksNodeMachineType  string
-	UserNodeCnt         int
-	UserNodeMachineType string
-	CreatorId           *uuid.UUID `gorm:"type:uuid"`
-	Creator             User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId           *uuid.UUID `gorm:"type:uuid"`
-	Updator             User       `gorm:"foreignKey:UpdatorId"`
+	ID                     domain.ClusterId `gorm:"primarykey"`
+	Name                   string           `gorm:"index"`
+	CloudService           string           `gorm:"default:AWS"`
+	OrganizationId         string
+	Organization           Organization `gorm:"foreignKey:OrganizationId"`
+	Description            string       `gorm:"index"`
+	WorkflowId             string
+	Status                 domain.ClusterStatus
+	StatusDesc             string
+	CloudAccountId         *uuid.UUID
+	CloudAccount           CloudAccount `gorm:"foreignKey:CloudAccountId"`
+	StackTemplateId        uuid.UUID
+	StackTemplate          StackTemplate `gorm:"foreignKey:StackTemplateId"`
+	Favorites              *[]ClusterFavorite
+	ClusterType            domain.ClusterType `gorm:"default:0"`
+	ByoClusterEndpointHost string
+	ByoClusterEndpointPort int
+	IsStack                bool `gorm:"default:false"`
+	TksCpNode              int
+	TksCpNodeMax           int
+	TksCpNodeType          string
+	TksInfraNode           int
+	TksInfraNodeMax        int
+	TksInfraNodeType       string
+	TksUserNode            int
+	TksUserNodeMax         int
+	TksUserNodeType        string
+	CreatorId              *uuid.UUID `gorm:"type:uuid"`
+	Creator                User       `gorm:"foreignKey:CreatorId"`
+	UpdatorId              *uuid.UUID `gorm:"type:uuid"`
+	Updator                User       `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = domain.ClusterId(helper.GenerateClusterId())
+	return nil
+}
+
+type ClusterFavorite struct {
+	gorm.Model
+
+	ID        uuid.UUID `gorm:"primarykey;type:uuid"`
+	ClusterId domain.ClusterId
+	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
+	UserId    uuid.UUID `gorm:"type:uuid"`
+	User      User      `gorm:"foreignKey:UserId"`
+}
+
+func (c *ClusterFavorite) BeforeCreate(tx *gorm.DB) (err error) {
+	c.ID = uuid.New()
 	return nil
 }
 
@@ -107,7 +136,7 @@ func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Clust
 	return
 }
 
-func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
+func (r *ClusterRepository) FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
@@ -115,14 +144,16 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pag
 	pg.SortColumn = "created_at"
 	pg.SortOrder = "DESC"
 	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&Cluster{}).Preload(clause.Associations).
+	db := filterFunc(r.db.Model(&Cluster{}).
+		Preload(clause.Associations).
+		Joins("left outer join cluster_favorites on clusters.id = cluster_favorites.cluster_id AND cluster_favorites.user_id = ?", userId).
 		Where("organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED))
 
 	db.Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&clusters)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order("cluster_favorites.cluster_id").Order(orderQuery).Find(&clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -130,6 +161,8 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string, pg *pag
 		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
 	}
+
+	//log.Info(helper.ModelToJson(clusters))
 	return
 }
 
@@ -180,21 +213,34 @@ func (r *ClusterRepository) GetByName(organizationId string, name string) (out d
 }
 
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
+	var cloudAccountId *uuid.UUID
+	cloudAccountId = &dto.CloudAccountId
+	if dto.CloudService == domain.CloudService_BYOH {
+		cloudAccountId = nil
+	}
 	cluster := Cluster{
-		OrganizationId:      dto.OrganizationId,
-		Name:                dto.Name,
-		Description:         dto.Description,
-		CloudAccountId:      dto.CloudAccountId,
-		StackTemplateId:     dto.StackTemplateId,
-		CreatorId:           dto.CreatorId,
-		UpdatorId:           nil,
-		Status:              domain.ClusterStatus_PENDING,
-		CpNodeCnt:           dto.Conf.CpNodeCnt,
-		CpNodeMachineType:   dto.Conf.CpNodeMachineType,
-		TksNodeCnt:          dto.Conf.TksNodeCnt,
-		TksNodeMachineType:  dto.Conf.TksNodeMachineType,
-		UserNodeCnt:         dto.Conf.UserNodeCnt,
-		UserNodeMachineType: dto.Conf.UserNodeMachineType,
+		OrganizationId:         dto.OrganizationId,
+		Name:                   dto.Name,
+		Description:            dto.Description,
+		CloudAccountId:         cloudAccountId,
+		StackTemplateId:        dto.StackTemplateId,
+		CreatorId:              dto.CreatorId,
+		UpdatorId:              nil,
+		Status:                 domain.ClusterStatus_PENDING,
+		ClusterType:            dto.ClusterType,
+		CloudService:           dto.CloudService,
+		ByoClusterEndpointHost: dto.ByoClusterEndpointHost,
+		ByoClusterEndpointPort: dto.ByoClusterEndpointPort,
+		IsStack:                dto.IsStack,
+		TksCpNode:              dto.Conf.TksCpNode,
+		TksCpNodeMax:           dto.Conf.TksCpNodeMax,
+		TksCpNodeType:          dto.Conf.TksCpNodeType,
+		TksInfraNode:           dto.Conf.TksInfraNode,
+		TksInfraNodeMax:        dto.Conf.TksInfraNodeMax,
+		TksInfraNodeType:       dto.Conf.TksInfraNodeType,
+		TksUserNode:            dto.Conf.TksUserNode,
+		TksUserNodeMax:         dto.Conf.TksUserNodeMax,
+		TksUserNodeType:        dto.Conf.TksUserNodeType,
 	}
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
@@ -247,39 +293,60 @@ func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) 
 	return nil
 }
 
-func reflectCluster(cluster Cluster) domain.Cluster {
-	return domain.Cluster{
-		ID:              cluster.ID,
-		OrganizationId:  cluster.OrganizationId,
-		Name:            cluster.Name,
-		Description:     cluster.Description,
-		CloudAccountId:  cluster.CloudAccountId,
-		CloudAccount:    reflectCloudAccount(cluster.CloudAccount),
-		StackTemplateId: cluster.StackTemplateId,
-		StackTemplate:   reflectStackTemplate(cluster.StackTemplate),
-		Status:          cluster.Status,
-		StatusDesc:      cluster.StatusDesc,
-		CreatorId:       cluster.CreatorId,
-		Creator:         reflectSimpleUser(cluster.Creator),
-		UpdatorId:       cluster.UpdatorId,
-		Updator:         reflectSimpleUser(cluster.Updator),
-		CreatedAt:       cluster.CreatedAt,
-		UpdatedAt:       cluster.UpdatedAt,
-		Conf: domain.ClusterConf{
-			CpNodeCnt:           int(cluster.CpNodeCnt),
-			CpNodeMachineType:   cluster.CpNodeMachineType,
-			TksNodeCnt:          int(cluster.TksNodeCnt),
-			TksNodeMachineType:  cluster.TksNodeMachineType,
-			UserNodeCnt:         int(cluster.UserNodeCnt),
-			UserNodeMachineType: cluster.UserNodeMachineType,
-		},
+func (r *ClusterRepository) SetFavorite(clusterId domain.ClusterId, userId uuid.UUID) error {
+	var clusterFavorites []ClusterFavorite
+	res := r.db.Where("cluster_id = ? AND user_id = ?", clusterId, userId).Find(&clusterFavorites)
+	if res.Error != nil {
+		log.Info(res.Error)
+		return res.Error
 	}
+
+	if len(clusterFavorites) > 0 {
+		return nil
+	}
+
+	clusterFavorite := ClusterFavorite{
+		ClusterId: clusterId,
+		UserId:    userId,
+	}
+	resCreate := r.db.Create(&clusterFavorite)
+	if resCreate.Error != nil {
+		log.Error(resCreate.Error)
+		return fmt.Errorf("could not create cluster favorite for clusterId %s, userId %s", clusterId, userId)
+	}
+
+	return nil
 }
 
-func reflectSimpleCluster(cluster Cluster) domain.Cluster {
-	return domain.Cluster{
-		ID:             cluster.ID,
-		OrganizationId: cluster.OrganizationId,
-		Name:           cluster.Name,
+func (r *ClusterRepository) DeleteFavorite(clusterId domain.ClusterId, userId uuid.UUID) error {
+	res := r.db.Unscoped().Delete(&ClusterFavorite{}, "cluster_id = ? AND user_id = ?", clusterId, userId)
+	if res.Error != nil {
+		log.Error(res.Error)
+		return fmt.Errorf("could not delete cluster favorite for clusterId %s, userId %s", clusterId, userId)
 	}
+	return nil
+}
+
+func reflectCluster(cluster Cluster) (out domain.Cluster) {
+	if err := serializer.Map(cluster.Model, &out); err != nil {
+		log.Error(err)
+	}
+
+	if err := serializer.Map(cluster, &out); err != nil {
+		log.Error(err)
+	}
+
+	if err := serializer.Map(cluster, &out.Conf); err != nil {
+		log.Error(err)
+	}
+	out.StackTemplate.Services = cluster.StackTemplate.Services
+
+	if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+		out.Favorited = true
+
+	} else {
+		out.Favorited = false
+	}
+
+	return
 }

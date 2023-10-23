@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -55,13 +56,13 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetClustersResponse
 	out.Clusters = make([]domain.ClusterResponse, len(clusters))
 	for i, cluster := range clusters {
-		if err := domain.Map(cluster, &out.Clusters[i]); err != nil {
+		if err := serializer.Map(cluster, &out.Clusters[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -93,7 +94,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetClusterResponse
-	if err := domain.Map(cluster, &out.Cluster); err != nil {
+	if err := serializer.Map(cluster, &out.Cluster); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -130,7 +131,7 @@ func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Req
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// GetCluster godoc
+// CreateCluster godoc
 // @Tags Clusters
 // @Summary Create cluster
 // @Description Create cluster
@@ -149,29 +150,71 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto domain.Cluster
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
-	if err = domain.Map(input, &dto.Conf); err != nil {
+	if err = serializer.Map(input, &dto.Conf); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
 	// [TODO] set default value
+	dto.ClusterType = domain.ClusterType_USER
 	dto.Conf.SetDefault()
 	log.InfoWithContext(r.Context(), dto.Conf)
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
-	clusterId, err := h.usecase.Create(r.Context(), dto)
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
+	clusterId := domain.ClusterId("")
+	if input.CloudService == domain.CloudService_BYOH {
+		if dto.ByoClusterEndpointHost == "" || dto.ByoClusterEndpointPort == 0 {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid byoh cluster endpoint"), "CL_INVALID_BYOH_CLUSTER_ENDPOINT", ""))
+			return
+		}
+		clusterId, err = h.usecase.Bootstrap(r.Context(), dto)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+	} else {
+		clusterId, err = h.usecase.Create(r.Context(), dto)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
 	}
 
 	var out domain.CreateClusterResponse
 	out.ID = clusterId.String()
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// InstallCluster godoc
+// @Tags Clusters
+// @Summary Install cluster on tks cluster
+// @Description Install cluster on tks cluster
+// @Accept json
+// @Produce json
+// @Param clusterId path string true "clusterId"
+// @Success 200 {object} nil
+// @Router /clusters/{clusterId}/install [post]
+// @Security     JWT
+func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	err := h.usecase.Install(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // DeleteCluster godoc
@@ -199,6 +242,98 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// CreateBootstrapKubeconfig godoc
+// @Tags Clusters
+// @Summary Create bootstrap kubeconfig for BYOH
+// @Description Create bootstrap kubeconfig for BYOH
+// @Accept json
+// @Produce json
+// @Success 200 {object} domain.CreateBootstrapKubeconfigResponse
+// @Router /clusters/{clusterId}/bootstrap-kubeconfig [post]
+// @Security     JWT
+func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	kubeconfig, err := h.usecase.CreateBootstrapKubeconfig(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.CreateBootstrapKubeconfigResponse
+	out.Data = kubeconfig
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetBootstrapKubeconfig godoc
+// @Tags Clusters
+// @Summary Get bootstrap kubeconfig for BYOH
+// @Description Get bootstrap kubeconfig for BYOH
+// @Accept json
+// @Produce json
+// @Success 200 {object} domain.GetBootstrapKubeconfigResponse
+// @Router /clusters/{clusterId}/bootstrap-kubeconfig [get]
+// @Security     JWT
+func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	bootstrapKubeconfig, err := h.usecase.GetBootstrapKubeconfig(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetBootstrapKubeconfigResponse
+	out.Data = bootstrapKubeconfig
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetNodes godoc
+// @Tags Clusters
+// @Summary Get nodes information for BYOH
+// @Description Get nodes information for BYOH
+// @Accept json
+// @Produce json
+// @Param clusterId path string true "clusterId"
+// @Success 200 {object} domain.GetClusterNodesResponse
+// @Router /clusters/{clusterId}/nodes [get]
+// @Security     JWT
+func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	clusterId := domain.ClusterId(strId)
+	if !clusterId.Validate() {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	nodes, err := h.usecase.GetNodes(r.Context(), domain.ClusterId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetClusterNodesResponse
+	out.Nodes = nodes
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {

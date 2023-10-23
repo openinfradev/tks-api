@@ -8,9 +8,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -70,7 +72,7 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 }
 
 func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error) {
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
 	}
@@ -102,7 +104,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		}
 		stack := reflectClusterToStack(cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
-		if err := domain.Map(stack, &dashboardStack); err != nil {
+		if err := serializer.Map(stack, &dashboardStack); err != nil {
 			log.InfoWithContext(ctx, err)
 		}
 
@@ -110,13 +112,13 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		cpu := u.getStackCpu(stackCpu.Data.Result, cluster.ID.String())
 
 		if cpu != "" {
-			cpu = cpu + " %"
+			cpu = cpu + "%"
 		}
 		if memory != "" {
-			memory = memory + " %"
+			memory = memory + "%"
 		}
 		if disk != "" {
-			disk = disk + " %"
+			disk = disk + "%"
 		}
 
 		dashboardStack.Cpu = cpu
@@ -146,7 +148,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	}
 
 	// Stack
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
 	}
@@ -416,28 +418,46 @@ func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err 
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
 
-	clientset_user, err := kubernetes.GetClientFromClusterId(organization.PrimaryClusterId)
+	clientset_admin, err := kubernetes.GetClientAdminCluster()
 	if err != nil {
 		return out, errors.Wrap(err, "Failed to get client set for user cluster")
 	}
-	service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query-frontend", metav1.GetOptions{})
+
+	// tks-endpoint-secret 이 있다면 그 secret 내의 endpoint 를 사용한다.
+	secrets, err := clientset_admin.CoreV1().Secrets(organization.PrimaryClusterId).Get(context.TODO(), "tks-endpoint-secret", metav1.GetOptions{})
 	if err != nil {
-		service, err = clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+		log.Info("cannot found tks-endpoint-secret. so use LoadBalancer...")
+
+		clientset_user, err := kubernetes.GetClientFromClusterId(organization.PrimaryClusterId)
 		if err != nil {
-			return out, errors.Wrap(err, "Failed to get services.")
+			return out, errors.Wrap(err, "Failed to get client set for user cluster")
 		}
-	}
 
-	// LoadBalaner 일경우, aws address 형태의 경우만 가정한다.
-	if service.Spec.Type != "LoadBalancer" {
-		return out, fmt.Errorf("Service type is not LoadBalancer. [%s] ", service.Spec.Type)
-	}
+		service, err := clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query-frontend", metav1.GetOptions{})
+		if err != nil {
+			service, err = clientset_user.CoreV1().Services("lma").Get(context.TODO(), "thanos-query", metav1.GetOptions{})
+			if err != nil {
+				return out, errors.Wrap(err, "Failed to get services.")
+			}
+		}
 
-	lbs := service.Status.LoadBalancer.Ingress
-	ports := service.Spec.Ports
-	if len(lbs) > 0 && len(ports) > 0 {
-		out = ports[0].TargetPort.StrVal + "://" + lbs[0].Hostname + ":" + strconv.Itoa(int(ports[0].Port))
+		// LoadBalaner 일경우, aws address 형태의 경우만 가정한다.
+		if service.Spec.Type != "LoadBalancer" {
+			return out, fmt.Errorf("Service type is not LoadBalancer. [%s] ", service.Spec.Type)
+		}
+
+		lbs := service.Status.LoadBalancer.Ingress
+		ports := service.Spec.Ports
+		if len(lbs) > 0 && len(ports) > 0 {
+			out = ports[0].TargetPort.StrVal + "://" + lbs[0].Hostname + ":" + strconv.Itoa(int(ports[0].Port))
+			u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
+			return out, nil
+		}
+	} else {
+		out = "http://" + string(secrets.Data["thanos"])
+		log.Info("thanosUrl : ", out)
 		u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
+		return out, nil
 	}
 
 	return

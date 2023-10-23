@@ -124,6 +124,9 @@ definitions:
       endpointUrl:
         description: endpoint URL of deployed app
         type: string
+      grafanaUrl:
+        description: grafana dashboard URL for deployed app
+        type: string
       id:
         type: string
       name:
@@ -249,6 +252,11 @@ definitions:
           type: string
         type: array
     type: object
+  domain.BootstrapKubeconfig:
+    properties:
+      expiration:
+        type: integer
+    type: object
   domain.ChartData:
     properties:
       podCounts:
@@ -355,10 +363,18 @@ definitions:
     type: object
   domain.Cluster:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       cloudAccount:
         $ref: '#/definitions/domain.CloudAccount'
       cloudAccountId:
         type: string
+      cloudService:
+        type: string
+      clusterType:
+        type: integer
       conf:
         $ref: '#/definitions/domain.ClusterConf'
       createdAt:
@@ -369,8 +385,12 @@ definitions:
         type: string
       description:
         type: string
+      favorited:
+        type: boolean
       id:
         type: string
+      isStack:
+        type: boolean
       name:
         type: string
       organizationId:
@@ -392,32 +412,86 @@ definitions:
     type: object
   domain.ClusterConf:
     properties:
-      cpNodeCnt:
+      tksCpNode:
         type: integer
-      cpNodeMachineType:
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
         type: string
-      tksNodeCnt:
+      tksInfraNode:
         type: integer
-      tksNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
         type: string
-      userNodeCnt:
+      tksUserNode:
         type: integer
-      userNodeMachineType:
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     type: object
   domain.ClusterConfResponse:
     properties:
-      cpNodeCnt:
+      tksCpNode:
         type: integer
-      tksNodeCnt:
+      tksCpNodeMax:
         type: integer
-      userpNodeCnt:
+      tksCpNodeType:
+        type: string
+      tksInfraNode:
+        type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
+        type: string
+    type: object
+  domain.ClusterHost:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.ClusterNode:
+    properties:
+      command:
+        type: string
+      hosts:
+        items:
+          $ref: '#/definitions/domain.ClusterHost'
+        type: array
+      registered:
+        type: integer
+      registering:
+        type: integer
+      status:
+        type: string
+      targeted:
+        type: integer
+      type:
+        type: string
+      validity:
         type: integer
     type: object
   domain.ClusterResponse:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       cloudAccount:
         $ref: '#/definitions/domain.SimpleCloudAccountResponse'
+      cloudService:
+        type: string
+      clusterType:
+        type: string
       conf:
         $ref: '#/definitions/domain.ClusterConfResponse'
       createdAt:
@@ -428,6 +502,8 @@ definitions:
         type: string
       id:
         type: string
+      isStack:
+        type: boolean
       name:
         type: string
       organizationId:
@@ -445,25 +521,31 @@ definitions:
     type: object
   domain.ClusterSiteValuesResponse:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       clusterRegion:
         type: string
-      cpNodeMachineType:
-        type: string
-      cpReplicas:
-        type: integer
-      mdMachineType:
-        type: string
-      mdMaxSizePerAz:
-        type: integer
-      mdMinSizePerAz:
-        type: integer
-      mdNumOfAz:
-        type: integer
-      mpNodeMachineType:
-        type: string
-      mpReplicas:
-        type: integer
       sshKeyName:
+        type: string
+      tksCpNode:
+        type: integer
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
+        type: string
+      tksInfraNode:
+        type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     type: object
   domain.CreateAppGroupRequest:
@@ -551,6 +633,11 @@ definitions:
       metadata:
         type: string
     type: object
+  domain.CreateBootstrapKubeconfigResponse:
+    properties:
+      kubeconfig:
+        $ref: '#/definitions/domain.BootstrapKubeconfig'
+    type: object
   domain.CreateCloudAccountRequest:
     properties:
       accessKeyId:
@@ -591,30 +678,49 @@ definitions:
     type: object
   domain.CreateClusterRequest:
     properties:
+      byoClusterEndpointHost:
+        type: string
+      byoClusterEndpointPort:
+        type: integer
       cloudAccountId:
         type: string
-      cpNodeCnt:
-        type: integer
-      cpNodeMachineType:
+      cloudService:
+        enum:
+        - AWS
+        - BYOH
+        type: string
+      clusterType:
         type: string
       description:
         type: string
+      isStack:
+        type: boolean
       name:
         type: string
       organizationId:
         type: string
       stackTemplateId:
         type: string
-      tksNodeCnt:
+      tksCpNode:
         type: integer
-      tksNodeMachineType:
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
         type: string
-      userNodeCnt:
+      tksInfraNode:
         type: integer
-      userNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
         type: string
     required:
-    - cloudAccountId
+    - cloudService
     - name
     - organizationId
     - stackTemplateId
@@ -644,9 +750,12 @@ definitions:
     properties:
       cloudAccountId:
         type: string
-      cpNodeCnt:
-        type: integer
-      cpNodeMachineType:
+      cloudService:
+        enum:
+        - AWS
+        - BYOH
+        type: string
+      clusterId:
         type: string
       description:
         type: string
@@ -654,24 +763,30 @@ definitions:
         type: string
       stackTemplateId:
         type: string
-      tksNodeCnt:
-        maximum: 6
-        minimum: 3
+      tksCpNode:
         type: integer
-      tksNodeMachineType:
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
         type: string
-      userNodeCnt:
-        maximum: 100
-        minimum: 0
+      tksInfraNode:
         type: integer
-      userNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
+        type: string
+      userClusterEndpoint:
         type: string
     required:
-    - cloudAccountId
+    - cloudService
     - name
     - stackTemplateId
-    - tksNodeCnt
-    - userNodeCnt
     type: object
   domain.CreateStackResponse:
     properties:
@@ -693,6 +808,11 @@ definitions:
       platform:
         type: string
       template:
+        type: string
+      templateType:
+        enum:
+        - STANDARD
+        - MSA
         type: string
       version:
         type: string
@@ -930,6 +1050,18 @@ definitions:
           $ref: '#/definitions/domain.ApplicationResponse'
         type: array
     type: object
+  domain.GetBootstrapKubeconfigResponse:
+    properties:
+      kubeconfig:
+        $ref: '#/definitions/domain.BootstrapKubeconfig'
+    type: object
+  domain.GetCloudAccountResourceQuotaResponse:
+    properties:
+      available:
+        type: boolean
+      resourceQuota:
+        $ref: '#/definitions/domain.ResourceQuota'
+    type: object
   domain.GetCloudAccountResponse:
     properties:
       cloudAccount:
@@ -943,6 +1075,13 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/domain.PaginationResponse'
+    type: object
+  domain.GetClusterNodesResponse:
+    properties:
+      nodes:
+        items:
+          $ref: '#/definitions/domain.ClusterNode'
+        type: array
     type: object
   domain.GetClustersResponse:
     properties:
@@ -1221,11 +1360,39 @@ definitions:
       totalRows:
         type: integer
     type: object
+  domain.PingTokenRequest:
+    properties:
+      organizationId:
+        type: string
+      token:
+        type: string
+    required:
+    - organizationId
+    - token
+    type: object
   domain.PodCount:
     properties:
       day:
         type: integer
       value:
+        type: integer
+    type: object
+  domain.ResourceQuota:
+    properties:
+      quotas:
+        items:
+          $ref: '#/definitions/domain.ResourceQuotaAttr'
+        type: array
+    type: object
+  domain.ResourceQuotaAttr:
+    properties:
+      quota:
+        type: integer
+      required:
+        type: integer
+      type:
+        type: string
+      usage:
         type: integer
     type: object
   domain.Role:
@@ -1286,6 +1453,10 @@ definitions:
         type: string
       name:
         type: string
+      services:
+        items:
+          $ref: '#/definitions/domain.StackTemplateServiceResponse'
+        type: array
       template:
         type: string
     type: object
@@ -1300,18 +1471,31 @@ definitions:
     type: object
   domain.StackConfResponse:
     properties:
-      cpNodeCnt:
+      tksCpNode:
         type: integer
-      cpNodeMachineType:
-        type: string
-      tksNodeCnt:
+      tksCpNodeMax:
         type: integer
-      tksNodeMachineType:
+      tksCpNodeType:
         type: string
-      userNodeCnt:
+      tksInfraNode:
+        maximum: 3
+        minimum: 1
         type: integer
-      userNodeMachineType:
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
         type: string
+      tksUserNode:
+        maximum: 100
+        minimum: 0
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
+        type: string
+    required:
+    - tksInfraNode
+    - tksUserNode
     type: object
   domain.StackResponse:
     properties:
@@ -1325,6 +1509,8 @@ definitions:
         $ref: '#/definitions/domain.SimpleUserResponse'
       description:
         type: string
+      favorited:
+        type: boolean
       grafanaUrl:
         type: string
       id:
@@ -1335,6 +1521,8 @@ definitions:
         type: string
       primaryCluster:
         type: boolean
+      resource:
+        $ref: '#/definitions/domain.DashboardStackResponse'
       stackTemplate:
         $ref: '#/definitions/domain.SimpleStackTemplateResponse'
       status:
@@ -1345,6 +1533,8 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
+      userClusterEndpoint:
+        type: string
     type: object
   domain.StackStepStatus:
     properties:
@@ -1387,6 +1577,8 @@ definitions:
         type: array
       template:
         type: string
+      templateType:
+        type: string
       updatedAt:
         type: string
       updator:
@@ -1421,6 +1613,8 @@ definitions:
           $ref: '#/definitions/domain.StackTemplateServiceResponse'
         type: array
       template:
+        type: string
+      templateType:
         type: string
       updatedAt:
         type: string
@@ -2076,6 +2270,26 @@ paths:
       summary: logout
       tags:
       - Auth
+  /auth/ping:
+    post:
+      consumes:
+      - application/json
+      description: ping with token
+      parameters:
+      - description: token info
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PingTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: ping with token
+      tags:
+      - Auth
   /clusters:
     get:
       consumes:
@@ -2186,6 +2400,83 @@ paths:
       security:
       - JWT: []
       summary: Get cluster
+      tags:
+      - Clusters
+  /clusters/{clusterId}/bootstrap-kubeconfig:
+    get:
+      consumes:
+      - application/json
+      description: Get bootstrap kubeconfig for BYOH
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetBootstrapKubeconfigResponse'
+      security:
+      - JWT: []
+      summary: Get bootstrap kubeconfig for BYOH
+      tags:
+      - Clusters
+    post:
+      consumes:
+      - application/json
+      description: Create bootstrap kubeconfig for BYOH
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateBootstrapKubeconfigResponse'
+      security:
+      - JWT: []
+      summary: Create bootstrap kubeconfig for BYOH
+      tags:
+      - Clusters
+  /clusters/{clusterId}/install:
+    post:
+      consumes:
+      - application/json
+      description: Install cluster on tks cluster
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Install cluster on tks cluster
+      tags:
+      - Clusters
+  /clusters/{clusterId}/nodes:
+    get:
+      consumes:
+      - application/json
+      description: Get nodes information for BYOH
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetClusterNodesResponse'
+      security:
+      - JWT: []
+      summary: Get nodes information for BYOH
       tags:
       - Clusters
   /clusters/{clusterId}/site-values:
@@ -3048,6 +3339,34 @@ paths:
       summary: Delete Force CloudAccount
       tags:
       - CloudAccounts
+  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota:
+    get:
+      consumes:
+      - application/json
+      description: Get resource quota by cloudAccount
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: cloudAccountId
+        in: path
+        name: cloudAccountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetCloudAccountResourceQuotaResponse'
+      security:
+      - JWT: []
+      summary: Get resource quota by cloudAccount
+      tags:
+      - CloudAccounts
   /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence:
     get:
       consumes:
@@ -3530,6 +3849,57 @@ paths:
       security:
       - JWT: []
       summary: Update Stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/favorite:
+    delete:
+      consumes:
+      - application/json
+      description: Delete favorite stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete favorite stack
+      tags:
+      - Stacks
+    post:
+      consumes:
+      - application/json
+      description: Set favorite stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Set favorite stack
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/{stackId}/kube-config:

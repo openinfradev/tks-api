@@ -13,6 +13,7 @@ const (
 	CloudService_AWS       = "AWS"
 	CloudService_AZURE     = "AZZURE"
 	CloudService_GCP       = "GCP"
+	CloudService_BYOH      = "BYOH"
 )
 
 // enum
@@ -70,6 +71,17 @@ type CloudAccount struct {
 	Updator         User
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+}
+
+type ResourceQuotaAttr struct {
+	Type     string `json:"type"`
+	Usage    int    `json:"usage"`
+	Quota    int    `json:"quota"`
+	Required int    `json:"required"`
+}
+
+type ResourceQuota struct {
+	Quotas []ResourceQuotaAttr `json:"quotas"`
 }
 
 type CloudAccountResponse struct {
@@ -139,4 +151,9 @@ type CheckCloudAccountNameResponse struct {
 
 type CheckCloudAccountAwsAccountIdResponse struct {
 	Existed bool `json:"existed"`
+}
+
+type GetCloudAccountResourceQuotaResponse struct {
+	Available     bool          `json:"available"`
+	ResourceQuota ResourceQuota `json:"resourceQuota"`
 }

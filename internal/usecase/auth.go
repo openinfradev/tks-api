@@ -19,9 +19,9 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
-	"github.com/openinfradev/tks-api/internal/aws/ses"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/mail"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -30,6 +30,7 @@ import (
 type IAuthUsecase interface {
 	Login(accountId string, password string, organizationId string) (domain.User, error)
 	Logout(accessToken string, organizationId string) error
+	PingToken(accessToken string, organizationId string) error
 	FindId(code string, email string, userName string, organizationId string) (string, error)
 	FindPassword(code string, accountId string, email string, userName string, organizationId string) error
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
@@ -103,6 +104,15 @@ func (u *AuthUsecase) Logout(accessToken string, organizationName string) error 
 	}
 	return nil
 }
+
+func (u *AuthUsecase) PingToken(accessToken string, organizationId string) error {
+	if err := u.kc.VerifyAccessToken(accessToken, organizationId); err != nil {
+		log.Errorf("failed to verify access token: %v", err)
+		return err
+	}
+	return nil
+}
+
 func (u *AuthUsecase) FindId(code string, email string, userName string, organizationId string) (string, error) {
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
@@ -182,7 +192,15 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = ses.SendEmailForTemporaryPassword(ses.Client, email, randomPassword); err != nil {
+	message, err := mail.MakeTemporaryPasswordMessage(email, randomPassword)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -230,7 +248,17 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
-	if err := ses.SendEmailForVerityIdentity(ses.Client, email, code); err != nil {
+
+	message, err := mail.MakeVerityIdentityMessage(email, code)
+	if err != nil {
+		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
+		log.Errorf("mailer.SendMail error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 

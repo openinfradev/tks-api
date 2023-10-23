@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
@@ -164,16 +165,14 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 	return nil
 }
 
-func (r *OrganizationRepository) reflect(organization Organization) domain.Organization {
-	return domain.Organization{
-		ID:               organization.ID,
-		Name:             organization.Name,
-		Description:      organization.Description,
-		Phone:            organization.Phone,
-		PrimaryClusterId: organization.PrimaryClusterId,
-		Status:           organization.Status,
-		Creator:          organization.Creator.String(),
-		CreatedAt:        organization.CreatedAt,
-		UpdatedAt:        organization.UpdatedAt,
+func (r *OrganizationRepository) reflect(organization Organization) (out domain.Organization) {
+	if err := serializer.Map(organization.Model, &out); err != nil {
+		log.Error(err)
 	}
+	if err := serializer.Map(organization, &out); err != nil {
+		log.Error(err)
+	}
+	out.Creator = organization.Creator.String()
+	return
+
 }

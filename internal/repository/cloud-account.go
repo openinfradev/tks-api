@@ -9,7 +9,9 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -166,21 +168,12 @@ func (r *CloudAccountRepository) InitWorkflow(cloudAccountId uuid.UUID, workflow
 	return nil
 }
 
-func reflectCloudAccount(cloudAccount CloudAccount) domain.CloudAccount {
-	return domain.CloudAccount{
-		ID:             cloudAccount.ID,
-		OrganizationId: cloudAccount.OrganizationId,
-		Name:           cloudAccount.Name,
-		Description:    cloudAccount.Description,
-		Resource:       cloudAccount.Resource,
-		CloudService:   cloudAccount.CloudService,
-		Status:         cloudAccount.Status,
-		StatusDesc:     cloudAccount.StatusDesc,
-		AwsAccountId:   cloudAccount.AwsAccountId,
-		CreatedIAM:     cloudAccount.CreatedIAM,
-		Creator:        reflectSimpleUser(cloudAccount.Creator),
-		Updator:        reflectSimpleUser(cloudAccount.Updator),
-		CreatedAt:      cloudAccount.CreatedAt,
-		UpdatedAt:      cloudAccount.UpdatedAt,
+func reflectCloudAccount(cloudAccount CloudAccount) (out domain.CloudAccount) {
+	if err := serializer.Map(cloudAccount.Model, &out); err != nil {
+		log.Error(err)
 	}
+	if err := serializer.Map(cloudAccount, &out); err != nil {
+		log.Error(err)
+	}
+	return
 }
