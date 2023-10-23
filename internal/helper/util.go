@@ -65,10 +65,13 @@ func IsDurationExpired(targetTime time.Time, duration time.Duration) bool {
 }
 
 func SplitAddress(url string) (address string, port int) {
+	url = strings.TrimSuffix(url, "\n")
 	arr := strings.Split(url, ":")
 	address = arr[0] + ":" + arr[1]
-	port, _ = strconv.Atoi(arr[2])
-
+	port, err := strconv.Atoi(arr[2])
+	if err != nil {
+		log.Error(err)
+	}
 	return
 }
 
