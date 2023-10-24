@@ -111,6 +111,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(repoFactory, argoClient, cache))
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware.Handle(http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/import", authMiddleware.Handle(http.HandlerFunc(clusterHandler.ImportCluster))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetCluster))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}", authMiddleware.Handle(http.HandlerFunc(clusterHandler.DeleteCluster))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/site-values", authMiddleware.Handle(http.HandlerFunc(clusterHandler.GetClusterSiteValues))).Methods(http.MethodGet)
