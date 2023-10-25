@@ -634,6 +634,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/clusters/import": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Import cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Import cluster",
+                "parameters": [
+                    {
+                        "description": "import cluster request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ImportClusterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ImportClusterResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/clusters/{clusterId}": {
             "get": {
                 "security": [
@@ -4398,6 +4437,12 @@ const docTemplate = `{
                 "isStack": {
                     "type": "boolean"
                 },
+                "kubeconfig": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "name": {
                     "type": "string"
                 },
@@ -5658,6 +5703,45 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "domain.ImportClusterRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "organizationId",
+                "stackTemplateId"
+            ],
+            "properties": {
+                "clusterType": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "kubeconfig": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "stackTemplateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ImportClusterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
                 }
             }
         },
