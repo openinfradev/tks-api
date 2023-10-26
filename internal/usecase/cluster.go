@@ -650,10 +650,10 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 			continue
 		}
 		clusterId := arr[0]
-		role := label[10:]
-		if label[9] != '-' || clusterId != string(cluster.ID) {
+		if len(arr) < 12 || label[9] != '-' || clusterId != string(cluster.ID) {
 			continue
 		}
+		role := label[10:]
 		/*
 			if host.Name == "ip-10-0-12-87.ap-northeast-2.compute.internal" {
 				continue
