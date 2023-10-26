@@ -29,7 +29,7 @@ func init() {
 	flag.String("dbport", "5432", "port of postgreSQL")
 	flag.String("dbuser", "postgres", "postgreSQL user")
 	flag.String("dbpassword", "password", "password for postgreSQL user")
-	flag.String("kubeconfig-path", "/Users/1110640/.kube/config_dev", "path of kubeconfig. used development only!")
+	flag.String("kubeconfig-path", "", "path of kubeconfig. used development only!")
 	flag.String("jwt-secret", "tks-api-secret", "secret value of jwt")
 	flag.String("git-base-url", "https://github.com", "git base url")
 	flag.String("git-account", "decapod10", "git account of admin cluster")
