@@ -645,12 +645,16 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 	tksUserNodeRegistered, tksUserNodeRegistering, tksUserHosts := 0, 0, make([]domain.ClusterHost, 0)
 	for _, host := range hosts.Items {
 		label := host.Labels["role"]
-		arr := strings.Split(host.Labels["role"], "-")
+		log.InfoWithContext(ctx, "label : ", label)
+		if len(label) < 12 {
+			continue
+		}
+		arr := strings.Split(label, "-")
 		if len(arr) < 2 {
 			continue
 		}
 		clusterId := arr[0]
-		if len(arr) < 12 || label[9] != '-' || clusterId != string(cluster.ID) {
+		if label[9] != '-' || clusterId != string(cluster.ID) {
 			continue
 		}
 		role := label[10:]
@@ -670,8 +674,6 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 		} else {
 			registering = 1
 		}
-
-		log.Info(role)
 
 		switch role {
 		case "control-plane":
