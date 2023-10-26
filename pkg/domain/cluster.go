@@ -107,6 +107,7 @@ type Cluster struct {
 	ByoClusterEndpointHost string
 	ByoClusterEndpointPort int
 	IsStack                bool
+	Kubeconfig             []byte
 }
 
 type ClusterConf struct {
@@ -188,7 +189,20 @@ type CreateClusterRequest struct {
 	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
 }
 
+type ImportClusterRequest struct {
+	OrganizationId  string `json:"organizationId" validate:"required"`
+	StackTemplateId string `json:"stackTemplateId" validate:"required"`
+	Name            string `json:"name" validate:"required,name"`
+	Description     string `json:"description"`
+	ClusterType     string `json:"clusterType"`
+	Kubeconfig      []byte `json:"kubeconfig"`
+}
+
 type CreateClusterResponse struct {
+	ID string `json:"id"`
+}
+
+type ImportClusterResponse struct {
 	ID string `json:"id"`
 }
 

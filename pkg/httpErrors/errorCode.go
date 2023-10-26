@@ -46,6 +46,7 @@ var errorMap = map[ErrorCode]string{
 
 	// Cluster
 	"CL_INVALID_BYOH_CLUSTER_ENDPOINT": "BYOH 타입의 클러스터 생성을 위한 cluster endpoint 가 유효하지 않습니다.",
+	"CL_INVALID_CLUSTER_TYPE_AWS":      "클러스터 타입이 유효하지 않습니다.",
 
 	// Stack
 	"S_INVALID_STACK_TEMPLATE":      "스택 템플릿을 가져올 수 없습니다.",

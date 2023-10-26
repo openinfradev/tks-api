@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
@@ -185,6 +186,49 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.CreateClusterResponse
+	out.ID = clusterId.String()
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// ImportCluster godoc
+// @Tags Clusters
+// @Summary Import cluster
+// @Description Import cluster
+// @Accept json
+// @Produce json
+// @Param body body domain.ImportClusterRequest true "import cluster request"
+// @Success 200 {object} domain.ImportClusterResponse
+// @Router /clusters/import [post]
+// @Security     JWT
+func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
+	input := domain.ImportClusterRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var dto domain.Cluster
+	if err = serializer.Map(input, &dto); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	if err = serializer.Map(input, &dto.Conf); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+	dto.Conf.SetDefault()
+	log.InfoWithContext(r.Context(), dto.Conf)
+
+	dto.CloudService = "AWS"
+	dto.CloudAccountId = uuid.Nil
+	clusterId, err := h.usecase.Import(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.ImportClusterResponse
 	out.ID = clusterId.String()
 
 	ResponseJSON(w, r, http.StatusOK, out)

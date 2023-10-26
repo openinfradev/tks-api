@@ -391,6 +391,10 @@ definitions:
         type: string
       isStack:
         type: boolean
+      kubeconfig:
+        items:
+          type: integer
+        type: array
       name:
         type: string
       organizationId:
@@ -1232,6 +1236,32 @@ definitions:
             type: string
         type: object
     type: object
+  domain.ImportClusterRequest:
+    properties:
+      clusterType:
+        type: string
+      description:
+        type: string
+      kubeconfig:
+        items:
+          type: integer
+        type: array
+      name:
+        type: string
+      organizationId:
+        type: string
+      stackTemplateId:
+        type: string
+    required:
+    - name
+    - organizationId
+    - stackTemplateId
+    type: object
+  domain.ImportClusterResponse:
+    properties:
+      id:
+        type: string
+    type: object
   domain.ListOrganizationBody:
     properties:
       createdAt:
@@ -1949,7 +1979,7 @@ definitions:
       text:
         type: string
     type: object
-host: tks-api-dev.taco-cat.xyz
+host: tks-api-ft.taco-cat.xyz
 info:
   contact:
     email: taekyu.kang@sk.com
@@ -2500,6 +2530,30 @@ paths:
       security:
       - JWT: []
       summary: Get cluster site values for creating
+      tags:
+      - Clusters
+  /clusters/import:
+    post:
+      consumes:
+      - application/json
+      description: Import cluster
+      parameters:
+      - description: import cluster request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ImportClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ImportClusterResponse'
+      security:
+      - JWT: []
+      summary: Import cluster
       tags:
       - Clusters
   /organizations:

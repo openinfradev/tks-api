@@ -215,7 +215,7 @@ func (r *ClusterRepository) GetByName(organizationId string, name string) (out d
 func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.ClusterId, err error) {
 	var cloudAccountId *uuid.UUID
 	cloudAccountId = &dto.CloudAccountId
-	if dto.CloudService == domain.CloudService_BYOH {
+	if dto.CloudService == domain.CloudService_BYOH || dto.CloudAccountId == uuid.Nil {
 		cloudAccountId = nil
 	}
 	cluster := Cluster{
