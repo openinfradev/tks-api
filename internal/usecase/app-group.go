@@ -81,7 +81,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id d
 	tksCloudAccountId := ""
 	tksObjectStore := "minio"
 	if cluster.CloudService != domain.CloudService_BYOH {
-		tksObjectStore = "aws"
+		tksObjectStore = "s3"
 		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
 		if err != nil {
 			return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
