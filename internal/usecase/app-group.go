@@ -182,10 +182,10 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 	}
-	tksCloudAccountId := cluster.CloudAccountId.String()
+	tksCloudAccountId := cluster.CloudAccount.ID.String()
 	isExist := false
 	for _, ca := range cloudAccounts {
-		if ca.ID == cluster.CloudAccountId {
+		if ca.ID == cluster.CloudAccount.ID {
 
 			// FOR TEST. ADD MAGIC KEYWORD
 			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
