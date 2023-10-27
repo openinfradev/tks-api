@@ -407,11 +407,11 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	// check cloudAccount
 	tksCloudAccountId := "NULL"
 	if cluster.CloudService != domain.CloudService_BYOH {
-		cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccountId)
+		cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccount.ID)
 		if err != nil {
 			return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
 		}
-		tksCloudAccountId = cluster.CloudAccountId.String()
+		tksCloudAccountId = cluster.CloudAccount.ID.String()
 		if strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
 			tksCloudAccountId = "NULL"
 		}
