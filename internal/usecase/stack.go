@@ -72,7 +72,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
-	_, err = u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
@@ -105,6 +105,13 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	var stackConf domain.StackConfResponse
 	if err = domain.Map(dto.Conf, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
+	}
+	if stackTemplate.CloudService == "AWS" && stackTemplate.KubeType == "AWS" {
+		if stackConf.TksCpNode == 0 {
+			stackConf.TksCpNode = 3
+			stackConf.TksCpNodeMax = 3
+
+		}
 	}
 
 	workflow := "tks-stack-create"
