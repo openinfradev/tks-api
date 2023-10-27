@@ -234,9 +234,6 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto domain.Cluster) (cluste
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
-	if stackTemplate.CloudService != dto.CloudService {
-		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService for stackTemplate "), "", "")
-	}
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
