@@ -179,7 +179,9 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 
 	// check cloudAccount
 	tksCloudAccountId := ""
+	tksObjectStore := "minio"
 	if cluster.CloudService != domain.CloudService_BYOH {
+		tksObjectStore = "s3"
 		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
 		if err != nil {
 			return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
@@ -229,6 +231,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 		"base_repo_branch=" + viper.GetString("revision"),
 		"cloud_account_id=" + tksCloudAccountId,
+		"object_store=" + tksObjectStore,
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
