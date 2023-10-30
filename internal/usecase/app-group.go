@@ -178,25 +178,28 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 	organizationId := cluster.OrganizationId
 
 	// check cloudAccount
-	cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
-	if err != nil {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
-	}
-	tksCloudAccountId := cluster.CloudAccount.ID.String()
-	isExist := false
-	for _, ca := range cloudAccounts {
-		if ca.ID == cluster.CloudAccount.ID {
-
-			// FOR TEST. ADD MAGIC KEYWORD
-			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-				tksCloudAccountId = ""
-			}
-			isExist = true
-			break
+	tksCloudAccountId := ""
+	if cluster.CloudService != domain.CloudService_BYOH {
+		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+		if err != nil {
+			return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 		}
-	}
-	if !isExist {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+		tksCloudAccountId = cluster.CloudAccount.ID.String()
+		isExist := false
+		for _, ca := range cloudAccounts {
+			if ca.ID == cluster.CloudAccount.ID {
+
+				// FOR TEST. ADD MAGIC KEYWORD
+				if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+					tksCloudAccountId = ""
+				}
+				isExist = true
+				break
+			}
+		}
+		if !isExist {
+			return httpErrors.NewBadRequestError(fmt.Errorf("Not found cloudAccountId[%s] in organization[%s]", cluster.CloudAccountId, cluster.OrganizationId), "", "")
+		}
 	}
 
 	// Call argo workflow template

@@ -1238,6 +1238,8 @@ definitions:
     type: object
   domain.ImportClusterRequest:
     properties:
+      cloudService:
+        type: string
       clusterType:
         type: string
       description:

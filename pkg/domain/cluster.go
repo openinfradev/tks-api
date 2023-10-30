@@ -196,6 +196,7 @@ type ImportClusterRequest struct {
 	Description     string `json:"description"`
 	ClusterType     string `json:"clusterType"`
 	Kubeconfig      []byte `json:"kubeconfig"`
+	CloudService    string `json:"cloudService"`
 }
 
 type CreateClusterResponse struct {
@@ -257,8 +258,8 @@ type ClusterSiteValuesResponse struct {
 	TksUserNode            int    `json:"tksUserNode"`
 	TksUserNodeMax         int    `json:"tksUserNodeMax,omitempty"`
 	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
-	ByoClusterEndpointHost string `json:"byoClusterEndpointHost,omitempty"`
-	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort,omitempty"`
+	ByoClusterEndpointHost string `json:"byoClusterEndpointHost"`
+	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort"`
 }
 
 type GetClustersResponse struct {
