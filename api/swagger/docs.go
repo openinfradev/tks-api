@@ -5714,6 +5714,9 @@ const docTemplate = `{
                 "stackTemplateId"
             ],
             "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
                 "clusterType": {
                     "type": "string"
                 },
