@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	jwtWithouKey "github.com/dgrijalva/jwt-go"
+
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
 	"golang.org/x/net/html"
@@ -106,9 +108,53 @@ func (u *AuthUsecase) Logout(accessToken string, organizationName string) error 
 }
 
 func (u *AuthUsecase) PingToken(accessToken string, organizationId string) error {
+	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(accessToken, jwtWithouKey.MapClaims{})
+	if err != nil {
+		return err
+	}
+
+	if parsedToken.Method.Alg() != "RS256" {
+		return fmt.Errorf("invalid token")
+	}
+
+	if parsedToken.Claims.Valid() != nil {
+		return fmt.Errorf("invalid token")
+	}
+
 	if err := u.kc.VerifyAccessToken(accessToken, organizationId); err != nil {
 		log.Errorf("failed to verify access token: %v", err)
 		return err
+	}
+
+	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
+	if err != nil {
+		log.Errorf("failed to verify access token: %v", err)
+
+		return err
+	}
+	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
+	if !ok {
+		return fmt.Errorf("session id is not found in token")
+	}
+
+	sessionIds, err := u.kc.GetSessions(userId.String(), organizationId)
+	if err != nil {
+		log.Errorf("failed to get sessions: %v", err)
+
+		return err
+	}
+	if len(*sessionIds) == 0 {
+		return fmt.Errorf("invalid session")
+	}
+	var matched bool = false
+	for _, id := range *sessionIds {
+		if id == requestSessionId {
+			matched = true
+			break
+		}
+	}
+	if !matched {
+		return fmt.Errorf("invalid session")
 	}
 	return nil
 }
