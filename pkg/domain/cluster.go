@@ -196,6 +196,7 @@ type ImportClusterRequest struct {
 	Description     string `json:"description"`
 	ClusterType     string `json:"clusterType"`
 	Kubeconfig      []byte `json:"kubeconfig"`
+	CloudService    string `json:"cloudService"`
 }
 
 type CreateClusterResponse struct {
