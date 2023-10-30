@@ -83,11 +83,6 @@ type Cluster struct {
 	Updator                User       `gorm:"foreignKey:UpdatorId"`
 }
 
-func (c *Cluster) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = domain.ClusterId(helper.GenerateClusterId())
-	return nil
-}
-
 type ClusterFavorite struct {
 	gorm.Model
 
@@ -219,6 +214,7 @@ func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.Cluster
 		cloudAccountId = nil
 	}
 	cluster := Cluster{
+		ID:                     domain.ClusterId(helper.GenerateClusterId()),
 		OrganizationId:         dto.OrganizationId,
 		Name:                   dto.Name,
 		Description:            dto.Description,
@@ -242,6 +238,10 @@ func (r *ClusterRepository) Create(dto domain.Cluster) (clusterId domain.Cluster
 		TksUserNodeMax:         dto.Conf.TksUserNodeMax,
 		TksUserNodeType:        dto.Conf.TksUserNodeType,
 	}
+	if dto.ID != "" {
+		cluster.ID = dto.ID
+	}
+
 	res := r.db.Create(&cluster)
 	if res.Error != nil {
 		log.Error(res.Error)
