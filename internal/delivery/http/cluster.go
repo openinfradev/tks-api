@@ -220,7 +220,6 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 	dto.Conf.SetDefault()
 	log.InfoWithContext(r.Context(), dto.Conf)
 
-	dto.CloudService = "AWS"
 	dto.CloudAccountId = uuid.Nil
 	clusterId, err := h.usecase.Import(r.Context(), dto)
 	if err != nil {
