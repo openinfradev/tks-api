@@ -247,6 +247,7 @@ type SimpleClusterResponse struct {
 }
 
 type ClusterSiteValuesResponse struct {
+	ClusterType            string `json:"clusterType"`
 	SshKeyName             string `json:"sshKeyName"`
 	ClusterRegion          string `json:"clusterRegion"`
 	TksCpNode              int    `json:"tksCpNode"`

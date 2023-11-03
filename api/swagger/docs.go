@@ -4650,6 +4650,9 @@ const docTemplate = `{
                 "clusterRegion": {
                     "type": "string"
                 },
+                "clusterType": {
+                    "type": "string"
+                },
                 "sshKeyName": {
                     "type": "string"
                 },
