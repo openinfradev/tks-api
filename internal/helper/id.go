@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	TKS_ADMIN                   = "tks-admin"
 	PREFIX_USER_ID              = "u"
 	PREFIX_CLUSTER_ID           = "c"
 	PREFIX_ORGANIZATION_ID      = "o"
@@ -29,6 +30,9 @@ func GenerateApplicaionGroupId() string {
 }
 
 func ValidateClusterId(id string) bool {
+	if id == TKS_ADMIN {
+		return true
+	}
 	if !strings.HasPrefix(id, PREFIX_CLUSTER_ID) {
 		return false
 	}
