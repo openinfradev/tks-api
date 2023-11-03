@@ -238,8 +238,8 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto domain.Cluster) (cluste
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 	if dto.ClusterType == domain.ClusterType_ADMIN {
-		dto.ID = "ctksadmin"
-		dto.Name = "ctksadmin"
+		dto.ID = "tks-admin"
+		dto.Name = "tks-admin"
 	}
 	clusterId, err = u.repo.Create(dto)
 	if err != nil {
