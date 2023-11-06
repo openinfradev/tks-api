@@ -151,24 +151,29 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Check if the namespace is already used in the target cluster
-	ns := ""
-	nsExist := true
-	for nsExist {
-		// Generate unique namespace based on name and random number
-		src := rand.NewSource(time.Now().UnixNano())
-		r1 := rand.New(src)
-		ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
+  // Create namespace if it's not given by user
+  if len(strings.TrimSpace(app.Namespace)) == 0 {
+    // Check if the new namespace is already used in the target cluster
+    ns := ""
+    nsExist := true
+    for nsExist {
+      // Generate unique namespace based on name and random number
+      src := rand.NewSource(time.Now().UnixNano())
+      r1 := rand.New(src)
+      ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
 
-		nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
-		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-			return
-		}
-	}
+      nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
+      if err != nil {
+        ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+        return
+      }
+    }
 
-	log.Infof("Using namespace: %s", ns)
-	app.Namespace = ns
+    log.Infof("Created new namespace: %s", ns)
+    app.Namespace = ns
+  } else {
+    log.Infof("Using existing namespace: %s", app.Namespace)
+  }
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
