@@ -3,24 +3,17 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
-	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
-	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -35,10 +28,13 @@ type IStackUsecase interface {
 	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Stack, error)
 	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
+	Install(ctx context.Context, stackId domain.StackId) (err error)
 	Update(ctx context.Context, dto domain.Stack) error
 	Delete(ctx context.Context, dto domain.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
 	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
+	SetFavorite(ctx context.Context, stackId domain.StackId) error
+	DeleteFavorite(ctx context.Context, stackId domain.StackId) error
 }
 
 type StackUsecase struct {
@@ -49,9 +45,10 @@ type StackUsecase struct {
 	stackTemplateRepo repository.IStackTemplateRepository
 	appServeAppRepo   repository.IAppServeAppRepository
 	argo              argowf.ArgoClient
+	dashbordUsecase   IDashboardUsecase
 }
 
-func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) IStackUsecase {
+func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient, dashbordUsecase IDashboardUsecase) IStackUsecase {
 	return &StackUsecase{
 		clusterRepo:       r.Cluster,
 		appGroupRepo:      r.AppGroup,
@@ -60,6 +57,7 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient) ISta
 		stackTemplateRepo: r.StackTemplate,
 		appServeAppRepo:   r.AppServeApp,
 		argo:              argoClient,
+		dashbordUsecase:   dashbordUsecase,
 	}
 }
 
@@ -79,12 +77,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
 	}
 
-	cloudAccount, err := u.cloudAccountRepo.Get(dto.CloudAccountId)
-	if err != nil {
-		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
-	}
-
-	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(dto.OrganizationId, user.GetUserId(), nil)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
 	}
@@ -94,26 +87,34 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	}
 	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
 
-	workflow := ""
-	if strings.Contains(stackTemplate.Template, "aws-reference") || strings.Contains(stackTemplate.Template, "eks-reference") {
-		workflow = "tks-stack-create-aws"
-	} else if strings.Contains(stackTemplate.Template, "aws-msa-reference") || strings.Contains(stackTemplate.Template, "eks-msa-reference") {
-		workflow = "tks-stack-create-aws-msa"
+	if dto.CloudService == domain.CloudService_BYOH {
+		if dto.ClusterEndpoint == "" {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterEndpoint"), "S_INVALID_ADMINCLUSTER_URL", "")
+		}
+		arr := strings.Split(dto.ClusterEndpoint, ":")
+		if len(arr) != 2 {
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterEndpoint"), "S_INVALID_ADMINCLUSTER_URL", "")
+		}
 	} else {
-		log.ErrorWithContext(ctx, "Invalid template  : ", stackTemplate.Template)
-		return "", httpErrors.NewInternalServerError(fmt.Errorf("Invalid stackTemplate. %s", stackTemplate.Template), "", "")
+		if _, err = u.cloudAccountRepo.Get(dto.CloudAccountId); err != nil {
+			return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid cloudAccountId"), "S_INVALID_CLOUD_ACCOUNT", "")
+		}
 	}
 
+	// Make stack nodes
 	var stackConf domain.StackConfResponse
 	if err = domain.Map(dto.Conf, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
+	if stackTemplate.CloudService == "AWS" && stackTemplate.KubeType == "AWS" {
+		if stackConf.TksCpNode == 0 {
+			stackConf.TksCpNode = 3
+			stackConf.TksCpNodeMax = 3
 
-	// Check service quota
-	if err = u.checkAwsResourceQuota(ctx, cloudAccount); err != nil {
-		return "", err
+		}
 	}
 
+	workflow := "tks-stack-create"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
@@ -125,6 +126,8 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 			"creator=" + user.GetUserId().String(),
 			"base_repo_branch=" + viper.GetString("revision"),
 			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
+			"cloud_service=" + dto.CloudService,
+			"cluster_endpoint=" + dto.ClusterEndpoint,
 		},
 	})
 	if err != nil {
@@ -160,165 +163,55 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 	return dto.ID, nil
 }
 
-func (u *StackUsecase) checkAwsResourceQuota(ctx context.Context, cloudAccount domain.CloudAccount) (err error) {
-	awsAccessKeyId, awsSecretAccessKey, _ := kubernetes.GetAwsSecret()
-	if err != nil || awsAccessKeyId == "" || awsSecretAccessKey == "" {
-		log.ErrorWithContext(ctx, err)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid aws secret."), "", "")
+func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err error) {
+	cluster, err := u.Get(ctx, stackId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", "")
 	}
 
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
-			Value: aws.Credentials{
-				AccessKeyID: awsAccessKeyId, SecretAccessKey: awsSecretAccessKey,
-			},
-		}))
+	_, err = u.stackTemplateRepo.Get(cluster.StackTemplateId)
+	if err != nil {
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
+	}
+
+	clusters, err := u.clusterRepo.FetchByOrganizationId(cluster.OrganizationId, uuid.Nil, nil)
+	if err != nil {
+		return httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
+	}
+	isPrimary := false
+	if len(clusters) == 0 {
+		isPrimary = true
+	}
+	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
+
+	if cluster.CloudService != domain.CloudService_BYOH {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "S_INVALID_CLOUD_SERVICE", "")
+	}
+
+	// Make stack nodes
+	var stackConf domain.StackConfResponse
+	if err = domain.Map(cluster.Conf, &stackConf); err != nil {
+		log.InfoWithContext(ctx, err)
+	}
+
+	workflow := "tks-stack-install"
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+		Parameters: []string{
+			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
+			"cluster_id=" + cluster.ID.String(),
+			"description=" + cluster.Description,
+			"organization_id=" + cluster.OrganizationId,
+			"stack_template_id=" + cluster.StackTemplateId.String(),
+			"creator=" + (*cluster.CreatorId).String(),
+			"base_repo_branch=" + viper.GetString("revision"),
+		},
+	})
 	if err != nil {
 		log.ErrorWithContext(ctx, err)
+		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
+	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
-	stsSvc := sts.NewFromConfig(cfg)
-
-	if !strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-		log.InfoWithContext(ctx, "Use assume role. awsAccountId : ", cloudAccount.AwsAccountId)
-		creds := stscreds.NewAssumeRoleProvider(stsSvc, "arn:aws:iam::"+cloudAccount.AwsAccountId+":role/controllers.cluster-api-provider-aws.sigs.k8s.io")
-		cfg.Credentials = aws.NewCredentialsCache(creds)
-	}
-	client := servicequotas.NewFromConfig(cfg)
-
-	quotaMap := map[string]string{
-		"L-69A177A2": "elasticloadbalancing", // NLB
-		"L-E9E9831D": "elasticloadbalancing", // Classic
-		"L-A4707A72": "vpc",                  // IGW
-		"L-1194D53C": "eks",                  // Cluster
-		"L-0263D0A3": "ec2",                  // Elastic IP
-	}
-
-	// current usage
-	type CurrentUsage struct {
-		NLB     int
-		CLB     int
-		IGW     int
-		Cluster int
-		EIP     int
-	}
-
-	// get current usage
-	currentUsage := CurrentUsage{}
-	{
-		c := elasticloadbalancingv2.NewFromConfig(cfg)
-		pageSize := int32(100)
-		res, err := c.DescribeLoadBalancers(ctx, &elasticloadbalancingv2.DescribeLoadBalancersInput{
-			PageSize: &pageSize,
-		}, func(o *elasticloadbalancingv2.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, elb := range res.LoadBalancers {
-			switch elb.Type {
-			case "network":
-				currentUsage.NLB += 1
-			}
-		}
-	}
-
-	{
-		c := elasticloadbalancing.NewFromConfig(cfg)
-		pageSize := int32(100)
-		res, err := c.DescribeLoadBalancers(ctx, &elasticloadbalancing.DescribeLoadBalancersInput{
-			PageSize: &pageSize,
-		}, func(o *elasticloadbalancing.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-		currentUsage.CLB = len(res.LoadBalancerDescriptions)
-	}
-
-	{
-		c := ec2.NewFromConfig(cfg)
-		res, err := c.DescribeInternetGateways(ctx, &ec2.DescribeInternetGatewaysInput{}, func(o *ec2.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-		currentUsage.IGW = len(res.InternetGateways)
-	}
-
-	{
-		c := eks.NewFromConfig(cfg)
-		res, err := c.ListClusters(ctx, &eks.ListClustersInput{}, func(o *eks.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			return err
-		}
-		currentUsage.Cluster = len(res.Clusters)
-	}
-
-	{
-		c := ec2.NewFromConfig(cfg)
-		res, err := c.DescribeAddresses(ctx, &ec2.DescribeAddressesInput{}, func(o *ec2.Options) {
-			o.Region = "ap-northeast-2"
-		})
-		if err != nil {
-			log.ErrorWithContext(ctx, err)
-			return err
-		}
-		currentUsage.EIP = len(res.Addresses)
-	}
-
-	for key, val := range quotaMap {
-		res, err := getServiceQuota(client, key, val)
-		if err != nil {
-			return err
-		}
-		log.DebugfWithContext(ctx, "%s %s %v", *res.Quota.QuotaName, *res.Quota.QuotaCode, *res.Quota.Value)
-
-		quotaValue := int(*res.Quota.Value)
-
-		// stack 1개 생성하는데 필요한 quota
-		// Classic 1
-		// Network 5
-		// IGW 1
-		// EIP 3
-		// Cluster 1
-		switch key {
-		case "L-69A177A2": // NLB
-			log.InfofWithContext(ctx, "NLB : usage %d, quota %d", currentUsage.NLB, quotaValue)
-			if quotaValue < currentUsage.NLB+5 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (NLB). current[%d], quota[%d]", currentUsage.NLB, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-E9E9831D": // Classic
-			log.InfofWithContext(ctx, "CLB : usage %d, quota %d", currentUsage.CLB, quotaValue)
-			if quotaValue < currentUsage.CLB+1 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (Classic ELB). current[%d], quota[%d]", currentUsage.CLB, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-A4707A72": // IGW
-			log.InfofWithContext(ctx, "IGW : usage %d, quota %d", currentUsage.IGW, quotaValue)
-			if quotaValue < currentUsage.IGW+1 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (Internet Gateway). current[%d], quota[%d]", currentUsage.IGW, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-1194D53C": // Cluster
-			log.InfofWithContext(ctx, "Cluster : usage %d, quota %d", currentUsage.Cluster, quotaValue)
-			if quotaValue < currentUsage.Cluster+1 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (EKS cluster quota). current[%d], quota[%d]", currentUsage.Cluster, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		case "L-0263D0A3": // Elastic IP
-			log.InfofWithContext(ctx, "Elastic IP : usage %d, quota %d", currentUsage.EIP, quotaValue)
-			if quotaValue < currentUsage.EIP+3 {
-				return httpErrors.NewInternalServerError(fmt.Errorf("Not enough quota (Elastic IP). current[%d], quota[%d]", currentUsage.EIP, quotaValue), "S_NOT_ENOUGH_QUOTA", "")
-			}
-		}
-
-	}
-
-	//return fmt.Errorf("Always return err")
 	return nil
 }
 
@@ -333,7 +226,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 
 	organization, err := u.organizationRepo.Get(cluster.OrganizationId)
 	if err != nil {
-		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", cluster.OrganizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
+		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", domain.ClusterId(stackId))), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
 	appGroups, err := u.appGroupRepo.Fetch(domain.ClusterId(stackId), nil)
@@ -385,15 +278,22 @@ func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, nam
 }
 
 func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Stack, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return out, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
 	organization, err := u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return out, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for clusterId %s", organizationId)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, pg)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, user.GetUserId(), pg)
 	if err != nil {
 		return out, err
 	}
+
+	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, organizationId)
 
 	for _, cluster := range clusters {
 		appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
@@ -417,8 +317,21 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 				}
 			}
 		}
+
+		for _, resource := range stackResources {
+			if resource.ID == domain.StackId(cluster.ID) {
+				if err := serializer.Map(resource, &outStack.Resource); err != nil {
+					log.Error(err)
+				}
+			}
+		}
+
 		out = append(out, outStack)
 	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return string(out[i].ID) == organization.PrimaryClusterId
+	})
 
 	return
 }
@@ -450,6 +363,11 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 }
 
 func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(dto.ID))
 	if err != nil {
 		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "S_FAILED_FETCH_CLUSTER", "")
@@ -464,7 +382,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 	for _, organization := range *organizations {
 		if organization.PrimaryClusterId == cluster.ID.String() {
 
-			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID, nil)
+			clusters, err := u.clusterRepo.FetchByOrganizationId(organization.ID, user.GetUserId(), nil)
 			if err != nil {
 				return errors.Wrap(err, "Failed to get organizations")
 			}
@@ -499,22 +417,16 @@ func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error)
 		return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 	}
 
-	workflow := ""
-	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
-		workflow = "tks-stack-delete-aws"
-	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
-		workflow = "tks-stack-delete-aws-msa"
-	} else {
-		log.ErrorWithContext(ctx, "Invalid template  : ", cluster.StackTemplate.Template)
-		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid stack-template %s", cluster.StackTemplate.Template), "", "")
-	}
+	// [TODO] BYOH 삭제는 어떻게 처리하는게 좋은가?
 
+	workflow := "tks-stack-delete"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"organization_id=" + dto.OrganizationId,
 			"cluster_id=" + dto.ID.String(),
 			"cloud_account_id=" + cluster.CloudAccount.ID.String(),
+			"stack_template_id=" + cluster.StackTemplate.ID.String(),
 		},
 	})
 	if err != nil {
@@ -588,7 +500,7 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 	out = append(out, clusterStepStatus)
 
 	// make default appgroup status
-	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+	if cluster.StackTemplate.TemplateType == "STANDARD" {
 		// LMA
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
@@ -596,7 +508,7 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 			Step:    0,
 			MaxStep: domain.MAX_STEP_LMA_CREATE_MEMBER,
 		})
-	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
+	} else {
 		// LMA + SERVICE_MESH
 		out = append(out, domain.StackStepStatus{
 			Status:  domain.AppGroupStatus_PENDING.String(),
@@ -661,31 +573,77 @@ func (u *StackUsecase) GetStepStatus(ctx context.Context, stackId domain.StackId
 	return
 }
 
-func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) domain.Stack {
-	status, statusDesc := getStackStatus(cluster, appGroups)
-	return domain.Stack{
-		ID:              domain.StackId(cluster.ID),
-		OrganizationId:  cluster.OrganizationId,
-		Name:            cluster.Name,
-		Description:     cluster.Description,
-		Status:          status,
-		StatusDesc:      statusDesc,
-		CloudAccountId:  cluster.CloudAccountId,
-		CloudAccount:    cluster.CloudAccount,
-		StackTemplateId: cluster.StackTemplateId,
-		StackTemplate:   cluster.StackTemplate,
-		CreatorId:       cluster.CreatorId,
-		Creator:         cluster.Creator,
-		UpdatorId:       cluster.UpdatorId,
-		Updator:         cluster.Updator,
-		CreatedAt:       cluster.CreatedAt,
-		UpdatedAt:       cluster.UpdatedAt,
-		Conf: domain.StackConf{
-			CpNodeCnt:   cluster.Conf.CpNodeCnt,
-			TksNodeCnt:  cluster.Conf.TksNodeCnt,
-			UserNodeCnt: cluster.Conf.UserNodeCnt,
-		},
+func (u *StackUsecase) SetFavorite(ctx context.Context, stackId domain.StackId) error {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
+
+	err := u.clusterRepo.SetFavorite(domain.ClusterId(stackId), user.GetUserId())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *StackUsecase) DeleteFavorite(ctx context.Context, stackId domain.StackId) error {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	err := u.clusterRepo.DeleteFavorite(domain.ClusterId(stackId), user.GetUserId())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) (out domain.Stack) {
+	if err := serializer.Map(cluster, &out); err != nil {
+		log.Error(err)
+	}
+
+	status, statusDesc := getStackStatus(cluster, appGroups)
+
+	out.ID = domain.StackId(cluster.ID)
+	out.Status = status
+	out.StatusDesc = statusDesc
+
+	/*
+		return domain.Stack{
+			ID:              domain.StackId(cluster.ID),
+			OrganizationId:  cluster.OrganizationId,
+			Name:            cluster.Name,
+			Description:     cluster.Description,
+			Status:          status,
+			StatusDesc:      statusDesc,
+			CloudAccountId:  cluster.CloudAccountId,
+			CloudAccount:    cluster.CloudAccount,
+			StackTemplateId: cluster.StackTemplateId,
+			StackTemplate:   cluster.StackTemplate,
+			CreatorId:       cluster.CreatorId,
+			Creator:         cluster.Creator,
+			UpdatorId:       cluster.UpdatorId,
+			Updator:         cluster.Updator,
+			CreatedAt:       cluster.CreatedAt,
+			UpdatedAt:       cluster.UpdatedAt,
+			Conf: domain.StackConf{
+				TksCpNode:        cluster.Conf.TksCpNode,
+				TksCpNodeMax:     cluster.Conf.TksCpNodeMax,
+				TksCpNodeType:    cluster.Conf.TksCpNodeType,
+				TksInfraNode:     cluster.Conf.TksInfraNode,
+				TksInfraNodeMax:  cluster.Conf.TksInfraNodeMax,
+				TksInfraNodeType: cluster.Conf.TksInfraNodeType,
+				TksUserNode:      cluster.Conf.TksUserNode,
+				TksUserNodeMax:   cluster.Conf.TksUserNodeMax,
+				TksUserNodeType:  cluster.Conf.TksUserNodeType,
+			},
+		}
+	*/
+	return
 }
 
 // [TODO] more pretty
@@ -708,6 +666,12 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 		}
 	}
 
+	if cluster.Status == domain.ClusterStatus_BOOTSTRAPPING {
+		return domain.StackStatus_CLUSTER_BOOTSTRAPPING, cluster.StatusDesc
+	}
+	if cluster.Status == domain.ClusterStatus_BOOTSTRAPPED {
+		return domain.StackStatus_CLUSTER_BOOTSTRAPPED, cluster.StatusDesc
+	}
 	if cluster.Status == domain.ClusterStatus_INSTALLING {
 		return domain.StackStatus_CLUSTER_INSTALLING, cluster.StatusDesc
 	}
@@ -725,7 +689,7 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 	}
 
 	// workflow 중간 중간 비는 status 처리...
-	if strings.Contains(cluster.StackTemplate.Template, "aws-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-reference") {
+	if cluster.StackTemplate.TemplateType == "STANDARD" {
 		if len(appGroups) < 1 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
 		} else {
@@ -735,7 +699,7 @@ func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain
 				}
 			}
 		}
-	} else if strings.Contains(cluster.StackTemplate.Template, "aws-msa-reference") || strings.Contains(cluster.StackTemplate.Template, "eks-msa-reference") {
+	} else if cluster.StackTemplate.TemplateType == "MSA" {
 		if len(appGroups) < 2 {
 			return domain.StackStatus_APPGROUP_INSTALLING, "(0/0)"
 		} else {
@@ -767,19 +731,6 @@ func parseStatusDescription(statusDesc string) (step int) {
 	_, err := fmt.Sscanf(statusDesc, "(%d/%d)", &step, &maxStep)
 	if err != nil {
 		step = 0
-	}
-	return
-}
-
-func getServiceQuota(client *servicequotas.Client, quotaCode string, serviceCode string) (res *servicequotas.GetServiceQuotaOutput, err error) {
-	res, err = client.GetServiceQuota(context.TODO(), &servicequotas.GetServiceQuotaInput{
-		QuotaCode:   &quotaCode,
-		ServiceCode: &serviceCode,
-	}, func(o *servicequotas.Options) {
-		o.Region = "ap-northeast-2"
-	})
-	if err != nil {
-		return nil, err
 	}
 	return
 }

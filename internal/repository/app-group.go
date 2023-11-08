@@ -10,6 +10,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -210,32 +211,21 @@ func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId)
 	return nil
 }
 
-func reflectAppGroup(appGroup AppGroup) domain.AppGroup {
-	return domain.AppGroup{
-		ID:           appGroup.ID,
-		ClusterId:    appGroup.ClusterId,
-		AppGroupType: appGroup.AppGroupType,
-		Name:         appGroup.Name,
-		Description:  appGroup.Description,
-		Status:       appGroup.Status,
-		StatusDesc:   appGroup.StatusDesc,
-		CreatedAt:    appGroup.CreatedAt,
-		UpdatedAt:    appGroup.UpdatedAt,
-		CreatorId:    appGroup.CreatorId,
-		Creator:      reflectSimpleUser(appGroup.Creator),
-		UpdatorId:    appGroup.UpdatorId,
-		Updator:      reflectSimpleUser(appGroup.Updator),
+func reflectAppGroup(appGroup AppGroup) (out domain.AppGroup) {
+	if err := serializer.Map(appGroup.Model, &out); err != nil {
+		log.Error(err)
 	}
+	if err := serializer.Map(appGroup, &out); err != nil {
+		log.Error(err)
+	}
+	return
 }
 
-func reflectApplication(application Application) domain.Application {
-	return domain.Application{
-		ID:              application.ID,
-		AppGroupId:      application.AppGroupId,
-		ApplicationType: application.Type,
-		Endpoint:        application.Endpoint,
-		Metadata:        application.Metadata.String(),
-		CreatedAt:       application.CreatedAt,
-		UpdatedAt:       application.UpdatedAt,
+func reflectApplication(application Application) (out domain.Application) {
+	if err := serializer.Map(application, &out); err != nil {
+		log.Error(err)
 	}
+	out.Metadata = application.Metadata.String()
+	return
+
 }

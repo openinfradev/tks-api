@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -17,6 +17,7 @@ type ApiClient interface {
 	Delete(path string, input interface{}) (out interface{}, err error)
 	Put(path string, input interface{}) (out interface{}, err error)
 	Patch(path string, input interface{}) (out interface{}, err error)
+	SetToken(token string)
 }
 
 type ApiClientImpl struct {
@@ -26,7 +27,7 @@ type ApiClientImpl struct {
 }
 
 // New
-func New(host string, token string) (ApiClient, error) {
+func NewWithToken(host string, token string) (ApiClient, error) {
 	return &ApiClientImpl{
 		client: &http.Client{
 			Timeout: 30 * time.Second,
@@ -37,6 +38,23 @@ func New(host string, token string) (ApiClient, error) {
 		url:   host,
 		token: token,
 	}, nil
+}
+
+func New(host string) (ApiClient, error) {
+	return &ApiClientImpl{
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				MaxIdleConns: 10,
+			},
+		},
+		url:   host,
+		token: "",
+	}, nil
+}
+
+func (c *ApiClientImpl) SetToken(token string) {
+	c.token = token
 }
 
 func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
@@ -54,7 +72,7 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 		return nil, fmt.Errorf("Failed to call api server.")
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -79,31 +97,33 @@ func (c *ApiClientImpl) Get(path string) (out interface{}, err error) {
 }
 
 func (c *ApiClientImpl) Post(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("POST", path, input)
+	return c.callWithBody("api", "POST", path, input)
 }
 
 func (c *ApiClientImpl) Delete(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("DELETE", path, input)
+	return c.callWithBody("api", "DELETE", path, input)
 }
 
 func (c *ApiClientImpl) Put(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("PUT", path, input)
+	return c.callWithBody("api", "PUT", path, input)
 }
 
 func (c *ApiClientImpl) Patch(path string, input interface{}) (out interface{}, err error) {
-	return c.callWithBody("PATCH", path, input)
+	return c.callWithBody("api", "PATCH", path, input)
 }
 
-func (c *ApiClientImpl) callWithBody(method string, path string, input interface{}) (out interface{}, err error) {
+func (c *ApiClientImpl) callWithBody(prefix string, method string, path string, input interface{}) (out interface{}, err error) {
 	pbytes, _ := json.Marshal(input)
 	buff := bytes.NewBuffer(pbytes)
 
-	req, err := http.NewRequest(method, fmt.Sprintf("%s/api/1.0/%s", c.url, path), buff)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s/%s/1.0/%s", c.url, prefix, path), buff)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+c.token)
+	if prefix == "api" {
+		req.Header.Add("Authorization", "Bearer "+c.token)
+	}
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -112,7 +132,7 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 		return nil, fmt.Errorf("Failed to call api server.")
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +140,7 @@ func (c *ApiClientImpl) callWithBody(method string, path string, input interface
 		res.Body.Close()
 	}()
 
-	if res.StatusCode != 200 {
+	if res.StatusCode%100 != 2 {
 		var restError httpErrors.RestError
 		if err := json.Unmarshal(body, &restError); err != nil {
 			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)

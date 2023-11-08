@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -126,13 +127,13 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetAlertsResponse
 	out.Alerts = make([]domain.AlertResponse, len(alerts))
 	for i, alert := range alerts {
-		if err := domain.Map(alert, &out.Alerts[i]); err != nil {
+		if err := serializer.Map(alert, &out.Alerts[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 		}
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
-			if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
+			if err := serializer.Map(alertAction, &outAlertActions[j]); err != nil {
 				log.InfoWithContext(r.Context(), err)
 			}
 		}
@@ -142,13 +143,13 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	/*
 		outFilters := make([]domain.FilterResponse, len(pg.Filters))
 		for j, filter := range pg.Filters {
-			if err := domain.Map(filter, &outFilters[j]); err != nil {
+			if err := serializer.Map(filter, &outFilters[j]); err != nil {
 				log.InfoWithContext(r.Context(), err)
 			}
 		}
@@ -190,12 +191,12 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetAlertResponse
-	if err := domain.Map(alert, &out.Alert); err != nil {
+	if err := serializer.Map(alert, &out.Alert); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 	for j, alertAction := range alert.AlertActions {
-		if err := domain.Map(alertAction, &outAlertActions[j]); err != nil {
+		if err := serializer.Map(alertAction, &outAlertActions[j]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
@@ -279,7 +280,7 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 	log.InfoWithContext(r.Context(), "alert : ", helper.ModelToJson(input))
 
 	var dto domain.AlertAction
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.AlertId = alertId

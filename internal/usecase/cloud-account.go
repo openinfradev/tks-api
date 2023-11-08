@@ -5,6 +5,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancing"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 
 	"github.com/google/uuid"
@@ -24,6 +35,7 @@ type ICloudAccountUsecase interface {
 	Get(ctx context.Context, cloudAccountId uuid.UUID) (domain.CloudAccount, error)
 	GetByName(ctx context.Context, organizationId string, name string) (domain.CloudAccount, error)
 	GetByAwsAccountId(ctx context.Context, awsAccountId string) (domain.CloudAccount, error)
+	GetResourceQuota(ctx context.Context, cloudAccountId uuid.UUID) (available bool, out domain.ResourceQuota, err error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.CloudAccount, error)
 	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(ctx context.Context, dto domain.CloudAccount) error
@@ -228,6 +240,205 @@ func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uu
 	return nil
 }
 
+func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccountId uuid.UUID) (available bool, out domain.ResourceQuota, err error) {
+	cloudAccount, err := u.repo.Get(cloudAccountId)
+	if err != nil {
+		return false, out, err
+	}
+
+	awsAccessKeyId, awsSecretAccessKey, _ := kubernetes.GetAwsSecret()
+	if err != nil || awsAccessKeyId == "" || awsSecretAccessKey == "" {
+		log.ErrorWithContext(ctx, err)
+		return false, out, httpErrors.NewInternalServerError(fmt.Errorf("Invalid aws secret."), "", "")
+	}
+
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
+			Value: aws.Credentials{
+				AccessKeyID: awsAccessKeyId, SecretAccessKey: awsSecretAccessKey,
+			},
+		}))
+	if err != nil {
+		log.ErrorWithContext(ctx, err)
+	}
+
+	stsSvc := sts.NewFromConfig(cfg)
+
+	if !strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
+		log.InfoWithContext(ctx, "Use assume role. awsAccountId : ", cloudAccount.AwsAccountId)
+		creds := stscreds.NewAssumeRoleProvider(stsSvc, "arn:aws:iam::"+cloudAccount.AwsAccountId+":role/controllers.cluster-api-provider-aws.sigs.k8s.io")
+		cfg.Credentials = aws.NewCredentialsCache(creds)
+	}
+	client := servicequotas.NewFromConfig(cfg)
+
+	quotaMap := map[string]string{
+		"L-69A177A2": "elasticloadbalancing", // NLB
+		"L-E9E9831D": "elasticloadbalancing", // Classic
+		"L-A4707A72": "vpc",                  // IGW
+		"L-1194D53C": "eks",                  // Cluster
+		"L-0263D0A3": "ec2",                  // Elastic IP
+	}
+
+	// current usage
+	type CurrentUsage struct {
+		NLB     int
+		CLB     int
+		IGW     int
+		Cluster int
+		EIP     int
+	}
+
+	out.Quotas = make([]domain.ResourceQuotaAttr, 0)
+
+	// get current usage
+	currentUsage := CurrentUsage{}
+	{
+		c := elasticloadbalancingv2.NewFromConfig(cfg)
+		pageSize := int32(100)
+		res, err := c.DescribeLoadBalancers(ctx, &elasticloadbalancingv2.DescribeLoadBalancersInput{
+			PageSize: &pageSize,
+		}, func(o *elasticloadbalancingv2.Options) {
+			o.Region = "ap-northeast-2"
+		})
+		if err != nil {
+			return false, out, err
+		}
+
+		for _, elb := range res.LoadBalancers {
+			switch elb.Type {
+			case "network":
+				currentUsage.NLB += 1
+			}
+		}
+	}
+
+	{
+		c := elasticloadbalancing.NewFromConfig(cfg)
+		pageSize := int32(100)
+		res, err := c.DescribeLoadBalancers(ctx, &elasticloadbalancing.DescribeLoadBalancersInput{
+			PageSize: &pageSize,
+		}, func(o *elasticloadbalancing.Options) {
+			o.Region = "ap-northeast-2"
+		})
+		if err != nil {
+			return false, out, err
+		}
+		currentUsage.CLB = len(res.LoadBalancerDescriptions)
+	}
+
+	{
+		c := ec2.NewFromConfig(cfg)
+		res, err := c.DescribeInternetGateways(ctx, &ec2.DescribeInternetGatewaysInput{}, func(o *ec2.Options) {
+			o.Region = "ap-northeast-2"
+		})
+		if err != nil {
+			return false, out, err
+		}
+		currentUsage.IGW = len(res.InternetGateways)
+	}
+
+	{
+		c := eks.NewFromConfig(cfg)
+		res, err := c.ListClusters(ctx, &eks.ListClustersInput{}, func(o *eks.Options) {
+			o.Region = "ap-northeast-2"
+		})
+		if err != nil {
+			return false, out, err
+		}
+		currentUsage.Cluster = len(res.Clusters)
+	}
+
+	{
+		c := ec2.NewFromConfig(cfg)
+		res, err := c.DescribeAddresses(ctx, &ec2.DescribeAddressesInput{}, func(o *ec2.Options) {
+			o.Region = "ap-northeast-2"
+		})
+		if err != nil {
+			log.ErrorWithContext(ctx, err)
+			return false, out, err
+		}
+		currentUsage.EIP = len(res.Addresses)
+	}
+
+	for key, val := range quotaMap {
+		res, err := getServiceQuota(client, key, val)
+		if err != nil {
+			return false, out, err
+		}
+		log.DebugfWithContext(ctx, "%s %s %v", *res.Quota.QuotaName, *res.Quota.QuotaCode, *res.Quota.Value)
+
+		quotaValue := int(*res.Quota.Value)
+
+		// stack 1개 생성하는데 필요한 quota
+		// Classic 1
+		// Network 5
+		// IGW 1
+		// EIP 3
+		// Cluster 1
+		switch key {
+		case "L-69A177A2": // NLB
+			log.InfofWithContext(ctx, "NLB : usage %d, quota %d", currentUsage.NLB, quotaValue)
+			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
+				Type:     "NLB",
+				Usage:    currentUsage.NLB,
+				Quota:    quotaValue,
+				Required: 5,
+			})
+			if quotaValue < currentUsage.NLB+5 {
+				available = false
+			}
+		case "L-E9E9831D": // Classic
+			log.InfofWithContext(ctx, "CLB : usage %d, quota %d", currentUsage.CLB, quotaValue)
+			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
+				Type:     "CLB",
+				Usage:    currentUsage.CLB,
+				Quota:    quotaValue,
+				Required: 1,
+			})
+			if quotaValue < currentUsage.CLB+1 {
+				available = false
+			}
+		case "L-A4707A72": // IGW
+			log.InfofWithContext(ctx, "IGW : usage %d, quota %d", currentUsage.IGW, quotaValue)
+			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
+				Type:     "IGW",
+				Usage:    currentUsage.IGW,
+				Quota:    quotaValue,
+				Required: 1,
+			})
+			if quotaValue < currentUsage.IGW+1 {
+				available = false
+			}
+		case "L-1194D53C": // Cluster
+			log.InfofWithContext(ctx, "Cluster : usage %d, quota %d", currentUsage.Cluster, quotaValue)
+			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
+				Type:     "EKS",
+				Usage:    currentUsage.Cluster,
+				Quota:    quotaValue,
+				Required: 1,
+			})
+			if quotaValue < currentUsage.Cluster+1 {
+				available = false
+			}
+		case "L-0263D0A3": // Elastic IP
+			log.InfofWithContext(ctx, "Elastic IP : usage %d, quota %d", currentUsage.EIP, quotaValue)
+			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
+				Type:     "EIP",
+				Usage:    currentUsage.EIP,
+				Quota:    quotaValue,
+				Required: 3,
+			})
+			if quotaValue < currentUsage.EIP+3 {
+				available = false
+			}
+		}
+
+	}
+
+	//return fmt.Errorf("Always return err")
+	return true, out, nil
+}
+
 func (u *CloudAccountUsecase) getClusterCnt(cloudAccountId uuid.UUID) (cnt int) {
 	cnt = 0
 
@@ -244,4 +455,17 @@ func (u *CloudAccountUsecase) getClusterCnt(cloudAccountId uuid.UUID) (cnt int) 
 	}
 
 	return cnt
+}
+
+func getServiceQuota(client *servicequotas.Client, quotaCode string, serviceCode string) (res *servicequotas.GetServiceQuotaOutput, err error) {
+	res, err = client.GetServiceQuota(context.TODO(), &servicequotas.GetServiceQuotaInput{
+		QuotaCode:   &quotaCode,
+		ServiceCode: &serviceCode,
+	}, func(o *servicequotas.Options) {
+		o.Region = "ap-northeast-2"
+	})
+	if err != nil {
+		return nil, err
+	}
+	return
 }

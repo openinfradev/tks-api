@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -72,7 +73,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetDashboardChartsResponse
 	out.Charts = make([]domain.DashboardChartResponse, len(charts))
 	for i, chart := range charts {
-		if err := domain.Map(chart, &out.Charts[i]); err != nil {
+		if err := serializer.Map(chart, &out.Charts[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
@@ -150,7 +151,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.DashboardChartResponse
-	if err := domain.Map(charts[0], &out); err != nil {
+	if err := serializer.Map(charts[0], &out); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -189,7 +190,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetDashboardStacksResponse
 	out.Stacks = make([]domain.DashboardStackResponse, len(stacks))
 	for i, stack := range stacks {
-		if err := domain.Map(stack, &out.Stacks[i]); err != nil {
+		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
@@ -226,7 +227,7 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var out domain.GetDashboardResourcesResponse
-	if err := domain.Map(resources, &out.Resources); err != nil {
+	if err := serializer.Map(resources, &out.Resources); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

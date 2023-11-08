@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -70,7 +71,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	var out domain.GetStackTemplatesResponse
 	out.StackTemplates = make([]domain.StackTemplateResponse, len(stackTemplates))
 	for i, stackTemplate := range stackTemplates {
-		if err := domain.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
+		if err := serializer.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 		}
 
@@ -80,7 +81,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -118,7 +119,7 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 	}
 
 	var out domain.GetStackTemplateResponse
-	if err := domain.Map(stackTemplate, &out.StackTemplate); err != nil {
+	if err := serializer.Map(stackTemplate, &out.StackTemplate); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -156,7 +157,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 		}
 
 		var dto domain.StackTemplate
-		if err := domain.Map(r, &dto); err != nil {
+		if err := serializer.Map(r, &dto); err != nil {
 			log.InfoWithContext(r.Context(),err)
 		}
 		dto.ID = stackTemplateId

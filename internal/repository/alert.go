@@ -11,7 +11,9 @@ import (
 	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -55,7 +57,7 @@ type Alert struct {
 	CheckPoint     string
 	GrafanaUrl     string
 	Summary        string
-	AlertActions   []AlertAction `gorm:"foreignKey:AlertId"`
+	AlertActions   []AlertAction
 	RawData        datatypes.JSON
 	Status         domain.AlertActionStatus `gorm:"index"`
 }
@@ -211,43 +213,24 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 	return alert.ID, nil
 }
 
-func reflectAlert(alert Alert) domain.Alert {
-	outAlertActions := make([]domain.AlertAction, len(alert.AlertActions))
+func reflectAlert(alert Alert) (out domain.Alert) {
+	if err := serializer.Map(alert.Model, &out); err != nil {
+		log.Error(err)
+	}
+	if err := serializer.Map(alert, &out); err != nil {
+		log.Error(err)
+	}
+
+	out.AlertActions = make([]domain.AlertAction, len(alert.AlertActions))
 	for i, alertAction := range alert.AlertActions {
-		outAlertActions[i] = reflectAlertAction(alertAction)
+		if err := serializer.Map(alertAction.Model, &out.AlertActions[i]); err != nil {
+			log.Error(err)
+			continue
+		}
+		if err := serializer.Map(alertAction, &out.AlertActions[i]); err != nil {
+			log.Error(err)
+			continue
+		}
 	}
-
-	return domain.Alert{
-		ID:             alert.ID,
-		OrganizationId: alert.OrganizationId,
-		Name:           alert.Name,
-		Description:    alert.Description,
-		Message:        alert.Message,
-		Code:           alert.Code,
-		Grade:          alert.Grade,
-		ClusterId:      alert.ClusterId,
-		Cluster:        reflectSimpleCluster(alert.Cluster),
-		GrafanaUrl:     alert.GrafanaUrl,
-		Node:           alert.Node,
-		CheckPoint:     alert.CheckPoint,
-		Summary:        alert.Summary,
-		AlertActions:   outAlertActions,
-		RawData:        alert.RawData,
-		Status:         alert.Status,
-		CreatedAt:      alert.CreatedAt,
-		UpdatedAt:      alert.UpdatedAt,
-	}
-}
-
-func reflectAlertAction(alertAction AlertAction) domain.AlertAction {
-	return domain.AlertAction{
-		ID:        alertAction.ID,
-		AlertId:   alertAction.AlertId,
-		Content:   alertAction.Content,
-		Status:    alertAction.Status,
-		TakerId:   alertAction.TakerId,
-		Taker:     reflectSimpleUser(alertAction.Taker),
-		CreatedAt: alertAction.CreatedAt,
-		UpdatedAt: alertAction.UpdatedAt,
-	}
+	return
 }

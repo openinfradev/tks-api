@@ -1,11 +1,13 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -49,14 +51,13 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto domain.Stack
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
-	if err = domain.Map(input, &dto.Conf); err != nil {
+	if err = serializer.Map(input, &dto.Conf); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
-
 	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -68,6 +69,23 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.Install(r.Context(), domain.StackId(stackId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // GetStack godoc
@@ -108,13 +126,18 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStacksResponse
 	out.Stacks = make([]domain.StackResponse, len(stacks))
 	for i, stack := range stacks {
-		if err := domain.Map(stack, &out.Stacks[i]); err != nil {
+		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+
+		err = json.Unmarshal(stack.StackTemplate.Services, &out.Stacks[i].StackTemplate.Services)
+		if err != nil {
+			log.InfoWithContext(r.Context(), err)
+		}
 	}
 
-	if err := domain.Map(*pg, &out.Pagination); err != nil {
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -147,7 +170,12 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetStackResponse
-	if err := domain.Map(stack, &out.Stack); err != nil {
+	if err := serializer.Map(stack, &out.Stack); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	err = json.Unmarshal(stack.StackTemplate.Services, &out.Stack.StackTemplate.Services)
+	if err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -183,7 +211,7 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStackStatusResponse
 	out.StepStatus = make([]domain.StackStepStatus, len(steps))
 	for i, step := range steps {
-		if err := domain.Map(step, &out.StepStatus[i]); err != nil {
+		if err := serializer.Map(step, &out.StepStatus[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
 		}
 	}
@@ -231,7 +259,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto domain.Stack
-	if err = domain.Map(input, &dto); err != nil {
+	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.ID = stackId
@@ -369,4 +397,58 @@ func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// SetFavorite godoc
+// @Tags Stacks
+// @Summary Set favorite stack
+// @Description Set favorite stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/stacks/{stackId}/favorite [post]
+// @Security     JWT
+func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.SetFavorite(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// DeleteFavorite godoc
+// @Tags Stacks
+// @Summary Delete favorite stack
+// @Description Delete favorite stack
+// @Accept json
+// @Produce json
+// @Param organizationId path string true "organizationId"
+// @Param stackId path string true "stackId"
+// @Success 200 {object} nil
+// @Router /organizations/{organizationId}/stacks/{stackId}/favorite [delete]
+// @Security     JWT
+func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	err := h.usecase.DeleteFavorite(r.Context(), domain.StackId(strId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
 }

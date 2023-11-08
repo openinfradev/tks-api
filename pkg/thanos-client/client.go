@@ -3,7 +3,7 @@ package thanos
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -63,7 +63,7 @@ func (c *ThanosClientImpl) Get(query string) (out Metric, err error) {
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return out, err
 	}
@@ -100,7 +100,7 @@ func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int
 		}
 	}()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return out, err
 	}
