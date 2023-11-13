@@ -110,7 +110,13 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 		if stackConf.TksCpNode == 0 {
 			stackConf.TksCpNode = 3
 			stackConf.TksCpNodeMax = 3
+			stackConf.TksInfraNode = 3
+			stackConf.TksInfraNodeMax = 3
+		}
 
+		// user 노드는 MAX_AZ_NUM의 배수로 요청한다.
+		if stackConf.TksUserNode%domain.MAX_AZ_NUM != 0 {
+			return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid node count"), "", "")
 		}
 	}
 
@@ -234,9 +240,19 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 		return out, err
 	}
 
+	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, cluster.OrganizationId)
 	out = reflectClusterToStack(cluster, appGroups)
+
 	if organization.PrimaryClusterId == cluster.ID.String() {
 		out.PrimaryCluster = true
+	}
+
+	for _, resource := range stackResources {
+		if resource.ID == domain.StackId(cluster.ID) {
+			if err := serializer.Map(resource, &out.Resource); err != nil {
+				log.Error(err)
+			}
+		}
 	}
 
 	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId), nil)

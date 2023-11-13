@@ -10,6 +10,7 @@ import (
 const NODE_TYPE_TKS_CP_NODE = "TKS_CP_NODE"
 const NODE_TYPE_TKS_INFRA_NODE = "TKS_INFRA_NODE"
 const NODE_TYPE_TKS_USER_NODE = "TKS_USER_NODE"
+const MAX_AZ_NUM = 3
 
 type ClusterId string
 
