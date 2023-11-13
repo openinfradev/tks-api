@@ -86,7 +86,7 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&stackTemplates)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order("kube_type DESC,template_type ASC").Order(orderQuery).Find(&stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}

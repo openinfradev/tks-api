@@ -45,6 +45,9 @@ func (s *SmtpMailer) SendMail() error {
 	s.client.SetBody("text/html", s.message.Body)
 
 	d := gomail.NewDialer(s.Host, s.Port, s.Username, s.Password)
+	if s.Port == 25 || s.Port == 587 || s.Port == 2587 {
+		d.SSL = false
+	}
 
 	if err := d.DialAndSend(s.client); err != nil {
 		log.Errorf("failed to send email, %v", err)
