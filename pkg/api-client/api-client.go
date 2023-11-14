@@ -140,7 +140,7 @@ func (c *ApiClientImpl) callWithBody(prefix string, method string, path string, 
 		res.Body.Close()
 	}()
 
-	if res.StatusCode%100 != 2 {
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		var restError httpErrors.RestError
 		if err := json.Unmarshal(body, &restError); err != nil {
 			return nil, fmt.Errorf("Invalid http status. failed to unmarshal body : %s", err)
