@@ -64,7 +64,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
 		authorizer.NewDefaultAuthorization(repoFactory))
 
-	cache := gcache.New(time.Hour, time.Hour)
+	cache := gcache.New(5*time.Minute, 10*time.Minute)
 
 	r.Use(loggingMiddleware)
 
