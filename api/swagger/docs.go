@@ -6086,6 +6086,12 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "kubeType": {
+                    "type": "string"
+                },
+                "kubeVersion": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
