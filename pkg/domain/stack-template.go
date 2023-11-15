@@ -66,6 +66,8 @@ type SimpleStackTemplateResponse struct {
 	Description  string                         `json:"description"`
 	Template     string                         `json:"template"`
 	CloudService string                         `json:"cloudService"`
+	KubeVersion  string                         `json:"kubeVersion"`
+	KubeType     string                         `json:"kubeType"`
 	Services     []StackTemplateServiceResponse `json:"services"`
 }
 
