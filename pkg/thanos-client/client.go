@@ -46,6 +46,8 @@ func New(host string, port int, ssl bool, token string) (ThanosClient, error) {
 
 func (c *ThanosClientImpl) Get(query string) (out Metric, err error) {
 	url := c.url + "/api/v1/query?query=" + url.QueryEscape(query)
+
+	log.Info("url : ", url)
 	res, err := c.client.Get(url)
 	if err != nil {
 		return out, err
