@@ -34,7 +34,7 @@ func MakeVerityIdentityMessage(to, code string) (*MessageInfo, error) {
 	return m, nil
 }
 
-func MakeTemporaryPasswordMessage(to, randomPassword string) (*MessageInfo, error) {
+func MakeTemporaryPasswordMessage(to, organizationId, accountId, randomPassword string) (*MessageInfo, error) {
 	subject := "[TKS] 임시 비밀번호가 발급되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/temporary_password.html")
@@ -43,7 +43,7 @@ func MakeTemporaryPasswordMessage(to, randomPassword string) (*MessageInfo, erro
 		return nil, err
 	}
 
-	data := map[string]string{"TemporaryPassword": randomPassword}
+	data := map[string]string{"TemporaryPassword": randomPassword, "OrganizationId": organizationId, "AccountId": accountId}
 
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {

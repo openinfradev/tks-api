@@ -238,7 +238,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	message, err := mail.MakeTemporaryPasswordMessage(email, randomPassword)
+	message, err := mail.MakeTemporaryPasswordMessage(email, organizationId, accountId, randomPassword)
 	if err != nil {
 		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
