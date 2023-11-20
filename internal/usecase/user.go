@@ -118,7 +118,7 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	message, err := mail.MakeTemporaryPasswordMessage(user.Email, randomPassword)
+	message, err := mail.MakeTemporaryPasswordMessage(user.Email, user.Organization.ID, user.AccountId, randomPassword)
 	if err != nil {
 		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
