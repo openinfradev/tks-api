@@ -53,22 +53,18 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		return nil, false, err
 	}
 
-	if parsedToken.Method.Alg() != "RS256" {
-		return nil, false, fmt.Errorf("invalid token")
-	}
-
-	if parsedToken.Claims.Valid() != nil {
-		return nil, false, fmt.Errorf("invalid token")
-	}
-
 	organizationId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
 	if !ok {
 		return nil, false, fmt.Errorf("organization is not found in token")
 	}
 
-	if err := a.kc.VerifyAccessToken(token, organizationId); err != nil {
+	isActive, err := a.kc.VerifyAccessToken(token, organizationId)
+	if err != nil {
 		log.Errorf("failed to verify access token: %v", err)
 		return nil, false, err
+	}
+	if !isActive {
+		return nil, false, fmt.Errorf("token is not active")
 	}
 
 	roleProjectMapping := make(map[string]string)
@@ -91,26 +87,6 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
 	if !ok {
 		return nil, false, fmt.Errorf("session id is not found in token")
-	}
-
-	sessionIds, err := a.kc.GetSessions(userId.String(), organizationId)
-	if err != nil {
-		log.Errorf("failed to get sessions: %v", err)
-
-		return nil, false, err
-	}
-	if len(*sessionIds) == 0 {
-		return nil, false, fmt.Errorf("invalid session")
-	}
-	var matched bool = false
-	for _, id := range *sessionIds {
-		if id == requestSessionId {
-			matched = true
-			break
-		}
-	}
-	if !matched {
-		return nil, false, fmt.Errorf("invalid session")
 	}
 
 	userInfo := &user.DefaultInfo{

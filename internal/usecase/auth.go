@@ -39,6 +39,7 @@ type IAuthUsecase interface {
 	FetchRoles() (out []domain.Role, err error)
 	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
 	SingleSignOut(organizationId string) (string, []*http.Cookie, error)
+	VerifyToken(token string) (bool, error)
 }
 
 const (
@@ -121,9 +122,13 @@ func (u *AuthUsecase) PingToken(accessToken string, organizationId string) error
 		return fmt.Errorf("invalid token")
 	}
 
-	if err := u.kc.VerifyAccessToken(accessToken, organizationId); err != nil {
+	isActive, err := u.kc.VerifyAccessToken(accessToken, organizationId)
+	if err != nil {
 		log.Errorf("failed to verify access token: %v", err)
 		return err
+	}
+	if !isActive {
+		return fmt.Errorf("token is not active")
 	}
 
 	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
@@ -379,6 +384,28 @@ func (u *AuthUsecase) SingleSignOut(organizationId string) (string, []*http.Cook
 	}
 
 	return redirectUrl, cookies, nil
+}
+
+func (u *AuthUsecase) VerifyToken(token string) (bool, error) {
+	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
+	if err != nil {
+		return false, err
+	}
+	org, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+	if !ok {
+		return false, fmt.Errorf("organization is not found in token")
+	}
+
+	isActive, err := u.kc.VerifyAccessToken(token, org)
+	if err != nil {
+		log.Errorf("failed to verify access token: %v", err)
+		return false, err
+	}
+	if !isActive {
+		return false, fmt.Errorf("token is not active")
+	}
+
+	return true, nil
 }
 
 func (u *AuthUsecase) isExpiredEmailCode(code repository.CacheEmailCode) bool {
