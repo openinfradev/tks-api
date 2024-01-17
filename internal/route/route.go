@@ -191,6 +191,21 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", authMiddleware.Handle(http.HandlerFunc(stackHandler.DeleteFavorite))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/install", authMiddleware.Handle(http.HandlerFunc(stackHandler.InstallStack))).Methods(http.MethodPost)
 
+	projectHandler := delivery.NewProjectHandler(usecase.NewProjectUsecase(repoFactory))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects", authMiddleware.Handle(http.HandlerFunc(projectHandler.CreateProject))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects", authMiddleware.Handle(http.HandlerFunc(projectHandler.GetProjects))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", authMiddleware.Handle(http.HandlerFunc(projectHandler.GetProject))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", authMiddleware.Handle(http.HandlerFunc(projectHandler.UpdateProject))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", authMiddleware.Handle(http.HandlerFunc(projectHandler.DeleteProject))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/members", authMiddleware.Handle(http.HandlerFunc(projectHandler.GetProjectMembers))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/members", authMiddleware.Handle(http.HandlerFunc(projectHandler.AddProjectMember))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/members/{accountId}", authMiddleware.Handle(http.HandlerFunc(projectHandler.RemoveProjectMember))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/members/{accountId}/role", authMiddleware.Handle(http.HandlerFunc(projectHandler.UpdateProjectMemberRole))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces", authMiddleware.Handle(http.HandlerFunc(projectHandler.CreateProjectNamespace))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces", authMiddleware.Handle(http.HandlerFunc(projectHandler.GetProjectNamespaces))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{namespaceId}", authMiddleware.Handle(http.HandlerFunc(projectHandler.GetProjectNamespace))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{namespaceId}", authMiddleware.Handle(http.HandlerFunc(projectHandler.DeleteProjectNamespace))).Methods(http.MethodDelete)
+
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
