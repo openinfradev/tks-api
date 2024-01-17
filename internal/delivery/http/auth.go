@@ -23,6 +23,7 @@ type IAuthHandler interface {
 	VerifyIdentityForLostId(w http.ResponseWriter, r *http.Request)
 	VerifyIdentityForLostPassword(w http.ResponseWriter, r *http.Request)
 
+	VerifyToken(w http.ResponseWriter, r *http.Request)
 	//Authenticate(next http.Handler) http.Handler
 }
 type AuthHandler struct {
@@ -279,6 +280,36 @@ func (h *AuthHandler) PingToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// VerifyToken godoc
+// @Tags Auth
+// @Summary verify token
+// @Description verify token
+// @Success 200 {object} nil
+// @Router /auth/verify-token [get]
+
+func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
+	token, ok := request.TokenFrom(r.Context())
+	if !ok {
+		log.ErrorfWithContext(r.Context(), "token is not found")
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("token is not found"), "C_INTERNAL_ERROR", ""))
+		return
+	}
+
+	isActive, err := h.usecase.VerifyToken(token)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	if !isActive {
+		ErrorJSON(w, r, httpErrors.NewUnauthorizedError(fmt.Errorf("token is not active"), "C_UNAUTHORIZED", ""))
 		return
 	}
 

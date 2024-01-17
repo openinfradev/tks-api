@@ -36,7 +36,7 @@ type IKeycloak interface {
 	JoinGroup(organizationId string, userId string, groupName string) error
 	LeaveGroup(organizationId string, userId string, groupName string) error
 
-	VerifyAccessToken(token string, organizationId string) error
+	VerifyAccessToken(token string, organizationId string) (bool, error)
 	GetSessions(userId string, organizationId string) (*[]string, error)
 }
 type Keycloak struct {
@@ -364,17 +364,17 @@ func (k *Keycloak) DeleteUser(organizationId string, userAccountId string) error
 	return nil
 }
 
-func (k *Keycloak) VerifyAccessToken(token string, organizationId string) error {
+func (k *Keycloak) VerifyAccessToken(token string, organizationId string) (bool, error) {
 	ctx := context.Background()
 	rptResult, err := k.client.RetrospectToken(ctx, token, DefaultClientID, k.config.ClientSecret, organizationId)
 	if err != nil {
-		return err
+		return false, err
+	}
+	if !(*rptResult.Active) {
+		return false, nil
 	}
 
-	if !(*rptResult.Active) {
-		return err
-	}
-	return nil
+	return true, nil
 }
 
 func (k *Keycloak) GetSessions(userId string, organizationId string) (*[]string, error) {
