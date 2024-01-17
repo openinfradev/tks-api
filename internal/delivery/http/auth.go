@@ -291,6 +291,7 @@ func (h *AuthHandler) PingToken(w http.ResponseWriter, r *http.Request) {
 // @Summary verify token
 // @Description verify token
 // @Success 200 {object} nil
+// @Failure 401 {object} nil
 // @Router /auth/verify-token [get]
 
 func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {

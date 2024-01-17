@@ -33,7 +33,7 @@ func (a *defaultAuthenticator) WithAuthentication(handler http.Handler) http.Han
 		resp, ok, err := a.auth.AuthenticateRequest(r)
 		if !ok {
 			log.Error(err)
-			internalHttp.ErrorJSON(w, r, httpErrors.NewUnauthorizedError(err, "", ""))
+			internalHttp.ErrorJSON(w, r, err)
 			return
 		}
 		r = r.WithContext(request.WithUser(r.Context(), resp.User))

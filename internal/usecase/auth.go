@@ -398,11 +398,10 @@ func (u *AuthUsecase) VerifyToken(token string) (bool, error) {
 
 	isActive, err := u.kc.VerifyAccessToken(token, org)
 	if err != nil {
-		log.Errorf("failed to verify access token: %v", err)
 		return false, err
 	}
 	if !isActive {
-		return false, fmt.Errorf("token is not active")
+		return false, nil
 	}
 
 	return true, nil

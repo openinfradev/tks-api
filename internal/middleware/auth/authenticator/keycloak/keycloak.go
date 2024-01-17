@@ -2,6 +2,7 @@ package keycloak
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"net/http"
 	"strings"
 
@@ -50,21 +51,21 @@ func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authentic
 func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string) (*authenticator.Response, bool, error) {
 	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
 	if err != nil {
-		return nil, false, err
+		return nil, false, httpErrors.NewUnauthorizedError(err, "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
 	organizationId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
 	if !ok {
-		return nil, false, fmt.Errorf("organization is not found in token")
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("organization is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
 	isActive, err := a.kc.VerifyAccessToken(token, organizationId)
 	if err != nil {
 		log.Errorf("failed to verify access token: %v", err)
-		return nil, false, err
+		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
 	}
 	if !isActive {
-		return nil, false, fmt.Errorf("token is not active")
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("token is deactivated"), "A_EXPIRED_TOKEN", "토큰이 만료되었습니다.")
 	}
 
 	roleProjectMapping := make(map[string]string)
@@ -73,7 +74,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		if len(slice) != 2 {
 			log.Errorf("invalid tks-role format: %v", role)
 
-			return nil, false, fmt.Errorf("invalid tks-role format")
+			return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid tks-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 		}
 		// key is projectName and value is roleName
 		roleProjectMapping[slice[1]] = slice[0]
@@ -82,11 +83,11 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	if err != nil {
 		log.Errorf("failed to verify access token: %v", err)
 
-		return nil, false, err
+		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
 	}
 	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
 	if !ok {
-		return nil, false, fmt.Errorf("session id is not found in token")
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("session id is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
 	userInfo := &user.DefaultInfo{

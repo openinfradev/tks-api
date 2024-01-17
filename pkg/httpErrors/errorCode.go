@@ -22,6 +22,7 @@ var errorMap = map[ErrorCode]string{
 	"A_INVALID_PASSWORD":        "비밀번호가 일치하지 않습니다.",
 	"A_SAME_OLD_PASSWORD":       "기존 비밀번호와 동일합니다.",
 	"A_INVALID_TOKEN":           "사용자 토큰 오류",
+	"A_EXPIRED_TOKEN":           "사용자 토큰 만료",
 	"A_INVALID_USER_CREDENTIAL": "비밀번호가 일치하지 않습니다.",
 	"A_INVALID_ORIGIN_PASSWORD": "기존 비밀번호가 일치하지 않습니다.",
 	"A_INVALID_CODE":            "인증번호가 일치하지 않습니다.",

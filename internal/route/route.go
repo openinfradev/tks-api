@@ -80,7 +80,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password/verification", authHandler.FindPassword).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id/code", authHandler.VerifyIdentityForLostId).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-password/code", authHandler.VerifyIdentityForLostPassword).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/verify-token", authHandler.VerifyToken).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/auth/verify-token", authMiddleware.Handle(http.HandlerFunc(authHandler.VerifyToken))).Methods(http.MethodGet)
 	//r.HandleFunc(API_PREFIX+API_VERSION+"/cookie-test", authHandler.CookieTest).Methods(http.MethodPost)
 	//r.HandleFunc(API_PREFIX+API_VERSION+"/auth/callback", authHandler.CookieTestCallback).Methods(http.MethodGet)
 
