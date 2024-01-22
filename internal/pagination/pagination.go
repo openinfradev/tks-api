@@ -7,13 +7,24 @@ import (
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/serializer"
+	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
+	"gorm.io/gorm"
+	"goyave.dev/filter"
+	"goyave.dev/goyave/v4"
+	"goyave.dev/goyave/v4/database"
 )
 
 const SORT_COLUMN = "sortColumn"
 const SORT_ORDER = "sortOrder"
 const PAGE_NUMBER = "pageNumber"
 const PAGE_SIZE = "pageSize"
+const FILTER = "filter"
 const COMBINED_FILTER = "combinedFilter"
+
+var DEFAULT_LIMIT = 10
+var MAX_LIMIT = 1000
 
 type Pagination struct {
 	Limit          int
@@ -21,23 +32,25 @@ type Pagination struct {
 	SortColumn     string
 	SortOrder      string
 	Filters        []Filter
-	CombinedFilter CombinedFilter
+	CombinedFilter CombinedFilter // deprecated
 	TotalRows      int64
 	TotalPages     int
+
+	PaginationRequest *goyave.Request
+	Paginator         *database.Paginator
 }
 
 type Filter struct {
-	Column string
-	Values []string
+	Relation string
+	Column   string
+	Operator string
+	Values   []string
 }
 
 type CombinedFilter struct {
 	Columns []string
 	Value   string
 }
-
-var DEFAULT_LIMIT = 10
-var MAX_LIMIT = 1000
 
 func (p *Pagination) GetOffset() int {
 	return (p.GetPage() - 1) * p.GetLimit()
@@ -67,6 +80,72 @@ func (p *Pagination) GetSortOrder() string {
 
 func (p *Pagination) GetFilters() []Filter {
 	return p.Filters
+}
+
+func (p *Pagination) MakePaginationRequest() {
+	if p.PaginationRequest == nil {
+		p.PaginationRequest = &goyave.Request{}
+	}
+
+	pgFilters := make([]*filter.Filter, 0)
+	pgSorts := make([]*filter.Sort, 0)
+
+	for _, f := range p.Filters {
+		field := f.Column
+		if f.Relation != "" {
+			field = f.Relation + "." + f.Column
+		}
+
+		pgFilter := filter.Filter{
+			Field:    field,
+			Operator: filter.Operators["$cont"],
+			Args:     f.Values,
+			Or:       false,
+		}
+
+		pgFilters = append(pgFilters, &pgFilter)
+	}
+
+	pgSort := filter.Sort{
+		Field: p.SortColumn,
+		Order: filter.SortOrder(p.SortOrder),
+	}
+	pgSorts = append(pgSorts, &pgSort)
+
+	p.PaginationRequest.Data = map[string]interface{}{
+		"filter": pgFilters,
+		//"join":     pgJoins,
+		"page":     p.Page,
+		"per_page": p.Limit,
+		"sort":     pgSorts,
+	}
+}
+
+func (p *Pagination) Fetch(db *gorm.DB, dest interface{}) (*database.Paginator, *gorm.DB) {
+	paginator, db := filter.Scope(db, p.PaginationRequest, dest)
+
+	p.Paginator = paginator
+
+	p.Page = paginator.CurrentPage
+	p.TotalPages = int(paginator.MaxPage)
+	p.TotalRows = paginator.Total
+	p.Limit = int(paginator.PageSize)
+
+	return paginator, db
+}
+
+func (p *Pagination) Response() (out domain.PaginationResponse, err error) {
+	if err := serializer.Map(*p, &out); err != nil {
+		return out, err
+	}
+	out.Filters = make([]domain.FilterResponse, len(p.Filters))
+	for i, f := range p.Filters {
+		if err := serializer.Map(f, &out.Filters[i]); err != nil {
+			continue
+		}
+	}
+
+	return out, err
 }
 
 func NewPagination(urlParams *url.Values) (*Pagination, error) {
@@ -116,13 +195,33 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 					return nil, fmt.Errorf("Invalid query string : combinedFilter ")
 				}
 			}
-		default:
-			pg.Filters = append(pg.Filters, Filter{
-				Column: helper.ToSnakeCase(strings.Replace(key, "[]", "", -1)),
-				Values: value,
-			})
+		case FILTER:
+			for _, filterValue := range value {
+				log.Debug("filterValue : ", filterValue)
+				arr := strings.Split(filterValue, "|")
+
+				column := arr[0]
+				releation := ""
+				arrColumns := strings.Split(column, ".")
+				if len(arrColumns) > 1 {
+					releation = arrColumns[0]
+					column = arrColumns[1]
+				}
+
+				trimmedStr := strings.Trim(arr[2], "[]")
+				values := strings.Split(trimmedStr, ",")
+
+				pg.Filters = append(pg.Filters, Filter{
+					Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
+					Relation: releation,
+					Operator: arr[1],
+					Values:   values,
+				})
+			}
 		}
 	}
+
+	pg.MakePaginationRequest()
 
 	return pg, nil
 }

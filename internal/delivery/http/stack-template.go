@@ -81,7 +81,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
