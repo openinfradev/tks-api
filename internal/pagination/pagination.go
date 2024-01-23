@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	filter "github.com/openinfradev/tks-api/internal/filter"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
-	"goyave.dev/filter"
+
 	"goyave.dev/goyave/v4"
 	"goyave.dev/goyave/v4/database"
 )
@@ -24,7 +25,6 @@ const FILTER = "filter"
 const COMBINED_FILTER = "combinedFilter"
 
 var DEFAULT_LIMIT = 10
-var MAX_LIMIT = 1000
 
 type Pagination struct {
 	Limit          int
@@ -98,10 +98,12 @@ func (p *Pagination) MakePaginationRequest() {
 
 		pgFilter := filter.Filter{
 			Field:    field,
-			Operator: filter.Operators["$cont"],
+			Operator: convertOperator(f.Operator),
 			Args:     f.Values,
 			Or:       false,
 		}
+
+		log.Info(helper.ModelToJson(f.Values))
 
 		pgFilters = append(pgFilters, &pgFilter)
 	}
@@ -154,27 +156,19 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 	for key, value := range *urlParams {
 		switch key {
 		case SORT_COLUMN:
-			if value[0] == "" {
-				pg.SortColumn = "created_at"
-			} else {
+			if value[0] != "" {
 				pg.SortColumn = value[0]
 			}
 		case SORT_ORDER:
-			if value[0] == "" {
-				pg.SortOrder = "DESC"
-			} else {
+			if value[0] != "" {
 				pg.SortOrder = value[0]
 			}
 		case PAGE_NUMBER:
-			if value[0] == "" {
-				pg.Page = 1
-			} else {
+			if value[0] != "" {
 				pg.Page, _ = strconv.Atoi(value[0])
 			}
 		case PAGE_SIZE:
 			if value[0] == "" {
-				pg.Page = DEFAULT_LIMIT
-			} else {
 				if limitNum, err := strconv.Atoi(value[0]); err == nil {
 					pg.Limit = limitNum
 				}
@@ -231,6 +225,13 @@ func NewDefaultPagination() *Pagination {
 		SortColumn: "created_at",
 		SortOrder:  "DESC",
 		Page:       1,
-		Limit:      MAX_LIMIT,
+		Limit:      DEFAULT_LIMIT,
 	}
+}
+
+func convertOperator(op string) *filter.Operator {
+	if _, ok := filter.Operators[op]; ok {
+		return filter.Operators[op]
+	}
+	return filter.Operators["$cont"]
 }
