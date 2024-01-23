@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal"
@@ -108,7 +109,7 @@ func WarnWithContext(ctx context.Context, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file":                               file,
+			"file":                               file + ":" + strconv.Itoa(line),
 			"line":                               line,
 			string(internal.ContextKeyRequestID): reqID,
 		}).Warn(v...)

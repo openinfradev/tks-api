@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"net/http"
 )
@@ -21,14 +22,21 @@ type IProjectHandler interface {
 	GetProjectNamespaces(w http.ResponseWriter, r *http.Request)
 	GetProjectNamespace(w http.ResponseWriter, r *http.Request)
 	DeleteProjectNamespace(w http.ResponseWriter, r *http.Request)
+
+	SetFavoriteProject(w http.ResponseWriter, r *http.Request)
+	SetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request)
+	UnSetFavoriteProject(w http.ResponseWriter, r *http.Request)
+	UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request)
 }
+
 type ProjectHandler struct {
 	usecase usecase.IProjectUsecase
 }
 
 func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
+	fmt.Println("print test")
+	//panic("implement me")
 }
 
 func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +95,26 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 }
 
 func (p ProjectHandler) DeleteProjectNamespace(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p ProjectHandler) SetFavoriteProject(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p ProjectHandler) SetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p ProjectHandler) UnSetFavoriteProject(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p ProjectHandler) UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	panic("implement me")
 }
