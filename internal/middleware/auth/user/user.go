@@ -8,15 +8,18 @@ import (
 type Info interface {
 	GetUserId() uuid.UUID
 	GetOrganizationId() string
+	GetRoleOrganizationMapping() map[string]string
 	GetRoleProjectMapping() map[string]string
 }
 
 // DefaultInfo provides a simple user information exchange object
 // for components that implement the UserInfo interface.
 type DefaultInfo struct {
-	UserId             uuid.UUID
-	OrganizationId     string
-	RoleProjectMapping map[string]string
+	UserId                  uuid.UUID
+	OrganizationId          string
+	ProjectIds              []string
+	RoleOrganizationMapping map[string]string
+	RoleProjectMapping      map[string]string
 }
 
 func (i *DefaultInfo) GetUserId() uuid.UUID {
@@ -27,9 +30,16 @@ func (i *DefaultInfo) GetOrganizationId() string {
 	return i.OrganizationId
 }
 
-// GetRoleGroupMapping key is project name, value is role name
+func (i *DefaultInfo) GetProjectId() []string {
+	return i.ProjectIds
+}
+
 func (i *DefaultInfo) GetRoleProjectMapping() map[string]string {
 	return i.RoleProjectMapping
+}
+
+func (i *DefaultInfo) GetRoleOrganizationMapping() map[string]string {
+	return i.RoleOrganizationMapping
 }
 
 // well-known user and group names

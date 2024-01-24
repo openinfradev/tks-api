@@ -68,17 +68,42 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("token is deactivated"), "A_EXPIRED_TOKEN", "토큰이 만료되었습니다.")
 	}
 
-	roleProjectMapping := make(map[string]string)
-	for _, role := range parsedToken.Claims.(jwtWithouKey.MapClaims)["tks-role"].([]interface{}) {
-		slice := strings.Split(role.(string), "@")
-		if len(slice) != 2 {
-			log.Errorf("invalid tks-role format: %v", role)
+	// tks role extraction
+	roleOrganizationMapping := make(map[string]string)
+	if roles, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["tks-role"]; !ok {
+		log.Errorf("tks-role is not found in token")
 
-			return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid tks-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("tks-role is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+	} else {
+		for _, role := range roles.([]interface{}) {
+			slice := strings.Split(role.(string), "@")
+			if len(slice) != 2 {
+				log.Errorf("invalid tks-role format: %v", role)
+
+				return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid tks-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+			}
+			// key is projectName and value is roleName
+			roleOrganizationMapping[slice[1]] = slice[0]
 		}
-		// key is projectName and value is roleName
-		roleProjectMapping[slice[1]] = slice[0]
+
 	}
+	// project role extraction
+	projectIds := make([]string, 0)
+	roleProjectMapping := make(map[string]string)
+	if roles, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["project-role"]; ok {
+		for _, role := range roles.([]interface{}) {
+			slice := strings.Split(role.(string), "@")
+			if len(slice) != 2 {
+				log.Errorf("invalid project-role format: %v", role)
+
+				return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid project-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+			}
+			// key is projectId and value is roleName
+			roleProjectMapping[slice[1]] = slice[0]
+			projectIds = append(projectIds, slice[1])
+		}
+	}
+
 	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
 	if err != nil {
 		log.Errorf("failed to verify access token: %v", err)
@@ -91,9 +116,11 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	}
 
 	userInfo := &user.DefaultInfo{
-		UserId:             userId,
-		OrganizationId:     organizationId,
-		RoleProjectMapping: roleProjectMapping,
+		UserId:                  userId,
+		OrganizationId:          organizationId,
+		ProjectIds:              projectIds,
+		RoleOrganizationMapping: roleOrganizationMapping,
+		RoleProjectMapping:      roleProjectMapping,
 	}
 	//r = r.WithContext(request.WithToken(r.Context(), token))
 	*r = *(r.WithContext(request.WithToken(r.Context(), token)))
