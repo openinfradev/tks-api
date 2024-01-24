@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
+	"github.com/openinfradev/tks-api/internal/middleware/audit"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
 	"io"
 	"net/http"
@@ -65,7 +66,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	customMiddleware := internalMiddleware.NewMiddleware(
 		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
 		authorizer.NewDefaultAuthorization(repoFactory),
-		requestRecoder.NewDefaultRequestRecoder())
+		requestRecoder.NewDefaultRequestRecoder(),
+		audit.NewDefaultAudit(repoFactory))
 
 	cache := gcache.New(5*time.Minute, 10*time.Minute)
 

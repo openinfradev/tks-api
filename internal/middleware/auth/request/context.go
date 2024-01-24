@@ -13,6 +13,7 @@ const (
 	userToken
 	sessionKey
 	endpointKey
+	auditKey
 )
 
 func WithValue(parent context.Context, key, val interface{}) context.Context {
@@ -53,4 +54,13 @@ func WithEndpoint(parent context.Context, endpoint internalApi.Endpoint) context
 func EndpointFrom(ctx context.Context) (internalApi.Endpoint, bool) {
 	endpoint, ok := ctx.Value(endpointKey).(internalApi.Endpoint)
 	return endpoint, ok
+}
+
+func WithAudit(parent context.Context, audit string) context.Context {
+	return WithValue(parent, auditKey, audit)
+}
+
+func AuditFrom(ctx context.Context) (string, bool) {
+	audit, ok := ctx.Value(auditKey).(string)
+	return audit, ok
 }
