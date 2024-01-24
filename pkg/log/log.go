@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"os"
-	"path"
 	"runtime"
 	"strconv"
 	"strings"
@@ -59,8 +58,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 func Info(v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": path.Base(file),
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Info(v...)
 	} else {
 		logger.Info(v...)
@@ -69,8 +67,7 @@ func Info(v ...interface{}) {
 func Infof(format string, v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": path.Base(file),
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Infof(format, v...)
 	} else {
 		logger.Infof(format, v...)
@@ -78,18 +75,31 @@ func Infof(format string, v ...interface{}) {
 }
 func InfoWithContext(ctx context.Context, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
-	logger.WithField(string(internal.ContextKeyRequestID), reqID).Info(v...)
+	if _, file, line, ok := runtime.Caller(1); ok {
+		logger.WithFields(logrus.Fields{
+			"file":                               file + ":" + strconv.Itoa(line),
+			string(internal.ContextKeyRequestID): reqID,
+		}).Info(v...)
+	} else {
+		logger.WithField(string(internal.ContextKeyRequestID), reqID).Info(v...)
+	}
 }
 func InfofWithContext(ctx context.Context, format string, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
-	logger.WithField(string(internal.ContextKeyRequestID), reqID).Infof(format, v...)
+	if _, file, line, ok := runtime.Caller(1); ok {
+		logger.WithFields(logrus.Fields{
+			"file":                               file + ":" + strconv.Itoa(line),
+			string(internal.ContextKeyRequestID): reqID,
+		}).Infof(format, v...)
+	} else {
+		logger.WithField(string(internal.ContextKeyRequestID), reqID).Infof(format, v...)
+	}
 }
 
 func Warn(v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Warn(v...)
 	} else {
 		logger.Warn(v...)
@@ -98,8 +108,7 @@ func Warn(v ...interface{}) {
 func Warnf(format string, v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Warnf(format, v...)
 	} else {
 		logger.Warnf(format, v...)
@@ -110,7 +119,6 @@ func WarnWithContext(ctx context.Context, v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
 			"file":                               file + ":" + strconv.Itoa(line),
-			"line":                               line,
 			string(internal.ContextKeyRequestID): reqID,
 		}).Warn(v...)
 	} else {
@@ -121,8 +129,7 @@ func WarnfWithContext(ctx context.Context, format string, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file":                               file,
-			"line":                               line,
+			"file":                               file + ":" + strconv.Itoa(line),
 			string(internal.ContextKeyRequestID): reqID,
 		}).Warnf(format, v...)
 	} else {
@@ -133,8 +140,7 @@ func WarnfWithContext(ctx context.Context, format string, v ...interface{}) {
 func Debug(v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Debug(v...)
 	} else {
 		logger.Debug(v...)
@@ -143,8 +149,7 @@ func Debug(v ...interface{}) {
 func Debugf(format string, v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Debugf(format, v...)
 	} else {
 		logger.Debugf(format, v...)
@@ -152,18 +157,31 @@ func Debugf(format string, v ...interface{}) {
 }
 func DebugWithContext(ctx context.Context, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
-	logger.WithField(string(internal.ContextKeyRequestID), reqID).Debug(v...)
+	if _, file, line, ok := runtime.Caller(1); ok {
+		logger.WithFields(logrus.Fields{
+			"file":                               file + ":" + strconv.Itoa(line),
+			string(internal.ContextKeyRequestID): reqID,
+		}).Debug(v...)
+	} else {
+		logger.WithField(string(internal.ContextKeyRequestID), reqID).Debug(v...)
+	}
 }
 func DebugfWithContext(ctx context.Context, format string, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
-	logger.WithField(string(internal.ContextKeyRequestID), reqID).Debugf(format, v...)
+	if _, file, line, ok := runtime.Caller(1); ok {
+		logger.WithFields(logrus.Fields{
+			"file":                               file + ":" + strconv.Itoa(line),
+			string(internal.ContextKeyRequestID): reqID,
+		}).Debugf(format, v...)
+	} else {
+		logger.WithField(string(internal.ContextKeyRequestID), reqID).Debugf(format, v...)
+	}
 }
 
 func Error(v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Error(v...)
 	} else {
 		logger.Error(v...)
@@ -172,8 +190,7 @@ func Error(v ...interface{}) {
 func Errorf(format string, v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Errorf(format, v...)
 	} else {
 		logger.Errorf(format, v...)
@@ -183,8 +200,7 @@ func ErrorWithContext(ctx context.Context, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file":                               file,
-			"line":                               line,
+			"file":                               file + ":" + strconv.Itoa(line),
 			string(internal.ContextKeyRequestID): reqID,
 		}).Error(v...)
 	} else {
@@ -195,8 +211,7 @@ func ErrorfWithContext(ctx context.Context, format string, v ...interface{}) {
 	reqID := ctx.Value(internal.ContextKeyRequestID)
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file":                               file,
-			"line":                               line,
+			"file":                               file + ":" + strconv.Itoa(line),
 			string(internal.ContextKeyRequestID): reqID,
 		}).Errorf(format, v...)
 	} else {
@@ -207,8 +222,7 @@ func ErrorfWithContext(ctx context.Context, format string, v ...interface{}) {
 func Fatal(v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Fatal(v...)
 	} else {
 		logger.Fatal(v...)
@@ -217,8 +231,7 @@ func Fatal(v ...interface{}) {
 func Fatalf(format string, v ...interface{}) {
 	if _, file, line, ok := runtime.Caller(1); ok {
 		logger.WithFields(logrus.Fields{
-			"file": file,
-			"line": line,
+			"file": file + ":" + strconv.Itoa(line),
 		}).Fatalf(format, v...)
 	} else {
 		logger.Fatalf(format, v...)

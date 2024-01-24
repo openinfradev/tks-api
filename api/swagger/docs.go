@@ -21,7 +21,7 @@ const docTemplate = `{
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
-    "basePath": "{{.Path}}",
+    "basePath": "{{.BasePath}}",
     "paths": {
         "/app-groups": {
             "get": {
