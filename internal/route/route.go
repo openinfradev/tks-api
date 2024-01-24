@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
-	"github.com/openinfradev/tks-api/internal/middleware/audit"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
 	"io"
 	"net/http"
 	"time"
+
+	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
+	"github.com/openinfradev/tks-api/internal/middleware/audit"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
@@ -63,6 +64,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		Alert:         repository.NewAlertRepository(db),
 		Project:       repository.NewProjectRepository(db),
+		Audit:         repository.NewAuditRepository(db),
 	}
 	customMiddleware := internalMiddleware.NewMiddleware(
 		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
