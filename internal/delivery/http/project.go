@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"net/http"
 )
@@ -35,88 +34,70 @@ type ProjectHandler struct {
 
 func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	fmt.Println("print test")
-	//panic("implement me")
 }
 
 func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) DeleteProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) SetFavoriteProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) SetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) UnSetFavoriteProject(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func (p ProjectHandler) UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
-	panic("implement me")
 }
 
 func NewProjectHandler(u usecase.IProjectUsecase) IProjectHandler {
