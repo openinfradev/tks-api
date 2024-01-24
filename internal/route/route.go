@@ -62,6 +62,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		CloudAccount:  repository.NewCloudAccountRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		Alert:         repository.NewAlertRepository(db),
+		Audit:         repository.NewAuditRepository(db),
 	}
 	customMiddleware := internalMiddleware.NewMiddleware(
 		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),

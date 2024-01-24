@@ -21,6 +21,7 @@ type Repository struct {
 	CloudAccount  ICloudAccountRepository
 	StackTemplate IStackTemplateRepository
 	Alert         IAlertRepository
+	Audit         IAuditRepository
 }
 
 func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {
