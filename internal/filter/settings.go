@@ -131,7 +131,7 @@ func (s *Settings) scopeFields(db *gorm.DB, request *goyave.Request, schema *sch
 		fields := strings.Split(request.String("fields"), ",")
 		if hasJoins {
 			if len(schema.PrimaryFieldDBNames) == 0 {
-				db.AddError(fmt.Errorf("Could not find primary key. Add `gorm:\"primaryKey\"` to your model"))
+				_ = db.AddError(fmt.Errorf("Could not find primary key. Add `gorm:\"primaryKey\"` to your model"))
 				return nil
 			}
 			fields = addPrimaryKeys(schema, fields)

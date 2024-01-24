@@ -103,8 +103,6 @@ func (p *Pagination) MakePaginationRequest() {
 			Or:       false,
 		}
 
-		log.Info(helper.ModelToJson(f.Values))
-
 		pgFilters = append(pgFilters, &pgFilter)
 	}
 
@@ -202,13 +200,18 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 					column = arrColumns[1]
 				}
 
-				trimmedStr := strings.Trim(arr[2], "[]")
+				trimmedStr := strings.Trim(arr[1], "[]")
 				values := strings.Split(trimmedStr, ",")
+
+				op := "$cont"
+				if len(arr) == 3 {
+					op = arr[2]
+				}
 
 				pg.Filters = append(pg.Filters, Filter{
 					Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
 					Relation: releation,
-					Operator: arr[1],
+					Operator: op,
 					Values:   values,
 				})
 			}

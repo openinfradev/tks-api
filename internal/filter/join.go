@@ -93,7 +93,7 @@ func joinScope(relationName string, rel *schema.Relationship, fields []string, b
 
 	return func(tx *gorm.DB) *gorm.DB {
 		if rel.FieldSchema.Table == "" {
-			tx.AddError(fmt.Errorf("Relation %q is anonymous, could not get table name", relationName))
+			_ = tx.AddError(fmt.Errorf("Relation %q is anonymous, could not get table name", relationName))
 			return tx
 		}
 		if columns != nil {
@@ -160,7 +160,7 @@ func join(tx *gorm.DB, joinName string, sch *schema.Schema) *gorm.DB {
 		}
 	}
 	if c, ok := tx.Statement.Clauses["FROM"]; ok {
-		from := c.Expression.(clause.From)
+		from, _ := c.Expression.(clause.From)
 		from.Joins = append(from.Joins, joins...)
 		c.Expression = from
 		tx.Statement.Clauses["FROM"] = c
@@ -171,7 +171,7 @@ func join(tx *gorm.DB, joinName string, sch *schema.Schema) *gorm.DB {
 
 func joinExists(stmt *gorm.Statement, join clause.Join) bool {
 	if c, ok := stmt.Clauses["FROM"]; ok {
-		from := c.Expression.(clause.From)
+		from, _ := c.Expression.(clause.From)
 		c.Expression = from
 		for _, j := range from.Joins {
 			if j.Table == join.Table {

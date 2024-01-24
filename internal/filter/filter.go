@@ -30,7 +30,7 @@ func (f *Filter) Scope(settings *Settings, sch *schema.Schema) (func(*gorm.DB) *
 		}
 		if joinName != "" {
 			if err := tx.Statement.Parse(tx.Statement.Model); err != nil {
-				tx.AddError(err)
+				_ = tx.AddError(err)
 				return tx
 			}
 			tx = join(tx, joinName, sch)

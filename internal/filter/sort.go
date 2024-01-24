@@ -32,7 +32,7 @@ func (s *Sort) Scope(settings *Settings, schema *schema.Schema) func(*gorm.DB) *
 	return func(tx *gorm.DB) *gorm.DB {
 		if joinName != "" {
 			if err := tx.Statement.Parse(tx.Statement.Model); err != nil {
-				tx.AddError(err)
+				_ = tx.AddError(err)
 				return tx
 			}
 			tx = join(tx, joinName, schema)

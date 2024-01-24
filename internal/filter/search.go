@@ -36,7 +36,7 @@ func (s *Search) Scope(schema *schema.Schema) func(*gorm.DB) *gorm.DB {
 
 			if joinName != "" {
 				if err := tx.Statement.Parse(tx.Statement.Model); err != nil {
-					tx.AddError(err)
+					_ = tx.AddError(err)
 					return tx
 				}
 				tx = join(tx, joinName, schema)
