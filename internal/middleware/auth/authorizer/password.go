@@ -2,7 +2,6 @@ package authorizer
 
 import (
 	"fmt"
-	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
 	"net/http"
 
 	"github.com/openinfradev/tks-api/internal"
@@ -55,15 +54,16 @@ func urlContains(urls []string, url string) bool {
 	return false
 }
 
-func isBypassEndpoint(endpoint internalApi.Endpoint) bool {
-	switch endpoint {
-	case internalApi.Login:
-	case internalApi.PingToken:
-	case internalApi.FindId:
-	case internalApi.FindPassword:
-	case internalApi.VerifyIdentityForLostId:
-	case internalApi.VerifyIdentityForLostPassword:
-		return true
-	}
-	return false
-}
+//
+//func isBypassEndpoint(endpoint internalApi.Endpoint) bool {
+//	switch endpoint {
+//	case internalApi.Login:
+//	case internalApi.PingToken:
+//	case internalApi.FindId:
+//	case internalApi.FindPassword:
+//	case internalApi.VerifyIdentityForLostId:
+//	case internalApi.VerifyIdentityForLostPassword:
+//		return true
+//	}
+//	return false
+//}
