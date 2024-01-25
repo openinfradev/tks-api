@@ -5282,6 +5282,12 @@ const docTemplate = `{
                 "column": {
                     "type": "string"
                 },
+                "operator": {
+                    "type": "string"
+                },
+                "releation": {
+                    "type": "string"
+                },
                 "values": {
                     "type": "array",
                     "items": {

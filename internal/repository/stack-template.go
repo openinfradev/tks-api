@@ -1,14 +1,12 @@
 package repository
 
 import (
-	"fmt"
-	"math"
-
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -76,17 +74,30 @@ func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out domain.Sta
 // [TODO] organizationId 별로 생성하지 않고, 하나의 stackTemplate 을 모든 organization 에서 재사용한다. ( 5월 한정, 추후 rearchitecture 필요)
 func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain.StackTemplate, err error) {
 	var stackTemplates []StackTemplate
+
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
 
-	filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&StackTemplate{}))
-	db.Count(&pg.TotalRows)
+	/*
+		filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters(), pg.CombinedFilter)
+		db := filterFunc(r.db.Model(&StackTemplate{}))
+		db.Count(&pg.TotalRows)
 
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order("kube_type DESC,template_type ASC").Order(orderQuery).Find(&stackTemplates)
+		pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+		orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+		res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order("kube_type DESC,template_type ASC").Order(orderQuery).Find(&stackTemplates)
+		if res.Error != nil {
+			return nil, res.Error
+		}
+
+		for _, stackTemplate := range stackTemplates {
+			out = append(out, reflectStackTemplate(stackTemplate))
+		}
+	*/
+
+	//	paginator, res := filter.Scope(r.db.Order("kube_type DESC,template_type ASC"), pg.GetPaginationRequest(), &stackTemplates)
+	paginator, res := pg.Fetch(r.db, &stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -94,6 +105,10 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 	for _, stackTemplate := range stackTemplates {
 		out = append(out, reflectStackTemplate(stackTemplate))
 	}
+
+	log.Info(helper.ModelToJson(paginator.Total))
+	//log.Info(helper.ModelToJson(stackTemplates))
+
 	return
 }
 
