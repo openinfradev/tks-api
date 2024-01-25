@@ -36,6 +36,12 @@ type IKeycloak interface {
 	JoinGroup(organizationId string, userId string, groupName string) error
 	LeaveGroup(organizationId string, userId string, groupName string) error
 
+	CreateClientRoleWithClientName(organizationId string, clientName string, roleName string) error
+	DeleteClientRoleWithClientName(organizationId string, clientName string, roleName string) error
+
+	AssignClientRoleToUser(organizationId string, userId string, clientName string, roleName string) error
+	UnassignClientRoleToUser(organizationId string, userId string, clientName string, roleName string) error
+
 	VerifyAccessToken(token string, organizationId string) (bool, error)
 	GetSessions(userId string, organizationId string) (*[]string, error)
 }
@@ -115,6 +121,7 @@ func (k *Keycloak) InitializeKeycloak() error {
 		return err
 	}
 
+	//
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if err := k.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *tksClient.ClientID, "openid", defaultMapper); err != nil {
 			log.Fatal(err)
@@ -446,6 +453,151 @@ func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName st
 
 	return nil
 }
+
+func (k *Keycloak) CreateClientRoleWithClientName(organizationId string, clientName string, roleName string) error {
+	ctx := context.Background()
+	token := k.adminCliToken
+
+	clients, err := k.client.GetClients(ctx, token.AccessToken, organizationId, gocloak.GetClientsParams{
+		ClientID: &clientName,
+	})
+	if err != nil {
+		log.Error("Getting Client is failed", err)
+		return err
+	}
+
+	targetClient := clients[0]
+
+	role := gocloak.Role{
+		Name: gocloak.StringP(roleName),
+	}
+
+	_, err = k.client.CreateClientRole(ctx, token.AccessToken, organizationId, *targetClient.ID, role)
+	if err != nil {
+		log.Error("Creating Client Role is failed", err)
+		return err
+	}
+
+	return nil
+}
+
+func (k *Keycloak) DeleteClientRoleWithClientName(organizationId string, clientName string, roleName string) error {
+	ctx := context.Background()
+	token := k.adminCliToken
+
+	clients, err := k.client.GetClients(ctx, token.AccessToken, organizationId, gocloak.GetClientsParams{
+		ClientID: &clientName,
+	})
+	if err != nil {
+		log.Error("Getting Client is failed", err)
+		return err
+	}
+
+	targetClient := clients[0]
+
+	roles, err := k.client.GetClientRoles(ctx, token.AccessToken, organizationId, *targetClient.ID, gocloak.GetRoleParams{
+		Search: &roleName,
+	})
+	if err != nil {
+		log.Error("Getting Client Role is failed", err)
+		return err
+	}
+
+	if len(roles) == 0 {
+		log.Warn("Client Role not found", roleName)
+		return nil
+	}
+
+	err = k.client.DeleteClientRole(ctx, token.AccessToken, organizationId, *targetClient.ID, *roles[0].ID)
+	if err != nil {
+		log.Error("Deleting Client Role is failed", err)
+		return err
+	}
+
+	return nil
+}
+
+func (k *Keycloak) AssignClientRoleToUser(organizationId string, userId string, clientName string, roleName string) error {
+	ctx := context.Background()
+	token := k.adminCliToken
+
+	clients, err := k.client.GetClients(ctx, token.AccessToken, organizationId, gocloak.GetClientsParams{
+		ClientID: &clientName,
+	})
+	if err != nil {
+		log.Error("Getting Client is failed", err)
+		return err
+	}
+	if len(clients) == 0 {
+		log.Warn("Client not found", clientName)
+		return nil
+	}
+
+	targetClient := clients[0]
+
+	roles, err := k.client.GetClientRoles(ctx, token.AccessToken, organizationId, *targetClient.ID, gocloak.GetRoleParams{
+		Search: &roleName,
+	})
+	if err != nil {
+		log.Error("Getting Client Role is failed", err)
+		return err
+	}
+
+	if len(roles) == 0 {
+		log.Warn("Client Role not found", roleName)
+		return nil
+	}
+
+	err = k.client.AddClientRolesToUser(ctx, token.AccessToken, organizationId, userId, *targetClient.ID, []gocloak.Role{*roles[0]})
+
+	if err != nil {
+		log.Error("Assigning Client Role to User is failed", err)
+		return err
+	}
+
+	return nil
+}
+
+func (k *Keycloak) UnassignClientRoleToUser(organizationId string, userId string, clientName string, roleName string) error {
+	ctx := context.Background()
+	token := k.adminCliToken
+
+	clients, err := k.client.GetClients(ctx, token.AccessToken, organizationId, gocloak.GetClientsParams{
+		ClientID: &clientName,
+	})
+	if err != nil {
+		log.Error("Getting Client is failed", err)
+		return err
+	}
+	if len(clients) == 0 {
+		log.Warn("Client not found", clientName)
+		return nil
+	}
+
+	targetClient := clients[0]
+
+	roles, err := k.client.GetClientRoles(ctx, token.AccessToken, organizationId, *targetClient.ID, gocloak.GetRoleParams{
+		Search: &roleName,
+	})
+	if err != nil {
+		log.Error("Getting Client Role is failed", err)
+		return err
+	}
+
+	if len(roles) == 0 {
+		log.Warn("Client Role not found", roleName)
+		return nil
+	}
+
+	err = k.client.DeleteClientRolesFromUser(ctx, token.AccessToken, organizationId, userId, *targetClient.ID, []gocloak.Role{*roles[0]})
+	if err != nil {
+		log.Error("Unassigning Client Role to User is failed", err)
+		return err
+	}
+
+	return nil
+}
+
 func (k *Keycloak) ensureClientProtocolMappers(ctx context.Context, token *gocloak.JWT, realm string, clientId string,
 	scope string, mapper gocloak.ProtocolMapperRepresentation) error {
 	//TODO: Check current logic(if exist, do nothing) is fine
@@ -624,6 +776,16 @@ func (k *Keycloak) getClientByClientId(ctx context.Context, accessToken string, 
 	return *clients[0].ID, nil
 }
 
+func (k *Keycloak) createClientRole(ctx context.Context, accessToken string, realm string, clientUuid string,
+	roleName string) (string, error) {
+	id, err := k.client.CreateClientRole(ctx, accessToken, realm, clientUuid, gocloak.Role{Name: gocloak.StringP(roleName)})
+	if err != nil {
+		log.Error("Creating Client Role is failed", err)
+		return "", err
+	}
+	return id, nil
+}
+
 func (k *Keycloak) getClientRole(ctx context.Context, accessToken string, realm string, clientUuid string,
 	roleName string) (*gocloak.Role, error) {
 	role, err := k.client.GetClientRole(ctx, accessToken, realm, clientUuid, roleName)
@@ -695,7 +857,6 @@ func (k *Keycloak) reflectRealmRepresentation(org domain.Organization) *gocloak.
 	}
 }
 
-// var defaultProtocolTksMapper = make([]gocloak.ProtocolMapperRepresentation, 3)
 var defaultProtocolTksMapper = []gocloak.ProtocolMapperRepresentation{
 	{
 		Name:            gocloak.StringP("org"),
@@ -732,6 +893,23 @@ var defaultProtocolTksMapper = []gocloak.ProtocolMapperRepresentation{
 		Config: &map[string]string{
 			"id.token.claim":       "true",
 			"userinfo.token.claim": "false",
+		},
+	},
+	{
+		Name:           gocloak.StringP("project-role"),
+		Protocol:       gocloak.StringP("openid-connect"),
+		ProtocolMapper: gocloak.StringP("oidc-usermodel-client-role-mapper"),
+		Config: &map[string]string{
+			"access.token.claim":   "true",
+			"id.token.claim":       "false",
+			"userinfo.token.claim": "false",
+
+			"claim.name":     "project-role",
+			"jsonType.label": "String",
+			"multivalued":    "true",
+
+			"usermodel.clientRoleMapping.clientId":    "tks",
+			"usermodel.clientRoleMapping.role_prefix": "",
 		},
 	},
 }
