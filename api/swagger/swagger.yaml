@@ -962,6 +962,10 @@ definitions:
     properties:
       column:
         type: string
+      operator:
+        type: string
+      releation:
+        type: string
       values:
         items:
           type: string
