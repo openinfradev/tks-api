@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"strings"
 
 	"github.com/spf13/viper"
 
+	rbacV1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -187,6 +188,359 @@ func GetKubernetesVserion() (string, error) {
 	}
 
 	return information.GitVersion, nil
+}
+
+func GetKubeconfigById(clusterId string) ([]byte, error) {
+	clientset, err := GetClientAdminCluster()
+	if err != nil {
+		return nil, err
+	}
+
+	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return secrets.Data["value"], nil
+}
+
+func GetResourceApiVersion(kubeconfig []byte, kind string) (string, error) {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	apiResourceList, err := clientset.Discovery().ServerPreferredResources()
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
+
+	for _, apiResource := range apiResourceList {
+		for _, resource := range apiResource.APIResources {
+			if resource.Kind == kind {
+				return resource.Version, nil
+			}
+		}
+	}
+
+	return "", nil
+}
+
+func EnsureClusterRole(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	// generate clusterrole object
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		obj := getClusterRole(role, projectName+"-"+role)
+
+		if _, err := clientset.RbacV1().ClusterRoles().Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
+			_, err = clientset.RbacV1().ClusterRoles().Create(context.Background(), obj, metav1.CreateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		} else {
+			_, err = clientset.RbacV1().ClusterRoles().Update(context.Background(), obj, metav1.UpdateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func EnsureClusterRoleBinding(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		obj := generateClusterRoleToClusterRoleBinding(role+"@"+projectName, projectName+"-"+role, projectName+"-"+role)
+		if _, err = clientset.RbacV1().ClusterRoleBindings().Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
+			_, err = clientset.RbacV1().ClusterRoleBindings().Create(context.Background(), obj, metav1.CreateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		} else {
+			_, err = clientset.RbacV1().ClusterRoleBindings().Update(context.Background(), obj, metav1.UpdateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func RemoveClusterRoleBinding(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		if err := clientset.RbacV1().ClusterRoleBindings().Delete(context.Background(), projectName+"-"+role, metav1.DeleteOptions{}); err != nil {
+			log.Error(err)
+		}
+	}
+
+	return nil
+}
+
+func EnsureRoleBinding(kubeconfig []byte, projectName string, namespace string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		obj := generateClusterRoleToRoleBinding(role+"@"+projectName, projectName+"-"+role, namespace, projectName+"-"+role)
+		if _, err = clientset.RbacV1().RoleBindings(namespace).Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
+			_, err = clientset.RbacV1().RoleBindings(namespace).Create(context.Background(), obj, metav1.CreateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		} else {
+			_, err = clientset.RbacV1().RoleBindings(namespace).Update(context.Background(), obj, metav1.UpdateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func RemoveRoleBinding(kubeconfig []byte, projectName string, namespace string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		if err := clientset.RbacV1().RoleBindings(namespace).Delete(context.Background(), projectName+"-"+role, metav1.DeleteOptions{}); err != nil {
+			log.Error(err)
+		}
+	}
+
+	return nil
+}
+
+const (
+	leaderRole = "leader"
+	memberRole = "member"
+	viewerRole = "viewer"
+)
+
+func getClusterRole(role, objName string) *rbacV1.ClusterRole {
+
+	clusterRole := rbacV1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: objName,
+		},
+		Rules: []rbacV1.PolicyRule{
+			{
+				Verbs:     []string{"*"},
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
+			},
+		},
+	}
+
+	switch role {
+	case leaderRole:
+		clusterRole.Rules[0].Verbs = []string{"*"}
+	case memberRole:
+		clusterRole.Rules[0].Verbs = []string{"*"}
+	case viewerRole:
+		clusterRole.Rules[0].Verbs = []string{"get", "list", "watch"}
+	default:
+		return nil
+	}
+
+	return &clusterRole
+}
+
+func EnsureCommonClusterRole(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	obj := generateCommonClusterRole(projectName + "-common")
+	if _, err = clientset.RbacV1().ClusterRoles().Get(context.Background(), projectName+"-common", metav1.GetOptions{}); err != nil {
+		_, err = clientset.RbacV1().ClusterRoles().Create(context.Background(), obj, metav1.CreateOptions{})
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+	} else {
+		_, err = clientset.RbacV1().ClusterRoles().Update(context.Background(), obj, metav1.UpdateOptions{})
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func EnsureCommonClusterRoleBinding(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		obj := generateClusterRoleToClusterRoleBinding(role+"@"+projectName, projectName+"-common-"+role, projectName+"-common")
+		if _, err = clientset.RbacV1().ClusterRoleBindings().Get(context.Background(), projectName+"-common"+"-"+role, metav1.GetOptions{}); err != nil {
+			_, err = clientset.RbacV1().ClusterRoleBindings().Create(context.Background(), obj, metav1.CreateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		} else {
+			_, err = clientset.RbacV1().ClusterRoleBindings().Update(context.Background(), obj, metav1.UpdateOptions{})
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func RemoveCommonClusterRoleBinding(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		if err := clientset.RbacV1().ClusterRoles().Delete(context.Background(), projectName+"-common-"+role, metav1.DeleteOptions{}); err != nil {
+			log.Error(err)
+			return err
+		}
+	}
+
+	return nil
+}
+func generateCommonClusterRole(objName string) *rbacV1.ClusterRole {
+	clusterRole := rbacV1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: objName,
+		},
+		Rules: []rbacV1.PolicyRule{
+			{
+				Verbs:     []string{"get", "list", "watch"},
+				APIGroups: []string{""},
+				Resources: []string{"namespaces", "nodes", "storageclasses", "persistentvolumes"},
+			},
+			{
+				Verbs:     []string{"get", "list", "watch"},
+				APIGroups: []string{"storage.k8s.io"},
+				Resources: []string{"storageclasses"},
+			},
+			{
+				Verbs:     []string{"get", "list", "watch"},
+				APIGroups: []string{"apiextensions.k8s.io"},
+				Resources: []string{"customresourcedefinitions"},
+			},
+			{
+				Verbs:     []string{"get", "list", "watch"},
+				APIGroups: []string{"certificates.k8s.io"},
+				Resources: []string{"certificatesigningrequests"},
+			},
+			{
+				Verbs:     []string{"get", "list", "watch"},
+				APIGroups: []string{"rbac.authorization.k8s.io"},
+				Resources: []string{"clusterroles", "clusterrolebindings"},
+			},
+		},
+	}
+
+	return &clusterRole
+}
+
+func generateClusterRoleToClusterRoleBinding(groupName, objName, roleName string) *rbacV1.ClusterRoleBinding {
+	clusterRoleBinding := rbacV1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: objName,
+		},
+		Subjects: []rbacV1.Subject{
+			{
+				Kind: "Group",
+				Name: groupName,
+			},
+		},
+		RoleRef: rbacV1.RoleRef{
+			Kind: "ClusterRole",
+			Name: roleName,
+		},
+	}
+
+	return &clusterRoleBinding
+}
+
+func generateClusterRoleToRoleBinding(groupName, objName, roleName, namespace string) *rbacV1.RoleBinding {
+	roleBinding := rbacV1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      objName,
+			Namespace: namespace,
+		},
+		Subjects: []rbacV1.Subject{
+			{
+				Kind: "Group",
+				Name: groupName,
+			},
+		},
+		RoleRef: rbacV1.RoleRef{
+			Kind: "ClusterRole",
+			Name: roleName,
+		},
+	}
+
+	return &roleBinding
 }
 
 func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
