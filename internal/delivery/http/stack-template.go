@@ -27,33 +27,33 @@ func NewStackTemplateHandler(h usecase.IStackTemplateUsecase) *StackTemplateHand
 }
 
 // CreateStackTemplate godoc
-// @Tags StackTemplates
-// @Summary Create StackTemplate 'NOT IMPLEMENTED'
+// @Tags        StackTemplates
+// @Summary     Create StackTemplate 'NOT IMPLEMENTED'
 // @Description Create StackTemplate
-// @Accept json
-// @Produce json
-// @Param body body domain.CreateStackTemplateRequest true "create stack template request"
-// @Success 200 {object} domain.CreateStackTemplateResponse
-// @Router /stack-templates [post]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.CreateStackTemplateRequest true "create stack template request"
+// @Success     200  {object} domain.CreateStackTemplateResponse
+// @Router      /stack-templates [post]
+// @Security    JWT
 func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("need implementation"))
 }
 
 // GetStackTemplate godoc
-// @Tags StackTemplates
-// @Summary Get StackTemplates
+// @Tags        StackTemplates
+// @Summary     Get StackTemplates
 // @Description Get StackTemplates
-// @Accept json
-// @Produce json
-// @Param limit query string false "pageSize"
-// @Param page query string false "pageNumber"
-// @Param soertColumn query string false "sortColumn"
-// @Param sortOrder query string false "sortOrder"
-// @Param filters query []string false "filters"
-// @Success 200 {object} domain.GetStackTemplatesResponse
-// @Router /stack-templates [get]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       limit       query    string   false "pageSize"
+// @Param       page        query    string   false "pageNumber"
+// @Param       soertColumn query    string   false "sortColumn"
+// @Param       sortOrder   query    string   false "sortOrder"
+// @Param       filters     query    []string false "filters"
+// @Success     200         {object} domain.GetStackTemplatesResponse
+// @Router      /stack-templates [get]
+// @Security    JWT
 func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 	pg, err := pagination.NewPagination(&urlParams)
@@ -89,15 +89,15 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 }
 
 // GetStackTemplate godoc
-// @Tags StackTemplates
-// @Summary Get StackTemplate
+// @Tags        StackTemplates
+// @Summary     Get StackTemplate
 // @Description Get StackTemplate
-// @Accept json
-// @Produce json
-// @Param stackTemplateId path string true "stackTemplateId"
-// @Success 200 {object} domain.GetStackTemplateResponse
-// @Router /stack-templates/{stackTemplateId} [get]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       stackTemplateId path     string true "stackTemplateId"
+// @Success     200             {object} domain.GetStackTemplateResponse
+// @Router      /stack-templates/{stackTemplateId} [get]
+// @Security    JWT
 func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["stackTemplateId"]
@@ -132,15 +132,15 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 }
 
 // UpdateStackTemplate godoc
-// @Tags StackTemplates
-// @Summary Update StackTemplate 'NOT IMPLEMENTED'
+// @Tags        StackTemplates
+// @Summary     Update StackTemplate 'NOT IMPLEMENTED'
 // @Description Update StackTemplate
-// @Accept json
-// @Produce json
-// @Param body body domain.UpdateStackTemplateRequest true "Update stack template request"
-// @Success 200 {object} nil
-// @Router /stack-templates/{stackTemplateId} [put]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.UpdateStackTemplateRequest true "Update stack template request"
+// @Success     200  {object} nil
+// @Router      /stack-templates/{stackTemplateId} [put]
+// @Security    JWT
 func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *http.Request) {
 	/*
 		vars := mux.Vars(r)
@@ -173,15 +173,15 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 }
 
 // DeleteStackTemplate godoc
-// @Tags StackTemplates
-// @Summary Delete StackTemplate 'NOT IMPLEMENTED'
+// @Tags        StackTemplates
+// @Summary     Delete StackTemplate 'NOT IMPLEMENTED'
 // @Description Delete StackTemplate
-// @Accept json
-// @Produce json
-// @Param stackTemplateId path string true "stackTemplateId"
-// @Success 200 {object} nil
-// @Router /stack-templates/{stackTemplateId} [delete]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       stackTemplateId path     string true "stackTemplateId"
+// @Success     200             {object} nil
+// @Router      /stack-templates/{stackTemplateId} [delete]
+// @Security    JWT
 func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_, ok := vars["stackTemplateId"]

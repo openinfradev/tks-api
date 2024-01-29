@@ -114,5 +114,19 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// Project
+	if err := db.AutoMigrate(&domain.Project{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&domain.ProjectRole{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&domain.ProjectMember{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&domain.ProjectNamesapce{}); err != nil {
+		return err
+	}
+
 	return nil
 }

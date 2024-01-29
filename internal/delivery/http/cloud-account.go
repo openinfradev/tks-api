@@ -27,16 +27,16 @@ func NewCloudAccountHandler(h usecase.ICloudAccountUsecase) *CloudAccountHandler
 }
 
 // CreateCloudAccount godoc
-// @Tags CloudAccounts
-// @Summary Create CloudAccount
+// @Tags        CloudAccounts
+// @Summary     Create CloudAccount
 // @Description Create CloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param body body domain.CreateCloudAccountRequest true "create cloud setting request"
-// @Success 200 {object} domain.CreateCloudAccountResponse
-// @Router /organizations/{organizationId}/cloud-accounts [post]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string                           true "organizationId"
+// @Param       body           body     domain.CreateCloudAccountRequest true "create cloud setting request"
+// @Success     200            {object} domain.CreateCloudAccountResponse
+// @Router      /organizations/{organizationId}/cloud-accounts [post]
+// @Security    JWT
 func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -71,20 +71,20 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 }
 
 // GetCloudAccount godoc
-// @Tags CloudAccounts
-// @Summary Get CloudAccounts
+// @Tags        CloudAccounts
+// @Summary     Get CloudAccounts
 // @Description Get CloudAccounts
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param limit query string false "pageSize"
-// @Param page query string false "pageNumber"
-// @Param soertColumn query string false "sortColumn"
-// @Param sortOrder query string false "sortOrder"
-// @Param filters query []string false "filters"
-// @Success 200 {object} domain.GetCloudAccountsResponse
-// @Router /organizations/{organizationId}/cloud-accounts [get]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string   true  "organizationId"
+// @Param       limit          query    string   false "pageSize"
+// @Param       page           query    string   false "pageNumber"
+// @Param       soertColumn    query    string   false "sortColumn"
+// @Param       sortOrder      query    string   false "sortOrder"
+// @Param       filters        query    []string false "filters"
+// @Success     200            {object} domain.GetCloudAccountsResponse
+// @Router      /organizations/{organizationId}/cloud-accounts [get]
+// @Security    JWT
 func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -122,16 +122,16 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 }
 
 // GetCloudAccount godoc
-// @Tags CloudAccounts
-// @Summary Get CloudAccount
+// @Tags        CloudAccounts
+// @Summary     Get CloudAccount
 // @Description Get CloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param cloudAccountId path string true "cloudAccountId"
-// @Success 200 {object} domain.GetCloudAccountResponse
-// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [get]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       cloudAccountId path     string true "cloudAccountId"
+// @Success     200            {object} domain.GetCloudAccountResponse
+// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [get]
+// @Security    JWT
 func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
@@ -161,16 +161,16 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 }
 
 // UpdateCloudAccount godoc
-// @Tags CloudAccounts
-// @Summary Update CloudAccount
+// @Tags        CloudAccounts
+// @Summary     Update CloudAccount
 // @Description Update CloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param body body domain.UpdateCloudAccountRequest true "Update cloud setting request"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [put]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string                           true "organizationId"
+// @Param       body           body     domain.UpdateCloudAccountRequest true "Update cloud setting request"
+// @Success     200            {object} nil
+// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [put]
+// @Security    JWT
 func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]
@@ -215,17 +215,17 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 }
 
 // DeleteCloudAccount godoc
-// @Tags CloudAccounts
-// @Summary Delete CloudAccount
+// @Tags        CloudAccounts
+// @Summary     Delete CloudAccount
 // @Description Delete CloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param body body domain.DeleteCloudAccountRequest true "Delete cloud setting request"
-// @Param cloudAccountId path string true "cloudAccountId"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [delete]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string                           true "organizationId"
+// @Param       body           body     domain.DeleteCloudAccountRequest true "Delete cloud setting request"
+// @Param       cloudAccountId path     string                           true "cloudAccountId"
+// @Success     200            {object} nil
+// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [delete]
+// @Security    JWT
 func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
@@ -263,16 +263,16 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 }
 
 // DeleteForceCloudAccount godoc
-// @Tags CloudAccounts
-// @Summary Delete Force CloudAccount
+// @Tags        CloudAccounts
+// @Summary     Delete Force CloudAccount
 // @Description Delete Force CloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param cloudAccountId path string true "cloudAccountId"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error [delete]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       cloudAccountId path     string true "cloudAccountId"
+// @Success     200            {object} nil
+// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error [delete]
+// @Security    JWT
 func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cloudAccountId, ok := vars["cloudAccountId"]
@@ -297,16 +297,16 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 }
 
 // CheckCloudAccountName godoc
-// @Tags CloudAccounts
-// @Summary Check name for cloudAccount
+// @Tags        CloudAccounts
+// @Summary     Check name for cloudAccount
 // @Description Check name for cloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param name path string true "name"
-// @Success 200 {object} domain.CheckCloudAccountNameResponse
-// @Router /organizations/{organizationId}/cloud-accounts/name/{name}/existence [GET]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       name           path     string true "name"
+// @Success     200            {object} domain.CheckCloudAccountNameResponse
+// @Router      /organizations/{organizationId}/cloud-accounts/name/{name}/existence [GET]
+// @Security    JWT
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
 	if !ok {
@@ -339,16 +339,16 @@ func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *ht
 }
 
 // CheckAwsAccountId godoc
-// @Tags CloudAccounts
-// @Summary Check awsAccountId for cloudAccount
+// @Tags        CloudAccounts
+// @Summary     Check awsAccountId for cloudAccount
 // @Description Check awsAccountId for cloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param awsAccountId path string true "awsAccountId"
-// @Success 200 {object} domain.CheckCloudAccountAwsAccountIdResponse
-// @Router /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence [GET]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       awsAccountId   path     string true "awsAccountId"
+// @Success     200            {object} domain.CheckCloudAccountAwsAccountIdResponse
+// @Router      /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence [GET]
+// @Security    JWT
 func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	awsAccountId, ok := vars["awsAccountId"]
@@ -375,16 +375,16 @@ func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.R
 }
 
 // GetResourceQuota godoc
-// @Tags CloudAccounts
-// @Summary Get resource quota by cloudAccount
+// @Tags        CloudAccounts
+// @Summary     Get resource quota by cloudAccount
 // @Description Get resource quota by cloudAccount
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param cloudAccountId path string true "cloudAccountId"
-// @Success 200 {object} domain.GetCloudAccountResourceQuotaResponse
-// @Router /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota [GET]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       cloudAccountId path     string true "cloudAccountId"
+// @Success     200            {object} domain.GetCloudAccountResourceQuotaResponse
+// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota [GET]
+// @Security    JWT
 func (h *CloudAccountHandler) GetResourceQuota(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["cloudAccountId"]

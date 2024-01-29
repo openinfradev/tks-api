@@ -127,11 +127,14 @@ const (
 
 	// Project
 	CreateProject
+	GetProjectRoles
+	GetProjectRole
 	GetProjects
 	GetProject
 	UpdateProject
 	DeleteProject
 	AddProjectMember
+	GetProjectMember
 	GetProjectMembers
 	RemoveProjectMember
 	UpdateProjectMemberRole
@@ -514,6 +517,14 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "CreateProject",
 		Group: "Project",
 	},
+	GetProjectRoles: {
+		Name:  "GetProjectRoles",
+		Group: "Project",
+	},
+	GetProjectRole: {
+		Name:  "GetProjectRole",
+		Group: "Project",
+	},
 	GetProjects: {
 		Name:  "GetProjects",
 		Group: "Project",
@@ -532,6 +543,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
 	AddProjectMember: {
 		Name:  "AddProjectMember",
+		Group: "Project",
+	},
+	GetProjectMember: {
+		Name:  "GetProjectMember",
 		Group: "Project",
 	},
 	GetProjectMembers: {
@@ -766,6 +781,10 @@ func (e Endpoint) String() string {
 		return "InstallStack"
 	case CreateProject:
 		return "CreateProject"
+	case GetProjectRoles:
+		return "GetProjectRoles"
+	case GetProjectRole:
+		return "GetProjectRole"
 	case GetProjects:
 		return "GetProjects"
 	case GetProject:
@@ -776,6 +795,8 @@ func (e Endpoint) String() string {
 		return "DeleteProject"
 	case AddProjectMember:
 		return "AddProjectMember"
+	case GetProjectMember:
+		return "GetProjectMember"
 	case GetProjectMembers:
 		return "GetProjectMembers"
 	case RemoveProjectMember:

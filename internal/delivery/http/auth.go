@@ -37,14 +37,14 @@ func NewAuthHandler(h usecase.IAuthUsecase) IAuthHandler {
 }
 
 // Login godoc
-// @Tags Auth
-// @Summary login
+// @Tags        Auth
+// @Summary     login
 // @Description login
-// @Accept json
-// @Produce json
-// @Param body body domain.LoginRequest true "account info"
-// @Success 200 {object} domain.LoginResponse "user detail"
-// @Router /auth/login [post]
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.LoginRequest  true "account info"
+// @Success     200  {object} domain.LoginResponse "user detail"
+// @Router      /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	input := domain.LoginRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -82,14 +82,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Logout godoc
-// @Tags Auth
-// @Summary logout
+// @Tags        Auth
+// @Summary     logout
 // @Description logout
-// @Accept json
-// @Produce json
-// @Success 200 {object} domain.LogoutResponse
-// @Router /auth/logout [post]
-// @Security     JWT
+// @Accept      json
+// @Produce     json
+// @Success     200 {object} domain.LogoutResponse
+// @Router      /auth/logout [post]
+// @Security    JWT
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -141,15 +141,15 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // FindId godoc
-// @Tags Auth
-// @Summary Request to find forgotten ID
+// @Tags        Auth
+// @Summary     Request to find forgotten ID
 // @Description This API allows users to find their account ID by submitting required information
-// @Accept json
-// @Produce json
-// @Param body body domain.FindIdRequest true "Request body for finding the account ID including {organization ID, email, username, 6 digit code}"
-// @Success 200 {object} domain.FindIdResponse
-// @Failure 400 {object} httpErrors.RestError
-// @Router /auth/find-id/verification [post]
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.FindIdRequest true "Request body for finding the account ID including {organization ID, email, username, 6 digit code}"
+// @Success     200  {object} domain.FindIdResponse
+// @Failure     400  {object} httpErrors.RestError
+// @Router      /auth/find-id/verification [post]
 func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -172,15 +172,15 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 }
 
 // FindPassword godoc
-// @Tags Auth
-// @Summary Request to find forgotten password
+// @Tags        Auth
+// @Summary     Request to find forgotten password
 // @Description This API allows users to reset their forgotten password by submitting required information
-// @Accept json
-// @Produce json
-// @Param body body domain.FindPasswordRequest true "Request body for finding the password including {organization ID, email, username, Account ID, 6 digit code}"
-// @Success 200
-// @Failure 400 {object} httpErrors.RestError
-// @Router /auth/find-password/verification [post]
+// @Accept      json
+// @Produce     json
+// @Param       body body domain.FindPasswordRequest true "Request body for finding the password including {organization ID, email, username, Account ID, 6 digit code}"
+// @Success     200
+// @Failure     400 {object} httpErrors.RestError
+// @Router      /auth/find-password/verification [post]
 func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 	input := domain.FindPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -200,15 +200,15 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 }
 
 // VerifyIdentityForLostId godoc
-// @Tags Auth
-// @Summary Request to verify identity for lost id
+// @Tags        Auth
+// @Summary     Request to verify identity for lost id
 // @Description This API allows users to verify their identity for lost id by submitting required information
-// @Accept json
-// @Produce json
-// @Param body body domain.VerifyIdentityForLostIdRequest true "Request body for verifying identity for lost id including {organization ID, email, username}"
-// @Success 200 {object} domain.VerifyIdentityForLostIdResponse
-// @Failure 400 {object} httpErrors.RestError
-// @Router /auth/find-id/code [post]
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.VerifyIdentityForLostIdRequest true "Request body for verifying identity for lost id including {organization ID, email, username}"
+// @Success     200  {object} domain.VerifyIdentityForLostIdResponse
+// @Failure     400  {object} httpErrors.RestError
+// @Router      /auth/find-id/code [post]
 func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Request) {
 	input := domain.VerifyIdentityForLostIdRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -230,15 +230,15 @@ func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Req
 }
 
 // VerifyIdentityForLostPassword godoc
-// @Tags Auth
-// @Summary Request to verify identity for lost password
+// @Tags        Auth
+// @Summary     Request to verify identity for lost password
 // @Description This API allows users to verify their identity for lost password by submitting required information
-// @Accept json
-// @Produce json
-// @Param body body domain.VerifyIdentityForLostPasswordRequest true "Request body for verifying identity for lost password including {organization ID, email, username, Account ID}"
-// @Success 200 {object} domain.VerifyIdentityForLostPasswordResponse
-// @Failure 400 {object} httpErrors.RestError
-// @Router /auth/find-password/code [post]
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.VerifyIdentityForLostPasswordRequest true "Request body for verifying identity for lost password including {organization ID, email, username, Account ID}"
+// @Success     200  {object} domain.VerifyIdentityForLostPasswordResponse
+// @Failure     400  {object} httpErrors.RestError
+// @Router      /auth/find-password/code [post]
 func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *http.Request) {
 	input := domain.VerifyIdentityForLostPasswordRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -260,14 +260,14 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 }
 
 // Login godoc
-// @Tags Auth
-// @Summary ping with token
+// @Tags        Auth
+// @Summary     ping with token
 // @Description ping with token
-// @Accept json
-// @Produce json
-// @Param body body domain.PingTokenRequest true "token info"
-// @Success 200 {object} nil
-// @Router /auth/ping [post]
+// @Accept      json
+// @Produce     json
+// @Param       body body     domain.PingTokenRequest true "token info"
+// @Success     200  {object} nil
+// @Router      /auth/ping [post]
 func (h *AuthHandler) PingToken(w http.ResponseWriter, r *http.Request) {
 	input := domain.PingTokenRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -287,12 +287,12 @@ func (h *AuthHandler) PingToken(w http.ResponseWriter, r *http.Request) {
 }
 
 // VerifyToken godoc
-// @Tags Auth
-// @Summary verify token
+// @Tags        Auth
+// @Summary     verify token
 // @Description verify token
-// @Success 200 {object} nil
-// @Failure 401 {object} nil
-// @Router /auth/verify-token [get]
+// @Success     200 {object} nil
+// @Failure     401 {object} nil
+// @Router      /auth/verify-token [get]
 
 func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	token, ok := request.TokenFrom(r.Context())

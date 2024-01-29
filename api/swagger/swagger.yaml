@@ -17,6 +17,20 @@ definitions:
       uri:
         type: string
     type: object
+  domain.AddProjectMemberRequest:
+    properties:
+      projectMembers:
+        items:
+          $ref: '#/definitions/domain.ProjectMemberRequest'
+        type: array
+    type: object
+  domain.AddProjectMemberResponse:
+    properties:
+      projectMembers:
+        items:
+          $ref: '#/definitions/domain.ProjectMember'
+        type: array
+    type: object
   domain.AlertActionResponse:
     properties:
       alertId:
@@ -752,6 +766,24 @@ definitions:
     - Email
     - name
     type: object
+  domain.CreateProjectRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      projectLeaderId:
+        type: string
+      projectRoleId:
+        type: string
+    required:
+    - name
+    type: object
+  domain.CreateProjectResponse:
+    properties:
+      project:
+        $ref: '#/definitions/domain.Project'
+    type: object
   domain.CreateStackRequest:
     properties:
       cloudAccountId:
@@ -1172,6 +1204,25 @@ definitions:
             type: string
         type: object
     type: object
+  domain.GetProjectMembersResponse:
+    properties:
+      projectMembers:
+        items:
+          $ref: '#/definitions/domain.ProjectMember'
+        type: array
+    type: object
+  domain.GetProjectRoleResponse:
+    properties:
+      projectRole:
+        $ref: '#/definitions/domain.ProjectRole'
+    type: object
+  domain.GetProjectRolesResponse:
+    properties:
+      projectRoles:
+        items:
+          $ref: '#/definitions/domain.ProjectRole'
+        type: array
+    type: object
   domain.GetStackKubeConfigResponse:
     properties:
       kubeConfig:
@@ -1414,6 +1465,101 @@ definitions:
         type: integer
       value:
         type: integer
+    type: object
+  domain.Project:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      projectMembers:
+        items:
+          $ref: '#/definitions/domain.ProjectMember'
+        type: array
+      projectNamesapces:
+        items:
+          $ref: '#/definitions/domain.ProjectNamesapce'
+        type: array
+      updatedAt:
+        type: string
+    type: object
+  domain.ProjectMember:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: string
+      projectId:
+        type: string
+      projectRole:
+        $ref: '#/definitions/domain.ProjectRole'
+      projectRoleId:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/domain.User'
+      userId:
+        type: string
+    type: object
+  domain.ProjectMemberRequest:
+    properties:
+      projectRoleId:
+        type: string
+      userId:
+        type: string
+    required:
+    - projectRoleId
+    - userId
+    type: object
+  domain.ProjectNamesapce:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      namespace:
+        type: string
+      projectId:
+        type: string
+      stackId:
+        type: string
+      stackName:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  domain.ProjectRole:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        description: project-leader, project-member, project-viewer
+        type: string
+      updatedAt:
+        type: string
     type: object
   domain.ResourceQuota:
     properties:
@@ -3762,6 +3908,147 @@ paths:
       summary: Update primary cluster
       tags:
       - Organizations
+  /organizations/{organizationId}/projects:
+    post:
+      consumes:
+      - application/json
+      description: Create new project
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Request body to create project
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateProjectResponse'
+      security:
+      - JWT: []
+      summary: Create new project
+      tags:
+      - Projects
+  /organizations/{organizationId}/projects/{projectId}/members:
+    get:
+      consumes:
+      - application/json
+      description: Get project members
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetProjectMembersResponse'
+      security:
+      - JWT: []
+      summary: Get project members
+      tags:
+      - Projects
+    post:
+      consumes:
+      - application/json
+      description: Add project member to project
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Request body to add project member
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddProjectMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AddProjectMemberResponse'
+      security:
+      - JWT: []
+      summary: Add project member to project
+      tags:
+      - Projects
+  /organizations/{organizationId}/projects/project-roles:
+    get:
+      consumes:
+      - application/json
+      description: Get project roles by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: project role search by query (query=all), (query=leader), (query=member),
+          (query=viewer)
+        in: query
+        name: query
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetProjectRolesResponse'
+      security:
+      - JWT: []
+      summary: Get project roles
+      tags:
+      - Projects
+  /organizations/{organizationId}/projects/project-roles/{projectRoleId}:
+    get:
+      consumes:
+      - application/json
+      description: Get project role by id
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetProjectRoleResponse'
+      security:
+      - JWT: []
+      summary: Get project role
+      tags:
+      - Projects
   /organizations/{organizationId}/stacks:
     get:
       consumes:

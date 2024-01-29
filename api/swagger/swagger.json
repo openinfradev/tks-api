@@ -2777,6 +2777,227 @@
                 }
             }
         },
+        "/organizations/{organizationId}/projects": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create new project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create new project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to create project",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateProjectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateProjectResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/projects/project-roles": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get project roles by giving params",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project roles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "project role search by query (query=all), (query=leader), (query=member), (query=viewer)",
+                        "name": "query",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetProjectRolesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/projects/project-roles/{projectRoleId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get project role by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetProjectRoleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/projects/{projectId}/members": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get project members",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project members",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetProjectMembersResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Add project member to project",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Add project member to project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to add project member",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.AddProjectMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.AddProjectMemberResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks": {
             "get": {
                 "security": [
@@ -3876,6 +4097,28 @@
                 }
             }
         },
+        "domain.AddProjectMemberRequest": {
+            "type": "object",
+            "properties": {
+                "projectMembers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProjectMemberRequest"
+                    }
+                }
+            }
+        },
+        "domain.AddProjectMemberResponse": {
+            "type": "object",
+            "properties": {
+                "projectMembers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProjectMember"
+                    }
+                }
+            }
+        },
         "domain.AlertActionResponse": {
             "type": "object",
             "properties": {
@@ -4966,6 +5209,34 @@
                 }
             }
         },
+        "domain.CreateProjectRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "projectLeaderId": {
+                    "type": "string"
+                },
+                "projectRoleId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateProjectResponse": {
+            "type": "object",
+            "properties": {
+                "project": {
+                    "$ref": "#/definitions/domain.Project"
+                }
+            }
+        },
         "domain.CreateStackRequest": {
             "type": "object",
             "required": [
@@ -5599,6 +5870,36 @@
                 }
             }
         },
+        "domain.GetProjectMembersResponse": {
+            "type": "object",
+            "properties": {
+                "projectMembers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProjectMember"
+                    }
+                }
+            }
+        },
+        "domain.GetProjectRoleResponse": {
+            "type": "object",
+            "properties": {
+                "projectRole": {
+                    "$ref": "#/definitions/domain.ProjectRole"
+                }
+            }
+        },
+        "domain.GetProjectRolesResponse": {
+            "type": "object",
+            "properties": {
+                "projectRoles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProjectRole"
+                    }
+                }
+            }
+        },
         "domain.GetStackKubeConfigResponse": {
             "type": "object",
             "properties": {
@@ -5968,6 +6269,150 @@
                 },
                 "value": {
                     "type": "integer"
+                }
+            }
+        },
+        "domain.Project": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "projectMembers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProjectMember"
+                    }
+                },
+                "projectNamesapces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ProjectNamesapce"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProjectMember": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "type": "string"
+                },
+                "projectRole": {
+                    "$ref": "#/definitions/domain.ProjectRole"
+                },
+                "projectRoleId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProjectMemberRequest": {
+            "type": "object",
+            "required": [
+                "projectRoleId",
+                "userId"
+            ],
+            "properties": {
+                "projectRoleId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProjectNamesapce": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "type": "string"
+                },
+                "stackId": {
+                    "type": "string"
+                },
+                "stackName": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProjectRole": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "project-leader, project-member, project-viewer",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
