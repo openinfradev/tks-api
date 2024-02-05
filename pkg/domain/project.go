@@ -22,7 +22,7 @@ func (t *ProjectMember) BeforeCreate(*gorm.DB) (err error) {
 	return nil
 }
 
-func (t *ProjectNamesapce) BeforeCreate(*gorm.DB) (err error) {
+func (t *ProjectNamespace) BeforeCreate(*gorm.DB) (err error) {
 	t.ID = uuid.New().String()
 	return nil
 }
@@ -36,7 +36,7 @@ type Project struct {
 	UpdatedAt         *time.Time         `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt         *time.Time         `json:"deletedAt"`
 	ProjectMembers    []ProjectMember    `gorm:"foreignKey:ProjectId" json:"projectMembers,omitempty"`
-	ProjectNamesapces []ProjectNamesapce `gorm:"foreignKey:ProjectId" json:"projectNamesapces,omitempty"`
+	ProjectNamesapces []ProjectNamespace `gorm:"foreignKey:ProjectId" json:"projectNamespaces,omitempty"`
 }
 
 type ProjectRole struct {
@@ -70,10 +70,10 @@ type ProjectMember struct {
 	DeletedAt     *time.Time  `json:"deletedAt"`
 }
 
-type ProjectNamesapce struct {
+type ProjectNamespace struct {
 	ID          string     `gorm:"primarykey" json:"id"`
 	ProjectId   string     `gorm:"not null" json:"projectId"`
-	StackID     string     `gorm:"uniqueIndex:idx_stackid_namespace" json:"stackId"`
+	StackId     string     `gorm:"uniqueIndex:idx_stackid_namespace" json:"stackId"`
 	Namespace   string     `gorm:"uniqueIndex:idx_stackid_namespace" json:"namespace"`
 	StackName   string     `gorm:"-:all" json:"stackName,omitempty"`
 	Description string     `json:"description,omitempty"`
@@ -134,4 +134,21 @@ type CommonProjectResponse struct {
 
 type UpdateProjectMemberRoleRequest struct {
 	ProjectRoleId string `json:"projectRoleId"`
+}
+
+type CreateProjectNamespaceRequest struct {
+	Namespace   string `json:"namespace"`
+	Description string `json:"description"`
+}
+
+type CreateProjectNamespaceResponse struct {
+	ProjectNamesapceId string `json:"projectNamespaceId"`
+}
+
+type GetProjectNamespacesResponse struct {
+	ProjectNamespaces []ProjectNamespace `json:"projectNamespaces"`
+}
+
+type GetProjectNamespaceResponse struct {
+	ProjectNamespace *ProjectNamespace `json:"projectNamespace"`
 }

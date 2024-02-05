@@ -30,6 +30,7 @@ type IProjectHandler interface {
 	UpdateProjectMemberRole(w http.ResponseWriter, r *http.Request)
 
 	CreateProjectNamespace(w http.ResponseWriter, r *http.Request)
+	IsProjectNamespaceExist(w http.ResponseWriter, r *http.Request)
 	GetProjectNamespaces(w http.ResponseWriter, r *http.Request)
 	GetProjectNamespace(w http.ResponseWriter, r *http.Request)
 	DeleteProjectNamespace(w http.ResponseWriter, r *http.Request)
@@ -136,9 +137,9 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 // @Description Get project role by id
 // @Accept      json
 // @Produce     json
-// @Param       organizationId  path     string true "Organization ID"
-// @Param       projectId       path     string true "Project ID"
-// @Success     200             {object} domain.GetProjectRoleResponse
+// @Param       organizationId path     string true  "Organization ID"
+// @Param       projectId      path     string true "Project ID"
+// @Success     200            {object} domain.GetProjectRoleResponse
 // @Router      /organizations/{organizationId}/projects/project-roles/{projectRoleId} [get]
 // @Security    JWT
 func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
@@ -178,7 +179,7 @@ func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 // @Description Get project roles by giving params
 // @Accept      json
 // @Produce     json
-// @Param       organizationId path     string true  "Organization ID"
+// @Param       organizationId     path     string true "Organization ID"
 // @Param       query          query    string false "project role search by query (query=all), (query=leader), (query=member), (query=viewer)"
 // @Success     200            {object} domain.GetProjectRolesResponse
 // @Router      /organizations/{organizationId}/projects/project-roles [get]
@@ -239,6 +240,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                         true "Organization ID"
+// @Param       projectId      path     string                         true "Project ID"
 // @Param       request        body     domain.AddProjectMemberRequest true "Request body to add project member"
 // @Success     200            {object} domain.AddProjectMemberResponse
 // @Router      /organizations/{organizationId}/projects/{projectId}/members [post]
@@ -304,8 +306,8 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 // @Description Get project member
 // @Accept      json
 // @Produce     json
-// @Param       organizationId  path     string true "Organization ID"
-// @Param       projectId       path     string true "Project ID"
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId          path     string true "Project ID"
 // @Param       projectMemberId path     string true "Project Member ID"
 // @Success     200             {object} domain.GetProjectMemberResponse
 // @Router      /organizations/{organizationId}/projects/{projectId}/members/{projectMemberId} [get]
@@ -371,7 +373,6 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -433,7 +434,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 		return
 
 	}
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "ok"})
+	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
 }
 
 // RemoveProjectMembers godoc
@@ -513,7 +514,6 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	}
 
 	projectMemberId, ok := vars["projectMemberId"]
-	log.Debugf("projectMemberId = [%v]\n", projectMemberId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectMemberId"),
 			"C_INVALID_PROJECT_MEMBER_ID", ""))
@@ -534,20 +534,269 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
 }
 
+// CreateProjectNamespace godoc
+// @Tags        Projects
+// @Summary     Create project namespace
+// @Description Create project namespace
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string                               true "Organization ID"
+// @Param       projectId      path     string                               true "Project ID"
+// @Param       stackId        path     string                               true "Stack ID"
+// @Param       request        body     domain.CreateProjectNamespaceRequest true "Request body to create project namespace"
+// @Success     200            {object} domain.CreateProjectNamespaceResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/stacks/{stackId}/namespaces [post]
+// @Security    JWT
 func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	log.Debugf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	var projectNamespaceReq domain.CreateProjectNamespaceRequest
+	if err := UnmarshalRequestInput(r, &projectNamespaceReq); err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	now := time.Now()
+	pn := &domain.ProjectNamespace{
+		ProjectId:   projectId,
+		StackId:     stackId,
+		Namespace:   projectNamespaceReq.Namespace,
+		Description: projectNamespaceReq.Description,
+		Status:      "CREATING",
+		CreatedAt:   now,
+	}
+
+	pnId, err := p.usecase.CreateProjectNamespace(pn)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	out := domain.CreateProjectNamespaceResponse{ProjectNamesapceId: pnId}
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
+// IsProjectNamespaceExist godoc
+// @Tags        Projects
+// @Summary     Check project namespace exist
+// @Description Check project namespace exist
+// @Accept      json
+// @Produce     json
+// @Param       organizationId   path     string true "Organization ID"
+// @Param       projectId        path     string true "Project ID"
+// @Param       stackId          path     string true "Project Stack ID"
+// @Param       projectNamespace path     string true "Project Namespace"
+// @Success     200              {object} domain.CheckExistedResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/stacks/{stackId}/namespaces/{projectNamespace}/existence [get]
+// @Security    JWT
+func (p ProjectHandler) IsProjectNamespaceExist(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+	projectNamespace, ok := vars["projectNamespace"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectNamespace not found in path"),
+			"C_INVALID_PROJECT_NAMESPACE", ""))
+		return
+	}
+
+	exist, err := p.usecase.IsProjectNamespaceExist(organizationId, projectId, stackId, projectNamespace)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.CheckExistedResponse
+	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetProjectNamespaces godoc
+// @Tags        Projects
+// @Summary     Get project namespaces
+// @Description Get project namespaces
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId      path     string true "Project ID"
+// @Param       stackId        path     string true "Project Stack ID"
+// @Success     200            {object} domain.GetProjectNamespacesResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/stacks/{stackId}/namespaces [get]
+// @Security    JWT
 func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	log.Debugf("stackId = [%v]\n", stackId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, stackId)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get project namespaces.", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetProjectNamespacesResponse
+	out.ProjectNamespaces = pns
+
+	ResponseJSON(w, r, http.StatusOK, out)
+
 }
 
+// GetProjectNamespace godoc
+// @Tags        Projects
+// @Summary     Get project namespace
+// @Description Get project namespace
+// @Accept      json
+// @Produce     json
+// @Param       organizationId     path     string true "Organization ID"
+// @Param       projectId          path     string true "Project ID"
+// @Param       stackId            path     string true "Project Stack ID"
+// @Param       projectNamespaceId path     string true "Project Namespace ID"
+// @Success     200                {object} domain.GetProjectNamespaceResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/stacks/{stackId}/namespaces/{projectNamespaceId} [get]
+// @Security    JWT
 func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+	projectNamespaceId, ok := vars["projectNamespaceId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectNamespaceId"),
+			"C_INVALID_PROJECT_NAMESPACE_ID", ""))
+		return
+	}
+
+	pn, err := p.usecase.GetProjectNamespace(organizationId, projectId, stackId, projectNamespaceId)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get project namespace.", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetProjectNamespaceResponse
+	out.ProjectNamespace = pn
+	if pn == nil {
+		log.Info("*************************************************s")
+		ResponseJSON(w, r, http.StatusNotFound, out)
+	} else {
+		ResponseJSON(w, r, http.StatusOK, out)
+	}
 }
 
+// DeleteProjectNamespace godoc
+// @Tags        Projects
+// @Summary     Delete project namespace
+// @Description Delete project namespace
+// @Accept      json
+// @Produce     json
+// @Param       organizationId     path     string true "Organization ID"
+// @Param       projectId          path     string true "Project ID"
+// @Param       stackId            path     string true "Stack ID"
+// @Param       projectNamespaceId path     string true "Project Namespace ID"
+// @Success     200                {object} domain.CommonProjectResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/stacks/{stackId}/namespaces/{projectNamespaceId} [delete]
+// @Security    JWT
 func (p ProjectHandler) DeleteProjectNamespace(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+	projectNamespaceId, ok := vars["projectNamespaceId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectNamespaceId"),
+			"C_INVALID_PROJECT_NAMESPACE_ID", ""))
+		return
+	}
+
+	if err := p.usecase.DeleteProjectNamespace(organizationId, projectId, stackId, projectNamespaceId); err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+
+	}
+	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
 }
 
 func (p ProjectHandler) SetFavoriteProject(w http.ResponseWriter, r *http.Request) {

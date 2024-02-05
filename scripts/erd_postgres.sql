@@ -414,7 +414,7 @@ CREATE TABLE IF NOT EXISTS public.project_members (
     match simple on update no action on delete no action
 );
 
-CREATE TABLE IF NOT EXISTS public.project_namesapces (
+CREATE TABLE IF NOT EXISTS public.project_namespaces (
     id text primary key not null,
     project_id text not null,
     stack_id text,
@@ -427,7 +427,7 @@ CREATE TABLE IF NOT EXISTS public.project_namesapces (
     foreign key (project_id) references public.projects (id)
     match simple on update no action on delete no action
 );
-CREATE UNIQUE INDEX idx_stackid_namespace ON project_namesapces USING btree (stack_id, namespace);
+CREATE UNIQUE INDEX idx_stackid_namespace ON project_namespaces USING btree (stack_id, namespace);
 
 CREATE TABLE IF NOT EXISTS public.project_roles (
     id text primary key not null,
