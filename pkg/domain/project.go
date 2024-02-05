@@ -36,7 +36,41 @@ type Project struct {
 	UpdatedAt         *time.Time         `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt         *time.Time         `json:"deletedAt"`
 	ProjectMembers    []ProjectMember    `gorm:"foreignKey:ProjectId" json:"projectMembers,omitempty"`
-	ProjectNamesapces []ProjectNamespace `gorm:"foreignKey:ProjectId" json:"projectNamespaces,omitempty"`
+	ProjectNamespaces []ProjectNamespace `gorm:"foreignKey:ProjectId" json:"projectNamespaces,omitempty"`
+}
+
+//type ProjectList struct {
+//	ID             string `json:"id"`
+//	OrganizationId string `json:"organizationId"`
+//	Name           string `json:"name"`
+//	Description    string `json:"description"`
+//	ProjectMembers []struct {
+//		ID              string     `json:"id"`
+//		UserId          string     `json:"userId"`
+//		AccountId       string     `json:"accountId"`
+//		Name            string     `json:"name"`
+//		Email           string     `json:"email"`
+//		ProjectRoleId   string     `json:"projectId"`
+//		ProjectRoleName string     `json:"projectRoleName"`
+//		CreatedAt       time.Time  `json:"createdAt"`
+//		UpdatedAt       *time.Time `json:"updatedAt"`
+//	} `json:"projectMembers"`
+//	ProjectNamespaces []struct {
+//		ID          string     `json:"id"`
+//		StackId     string     `json:"stackId"`
+//		StackName   string     `json:"stackName"`
+//		Namespace   string     `json:"namespace"`
+//		Description string     `json:"description"`
+//		Status      string     `json:"status"`
+//		CreatedAt   time.Time  `json:"createdAt"`
+//		UpdatedAt   *time.Time `json:"updatedAt"`
+//	} `json:"projectNamespaces"`
+//	CreatedAt time.Time  `json:"createdAt"`
+//	UpdatedAt *time.Time `json:"updatedAt"`
+//}
+
+type GetProjectsResponse struct {
+	Projects []Project `json:"projects"`
 }
 
 type ProjectRole struct {
@@ -49,7 +83,7 @@ type ProjectRole struct {
 }
 
 type ProjectUser struct {
-	ID          string    `json:"id"`
+	ID          uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId   string    `json:"accountId"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
@@ -58,11 +92,16 @@ type ProjectUser struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
+
+func (ProjectUser) TableName() string {
+	return "users"
+}
+
 type ProjectMember struct {
 	ID            string      `gorm:"primarykey" json:"id"`
 	ProjectId     string      `gorm:"not null" json:"projectId"`
-	UserId        string      `json:"userId"`
-	User          ProjectUser `gorm:"-:all" json:"user"`
+	ProjectUserId uuid.UUID   `json:"projectUserId"`
+	ProjectUser   ProjectUser `gorm:"foreignKey:ProjectUserId;references:ID" json:"projectUser"`
 	ProjectRoleId string      `json:"projectRoleId"`
 	ProjectRole   ProjectRole `gorm:"foreignKey:ProjectRoleId" json:"projectRole"`
 	CreatedAt     time.Time   `gorm:"autoCreateTime:false" json:"createdAt"`
@@ -103,7 +142,7 @@ type GetProjectRolesResponse struct {
 }
 
 type ProjectMemberRequest struct {
-	UserId        string `json:"userId" validate:"required"`
+	ProjectUserId string `json:"projectUserId" validate:"required"`
 	ProjectRoleId string `json:"projectRoleId" validate:"required"`
 }
 type AddProjectMemberRequest struct {
@@ -115,7 +154,7 @@ type AddProjectMemberResponse struct {
 }
 
 type GetProjectMemberResponse struct {
-	ProjectMember ProjectMember `json:"projectMember"`
+	ProjectMember *ProjectMember `json:"projectMember"`
 }
 
 type GetProjectMembersResponse struct {

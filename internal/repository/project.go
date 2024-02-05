@@ -9,12 +9,13 @@ import (
 
 type IProjectRepository interface {
 	CreateProject(p *domain.Project) (string, error)
+	GetProjects(organizationId string) ([]domain.Project, error)
 	GetAllProjectRoles() ([]domain.ProjectRole, error)
 	GetProjectRoleByName(name string) (*domain.ProjectRole, error)
 	GetProjectRoleById(id string) (*domain.ProjectRole, error)
 	AddProjectMember(*domain.ProjectMember) (string, error)
 	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
-	GetProjectMemberById(projectMemberId string) (domain.ProjectMember, error)
+	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	RemoveProjectMember(projectMemberId string) error
 	UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
 	CreateProjectNamespace(*domain.ProjectNamespace) (string, error)
@@ -41,6 +42,25 @@ func (r *ProjectRepository) CreateProject(p *domain.Project) (string, error) {
 	}
 
 	return p.ID, nil
+}
+
+func (r *ProjectRepository) GetProjects(organizationId string) (ps []domain.Project, err error) {
+	res := r.db.Where("organization_id = ?", organizationId).
+		Preload("ProjectMembers").
+		Preload("ProjectMembers.ProjectRole").
+		Preload("ProjectMembers.ProjectUser").
+		Preload("ProjectNamespaces").Find(&ps)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return ps, nil
 }
 
 func (r *ProjectRepository) GetProjectRoleById(id string) (*domain.ProjectRole, error) {
@@ -96,28 +116,32 @@ func (r *ProjectRepository) AddProjectMember(pm *domain.ProjectMember) (string, 
 }
 
 func (r *ProjectRepository) GetProjectMembersByProjectId(projectId string) (pms []domain.ProjectMember, err error) {
-	result := r.db.Joins("ProjectRole").Where("project_id = ?", projectId).Find(&pms)
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		log.Info("Cannot find project member")
-		return pms, nil
+	res := r.db.Preload("ProjectUser").
+		Joins("ProjectRole").Where("project_id = ?", projectId).Find(&pms)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project member")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
 	}
 
 	return pms, nil
 }
 
-func (r *ProjectRepository) GetProjectMemberById(projectMemberId string) (pm domain.ProjectMember, err error) {
-	result := r.db.Joins("ProjectRole").Where("project_members.id = ?", projectMemberId).First(&pm)
-	if result.Error != nil {
-		log.Error(result.Error)
-		return pm, result.Error
-	}
-	if result.RowsAffected == 0 {
-		log.Info("Cannot find project member")
-		return pm, nil
+func (r *ProjectRepository) GetProjectMemberById(projectMemberId string) (pm *domain.ProjectMember, err error) {
+	res := r.db.Preload("ProjectUser").
+		Joins("ProjectRole").Where("project_members.id = ?", projectMemberId).First(&pm)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project member")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
 	}
 
 	return pm, nil

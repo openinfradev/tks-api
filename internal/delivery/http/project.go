@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 	"time"
@@ -98,9 +99,15 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Project Id: %s", projectId)
 
 	project.ID = projectId
+	ProjectLeaderId, err := uuid.Parse(projectReq.ProjectLeaderId)
+	if err != nil {
+		log.Error(err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to parse uuid to string"))
+		return
+	}
 	pm := &domain.ProjectMember{
 		ProjectId:     projectId,
-		UserId:        projectReq.ProjectLeaderId,
+		ProjectUserId: ProjectLeaderId,
 		ProjectRoleId: projectReq.ProjectRoleId,
 		CreatedAt:     now,
 	}
@@ -129,6 +136,54 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	ResponseJSON(w, r, http.StatusOK, projectRes)
 
+}
+
+// GetProjects godoc
+// @Tags        Projects
+// @Summary     Get projects
+// @Description Get projects
+// @Accept      json
+// @Produce     json
+// @Param       organizationId     path     string true "Organization ID"
+// @Success     200                {object} domain.GetProjectsResponse
+// @Router      /organizations/{organizationId}/projects [get]
+// @Security    JWT
+func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	ps, err := p.usecase.GetProjects(organizationId)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to retrieve projects ", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetProjectsResponse
+	out.Projects = ps
+
+	if ps == nil {
+		ResponseJSON(w, r, http.StatusNotFound, out)
+	} else {
+		ResponseJSON(w, r, http.StatusOK, out)
+	}
+}
+
+func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+}
+
+func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+}
+
+func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
 }
 
 // GetProjectRole godoc
@@ -217,22 +272,6 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-}
-
-func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-}
-
-func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-}
-
-func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-}
-
 // AddProjectMember godoc
 // @Tags        Projects
 // @Summary     Add project member to project
@@ -268,16 +307,21 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Infof("***************** project member request: %+v", projectMemberReq)
-
 	projectMemberResponse := domain.AddProjectMemberResponse{
 		ProjectMembers: make([]domain.ProjectMember, 0),
 	}
 	now := time.Now()
 	for _, pmr := range projectMemberReq.ProjectMemberRequests {
+		ProjectUserId, err := uuid.Parse(pmr.ProjectUserId)
+		if err != nil {
+			log.Error(err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to parse uuid to string"))
+			return
+		}
+
 		pm := &domain.ProjectMember{
 			ProjectId:     projectId,
-			UserId:        pmr.UserId,
+			ProjectUserId: ProjectUserId,
 			ProjectRoleId: pmr.ProjectRoleId,
 			CreatedAt:     now,
 		}
@@ -345,9 +389,11 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var out domain.GetProjectMemberResponse
-	out.ProjectMember = pm
-
+	out := domain.GetProjectMemberResponse{ProjectMember: pm}
+	if pm == nil {
+		ResponseJSON(w, r, http.StatusNotFound, out)
+		return
+	}
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
@@ -386,8 +432,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var out domain.GetProjectMembersResponse
-	out.ProjectMembers = pms
+	out := domain.GetProjectMembersResponse{ProjectMembers: pms}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -744,7 +789,6 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 	var out domain.GetProjectNamespaceResponse
 	out.ProjectNamespace = pn
 	if pn == nil {
-		log.Info("*************************************************s")
 		ResponseJSON(w, r, http.StatusNotFound, out)
 	} else {
 		ResponseJSON(w, r, http.StatusOK, out)

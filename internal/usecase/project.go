@@ -1,9 +1,7 @@
 package usecase
 
 import (
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -19,10 +17,11 @@ const (
 
 type IProjectUsecase interface {
 	CreateProject(*domain.Project) (string, error)
+	GetProjects(organizationId string) ([]domain.Project, error)
 	GetProjectRole(id string) (*domain.ProjectRole, error)
 	GetProjectRoles(int) ([]domain.ProjectRole, error)
 	AddProjectMember(pm *domain.ProjectMember) (string, error)
-	GetProjectMemberById(projectMemberId string) (domain.ProjectMember, error)
+	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
 	RemoveProjectMember(projectMemberId string) error
 	UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
@@ -62,6 +61,15 @@ func (u *ProjectUsecase) CreateProject(p *domain.Project) (string, error) {
 		return "", errors.Wrap(err, "Failed to create project.")
 	}
 	return projectId, nil
+}
+
+func (u *ProjectUsecase) GetProjects(organizationId string) (ps []domain.Project, err error) {
+	ps, err = u.projectRepo.GetProjects(organizationId)
+	if err != nil {
+		log.Error(err)
+		return nil, errors.Wrap(err, "Failed to get projects.")
+	}
+	return ps, err
 }
 
 func (u *ProjectUsecase) GetProjectRole(id string) (*domain.ProjectRole, error) {
@@ -107,31 +115,32 @@ func (u *ProjectUsecase) AddProjectMember(pm *domain.ProjectMember) (string, err
 	return projectMemberId, nil
 }
 
-func (u *ProjectUsecase) GetProjectMemberById(projectMemberId string) (pm domain.ProjectMember, err error) {
+func (u *ProjectUsecase) GetProjectMemberById(projectMemberId string) (pm *domain.ProjectMember, err error) {
 	pm, err = u.projectRepo.GetProjectMemberById(projectMemberId)
 	if err != nil {
 		log.Error(err)
 		return pm, errors.Wrap(err, "Failed to get project member.")
 	}
 
-	var uid uuid.UUID
-	uid, err = uuid.Parse(pm.UserId)
-	if err != nil {
-		log.Error(err)
-		return pm, errors.Wrap(err, "Failed to parse uuid to string")
-	}
-	user, err := u.userRepository.GetByUuid(uid)
-	if err != nil {
-		log.Error(err)
-		return pm, errors.Wrap(err, "Failed to retrieve user by id")
-	}
-	var pu domain.ProjectUser
-	if err = serializer.Map(user, &pu); err != nil {
-		log.Error(err)
-		return pm, err
-	}
+	//var uid uuid.UUID
+	//uid, err = uuid.Parse(pm.ProjectUserId)
+	//if err != nil {
+	//	log.Error(err)
+	//	return pm, errors.Wrap(err, "Failed to parse uuid to string")
+	//}
 
-	pm.User = pu
+	//user, err := u.userRepository.GetByUuid(pm.ProjectUserId)
+	//if err != nil {
+	//	log.Error(err)
+	//	return pm, errors.Wrap(err, "Failed to retrieve user by id")
+	//}
+	//var pu domain.ProjectUser
+	//if err = serializer.Map(user, &pu); err != nil {
+	//	log.Error(err)
+	//	return pm, err
+	//}
+	//
+	//pm.ProjectUser = pu
 	return pm, nil
 }
 
@@ -142,25 +151,8 @@ func (u *ProjectUsecase) GetProjectMembersByProjectId(projectId string) ([]domai
 		return nil, errors.Wrap(err, "Failed to get project members.")
 	}
 
-	var uid uuid.UUID
-	for idx, pm := range pms {
-		uid, err = uuid.Parse(pm.UserId)
-		if err != nil {
-			log.Error(err)
-			return nil, errors.Wrap(err, "Failed to parse uuid to string")
-		}
-		user, err := u.userRepository.GetByUuid(uid)
-		if err != nil {
-			log.Error(err)
-			return nil, errors.Wrap(err, "Failed to retrieve user by id")
-		}
-		var pu domain.ProjectUser
-		if err = serializer.Map(user, &pu); err != nil {
-			log.Error(err)
-			return nil, err
-		}
-		pms[idx].User = pu
-	}
+	//var uid uuid.UUID
+	//s
 
 	return pms, nil
 }
