@@ -7,9 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -40,8 +38,8 @@ type Audit struct {
 	Type           string
 	Message        string
 	ClientIP       string
-	CreatorId      *uuid.UUID `gorm:"type:uuid"`
-	Creator        User       `gorm:"foreignKey:CreatorId"`
+	UserId         *uuid.UUID `gorm:"type:uuid"`
+	User           User       `gorm:"foreignKey:UserId"`
 }
 
 func (c *Audit) BeforeCreate(tx *gorm.DB) (err error) {
@@ -64,7 +62,7 @@ func (r *AuditRepository) Create(dto domain.Audit) (auditId uuid.UUID, err error
 		Type:           dto.Type,
 		Message:        dto.Message,
 		ClientIP:       dto.ClientIP,
-		CreatorId:      dto.CreatorId}
+		UserId:         dto.UserId}
 	res := r.db.Create(&audit)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
@@ -76,6 +74,7 @@ func (r *AuditRepository) Delete(dto domain.Audit) (err error) {
 	return fmt.Errorf("to be implemented")
 }
 
+/*
 func reflectAudit(audit Audit) (out domain.Audit) {
 	if err := serializer.Map(audit.Model, &out); err != nil {
 		log.Error(err)
@@ -85,3 +84,4 @@ func reflectAudit(audit Audit) (out domain.Audit) {
 	}
 	return
 }
+*/

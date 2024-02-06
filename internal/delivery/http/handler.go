@@ -3,13 +3,11 @@ package http
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
 	ut "github.com/go-playground/universal-translator"
 	validator_ "github.com/go-playground/validator/v10"
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/validator"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -41,13 +39,6 @@ func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data i
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpStatus)
 
-	responseStr := helper.ModelToJson(out)
-	if len(responseStr) > MAX_LOG_LEN {
-		log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr[:MAX_LOG_LEN-1]))
-	} else {
-		log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
-	}
-	log.DebugWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
 	if err := json.NewEncoder(w).Encode(out); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
