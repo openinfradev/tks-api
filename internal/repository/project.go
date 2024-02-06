@@ -10,6 +10,8 @@ import (
 type IProjectRepository interface {
 	CreateProject(p *domain.Project) (string, error)
 	GetProjects(organizationId string) ([]domain.Project, error)
+	GetProjectById(organizationId string, projectId string) (*domain.Project, error)
+	UpdateProject(p *domain.Project) error
 	GetAllProjectRoles() ([]domain.ProjectRole, error)
 	GetProjectRoleByName(name string) (*domain.ProjectRole, error)
 	GetProjectRoleById(id string) (*domain.ProjectRole, error)
@@ -17,12 +19,13 @@ type IProjectRepository interface {
 	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
 	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	RemoveProjectMember(projectMemberId string) error
-	UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
-	CreateProjectNamespace(*domain.ProjectNamespace) (string, error)
+	//UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
+	UpdateProjectMemberRole(pm *domain.ProjectMember) error
+	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
 	GetProjectNamespaceByName(organizationId string, projectId string, stackId string, projectNamespace string) (*domain.ProjectNamespace, error)
-	GetProjectNamespaces(organizationId string, projectId string, stackId string) ([]domain.ProjectNamespace, error)
-	GetProjectNamespaceById(organizationId string, projectId string, stackId string, projectNamespaceId string) (*domain.ProjectNamespace, error)
-	DeleteProjectNamespace(organizationId string, projectId string, stackId string, projectNamespaceId string) error
+	GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error)
+	GetProjectNamespaceByPrimaryKey(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
+	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
 }
 
 type ProjectRepository struct {
@@ -63,44 +66,75 @@ func (r *ProjectRepository) GetProjects(organizationId string) (ps []domain.Proj
 	return ps, nil
 }
 
+func (r *ProjectRepository) GetProjectById(organizationId string, projectId string) (p *domain.Project, err error) {
+	res := r.db.Limit(1).Where("organization_id = ? and id = ?", organizationId, projectId).
+		Preload("ProjectMembers").
+		Preload("ProjectMembers.ProjectRole").
+		Preload("ProjectMembers.ProjectUser").
+		First(&p)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return p, nil
+}
+
+func (r *ProjectRepository) UpdateProject(p *domain.Project) error {
+	res := r.db.Model(&p).Updates(domain.Project{Name: p.Name, Description: p.Description, UpdatedAt: p.UpdatedAt})
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil
+}
+
 func (r *ProjectRepository) GetProjectRoleById(id string) (*domain.ProjectRole, error) {
 	var pr = &domain.ProjectRole{ID: id}
-	result := r.db.First(pr)
-	if result.Error != nil {
-		log.Error(result.Error)
-		return pr, result.Error
-	}
-	if result.RowsAffected == 0 {
-		log.Info("There is no project_roles table data")
-		return pr, nil
+	res := r.db.First(pr)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project role")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
 	}
 
 	return pr, nil
 }
 
 func (r *ProjectRepository) GetAllProjectRoles() (prs []domain.ProjectRole, err error) {
-	result := r.db.Find(&prs)
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		log.Info("There is no project_roles table data")
-		return prs, nil
+	res := r.db.Find(&prs)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project roles")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
 	}
 
 	return prs, nil
 }
 
 func (r *ProjectRepository) GetProjectRoleByName(name string) (pr *domain.ProjectRole, err error) {
-	result := r.db.Where("name = ?", name).First(&pr)
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		log.Info("There is no project_roles table data")
-		return pr, nil
+	res := r.db.Where("name = ?", name).First(&pr)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project roles")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
 	}
 
 	return pr, nil
@@ -156,8 +190,17 @@ func (r *ProjectRepository) RemoveProjectMember(projectMemberId string) error {
 	return nil
 }
 
-func (r *ProjectRepository) UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error {
-	res := r.db.Model(&domain.ProjectMember{ID: projectMemberId}).Update("project_role_id", projectRoleId)
+//func (r *ProjectRepository) UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error {
+//	res := r.db.Model(&domain.ProjectMember{ID: projectMemberId}).Update("project_role_id", projectRoleId)
+//	if res.Error != nil {
+//		return res.Error
+//	}
+//
+//	return nil
+//}
+
+func (r *ProjectRepository) UpdateProjectMemberRole(pm *domain.ProjectMember) error {
+	res := r.db.Model(&pm).Updates(domain.ProjectMember{ProjectRoleId: pm.ProjectRoleId, UpdatedAt: pm.UpdatedAt})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -165,18 +208,21 @@ func (r *ProjectRepository) UpdateProjectMemberRole(projectMemberId string, proj
 	return nil
 }
 
-func (r *ProjectRepository) CreateProjectNamespace(pn *domain.ProjectNamespace) (string, error) {
+func (r *ProjectRepository) CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error {
 	res := r.db.Create(&pn)
 	if res.Error != nil {
-		return "", res.Error
+		return res.Error
 	}
 
-	return pn.ID, nil
+	//return pn.ID, nil
+	return nil
 }
 
 func (r *ProjectRepository) GetProjectNamespaceByName(organizationId string, projectId string, stackId string,
 	projectNamespace string) (pn *domain.ProjectNamespace, err error) {
-	res := r.db.Limit(1).Where("project_id = ? and stack_id = ? and namespace = ?", projectId, stackId, projectNamespace).First(&pn)
+	res := r.db.Limit(1).
+		Where("stack_id = ? and namespace = ? and project_id = ?", stackId, projectNamespace, projectId).
+		First(&pn)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Not found project namespace")
@@ -190,24 +236,29 @@ func (r *ProjectRepository) GetProjectNamespaceByName(organizationId string, pro
 	return pn, nil
 }
 
-func (r *ProjectRepository) GetProjectNamespaces(organizationId string, projectId string,
-	stackId string) (pns []domain.ProjectNamespace, err error) {
-	result := r.db.Where("project_id = ? and stack_id = ?", projectId, stackId).Find(&pns)
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		log.Info("Cannot find project namespace")
-		return pns, nil
+func (r *ProjectRepository) GetProjectNamespaces(organizationId string, projectId string) (pns []domain.ProjectNamespace, err error) {
+	res := r.db.Where("project_id = ?", projectId).
+		Preload("Stack").
+		Find(&pns)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Not found project namespaces")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
 	}
 
 	return pns, nil
 }
 
-func (r *ProjectRepository) GetProjectNamespaceById(organizationId string, projectId string, stackId string,
-	projectNamespaceId string) (pn *domain.ProjectNamespace, err error) {
-	res := r.db.Limit(1).Where("id = ? and project_id = ? and stack_id = ?", projectNamespaceId, projectId, stackId).First(&pn)
+func (r *ProjectRepository) GetProjectNamespaceByPrimaryKey(organizationId string, projectId string,
+	projectNamespace string, stackId string) (pn *domain.ProjectNamespace, err error) {
+	res := r.db.Limit(1).
+		Where("stack_id = ? and namespace = ? and project_id = ?", stackId, projectNamespace, projectId).
+		Preload("Stack").
+		First(&pn)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Not found project namespace")
@@ -221,10 +272,10 @@ func (r *ProjectRepository) GetProjectNamespaceById(organizationId string, proje
 	return pn, nil
 }
 
-func (r *ProjectRepository) DeleteProjectNamespace(organizationId string, projectId string,
-	stackId string, projectNamespaceId string) error {
-	res := r.db.Where("project_id = ? and stack_id = ?", projectId, stackId).
-		Delete(&domain.ProjectNamespace{ID: projectNamespaceId})
+func (r *ProjectRepository) DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string,
+	stackId string) error {
+	res := r.db.Where("stack_id = ? and namespace = ? and project_id = ?", stackId, projectNamespace, projectId).
+		Delete(&domain.ProjectNamespace{StackId: stackId, Namespace: projectNamespace})
 	if res.Error != nil {
 		return res.Error
 	}

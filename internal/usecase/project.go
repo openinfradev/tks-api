@@ -1,7 +1,9 @@
 package usecase
 
 import (
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -18,18 +20,21 @@ const (
 type IProjectUsecase interface {
 	CreateProject(*domain.Project) (string, error)
 	GetProjects(organizationId string) ([]domain.Project, error)
+	GetProject(organizationId string, projectId string) (*domain.Project, error)
+	UpdateProject(p *domain.Project) error
 	GetProjectRole(id string) (*domain.ProjectRole, error)
 	GetProjectRoles(int) ([]domain.ProjectRole, error)
 	AddProjectMember(pm *domain.ProjectMember) (string, error)
-	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
+	GetProjectUser(projectUserId string) (*domain.ProjectUser, error)
+	GetProjectMember(projectMemberId string) (*domain.ProjectMember, error)
 	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
 	RemoveProjectMember(projectMemberId string) error
-	UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
-	CreateProjectNamespace(pn *domain.ProjectNamespace) (string, error)
+	UpdateProjectMemberRole(pm *domain.ProjectMember) error
+	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
 	IsProjectNamespaceExist(organizationId string, projectId string, stackId string, projectNamespace string) (bool, error)
-	GetProjectNamespaces(organizationId string, projectId string, stackId string) ([]domain.ProjectNamespace, error)
-	GetProjectNamespace(organizationId string, projectId string, stackId string, projectNamespaceId string) (*domain.ProjectNamespace, error)
-	DeleteProjectNamespace(organizationId string, projectId string, stackId string, projectNamespaceId string) error
+	GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error)
+	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
+	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
 }
 
 type ProjectUsecase struct {
@@ -70,6 +75,23 @@ func (u *ProjectUsecase) GetProjects(organizationId string) (ps []domain.Project
 		return nil, errors.Wrap(err, "Failed to get projects.")
 	}
 	return ps, err
+}
+
+func (u *ProjectUsecase) GetProject(organizationId string, projectId string) (*domain.Project, error) {
+	p, err := u.projectRepo.GetProjectById(organizationId, projectId)
+	if err != nil {
+		log.Error(err)
+		return nil, errors.Wrap(err, "Failed to get projects.")
+	}
+	return p, err
+}
+
+func (u *ProjectUsecase) UpdateProject(p *domain.Project) error {
+	if err := u.projectRepo.UpdateProject(p); err != nil {
+		log.Error(err)
+		return errors.Wrap(err, "Failed to update project.")
+	}
+	return nil
 }
 
 func (u *ProjectUsecase) GetProjectRole(id string) (*domain.ProjectRole, error) {
@@ -115,32 +137,34 @@ func (u *ProjectUsecase) AddProjectMember(pm *domain.ProjectMember) (string, err
 	return projectMemberId, nil
 }
 
-func (u *ProjectUsecase) GetProjectMemberById(projectMemberId string) (pm *domain.ProjectMember, err error) {
+func (u *ProjectUsecase) GetProjectUser(projectUserId string) (*domain.ProjectUser, error) {
+	var uid uuid.UUID
+	uid, err := uuid.Parse(projectUserId)
+	if err != nil {
+		log.Error(err)
+		return nil, errors.Wrap(err, "Failed to parse uuid to string")
+	}
+
+	user, err := u.userRepository.GetByUuid(uid)
+	if err != nil {
+		log.Error(err)
+		return nil, errors.Wrap(err, "Failed to retrieve user by id")
+	}
+	var pu domain.ProjectUser
+	if err = serializer.Map(user, &pu); err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return &pu, nil
+}
+
+func (u *ProjectUsecase) GetProjectMember(projectMemberId string) (pm *domain.ProjectMember, err error) {
 	pm, err = u.projectRepo.GetProjectMemberById(projectMemberId)
 	if err != nil {
 		log.Error(err)
 		return pm, errors.Wrap(err, "Failed to get project member.")
 	}
 
-	//var uid uuid.UUID
-	//uid, err = uuid.Parse(pm.ProjectUserId)
-	//if err != nil {
-	//	log.Error(err)
-	//	return pm, errors.Wrap(err, "Failed to parse uuid to string")
-	//}
-
-	//user, err := u.userRepository.GetByUuid(pm.ProjectUserId)
-	//if err != nil {
-	//	log.Error(err)
-	//	return pm, errors.Wrap(err, "Failed to retrieve user by id")
-	//}
-	//var pu domain.ProjectUser
-	//if err = serializer.Map(user, &pu); err != nil {
-	//	log.Error(err)
-	//	return pm, err
-	//}
-	//
-	//pm.ProjectUser = pu
 	return pm, nil
 }
 
@@ -150,9 +174,6 @@ func (u *ProjectUsecase) GetProjectMembersByProjectId(projectId string) ([]domai
 		log.Error(err)
 		return nil, errors.Wrap(err, "Failed to get project members.")
 	}
-
-	//var uid uuid.UUID
-	//s
 
 	return pms, nil
 }
@@ -165,21 +186,21 @@ func (u *ProjectUsecase) RemoveProjectMember(projectMemberId string) error {
 	return nil
 }
 
-func (u *ProjectUsecase) UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error {
-	if err := u.projectRepo.UpdateProjectMemberRole(projectMemberId, projectRoleId); err != nil {
+func (u *ProjectUsecase) UpdateProjectMemberRole(pm *domain.ProjectMember) error {
+
+	if err := u.projectRepo.UpdateProjectMemberRole(pm); err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to remove project member to project.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) CreateProjectNamespace(pn *domain.ProjectNamespace) (string, error) {
-	projectNamespaceId, err := u.projectRepo.CreateProjectNamespace(pn)
-	if err != nil {
+func (u *ProjectUsecase) CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error {
+	if err := u.projectRepo.CreateProjectNamespace(organizationId, pn); err != nil {
 		log.Error(err)
-		return "", errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to create project namespace.")
 	}
-	return projectNamespaceId, nil
+	return nil
 }
 
 func (u *ProjectUsecase) IsProjectNamespaceExist(organizationId string, projectId string, stackId string, projectNamespace string) (bool, error) {
@@ -196,8 +217,8 @@ func (u *ProjectUsecase) IsProjectNamespaceExist(organizationId string, projectI
 	return exist, nil
 }
 
-func (u *ProjectUsecase) GetProjectNamespaces(organizationId string, projectId string, stackId string) ([]domain.ProjectNamespace, error) {
-	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, stackId)
+func (u *ProjectUsecase) GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error) {
+	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.Wrap(err, "Failed to retrieve project namespaces.")
@@ -206,19 +227,19 @@ func (u *ProjectUsecase) GetProjectNamespaces(organizationId string, projectId s
 	return pns, nil
 }
 
-func (u *ProjectUsecase) GetProjectNamespace(organizationId string, projectId string, stackId string, projectNamespaceId string) (*domain.ProjectNamespace, error) {
-	pn, err := u.projectRepo.GetProjectNamespaceById(organizationId, projectId, stackId, projectNamespaceId)
+func (u *ProjectUsecase) GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error) {
+	pn, err := u.projectRepo.GetProjectNamespaceByPrimaryKey(organizationId, projectId, projectNamespace, stackId)
 	if err != nil {
 		log.Error(err)
-		return nil, errors.Wrap(err, "Failed to retrieve project namespaces.")
+		return nil, errors.Wrap(err, "Failed to retrieve project namespace.")
 	}
 
 	return pn, nil
 }
 
-func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId string, stackId string,
-	projectNamespaceId string) error {
-	if err := u.projectRepo.DeleteProjectNamespace(organizationId, projectId, stackId, projectNamespaceId); err != nil {
+func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId string,
+	stackId string, projectNamespace string) error {
+	if err := u.projectRepo.DeleteProjectNamespace(organizationId, projectId, projectNamespace, stackId); err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to delete project namespace.")
 	}
