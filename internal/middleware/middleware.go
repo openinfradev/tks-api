@@ -38,6 +38,13 @@ func (m *Middleware) Handle(endpoint internalApi.Endpoint, handle http.Handler) 
 	preHandler = m.authenticator.WithAuthentication(preHandler)
 	preHandler = m.audit.WithAudit(endpoint, preHandler)
 
+	// post-handler
+	// emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+
+	// append post-handler below
+	// TODO: this is a temporary solution. check if this is the right place to put audit middleware
+	// postHandler := m.audit.WithAudit(endpoint, emptyHandler)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		preHandler.ServeHTTP(w, r)
 	})
