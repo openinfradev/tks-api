@@ -1,17 +1,13 @@
 package route
 
 import (
-	"bytes"
-	"context"
-	"fmt"
-	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
-	"github.com/openinfradev/tks-api/internal/middleware/audit"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
-	"io"
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
+	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
+	"github.com/openinfradev/tks-api/internal/middleware/audit"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal"
@@ -21,10 +17,10 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
 	authKeycloak "github.com/openinfradev/tks-api/internal/middleware/auth/authenticator/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authorizer"
+	"github.com/openinfradev/tks-api/internal/middleware/logging"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
-	"github.com/openinfradev/tks-api/pkg/log"
 	gcache "github.com/patrickmn/go-cache"
 	"github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
@@ -38,16 +34,6 @@ var (
 	SYSTEM_API_VERSION = internal.SYSTEM_API_VERSION
 	SYSTEM_API_PREFIX  = internal.SYSTEM_API_PREFIX
 )
-
-type StatusRecorder struct {
-	http.ResponseWriter
-	Status int
-}
-
-func (r *StatusRecorder) WriteHeader(status int) {
-	r.Status = status
-	r.ResponseWriter.WriteHeader(status)
-}
 
 func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloak, asset http.Handler) http.Handler {
 	r := mux.NewRouter()
@@ -72,7 +58,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	cache := gcache.New(5*time.Minute, 10*time.Minute)
 
-	r.Use(loggingMiddleware)
+	r.Use(logging.LoggingMiddleware)
 
 	// [TODO] Transaction
 	//r.Use(transactionMiddleware(db))
@@ -224,25 +210,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 
 	return handlers.CORS(credentials, headersOk, originsOk, methodsOk)(r)
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		r = r.WithContext(context.WithValue(ctx, internal.ContextKeyRequestID, uuid.New().String()))
-
-		log.InfoWithContext(r.Context(), fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
-
-		body, err := io.ReadAll(r.Body)
-		if err == nil {
-			log.InfoWithContext(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
-		}
-		r.Body = io.NopCloser(bytes.NewBuffer(body))
-
-		next.ServeHTTP(w, r)
-
-		log.InfofWithContext(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
-	})
 }
 
 /*

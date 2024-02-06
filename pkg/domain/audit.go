@@ -14,8 +14,8 @@ type Audit struct {
 	Type           string
 	Message        string
 	ClientIP       string
-	CreatorId      *uuid.UUID
-	Creator        User
+	UserId         *uuid.UUID
+	User           User
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
