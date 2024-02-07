@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	_ "github.com/openinfradev/tks-api/api/swagger"
+	"github.com/openinfradev/tks-api/api/swagger"
 	"github.com/openinfradev/tks-api/internal/database"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/mail"
@@ -74,6 +74,7 @@ func init() {
 		log.Error(err)
 	}
 
+	swagger.SwaggerInfo.Host = viper.GetString("external-address")
 }
 
 // @title       tks-api service
