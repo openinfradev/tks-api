@@ -91,3 +91,11 @@ func ToSnakeCase(str string) string {
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	return strings.ToLower(snake)
 }
+
+func BoolP(value bool) *bool {
+	return &value
+}
+
+func UUIDP(value uuid.UUID) *uuid.UUID {
+	return &value
+}

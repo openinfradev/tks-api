@@ -156,6 +156,13 @@ const (
 	GetAudits
 	GetAudit
 	DeleteAudit
+
+	// Role
+	CreateTksRole
+	ListTksRoles
+	GetTksRole
+	DeleteTksRole
+	UpdateTksRole
 )
 
 var ApiMap = map[Endpoint]EndpointInfo{
@@ -635,6 +642,46 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "DeleteAudit",
 		Group: "Audit",
 	},
+	CreateTksRole: {
+		Name:  "CreateTksRole",
+		Group: "Role",
+	},
+	CreateProjectRole: {
+		Name:  "CreateProjectRole",
+		Group: "Role",
+	},
+	ListTksRoles: {
+		Name:  "ListTksRoles",
+		Group: "Role",
+	},
+	ListProjectRoles: {
+		Name:  "ListProjectRoles",
+		Group: "Role",
+	},
+	GetTksRole: {
+		Name:  "GetTksRole",
+		Group: "Role",
+	},
+	GetProjectRole: {
+		Name:  "GetProjectRole",
+		Group: "Role",
+	},
+	DeleteTksRole: {
+		Name:  "DeleteTksRole",
+		Group: "Role",
+	},
+	DeleteProjectRole: {
+		Name:  "DeleteProjectRole",
+		Group: "Role",
+	},
+	UpdateTksRole: {
+		Name:  "UpdateTksRole",
+		Group: "Role",
+	},
+	UpdateProjectRole: {
+		Name:  "UpdateProjectRole",
+		Group: "Role",
+	},
 }
 
 func (e Endpoint) String() string {
@@ -877,6 +924,26 @@ func (e Endpoint) String() string {
 		return "GetAudit"
 	case DeleteAudit:
 		return "DeleteAudit"
+	case CreateTksRole:
+		return "CreateTksRole"
+	case CreateProjectRole:
+		return "CreateProjectRole"
+	case ListTksRoles:
+		return "ListTksRoles"
+	case ListProjectRoles:
+		return "ListProjectRoles"
+	case GetTksRole:
+		return "GetTksRole"
+	case GetProjectRole:
+		return "GetProjectRole"
+	case DeleteTksRole:
+		return "DeleteTksRole"
+	case DeleteProjectRole:
+		return "DeleteProjectRole"
+	case UpdateTksRole:
+		return "UpdateTksRole"
+	case UpdateProjectRole:
+		return "UpdateProjectRole"
 	default:
 		return ""
 	}
@@ -1121,6 +1188,26 @@ func GetEndpoint(name string) Endpoint {
 		return GetAudit
 	case "DeleteAudit":
 		return DeleteAudit
+	case "CreateTksRole":
+		return CreateTksRole
+	case "CreateProjectRole":
+		return CreateProjectRole
+	case "ListTksRoles":
+		return ListTksRoles
+	case "ListProjectRoles":
+		return ListProjectRoles
+	case "GetTksRole":
+		return GetTksRole
+	case "GetProjectRole":
+		return GetProjectRole
+	case "DeleteTksRole":
+		return DeleteTksRole
+	case "DeleteProjectRole":
+		return DeleteProjectRole
+	case "UpdateTksRole":
+		return UpdateTksRole
+	case "UpdateProjectRole":
+		return UpdateProjectRole
 	default:
 		return -1
 	}

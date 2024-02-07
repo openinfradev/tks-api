@@ -50,6 +50,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		CloudAccount:  repository.NewCloudAccountRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		Alert:         repository.NewAlertRepository(db),
+		Role:          repository.NewRoleRepository(db),
 		Project:       repository.NewProjectRepository(db),
 		Audit:         repository.NewAuditRepository(db),
 	}
@@ -230,6 +231,18 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits", customMiddleware.Handle(internalApi.GetAudits, http.HandlerFunc(auditHandler.GetAudits))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.GetAudit, http.HandlerFunc(auditHandler.GetAudit))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.DeleteAudit, http.HandlerFunc(auditHandler.DeleteAudit))).Methods(http.MethodDelete)
+
+	roleHandler := delivery.NewRoleHandler(usecase.NewRoleUsecase(repoFactory))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.CreateTksRole, http.HandlerFunc(roleHandler.CreateTksRole))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.ListTksRoles, http.HandlerFunc(roleHandler.ListTksRoles))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.GetTksRole, http.HandlerFunc(roleHandler.GetTksRole))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.DeleteTksRole, http.HandlerFunc(roleHandler.DeleteTksRole))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.UpdateTksRole, http.HandlerFunc(roleHandler.UpdateTksRole))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/roles", customMiddleware.Handle(internalApi.CreateProjectRole, http.HandlerFunc(roleHandler.CreateProjectRole))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/roles", customMiddleware.Handle(internalApi.ListProjectRoles, http.HandlerFunc(roleHandler.ListProjectRoles))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/roles/{roleId}", customMiddleware.Handle(internalApi.GetProjectRole, http.HandlerFunc(roleHandler.GetProjectRole))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/roles/{roleId}", customMiddleware.Handle(internalApi.DeleteProjectRole, http.HandlerFunc(roleHandler.DeleteProjectRole))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/roles/{roleId}", customMiddleware.Handle(internalApi.UpdateProjectRole, http.HandlerFunc(roleHandler.UpdateProjectRole))).Methods(http.MethodPut)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets

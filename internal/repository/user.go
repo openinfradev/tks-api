@@ -276,20 +276,7 @@ func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
 	return nil
 }
 
-type Role struct {
-	gorm.Model
-
-	ID          uuid.UUID `gorm:"primarykey;type:uuid;"`
-	Name        string
-	Description string
-	Creator     uuid.UUID
-}
-
-func (r *Role) BeforeCreate(tx *gorm.DB) (err error) {
-	r.ID = uuid.New()
-	return nil
-}
-
+// Deprecated:
 type Policy struct {
 	gorm.Model
 
@@ -431,10 +418,10 @@ func (r *UserRepository) getRoleByName(roleName string) (Role, error) {
 
 func (r *UserRepository) reflect(user User) domain.User {
 	role := domain.Role{
-		ID:          user.Role.ID.String(),
+		ID:          user.Role.ID,
 		Name:        user.Role.Name,
 		Description: user.Role.Description,
-		Creator:     user.Role.Creator.String(),
+		Creator:     user.Role.Creator,
 		CreatedAt:   user.Role.CreatedAt,
 		UpdatedAt:   user.Role.UpdatedAt,
 	}
@@ -492,10 +479,10 @@ func (r *UserRepository) reflect(user User) domain.User {
 
 func (r *UserRepository) reflectRole(role Role) domain.Role {
 	return domain.Role{
-		ID:          role.ID.String(),
+		ID:          role.ID,
 		Name:        role.Name,
 		Description: role.Description,
-		Creator:     role.Creator.String(),
+		Creator:     role.Creator,
 		CreatedAt:   role.CreatedAt,
 		UpdatedAt:   role.UpdatedAt,
 	}

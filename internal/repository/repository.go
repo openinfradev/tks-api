@@ -21,6 +21,7 @@ type Repository struct {
 	CloudAccount  ICloudAccountRepository
 	StackTemplate IStackTemplateRepository
 	Alert         IAlertRepository
+	Role          IRoleRepository
 	Project       IProjectRepository
 	Audit         IAuditRepository
 }

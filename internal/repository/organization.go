@@ -168,3 +168,24 @@ func (r *OrganizationRepository) reflect(organization Organization) (out domain.
 	return
 
 }
+
+func ConvertDomainToRepoOrganization(organization *domain.Organization) *Organization {
+
+	return &Organization{
+		ID:          organization.ID,
+		Name:        organization.Name,
+		Description: organization.Description,
+		Phone:       organization.Phone,
+		Creator:     uuid.MustParse(organization.Creator),
+	}
+}
+
+func ConvertRepoToDomainOrganization(organization *Organization) *domain.Organization {
+	return &domain.Organization{
+		ID:          organization.ID,
+		Name:        organization.Name,
+		Description: organization.Description,
+		Phone:       organization.Phone,
+		Creator:     organization.Creator.String(),
+	}
+}

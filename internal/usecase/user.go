@@ -258,7 +258,7 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 			user.Role.ID = role.ID
 		}
 	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
+	roleUuid := user.Role.ID
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +444,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 
 	originPassword := (*users)[0].Password
 
-	roleUuid, err := uuid.Parse((*users)[0].Role.ID)
+	roleUuid := (*users)[0].Role.ID
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +548,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 			user.Role.ID = role.ID
 		}
 	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
+	roleUuid := user.Role.ID
 	if err != nil {
 		return nil, err
 	}
@@ -623,7 +623,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 			user.Role.ID = role.ID
 		}
 	}
-	roleUuid, err := uuid.Parse(user.Role.ID)
+	roleUuid := user.Role.ID
 	if err != nil {
 		return nil, err
 	}
