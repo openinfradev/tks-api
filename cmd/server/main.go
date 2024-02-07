@@ -76,8 +76,8 @@ func init() {
 
 }
 
-// @title tks-api service
-// @version 1.0
+// @title       tks-api service
+// @version     1.0
 // @description This is backend api service for tks platform
 
 // @contact.name taekyu.kang@sk.com
@@ -85,13 +85,13 @@ func init() {
 // @contact.email taekyu.kang@sk.com
 
 // @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @securitydefinitions.apikey  JWT
-// @in                          header
-// @name                        Authorization
+// @securitydefinitions.apikey JWT
+// @in                         header
+// @name                       Authorization
 
-// @host tks-api-ft.taco-cat.xyz
+// @host     tks-api-ft.taco-cat.xyz
 // @BasePath /api/1.0/
 func main() {
 	log.Info("*** Arguments *** ")

@@ -14,3 +14,5 @@ web
 main
 output
 vendor
+go.work
+go.work.sum

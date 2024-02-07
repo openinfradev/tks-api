@@ -46,4 +46,7 @@ values ( 'c3396c68-03ec-4d41-991c-69e4a2ac16aa', 'master', 'psnm-backend-referen
 insert into stack_templates ( id, organization_id, name, description, version, cloud_service, platform, template, template_type, kube_version, kube_type, created_at, updated_at, services )
 values ( '23b07a65-1cb3-4609-9bba-e88c15e2e192', 'master', 'psnm-frontend-reference', 'included LMA', 'v1', 'AWS', 'x86', 'psnm-frontend-reference', 'STANDARD', 'v1.25', 'EKS', now(), now(), '[{"name": "Logging,Monitoring,Alerting", "type": "LMA", "applications": [{"name": "prometheus-stack", "version": "v.44.3.1", "description": "통계데이터 제공을 위한 backend  플랫폼"}, {"name": "elastic-system", "version": "v1.8.0", "description": "로그 데이터 적재를 위한 Storage"}, {"name": "alertmanager", "version": "v0.23.0", "description": "Alert 관리를 위한 backend 서비스"}, {"name": "grafana", "version": "v6.50.7", "description": "모니터링 통합 포탈"}]}]' );
 
-
+# PROJECT
+insert into project_roles ( id, name, description, created_at, updated_at ) values ( 'f4358b4e-adc3-447a-8ad9-c111c4b9a974', 'project-leader', 'project-leader', now(), now() );
+insert into project_roles ( id, name, description, created_at, updated_at ) values ( '2071bd6f-26b3-4c1a-a3ab-439bc89f0011', 'project-member', 'project-member', now(), now() );
+insert into project_roles ( id, name, description, created_at, updated_at ) values ( 'f62c16e1-316c-4d7f-9cfa-dbe4ed7dfa17', 'project-viewer', 'project-viewer', now(), now() );
