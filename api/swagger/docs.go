@@ -8166,7 +8166,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "tks-api-ft.taco-cat.xyz",
+	Host:             "tks-api-dev.taco-cat.xyz",
 	BasePath:         "/api/1.0/",
 	Schemes:          []string{},
 	Title:            "tks-api service",

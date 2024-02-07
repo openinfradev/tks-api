@@ -2253,7 +2253,7 @@ definitions:
       text:
         type: string
     type: object
-host: tks-api-ft.taco-cat.xyz
+host: tks-api-dev.taco-cat.xyz
 info:
   contact:
     email: taekyu.kang@sk.com
