@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -74,7 +75,13 @@ func init() {
 		log.Error(err)
 	}
 
-	swagger.SwaggerInfo.Host = viper.GetString("external-address")
+	address := viper.GetString("external-address")
+	arr := strings.Split(address, "//")
+	if len(arr) >= 2 {
+		address = arr[1]
+	}
+
+	swagger.SwaggerInfo.Host = address
 }
 
 // @title       tks-api service
