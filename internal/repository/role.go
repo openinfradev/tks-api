@@ -37,7 +37,7 @@ type ProjectRole struct {
 	RoleID    uuid.UUID `gorm:"type:uuid;primary_key;"`
 	Role      Role      `gorm:"foreignKey:RoleID;references:ID;"`
 	ProjectID uuid.UUID
-	Project   Project `gorm:"foreignKey:ProjectID;references:ID;"`
+	Project   domain.Project `gorm:"foreignKey:ProjectID;references:ID;"`
 }
 
 type IRoleRepository interface {
@@ -164,7 +164,7 @@ func (r RoleRepository) ListProjectRoles(projectId string, pg *pagination.Pagina
 	}
 
 	return roles, nil
-}
+}-
 
 func (r RoleRepository) Get(id uuid.UUID) (*domain.Role, error) {
 	var role Role
@@ -288,7 +288,7 @@ func ConvertDomainToRepoProjectRole(domainRole *domain.ProjectRole) *ProjectRole
 		RoleID:    domainRole.RoleID,
 		ProjectID: domainRole.ProjectID,
 		Role:      *ConverDomainToRepoRole(&domainRole.Role),
-		Project:   *ConvertDomainToRepoProject(&domainRole.Project),
+		Project:   domainRole.Project,
 	}
 }
 
@@ -298,6 +298,6 @@ func ConvertRepoToDomainProjectRole(repoRole *ProjectRole) *domain.ProjectRole {
 		RoleID:    repoRole.RoleID,
 		ProjectID: repoRole.ProjectID,
 		Role:      *ConvertRepoToDomainRole(&repoRole.Role),
-		Project:   *ConvertRepoToDomainProject(&repoRole.Project),
+		Project:   repoRole.Project,
 	}
 }

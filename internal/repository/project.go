@@ -20,9 +20,6 @@ type IProjectRepository interface {
 	GetProjectByIdAndLeader(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByName(organizationId string, projectName string) (*domain.Project, error)
 	UpdateProject(p *domain.Project) error
-	GetAllProjectRoles() ([]domain.ProjectRole, error)
-	GetProjectRoleByName(name string) (*domain.ProjectRole, error)
-	GetProjectRoleById(id string) (*domain.ProjectRole, error)
 	AddProjectMember(*domain.ProjectMember) (string, error)
 	GetProjectMembersByProjectId(projectId string, pg *pagination.Pagination) ([]domain.ProjectMember, error)
 	GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string, pg *pagination.Pagination) ([]domain.ProjectMember, error)
@@ -206,6 +203,7 @@ func (r *ProjectRepository) GetProjectByIdAndLeader(organizationId string, proje
 	res := r.db.Limit(1).
 		Preload("ProjectMembers", "is_project_leader = ?", true).
 		Preload("ProjectMembers.ProjectRole").
+		Preload("ProjectMembers.ProjectRole.Role").
 		Preload("ProjectMembers.ProjectUser").
 		First(&p, "organization_id = ? and id = ?", organizationId, projectId)
 
@@ -246,52 +244,6 @@ func (r *ProjectRepository) UpdateProject(p *domain.Project) error {
 	}
 
 	return nil
-}
-
-func (r *ProjectRepository) GetProjectRoleById(id string) (*domain.ProjectRole, error) {
-	var pr = &domain.ProjectRole{ID: id}
-	res := r.db.First(pr)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project role")
-			return nil, nil
-		} else {
-			log.Error(res.Error)
-			return nil, res.Error
-		}
-	}
-
-	return pr, nil
-}
-
-func (r *ProjectRepository) GetAllProjectRoles() (prs []domain.ProjectRole, err error) {
-	res := r.db.Find(&prs)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project roles")
-			return nil, nil
-		} else {
-			log.Error(res.Error)
-			return nil, res.Error
-		}
-	}
-
-	return prs, nil
-}
-
-func (r *ProjectRepository) GetProjectRoleByName(name string) (pr *domain.ProjectRole, err error) {
-	res := r.db.Where("name = ?", name).First(&pr)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project roles")
-			return nil, nil
-		} else {
-			log.Error(res.Error)
-			return nil, res.Error
-		}
-	}
-
-	return pr, nil
 }
 
 func (r *ProjectRepository) AddProjectMember(pm *domain.ProjectMember) (string, error) {

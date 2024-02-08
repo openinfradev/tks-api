@@ -1,19 +1,13 @@
 package domain
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
 )
 
 func (a *Project) BeforeCreate(*gorm.DB) (err error) {
 	a.ID = uuid.New().String()
-	return nil
-}
-
-func (t *ProjectRole) BeforeCreate(*gorm.DB) (err error) {
-	t.ID = uuid.New().String()
 	return nil
 }
 
@@ -84,15 +78,6 @@ type GetProjectResponse struct {
 	Project *ProjectDetailResponse `json:"project"`
 }
 
-type ProjectRole struct {
-	ID          string     `gorm:"primarykey" json:"id"`
-	Name        string     `json:"name"` // project-leader, project-member, project-viewer
-	Description string     `json:"description,omitempty"`
-	CreatedAt   time.Time  `gorm:"autoCreateTime:false" json:"createdAt" `
-	UpdatedAt   *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
-	DeletedAt   *time.Time `json:"deletedAt"`
-}
-
 type ProjectUser struct {
 	ID          uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId   string    `json:"accountId"`
@@ -155,10 +140,6 @@ type CreateProjectResponse struct {
 
 type UpdateProjectRequest struct {
 	CreateProjectRequest
-}
-
-type GetProjectRoleResponse struct {
-	ProjectRole ProjectRole `json:"projectRole"`
 }
 
 type GetProjectRolesResponse struct {
