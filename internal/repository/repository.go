@@ -22,6 +22,7 @@ type Repository struct {
 	StackTemplate IStackTemplateRepository
 	Alert         IAlertRepository
 	Project       IProjectRepository
+	Audit         IAuditRepository
 }
 
 func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {
