@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm/schema"
 	"goyave.dev/goyave/v4/util/sliceutil"
 )
@@ -156,9 +155,6 @@ func getDataType(field *schema.Field) DataType {
 }
 
 func ConvertToSafeType(arg string, dataType DataType) (interface{}, bool) {
-	log.Info(arg)
-	log.Info(dataType)
-
 	switch dataType {
 	case DataTypeText, DataTypeTextArray, DataTypeEnum, DataTypeEnumArray:
 		return arg, true
