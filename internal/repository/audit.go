@@ -35,8 +35,9 @@ type Audit struct {
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
 	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Type           string
+	Group          string
 	Message        string
+	Description    string
 	ClientIP       string
 	UserId         *uuid.UUID `gorm:"type:uuid"`
 	User           User       `gorm:"foreignKey:UserId"`
@@ -59,8 +60,9 @@ func (r *AuditRepository) Fetch(pg *pagination.Pagination) (out []domain.Audit, 
 func (r *AuditRepository) Create(dto domain.Audit) (auditId uuid.UUID, err error) {
 	audit := Audit{
 		OrganizationId: dto.OrganizationId,
-		Type:           dto.Type,
+		Group:          dto.Group,
 		Message:        dto.Message,
+		Description:    dto.Description,
 		ClientIP:       dto.ClientIP,
 		UserId:         dto.UserId}
 	res := r.db.Create(&audit)
