@@ -11,8 +11,9 @@ type Audit struct {
 	ID             uuid.UUID
 	OrganizationId string
 	Organization   Organization
-	Type           string
+	Group          string
 	Message        string
+	Description    string
 	ClientIP       string
 	UserId         *uuid.UUID
 	User           User

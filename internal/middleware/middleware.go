@@ -34,9 +34,9 @@ func (m *Middleware) Handle(endpoint internalApi.Endpoint, handle http.Handler) 
 
 	// pre-handler
 	preHandler := m.authorizer.WithAuthorization(handle)
+	preHandler = m.audit.WithAudit(endpoint, preHandler)
 	preHandler = m.requestRecoder.WithRequestRecoder(endpoint, preHandler)
 	preHandler = m.authenticator.WithAuthentication(preHandler)
-	preHandler = m.audit.WithAudit(endpoint, preHandler)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		preHandler.ServeHTTP(w, r)
