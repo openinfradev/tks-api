@@ -12,6 +12,7 @@ type AppServeApp struct {
 	Name               string            `gorm:"index" json:"name,omitempty"`              // application name
 	Namespace          string            `json:"namespace,omitempty"`                      // application namespace
 	OrganizationId     string            `json:"organizationId,omitempty"`                 // contractId is a contract ID which this app belongs to
+	ProjectId          string            `json:"projectId,omitempty"`                      // project ID which this app belongs to
 	Type               string            `json:"type,omitempty"`                           // type (build/deploy/all)
 	AppType            string            `json:"appType,omitempty"`                        // appType (spring/springboot)
 	EndpointUrl        string            `json:"endpointUrl,omitempty"`                    // endpoint URL of deployed app
@@ -161,13 +162,21 @@ type GetAppServeAppsResponse struct {
 	Pagination   PaginationResponse `json:"pagination"`
 }
 
+// TODO: This will be deprecated later
 type GetAppServeAppResponse struct {
 	AppServeApp AppServeApp     `json:"appServeApp"`
 	Stages      []StageResponse `json:"stages"`
 }
 
+type GetAppServeAppTasksResponse struct {
+	AppServeAppTasks []AppServeAppTask  `json:"appServeAppTasks"`
+	Pagination       PaginationResponse `json:"pagination"`
+}
+
 type GetAppServeAppTaskResponse struct {
+	AppServeApp     AppServeApp     `json:"appServeApp"`
 	AppServeAppTask AppServeAppTask `json:"appServeAppTask"`
+	Stages          []StageResponse `json:"stages"`
 }
 
 type StageResponse struct {

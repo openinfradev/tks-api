@@ -15,14 +15,18 @@ type IAppServeAppRepository interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+
+	GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) ([]domain.AppServeAppTask, error)
+	GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error)
+
 	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
 	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
+
 	IsAppServeAppExist(appId string) (int64, error)
 	IsAppServeAppNameExist(orgId string, appName string) (int64, error)
 	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
 	UpdateStatus(appId string, taskId string, status string, output string) error
 	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
-	GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, error)
 	GetTaskCountById(appId string) (int64, error)
 }
 
@@ -109,9 +113,10 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, nil
+		return nil, nil, fmt.Errorf("No app with ID %s", appId)
 	}
 
+	// Populate tasks into app object
 	if err := r.db.Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks); err != nil {
 		log.Debug(err)
 		return nil, err
@@ -124,9 +129,63 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	return &app, nil
 }
 
+func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) (tasks []domain.AppServeAppTask, err error) {
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+
+	filterFunc := CombinedGormFilter("app_serve_app_tasks", pg.GetFilters(), pg.CombinedFilter)
+	db := filterFunc(r.db.Model(&domain.AppServeAppTask{}).
+		Where("app_serve_app_tasks.app_serve_app_id = ?", appId))
+	db.Count(&pg.TotalRows)
+
+	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
+	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
+	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&tasks)
+	if res.Error != nil {
+		return nil, fmt.Errorf("Error while finding tasks with appId: %s", appId)
+	}
+
+	// If no record is found, just return empty array.
+	if res.RowsAffected == 0 {
+		return tasks, nil
+	}
+
+	return
+}
+
+// Return single task info along with its parent app info
+func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error) {
+	var task domain.AppServeAppTask
+	var app domain.AppServeApp
+
+	// Retrieve task info
+	res := r.db.Where("id = ?", taskId).First(&task)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return nil, nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil, fmt.Errorf("No task with ID %s", taskId)
+	}
+
+	// Retrieve app info
+	res = r.db.Where("id = ?", task.AppServeAppId).First(&app)
+	if res.Error != nil {
+		log.Debug(res.Error)
+		return nil, nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil, fmt.Errorf("Couldn't find app with ID %s associated with task %s", appId, taskId)
+	}
+
+	return &task, &app, nil
+}
+
 func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
 	var task domain.AppServeAppTask
 
+	// TODO: Does this work?? where's app ID here?
 	res := r.db.Order("created_at desc").First(&task)
 	if res.Error != nil {
 		log.Debug(res.Error)
@@ -265,16 +324,6 @@ func (r *AppServeAppRepository) UpdateEndpoint(appId string, taskId string, endp
 	}
 
 	return nil
-}
-
-func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, error) {
-	var task domain.AppServeAppTask
-
-	if err := r.db.Where("id = ?", taskId).First(&task).Error; err != nil {
-		return nil, fmt.Errorf("could not find AppServeAppTask with ID: %s", taskId)
-	}
-
-	return &task, nil
 }
 
 func (r *AppServeAppRepository) GetTaskCountById(appId string) (int64, error) {

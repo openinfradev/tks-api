@@ -26,6 +26,8 @@ type IAppServeAppUsecase interface {
 	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
 	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
 	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]domain.AppServeAppTask, error)
+	GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error)
 	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
 	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(appId string) (bool, error)
@@ -218,6 +220,24 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 	}
 
 	return asa, nil
+}
+
+func (u *AppServeAppUsecase) GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]domain.AppServeAppTask, error) {
+	tasks, err := u.repo.GetAppServeAppTasksByAppId(appId, pg)
+	if err != nil {
+		log.Debugf("Tasks: %v", tasks)
+	}
+
+	return tasks, nil
+}
+
+func (u *AppServeAppUsecase) GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error) {
+	task, app, err := u.repo.GetAppServeAppTaskById(taskId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return task, app, nil
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
