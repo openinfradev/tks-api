@@ -5921,9 +5921,6 @@ const docTemplate = `{
                 },
                 "projectLeaderId": {
                     "type": "string"
-                },
-                "projectRoleId": {
-                    "type": "string"
                 }
             }
         },
@@ -6572,7 +6569,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "projectMember": {
-                    "$ref": "#/definitions/domain.ProjectMember"
+                    "$ref": "#/definitions/domain.ProjectMemberResponse"
                 }
             }
         },
@@ -6582,7 +6579,7 @@ const docTemplate = `{
                 "projectMembers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ProjectMember"
+                        "$ref": "#/definitions/domain.ProjectMemberResponse"
                     }
                 }
             }
@@ -7019,10 +7016,8 @@ const docTemplate = `{
         "domain.ProjectDetailResponse": {
             "type": "object",
             "properties": {
-                "appCount": {
-                    "type": "integer"
-                },
                 "createdAt": {
+                    "description": "NamespaceCount          int        ` + "`" + `json:\"namespaceCount\"` + "`" + `\nAppCount                int        ` + "`" + `json:\"appCount\"` + "`" + `\nMemberCount             int        ` + "`" + `json:\"memberCount\"` + "`" + `",
                     "type": "string"
                 },
                 "description": {
@@ -7031,14 +7026,8 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "memberCount": {
-                    "type": "integer"
-                },
                 "name": {
                     "type": "string"
-                },
-                "namespaceCount": {
-                    "type": "integer"
                 },
                 "organizationId": {
                     "type": "string"
@@ -7055,36 +7044,10 @@ const docTemplate = `{
                 "projectLeaderName": {
                     "type": "string"
                 },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.ProjectMember": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "projectId": {
-                    "type": "string"
-                },
-                "projectRole": {
-                    "$ref": "#/definitions/domain.ProjectRole"
-                },
                 "projectRoleId": {
                     "type": "string"
                 },
-                "projectUser": {
-                    "$ref": "#/definitions/domain.ProjectUser"
-                },
-                "projectUserId": {
+                "projectRoleName": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -7103,6 +7066,44 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "projectUserId": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProjectMemberResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "type": "string"
+                },
+                "projectRoleId": {
+                    "type": "string"
+                },
+                "projectRoleName": {
+                    "type": "string"
+                },
+                "projectUserAccountId": {
+                    "type": "string"
+                },
+                "projectUserDepartment": {
+                    "type": "string"
+                },
+                "projectUserEmail": {
+                    "type": "string"
+                },
+                "projectUserId": {
+                    "type": "string"
+                },
+                "projectUserName": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -7191,35 +7192,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "project-leader, project-member, project-viewer",
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.ProjectUser": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "department": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 },
                 "updatedAt": {

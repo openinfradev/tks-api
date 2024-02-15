@@ -11,6 +11,7 @@ type IProjectRepository interface {
 	CreateProject(p *domain.Project) (string, error)
 	GetProjects(organizationId string) ([]domain.Project, error)
 	GetProjectById(organizationId string, projectId string) (*domain.Project, error)
+	GetProjectByIdAndLeader(organizationId string, projectId string) (*domain.Project, error)
 	UpdateProject(p *domain.Project) error
 	GetAllProjectRoles() ([]domain.ProjectRole, error)
 	GetProjectRoleByName(name string) (*domain.ProjectRole, error)
@@ -67,8 +68,23 @@ func (r *ProjectRepository) GetProjects(organizationId string) (ps []domain.Proj
 }
 
 func (r *ProjectRepository) GetProjectById(organizationId string, projectId string) (p *domain.Project, err error) {
+	res := r.db.Limit(1).Where("organization_id = ? and id = ?", organizationId, projectId).First(&p)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return p, nil
+}
+
+func (r *ProjectRepository) GetProjectByIdAndLeader(organizationId string, projectId string) (p *domain.Project, err error) {
 	res := r.db.Limit(1).Where("organization_id = ? and id = ?", organizationId, projectId).
-		Preload("ProjectMembers").
+		Limit(1).Preload("ProjectMembers", "is_project_leader = ?", true).
 		Preload("ProjectMembers.ProjectRole").
 		Preload("ProjectMembers.ProjectUser").
 		First(&p)

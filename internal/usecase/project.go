@@ -21,6 +21,7 @@ type IProjectUsecase interface {
 	CreateProject(*domain.Project) (string, error)
 	GetProjects(organizationId string) ([]domain.Project, error)
 	GetProject(organizationId string, projectId string) (*domain.Project, error)
+	GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error)
 	UpdateProject(p *domain.Project) error
 	GetProjectRole(id string) (*domain.ProjectRole, error)
 	GetProjectRoles(int) ([]domain.ProjectRole, error)
@@ -79,6 +80,15 @@ func (u *ProjectUsecase) GetProjects(organizationId string) (ps []domain.Project
 
 func (u *ProjectUsecase) GetProject(organizationId string, projectId string) (*domain.Project, error) {
 	p, err := u.projectRepo.GetProjectById(organizationId, projectId)
+	if err != nil {
+		log.Error(err)
+		return nil, errors.Wrap(err, "Failed to get projects.")
+	}
+	return p, err
+}
+
+func (u *ProjectUsecase) GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error) {
+	p, err := u.projectRepo.GetProjectByIdAndLeader(organizationId, projectId)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.Wrap(err, "Failed to get projects.")
