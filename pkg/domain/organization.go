@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -48,8 +49,10 @@ func (m OrganizationStatus) FromString(s string) OrganizationStatus {
 	return OrganizationStatus_ERROR
 }
 
-type Organization = struct {
-	ID               string             `json:"id"`
+type Organization struct {
+	gorm.Model
+
+	ID               string             `gorm:"primarykey;type:varchar(36);not null" json:"id"`
 	Name             string             `json:"name"`
 	Description      string             `json:"description"`
 	Phone            string             `json:"phone"`

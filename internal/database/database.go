@@ -57,18 +57,15 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&repository.CacheEmailCode{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.User{}); err != nil {
+	if err := db.AutoMigrate(&domain.User{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.Role{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.Policy{}); err != nil {
+	if err := db.AutoMigrate(&domain.Role{}); err != nil {
 		return err
 	}
 
 	// Organization
-	if err := db.AutoMigrate(&repository.Organization{}); err != nil {
+	if err := db.AutoMigrate(&domain.Organization{}); err != nil {
 		return err
 	}
 
@@ -114,11 +111,22 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
-	// Project
-	if err := db.AutoMigrate(&domain.Project{}); err != nil {
+	// Role
+	if err := db.AutoMigrate(&domain.Role{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&domain.Permission{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&domain.ProjectRole{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&domain.Endpoint{}); err != nil {
+		return err
+	}
+
+	// Project
+	if err := db.AutoMigrate(&domain.Project{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&domain.ProjectMember{}); err != nil {

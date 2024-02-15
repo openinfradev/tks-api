@@ -27,24 +27,19 @@ func NewEndpointRepository(db *gorm.DB) *EndpointRepository {
 	}
 }
 
-type Endpoint struct {
-	gorm.Model
-
-	ID uuid.UUID `gorm:"type:uuid;primary_key;"`
-
-	Name         string     `gorm:"type:text;not null;unique"`
-	Group        string     `gorm:"type:text;"`
-	PermissionID uuid.UUID  `gorm:"type:uuid;"`
-	Permission   Permission `gorm:"foreignKey:PermissionID;"`
-}
-
-func (e *Endpoint) BeforeCreate(tx *gorm.DB) error {
-	e.ID = uuid.New()
-	return nil
-}
+//type Endpoint struct {
+//	gorm.Model
+//
+//	ID uuid.UUID `gorm:"type:uuid;primary_key;"`
+//
+//	Name         string     `gorm:"type:text;not null;unique"`
+//	Group        string     `gorm:"type:text;"`
+//	PermissionID uuid.UUID  `gorm:"type:uuid;"`
+//	Permission   Permission `gorm:"foreignKey:PermissionID;"`
+//}
 
 func (e *EndpointRepository) Create(endpoint *domain.Endpoint) error {
-	obj := &Endpoint{
+	obj := &domain.Endpoint{
 		Name:         endpoint.Name,
 		Group:        endpoint.Group,
 		PermissionID: endpoint.PermissionID,
@@ -59,13 +54,13 @@ func (e *EndpointRepository) Create(endpoint *domain.Endpoint) error {
 
 func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*domain.Endpoint, error) {
 	var endpoints []*domain.Endpoint
-	var objs []*Endpoint
+	var objs []*domain.Endpoint
 
 	if pg == nil {
 		pg = pagination.NewDefaultPagination()
 	}
 	filterFunc := CombinedGormFilter("endpoints", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(e.db.Model(&Endpoint{}))
+	db := filterFunc(e.db.Model(&domain.Endpoint{}))
 
 	db.Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
@@ -81,7 +76,7 @@ func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*domain.Endpoint
 			Name:         obj.Name,
 			Group:        obj.Group,
 			PermissionID: obj.PermissionID,
-			Permission:   *ConvertRepoToDomainPermission(&obj.Permission),
+			Permission:   obj.Permission,
 		})
 	}
 
@@ -89,7 +84,7 @@ func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*domain.Endpoint
 }
 
 func (e *EndpointRepository) Get(id uuid.UUID) (*domain.Endpoint, error) {
-	var obj Endpoint
+	var obj domain.Endpoint
 
 	if err := e.db.Preload("Permission").First(&obj, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -103,7 +98,7 @@ func (e *EndpointRepository) Get(id uuid.UUID) (*domain.Endpoint, error) {
 }
 
 func (e *EndpointRepository) Update(endpoint *domain.Endpoint) error {
-	obj := &Endpoint{
+	obj := &domain.Endpoint{
 		ID:           endpoint.ID,
 		Name:         endpoint.Name,
 		Group:        endpoint.Group,
@@ -117,24 +112,25 @@ func (e *EndpointRepository) Update(endpoint *domain.Endpoint) error {
 	return nil
 }
 
-// domain.Endpoint to repository.Endpoint
-func ConvertDomainToRepoEndpoint(endpoint *domain.Endpoint) *Endpoint {
-	return &Endpoint{
-		ID:           endpoint.ID,
-		Name:         endpoint.Name,
-		Group:        endpoint.Group,
-		PermissionID: endpoint.PermissionID,
-		Permission:   *ConvertDomainToRepoPermission(&endpoint.Permission),
-	}
-}
-
-// repository.Endpoint to domain.Endpoint
-func ConvertRepoToDomainEndpoint(endpoint *Endpoint) *domain.Endpoint {
-	return &domain.Endpoint{
-		ID:           endpoint.ID,
-		Name:         endpoint.Name,
-		Group:        endpoint.Group,
-		PermissionID: endpoint.PermissionID,
-		Permission:   *ConvertRepoToDomainPermission(&endpoint.Permission),
-	}
-}
+//
+//// domain.Endpoint to repository.Endpoint
+//func ConvertDomainToRepoEndpoint(endpoint *domain.Endpoint) *Endpoint {
+//	return &Endpoint{
+//		ID:           endpoint.ID,
+//		Name:         endpoint.Name,
+//		Group:        endpoint.Group,
+//		PermissionID: endpoint.PermissionID,
+//		Permission:   *ConvertDomainToRepoPermission(&endpoint.Permission),
+//	}
+//}
+//
+//// repository.Endpoint to domain.Endpoint
+//func ConvertRepoToDomainEndpoint(endpoint *Endpoint) *domain.Endpoint {
+//	return &domain.Endpoint{
+//		ID:           endpoint.ID,
+//		Name:         endpoint.Name,
+//		Group:        endpoint.Group,
+//		PermissionID: endpoint.PermissionID,
+//		Permission:   *ConvertRepoToDomainPermission(&endpoint.Permission),
+//	}
+//}

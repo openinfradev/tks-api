@@ -2,6 +2,7 @@ package domain
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -13,11 +14,18 @@ const (
 	RoleTypeProject RoleType = "project"
 )
 
+func (r *Role) BeforeCreate(tx *gorm.DB) (err error) {
+	r.ID = uuid.New().String()
+	return nil
+}
+
 type Role struct {
-	ID             uuid.UUID    `json:"id"`
+	gorm.Model
+
+	ID             string       `gorm:"primarykey;" json:"id"`
 	Name           string       `json:"name"`
 	OrganizationID string       `json:"organizationId"`
-	Organization   Organization `json:"organization"`
+	Organization   Organization `gorm:"foreignKey:OrganizationID;references:ID;" json:"organization"`
 	Type           string       `json:"type"`
 	Description    string       `json:"description"`
 	Creator        uuid.UUID    `json:"creator"`
@@ -26,15 +34,15 @@ type Role struct {
 }
 
 type TksRole struct {
-	RoleID uuid.UUID `json:"roleId"`
-	Role
+	RoleID string `gorm:"primarykey;" json:"roleId"`
+	Role   Role   `gorm:"foreignKey:RoleID;references:ID;"`
 }
 
 type ProjectRole struct {
-	RoleID    uuid.UUID `json:"roleId"`
-	Role      Role      `json:"role"`
-	ProjectID uuid.UUID `json:"projectID"`
-	Project   Project   `json:"project"`
+	RoleID    string  `gorm:"primaryKey" json:"roleId"`
+	Role      Role    `gorm:"foreignKey:RoleID;references:ID;" json:"role"`
+	ProjectID string  `json:"projectID"`
+	Project   Project `gorm:"foreignKey:ProjectID;references:ID;" json:"project"`
 }
 
 //type Role = struct {

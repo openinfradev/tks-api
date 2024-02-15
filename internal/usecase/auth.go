@@ -173,11 +173,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
-	userUuid, err := uuid.Parse((*users)[0].ID)
-	if err != nil {
-		return "", httpErrors.NewInternalServerError(err, "", "")
-	}
-	emailCode, err := u.authRepository.GetEmailCode(userUuid)
+	emailCode, err := u.authRepository.GetEmailCode((*users)[0].ID)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -187,7 +183,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	if emailCode.Code != code {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
-	if err := u.authRepository.DeleteEmailCode(userUuid); err != nil {
+	if err := u.authRepository.DeleteEmailCode((*users)[0].ID); err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -205,11 +201,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	user := (*users)[0]
-	userUuid, err := uuid.Parse(user.ID)
-	if err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	emailCode, err := u.authRepository.GetEmailCode(userUuid)
+	emailCode, err := u.authRepository.GetEmailCode(user.ID)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -239,7 +231,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	if err = u.userRepository.UpdatePassword(userUuid, organizationId, user.Password, true); err != nil {
+	if err = u.userRepository.UpdatePassword(user.ID, organizationId, user.Password, true); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -255,7 +247,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = u.authRepository.DeleteEmailCode(userUuid); err != nil {
+	if err = u.authRepository.DeleteEmailCode(user.ID); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -285,17 +277,13 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	userUuid, err := uuid.Parse((*users)[0].ID)
+	_, err = u.authRepository.GetEmailCode((*users)[0].ID)
 	if err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	_, err = u.authRepository.GetEmailCode(userUuid)
-	if err != nil {
-		if err := u.authRepository.CreateEmailCode(userUuid, code); err != nil {
+		if err := u.authRepository.CreateEmailCode((*users)[0].ID, code); err != nil {
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	} else {
-		if err := u.authRepository.UpdateEmailCode(userUuid, code); err != nil {
+		if err := u.authRepository.UpdateEmailCode((*users)[0].ID, code); err != nil {
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	}

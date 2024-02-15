@@ -1,7 +1,6 @@
 package http
 
 import (
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
@@ -125,11 +124,6 @@ func (h RoleHandler) CreateProjectRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// input to dto
-	projectIdUuid, err := uuid.Parse(projectId)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
 	dto := domain.ProjectRole{
 		Role: domain.Role{
 			OrganizationID: organizationId,
@@ -137,7 +131,7 @@ func (h RoleHandler) CreateProjectRole(w http.ResponseWriter, r *http.Request) {
 			Description:    input.Description,
 			Type:           string(domain.RoleTypeProject),
 		},
-		ProjectID: projectIdUuid,
+		ProjectID: projectId,
 	}
 
 	if err := h.roleUsecase.CreateProjectRole(&dto); err != nil {
@@ -185,13 +179,13 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	out.Roles = make([]domain.GetTksRoleResponse, len(roles))
 	for i, role := range roles {
 		out.Roles[i] = domain.GetTksRoleResponse{
-			ID:             role.ID.String(),
-			Name:           role.Name,
-			OrganizationID: role.OrganizationID,
-			Description:    role.Description,
-			Creator:        role.Creator.String(),
-			CreatedAt:      role.CreatedAt,
-			UpdatedAt:      role.UpdatedAt,
+			ID:             role.Role.ID,
+			Name:           role.Role.Name,
+			OrganizationID: role.Role.OrganizationID,
+			Description:    role.Role.Description,
+			Creator:        role.Role.Creator.String(),
+			CreatedAt:      role.Role.CreatedAt,
+			UpdatedAt:      role.Role.UpdatedAt,
 		}
 	}
 
@@ -244,10 +238,10 @@ func (h RoleHandler) ListProjectRoles(w http.ResponseWriter, r *http.Request) {
 	out.Roles = make([]domain.GetProjectRoleResponse, len(roles))
 	for i, role := range roles {
 		out.Roles[i] = domain.GetProjectRoleResponse{
-			ID:             role.RoleID.String(),
+			ID:             role.RoleID,
 			Name:           role.Role.Name,
 			OrganizationID: role.Role.OrganizationID,
-			ProjectID:      role.ProjectID.String(),
+			ProjectID:      role.ProjectID,
 			Description:    role.Role.Description,
 			Creator:        role.Role.Creator.String(),
 			CreatedAt:      role.Role.CreatedAt,
@@ -292,13 +286,13 @@ func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 
 	// response
 	out := domain.GetTksRoleResponse{
-		ID:             role.ID.String(),
-		Name:           role.Name,
-		OrganizationID: role.OrganizationID,
-		Description:    role.Description,
-		Creator:        role.Creator.String(),
-		CreatedAt:      role.CreatedAt,
-		UpdatedAt:      role.UpdatedAt,
+		ID:             role.Role.ID,
+		Name:           role.Role.Name,
+		OrganizationID: role.Role.OrganizationID,
+		Description:    role.Role.Description,
+		Creator:        role.Role.Creator.String(),
+		CreatedAt:      role.Role.CreatedAt,
+		UpdatedAt:      role.Role.UpdatedAt,
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -335,10 +329,10 @@ func (h RoleHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 
 	// response
 	out := domain.GetProjectRoleResponse{
-		ID:             role.RoleID.String(),
+		ID:             role.RoleID,
 		Name:           role.Role.Name,
 		OrganizationID: role.Role.OrganizationID,
-		ProjectID:      role.ProjectID.String(),
+		ProjectID:      role.ProjectID,
 		Description:    role.Role.Description,
 		Creator:        role.Role.Creator.String(),
 		CreatedAt:      role.Role.CreatedAt,
@@ -443,14 +437,9 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// input to dto
-	roleIdUuid, err := uuid.Parse(roleId)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
 	dto := domain.TksRole{
 		Role: domain.Role{
-			ID:          roleIdUuid,
+			ID:          roleId,
 			Name:        input.Name,
 			Description: input.Description,
 		},
@@ -499,14 +488,9 @@ func (h RoleHandler) UpdateProjectRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// input to dto
-	roleIdUuid, err := uuid.Parse(roleId)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
 	dto := domain.ProjectRole{
 		Role: domain.Role{
-			ID:          roleIdUuid,
+			ID:          roleId,
 			Name:        input.Name,
 			Description: input.Description,
 		},

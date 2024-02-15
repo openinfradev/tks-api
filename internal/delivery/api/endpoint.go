@@ -20,6 +20,7 @@ const (
 	VerifyIdentityForLostId
 	VerifyIdentityForLostPassword
 	VerifyToken
+	DeleteToken
 
 	// User
 	CreateUser
@@ -129,8 +130,6 @@ const (
 
 	// Project
 	CreateProject
-	GetProjectRoles
-	GetProjectRole
 	GetProjects
 	GetProject
 	UpdateProject
@@ -200,6 +199,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
 	VerifyToken: {
 		Name:  "VerifyToken",
+		Group: "Auth",
+	},
+	DeleteToken: {
+		Name:  "DeleteToken",
 		Group: "Auth",
 	},
 	CreateUser: {
@@ -542,14 +545,6 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "CreateProject",
 		Group: "Project",
 	},
-	GetProjectRoles: {
-		Name:  "GetProjectRoles",
-		Group: "Project",
-	},
-	GetProjectRole: {
-		Name:  "GetProjectRole",
-		Group: "Project",
-	},
 	GetProjects: {
 		Name:  "GetProjects",
 		Group: "Project",
@@ -704,6 +699,8 @@ func (e Endpoint) String() string {
 		return "VerifyIdentityForLostPassword"
 	case VerifyToken:
 		return "VerifyToken"
+	case DeleteToken:
+		return "DeleteToken"
 	case CreateUser:
 		return "CreateUser"
 	case ListUser:
@@ -874,10 +871,6 @@ func (e Endpoint) String() string {
 		return "InstallStack"
 	case CreateProject:
 		return "CreateProject"
-	case GetProjectRoles:
-		return "GetProjectRoles"
-	case GetProjectRole:
-		return "GetProjectRole"
 	case GetProjects:
 		return "GetProjects"
 	case GetProject:
@@ -968,6 +961,8 @@ func GetEndpoint(name string) Endpoint {
 		return VerifyIdentityForLostPassword
 	case "VerifyToken":
 		return VerifyToken
+	case "DeleteToken":
+		return DeleteToken
 	case "CreateUser":
 		return CreateUser
 	case "ListUser":

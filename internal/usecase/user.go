@@ -77,11 +77,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context,
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	userId, err := uuid.Parse(user.ID)
-	if err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	return u.RenewalPasswordExpiredTime(ctx, userId)
+	return u.RenewalPasswordExpiredTime(ctx, user.ID)
 }
 
 func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
@@ -141,11 +137,7 @@ func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId 
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	userId, err := uuid.Parse(user.ID)
-	if err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	return u.ResetPassword(userId)
+	return u.ResetPassword(user.ID)
 }
 
 func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
@@ -322,16 +314,12 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	if err != nil {
 		return errors.Wrap(err, "getting user from repository failed")
 	}
-	userUuid, err := uuid.Parse(user.ID)
-	if err != nil {
-		return errors.Wrap(err, "parsing uuid failed")
-	}
 	hashedPassword, err := helper.HashPassword(newPassword)
 	if err != nil {
 		return errors.Wrap(err, "hashing password failed")
 	}
 
-	err = u.userRepository.UpdatePassword(userUuid, organizationId, hashedPassword, false)
+	err = u.userRepository.UpdatePassword(user.ID, organizationId, hashedPassword, false)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
 	}
@@ -437,11 +425,6 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, fmt.Errorf("multiple users found")
 	}
 
-	userUuid, err := uuid.Parse((*users)[0].ID)
-	if err != nil {
-		return nil, err
-	}
-
 	originPassword := (*users)[0].Password
 
 	roleUuid := (*users)[0].Role.ID
@@ -449,7 +432,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, err
 	}
 
-	*user, err = u.userRepository.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
+	*user, err = u.userRepository.UpdateWithUuid((*users)[0].ID, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
@@ -483,11 +466,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 		return err
 	}
 
-	userUuid, err := uuid.Parse(user.ID)
-	if err != nil {
-		return err
-	}
-	err = u.userRepository.DeleteWithUuid(userUuid)
+	err = u.userRepository.DeleteWithUuid(user.ID)
 	if err != nil {
 		return err
 	}
@@ -597,19 +576,14 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	if user.Role.Name != (*users)[0].Role.Name {
 		originGroupName := fmt.Sprintf("%s@%s", (*users)[0].Role.Name, userInfo.GetOrganizationId())
 		newGroupName := fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())
-		if err := u.kc.LeaveGroup(userInfo.GetOrganizationId(), (*users)[0].ID, originGroupName); err != nil {
+		if err := u.kc.LeaveGroup(userInfo.GetOrganizationId(), (*users)[0].ID.String(), originGroupName); err != nil {
 			log.ErrorfWithContext(ctx, "leave group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
-		if err := u.kc.JoinGroup(userInfo.GetOrganizationId(), (*users)[0].ID, newGroupName); err != nil {
+		if err := u.kc.JoinGroup(userInfo.GetOrganizationId(), (*users)[0].ID.String(), newGroupName); err != nil {
 			log.ErrorfWithContext(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
-	}
-
-	userUuid, err := uuid.Parse((*users)[0].ID)
-	if err != nil {
-		return nil, err
 	}
 
 	originPassword := (*users)[0].Password
@@ -628,7 +602,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 		return nil, err
 	}
 
-	*user, err = u.userRepository.UpdateWithUuid(userUuid, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
+	*user, err = u.userRepository.UpdateWithUuid((*users)[0].ID, user.AccountId, user.Name, originPassword, roleUuid, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")

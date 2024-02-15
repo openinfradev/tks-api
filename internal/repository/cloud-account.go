@@ -41,9 +41,9 @@ type CloudAccount struct {
 
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string       `gorm:"index"`
-	Description    string       `gorm:"index"`
+	Organization   domain.Organization `gorm:"foreignKey:OrganizationId"`
+	Name           string              `gorm:"index"`
+	Description    string              `gorm:"index"`
 	Resource       string
 	CloudService   string
 	WorkflowId     string
@@ -51,10 +51,10 @@ type CloudAccount struct {
 	StatusDesc     string
 	AwsAccountId   string
 	CreatedIAM     bool
-	CreatorId      *uuid.UUID `gorm:"type:uuid"`
-	Creator        User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
-	Updator        User       `gorm:"foreignKey:UpdatorId"`
+	CreatorId      *uuid.UUID  `gorm:"type:uuid"`
+	Creator        domain.User `gorm:"foreignKey:CreatorId"`
+	UpdatorId      *uuid.UUID  `gorm:"type:uuid"`
+	Updator        domain.User `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *CloudAccount) BeforeCreate(tx *gorm.DB) (err error) {

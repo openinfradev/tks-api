@@ -99,7 +99,7 @@ type ProjectMember struct {
 	ProjectUserId   uuid.UUID    `json:"projectUserId"`
 	ProjectUser     *ProjectUser `gorm:"foreignKey:ProjectUserId;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectUser"`
 	ProjectRoleId   string       `json:"projectRoleId"`
-	ProjectRole     *ProjectRole `gorm:"foreignKey:ProjectRoleId;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectRole"`
+	ProjectRole     *ProjectRole `gorm:"foreignKey:ProjectRoleId;references:RoleID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectRole"`
 	IsProjectLeader bool         `gorm:"default:false" json:"projectLeader"`
 	CreatedAt       time.Time    `gorm:"autoCreateTime:false" json:"createdAt"`
 	UpdatedAt       *time.Time   `gorm:"autoUpdateTime:false" json:"updatedAt"`
