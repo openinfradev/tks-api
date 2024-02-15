@@ -39,8 +39,8 @@ type Project struct {
 	CreatedAt         time.Time          `gorm:"autoCreateTime:false" json:"createdAt"`
 	UpdatedAt         *time.Time         `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt         *time.Time         `json:"deletedAt"`
-	ProjectMembers    []ProjectMember    `gorm:"foreignKey:ProjectId" json:"projectMembers,omitempty"`
-	ProjectNamespaces []ProjectNamespace `gorm:"foreignKey:ProjectId" json:"projectNamespaces,omitempty"`
+	ProjectMembers    []ProjectMember    `gorm:"foreignKey:ProjectId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectMembers,omitempty"`
+	ProjectNamespaces []ProjectNamespace `gorm:"foreignKey:ProjectId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectNamespaces,omitempty"`
 }
 
 type ProjectResponse struct {
@@ -61,19 +61,21 @@ type GetProjectsResponse struct {
 }
 
 type ProjectDetailResponse struct {
-	ID                      string     `json:"id"`
-	OrganizationId          string     `json:"organizationId"`
-	Name                    string     `json:"name"`
-	Description             string     `json:"description"`
-	ProjectLeaderId         string     `json:"projectLeaderId"`
-	ProjectLeaderName       string     `json:"projectLeaderName"`
-	ProjectLeaderAccountId  string     `json:"projectLeaderAccountId"`
-	ProjectLeaderDepartment string     `json:"projectLeaderDepartment"`
-	NamespaceCount          int        `json:"namespaceCount"`
-	AppCount                int        `json:"appCount"`
-	MemberCount             int        `json:"memberCount"`
-	CreatedAt               time.Time  `json:"createdAt"`
-	UpdatedAt               *time.Time `json:"updatedAt"`
+	ID                      string `json:"id"`
+	OrganizationId          string `json:"organizationId"`
+	Name                    string `json:"name"`
+	Description             string `json:"description"`
+	ProjectLeaderId         string `json:"projectLeaderId"`
+	ProjectLeaderName       string `json:"projectLeaderName"`
+	ProjectLeaderAccountId  string `json:"projectLeaderAccountId"`
+	ProjectLeaderDepartment string `json:"projectLeaderDepartment"`
+	ProjectRoleId           string `json:"projectRoleId"`
+	ProjectRoleName         string `json:"projectRoleName"`
+	//NamespaceCount          int        `json:"namespaceCount"`
+	//AppCount                int        `json:"appCount"`
+	//MemberCount             int        `json:"memberCount"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 type GetProjectResponse struct {
@@ -105,15 +107,16 @@ func (ProjectUser) TableName() string {
 }
 
 type ProjectMember struct {
-	ID            string       `gorm:"primarykey" json:"id"`
-	ProjectId     string       `gorm:"not null" json:"projectId"`
-	ProjectUserId uuid.UUID    `json:"projectUserId"`
-	ProjectUser   *ProjectUser `gorm:"foreignKey:ProjectUserId;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectUser"`
-	ProjectRoleId string       `json:"projectRoleId"`
-	ProjectRole   *ProjectRole `gorm:"foreignKey:ProjectRoleId;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectRole"`
-	CreatedAt     time.Time    `gorm:"autoCreateTime:false" json:"createdAt"`
-	UpdatedAt     *time.Time   `gorm:"autoUpdateTime:false" json:"updatedAt"`
-	DeletedAt     *time.Time   `json:"deletedAt"`
+	ID              string       `gorm:"primarykey" json:"id"`
+	ProjectId       string       `gorm:"not null" json:"projectId"`
+	ProjectUserId   uuid.UUID    `json:"projectUserId"`
+	ProjectUser     *ProjectUser `gorm:"foreignKey:ProjectUserId;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectUser"`
+	ProjectRoleId   string       `json:"projectRoleId"`
+	ProjectRole     *ProjectRole `gorm:"foreignKey:ProjectRoleId;references:ID;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT" json:"projectRole"`
+	IsProjectLeader bool         `gorm:"default:false" json:"projectLeader"`
+	CreatedAt       time.Time    `gorm:"autoCreateTime:false" json:"createdAt"`
+	UpdatedAt       *time.Time   `gorm:"autoUpdateTime:false" json:"updatedAt"`
+	DeletedAt       *time.Time   `json:"deletedAt"`
 }
 
 type ProjectStack struct {
@@ -142,7 +145,6 @@ type CreateProjectRequest struct {
 	Name            string `json:"name" validate:"required"`
 	Description     string `json:"description"`
 	ProjectLeaderId string `json:"projectLeaderId"`
-	ProjectRoleId   string `json:"projectRoleId"`
 }
 
 type CreateProjectResponse struct {
@@ -172,12 +174,26 @@ type AddProjectMemberRequest struct {
 	ProjectMemberRequests []ProjectMemberRequest `json:"projectMembers"`
 }
 
+type ProjectMemberResponse struct {
+	ID                    string     `json:"id"`
+	ProjectId             string     `json:"projectId"`
+	ProjectUserId         string     `json:"projectUserId"`
+	ProjectUserName       string     `json:"projectUserName"`
+	ProjectUserAccountId  string     `json:"projectUserAccountId"`
+	ProjectUserEmail      string     `json:"projectUserEmail"`
+	ProjectUserDepartment string     `json:"projectUserDepartment"`
+	ProjectRoleId         string     `json:"projectRoleId"`
+	ProjectRoleName       string     `json:"projectRoleName"`
+	CreatedAt             time.Time  `json:"createdAt"`
+	UpdatedAt             *time.Time `json:"updatedAt"`
+}
+
 type GetProjectMemberResponse struct {
-	ProjectMember *ProjectMember `json:"projectMember"`
+	ProjectMember *ProjectMemberResponse `json:"projectMember"`
 }
 
 type GetProjectMembersResponse struct {
-	ProjectMembers []ProjectMember `json:"projectMembers"`
+	ProjectMembers []ProjectMemberResponse `json:"projectMembers"`
 }
 
 type RemoveProjectMemberRequest struct {

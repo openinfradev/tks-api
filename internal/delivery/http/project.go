@@ -102,14 +102,23 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to parse uuid to string"))
 		return
 	}
+
+	prs, err := p.usecase.GetProjectRoles(usecase.ProjectLeader)
+	if err != nil {
+		log.Error(err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to retrieve project-leader id"))
+		return
+	}
+
 	//Don't add ProjectUser Object because of Cascading
 	pm := &domain.ProjectMember{
 		ProjectId: projectId,
 		//ProjectUser: &domain.ProjectUser{ID: ProjectLeaderId},
 		//ProjectRole: &domain.ProjectRole{ID: projectReq.ProjectRoleId},
-		ProjectUserId: ProjectLeaderId,
-		ProjectRoleId: projectReq.ProjectRoleId,
-		CreatedAt:     now,
+		ProjectUserId:   ProjectLeaderId,
+		ProjectRoleId:   prs[0].ID,
+		IsProjectLeader: true,
+		CreatedAt:       now,
 	}
 
 	projectMemberId, err := p.usecase.AddProjectMember(pm)
@@ -118,22 +127,6 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-
-	//pr, err := p.usecase.GetProjectRoles(usecase.ProjectLeader)
-	//if err != nil {
-	//	ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-	//	return
-	//}
-	//
-	//pms := make([]domain.ProjectMember, 0)
-	//pm.ID = projectMemberId
-	//pm.ProjectRole = pr[0]
-	//pms = append(pms, *pm)
-	//
-	//project.ProjectMembers = pms
-	//projectRes := domain.CreateProjectResponse{
-	//	Project: *project,
-	//}
 
 	out := domain.CreateProjectResponse{ProjectId: projectId}
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -229,7 +222,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := p.usecase.GetProject(organizationId, projectId)
+	project, err := p.usecase.GetProjectWithLeader(organizationId, projectId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to retrieve project", err)
 		ErrorJSON(w, r, err)
@@ -243,13 +236,14 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var projectLeaderId, projectLeaderName, projectLeaderAccountId, projectLeaderDepartment string
+	var projectRoleId, projectRoleName string
 	for _, pu := range project.ProjectMembers {
-		if pu.ProjectRole.Name == "project-leader" {
-			projectLeaderId = pu.ProjectUser.ID.String()
-			projectLeaderName = pu.ProjectUser.Name
-			projectLeaderAccountId = pu.ProjectUser.AccountId
-			projectLeaderDepartment = pu.ProjectUser.Department
-		}
+		projectLeaderId = pu.ProjectUser.ID.String()
+		projectLeaderName = pu.ProjectUser.Name
+		projectLeaderAccountId = pu.ProjectUser.AccountId
+		projectLeaderDepartment = pu.ProjectUser.Department
+		projectRoleId = pu.ProjectRole.ID
+		projectRoleName = pu.ProjectRole.Name
 	}
 
 	var pdr domain.ProjectDetailResponse
@@ -262,10 +256,12 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	pdr.ProjectLeaderName = projectLeaderName
 	pdr.ProjectLeaderAccountId = projectLeaderAccountId
 	pdr.ProjectLeaderDepartment = projectLeaderDepartment
-	pdr.NamespaceCount = len(project.ProjectNamespaces)
-	pdr.MemberCount = len(project.ProjectMembers)
-	//TODO implement AppCount
-	pdr.AppCount = 0
+	pdr.ProjectRoleId = projectRoleId
+	pdr.ProjectRoleName = projectRoleName
+	//pdr.NamespaceCount = len(project.ProjectNamespaces)
+	//pdr.MemberCount = len(project.ProjectMembers)
+	////TODO implement AppCount
+	//pdr.AppCount = 0
 
 	out.Project = &pdr
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -315,8 +311,8 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	project.Name = projectReq.Name
 	project.Description = projectReq.Description
 	project.UpdatedAt = &now
-	project.ProjectNamespaces = nil
-	project.ProjectMembers = nil
+	//project.ProjectNamespaces = nil
+	//project.ProjectMembers = nil
 
 	if err := p.usecase.UpdateProject(project); err != nil {
 		ErrorJSON(w, r, err)
@@ -537,7 +533,21 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	out := domain.GetProjectMemberResponse{ProjectMember: pm}
+	pmr := &domain.ProjectMemberResponse{
+		ID:                    pm.ID,
+		ProjectId:             pm.ProjectId,
+		ProjectUserId:         pm.ProjectUser.ID.String(),
+		ProjectUserName:       pm.ProjectUser.Name,
+		ProjectUserAccountId:  pm.ProjectUser.AccountId,
+		ProjectUserEmail:      pm.ProjectUser.Email,
+		ProjectUserDepartment: pm.ProjectUser.Department,
+		ProjectRoleId:         pm.ProjectRole.ID,
+		ProjectRoleName:       pm.ProjectRole.Name,
+		CreatedAt:             pm.CreatedAt,
+		UpdatedAt:             pm.UpdatedAt,
+	}
+
+	out := domain.GetProjectMemberResponse{ProjectMember: pmr}
 	if pm == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
 		return
@@ -580,7 +590,25 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	out := domain.GetProjectMembersResponse{ProjectMembers: pms}
+	pmrs := make([]domain.ProjectMemberResponse, 0)
+	for _, pm := range pms {
+		pmr := domain.ProjectMemberResponse{
+			ID:                    pm.ID,
+			ProjectId:             pm.ProjectId,
+			ProjectUserId:         pm.ProjectUser.ID.String(),
+			ProjectUserName:       pm.ProjectUser.Name,
+			ProjectUserAccountId:  pm.ProjectUser.AccountId,
+			ProjectUserEmail:      pm.ProjectUser.Email,
+			ProjectUserDepartment: pm.ProjectUser.Department,
+			ProjectRoleId:         pm.ProjectRole.ID,
+			ProjectRoleName:       pm.ProjectRole.Name,
+			CreatedAt:             pm.CreatedAt,
+			UpdatedAt:             pm.UpdatedAt,
+		}
+		pmrs = append(pmrs, pmr)
+	}
+
+	out := domain.GetProjectMembersResponse{ProjectMembers: pmrs}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

@@ -781,8 +781,6 @@ definitions:
         type: string
       projectLeaderId:
         type: string
-      projectRoleId:
-        type: string
     required:
     - name
     type: object
@@ -1214,13 +1212,13 @@ definitions:
   domain.GetProjectMemberResponse:
     properties:
       projectMember:
-        $ref: '#/definitions/domain.ProjectMember'
+        $ref: '#/definitions/domain.ProjectMemberResponse'
     type: object
   domain.GetProjectMembersResponse:
     properties:
       projectMembers:
         items:
-          $ref: '#/definitions/domain.ProjectMember'
+          $ref: '#/definitions/domain.ProjectMemberResponse'
         type: array
     type: object
   domain.GetProjectNamespaceResponse:
@@ -1504,20 +1502,18 @@ definitions:
     type: object
   domain.ProjectDetailResponse:
     properties:
-      appCount:
-        type: integer
       createdAt:
+        description: |-
+          NamespaceCount          int        `json:"namespaceCount"`
+          AppCount                int        `json:"appCount"`
+          MemberCount             int        `json:"memberCount"`
         type: string
       description:
         type: string
       id:
         type: string
-      memberCount:
-        type: integer
       name:
         type: string
-      namespaceCount:
-        type: integer
       organizationId:
         type: string
       projectLeaderAccountId:
@@ -1528,26 +1524,9 @@ definitions:
         type: string
       projectLeaderName:
         type: string
-      updatedAt:
-        type: string
-    type: object
-  domain.ProjectMember:
-    properties:
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      id:
-        type: string
-      projectId:
-        type: string
-      projectRole:
-        $ref: '#/definitions/domain.ProjectRole'
       projectRoleId:
         type: string
-      projectUser:
-        $ref: '#/definitions/domain.ProjectUser'
-      projectUserId:
+      projectRoleName:
         type: string
       updatedAt:
         type: string
@@ -1561,6 +1540,31 @@ definitions:
     required:
     - projectRoleId
     - projectUserId
+    type: object
+  domain.ProjectMemberResponse:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      projectId:
+        type: string
+      projectRoleId:
+        type: string
+      projectRoleName:
+        type: string
+      projectUserAccountId:
+        type: string
+      projectUserDepartment:
+        type: string
+      projectUserEmail:
+        type: string
+      projectUserId:
+        type: string
+      projectUserName:
+        type: string
+      updatedAt:
+        type: string
     type: object
   domain.ProjectNamespaceResponse:
     properties:
@@ -1618,25 +1622,6 @@ definitions:
         type: string
       name:
         description: project-leader, project-member, project-viewer
-        type: string
-      updatedAt:
-        type: string
-    type: object
-  domain.ProjectUser:
-    properties:
-      accountId:
-        type: string
-      createdAt:
-        type: string
-      department:
-        type: string
-      description:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      name:
         type: string
       updatedAt:
         type: string
