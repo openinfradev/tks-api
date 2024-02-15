@@ -113,7 +113,7 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, nil, fmt.Errorf("No app with ID %s", appId)
+		return nil, fmt.Errorf("No app with ID %s", appId)
 	}
 
 	// Populate tasks into app object
@@ -176,7 +176,7 @@ func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*domain.A
 		return nil, nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, nil, fmt.Errorf("Couldn't find app with ID %s associated with task %s", appId, taskId)
+		return nil, nil, fmt.Errorf("Couldn't find app with ID %s associated with task %s", app.ID, taskId)
 	}
 
 	return &task, &app, nil

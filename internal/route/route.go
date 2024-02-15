@@ -136,9 +136,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", customMiddleware.Handle(internalApi.CreateAppServeApp, http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps", customMiddleware.Handle(internalApi.GetAppServeApps, http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps", customMiddleware.Handle(internalApi.GetAppServeApps, http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/count", customMiddleware.Handle(internalApi.GetNumOfAppsOnStack, http.HandlerFunc(appServeAppHandler.GetNumOfAppsOnStack))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}", customMiddleware.Handle(internalApi.GetAppServeApps, http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}", customMiddleware.Handle(internalApi.GetAppServeApps, http.HandlerFunc(appServeAppHandler.GetAppServeApp))).Methods(http.MethodGet)
 	// TODO: To be implemented
 	//	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/tasks/{taskId}", customMiddleware.Handle(http.HandlerFunc(appServeAppHandler.GetAppServeAppTask))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/app-serve-apps/{appId}/latest-task", customMiddleware.Handle(internalApi.GetAppServeAppLatestTask, http.HandlerFunc(appServeAppHandler.GetAppServeAppLatestTask))).Methods(http.MethodGet)
