@@ -74,16 +74,19 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	if err != nil {
 		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
-	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
-	}
+
 	var accountToken *domain.User
-	// Authentication with Keycloak
-	if organizationId == "master" && accountId == "admin" {
-		accountToken, err = u.kc.LoginAdmin(accountId, password)
-	} else {
-		accountToken, err = u.kc.Login(accountId, password, organizationId)
+	accountToken, err = u.kc.Login(accountId, password, organizationId)
+	if err != nil {
+		apiErr, ok := err.(*gocloak.APIError)
+		if ok {
+			if apiErr.Code == 401 {
+				return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
+			}
+		}
+		return domain.User{}, httpErrors.NewInternalServerError(err, "", "")
 	}
+	log.Errorf("err: %v", err)
 	if err != nil {
 		//TODO: implement not found handling
 		return domain.User{}, err
