@@ -13,20 +13,18 @@ import (
 
 // Interface
 type IUserRepository interface {
-	Create(accountId string, organizationId string, password string, name string) (domain.User, error)
-	CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
+	CreateWithUuid(uuid uuid.UUID, accountId string, name string, email string,
 		department string, description string, organizationId string, roleId string) (domain.User, error)
 	List(filters ...FilterFunc) (out *[]domain.User, err error)
 	ListWithPagination(pg *pagination.Pagination, organizationId string) (out *[]domain.User, err error)
 	Get(accountId string, organizationId string) (domain.User, error)
 	GetByUuid(userId uuid.UUID) (domain.User, error)
-	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId string, email string,
+	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string, email string,
 		department string, description string) (domain.User, error)
-	UpdatePassword(userId uuid.UUID, organizationId string, password string, isTemporary bool) error
+	UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error
 	DeleteWithUuid(uuid uuid.UUID) error
 	Flush(organizationId string) error
 
-	FetchRoles() (out *[]domain.Role, err error)
 	AccountIdFilter(accountId string) FilterFunc
 	OrganizationFilter(organization string) FilterFunc
 	EmailFilter(email string) FilterFunc
@@ -78,28 +76,12 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 //	return nil
 //}
 
-func (r *UserRepository) Create(accountId string, organizationId string, password string, name string) (domain.User, error) {
-	newUser := domain.User{
-		AccountId:      accountId,
-		Password:       password,
-		OrganizationId: organizationId,
-		Name:           name,
-	}
-	res := r.db.Create(&newUser)
-	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.User{}, res.Error
-	}
-
-	return r.reflect(newUser), nil
-}
-func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, password string, email string,
+func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, email string,
 	department string, description string, organizationId string, roleId string) (domain.User, error) {
 
 	newUser := domain.User{
 		ID:             uuid,
 		AccountId:      accountId,
-		Password:       password,
 		Name:           name,
 		Email:          email,
 		Department:     department,
@@ -218,13 +200,12 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 
 	return r.reflect(user), nil
 }
-func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, password string, roleId string,
+func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string,
 	email string, department string, description string) (domain.User, error) {
 	var user domain.User
 	res := r.db.Model(&domain.User{}).Where("id = ?", uuid).Updates(domain.User{
 		AccountId:   accountId,
 		Name:        name,
-		Password:    password,
 		Email:       email,
 		Department:  department,
 		Description: description,
@@ -243,17 +224,15 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 	}
 	return r.reflect(user), nil
 }
-func (r *UserRepository) UpdatePassword(userId uuid.UUID, organizationId string, password string, isTemporary bool) error {
-	var updateUser = domain.User{
-		Password: password,
-	}
+func (r *UserRepository) UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error {
+	var updateUser = domain.User{}
 	if isTemporary {
 		updateUser.PasswordUpdatedAt = time.Time{}
 	} else {
 		updateUser.PasswordUpdatedAt = time.Now()
 	}
 	res := r.db.Model(&domain.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
-		Select("password", "password_updated_at").Updates(updateUser)
+		Select("password_updated_at").Updates(updateUser)
 
 	if res.RowsAffected == 0 || res.Error != nil {
 		return httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
@@ -303,27 +282,27 @@ func (r *UserRepository) GetRoleByName(roleName string) (domain.Role, error) {
 	return r.reflectRole(role), nil
 }
 
-func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
-	var roles []domain.Role
-	res := r.db.Find(&roles)
-
-	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return nil, res.Error
-	}
-
-	if res.RowsAffected == 0 {
-		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
-	}
-
-	var out []domain.Role
-	for _, role := range roles {
-		outRole := r.reflectRole(role)
-		out = append(out, outRole)
-	}
-
-	return &out, nil
-}
+//func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
+//	var roles []domain.Role
+//	res := r.db.Find(&roles)
+//
+//	if res.Error != nil {
+//		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+//		return nil, res.Error
+//	}
+//
+//	if res.RowsAffected == 0 {
+//		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
+//	}
+//
+//	var out []domain.Role
+//	for _, role := range roles {
+//		outRole := r.reflectRole(role)
+//		out = append(out, outRole)
+//	}
+//
+//	return &out, nil
+//}
 
 // private members
 func (r *UserRepository) getUserByAccountId(accountId string, organizationId string) (domain.User, error) {

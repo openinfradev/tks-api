@@ -46,6 +46,7 @@ type IRoleRepository interface {
 	ListProjectRoles(projectId string, pg *pagination.Pagination) ([]*domain.ProjectRole, error)
 	Get(id uuid.UUID) (*domain.Role, error)
 	GetTksRole(id uuid.UUID) (*domain.TksRole, error)
+	GetTksRoleByRoleName(roleName string) (*domain.TksRole, error)
 	GetProjectRole(id uuid.UUID) (*domain.ProjectRole, error)
 	DeleteCascade(id uuid.UUID) error
 	Update(roleObj interface{}) error
@@ -53,6 +54,15 @@ type IRoleRepository interface {
 
 type RoleRepository struct {
 	db *gorm.DB
+}
+
+func (r RoleRepository) GetTksRoleByRoleName(roleName string) (*domain.TksRole, error) {
+	var role domain.TksRole
+	if err := r.db.Preload("Role").First(&role, "Role.name = ?", roleName).Error; err != nil {
+		return nil, err
+	}
+
+	return ConvertRepoToDomainTksRole(&role), nil
 }
 
 func (r RoleRepository) Create(roleObj interface{}) error {

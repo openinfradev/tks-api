@@ -36,7 +36,6 @@ type IAuthUsecase interface {
 	FindId(code string, email string, userName string, organizationId string) (string, error)
 	FindPassword(code string, accountId string, email string, userName string, organizationId string) error
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
-	FetchRoles() (out []domain.Role, err error)
 	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
 	SingleSignOut(organizationId string) (string, []*http.Cookie, error)
 	VerifyToken(token string) (bool, error)
@@ -231,10 +230,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	if err = u.userRepository.UpdatePassword(user.ID, organizationId, user.Password, true); err != nil {
+	if err = u.userRepository.UpdatePasswordAt(user.ID, organizationId, true); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -305,14 +301,6 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	}
 
 	return nil
-}
-
-func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
-	roles, err := u.userRepository.FetchRoles()
-	if err != nil {
-		return nil, err
-	}
-	return *roles, nil
 }
 
 func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error) {

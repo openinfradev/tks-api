@@ -28,7 +28,7 @@ type IKeycloak interface {
 	DeleteRealm(organizationId string) error
 	UpdateRealm(organizationId string, organizationConfig domain.Organization) error
 
-	CreateUser(organizationId string, user *gocloak.User) error
+	CreateUser(organizationId string, user *gocloak.User) (string, error)
 	GetUser(organizationId string, userAccountId string) (*gocloak.User, error)
 	GetUsers(organizationId string) ([]*gocloak.User, error)
 	DeleteUser(organizationId string, userAccountId string) error
@@ -297,16 +297,16 @@ func (k *Keycloak) DeleteRealm(organizationId string) error {
 	return nil
 }
 
-func (k *Keycloak) CreateUser(organizationId string, user *gocloak.User) error {
+func (k *Keycloak) CreateUser(organizationId string, user *gocloak.User) (string, error) {
 	ctx := context.Background()
 	token := k.adminCliToken
 	user.Enabled = gocloak.BoolP(true)
-	_, err := k.client.CreateUser(ctx, token.AccessToken, organizationId, *user)
+	uuid, err := k.client.CreateUser(ctx, token.AccessToken, organizationId, *user)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return uuid, nil
 }
 
 func (k *Keycloak) GetUser(organizationId string, accountId string) (*gocloak.User, error) {

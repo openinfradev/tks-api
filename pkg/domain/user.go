@@ -9,7 +9,7 @@ import (
 type User struct {
 	ID                uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId         string    `json:"accountId"`
-	Password          string    `json:"password"`
+	Password          string    `gorm:"-:all" json:"password"`
 	Name              string    `json:"name"`
 	Token             string    `json:"token"`
 	RoleId            string
