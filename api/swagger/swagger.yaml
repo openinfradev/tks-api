@@ -176,6 +176,9 @@ definitions:
       previewEndpointUrl:
         description: preview svc endpoint URL in B/G deployment
         type: string
+      projectId:
+        description: project ID which this app belongs to
+        type: string
       status:
         description: status is status of deployed app
         type: string
@@ -1183,8 +1186,14 @@ definitions:
     type: object
   domain.GetAppServeAppTaskResponse:
     properties:
+      appServeApp:
+        $ref: '#/definitions/domain.AppServeApp'
       appServeAppTask:
         $ref: '#/definitions/domain.AppServeAppTask'
+      stages:
+        items:
+          $ref: '#/definitions/domain.StageResponse'
+        type: array
     type: object
   domain.GetApplicationsResponse:
     properties:
@@ -4243,6 +4252,534 @@ paths:
       summary: Update project
       tags:
       - Projects
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp list by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Show all apps including deleted apps
+        in: query
+        name: showAll
+        type: boolean
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppServeApp'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appServeApp list
+      tags:
+      - AppServeApps
+    post:
+      consumes:
+      - application/json
+      description: Install appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Request body to create app
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Install appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}:
+    delete:
+      consumes:
+      - application/json
+      description: Uninstall appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Uninstall appServeApp
+      tags:
+      - AppServeApps
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAppServeAppResponse'
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
+    put:
+      consumes:
+      - application/json
+      description: Update appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Request body to update app
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Update appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint:
+    patch:
+      consumes:
+      - application/json
+      description: Update app endpoint
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: appId
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Request body to update app endpoint
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppEndpointRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Update app endpoint
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeApp by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Get appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task:
+    get:
+      consumes:
+      - application/json
+      description: Get latest task from appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAppServeAppTaskResponse'
+      security:
+      - JWT: []
+      summary: Get latest task from appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: Rollback appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Request body to rollback app
+        in: body
+        name: object
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RollbackAppServeAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Rollback appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update app status
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Request body to update app status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAppServeAppStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Update app status
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get appServeAppTask list by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: sortColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.AppServeApp'
+            type: array
+      security:
+      - JWT: []
+      summary: Get appServeAppTask list
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}:
+    get:
+      consumes:
+      - application/json
+      description: Get task detail from appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      - description: Task ID
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAppServeAppTaskResponse'
+      security:
+      - JWT: []
+      summary: Get task detail from appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/count:
+    get:
+      consumes:
+      - application/json
+      description: Get number of apps on given stack
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Stack ID
+        in: query
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+      security:
+      - JWT: []
+      summary: Get number of apps on given stack
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check duplicate appServeAppName by giving params
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+      security:
+      - JWT: []
+      summary: Check duplicate appServeAppName
+      tags:
+      - AppServeApps
   /organizations/{organizationId}/projects/{projectId}/members:
     delete:
       consumes:
