@@ -19,8 +19,8 @@ func NewDefaultAuthorization(repo repository.Repository) *defaultAuthorization {
 		repo: repo,
 	}
 	d.addFilters(PasswordFilter)
-	d.addFilters(RBACFilter)
-	d.addFilters(RBACFilterWithEndpoint)
+	//d.addFilters(RBACFilter)
+	//d.addFilters(RBACFilterWithEndpoint)
 
 	return d
 }
