@@ -1,7 +1,7 @@
 # Build - backend
 FROM --platform=linux/amd64 docker.io/library/golang:1.18-buster AS backend-build
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
-RUN wget https://github.com/swaggo/swag/releases/download/v1.8.5/swag_1.8.5_Linux_x86_64.tar.gz -O - | tar -xz -C /tmp && cp /tmp/swag /usr/local/bin
+RUN wget https://github.com/swaggo/swag/releases/download/v1.16.3/swag_1.16.3_Linux_amd64.tar.gz -O - | tar -xz -C /tmp && cp /tmp/swag /usr/local/bin
 
 WORKDIR /app/backend
 COPY ./ .

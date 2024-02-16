@@ -70,6 +70,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -575,6 +576,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -948,6 +950,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -1174,6 +1177,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -1408,6 +1412,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -1981,6 +1986,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -4191,6 +4197,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -4561,6 +4568,7 @@
                         "items": {
                             "type": "string"
                         },
+                        "collectionFormat": "csv",
                         "description": "filters",
                         "name": "filters",
                         "in": "query"
@@ -4889,7 +4897,7 @@
             "type": "object",
             "properties": {
                 "appGroupType": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.AppGroupType"
                 },
                 "clusterId": {
                     "type": "string"
@@ -4910,7 +4918,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.AppGroupStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -4925,6 +4933,40 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.AppGroupStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "AppGroupStatus_PENDING",
+                "AppGroupStatus_INSTALLING",
+                "AppGroupStatus_RUNNING",
+                "AppGroupStatus_DELETING",
+                "AppGroupStatus_DELETED",
+                "AppGroupStatus_INSTALL_ERROR",
+                "AppGroupStatus_DELETE_ERROR"
+            ]
+        },
+        "domain.AppGroupType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "AppGroupType_UNSPECIFIED",
+                "AppGroupType_LMA",
+                "AppGroupType_SERVICE_MESH"
+            ]
         },
         "domain.AppServeApp": {
             "type": "object",
@@ -5100,7 +5142,7 @@
                     "type": "string"
                 },
                 "applicationType": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.ApplicationType"
                 },
                 "createdAt": {
                     "type": "string"
@@ -5118,6 +5160,35 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.ApplicationType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "x-enum-varnames": [
+                "ApplicationType_UNSPECIFIED",
+                "ApplicationType_THANOS",
+                "ApplicationType_PROMETHEUS",
+                "ApplicationType_GRAFANA",
+                "ApplicationType_KIALI",
+                "ApplicationType_KIBANA",
+                "ApplicationType_ELASTICSERCH",
+                "ApplicationType_CLOUD_CONSOLE",
+                "ApplicationType_HORIZON",
+                "ApplicationType_JAEGER",
+                "ApplicationType_KUBERNETES_DASHBOARD"
+            ]
         },
         "domain.Axis": {
             "type": "object",
@@ -5234,7 +5305,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.CloudAccountStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -5296,6 +5367,27 @@
                     "$ref": "#/definitions/domain.SimpleUserResponse"
                 }
             }
+        },
+        "domain.CloudAccountStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "CloudAccountStatus_PENDING",
+                "CloudAccountStatus_CREATING",
+                "CloudAccountStatus_CREATED",
+                "CloudAccountStatus_DELETING",
+                "CloudAccountStatus_DELETED",
+                "CloudAccountStatus_CREATE_ERROR",
+                "CloudAccountStatus_DELETE_ERROR"
+            ]
         },
         "domain.Cluster": {
             "type": "object",
@@ -5361,7 +5453,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.ClusterStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -5589,6 +5681,33 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.ClusterStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+            ],
+            "x-enum-varnames": [
+                "ClusterStatus_PENDING",
+                "ClusterStatus_INSTALLING",
+                "ClusterStatus_RUNNING",
+                "ClusterStatus_DELETING",
+                "ClusterStatus_DELETED",
+                "ClusterStatus_INSTALL_ERROR",
+                "ClusterStatus_DELETE_ERROR",
+                "ClusterStatus_BOOTSTRAPPING",
+                "ClusterStatus_BOOTSTRAPPED",
+                "ClusterStatus_BOOTSTRAP_ERROR"
+            ]
         },
         "domain.CommonProjectResponse": {
             "type": "object",
@@ -6941,7 +7060,7 @@
                     "type": "string"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/domain.OrganizationStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -6950,6 +7069,29 @@
                     "type": "string"
                 }
             }
+        },
+        "domain.OrganizationStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "OrganizationStatus_PENDING",
+                "OrganizationStatus_CREATE",
+                "OrganizationStatus_CREATING",
+                "OrganizationStatus_CREATED",
+                "OrganizationStatus_DELETE",
+                "OrganizationStatus_DELETING",
+                "OrganizationStatus_DELETED",
+                "OrganizationStatus_ERROR"
+            ]
         },
         "domain.PaginationResponse": {
             "type": "object",
