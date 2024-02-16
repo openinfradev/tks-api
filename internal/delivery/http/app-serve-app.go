@@ -415,7 +415,6 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	ResponseJSON(w, r, http.StatusOK, numApps)
 }
 
-// New func
 // GetAppServeAppTasksByAppId godoc
 // @Tags        AppServeApps
 // @Summary     Get appServeAppTask list

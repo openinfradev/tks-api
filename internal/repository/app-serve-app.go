@@ -67,6 +67,7 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 		pg = pagination.NewDefaultPagination()
 	}
 
+    // TODO: should return different records based on showAll param
 	filterFunc := CombinedGormFilter("app_serve_apps", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&domain.AppServeApp{}).
 		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId))
