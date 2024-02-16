@@ -196,6 +196,13 @@ type GetProjectMembersResponse struct {
 	ProjectMembers []ProjectMemberResponse `json:"projectMembers"`
 }
 
+type GetProjectMemberCountResponse struct {
+	ProjectMemberAllCount int `json:"projectMemberAllCount"`
+	ProjectLeaderCount    int `json:"projectLeaderCount"`
+	ProjectMemberCount    int `json:"projectMemberCount"`
+	ProjectViewerCount    int `json:"projectViewerCount"`
+}
+
 type RemoveProjectMemberRequest struct {
 	ProjectMember []struct {
 		ProjectMemberId string `json:"projectMemberId"`

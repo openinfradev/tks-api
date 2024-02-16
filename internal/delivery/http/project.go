@@ -27,6 +27,7 @@ type IProjectHandler interface {
 	AddProjectMember(w http.ResponseWriter, r *http.Request)
 	GetProjectMember(w http.ResponseWriter, r *http.Request)
 	GetProjectMembers(w http.ResponseWriter, r *http.Request)
+	GetProjectMemberCount(w http.ResponseWriter, r *http.Request)
 	RemoveProjectMember(w http.ResponseWriter, r *http.Request)
 	RemoveProjectMembers(w http.ResponseWriter, r *http.Request)
 	UpdateProjectMemberRole(w http.ResponseWriter, r *http.Request)
@@ -563,6 +564,7 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
 // @Param       projectId      path     string true "Project ID"
+// @Param       query          query    string false "project member search by query (query=all), (query=leader), (query=member), (query=viewer)"
 // @Success     200            {object} domain.GetProjectMembersResponse
 // @Router      /organizations/{organizationId}/projects/{projectId}/members [get]
 // @Security    JWT
@@ -583,10 +585,35 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	pms, err := p.usecase.GetProjectMembersByProjectId(projectId)
+	urlParams := r.URL.Query()
+
+	queryParam := urlParams.Get("query")
+	query := usecase.ProjectAll
+	if queryParam == "" || strings.EqualFold(queryParam, "all") {
+		query = usecase.ProjectAll
+	} else if strings.EqualFold(queryParam, "leader") {
+		query = usecase.ProjectLeader
+	} else if strings.EqualFold(queryParam, "member") {
+		query = usecase.ProjectMember
+	} else if strings.EqualFold(queryParam, "viewer") {
+		query = usecase.ProjectViewer
+	} else {
+		log.ErrorWithContext(r.Context(), "Invalid query params. Err: ")
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid query params"),
+			"C_INVALID_QUERY_PARAM", ""))
+		return
+	}
+
+	pms, err := p.usecase.GetProjectMembers(projectId, query)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project roles ", err)
+		log.ErrorWithContext(r.Context(), "Failed to get project members ", err)
 		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetProjectMembersResponse
+	if pms == nil {
+		ResponseJSON(w, r, http.StatusNotFound, out)
 		return
 	}
 
@@ -608,9 +635,50 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		pmrs = append(pmrs, pmr)
 	}
 
-	out := domain.GetProjectMembersResponse{ProjectMembers: pmrs}
-
+	out = domain.GetProjectMembersResponse{ProjectMembers: pmrs}
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetProjectMemberCount godoc
+// @Tags        Projects
+// @Summary     Get project member count group by project role
+// @Description Get project member count group by project role
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId      path     string true "Project ID"
+// @Success     200            {object} domain.GetProjectMemberCountResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/members/project-roles/count [get]
+// @Security    JWT
+func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	log.Debugf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	pmcr, err := p.usecase.GetProjectMemberCount(projectId)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get project member count", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	if pmcr == nil {
+		ResponseJSON(w, r, http.StatusNotFound, domain.GetProjectMembersResponse{})
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, pmcr)
 }
 
 // RemoveProjectMember godoc

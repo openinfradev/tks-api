@@ -1209,6 +1209,17 @@ definitions:
             type: string
         type: object
     type: object
+  domain.GetProjectMemberCountResponse:
+    properties:
+      projectLeaderCount:
+        type: integer
+      projectMemberAllCount:
+        type: integer
+      projectMemberCount:
+        type: integer
+      projectViewerCount:
+        type: integer
+    type: object
   domain.GetProjectMemberResponse:
     properties:
       projectMember:
@@ -4170,6 +4181,11 @@ paths:
         name: projectId
         required: true
         type: string
+      - description: project member search by query (query=all), (query=leader), (query=member),
+          (query=viewer)
+        in: query
+        name: query
+        type: string
       produces:
       - application/json
       responses:
@@ -4350,6 +4366,34 @@ paths:
       security:
       - JWT: []
       summary: Update project  member   Role
+      tags:
+      - Projects
+  /organizations/{organizationId}/projects/{projectId}/members/project-roles/count:
+    get:
+      consumes:
+      - application/json
+      description: Get project member count group by project role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetProjectMemberCountResponse'
+      security:
+      - JWT: []
+      summary: Get project member count group by project role
       tags:
       - Projects
   /organizations/{organizationId}/projects/{projectId}/namespaces:
