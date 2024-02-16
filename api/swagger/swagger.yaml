@@ -91,7 +91,7 @@ definitions:
   domain.AppGroupResponse:
     properties:
       appGroupType:
-        type: integer
+        $ref: '#/definitions/domain.AppGroupType'
       clusterId:
         type: string
       createdAt:
@@ -105,7 +105,7 @@ definitions:
       name:
         type: string
       status:
-        type: integer
+        $ref: '#/definitions/domain.AppGroupStatus'
       statusDesc:
         type: string
       updatedAt:
@@ -115,6 +115,34 @@ definitions:
       workflowId:
         type: string
     type: object
+  domain.AppGroupStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    type: integer
+    x-enum-varnames:
+    - AppGroupStatus_PENDING
+    - AppGroupStatus_INSTALLING
+    - AppGroupStatus_RUNNING
+    - AppGroupStatus_DELETING
+    - AppGroupStatus_DELETED
+    - AppGroupStatus_INSTALL_ERROR
+    - AppGroupStatus_DELETE_ERROR
+  domain.AppGroupType:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - AppGroupType_UNSPECIFIED
+    - AppGroupType_LMA
+    - AppGroupType_SERVICE_MESH
   domain.AppServeApp:
     properties:
       appServeAppTasks:
@@ -240,7 +268,7 @@ definitions:
       appGroupId:
         type: string
       applicationType:
-        type: integer
+        $ref: '#/definitions/domain.ApplicationType'
       createdAt:
         type: string
       endpoint:
@@ -252,6 +280,32 @@ definitions:
       updatedAt:
         type: string
     type: object
+  domain.ApplicationType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    type: integer
+    x-enum-varnames:
+    - ApplicationType_UNSPECIFIED
+    - ApplicationType_THANOS
+    - ApplicationType_PROMETHEUS
+    - ApplicationType_GRAFANA
+    - ApplicationType_KIALI
+    - ApplicationType_KIBANA
+    - ApplicationType_ELASTICSERCH
+    - ApplicationType_CLOUD_CONSOLE
+    - ApplicationType_HORIZON
+    - ApplicationType_JAEGER
+    - ApplicationType_KUBERNETES_DASHBOARD
   domain.Axis:
     properties:
       data:
@@ -327,7 +381,7 @@ definitions:
       sessionToken:
         type: string
       status:
-        type: integer
+        $ref: '#/definitions/domain.CloudAccountStatus'
       statusDesc:
         type: string
       updatedAt:
@@ -368,6 +422,24 @@ definitions:
       updator:
         $ref: '#/definitions/domain.SimpleUserResponse'
     type: object
+  domain.CloudAccountStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    type: integer
+    x-enum-varnames:
+    - CloudAccountStatus_PENDING
+    - CloudAccountStatus_CREATING
+    - CloudAccountStatus_CREATED
+    - CloudAccountStatus_DELETING
+    - CloudAccountStatus_DELETED
+    - CloudAccountStatus_CREATE_ERROR
+    - CloudAccountStatus_DELETE_ERROR
   domain.Cluster:
     properties:
       byoClusterEndpointHost:
@@ -411,7 +483,7 @@ definitions:
       stackTemplateId:
         type: string
       status:
-        type: integer
+        $ref: '#/definitions/domain.ClusterStatus'
       statusDesc:
         type: string
       updatedAt:
@@ -561,6 +633,30 @@ definitions:
       tksUserNodeType:
         type: string
     type: object
+  domain.ClusterStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    type: integer
+    x-enum-varnames:
+    - ClusterStatus_PENDING
+    - ClusterStatus_INSTALLING
+    - ClusterStatus_RUNNING
+    - ClusterStatus_DELETING
+    - ClusterStatus_DELETED
+    - ClusterStatus_INSTALL_ERROR
+    - ClusterStatus_DELETE_ERROR
+    - ClusterStatus_BOOTSTRAPPING
+    - ClusterStatus_BOOTSTRAPPED
+    - ClusterStatus_BOOTSTRAP_ERROR
   domain.CommonProjectResponse:
     properties:
       result:
@@ -1458,12 +1554,32 @@ definitions:
       primaryClusterId:
         type: string
       status:
-        type: integer
+        $ref: '#/definitions/domain.OrganizationStatus'
       statusDesc:
         type: string
       updatedAt:
         type: string
     type: object
+  domain.OrganizationStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    type: integer
+    x-enum-varnames:
+    - OrganizationStatus_PENDING
+    - OrganizationStatus_CREATE
+    - OrganizationStatus_CREATING
+    - OrganizationStatus_CREATED
+    - OrganizationStatus_DELETE
+    - OrganizationStatus_DELETING
+    - OrganizationStatus_DELETED
+    - OrganizationStatus_ERROR
   domain.PaginationResponse:
     properties:
       filters:
@@ -2297,7 +2413,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -2605,7 +2722,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -2837,7 +2955,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -2980,7 +3099,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -3129,7 +3249,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -3495,7 +3616,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -4912,7 +5034,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
@@ -5149,7 +5272,8 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: filters
+      - collectionFormat: csv
+        description: filters
         in: query
         items:
           type: string
