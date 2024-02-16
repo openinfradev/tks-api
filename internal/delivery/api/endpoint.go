@@ -130,6 +130,8 @@ const (
 
 	// Project
 	CreateProject
+	GetProjectRoles
+	GetProjectRole
 	GetProjects
 	GetProject
 	UpdateProject
@@ -545,6 +547,14 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "CreateProject",
 		Group: "Project",
 	},
+	GetProjectRoles: {
+		Name:  "GetProjectRoles",
+		Group: "Project",
+	},
+	GetProjectRole: {
+		Name:  "GetProjectRole",
+		Group: "Project",
+	},
 	GetProjects: {
 		Name:  "GetProjects",
 		Group: "Project",
@@ -641,40 +651,20 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "CreateTksRole",
 		Group: "Role",
 	},
-	CreateProjectRole: {
-		Name:  "CreateProjectRole",
-		Group: "Role",
-	},
 	ListTksRoles: {
 		Name:  "ListTksRoles",
-		Group: "Role",
-	},
-	ListProjectRoles: {
-		Name:  "ListProjectRoles",
 		Group: "Role",
 	},
 	GetTksRole: {
 		Name:  "GetTksRole",
 		Group: "Role",
 	},
-	GetProjectRole: {
-		Name:  "GetProjectRole",
-		Group: "Role",
-	},
 	DeleteTksRole: {
 		Name:  "DeleteTksRole",
 		Group: "Role",
 	},
-	DeleteProjectRole: {
-		Name:  "DeleteProjectRole",
-		Group: "Role",
-	},
 	UpdateTksRole: {
 		Name:  "UpdateTksRole",
-		Group: "Role",
-	},
-	UpdateProjectRole: {
-		Name:  "UpdateProjectRole",
 		Group: "Role",
 	},
 }
@@ -871,6 +861,10 @@ func (e Endpoint) String() string {
 		return "InstallStack"
 	case CreateProject:
 		return "CreateProject"
+	case GetProjectRoles:
+		return "GetProjectRoles"
+	case GetProjectRole:
+		return "GetProjectRole"
 	case GetProjects:
 		return "GetProjects"
 	case GetProject:
@@ -919,24 +913,14 @@ func (e Endpoint) String() string {
 		return "DeleteAudit"
 	case CreateTksRole:
 		return "CreateTksRole"
-	case CreateProjectRole:
-		return "CreateProjectRole"
 	case ListTksRoles:
 		return "ListTksRoles"
-	case ListProjectRoles:
-		return "ListProjectRoles"
 	case GetTksRole:
 		return "GetTksRole"
-	case GetProjectRole:
-		return "GetProjectRole"
 	case DeleteTksRole:
 		return "DeleteTksRole"
-	case DeleteProjectRole:
-		return "DeleteProjectRole"
 	case UpdateTksRole:
 		return "UpdateTksRole"
-	case UpdateProjectRole:
-		return "UpdateProjectRole"
 	default:
 		return ""
 	}
@@ -1185,24 +1169,14 @@ func GetEndpoint(name string) Endpoint {
 		return DeleteAudit
 	case "CreateTksRole":
 		return CreateTksRole
-	case "CreateProjectRole":
-		return CreateProjectRole
 	case "ListTksRoles":
 		return ListTksRoles
-	case "ListProjectRoles":
-		return ListProjectRoles
 	case "GetTksRole":
 		return GetTksRole
-	case "GetProjectRole":
-		return GetProjectRole
 	case "DeleteTksRole":
 		return DeleteTksRole
-	case "DeleteProjectRole":
-		return DeleteProjectRole
 	case "UpdateTksRole":
 		return UpdateTksRole
-	case "UpdateProjectRole":
-		return UpdateProjectRole
 	default:
 		return -1
 	}
