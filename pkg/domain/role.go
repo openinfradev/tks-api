@@ -33,25 +33,6 @@ type Role struct {
 	UpdatedAt      time.Time    `json:"updatedAt"`
 }
 
-type ProjectRole struct {
-	RoleID    string  `gorm:"primaryKey" json:"roleId"`
-	Role      Role    `gorm:"foreignKey:RoleID;references:ID;" json:"role"`
-	ProjectID string  `json:"projectID"`
-	Project   Project `gorm:"foreignKey:ProjectID;references:ID;" json:"project"`
-}
-
-//type Role = struct {
-//	ID             uuid.UUID    `json:"id"`
-//	Name           string       `json:"name"`
-//	OrganizationID string       `json:"organizationId"`
-//	Organization   Organization `json:"organization"`
-//	Type           string       `json:"type"`
-//	Description    string       `json:"description"`
-//	Creator        uuid.UUID    `json:"creator"`
-//	CreatedAt      time.Time    `json:"createdAt"`
-//	UpdatedAt      time.Time    `json:"updatedAt"`
-//}
-
 type CreateTksRoleRequest struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
@@ -77,36 +58,6 @@ type ListTksRoleResponse struct {
 }
 
 type UpdateTksRoleRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description" validate:"omitempty,min=0,max=100"`
-}
-
-type CreateProjectRoleRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description" validate:"omitempty,min=0,max=100"`
-}
-
-type CreateProjectRoleResponse struct {
-	ID string `json:"id"`
-}
-
-type GetProjectRoleResponse struct {
-	ID             string    `json:"id"`
-	Name           string    `json:"name"`
-	OrganizationID string    `json:"organizationId"`
-	ProjectID      string    `json:"projectId"`
-	Description    string    `json:"description"`
-	Creator        string    `json:"creator"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-}
-
-type ListProjectRoleResponse struct {
-	Roles      []GetProjectRoleResponse `json:"roles"`
-	Pagination PaginationResponse       `json:"pagination"`
-}
-
-type UpdateProjectRoleRequest struct {
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }

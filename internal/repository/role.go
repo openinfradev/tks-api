@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"gorm.io/gorm"
@@ -93,34 +92,6 @@ func (r RoleRepository) ListTksRoles(organizationId string, pg *pagination.Pagin
 	return roles, nil
 }
 
-func (r RoleRepository) ListProjectRoles(projectId string, pg *pagination.Pagination) ([]*domain.ProjectRole, error) {
-	var roles []*domain.ProjectRole
-	var objs []*domain.ProjectRole
-
-	if pg == nil {
-		pg = pagination.NewDefaultPagination()
-	}
-	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&domain.ProjectRole{}))
-
-	db.Count(&pg.TotalRows)
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Joins("JOIN roles as r on r.id = project_roles.role_id").
-		Where("project_roles.project_id = ?", projectId).
-		Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&objs)
-	//res := db.Preload("Role").Preload("Project").Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&objs)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-	for _, role := range objs {
-		roles = append(roles, role)
-	}
-
-	return roles, nil
-}
-
 func (r RoleRepository) Get(id string) (*domain.Role, error) {
 	var role domain.Role
 	if err := r.db.First(&role, "id = ?", id).Error; err != nil {
@@ -133,15 +104,6 @@ func (r RoleRepository) Get(id string) (*domain.Role, error) {
 func (r RoleRepository) GetTksRole(id string) (*domain.Role, error) {
 	var role domain.Role
 	if err := r.db.Preload("Role").First(&role, "role_id = ?", id).Error; err != nil {
-		return nil, err
-	}
-
-	return &role, nil
-}
-
-func (r RoleRepository) GetProjectRole(id uuid.UUID) (*domain.ProjectRole, error) {
-	var role domain.ProjectRole
-	if err := r.db.Preload("Role").Preload("Project").First(&role, "role_id = ?", id).Error; err != nil {
 		return nil, err
 	}
 

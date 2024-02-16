@@ -78,6 +78,15 @@ type GetProjectResponse struct {
 	Project *ProjectDetailResponse `json:"project"`
 }
 
+type ProjectRole struct {
+	ID          string     `gorm:"primarykey" json:"id"`
+	Name        string     `json:"name"` // project-leader, project-member, project-viewer
+	Description string     `json:"description,omitempty"`
+	CreatedAt   time.Time  `gorm:"autoCreateTime:false" json:"createdAt" `
+	UpdatedAt   *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
+	DeletedAt   *time.Time `json:"deletedAt"`
+}
+
 type ProjectUser struct {
 	ID          uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId   string    `json:"accountId"`
