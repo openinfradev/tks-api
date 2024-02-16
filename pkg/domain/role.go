@@ -33,11 +33,6 @@ type Role struct {
 	UpdatedAt      time.Time    `json:"updatedAt"`
 }
 
-type TksRole struct {
-	RoleID string `gorm:"primarykey;" json:"roleId"`
-	Role   Role   `gorm:"foreignKey:RoleID;references:ID;"`
-}
-
 type ProjectRole struct {
 	RoleID    string  `gorm:"primaryKey" json:"roleId"`
 	Role      Role    `gorm:"foreignKey:RoleID;references:ID;" json:"role"`
