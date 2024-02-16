@@ -18,6 +18,8 @@ type IProjectRepository interface {
 	GetProjectRoleById(id string) (*domain.ProjectRole, error)
 	AddProjectMember(*domain.ProjectMember) (string, error)
 	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
+	GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string) ([]domain.ProjectMember, error)
+	GetProjectMemberCountByProjectId(projectId string) (*domain.GetProjectMemberCountResponse, error)
 	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	RemoveProjectMember(projectMemberId string) error
 	//UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
@@ -83,10 +85,13 @@ func (r *ProjectRepository) GetProjectById(organizationId string, projectId stri
 }
 
 func (r *ProjectRepository) GetProjectByIdAndLeader(organizationId string, projectId string) (p *domain.Project, err error) {
-	res := r.db.Limit(1).Where("organization_id = ? and id = ?", organizationId, projectId).
+	res := r.db.Limit(1).Where("projects.organization_id = ? and projects.id = ?", organizationId, projectId).
 		Limit(1).Preload("ProjectMembers", "is_project_leader = ?", true).
 		Preload("ProjectMembers.ProjectRole").
 		Preload("ProjectMembers.ProjectUser").
+		//InnerJoins("ProjectMembers", r.db.Where(&domain.ProjectMember{IsProjectLeader: true})).
+		//InnerJoins("ProjectMembers.ProjectRole").
+		//InnerJoins("ProjectMembers.ProjectUser").
 		First(&p)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -166,8 +171,13 @@ func (r *ProjectRepository) AddProjectMember(pm *domain.ProjectMember) (string, 
 }
 
 func (r *ProjectRepository) GetProjectMembersByProjectId(projectId string) (pms []domain.ProjectMember, err error) {
-	res := r.db.Preload("ProjectUser").
-		Joins("ProjectRole").Where("project_id = ?", projectId).Find(&pms)
+	//res := r.db.Preload("ProjectUser").
+	//	Joins("ProjectRole").Where("project_id = ?", projectId).Find(&pms)
+	res := r.db.Joins("ProjectUser").
+		Joins("ProjectRole").
+		Where("project_members.project_id = ?", projectId).
+		Order("project_members.created_at ASC").
+		Find(&pms)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project member")
@@ -179,6 +189,61 @@ func (r *ProjectRepository) GetProjectMembersByProjectId(projectId string) (pms 
 	}
 
 	return pms, nil
+}
+
+func (r *ProjectRepository) GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string) (pms []domain.ProjectMember, err error) {
+	res := r.db.Joins("ProjectUser").
+		//Joins("ProjectRole").
+		//Find(&pms, "project_members.project_id = ? and \"ProjectRole\".name = ?", projectId, memberRole)
+		InnerJoins("ProjectRole", r.db.Where(&domain.ProjectRole{Name: memberRole})).
+		Order("project_members.created_at ASC").
+		Find(&pms, "project_members.project_id = ?", projectId)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project member")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return pms, nil
+}
+
+func (r *ProjectRepository) GetProjectMemberCountByProjectId(projectId string) (pmcr *domain.GetProjectMemberCountResponse, err error) {
+	res := r.db.Raw(""+
+		"select (plc.count + pmc.count + pvc.count) as project_member_all_count,"+
+		"       plc.count as project_leader_count,"+
+		"       pmc.count as project_member_count,"+
+		"       pvc.count as project_viewer_count"+
+		"  from (select count(project_members.id) as count"+
+		"          from project_members"+
+		"          left join project_roles on project_roles.id = project_members.project_role_id"+
+		"         where project_members.project_id = ?"+
+		"           and project_roles.name = 'project-leader') as plc,"+
+		"       (select count(project_members.id) as count"+
+		"          from project_members"+
+		"          left join project_roles on project_roles.id = project_members.project_role_id"+
+		"         where project_members.project_id = ?"+
+		"           and project_roles.name = 'project-member') as pmc,"+
+		"       (select count(project_members.id) as count"+
+		"          from project_members"+
+		"          left join project_roles on project_roles.id = project_members.project_role_id"+
+		"         where project_members.project_id = ?"+
+		"           and project_roles.name = 'project-viewer') as pvc", projectId, projectId, projectId).
+		Scan(&pmcr)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project member count")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return pmcr, nil
 }
 
 func (r *ProjectRepository) GetProjectMemberById(projectMemberId string) (pm *domain.ProjectMember, err error) {

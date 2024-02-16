@@ -28,7 +28,8 @@ type IProjectUsecase interface {
 	AddProjectMember(pm *domain.ProjectMember) (string, error)
 	GetProjectUser(projectUserId string) (*domain.ProjectUser, error)
 	GetProjectMember(projectMemberId string) (*domain.ProjectMember, error)
-	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
+	GetProjectMembers(projectId string, query int) ([]domain.ProjectMember, error)
+	GetProjectMemberCount(projectMemberId string) (*domain.GetProjectMemberCountResponse, error)
 	RemoveProjectMember(projectMemberId string) error
 	UpdateProjectMemberRole(pm *domain.ProjectMember) error
 	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
@@ -178,14 +179,32 @@ func (u *ProjectUsecase) GetProjectMember(projectMemberId string) (pm *domain.Pr
 	return pm, nil
 }
 
-func (u *ProjectUsecase) GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error) {
-	pms, err := u.projectRepo.GetProjectMembersByProjectId(projectId)
+func (u *ProjectUsecase) GetProjectMembers(projectId string, query int) (pms []domain.ProjectMember, err error) {
+	if query == ProjectLeader {
+		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-leader")
+	} else if query == ProjectMember {
+		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-member")
+	} else if query == ProjectViewer {
+		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-viewer")
+	} else {
+		pms, err = u.projectRepo.GetProjectMembersByProjectId(projectId)
+	}
 	if err != nil {
 		log.Error(err)
 		return nil, errors.Wrap(err, "Failed to get project members.")
 	}
 
 	return pms, nil
+}
+
+func (u *ProjectUsecase) GetProjectMemberCount(projectMemberId string) (pmcr *domain.GetProjectMemberCountResponse, err error) {
+	pmcr, err = u.projectRepo.GetProjectMemberCountByProjectId(projectMemberId)
+	if err != nil {
+		log.Error(err)
+		return pmcr, errors.Wrap(err, "Failed to get project member count.")
+	}
+
+	return pmcr, nil
 }
 
 func (u *ProjectUsecase) RemoveProjectMember(projectMemberId string) error {

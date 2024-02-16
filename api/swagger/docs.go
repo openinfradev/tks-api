@@ -3084,6 +3084,12 @@ const docTemplate = `{
                         "name": "projectId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "project member search by query (query=all), (query=leader), (query=member), (query=viewer)",
+                        "name": "query",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3244,6 +3250,50 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.CommonProjectResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/projects/{projectId}/members/project-roles/count": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get project member count group by project role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project member count group by project role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetProjectMemberCountResponse"
                         }
                     }
                 }
@@ -6680,6 +6730,23 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "domain.GetProjectMemberCountResponse": {
+            "type": "object",
+            "properties": {
+                "projectLeaderCount": {
+                    "type": "integer"
+                },
+                "projectMemberAllCount": {
+                    "type": "integer"
+                },
+                "projectMemberCount": {
+                    "type": "integer"
+                },
+                "projectViewerCount": {
+                    "type": "integer"
                 }
             }
         },
