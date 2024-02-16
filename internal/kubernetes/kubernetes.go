@@ -262,6 +262,25 @@ func EnsureClusterRole(kubeconfig []byte, projectName string) error {
 	return nil
 }
 
+func RemoveClusterRole(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	// remove clusterrole object
+	for _, role := range []string{leaderRole, memberRole, viewerRole} {
+		if err := clientset.RbacV1().ClusterRoles().Delete(context.Background(), projectName+"-"+role, metav1.DeleteOptions{}); err != nil {
+			log.Error(err)
+		}
+	}
+
+	return nil
+}
+
 func EnsureClusterRoleBinding(kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
@@ -413,6 +432,23 @@ func EnsureCommonClusterRole(kubeconfig []byte, projectName string) error {
 			log.Error(err)
 			return err
 		}
+	}
+
+	return nil
+}
+
+func RemoveCommonClusterRole(kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	if err := clientset.RbacV1().ClusterRoles().Delete(context.Background(), projectName+"-common", metav1.DeleteOptions{}); err != nil {
+		log.Error(err)
+		return err
 	}
 
 	return nil

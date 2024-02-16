@@ -36,7 +36,7 @@ type IKeycloak interface {
 	JoinGroup(organizationId string, userId string, groupName string) error
 	LeaveGroup(organizationId string, userId string, groupName string) error
 
-	CreateClientRoleWithClientName(organizationId string, clientName string, roleName string) error
+	EnsureClientRoleWithClientName(organizationId string, clientName string, roleName string) error
 	DeleteClientRoleWithClientName(organizationId string, clientName string, roleName string) error
 
 	AssignClientRoleToUser(organizationId string, userId string, clientName string, roleName string) error
@@ -454,7 +454,7 @@ func (k *Keycloak) LeaveGroup(organizationId string, userId string, groupName st
 	return nil
 }
 
-func (k *Keycloak) CreateClientRoleWithClientName(organizationId string, clientName string, roleName string) error {
+func (k *Keycloak) EnsureClientRoleWithClientName(organizationId string, clientName string, roleName string) error {
 	ctx := context.Background()
 	token := k.adminCliToken
 
