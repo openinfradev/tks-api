@@ -10,7 +10,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
 
 	"goyave.dev/goyave/v4"
@@ -22,6 +21,7 @@ const SORT_ORDER = "sortOrder"
 const PAGE_NUMBER = "pageNumber"
 const PAGE_SIZE = "pageSize"
 const FILTER = "filter"
+const OR = "or"
 const COMBINED_FILTER = "combinedFilter"
 
 var DEFAULT_LIMIT = 10
@@ -41,6 +41,7 @@ type Pagination struct {
 }
 
 type Filter struct {
+	Or       bool
 	Relation string
 	Column   string
 	Operator string
@@ -100,7 +101,7 @@ func (p *Pagination) MakePaginationRequest() {
 			Field:    field,
 			Operator: convertOperator(f.Operator),
 			Args:     f.Values,
-			Or:       false,
+			Or:       f.Or,
 		}
 
 		pgFilters = append(pgFilters, &pgFilter)
@@ -187,9 +188,8 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 					return nil, fmt.Errorf("Invalid query string : combinedFilter ")
 				}
 			}
-		case FILTER:
+		case FILTER, OR:
 			for _, filterValue := range value {
-				log.Debug("filterValue : ", filterValue)
 				arr := strings.Split(filterValue, "|")
 
 				column := arr[0]
@@ -208,11 +208,17 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 					op = arr[2]
 				}
 
+				or := false
+				if key == OR {
+					or = true
+				}
+
 				pg.Filters = append(pg.Filters, Filter{
 					Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
 					Relation: releation,
 					Operator: op,
 					Values:   values,
+					Or:       or,
 				})
 			}
 		}
