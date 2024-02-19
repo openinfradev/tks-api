@@ -22,6 +22,7 @@ type IProjectUsecase interface {
 	GetProjects(organizationId string) ([]domain.Project, error)
 	GetProject(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error)
+	IsProjectNameExist(organizationId string, projectName string) (bool, error)
 	UpdateProject(p *domain.Project) error
 	GetProjectRole(id string) (*domain.ProjectRole, error)
 	GetProjectRoles(int) ([]domain.ProjectRole, error)
@@ -36,6 +37,7 @@ type IProjectUsecase interface {
 	IsProjectNamespaceExist(organizationId string, projectId string, stackId string, projectNamespace string) (bool, error)
 	GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error)
 	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
+	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
 }
 
@@ -95,6 +97,20 @@ func (u *ProjectUsecase) GetProjectWithLeader(organizationId string, projectId s
 		return nil, errors.Wrap(err, "Failed to get projects.")
 	}
 	return p, err
+}
+
+func (u *ProjectUsecase) IsProjectNameExist(organizationId string, projectName string) (bool, error) {
+	exist := true
+	p, err := u.projectRepo.GetProjectByName(organizationId, projectName)
+	if err != nil {
+		log.Error(err)
+		exist = false
+		return exist, errors.Wrap(err, "Failed to retrieve project name.")
+	}
+	if p == nil {
+		exist = false
+	}
+	return exist, nil
 }
 
 func (u *ProjectUsecase) UpdateProject(p *domain.Project) error {
@@ -264,6 +280,14 @@ func (u *ProjectUsecase) GetProjectNamespace(organizationId string, projectId st
 	}
 
 	return pn, nil
+}
+
+func (u *ProjectUsecase) UpdateProjectNamespace(pn *domain.ProjectNamespace) error {
+	if err := u.projectRepo.UpdateProjectNamespace(pn); err != nil {
+		log.Error(err)
+		return errors.Wrap(err, "Failed to update project namespace")
+	}
+	return nil
 }
 
 func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId string,

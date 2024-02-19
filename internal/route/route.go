@@ -200,6 +200,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects", customMiddleware.Handle(internalApi.CreateProject, http.HandlerFunc(projectHandler.CreateProject))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects", customMiddleware.Handle(internalApi.GetProjects, http.HandlerFunc(projectHandler.GetProjects))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", customMiddleware.Handle(internalApi.GetProject, http.HandlerFunc(projectHandler.GetProject))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/check/existence", customMiddleware.Handle(internalApi.GetProjectNamespace, http.HandlerFunc(projectHandler.IsProjectNameExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", customMiddleware.Handle(internalApi.UpdateProject, http.HandlerFunc(projectHandler.UpdateProject))).Methods(http.MethodPut)
 	//r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", customMiddleware.Handle(internalApi.DeleteProject, http.HandlerFunc(projectHandler.DeleteProject))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/pass/project-roles", customMiddleware.Handle(internalApi.GetProjectRoles, http.HandlerFunc(projectHandler.GetProjectRoles))).Methods(http.MethodGet)
@@ -216,6 +217,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence", customMiddleware.Handle(internalApi.GetProjectNamespace, http.HandlerFunc(projectHandler.IsProjectNamespaceExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces", customMiddleware.Handle(internalApi.GetProjectNamespaces, http.HandlerFunc(projectHandler.GetProjectNamespaces))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.GetProjectNamespace, http.HandlerFunc(projectHandler.GetProjectNamespace))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.UpdateProjectNamespace, http.HandlerFunc(projectHandler.UpdateProjectNamespace))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.DeleteProjectNamespace, http.HandlerFunc(projectHandler.DeleteProjectNamespace))).Methods(http.MethodDelete)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
