@@ -146,6 +146,12 @@ const (
 	SetFavoriteProjectNamespace
 	UnSetFavoriteProject
 	UnSetFavoriteProjectNamespace
+
+	// Audit
+	CreateAudit
+	GetAudits
+	GetAudit
+	DeleteAudit
 )
 
 var ApiMap = map[Endpoint]EndpointInfo{
@@ -593,6 +599,22 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "UnSetFavoriteProjectNamespace",
 		Group: "Project",
 	},
+	CreateAudit: {
+		Name:  "CreateAudit",
+		Group: "Audit",
+	},
+	GetAudits: {
+		Name:  "GetAudits",
+		Group: "Audit",
+	},
+	GetAudit: {
+		Name:  "GetAudit",
+		Group: "Audit",
+	},
+	DeleteAudit: {
+		Name:  "DeleteAudit",
+		Group: "Audit",
+	},
 }
 
 func (e Endpoint) String() string {
@@ -819,6 +841,14 @@ func (e Endpoint) String() string {
 		return "UnSetFavoriteProject"
 	case UnSetFavoriteProjectNamespace:
 		return "UnSetFavoriteProjectNamespace"
+	case CreateAudit:
+		return "CreateAudit"
+	case GetAudits:
+		return "GetAudits"
+	case GetAudit:
+		return "GetAudit"
+	case DeleteAudit:
+		return "DeleteAudit"
 	default:
 		return ""
 	}
@@ -1009,6 +1039,10 @@ func GetEndpoint(name string) Endpoint {
 		return InstallStack
 	case "CreateProject":
 		return CreateProject
+	case "GetProjectRoles":
+		return GetProjectRoles
+	case "GetProjectRole":
+		return GetProjectRole
 	case "GetProjects":
 		return GetProjects
 	case "GetProject":
@@ -1019,6 +1053,8 @@ func GetEndpoint(name string) Endpoint {
 		return DeleteProject
 	case "AddProjectMember":
 		return AddProjectMember
+	case "GetProjectMember":
+		return GetProjectMember
 	case "GetProjectMembers":
 		return GetProjectMembers
 	case "RemoveProjectMember":
@@ -1041,6 +1077,14 @@ func GetEndpoint(name string) Endpoint {
 		return UnSetFavoriteProject
 	case "UnSetFavoriteProjectNamespace":
 		return UnSetFavoriteProjectNamespace
+	case "CreateAudit":
+		return CreateAudit
+	case "GetAudits":
+		return GetAudits
+	case "GetAudit":
+		return GetAudit
+	case "DeleteAudit":
+		return DeleteAudit
 	default:
 		return -1
 	}

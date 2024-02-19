@@ -31,14 +31,23 @@ func NewMiddleware(authenticator authenticator.Interface,
 }
 
 func (m *Middleware) Handle(endpoint internalApi.Endpoint, handle http.Handler) http.Handler {
-
 	// pre-handler
 	preHandler := m.authorizer.WithAuthorization(handle)
+	// TODO: this is a temporary solution. check if this is the right place to put audit middleware
 	preHandler = m.audit.WithAudit(endpoint, preHandler)
 	preHandler = m.requestRecoder.WithRequestRecoder(endpoint, preHandler)
 	preHandler = m.authenticator.WithAuthentication(preHandler)
 
+	// post-handler
+	// append post-handler below
+	// TODO: this is a temporary solution. check if this is the right place to put audit middleware
+
+	// emptyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+	// postHandler := m.audit.WithAudit(endpoint, emptyHandler)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		preHandler.ServeHTTP(w, r)
+
+		// postHandler.ServeHTTP(w, r)
 	})
 }

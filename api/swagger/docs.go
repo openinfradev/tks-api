@@ -278,6 +278,186 @@ const docTemplate = `{
                 }
             }
         },
+        "/audits": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Audits",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Get Audits",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "or",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAuditsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Create Audit",
+                "parameters": [
+                    {
+                        "description": "create audit request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateAuditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateAuditResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/audits/{auditId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Get Audit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auditId",
+                        "name": "auditId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAuditResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Delete Audit 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auditId",
+                        "name": "auditId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/auth/find-id/code": {
             "post": {
                 "description": "This API allows users to verify their identity for lost id by submitting required information",
@@ -5898,6 +6078,12 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CreateAuditRequest": {
+            "type": "object"
+        },
+        "domain.CreateAuditResponse": {
+            "type": "object"
+        },
         "domain.CreateBootstrapKubeconfigResponse": {
             "type": "object",
             "properties": {
@@ -6557,6 +6743,12 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "domain.GetAuditResponse": {
+            "type": "object"
+        },
+        "domain.GetAuditsResponse": {
+            "type": "object"
         },
         "domain.GetBootstrapKubeconfigResponse": {
             "type": "object",

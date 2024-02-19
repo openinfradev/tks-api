@@ -20,3 +20,12 @@ type Audit struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
+
+type CreateAuditRequest struct {
+}
+type CreateAuditResponse struct {
+}
+type GetAuditsResponse struct {
+}
+type GetAuditResponse struct {
+}

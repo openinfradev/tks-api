@@ -26,38 +26,44 @@ type defaultAudit struct {
 	repo repository.IAuditRepository
 }
 
+type fnAudit = func(out *bytes.Buffer, in []byte, statusCode int) (message string, description string)
+
 func NewDefaultAudit(repo repository.Repository) *defaultAudit {
 	return &defaultAudit{
 		repo: repo.Audit,
 	}
 }
 
-type fnAudit = func(out *bytes.Buffer, in []byte, statusCode int) (message string, description string)
-
 // WRITE LOGIC HERE
 var auditMap = map[internalApi.Endpoint]fnAudit{
 	internalApi.CreateStack: func(out *bytes.Buffer, in []byte, statusCode int) (message string, description string) {
 		input := domain.CreateStackRequest{}
-		_ = json.Unmarshal(in, &input)
+		if err := json.Unmarshal(in, &input); err != nil {
+			log.Error(err)
+		}
 
 		if statusCode >= 200 && statusCode < 300 {
 			return fmt.Sprintf("스택 [%s]을 생성하였습니다.", input.Name), ""
+		} else {
+			var e httpErrors.RestError
+			if err := json.NewDecoder(out).Decode(&e); err != nil {
+				log.Error(err)
+			}
+			return fmt.Sprintf("스택 [%s]을 생성하는데 실패하였습니다.", input.Name), e.Text()
 		}
-
-		var e httpErrors.RestError
-		_ = json.NewDecoder(out).Decode(&e)
-		return fmt.Sprintf("스택 [%s]을 생성하는데 실패하였습니다.", input.Name), e.Text()
 	}, internalApi.CreateProject: func(out *bytes.Buffer, in []byte, statusCode int) (message string, description string) {
 		input := domain.CreateProjectRequest{}
 		_ = json.Unmarshal(in, &input)
 
 		if statusCode >= 200 && statusCode < 300 {
 			return fmt.Sprintf("프로젝트 [%s]를 생성하였습니다.", input.Name), ""
+		} else {
+			var e httpErrors.RestError
+			if err := json.NewDecoder(out).Decode(&e); err != nil {
+				log.Error(err)
+			}
+			return "프로젝트 [%s]를 생성하는데 실패하였습니다. ", e.Text()
 		}
-
-		var e httpErrors.RestError
-		_ = json.NewDecoder(out).Decode(&e)
-		return "프로젝트 [%s]를 생성하는데 실패하였습니다. ", e.Text()
 	},
 }
 
@@ -69,6 +75,9 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 			return
 		}
 		userId := user.GetUserId()
+
+		requestBody := &bytes.Buffer{}
+		_, _ = io.Copy(requestBody, r.Body)
 
 		lrw := logging.NewLoggingResponseWriter(w)
 		handler.ServeHTTP(lrw, r)
@@ -82,7 +91,10 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 
 		message, description := "", ""
 		if fn, ok := auditMap[endpoint]; ok {
-			body, _ := io.ReadAll(r.Body)
+			body, err := io.ReadAll(requestBody)
+			if err != nil {
+				log.Error(err)
+			}
 			message, description = fn(lrw.GetBody(), body, statusCode)
 		}
 

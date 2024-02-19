@@ -205,6 +205,12 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.GetProjectNamespace, http.HandlerFunc(projectHandler.GetProjectNamespace))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.DeleteProjectNamespace, http.HandlerFunc(projectHandler.DeleteProjectNamespace))).Methods(http.MethodDelete)
 
+	auditHandler := delivery.NewAuditHandler(usecase.NewAuditUsecase(repoFactory))
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits", customMiddleware.Handle(internalApi.GetAudits, http.HandlerFunc(auditHandler.GetAudits))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits", customMiddleware.Handle(internalApi.CreateStack, http.HandlerFunc(auditHandler.CreateAudit))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.GetAudit, http.HandlerFunc(auditHandler.GetAudit))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.DeleteAudit, http.HandlerFunc(auditHandler.DeleteAudit))).Methods(http.MethodDelete)
+
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)

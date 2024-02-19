@@ -2,18 +2,21 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IAuditUsecase interface {
 	Get(ctx context.Context, auditId uuid.UUID) (domain.Audit, error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Audit, error)
 	Create(ctx context.Context, dto domain.Audit) (auditId uuid.UUID, err error)
-	Update(ctx context.Context, dto domain.Audit) error
 	Delete(ctx context.Context, dto domain.Audit) error
 }
 
@@ -28,26 +31,41 @@ func NewAuditUsecase(r repository.Repository) IAuditUsecase {
 }
 
 func (u *AuditUsecase) Create(ctx context.Context, dto domain.Audit) (auditId uuid.UUID, err error) {
-	// to be implemented
-	return
-}
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+	userId := user.GetUserId()
+	dto.UserId = &userId
+	auditId, err = u.repo.Create(dto)
+	if err != nil {
+		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
+	}
+	log.InfoWithContext(ctx, "newly created Audit ID:", auditId)
 
-func (u *AuditUsecase) Update(ctx context.Context, dto domain.Audit) error {
-	// to be implemented
-	return nil
+	return auditId, nil
 }
 
 func (u *AuditUsecase) Get(ctx context.Context, auditId uuid.UUID) (res domain.Audit, err error) {
-	// to be implemented
+	res, err = u.repo.Get(auditId)
+	if err != nil {
+		return domain.Audit{}, err
+	}
 	return
 }
 
 func (u *AuditUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (audits []domain.Audit, err error) {
-	// to be implemented
+	audits, err = u.repo.Fetch(organizationId, pg)
+	if err != nil {
+		return nil, err
+	}
 	return
 }
 
 func (u *AuditUsecase) Delete(ctx context.Context, dto domain.Audit) (err error) {
-	// to be implemented
+	err = u.repo.Delete(dto.ID)
+	if err != nil {
+		return httpErrors.NewNotFoundError(err, "", "")
+	}
 	return nil
 }

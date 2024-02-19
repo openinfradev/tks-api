@@ -5,17 +5,20 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IAuditRepository interface {
 	Get(auditId uuid.UUID) (domain.Audit, error)
-	Fetch(pg *pagination.Pagination) ([]domain.Audit, error)
+	Fetch(organizationId string, pg *pagination.Pagination) ([]domain.Audit, error)
 	Create(dto domain.Audit) (auditId uuid.UUID, err error)
-	Delete(dto domain.Audit) (err error)
+	Delete(auditId uuid.UUID) (err error)
 }
 
 type AuditRepository struct {
@@ -50,11 +53,32 @@ func (c *Audit) BeforeCreate(tx *gorm.DB) (err error) {
 
 // Logics
 func (r *AuditRepository) Get(auditId uuid.UUID) (out domain.Audit, err error) {
-	return out, fmt.Errorf("to be implemented")
+	var audit Audit
+	res := r.db.Preload(clause.Associations).First(&audit, "id = ?", auditId)
+	if res.Error != nil {
+		return
+	}
+	out = reflectAudit(audit)
+	return
 }
 
-func (r *AuditRepository) Fetch(pg *pagination.Pagination) (out []domain.Audit, err error) {
-	return out, fmt.Errorf("to be implemented")
+func (r *AuditRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.Audit, err error) {
+	var audits []Audit
+
+	if pg == nil {
+		pg = pagination.NewDefaultPagination()
+	}
+
+	_, res := pg.Fetch(r.db, &audits)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	for _, audit := range audits {
+		out = append(out, reflectAudit(audit))
+	}
+
+	return
 }
 
 func (r *AuditRepository) Create(dto domain.Audit) (auditId uuid.UUID, err error) {
@@ -72,11 +96,10 @@ func (r *AuditRepository) Create(dto domain.Audit) (auditId uuid.UUID, err error
 	return audit.ID, nil
 }
 
-func (r *AuditRepository) Delete(dto domain.Audit) (err error) {
+func (r *AuditRepository) Delete(auditId uuid.UUID) (err error) {
 	return fmt.Errorf("to be implemented")
 }
 
-/*
 func reflectAudit(audit Audit) (out domain.Audit) {
 	if err := serializer.Map(audit.Model, &out); err != nil {
 		log.Error(err)
@@ -86,4 +109,3 @@ func reflectAudit(audit Audit) (out domain.Audit) {
 	}
 	return
 }
-*/
