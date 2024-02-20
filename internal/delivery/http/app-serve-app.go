@@ -487,6 +487,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
 
+	// TODO: Fix runtime error here!
 	// Check if projectId exists
 	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
 	if err != nil {
