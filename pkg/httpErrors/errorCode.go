@@ -15,6 +15,7 @@ var errorMap = map[ErrorCode]string{
 	"C_INVALID_ASA_ID":            "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
 	"C_INVALID_ASA_TASK_ID":       "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
 	"C_INVALID_CLOUD_SERVICE":     "유효하지 않은 클라우드서비스입니다.",
+	"C_INVALID_AUDIT_ID":          "유효하지 않은 로그 아이디입니다. 로그 아이디를 확인하세요.",
 	"C_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패했습니다.",
 
 	// Auth

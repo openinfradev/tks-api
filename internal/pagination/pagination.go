@@ -22,6 +22,7 @@ const SORT_ORDER = "sortOrder"
 const PAGE_NUMBER = "pageNumber"
 const PAGE_SIZE = "pageSize"
 const FILTER = "filter"
+const FILTER_ARRAY = "filter[]"
 const COMBINED_FILTER = "combinedFilter"
 
 var DEFAULT_LIMIT = 10
@@ -187,7 +188,7 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 					return nil, fmt.Errorf("Invalid query string : combinedFilter ")
 				}
 			}
-		case FILTER:
+		case FILTER, FILTER_ARRAY:
 			for _, filterValue := range value {
 				log.Debug("filterValue : ", filterValue)
 				arr := strings.Split(filterValue, "|")

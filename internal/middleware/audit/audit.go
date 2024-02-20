@@ -45,11 +45,7 @@ var auditMap = map[internalApi.Endpoint]fnAudit{
 		if statusCode >= 200 && statusCode < 300 {
 			return fmt.Sprintf("스택 [%s]을 생성하였습니다.", input.Name), ""
 		} else {
-			var e httpErrors.RestError
-			if err := json.NewDecoder(out).Decode(&e); err != nil {
-				log.Error(err)
-			}
-			return fmt.Sprintf("스택 [%s]을 생성하는데 실패하였습니다.", input.Name), e.Text()
+			return fmt.Sprintf("스택 [%s]을 생성하는데 실패하였습니다.", input.Name), errorText(out)
 		}
 	}, internalApi.CreateProject: func(out *bytes.Buffer, in []byte, statusCode int) (message string, description string) {
 		input := domain.CreateProjectRequest{}
@@ -58,11 +54,7 @@ var auditMap = map[internalApi.Endpoint]fnAudit{
 		if statusCode >= 200 && statusCode < 300 {
 			return fmt.Sprintf("프로젝트 [%s]를 생성하였습니다.", input.Name), ""
 		} else {
-			var e httpErrors.RestError
-			if err := json.NewDecoder(out).Decode(&e); err != nil {
-				log.Error(err)
-			}
-			return "프로젝트 [%s]를 생성하는데 실패하였습니다. ", e.Text()
+			return "프로젝트 [%s]를 생성하는데 실패하였습니다. ", errorText(out)
 		}
 	},
 }
@@ -125,4 +117,13 @@ func getClientIpAddress(w http.ResponseWriter, r *http.Request) string {
 		return clientAddr
 	}
 	return ""
+}
+
+func errorText(out *bytes.Buffer) string {
+	var e httpErrors.RestError
+	if err := json.NewDecoder(out).Decode(&e); err != nil {
+		log.Error(err)
+		return ""
+	}
+	return e.Text()
 }

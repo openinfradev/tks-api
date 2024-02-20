@@ -69,7 +69,8 @@ func (r *AuditRepository) Fetch(organizationId string, pg *pagination.Pagination
 		pg = pagination.NewDefaultPagination()
 	}
 
-	_, res := pg.Fetch(r.db, &audits)
+	db := r.db.Model(&Audit{}).Preload(clause.Associations).Where("organization_id = ?", organizationId)
+	_, res := pg.Fetch(db, &audits)
 	if res.Error != nil {
 		return nil, res.Error
 	}
