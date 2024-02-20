@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -39,6 +40,7 @@ type IProjectUsecase interface {
 	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
+	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
 }
 
 type ProjectUsecase struct {
@@ -297,4 +299,24 @@ func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId
 		return errors.Wrap(err, "Failed to delete project namespace.")
 	}
 	return nil
+}
+
+func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId string) (string, error) {
+	projectNamespaces, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
+	if err != nil {
+		log.Error(err)
+		return "", errors.Wrap(err, "Failed to retrieve project namespaces.")
+	}
+
+	kubeconfigs := make([]string, 0)
+	for _, pn := range projectNamespaces {
+		kubeconfig, err := kubernetes.GetKubeConfig(pn.StackId)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to retrieve kubeconfig.")
+		}
+		kubeconfigs = append(kubeconfigs, string(kubeconfig[:]))
+	}
+
+	return kubernetes.MergeKubeconfigsWithSingleUser(kubeconfigs)
 }

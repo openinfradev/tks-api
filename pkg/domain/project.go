@@ -253,3 +253,7 @@ type GetProjectNamespaceResponse struct {
 type UpdateProjectNamespaceRequest struct {
 	Description string `json:"description"`
 }
+
+type GetProjectKubeconfigResponse struct {
+	Kubeconfig string `json:"kubeconfig"`
+}

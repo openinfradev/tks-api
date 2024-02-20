@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -184,4 +185,44 @@ func GetKubernetesVserion() (string, error) {
 	}
 
 	return information.GitVersion, nil
+}
+
+func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
+	type kubeConfigType struct {
+		APIVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Clusters   []struct {
+			Name    string `yaml:"name"`
+			Cluster struct {
+				Server                   string `yaml:"server"`
+				CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
+			} `yaml:"cluster"`
+		} `yaml:"clusters"`
+		Contexts []struct {
+			Name    string `yaml:"name"`
+			Context struct {
+				Cluster string `yaml:"cluster"`
+				User    string `yaml:"user"`
+			} `yaml:"context"`
+		} `yaml:"contexts"`
+		Users []interface{} `yaml:"users,omitempty"`
+	}
+
+	var config kubeConfigType
+	var combindConfig kubeConfigType
+	for _, kc := range kubeconfigs {
+		err := yaml.Unmarshal([]byte(kc), &config)
+		if err != nil {
+			return "", err
+		}
+		combindConfig.APIVersion = config.APIVersion
+		combindConfig.Kind = config.Kind
+		combindConfig.Clusters = append(combindConfig.Clusters, config.Clusters...)
+		combindConfig.Contexts = append(combindConfig.Contexts, config.Contexts...)
+		combindConfig.Users = config.Users
+	}
+
+	modContents, err := yaml.Marshal(combindConfig)
+
+	return string(modContents), err
 }
