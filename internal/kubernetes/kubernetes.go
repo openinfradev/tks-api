@@ -1,9 +1,11 @@
 package kubernetes
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -201,12 +203,20 @@ func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
 		Contexts []struct {
 			Name    string `yaml:"name"`
 			Context struct {
-				Cluster string `yaml:"cluster"`
-				User    string `yaml:"user"`
+				Cluster   string `yaml:"cluster"`
+				User      string `yaml:"user"`
+				Namespace string `yaml:"namespace,omitempty"`
 			} `yaml:"context"`
 		} `yaml:"contexts"`
+
 		Users []interface{} `yaml:"users,omitempty"`
 	}
+
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	defer encoder.Close()
+
+	encoder.SetIndent(2)
 
 	var config kubeConfigType
 	var combindConfig kubeConfigType
@@ -222,7 +232,11 @@ func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
 		combindConfig.Users = config.Users
 	}
 
-	modContents, err := yaml.Marshal(combindConfig)
+	err := encoder.Encode(combindConfig)
+	//modContents, err := yaml.Marshal(combindConfig)
 
-	return string(modContents), err
+	// write the kubeconfig to a file
+	err = os.WriteFile("combind-kubeconfig", buf.Bytes(), 0644)
+
+	return buf.String(), err
 }

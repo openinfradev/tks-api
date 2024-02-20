@@ -9,6 +9,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -308,6 +309,28 @@ func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId s
 		return "", errors.Wrap(err, "Failed to retrieve project namespaces.")
 	}
 
+	type kubeConfigType struct {
+		APIVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Clusters   []struct {
+			Name    string `yaml:"name"`
+			Cluster struct {
+				Server                   string `yaml:"server"`
+				CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
+			} `yaml:"cluster"`
+		} `yaml:"clusters"`
+		Contexts []struct {
+			Name    string `yaml:"name"`
+			Context struct {
+				Cluster   string `yaml:"cluster"`
+				User      string `yaml:"user"`
+				Namespace string `yaml:"namespace,omitempty"`
+			} `yaml:"context"`
+		} `yaml:"contexts"`
+
+		Users []interface{} `yaml:"users,omitempty"`
+	}
+
 	kubeconfigs := make([]string, 0)
 	for _, pn := range projectNamespaces {
 		kubeconfig, err := kubernetes.GetKubeConfig(pn.StackId)
@@ -315,6 +338,21 @@ func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId s
 			log.Error(err)
 			return "", errors.Wrap(err, "Failed to retrieve kubeconfig.")
 		}
+
+		var config kubeConfigType
+		err = yaml.Unmarshal(kubeconfig, &config)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to unmarshal kubeconfig.")
+		}
+		config.Contexts[0].Context.Namespace = pn.Namespace
+
+		kubeconfig, err = yaml.Marshal(config)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to marshal kubeconfig.")
+		}
+
 		kubeconfigs = append(kubeconfigs, string(kubeconfig[:]))
 	}
 
