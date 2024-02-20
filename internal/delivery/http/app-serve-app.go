@@ -68,7 +68,8 @@ var (
 )
 
 type AppServeAppHandler struct {
-	usecase usecase.IAppServeAppUsecase
+	usecase    usecase.IAppServeAppUsecase
+	prjUsecase usecase.IProjectUsecase
 }
 
 func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
@@ -122,6 +123,18 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	log.Infof("Processing CREATE request for app '%s'...", app.Name)
 
+	// Namespace validation
+	exist, err := h.prjUsecase.IsProjectNamespaceExist(organizationId, projectId, app.TargetClusterId, app.Namespace)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking namespace record: %s", err), "", ""))
+		return
+	}
+
+	if !exist {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Namespace '%s' doesn't exist", app.Namespace), "", ""))
+		return
+	}
+
 	now := time.Now()
 	app.OrganizationId = organizationId
 	app.ProjectId = projectId
@@ -150,7 +163,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	exist, err = h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -289,10 +302,10 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // TODO: this API will'be deprecated soon once the new task-related API's are verified.
-    // Until then, this is available (except for stage info) just for backward compatibility.
-    //////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// TODO: this API will'be deprecated soon once the new task-related API's are verified.
+	// Until then, this is available (except for stage info) just for backward compatibility.
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	vars := mux.Vars(r)
 
@@ -333,7 +346,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
-    // NOTE: makeStages function's been changed to use task instead of app
+	// NOTE: makeStages function's been changed to use task instead of app
 	//out.Stages = makeStages(app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -445,6 +458,12 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 		return
 	}
 
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: %s", appId), "C_INVALID_ASA_ID", ""))
@@ -456,6 +475,15 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
+	}
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %v", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
 	}
 
 	tasks, err := h.usecase.GetAppServeAppTasks(appId, pg)
@@ -517,6 +545,15 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid taskId: [%s]", taskId), "C_INVALID_ASA_TASK_ID", ""))
 		return
+	}
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %s", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
 	}
 
 	task, app, err := h.usecase.GetAppServeAppTaskById(taskId)
