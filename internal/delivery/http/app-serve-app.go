@@ -477,6 +477,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 		return
 	}
 
+	// TODO: Fix runtime error here!
 	// Check if projectId exists
 	prj, err := h.prjUsecase.GetProject(organizationId, projectId)
 	if err != nil {

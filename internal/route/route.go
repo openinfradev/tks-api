@@ -134,6 +134,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", customMiddleware.Handle(internalApi.GetApplications, http.HandlerFunc(appGroupHandler.GetApplications))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", customMiddleware.Handle(internalApi.CreateApplication, http.HandlerFunc(appGroupHandler.CreateApplication))).Methods(http.MethodPost)
 
+	// TODO: How to add both appserve and project usecase to AppServeApp handler??
 	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repoFactory, argoClient))
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps", customMiddleware.Handle(internalApi.CreateAppServeApp, http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps", customMiddleware.Handle(internalApi.GetAppServeApps, http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
