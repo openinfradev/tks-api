@@ -249,3 +249,7 @@ type GetProjectNamespacesResponse struct {
 type GetProjectNamespaceResponse struct {
 	ProjectNamespace *ProjectNamespaceResponse `json:"projectNamespace"`
 }
+
+type UpdateProjectNamespaceRequest struct {
+	Description string `json:"description"`
+}

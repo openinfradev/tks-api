@@ -2224,6 +2224,11 @@ definitions:
           type: object
         type: array
     type: object
+  domain.UpdateProjectNamespaceRequest:
+    properties:
+      description:
+        type: string
+    type: object
   domain.UpdateProjectRequest:
     properties:
       description:
@@ -4830,6 +4835,49 @@ paths:
       summary: Get project namespace
       tags:
       - Projects
+    put:
+      consumes:
+      - application/json
+      description: Update project namespace
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Project Namespace
+        in: path
+        name: projectNamespace
+        required: true
+        type: string
+      - description: Project Stack ID
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: Request body to update project namespace
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateProjectNamespaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CommonProjectResponse'
+      security:
+      - JWT: []
+      summary: Update project namespace
+      tags:
+      - Projects
   /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence:
     get:
       consumes:
@@ -4866,6 +4914,38 @@ paths:
       security:
       - JWT: []
       summary: Check project namespace exist
+      tags:
+      - Projects
+  /organizations/{organizationId}/projects/check/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check project name exist
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: type (name)
+        in: query
+        name: type
+        type: string
+      - description: value (project name)
+        in: query
+        name: value
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckExistedResponse'
+      security:
+      - JWT: []
+      summary: Check project name exist
       tags:
       - Projects
   /organizations/{organizationId}/projects/pass/project-roles:

@@ -143,6 +143,7 @@ const (
 	CreateProjectNamespace
 	GetProjectNamespaces
 	GetProjectNamespace
+	UpdateProjectNamespace
 	DeleteProjectNamespace
 	SetFavoriteProject
 	SetFavoriteProjectNamespace
@@ -575,6 +576,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "GetProjectNamespace",
 		Group: "Project",
 	},
+	UpdateProjectNamespace: {
+		Name:  "UpdateProjectNamespace",
+		Group: "Project",
+	},
 	DeleteProjectNamespace: {
 		Name:  "DeleteProjectNamespace",
 		Group: "Project",
@@ -811,6 +816,8 @@ func (e Endpoint) String() string {
 		return "GetProjectNamespaces"
 	case GetProjectNamespace:
 		return "GetProjectNamespace"
+	case UpdateProjectNamespace:
+		return "UpdateProjectNamespace"
 	case DeleteProjectNamespace:
 		return "DeleteProjectNamespace"
 	case SetFavoriteProject:
@@ -1033,6 +1040,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetProjectNamespaces
 	case "GetProjectNamespace":
 		return GetProjectNamespace
+	case "UpdateProjectNamespace":
+		return UpdateProjectNamespace
 	case "DeleteProjectNamespace":
 		return DeleteProjectNamespace
 	case "SetFavoriteProject":

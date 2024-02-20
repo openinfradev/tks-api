@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
@@ -12,6 +13,7 @@ type IProjectRepository interface {
 	GetProjects(organizationId string) ([]domain.Project, error)
 	GetProjectById(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByIdAndLeader(organizationId string, projectId string) (*domain.Project, error)
+	GetProjectByName(organizationId string, projectName string) (*domain.Project, error)
 	UpdateProject(p *domain.Project) error
 	GetAllProjectRoles() ([]domain.ProjectRole, error)
 	GetProjectRoleByName(name string) (*domain.ProjectRole, error)
@@ -22,12 +24,12 @@ type IProjectRepository interface {
 	GetProjectMemberCountByProjectId(projectId string) (*domain.GetProjectMemberCountResponse, error)
 	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	RemoveProjectMember(projectMemberId string) error
-	//UpdateProjectMemberRole(projectMemberId string, projectRoleId string) error
 	UpdateProjectMemberRole(pm *domain.ProjectMember) error
 	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
 	GetProjectNamespaceByName(organizationId string, projectId string, stackId string, projectNamespace string) (*domain.ProjectNamespace, error)
 	GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error)
 	GetProjectNamespaceByPrimaryKey(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
+	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
 }
 
@@ -55,7 +57,8 @@ func (r *ProjectRepository) GetProjects(organizationId string) (ps []domain.Proj
 		Preload("ProjectMembers").
 		Preload("ProjectMembers.ProjectRole").
 		Preload("ProjectMembers.ProjectUser").
-		Preload("ProjectNamespaces").Find(&ps)
+		Preload("ProjectNamespaces").
+		Find(&ps)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project")
@@ -85,17 +88,32 @@ func (r *ProjectRepository) GetProjectById(organizationId string, projectId stri
 }
 
 func (r *ProjectRepository) GetProjectByIdAndLeader(organizationId string, projectId string) (p *domain.Project, err error) {
-	res := r.db.Limit(1).Where("projects.organization_id = ? and projects.id = ?", organizationId, projectId).
-		Limit(1).Preload("ProjectMembers", "is_project_leader = ?", true).
+	res := r.db.Limit(1).
+		Preload("ProjectMembers", "is_project_leader = ?", true).
 		Preload("ProjectMembers.ProjectRole").
 		Preload("ProjectMembers.ProjectUser").
-		//InnerJoins("ProjectMembers", r.db.Where(&domain.ProjectMember{IsProjectLeader: true})).
-		//InnerJoins("ProjectMembers.ProjectRole").
-		//InnerJoins("ProjectMembers.ProjectUser").
-		First(&p)
+		First(&p, "organization_id = ? and id = ?", organizationId, projectId)
+
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return p, nil
+}
+
+func (r *ProjectRepository) GetProjectByName(organizationId string, projectName string) (p *domain.Project, err error) {
+	res := r.db.Limit(1).
+		Where("organization_id = ? and name = ?", organizationId, projectName).
+		First(&p)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Not found project name")
 			return nil, nil
 		} else {
 			log.Error(res.Error)
@@ -220,18 +238,18 @@ func (r *ProjectRepository) GetProjectMemberCountByProjectId(projectId string) (
 		"  from (select count(project_members.id) as count"+
 		"          from project_members"+
 		"          left join project_roles on project_roles.id = project_members.project_role_id"+
-		"         where project_members.project_id = ?"+
+		"         where project_members.project_id = @projectId"+
 		"           and project_roles.name = 'project-leader') as plc,"+
 		"       (select count(project_members.id) as count"+
 		"          from project_members"+
 		"          left join project_roles on project_roles.id = project_members.project_role_id"+
-		"         where project_members.project_id = ?"+
+		"         where project_members.project_id = @projectId"+
 		"           and project_roles.name = 'project-member') as pmc,"+
 		"       (select count(project_members.id) as count"+
 		"          from project_members"+
 		"          left join project_roles on project_roles.id = project_members.project_role_id"+
-		"         where project_members.project_id = ?"+
-		"           and project_roles.name = 'project-viewer') as pvc", projectId, projectId, projectId).
+		"         where project_members.project_id = @projectId"+
+		"           and project_roles.name = 'project-viewer') as pvc", sql.Named("projectId", projectId)).
 		Scan(&pmcr)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -351,6 +369,15 @@ func (r *ProjectRepository) GetProjectNamespaceByPrimaryKey(organizationId strin
 	}
 
 	return pn, nil
+}
+
+func (r *ProjectRepository) UpdateProjectNamespace(pn *domain.ProjectNamespace) error {
+	res := r.db.Model(&pn).Updates(domain.ProjectNamespace{Description: pn.Description, UpdatedAt: pn.UpdatedAt})
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil
 }
 
 func (r *ProjectRepository) DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string,
