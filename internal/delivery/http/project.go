@@ -1314,6 +1314,17 @@ func (p ProjectHandler) UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *
 	//TODO implement me
 }
 
+// GetProjectKubeconfig godoc
+// @Tags        Projects
+// @Summary     Get project kubeconfig
+// @Description Get project kubeconfig
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId      path     string true "Project ID"
+// @Success     200            {object} domain.GetProjectKubeconfigResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/kubeconfig [get]
+// @Security    JWT
 func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
