@@ -84,16 +84,24 @@ func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                          true "Organization ID"
+// @Param       projectId path     string                          true "Project ID"
 // @Param       object         body     domain.CreateAppServeAppRequest true "Request body to create app"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/app-serve-apps [post]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps [post]
 // @Security    JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	log.Debugf("organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf("projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId"), "C_INVALID_PROJECT_ID", ""))
 		return
 	}
 
@@ -116,6 +124,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	now := time.Now()
 	app.OrganizationId = organizationId
+	app.ProjectId = projectId
 	app.EndpointUrl = "N/A"
 	app.PreviewEndpointUrl = "N/A"
 	app.Status = "PREPARING"
@@ -151,29 +160,29 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-  // Create namespace if it's not given by user
-  if len(strings.TrimSpace(app.Namespace)) == 0 {
-    // Check if the new namespace is already used in the target cluster
-    ns := ""
-    nsExist := true
-    for nsExist {
-      // Generate unique namespace based on name and random number
-      src := rand.NewSource(time.Now().UnixNano())
-      r1 := rand.New(src)
-      ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
+	// Create namespace if it's not given by user
+	if len(strings.TrimSpace(app.Namespace)) == 0 {
+		// Check if the new namespace is already used in the target cluster
+		ns := ""
+		nsExist := true
+		for nsExist {
+			// Generate unique namespace based on name and random number
+			src := rand.NewSource(time.Now().UnixNano())
+			r1 := rand.New(src)
+			ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
 
-      nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
-      if err != nil {
-        ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-        return
-      }
-    }
+			nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
+			if err != nil {
+				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+				return
+			}
+		}
 
-    log.Infof("Created new namespace: %s", ns)
-    app.Namespace = ns
-  } else {
-    log.Infof("Using existing namespace: %s", app.Namespace)
-  }
+		log.Infof("Created new namespace: %s", ns)
+		app.Namespace = ns
+	} else {
+		log.Infof("Using existing namespace: %s", app.Namespace)
+	}
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
@@ -212,6 +221,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string   true  "Organization ID"
+// @Param       projectId path     string                          true "Project ID"
 // @Param       showAll        query    boolean  false "Show all apps including deleted apps"
 // @Param       limit          query    string   false "pageSize"
 // @Param       page           query    string   false "pageNumber"
@@ -219,7 +229,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} []domain.AppServeApp
-// @Router      /organizations/{organizationId}/app-serve-apps [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -273,11 +283,17 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string                          true "Project ID"
 // @Param       appId          path     string true "App ID"
 // @Success     200            {object} domain.GetAppServeAppResponse
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId} [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // TODO: this API will'be deprecated soon once the new task-related API's are verified.
+    // Until then, this is available (except for stage info) just for backward compatibility.
+    //////////////////////////////////////////////////////////////////////////////////////////
+
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
@@ -317,7 +333,8 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
-	out.Stages = makeStages(app)
+    // NOTE: makeStages function's been changed to use task instead of app
+	//out.Stages = makeStages(app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -329,9 +346,10 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string                          true "Project ID"
 // @Param       appId          path     string true "App ID"
 // @Success     200            {object} domain.GetAppServeAppTaskResponse
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId}/latest-task [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -372,9 +390,10 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string                          true "Project ID"
 // @Param       stackId        query    string true "Stack ID"
 // @Success     200            {object} int64
-// @Router      /organizations/{organizationId}/app-serve-apps/count [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/count [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -402,13 +421,134 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	ResponseJSON(w, r, http.StatusOK, numApps)
 }
 
-func makeStages(app *domain.AppServeApp) []domain.StageResponse {
+// GetAppServeAppTasksByAppId godoc
+// @Tags        AppServeApps
+// @Summary     Get appServeAppTask list
+// @Description Get appServeAppTask list by giving params
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string   true  "Organization ID"
+// @Param       projectId path     string     true "Project ID"
+// @Param       limit          query    string   false "pageSize"
+// @Param       page           query    string   false "pageNumber"
+// @Param       sortColumn    query    string   false "sortColumn"
+// @Param       sortOrder      query    string   false "sortOrder"
+// @Param       filters        query    []string false "filters"
+// @Success     200            {object} []domain.AppServeApp
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks [get]
+// @Security    JWT
+func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId: %s", organizationId), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: %s", appId), "C_INVALID_ASA_ID", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	pg, err := pagination.NewPagination(&urlParams)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+
+	tasks, err := h.usecase.GetAppServeAppTasks(appId, pg)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get app-serve-app-tasks ", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetAppServeAppTasksResponse
+	out.AppServeAppTasks = tasks
+
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetAppServeAppTaskDetail godoc
+// @Tags        AppServeApps
+// @Summary     Get task detail from appServeApp
+// @Description Get task detail from appServeApp
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string true "Project ID"
+// @Param       appId          path     string true "App ID"
+// @Param       taskId          path     string true "Task ID"
+// @Success     200            {object} domain.GetAppServeAppTaskResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId} [get]
+// @Security    JWT
+func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	log.Debugf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId: [%s]", organizationId), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf("projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	log.Debugf("appId = [%s]\n", appId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: [%s]", appId), "C_INVALID_ASA_ID", ""))
+		return
+	}
+
+	taskId, ok := vars["taskId"]
+	log.Debugf("taskId = [%s]\n", taskId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid taskId: [%s]", taskId), "C_INVALID_ASA_TASK_ID", ""))
+		return
+	}
+
+	task, app, err := h.usecase.GetAppServeAppTaskById(taskId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if task == nil {
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No task exists"), "", ""))
+		return
+	}
+
+	if strings.Contains(task.Status, "SUCCESS") && task.Status != "ABORT_SUCCESS" &&
+		task.Status != "ROLLBACK_SUCCESS" {
+		task.AvailableRollback = true
+	}
+
+	var out domain.GetAppServeAppTaskResponse
+	out.AppServeApp = *app
+	out.AppServeAppTask = *task
+	out.Stages = makeStages(task, app)
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+func makeStages(task *domain.AppServeAppTask, app *domain.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
 	var stage domain.StageResponse
 	var pipelines []string
-	taskStatus := app.AppServeAppTasks[0].Status
-	strategy := app.AppServeAppTasks[0].Strategy
+	taskStatus := task.Status
+	strategy := task.Strategy
 
 	if taskStatus == "ROLLBACKING" ||
 		taskStatus == "ROLLBACK_SUCCESS" ||
@@ -437,21 +577,21 @@ func makeStages(app *domain.AppServeApp) []domain.StageResponse {
 	fmt.Printf("Pipeline stages: %v\n", pipelines)
 
 	for _, pl := range pipelines {
-		stage = makeStage(app, pl)
+		stage = makeStage(task, app, pl)
 		stages = append(stages, stage)
 	}
 
 	return stages
 }
 
-func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
-	taskStatus := app.AppServeAppTasks[0].Status
-	strategy := app.AppServeAppTasks[0].Strategy
+func makeStage(task *domain.AppServeAppTask, app *domain.AppServeApp, pl string) domain.StageResponse {
+	taskStatus := task.Status
+	strategy := task.Strategy
 
 	stage := domain.StageResponse{
 		Name:   pl,
-		Status: StatusStages[app.Status][pl],
-		Result: StatusResult[StatusStages[app.Status][pl]],
+		Status: StatusStages[taskStatus][pl],
+		Result: StatusResult[StatusStages[taskStatus][pl]],
 	}
 
 	var actions []domain.ActionResponse
@@ -480,7 +620,7 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 		action := domain.ActionResponse{
 			Name: "ABORT",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
-				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+				"/organizations/%v/projects/%v/app-serve-apps/%v", app.OrganizationId, app.ProjectId, app.ID),
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
@@ -490,7 +630,7 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 		action = domain.ActionResponse{
 			Name: "PROMOTE",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
-				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+				"/organizations/%v/projects/%v/app-serve-apps/%v", app.OrganizationId, app.ProjectId, app.ID),
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
@@ -509,8 +649,10 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 // @Description Get appServeApp by giving params
 // @Accept      json
 // @Produce     json
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Success     200 {object} bool
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId}/exist [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist [get]
 // @Security    JWT
 func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -549,9 +691,10 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Param       name           path     string true "name"
 // @Success     200            {object} bool
-// @Router      /organizations/{organizationId}/app-serve-apps/name/{name}/existence [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence [get]
 // @Security    JWT
 func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -588,10 +731,11 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                          true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Param       appId          path     string                          true "App ID"
 // @Param       object         body     domain.UpdateAppServeAppRequest true "Request body to update app"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId} [put]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [put]
 // @Security    JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -697,10 +841,11 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                                true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Param       appId          path     string                                true "App ID"
 // @Param       body           body     domain.UpdateAppServeAppStatusRequest true "Request body to update app status"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId}/status [patch]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status [patch]
 // @Security    JWT
 func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -740,10 +885,11 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                                  true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Param       appId          path     string                                  true "appId"
 // @Param       body           body     domain.UpdateAppServeAppEndpointRequest true "Request body to update app endpoint"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId}/endpoint [patch]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint [patch]
 // @Security    JWT
 func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -788,9 +934,10 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Param       appId          path     string true "App ID"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId} [delete]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [delete]
 // @Security    JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -824,10 +971,11 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                            true "Organization ID"
+// @Param       projectId path     string true "Project ID"
 // @Param       appId          path     string                            true "App ID"
 // @Param       object         body     domain.RollbackAppServeAppRequest true "Request body to rollback app"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/app-serve-apps/{appId}/rollback [post]
+// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback [post]
 // @Security    JWT
 func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

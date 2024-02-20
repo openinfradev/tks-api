@@ -71,6 +71,8 @@ const (
 	GetAppServeApps
 	GetNumOfAppsOnStack
 	GetAppServeApp
+	GetAppServeAppTasksByAppId
+	GetAppServeAppTaskDetail
 	GetAppServeAppLatestTask
 	IsAppServeAppExist
 	IsAppServeAppNameExist

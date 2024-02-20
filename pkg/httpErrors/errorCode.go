@@ -10,6 +10,7 @@ var errorMap = map[ErrorCode]string{
 	"C_INVALID_CLUSTER_ID":        "유효하지 않은 클러스터 아이디입니다. 클러스터 아이디를 확인하세요.",
 	"C_INVALID_APPGROUP_ID":       "유효하지 않은 앱그룹 아이디입니다. 앱그룹 아이디를 확인하세요.",
 	"C_INVALID_ORGANIZATION_ID":   "유효하지 않은 조직 아이디입니다. 조직 아이디를 확인하세요.",
+	"C_INVALID_PROJECT_ID":        "유효하지 않은 프로젝트 아이디입니다. 아이디를 확인하세요.",
 	"C_INVALID_CLOUD_ACCOUNT_ID":  "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
 	"C_INVALID_STACK_TEMPLATE_ID": "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
 	"C_INVALID_ASA_ID":            "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
