@@ -443,16 +443,16 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 
 	// Get user role
 	var roleUuid string
-	tksRoles, err := u.roleRepository.ListTksRoles(user.Organization.ID, nil)
+	roles, err := u.roleRepository.ListTksRoles(user.Organization.ID, nil)
 	if err != nil {
 		return nil, err
 	}
-	if len(tksRoles) == 0 {
+	if len(roles) == 0 {
 		return nil, httpErrors.NewInternalServerError(fmt.Errorf("role not found"), "", "")
 	}
-	for _, role := range tksRoles {
-		if role.Role.Name == user.Role.Name {
-			roleUuid = role.RoleID
+	for _, role := range roles {
+		if role.Name == user.Role.Name {
+			roleUuid = role.ID
 		}
 	}
 	if roleUuid == "" {
@@ -501,16 +501,16 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 
 	// Get user role
 	var roleUuid string
-	tksRoles, err := u.roleRepository.ListTksRoles(user.Organization.ID, nil)
+	roles, err := u.roleRepository.ListTksRoles(user.Organization.ID, nil)
 	if err != nil {
 		return nil, err
 	}
-	if len(tksRoles) == 0 {
+	if len(roles) == 0 {
 		return nil, httpErrors.NewInternalServerError(fmt.Errorf("role not found"), "", "")
 	}
-	for _, role := range tksRoles {
-		if role.Role.Name == user.Role.Name {
-			roleUuid = role.RoleID
+	for _, role := range roles {
+		if role.Name == user.Role.Name {
+			roleUuid = role.ID
 		}
 	}
 	if roleUuid == "" {

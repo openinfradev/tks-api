@@ -7,7 +7,7 @@ import (
 )
 
 type IRoleUsecase interface {
-	CreateTksRole(role *domain.Role) error
+	CreateTksRole(role *domain.Role) (string, error)
 	ListRoles(pg *pagination.Pagination) ([]*domain.Role, error)
 	ListTksRoles(organizationId string, pg *pagination.Pagination) ([]*domain.Role, error)
 	GetTksRole(id string) (*domain.Role, error)
@@ -25,7 +25,7 @@ func NewRoleUsecase(repo repository.Repository) *RoleUsecase {
 	}
 }
 
-func (r RoleUsecase) CreateTksRole(role *domain.Role) error {
+func (r RoleUsecase) CreateTksRole(role *domain.Role) (string, error) {
 	return r.repo.Create(role)
 }
 

@@ -14,7 +14,7 @@ type Permission struct {
 	IsAllowed *bool       `gorm:"type:boolean;" json:"is_allowed,omitempty"`
 	RoleID    *string     `json:"role_id,omitempty"`
 	Role      *Role       `gorm:"foreignKey:RoleID;references:ID;" json:"role,omitempty"`
-	Endpoints []*Endpoint `gorm:"one2many:endpoints;" json:"endpoints,omitempty"`
+	Endpoints []*Endpoint `gorm:"many2many:permission_endpoints;" json:"endpoints,omitempty"`
 	// omit empty
 
 	ParentID *uuid.UUID    `json:"parent_id,omitempty"`

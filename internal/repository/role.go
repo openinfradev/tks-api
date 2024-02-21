@@ -9,7 +9,7 @@ import (
 )
 
 type IRoleRepository interface {
-	Create(roleObj *domain.Role) error
+	Create(roleObj *domain.Role) (string, error)
 	List(pg *pagination.Pagination) ([]*domain.Role, error)
 	ListTksRoles(organizationId string, pg *pagination.Pagination) ([]*domain.Role, error)
 	Get(id string) (*domain.Role, error)
@@ -32,15 +32,15 @@ func (r RoleRepository) GetTksRoleByRoleName(roleName string) (*domain.Role, err
 	return &role, nil
 }
 
-func (r RoleRepository) Create(roleObj *domain.Role) error {
+func (r RoleRepository) Create(roleObj *domain.Role) (string, error) {
 	if roleObj == nil {
-		return fmt.Errorf("roleObj is nil")
+		return "", fmt.Errorf("roleObj is nil")
 	}
 	if err := r.db.Create(roleObj).Error; err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return roleObj.ID, nil
 }
 
 func (r RoleRepository) List(pg *pagination.Pagination) ([]*domain.Role, error) {

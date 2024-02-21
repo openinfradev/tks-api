@@ -64,25 +64,21 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 	}
 
 	// Create admin roles in DB
-	if err := u.roleRepo.Create(domain.TksRole{
-		Role: domain.Role{
-			OrganizationID: organizationId,
-			Name:           "admin",
-			Description:    "admin",
-			Type:           string(domain.RoleTypeTks),
-		},
+	if _, err := u.roleRepo.Create(&domain.Role{
+		OrganizationID: organizationId,
+		Name:           "admin",
+		Description:    "admin",
+		Type:           string(domain.RoleTypeTks),
 	}); err != nil {
 		return "", err
 	}
 
 	// Create user roles in DB
-	if err := u.roleRepo.Create(domain.TksRole{
-		Role: domain.Role{
-			OrganizationID: organizationId,
-			Name:           "user",
-			Description:    "user",
-			Type:           string(domain.RoleTypeTks),
-		},
+	if _, err := u.roleRepo.Create(&domain.Role{
+		OrganizationID: organizationId,
+		Name:           "user",
+		Description:    "user",
+		Type:           string(domain.RoleTypeTks),
 	}); err != nil {
 		return "", err
 	}
@@ -140,11 +136,7 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 		return err
 	}
 	for _, role := range roles {
-		uuid, err := uuid.Parse(role.RoleID)
-		if err != nil {
-			return err
-		}
-		if err := u.roleRepo.DeleteCascade(uuid); err != nil {
+		if err := u.roleRepo.Delete(role.ID); err != nil {
 			return err
 		}
 	}

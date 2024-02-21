@@ -163,28 +163,18 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	if len(eps) == 0 {
-		for _, ep := range api.ApiMap {
+
+	var storedEps = make(map[string]struct{})
+	for _, ep := range eps {
+		storedEps[ep.Name] = struct{}{}
+	}
+	for _, ep := range api.ApiMap {
+		if _, ok := storedEps[ep.Name]; !ok {
 			if err := repoFactory.Endpoint.Create(&domain.Endpoint{
 				Name:  ep.Name,
 				Group: ep.Group,
 			}); err != nil {
 				return err
-			}
-		}
-	} else {
-		var storedEps = make(map[string]struct{})
-		for _, ep := range eps {
-			storedEps[ep.Name] = struct{}{}
-		}
-		for _, ep := range api.ApiMap {
-			if _, ok := storedEps[ep.Name]; !ok {
-				if err := repoFactory.Endpoint.Create(&domain.Endpoint{
-					Name:  ep.Name,
-					Group: ep.Group,
-				}); err != nil {
-					return err
-				}
 			}
 		}
 	}
