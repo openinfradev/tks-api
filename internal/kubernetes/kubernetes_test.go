@@ -2,6 +2,7 @@ package kubernetes_test
 
 import (
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"gopkg.in/yaml.v3"
 	"os"
 	"reflect"
 	"testing"
