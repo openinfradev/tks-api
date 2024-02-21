@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -50,7 +49,6 @@ type IProjectUsecase interface {
 	CreateK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error
 	DeleteK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error
 	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
-}
 
 	AssignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error
 	UnassignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error
@@ -404,7 +402,7 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, pr
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	projectMembers, err := u.GetProjectMembersByProjectId(projectId)
+	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to create project namespace.")
@@ -442,7 +440,7 @@ func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(organizationId string,
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	projectMembers, err := u.GetProjectMembersByProjectId(projectId)
+	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to create project namespace.")

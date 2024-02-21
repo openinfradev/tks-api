@@ -505,7 +505,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	var stackIds map[string]struct{}
+	stackIds := make(map[string]struct{})
 	for _, pn := range pns {
 		stackIds[pn.StackId] = struct{}{}
 	}
@@ -798,7 +798,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	var stackIds map[string]struct{}
+	stackIds := make(map[string]struct{})
 	for _, pn := range pns {
 		stackIds[pn.StackId] = struct{}{}
 	}
@@ -861,7 +861,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	var stackIds map[string]struct{}
+	stackIds := make(map[string]struct{})
 	for _, pn := range pns {
 		stackIds[pn.StackId] = struct{}{}
 	}
@@ -948,7 +948,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	var stackIds map[string]struct{}
+	stackIds := make(map[string]struct{})
 	for _, pn := range pns {
 		stackIds[pn.StackId] = struct{}{}
 	}
@@ -1025,7 +1025,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	var stackIds map[string]struct{}
+	stackIds := make(map[string]struct{})
 	for _, pn := range pns {
 		stackIds[pn.StackId] = struct{}{}
 	}
