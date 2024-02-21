@@ -1,8 +1,11 @@
 package kubernetes
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -184,4 +187,56 @@ func GetKubernetesVserion() (string, error) {
 	}
 
 	return information.GitVersion, nil
+}
+
+func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
+	type kubeConfigType struct {
+		APIVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Clusters   []struct {
+			Name    string `yaml:"name"`
+			Cluster struct {
+				Server                   string `yaml:"server"`
+				CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
+			} `yaml:"cluster"`
+		} `yaml:"clusters"`
+		Contexts []struct {
+			Name    string `yaml:"name"`
+			Context struct {
+				Cluster   string `yaml:"cluster"`
+				User      string `yaml:"user"`
+				Namespace string `yaml:"namespace,omitempty"`
+			} `yaml:"context"`
+		} `yaml:"contexts"`
+
+		Users []interface{} `yaml:"users,omitempty"`
+	}
+
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	defer encoder.Close()
+
+	encoder.SetIndent(2)
+
+	var config kubeConfigType
+	var combindConfig kubeConfigType
+	for _, kc := range kubeconfigs {
+		err := yaml.Unmarshal([]byte(kc), &config)
+		if err != nil {
+			return "", err
+		}
+		combindConfig.APIVersion = config.APIVersion
+		combindConfig.Kind = config.Kind
+		combindConfig.Clusters = append(combindConfig.Clusters, config.Clusters...)
+		combindConfig.Contexts = append(combindConfig.Contexts, config.Contexts...)
+		combindConfig.Users = config.Users
+	}
+
+	err := encoder.Encode(combindConfig)
+	//modContents, err := yaml.Marshal(combindConfig)
+
+	// write the kubeconfig to a file
+	err = os.WriteFile("combind-kubeconfig", buf.Bytes(), 0644)
+
+	return buf.String(), err
 }

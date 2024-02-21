@@ -219,6 +219,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.GetProjectNamespace, http.HandlerFunc(projectHandler.GetProjectNamespace))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.UpdateProjectNamespace, http.HandlerFunc(projectHandler.UpdateProjectNamespace))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.DeleteProjectNamespace, http.HandlerFunc(projectHandler.DeleteProjectNamespace))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/kubeconfig", customMiddleware.Handle(internalApi.GetProjectKubeconfig, http.HandlerFunc(projectHandler.GetProjectKubeconfig))).Methods(http.MethodGet)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets

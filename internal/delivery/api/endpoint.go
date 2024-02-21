@@ -149,6 +149,7 @@ const (
 	SetFavoriteProjectNamespace
 	UnSetFavoriteProject
 	UnSetFavoriteProjectNamespace
+	GetProjectKubeconfig
 )
 
 var ApiMap = map[Endpoint]EndpointInfo{
@@ -342,6 +343,14 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
 	GetAppServeApp: {
 		Name:  "GetAppServeApp",
+		Group: "AppServeApp",
+	},
+	GetAppServeAppTasksByAppId: {
+		Name:  "GetAppServeAppTasksByAppId",
+		Group: "AppServeApp",
+	},
+	GetAppServeAppTaskDetail: {
+		Name:  "GetAppServeAppTaskDetail",
 		Group: "AppServeApp",
 	},
 	GetAppServeAppLatestTask: {
@@ -600,6 +609,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "UnSetFavoriteProjectNamespace",
 		Group: "Project",
 	},
+	GetProjectKubeconfig: {
+		Name:  "GetProjectKubeconfig",
+		Group: "Project",
+	},
 }
 
 func (e Endpoint) String() string {
@@ -700,6 +713,10 @@ func (e Endpoint) String() string {
 		return "GetNumOfAppsOnStack"
 	case GetAppServeApp:
 		return "GetAppServeApp"
+	case GetAppServeAppTasksByAppId:
+		return "GetAppServeAppTasksByAppId"
+	case GetAppServeAppTaskDetail:
+		return "GetAppServeAppTaskDetail"
 	case GetAppServeAppLatestTask:
 		return "GetAppServeAppLatestTask"
 	case IsAppServeAppExist:
@@ -828,6 +845,8 @@ func (e Endpoint) String() string {
 		return "UnSetFavoriteProject"
 	case UnSetFavoriteProjectNamespace:
 		return "UnSetFavoriteProjectNamespace"
+	case GetProjectKubeconfig:
+		return "GetProjectKubeconfig"
 	default:
 		return ""
 	}
@@ -930,6 +949,10 @@ func GetEndpoint(name string) Endpoint {
 		return GetNumOfAppsOnStack
 	case "GetAppServeApp":
 		return GetAppServeApp
+	case "GetAppServeAppTasksByAppId":
+		return GetAppServeAppTasksByAppId
+	case "GetAppServeAppTaskDetail":
+		return GetAppServeAppTaskDetail
 	case "GetAppServeAppLatestTask":
 		return GetAppServeAppLatestTask
 	case "IsAppServeAppExist":
@@ -1018,6 +1041,10 @@ func GetEndpoint(name string) Endpoint {
 		return InstallStack
 	case "CreateProject":
 		return CreateProject
+	case "GetProjectRoles":
+		return GetProjectRoles
+	case "GetProjectRole":
+		return GetProjectRole
 	case "GetProjects":
 		return GetProjects
 	case "GetProject":
@@ -1028,6 +1055,8 @@ func GetEndpoint(name string) Endpoint {
 		return DeleteProject
 	case "AddProjectMember":
 		return AddProjectMember
+	case "GetProjectMember":
+		return GetProjectMember
 	case "GetProjectMembers":
 		return GetProjectMembers
 	case "RemoveProjectMember":
@@ -1052,6 +1081,8 @@ func GetEndpoint(name string) Endpoint {
 		return UnSetFavoriteProject
 	case "UnSetFavoriteProjectNamespace":
 		return UnSetFavoriteProjectNamespace
+	case "GetProjectKubeconfig":
+		return GetProjectKubeconfig
 	default:
 		return -1
 	}

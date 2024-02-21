@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -39,6 +41,7 @@ type IProjectUsecase interface {
 	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
+	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
 }
 
 type ProjectUsecase struct {
@@ -297,4 +300,61 @@ func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId
 		return errors.Wrap(err, "Failed to delete project namespace.")
 	}
 	return nil
+}
+
+func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId string) (string, error) {
+	projectNamespaces, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
+	if err != nil {
+		log.Error(err)
+		return "", errors.Wrap(err, "Failed to retrieve project namespaces.")
+	}
+
+	type kubeConfigType struct {
+		APIVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Clusters   []struct {
+			Name    string `yaml:"name"`
+			Cluster struct {
+				Server                   string `yaml:"server"`
+				CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
+			} `yaml:"cluster"`
+		} `yaml:"clusters"`
+		Contexts []struct {
+			Name    string `yaml:"name"`
+			Context struct {
+				Cluster   string `yaml:"cluster"`
+				User      string `yaml:"user"`
+				Namespace string `yaml:"namespace,omitempty"`
+			} `yaml:"context"`
+		} `yaml:"contexts"`
+
+		Users []interface{} `yaml:"users,omitempty"`
+	}
+
+	kubeconfigs := make([]string, 0)
+	for _, pn := range projectNamespaces {
+		kubeconfig, err := kubernetes.GetKubeConfig(pn.StackId)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to retrieve kubeconfig.")
+		}
+
+		var config kubeConfigType
+		err = yaml.Unmarshal(kubeconfig, &config)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to unmarshal kubeconfig.")
+		}
+		config.Contexts[0].Context.Namespace = pn.Namespace
+
+		kubeconfig, err = yaml.Marshal(config)
+		if err != nil {
+			log.Error(err)
+			return "", errors.Wrap(err, "Failed to marshal kubeconfig.")
+		}
+
+		kubeconfigs = append(kubeconfigs, string(kubeconfig[:]))
+	}
+
+	return kubernetes.MergeKubeconfigsWithSingleUser(kubeconfigs)
 }

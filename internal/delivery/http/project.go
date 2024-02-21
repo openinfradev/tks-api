@@ -46,6 +46,8 @@ type IProjectHandler interface {
 	SetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request)
 	UnSetFavoriteProject(w http.ResponseWriter, r *http.Request)
 	UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request)
+
+	GetProjectKubeconfig(w http.ResponseWriter, r *http.Request)
 }
 
 type ProjectHandler struct {
@@ -1310,4 +1312,45 @@ func (p ProjectHandler) UnSetFavoriteProject(w http.ResponseWriter, r *http.Requ
 
 func (p ProjectHandler) UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
+}
+
+// GetProjectKubeconfig godoc
+// @Tags        Projects
+// @Summary     Get project kubeconfig
+// @Description Get project kubeconfig
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "Organization ID"
+// @Param       projectId      path     string true "Project ID"
+// @Success     200            {object} domain.GetProjectKubeconfigResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/kubeconfig [get]
+// @Security    JWT
+func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found in path"),
+			"C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	kubeconfig, err := p.usecase.GetProjectKubeconfig(organizationId, projectId)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get project kubeconfig.", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	out := domain.GetProjectKubeconfigResponse{
+		Kubeconfig: kubeconfig,
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
