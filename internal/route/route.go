@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
-	"github.com/openinfradev/tks-api/internal/middleware/audit"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
 	"io"
 	"net/http"
 	"time"
+
+	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
+	"github.com/openinfradev/tks-api/internal/middleware/audit"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
@@ -52,6 +53,8 @@ func (r *StatusRecorder) WriteHeader(status int) {
 func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloak, asset http.Handler) http.Handler {
 	r := mux.NewRouter()
 
+	cache := gcache.New(5*time.Minute, 10*time.Minute)
+
 	repoFactory := repository.Repository{
 		Auth:          repository.NewAuthRepository(db),
 		User:          repository.NewUserRepository(db),
@@ -64,20 +67,34 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Alert:         repository.NewAlertRepository(db),
 		Project:       repository.NewProjectRepository(db),
 	}
+
+	usecaseFactory := usecase.Usecase{
+		Auth:          usecase.NewAuthUsecase(repoFactory, kc),
+		User:          usecase.NewUserUsecase(repoFactory, kc),
+		Cluster:       usecase.NewClusterUsecase(repoFactory, argoClient, cache),
+		Organization:  usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
+		AppGroup:      usecase.NewAppGroupUsecase(repoFactory, argoClient),
+		AppServeApp:   usecase.NewAppServeAppUsecase(repoFactory, argoClient),
+		CloudAccount:  usecase.NewCloudAccountUsecase(repoFactory, argoClient),
+		StackTemplate: usecase.NewStackTemplateUsecase(repoFactory),
+		Dashboard:     usecase.NewDashboardUsecase(repoFactory, cache),
+		Alert:         usecase.NewAlertUsecase(repoFactory),
+		Stack:         usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
+		Project:       usecase.NewProjectUsecase(repoFactory, argoClient),
+	}
+
 	customMiddleware := internalMiddleware.NewMiddleware(
 		authenticator.NewAuthenticator(authKeycloak.NewKeycloakAuthenticator(kc)),
 		authorizer.NewDefaultAuthorization(repoFactory),
 		requestRecoder.NewDefaultRequestRecoder(),
 		audit.NewDefaultAudit(repoFactory))
 
-	cache := gcache.New(5*time.Minute, 10*time.Minute)
-
 	r.Use(loggingMiddleware)
 
 	// [TODO] Transaction
 	//r.Use(transactionMiddleware(db))
 
-	authHandler := delivery.NewAuthHandler(usecase.NewAuthUsecase(repoFactory, kc))
+	authHandler := delivery.NewAuthHandler(usecaseFactory)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/ping", authHandler.PingToken).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", customMiddleware.Handle(internalApi.Logout, http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
@@ -90,7 +107,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	//r.HandleFunc(API_PREFIX+API_VERSION+"/cookie-test", authHandler.CookieTest).Methods(http.MethodPost)
 	//r.HandleFunc(API_PREFIX+API_VERSION+"/auth/callback", authHandler.CookieTestCallback).Methods(http.MethodGet)
 
-	userHandler := delivery.NewUserHandler(usecase.NewUserUsecase(repoFactory, kc))
+	userHandler := delivery.NewUserHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.CreateUser, http.HandlerFunc(userHandler.Create))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.ListUser, http.HandlerFunc(userHandler.List))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.GetUser, http.HandlerFunc(userHandler.Get))).Methods(http.MethodGet)
@@ -106,7 +123,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile/next-password-change", customMiddleware.Handle(internalApi.RenewPasswordExpiredDate, http.HandlerFunc(userHandler.RenewPasswordExpiredDate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", customMiddleware.Handle(internalApi.DeleteMyProfile, http.HandlerFunc(userHandler.DeleteMyProfile))).Methods(http.MethodDelete)
 
-	organizationHandler := delivery.NewOrganizationHandler(usecase.NewOrganizationUsecase(repoFactory, argoClient, kc), usecase.NewUserUsecase(repoFactory, kc))
+	organizationHandler := delivery.NewOrganizationHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", customMiddleware.Handle(internalApi.CreateOrganization, http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", customMiddleware.Handle(internalApi.GetOrganizations, http.HandlerFunc(organizationHandler.GetOrganizations))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.GetOrganization, http.HandlerFunc(organizationHandler.GetOrganization))).Methods(http.MethodGet)
@@ -114,7 +131,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.UpdateOrganization, http.HandlerFunc(organizationHandler.UpdateOrganization))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/primary-cluster", customMiddleware.Handle(internalApi.UpdatePrimaryCluster, http.HandlerFunc(organizationHandler.UpdatePrimaryCluster))).Methods(http.MethodPatch)
 
-	clusterHandler := delivery.NewClusterHandler(usecase.NewClusterUsecase(repoFactory, argoClient, cache))
+	clusterHandler := delivery.NewClusterHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", customMiddleware.Handle(internalApi.CreateCluster, http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", customMiddleware.Handle(internalApi.GetClusters, http.HandlerFunc(clusterHandler.GetClusters))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/import", customMiddleware.Handle(internalApi.ImportCluster, http.HandlerFunc(clusterHandler.ImportCluster))).Methods(http.MethodPost)
@@ -126,7 +143,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/bootstrap-kubeconfig", customMiddleware.Handle(internalApi.GetBootstrapKubeconfig, http.HandlerFunc(clusterHandler.GetBootstrapKubeconfig))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/nodes", customMiddleware.Handle(internalApi.GetNodes, http.HandlerFunc(clusterHandler.GetNodes))).Methods(http.MethodGet)
 
-	appGroupHandler := delivery.NewAppGroupHandler(usecase.NewAppGroupUsecase(repoFactory, argoClient))
+	appGroupHandler := delivery.NewAppGroupHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", customMiddleware.Handle(internalApi.CreateAppgroup, http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", customMiddleware.Handle(internalApi.GetAppgroups, http.HandlerFunc(appGroupHandler.GetAppGroups))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}", customMiddleware.Handle(internalApi.GetAppgroup, http.HandlerFunc(appGroupHandler.GetAppGroup))).Methods(http.MethodGet)
@@ -134,7 +151,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", customMiddleware.Handle(internalApi.GetApplications, http.HandlerFunc(appGroupHandler.GetApplications))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups/{appGroupId}/applications", customMiddleware.Handle(internalApi.CreateApplication, http.HandlerFunc(appGroupHandler.CreateApplication))).Methods(http.MethodPost)
 
-	appServeAppHandler := delivery.NewAppServeAppHandler(usecase.NewAppServeAppUsecase(repoFactory, argoClient))
+	appServeAppHandler := delivery.NewAppServeAppHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps", customMiddleware.Handle(internalApi.CreateAppServeApp, http.HandlerFunc(appServeAppHandler.CreateAppServeApp))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps", customMiddleware.Handle(internalApi.GetAppServeApps, http.HandlerFunc(appServeAppHandler.GetAppServeApps))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count", customMiddleware.Handle(internalApi.GetNumOfAppsOnStack, http.HandlerFunc(appServeAppHandler.GetNumOfAppsOnStack))).Methods(http.MethodGet)
@@ -150,7 +167,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint", customMiddleware.Handle(internalApi.UpdateAppServeAppEndpoint, http.HandlerFunc(appServeAppHandler.UpdateAppServeAppEndpoint))).Methods(http.MethodPatch)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback", customMiddleware.Handle(internalApi.RollbackAppServeApp, http.HandlerFunc(appServeAppHandler.RollbackAppServeApp))).Methods(http.MethodPost)
 
-	cloudAccountHandler := delivery.NewCloudAccountHandler(usecase.NewCloudAccountUsecase(repoFactory, argoClient))
+	cloudAccountHandler := delivery.NewCloudAccountHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", customMiddleware.Handle(internalApi.GetCloudAccounts, http.HandlerFunc(cloudAccountHandler.GetCloudAccounts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts", customMiddleware.Handle(internalApi.CreateCloudAccount, http.HandlerFunc(cloudAccountHandler.CreateCloudAccount))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/name/{name}/existence", customMiddleware.Handle(internalApi.CheckCloudAccountName, http.HandlerFunc(cloudAccountHandler.CheckCloudAccountName))).Methods(http.MethodGet)
@@ -161,20 +178,20 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error", customMiddleware.Handle(internalApi.DeleteForceCloudAccount, http.HandlerFunc(cloudAccountHandler.DeleteForceCloudAccount))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quotas", customMiddleware.Handle(internalApi.GetResourceQuota, http.HandlerFunc(cloudAccountHandler.GetResourceQuota))).Methods(http.MethodGet)
 
-	stackTemplateHandler := delivery.NewStackTemplateHandler(usecase.NewStackTemplateUsecase(repoFactory))
+	stackTemplateHandler := delivery.NewStackTemplateHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", customMiddleware.Handle(internalApi.GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", customMiddleware.Handle(internalApi.CreateStackTemplate, http.HandlerFunc(stackTemplateHandler.CreateStackTemplate))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.GetStackTemplate, http.HandlerFunc(stackTemplateHandler.GetStackTemplate))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.UpdateStackTemplate, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.DeleteStackTemplate, http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate))).Methods(http.MethodDelete)
 
-	dashboardHandler := delivery.NewDashboardHandler(usecase.NewDashboardUsecase(repoFactory, cache))
+	dashboardHandler := delivery.NewDashboardHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", customMiddleware.Handle(internalApi.GetChartsDashboard, http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts/{chartType}", customMiddleware.Handle(internalApi.GetChartDashboard, http.HandlerFunc(dashboardHandler.GetChart))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/stacks", customMiddleware.Handle(internalApi.GetStacksDashboard, http.HandlerFunc(dashboardHandler.GetStacks))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/resources", customMiddleware.Handle(internalApi.GetResourcesDashboard, http.HandlerFunc(dashboardHandler.GetResources))).Methods(http.MethodGet)
 
-	alertHandler := delivery.NewAlertHandler(usecase.NewAlertUsecase(repoFactory))
+	alertHandler := delivery.NewAlertHandler(usecaseFactory)
 	r.HandleFunc(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/alerts", alertHandler.CreateAlert).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts", customMiddleware.Handle(internalApi.GetAlerts, http.HandlerFunc(alertHandler.GetAlerts))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", customMiddleware.Handle(internalApi.GetAlert, http.HandlerFunc(alertHandler.GetAlert))).Methods(http.MethodGet)
@@ -183,7 +200,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions", customMiddleware.Handle(internalApi.CreateAlertAction, http.HandlerFunc(alertHandler.CreateAlertAction))).Methods(http.MethodPost)
 	//r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions/status", customMiddleware.Handle(http.HandlerFunc(alertHandler.UpdateAlertActionStatus))).Methods(http.MethodPatch)
 
-	stackHandler := delivery.NewStackHandler(usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)))
+	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.CreateStack, http.HandlerFunc(stackHandler.CreateStack))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/name/{name}/existence", customMiddleware.Handle(internalApi.CheckStackName, http.HandlerFunc(stackHandler.CheckStackName))).Methods(http.MethodGet)
@@ -196,7 +213,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/favorite", customMiddleware.Handle(internalApi.DeleteFavoriteStack, http.HandlerFunc(stackHandler.DeleteFavorite))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/install", customMiddleware.Handle(internalApi.InstallStack, http.HandlerFunc(stackHandler.InstallStack))).Methods(http.MethodPost)
 
-	projectHandler := delivery.NewProjectHandler(usecase.NewProjectUsecase(repoFactory, argoClient))
+	projectHandler := delivery.NewProjectHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects", customMiddleware.Handle(internalApi.CreateProject, http.HandlerFunc(projectHandler.CreateProject))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects", customMiddleware.Handle(internalApi.GetProjects, http.HandlerFunc(projectHandler.GetProjects))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}", customMiddleware.Handle(internalApi.GetProject, http.HandlerFunc(projectHandler.GetProject))).Methods(http.MethodGet)

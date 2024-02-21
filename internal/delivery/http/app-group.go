@@ -18,9 +18,9 @@ type AppGroupHandler struct {
 	usecase usecase.IAppGroupUsecase
 }
 
-func NewAppGroupHandler(h usecase.IAppGroupUsecase) *AppGroupHandler {
+func NewAppGroupHandler(h usecase.Usecase) *AppGroupHandler {
 	return &AppGroupHandler{
-		usecase: h,
+		usecase: h.AppGroup,
 	}
 }
 

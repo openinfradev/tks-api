@@ -18,9 +18,9 @@ type StackHandler struct {
 	usecase usecase.IStackUsecase
 }
 
-func NewStackHandler(h usecase.IStackUsecase) *StackHandler {
+func NewStackHandler(h usecase.Usecase) *StackHandler {
 	return &StackHandler{
-		usecase: h,
+		usecase: h.Stack,
 	}
 }
 

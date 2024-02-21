@@ -1314,6 +1314,11 @@ definitions:
             type: string
         type: object
     type: object
+  domain.GetProjectKubeconfigResponse:
+    properties:
+      kubeconfig:
+        type: string
+    type: object
   domain.GetProjectMemberCountResponse:
     properties:
       projectLeaderCount:
@@ -4425,6 +4430,34 @@ paths:
       summary: Check duplicate appServeAppName
       tags:
       - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/kubeconfig:
+    get:
+      consumes:
+      - application/json
+      description: Get project kubeconfig
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetProjectKubeconfigResponse'
+      security:
+      - JWT: []
+      summary: Get project kubeconfig
+      tags:
+      - Projects
   /organizations/{organizationId}/projects/{projectId}/members:
     delete:
       consumes:

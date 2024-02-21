@@ -71,9 +71,9 @@ type AppServeAppHandler struct {
 	usecase usecase.IAppServeAppUsecase
 }
 
-func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
+func NewAppServeAppHandler(h usecase.Usecase) *AppServeAppHandler {
 	return &AppServeAppHandler{
-		usecase: h,
+		usecase: h.AppServeApp,
 	}
 }
 
@@ -289,10 +289,10 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // TODO: this API will'be deprecated soon once the new task-related API's are verified.
-    // Until then, this is available (except for stage info) just for backward compatibility.
-    //////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// TODO: this API will'be deprecated soon once the new task-related API's are verified.
+	// Until then, this is available (except for stage info) just for backward compatibility.
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	vars := mux.Vars(r)
 
@@ -333,7 +333,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	var out domain.GetAppServeAppResponse
 	out.AppServeApp = *app
-    // NOTE: makeStages function's been changed to use task instead of app
+	// NOTE: makeStages function's been changed to use task instead of app
 	//out.Stages = makeStages(app)
 
 	ResponseJSON(w, r, http.StatusOK, out)

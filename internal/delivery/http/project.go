@@ -2,12 +2,13 @@ package http
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/serializer"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -54,9 +55,9 @@ type ProjectHandler struct {
 	usecase usecase.IProjectUsecase
 }
 
-func NewProjectHandler(u usecase.IProjectUsecase) IProjectHandler {
+func NewProjectHandler(u usecase.Usecase) IProjectHandler {
 	return &ProjectHandler{
-		usecase: u,
+		usecase: u.Project,
 	}
 }
 

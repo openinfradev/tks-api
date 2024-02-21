@@ -20,9 +20,9 @@ type StackTemplateHandler struct {
 	usecase usecase.IStackTemplateUsecase
 }
 
-func NewStackTemplateHandler(h usecase.IStackTemplateUsecase) *StackTemplateHandler {
+func NewStackTemplateHandler(h usecase.Usecase) *StackTemplateHandler {
 	return &StackTemplateHandler{
-		usecase: h,
+		usecase: h.StackTemplate,
 	}
 }
 

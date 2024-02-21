@@ -19,10 +19,10 @@ type OrganizationHandler struct {
 	userUsecase usecase.IUserUsecase
 }
 
-func NewOrganizationHandler(o usecase.IOrganizationUsecase, u usecase.IUserUsecase) *OrganizationHandler {
+func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 	return &OrganizationHandler{
-		usecase:     o,
-		userUsecase: u,
+		usecase:     u.Organization,
+		userUsecase: u.User,
 	}
 }
 

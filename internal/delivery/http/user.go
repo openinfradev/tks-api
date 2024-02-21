@@ -37,9 +37,9 @@ type UserHandler struct {
 	usecase usecase.IUserUsecase
 }
 
-func NewUserHandler(h usecase.IUserUsecase) IUserHandler {
+func NewUserHandler(h usecase.Usecase) IUserHandler {
 	return &UserHandler{
-		usecase: h,
+		usecase: h.User,
 	}
 }
 

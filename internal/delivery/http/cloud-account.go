@@ -20,9 +20,9 @@ type CloudAccountHandler struct {
 	usecase usecase.ICloudAccountUsecase
 }
 
-func NewCloudAccountHandler(h usecase.ICloudAccountUsecase) *CloudAccountHandler {
+func NewCloudAccountHandler(h usecase.Usecase) *CloudAccountHandler {
 	return &CloudAccountHandler{
-		usecase: h,
+		usecase: h.CloudAccount,
 	}
 }
 

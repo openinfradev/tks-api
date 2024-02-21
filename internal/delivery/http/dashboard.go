@@ -17,9 +17,9 @@ type DashboardHandler struct {
 	usecase usecase.IDashboardUsecase
 }
 
-func NewDashboardHandler(h usecase.IDashboardUsecase) *DashboardHandler {
+func NewDashboardHandler(h usecase.Usecase) *DashboardHandler {
 	return &DashboardHandler{
-		usecase: h,
+		usecase: h.Dashboard,
 	}
 }
 
