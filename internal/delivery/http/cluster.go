@@ -18,9 +18,9 @@ type ClusterHandler struct {
 	usecase usecase.IClusterUsecase
 }
 
-func NewClusterHandler(h usecase.IClusterUsecase) *ClusterHandler {
+func NewClusterHandler(h usecase.Usecase) *ClusterHandler {
 	return &ClusterHandler{
-		usecase: h,
+		usecase: h.Cluster,
 	}
 }
 

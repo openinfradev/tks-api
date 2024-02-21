@@ -21,9 +21,9 @@ type AlertHandler struct {
 	usecase usecase.IAlertUsecase
 }
 
-func NewAlertHandler(h usecase.IAlertUsecase) *AlertHandler {
+func NewAlertHandler(h usecase.Usecase) *AlertHandler {
 	return &AlertHandler{
-		usecase: h,
+		usecase: h.Alert,
 	}
 }
 

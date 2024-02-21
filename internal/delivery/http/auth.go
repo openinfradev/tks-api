@@ -30,9 +30,9 @@ type AuthHandler struct {
 	usecase usecase.IAuthUsecase
 }
 
-func NewAuthHandler(h usecase.IAuthUsecase) IAuthHandler {
+func NewAuthHandler(h usecase.Usecase) IAuthHandler {
 	return &AuthHandler{
-		usecase: h,
+		usecase: h.Auth,
 	}
 }
 

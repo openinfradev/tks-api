@@ -3334,6 +3334,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get project kubeconfig",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project kubeconfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetProjectKubeconfigResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/projects/{projectId}/members": {
             "get": {
                 "security": [
@@ -7090,6 +7134,14 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "domain.GetProjectKubeconfigResponse": {
+            "type": "object",
+            "properties": {
+                "kubeconfig": {
+                    "type": "string"
                 }
             }
         },
