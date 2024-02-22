@@ -23,6 +23,7 @@ type IProjectRepository interface {
 	GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string) ([]domain.ProjectMember, error)
 	GetProjectMemberCountByProjectId(projectId string) (*domain.GetProjectMemberCountResponse, error)
 	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
+	GetProjectMemberByUserId(projectId string, projectUserId string) (pm *domain.ProjectMember, err error)
 	RemoveProjectMember(projectMemberId string) error
 	UpdateProjectMemberRole(pm *domain.ProjectMember) error
 	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
@@ -280,6 +281,22 @@ func (r *ProjectRepository) GetProjectMemberById(projectMemberId string) (pm *do
 	return pm, nil
 }
 
+func (r *ProjectRepository) GetProjectMemberByUserId(projectId string, projectUserId string) (pm *domain.ProjectMember, err error) {
+	res := r.db.Preload("ProjectUser").
+		Joins("ProjectRole").Where("project_id = ? and project_user_id = ?", projectId, projectUserId).First(&pm)
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project member")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return pm, nil
+}
+
 func (r *ProjectRepository) RemoveProjectMember(projectMemberId string) error {
 	res := r.db.Delete(&domain.ProjectMember{ID: projectMemberId})
 	if res.Error != nil {
@@ -299,7 +316,12 @@ func (r *ProjectRepository) RemoveProjectMember(projectMemberId string) error {
 //}
 
 func (r *ProjectRepository) UpdateProjectMemberRole(pm *domain.ProjectMember) error {
-	res := r.db.Model(&pm).Updates(domain.ProjectMember{ProjectRoleId: pm.ProjectRoleId, UpdatedAt: pm.UpdatedAt})
+	res := r.db.Model(&pm).Updates(
+		domain.ProjectMember{
+			ProjectRoleId:   pm.ProjectRoleId,
+			IsProjectLeader: pm.IsProjectLeader,
+			UpdatedAt:       pm.UpdatedAt,
+		})
 	if res.Error != nil {
 		return res.Error
 	}

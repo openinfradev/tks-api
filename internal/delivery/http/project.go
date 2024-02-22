@@ -286,7 +286,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 // @Param       type             query    string false "type (name)"
 // @Param       value            query    string true  "value (project name)"
 // @Success     200              {object} domain.CheckExistedResponse
-// @Router      /organizations/{organizationId}/projects/check/existence [get]
+// @Router      /organizations/{organizationId}/projects/existence [get]
 // @Security    JWT
 func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -348,18 +348,24 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	project, err := p.usecase.GetProject(organizationId, projectId)
+	project, err := p.usecase.GetProjectWithLeader(organizationId, projectId)
 	if err != nil {
-
+		ErrorJSON(w, r, err)
+		return
+	}
+	if project == nil {
+		project, err = p.usecase.GetProject(organizationId, projectId)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
 	}
 
 	project.Name = projectReq.Name
 	project.Description = projectReq.Description
 	project.UpdatedAt = &now
-	//project.ProjectNamespaces = nil
-	//project.ProjectMembers = nil
 
-	if err := p.usecase.UpdateProject(project); err != nil {
+	if err := p.usecase.UpdateProject(project, projectReq.ProjectLeaderId); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}

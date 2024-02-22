@@ -2290,7 +2290,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/check/existence": {
+        "/organizations/{organizationId}/projects/existence": {
             "get": {
                 "security": [
                     {
@@ -2340,7 +2340,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/pass/project-roles": {
+        "/organizations/{organizationId}/projects/project-roles": {
             "get": {
                 "security": [
                     {
@@ -2383,7 +2383,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/pass/project-roles/{projectRoleId}": {
+        "/organizations/{organizationId}/projects/project-roles/{projectRoleId}": {
             "get": {
                 "security": [
                     {
@@ -3581,7 +3581,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/members/project-roles/count": {
+        "/organizations/{organizationId}/projects/{projectId}/members/count": {
             "get": {
                 "security": [
                     {
@@ -3817,13 +3817,6 @@ const docTemplate = `{
                         "name": "projectId",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project Stack ID",
-                        "name": "stackId",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -3864,13 +3857,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Project ID",
                         "name": "projectId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Stack ID",
-                        "name": "stackId",
                         "in": "path",
                         "required": true
                     },
@@ -8538,6 +8524,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "projectLeaderId": {
                     "type": "string"
                 }
             }
