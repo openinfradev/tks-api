@@ -152,10 +152,7 @@ type CreateProjectResponse struct {
 }
 
 type UpdateProjectRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description"`
-	//ProjectLeaderId string `json:"projectLeaderId"`
-	//ProjectRoleId   string `json:"projectRoleId"`
+	CreateProjectRequest
 }
 
 type GetProjectRoleResponse struct {

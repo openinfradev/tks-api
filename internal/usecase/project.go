@@ -25,7 +25,7 @@ type IProjectUsecase interface {
 	GetProject(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error)
 	IsProjectNameExist(organizationId string, projectName string) (bool, error)
-	UpdateProject(p *domain.Project) error
+	UpdateProject(p *domain.Project, newLeaderId string) error
 	GetProjectRole(id string) (*domain.ProjectRole, error)
 	GetProjectRoles(int) ([]domain.ProjectRole, error)
 	AddProjectMember(pm *domain.ProjectMember) (string, error)
@@ -116,11 +116,69 @@ func (u *ProjectUsecase) IsProjectNameExist(organizationId string, projectName s
 	return exist, nil
 }
 
-func (u *ProjectUsecase) UpdateProject(p *domain.Project) error {
+func (u *ProjectUsecase) UpdateProject(p *domain.Project, newLeaderId string) error {
+
+	var currentMemberId, currentLeaderId, projectRoleId string
+	for _, pm := range p.ProjectMembers {
+		currentMemberId = pm.ID
+		currentLeaderId = pm.ProjectUser.ID.String()
+		projectRoleId = pm.ProjectRole.ID
+	}
+	p.ProjectNamespaces = nil
+	p.ProjectMembers = nil
+
 	if err := u.projectRepo.UpdateProject(p); err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to update project.")
 	}
+
+	if newLeaderId != "" && currentLeaderId != newLeaderId {
+		if err := u.RemoveProjectMember(currentMemberId); err != nil {
+			log.Error(err)
+			return errors.Wrap(err, "Failed to remove project member.")
+		}
+
+		pu, err := u.GetProjectUser(newLeaderId)
+		if err != nil {
+			return err
+		}
+		if pu == nil {
+			return errors.Wrap(err, "No userid")
+		}
+
+		pm, err := u.projectRepo.GetProjectMemberByUserId(p.ID, newLeaderId)
+		if err != nil {
+			return err
+		}
+		if pm == nil {
+			newPm := &domain.ProjectMember{
+				ProjectId:       p.ID,
+				ProjectUserId:   pu.ID,
+				ProjectUser:     nil,
+				ProjectRoleId:   projectRoleId,
+				ProjectRole:     nil,
+				IsProjectLeader: true,
+				CreatedAt:       *p.UpdatedAt,
+			}
+			res, err := u.AddProjectMember(newPm)
+			if err != nil {
+				return err
+			}
+			log.Infof("Added project member: %s", res)
+		} else {
+			pm.ProjectUserId = pu.ID
+			pm.ProjectRoleId = projectRoleId
+			pm.IsProjectLeader = true
+			pm.UpdatedAt = p.UpdatedAt
+			pm.ProjectUser = nil
+			pm.ProjectRole = nil
+			err := u.UpdateProjectMemberRole(pm)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 

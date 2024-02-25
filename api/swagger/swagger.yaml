@@ -2240,6 +2240,8 @@ definitions:
         type: string
       name:
         type: string
+      projectLeaderId:
+        type: string
     required:
     - name
     type: object
@@ -4694,7 +4696,7 @@ paths:
       summary: Update project  member   Role
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/members/project-roles/count:
+  /organizations/{organizationId}/projects/{projectId}/members/count:
     get:
       consumes:
       - application/json
@@ -4738,11 +4740,6 @@ paths:
         name: projectId
         required: true
         type: string
-      - description: Project Stack ID
-        in: path
-        name: stackId
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -4768,11 +4765,6 @@ paths:
       - description: Project ID
         in: path
         name: projectId
-        required: true
-        type: string
-      - description: Stack ID
-        in: path
-        name: stackId
         required: true
         type: string
       - description: Request body to create project namespace
@@ -4949,7 +4941,7 @@ paths:
       summary: Check project namespace exist
       tags:
       - Projects
-  /organizations/{organizationId}/projects/check/existence:
+  /organizations/{organizationId}/projects/existence:
     get:
       consumes:
       - application/json
@@ -4981,7 +4973,7 @@ paths:
       summary: Check project name exist
       tags:
       - Projects
-  /organizations/{organizationId}/projects/pass/project-roles:
+  /organizations/{organizationId}/projects/project-roles:
     get:
       consumes:
       - application/json
@@ -5009,7 +5001,7 @@ paths:
       summary: Get project roles
       tags:
       - Projects
-  /organizations/{organizationId}/projects/pass/project-roles/{projectRoleId}:
+  /organizations/{organizationId}/projects/project-roles/{projectRoleId}:
     get:
       consumes:
       - application/json

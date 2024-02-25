@@ -286,7 +286,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 // @Param       type             query    string false "type (name)"
 // @Param       value            query    string true  "value (project name)"
 // @Success     200              {object} domain.CheckExistedResponse
-// @Router      /organizations/{organizationId}/projects/check/existence [get]
+// @Router      /organizations/{organizationId}/projects/existence [get]
 // @Security    JWT
 func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -348,18 +348,24 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	project, err := p.usecase.GetProject(organizationId, projectId)
+	project, err := p.usecase.GetProjectWithLeader(organizationId, projectId)
 	if err != nil {
-
+		ErrorJSON(w, r, err)
+		return
+	}
+	if project == nil {
+		project, err = p.usecase.GetProject(organizationId, projectId)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
 	}
 
 	project.Name = projectReq.Name
 	project.Description = projectReq.Description
 	project.UpdatedAt = &now
-	//project.ProjectNamespaces = nil
-	//project.ProjectMembers = nil
 
-	if err := p.usecase.UpdateProject(project); err != nil {
+	if err := p.usecase.UpdateProject(project, projectReq.ProjectLeaderId); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -380,7 +386,7 @@ func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "Organization ID"
 // @Param       projectRoleId  path     string true "Project Role ID"
 // @Success     200            {object} domain.GetProjectRoleResponse
-// @Router      /organizations/{organizationId}/projects/pass/project-roles/{projectRoleId} [get]
+// @Router      /organizations/{organizationId}/projects/project-roles/{projectRoleId} [get]
 // @Security    JWT
 func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -422,7 +428,7 @@ func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true  "Organization ID"
 // @Param       query          query    string false "project role search by query (query=all), (query=leader), (query=member), (query=viewer)"
 // @Success     200            {object} domain.GetProjectRolesResponse
-// @Router      /organizations/{organizationId}/projects/pass/project-roles [get]
+// @Router      /organizations/{organizationId}/projects/project-roles [get]
 // @Security    JWT
 func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -692,7 +698,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 // @Param       organizationId path     string true "Organization ID"
 // @Param       projectId      path     string true "Project ID"
 // @Success     200            {object} domain.GetProjectMemberCountResponse
-// @Router      /organizations/{organizationId}/projects/{projectId}/members/project-roles/count [get]
+// @Router      /organizations/{organizationId}/projects/{projectId}/members/count [get]
 // @Security    JWT
 func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -958,7 +964,6 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 // @Produce     json
 // @Param       organizationId path     string                               true "Organization ID"
 // @Param       projectId      path     string                               true "Project ID"
-// @Param       stackId        path     string                               true "Stack ID"
 // @Param       request        body     domain.CreateProjectNamespaceRequest true "Request body to create project namespace"
 // @Success     200            {object} domain.CommonProjectResponse
 // @Router      /organizations/{organizationId}/projects/{projectId}/namespaces [post]
@@ -1063,7 +1068,6 @@ func (p ProjectHandler) IsProjectNamespaceExist(w http.ResponseWriter, r *http.R
 // @Produce     json
 // @Param       organizationId path     string true "Organization ID"
 // @Param       projectId      path     string true "Project ID"
-// @Param       stackId        path     string true "Project Stack ID"
 // @Success     200            {object} domain.GetProjectNamespacesResponse
 // @Router      /organizations/{organizationId}/projects/{projectId}/namespaces [get]
 // @Security    JWT
