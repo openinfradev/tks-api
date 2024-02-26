@@ -150,6 +150,7 @@ const (
 	UnSetFavoriteProject
 	UnSetFavoriteProjectNamespace
 	GetProjectKubeconfig
+	GetProjectNamespaceK8sResources
 )
 
 var ApiMap = map[Endpoint]EndpointInfo{
@@ -613,6 +614,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name:  "GetProjectKubeconfig",
 		Group: "Project",
 	},
+	GetProjectNamespaceK8sResources: {
+		Name:  "GetProjectNamespaceK8sResources",
+		Group: "Project",
+	},
 }
 
 func (e Endpoint) String() string {
@@ -847,6 +852,8 @@ func (e Endpoint) String() string {
 		return "UnSetFavoriteProjectNamespace"
 	case GetProjectKubeconfig:
 		return "GetProjectKubeconfig"
+	case GetProjectNamespaceK8sResources:
+		return "GetProjectNamespaceK8sResources"
 	default:
 		return ""
 	}
@@ -1083,6 +1090,8 @@ func GetEndpoint(name string) Endpoint {
 		return UnSetFavoriteProjectNamespace
 	case "GetProjectKubeconfig":
 		return GetProjectKubeconfig
+	case "GetProjectNamespaceK8sResources":
+		return GetProjectNamespaceK8sResources
 	default:
 		return -1
 	}

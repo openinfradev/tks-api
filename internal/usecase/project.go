@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -42,6 +44,7 @@ type IProjectUsecase interface {
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
 	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
+	GetK8sResources(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (out domain.ProjectNamespaceK8sResources, err error)
 }
 
 type ProjectUsecase struct {
@@ -415,4 +418,20 @@ func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId s
 	}
 
 	return kubernetes.MergeKubeconfigsWithSingleUser(kubeconfigs)
+}
+
+func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (out domain.ProjectNamespaceK8sResources, err error) {
+
+	// to be implemented
+	out.Pods = 1
+	out.Deployments = 2
+	out.Statefulsets = 3
+	out.Demonsets = 4
+	out.Jobs = 5
+	out.Cronjobs = 6
+	out.PVCs = 7
+	out.Services = 8
+	out.Ingresses = 9
+
+	return
 }
