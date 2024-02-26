@@ -67,6 +67,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Alert:         usecase.NewAlertUsecase(repoFactory),
 		Stack:         usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
 		Project:       usecase.NewProjectUsecase(repoFactory, kc, argoClient),
+		Audit:         usecase.NewAuditUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
