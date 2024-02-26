@@ -1,10 +1,6 @@
 package route
 
 import (
-	"bytes"
-	"context"
-	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -12,7 +8,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/audit"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal"
@@ -22,10 +17,10 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
 	authKeycloak "github.com/openinfradev/tks-api/internal/middleware/auth/authenticator/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authorizer"
+	"github.com/openinfradev/tks-api/internal/middleware/logging"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
-	"github.com/openinfradev/tks-api/pkg/log"
 	gcache "github.com/patrickmn/go-cache"
 	"github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
@@ -39,16 +34,6 @@ var (
 	SYSTEM_API_VERSION = internal.SYSTEM_API_VERSION
 	SYSTEM_API_PREFIX  = internal.SYSTEM_API_PREFIX
 )
-
-type StatusRecorder struct {
-	http.ResponseWriter
-	Status int
-}
-
-func (r *StatusRecorder) WriteHeader(status int) {
-	r.Status = status
-	r.ResponseWriter.WriteHeader(status)
-}
 
 func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloak, asset http.Handler) http.Handler {
 	r := mux.NewRouter()
@@ -66,6 +51,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		Alert:         repository.NewAlertRepository(db),
 		Project:       repository.NewProjectRepository(db),
+		Audit:         repository.NewAuditRepository(db),
 	}
 
 	usecaseFactory := usecase.Usecase{
@@ -80,7 +66,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Dashboard:     usecase.NewDashboardUsecase(repoFactory, cache),
 		Alert:         usecase.NewAlertUsecase(repoFactory),
 		Stack:         usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
-		Project:       usecase.NewProjectUsecase(repoFactory, argoClient),
+		Project:       usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -89,7 +75,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		requestRecoder.NewDefaultRequestRecoder(),
 		audit.NewDefaultAudit(repoFactory))
 
-	r.Use(loggingMiddleware)
+	r.Use(logging.LoggingMiddleware)
 
 	// [TODO] Transaction
 	//r.Use(transactionMiddleware(db))
@@ -239,6 +225,11 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}", customMiddleware.Handle(internalApi.DeleteProjectNamespace, http.HandlerFunc(projectHandler.DeleteProjectNamespace))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/kubeconfig", customMiddleware.Handle(internalApi.GetProjectKubeconfig, http.HandlerFunc(projectHandler.GetProjectKubeconfig))).Methods(http.MethodGet)
 
+	auditHandler := delivery.NewAuditHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits", customMiddleware.Handle(internalApi.GetAudits, http.HandlerFunc(auditHandler.GetAudits))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.GetAudit, http.HandlerFunc(auditHandler.GetAudit))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.DeleteAudit, http.HandlerFunc(auditHandler.DeleteAudit))).Methods(http.MethodDelete)
+
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
@@ -252,25 +243,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"})
 
 	return handlers.CORS(credentials, headersOk, originsOk, methodsOk)(r)
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		r = r.WithContext(context.WithValue(ctx, internal.ContextKeyRequestID, uuid.New().String()))
-
-		log.InfoWithContext(r.Context(), fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
-
-		body, err := io.ReadAll(r.Body)
-		if err == nil {
-			log.InfoWithContext(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
-		}
-		r.Body = io.NopCloser(bytes.NewBuffer(body))
-
-		next.ServeHTTP(w, r)
-
-		log.InfofWithContext(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
-	})
 }
 
 /*

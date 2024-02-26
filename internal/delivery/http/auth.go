@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
+	"github.com/openinfradev/tks-api/internal/middleware/audit"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -27,12 +29,14 @@ type IAuthHandler interface {
 	//Authenticate(next http.Handler) http.Handler
 }
 type AuthHandler struct {
-	usecase usecase.IAuthUsecase
+	usecase      usecase.IAuthUsecase
+	auditUsecase usecase.IAuditUsecase
 }
 
 func NewAuthHandler(h usecase.Usecase) IAuthHandler {
 	return &AuthHandler{
-		usecase: h.Auth,
+		usecase:      h.Auth,
+		auditUsecase: h.Audit,
 	}
 }
 
@@ -55,9 +59,28 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
+		errorResponse, _ := httpErrors.ErrorResponse(err)
+		_, _ = h.auditUsecase.Create(r.Context(), domain.Audit{
+			OrganizationId: input.OrganizationId,
+			Group:          "Auth",
+			Message:        fmt.Sprintf("[%s]님이 로그인에 실패하였습니다.", input.AccountId),
+			Description:    errorResponse.Text(),
+			ClientIP:       audit.GetClientIpAddress(w, r),
+			UserId:         nil,
+		})
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
+	} else {
+		userId, _ := uuid.Parse(user.ID)
+		_, _ = h.auditUsecase.Create(r.Context(), domain.Audit{
+			OrganizationId: input.OrganizationId,
+			Group:          "Auth",
+			Message:        fmt.Sprintf("[%s]님이 로그인 하였습니다.", input.AccountId),
+			Description:    "",
+			ClientIP:       audit.GetClientIpAddress(w, r),
+			UserId:         &userId,
+		})
 	}
 
 	var cookies []*http.Cookie

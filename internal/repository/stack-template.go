@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -97,7 +96,7 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 	*/
 
 	//	paginator, res := filter.Scope(r.db.Order("kube_type DESC,template_type ASC"), pg.GetPaginationRequest(), &stackTemplates)
-	paginator, res := pg.Fetch(r.db, &stackTemplates)
+	_, res := pg.Fetch(r.db, &stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -105,9 +104,6 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 	for _, stackTemplate := range stackTemplates {
 		out = append(out, reflectStackTemplate(stackTemplate))
 	}
-
-	log.Info(helper.ModelToJson(paginator.Total))
-	//log.Info(helper.ModelToJson(stackTemplates))
 
 	return
 }

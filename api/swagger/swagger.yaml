@@ -309,6 +309,31 @@ definitions:
     - ApplicationType_HORIZON
     - ApplicationType_JAEGER
     - ApplicationType_KUBERNETES_DASHBOARD
+  domain.AuditResponse:
+    properties:
+      clientIP:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      organization:
+        $ref: '#/definitions/domain.SimpleOrganizationResponse'
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/domain.SimpleUserResponse'
+      userId:
+        type: string
+    type: object
   domain.Axis:
     properties:
       data:
@@ -749,6 +774,10 @@ definitions:
         type: string
       metadata:
         type: string
+    type: object
+  domain.CreateAuditRequest:
+    type: object
+  domain.CreateAuditResponse:
     type: object
   domain.CreateBootstrapKubeconfigResponse:
     properties:
@@ -1201,6 +1230,20 @@ definitions:
         items:
           $ref: '#/definitions/domain.ApplicationResponse'
         type: array
+    type: object
+  domain.GetAuditResponse:
+    properties:
+      audit:
+        $ref: '#/definitions/domain.AuditResponse'
+    type: object
+  domain.GetAuditsResponse:
+    properties:
+      audits:
+        items:
+          $ref: '#/definitions/domain.AuditResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/domain.PaginationResponse'
     type: object
   domain.GetBootstrapKubeconfigResponse:
     properties:
@@ -1871,6 +1914,24 @@ definitions:
       organizationId:
         type: string
     type: object
+  domain.SimpleOrganizationResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  domain.SimpleRoleResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   domain.SimpleStackTemplateResponse:
     properties:
       cloudService:
@@ -1900,6 +1961,8 @@ definitions:
         type: string
       name:
         type: string
+      role:
+        $ref: '#/definitions/domain.SimpleRoleResponse'
     type: object
   domain.StackConfResponse:
     properties:
@@ -3278,6 +3341,120 @@ paths:
       summary: Create alert action
       tags:
       - Alerts
+  /organizations/{organizationId}/audits:
+    get:
+      consumes:
+      - application/json
+      description: Get Audits
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filter
+        type: array
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: or
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAuditsResponse'
+      security:
+      - JWT: []
+      summary: Get Audits
+      tags:
+      - Audits
+    post:
+      consumes:
+      - application/json
+      description: Create Audit
+      parameters:
+      - description: create audit request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateAuditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CreateAuditResponse'
+      security:
+      - JWT: []
+      summary: Create Audit
+      tags:
+      - Audits
+  /organizations/{organizationId}/audits/{auditId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Audit
+      parameters:
+      - description: auditId
+        in: path
+        name: auditId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Audit 'NOT IMPLEMENTED'
+      tags:
+      - Audits
+    get:
+      consumes:
+      - application/json
+      description: Get Audit
+      parameters:
+      - description: auditId
+        in: path
+        name: auditId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetAuditResponse'
+      security:
+      - JWT: []
+      summary: Get Audit
+      tags:
+      - Audits
   /organizations/{organizationId}/cloud-accounts:
     get:
       consumes:

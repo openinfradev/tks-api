@@ -61,6 +61,12 @@ type Organization = struct {
 	UpdatedAt        time.Time          `json:"updatedAt"`
 }
 
+type SimpleOrganizationResponse = struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type CreateOrganizationRequest struct {
 	Name        string `json:"name" validate:"required,name"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`

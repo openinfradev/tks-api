@@ -13,4 +13,5 @@ type Usecase struct {
 	Alert         IAlertUsecase
 	Stack         IStackUsecase
 	Project       IProjectUsecase
+	Audit         IAuditUsecase
 }
