@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
@@ -49,6 +51,7 @@ type IProjectUsecase interface {
 	CreateK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error
 	DeleteK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error
 	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
+	GetK8sResources(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (out domain.ProjectNamespaceK8sResources, err error)
 
 	AssignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error
 	UnassignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error
@@ -669,4 +672,20 @@ func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId s
 	}
 
 	return kubernetes.MergeKubeconfigsWithSingleUser(kubeconfigs)
+}
+
+func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (out domain.ProjectNamespaceK8sResources, err error) {
+
+	// to be implemented
+	out.Pods = 1
+	out.Deployments = 2
+	out.Statefulsets = 3
+	out.Demonsets = 4
+	out.Jobs = 5
+	out.Cronjobs = 6
+	out.PVCs = 7
+	out.Services = 8
+	out.Ingresses = 9
+
+	return
 }

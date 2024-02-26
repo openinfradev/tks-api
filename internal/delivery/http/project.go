@@ -49,6 +49,7 @@ type IProjectHandler interface {
 	UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *http.Request)
 
 	GetProjectKubeconfig(w http.ResponseWriter, r *http.Request)
+	GetProjectNamespaceK8sResources(w http.ResponseWriter, r *http.Request)
 }
 
 type ProjectHandler struct {
@@ -1496,5 +1497,57 @@ func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Requ
 		Kubeconfig: kubeconfig,
 	}
 
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetProjectNamespaceK8sResources godoc
+// @Tags        Projects
+// @Summary     Get k8s resources for project namespace
+// @Description Get k8s resources for project namespace
+// @Accept      json
+// @Produce     json
+// @Param       organizationId     path     string true "Organization ID"
+// @Param       projectId          path     string true "Project ID"
+// @Param       stackId            path     string true "Stack ID"
+// @Param       projectNamespace   path     string true "Project Namespace"
+// @Success     200                {object} domain.GetProjectNamespaceK8sResourcesResponse
+// @Router      /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources [get]
+// @Security    JWT
+func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found in path"), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	projectNamespace, ok := vars["projectNamespace"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectNamespace"), "C_INVALID_PROJECT_NAMESPACE", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	k8sResources, err := p.usecase.GetK8sResources(r.Context(), organizationId, projectId, projectNamespace, stackId)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetProjectNamespaceK8sResourcesResponse
+	if err = serializer.Map(k8sResources, &out.K8sResources); err != nil {
+		log.Error(err)
+	}
 	ResponseJSON(w, r, http.StatusOK, out)
 }

@@ -4297,6 +4297,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get k8s resources for project namespace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get k8s resources for project namespace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stack ID",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Namespace",
+                        "name": "projectNamespace",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetProjectNamespaceK8sResourcesResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks": {
             "get": {
                 "security": [
@@ -7413,6 +7471,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.GetProjectNamespaceK8sResourcesResponse": {
+            "type": "object",
+            "properties": {
+                "k8sResources": {
+                    "$ref": "#/definitions/domain.ProjectNamespaceK8sResources"
+                }
+            }
+        },
         "domain.GetProjectNamespaceResponse": {
             "type": "object",
             "properties": {
@@ -7957,6 +8023,38 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.ProjectNamespaceK8sResources": {
+            "type": "object",
+            "properties": {
+                "cronjobs": {
+                    "type": "integer"
+                },
+                "demonsets": {
+                    "type": "integer"
+                },
+                "deployments": {
+                    "type": "integer"
+                },
+                "ingresses": {
+                    "type": "integer"
+                },
+                "jobs": {
+                    "type": "integer"
+                },
+                "pods": {
+                    "type": "integer"
+                },
+                "pvcs": {
+                    "type": "integer"
+                },
+                "services": {
+                    "type": "integer"
+                },
+                "statefulsets": {
+                    "type": "integer"
                 }
             }
         },

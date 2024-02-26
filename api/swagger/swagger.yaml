@@ -1385,6 +1385,11 @@ definitions:
           $ref: '#/definitions/domain.ProjectMemberResponse'
         type: array
     type: object
+  domain.GetProjectNamespaceK8sResourcesResponse:
+    properties:
+      k8sResources:
+        $ref: '#/definitions/domain.ProjectNamespaceK8sResources'
+    type: object
   domain.GetProjectNamespaceResponse:
     properties:
       projectNamespace:
@@ -1749,6 +1754,27 @@ definitions:
         type: string
       updatedAt:
         type: string
+    type: object
+  domain.ProjectNamespaceK8sResources:
+    properties:
+      cronjobs:
+        type: integer
+      demonsets:
+        type: integer
+      deployments:
+        type: integer
+      ingresses:
+        type: integer
+      jobs:
+        type: integer
+      pods:
+        type: integer
+      pvcs:
+        type: integer
+      services:
+        type: integer
+      statefulsets:
+        type: integer
     type: object
   domain.ProjectNamespaceResponse:
     properties:
@@ -5116,6 +5142,44 @@ paths:
       security:
       - JWT: []
       summary: Check project namespace exist
+      tags:
+      - Projects
+  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources:
+    get:
+      consumes:
+      - application/json
+      description: Get k8s resources for project namespace
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Stack ID
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: Project Namespace
+        in: path
+        name: projectNamespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetProjectNamespaceK8sResourcesResponse'
+      security:
+      - JWT: []
+      summary: Get k8s resources for project namespace
       tags:
       - Projects
   /organizations/{organizationId}/projects/existence:
