@@ -151,6 +151,11 @@ const (
 	UnSetFavoriteProjectNamespace
 	GetProjectKubeconfig
 	GetProjectNamespaceK8sResources
+
+	// Audit
+	GetAudits
+	GetAudit
+	DeleteAudit
 )
 
 var ApiMap = map[Endpoint]EndpointInfo{
@@ -617,6 +622,18 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	GetProjectNamespaceK8sResources: {
 		Name:  "GetProjectNamespaceK8sResources",
 		Group: "Project",
+  },
+	GetAudits: {
+		Name:  "GetAudits",
+		Group: "Audit",
+	},
+	GetAudit: {
+		Name:  "GetAudit",
+		Group: "Audit",
+	},
+	DeleteAudit: {
+		Name:  "DeleteAudit",
+		Group: "Audit",
 	},
 }
 
@@ -854,6 +871,12 @@ func (e Endpoint) String() string {
 		return "GetProjectKubeconfig"
 	case GetProjectNamespaceK8sResources:
 		return "GetProjectNamespaceK8sResources"
+	case GetAudits:
+		return "GetAudits"
+	case GetAudit:
+		return "GetAudit"
+	case DeleteAudit:
+		return "DeleteAudit"
 	default:
 		return ""
 	}
@@ -1092,6 +1115,12 @@ func GetEndpoint(name string) Endpoint {
 		return GetProjectKubeconfig
 	case "GetProjectNamespaceK8sResources":
 		return GetProjectNamespaceK8sResources
+	case "GetAudits":
+		return GetAudits
+	case "GetAudit":
+		return GetAudit
+	case "DeleteAudit":
+		return DeleteAudit
 	default:
 		return -1
 	}

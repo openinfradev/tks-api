@@ -1357,6 +1357,186 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/audits": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Audits",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Get Audits",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "or",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAuditsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Create Audit",
+                "parameters": [
+                    {
+                        "description": "create audit request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateAuditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateAuditResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/audits/{auditId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Get Audit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auditId",
+                        "name": "auditId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GetAuditResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Delete Audit 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auditId",
+                        "name": "auditId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/cloud-accounts": {
             "get": {
                 "security": [
@@ -5685,6 +5865,44 @@ const docTemplate = `{
                 "ApplicationType_KUBERNETES_DASHBOARD"
             ]
         },
+        "domain.AuditResponse": {
+            "type": "object",
+            "properties": {
+                "clientIP": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "organization": {
+                    "$ref": "#/definitions/domain.SimpleOrganizationResponse"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.Axis": {
             "type": "object",
             "properties": {
@@ -6336,6 +6554,12 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "domain.CreateAuditRequest": {
+            "type": "object"
+        },
+        "domain.CreateAuditResponse": {
+            "type": "object"
         },
         "domain.CreateBootstrapKubeconfigResponse": {
             "type": "object",
@@ -7003,6 +7227,28 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/domain.ApplicationResponse"
                     }
+                }
+            }
+        },
+        "domain.GetAuditResponse": {
+            "type": "object",
+            "properties": {
+                "audit": {
+                    "$ref": "#/definitions/domain.AuditResponse"
+                }
+            }
+        },
+        "domain.GetAuditsResponse": {
+            "type": "object",
+            "properties": {
+                "audits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.AuditResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
                 }
             }
         },
@@ -8021,6 +8267,34 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.SimpleOrganizationResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SimpleRoleResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.SimpleStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -8064,6 +8338,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/domain.SimpleRoleResponse"
                 }
             }
         },
