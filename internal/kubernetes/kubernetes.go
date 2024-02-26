@@ -191,21 +191,6 @@ func GetKubernetesVserion() (string, error) {
 	return information.GitVersion, nil
 }
 
-func GetKubeconfigById(clusterId string) ([]byte, error) {
-	clientset, err := GetClientAdminCluster()
-	if err != nil {
-		return nil, err
-	}
-
-	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	return secrets.Data["value"], nil
-}
-
 func GetResourceApiVersion(kubeconfig []byte, kind string) (string, error) {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
