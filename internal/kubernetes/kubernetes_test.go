@@ -3,9 +3,127 @@ package kubernetes_test
 import (
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"gopkg.in/yaml.v3"
+	"os"
 	"reflect"
 	"testing"
 )
+
+const path = "/Users/1113433/local_vm_kube/kubeconfig"
+
+func TestGetResourceApiVersionByClusterId(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	res, err := kubernetes.GetResourceApiVersion(dat, "ClusterRole")
+	if err != nil {
+		t.Errorf("GetResourceApiVersion() error = %v", err)
+		return
+	}
+
+	t.Logf("GetResourceApiVersion() result = %v", res)
+
+}
+
+func TestEnsureClusterRole(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.EnsureClusterRole(dat, "p123")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
+
+func TestEnsureCommonClusterRole(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.EnsureCommonClusterRole(dat, "p123")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
+
+func TestEnsureCommonClusterRoleBinding(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.EnsureCommonClusterRoleBinding(dat, "p123")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
+
+func TestEnsureClusterRoleBinding(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.EnsureClusterRoleBinding(dat, "p123")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
+
+func TestEnsureRoleBinding(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.EnsureRoleBinding(dat, "p123", "test")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
+
+func TestRemoveClusterRoleBinding(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.RemoveClusterRoleBinding(dat, "p123")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
+
+func TestRemoveRoleBinding(t *testing.T) {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		t.Errorf("ReadFile() error = %v", err)
+		return
+	}
+
+	err = kubernetes.RemoveRoleBinding(dat, "p123", "test")
+	if err != nil {
+		t.Errorf("EnsureClusterRole() error = %v", err)
+		return
+	}
+}
 
 func TestMergeKubeconfigsWithSingleUser(t *testing.T) {
 	type kubeConfigType struct {
