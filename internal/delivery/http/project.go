@@ -1399,7 +1399,7 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 		return
 	}
 
-	k8sResources, err := p.usecase.GetK8sResources(r.Context(), organizationId, projectId, projectNamespace, stackId)
+	k8sResources, err := p.usecase.GetK8sResources(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
 		ErrorJSON(w, r, err)

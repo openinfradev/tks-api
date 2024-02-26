@@ -256,15 +256,16 @@ type GetProjectKubeconfigResponse struct {
 }
 
 type ProjectNamespaceK8sResources struct {
-	Pods         int `json:"pods"`
-	Deployments  int `json:"deployments"`
-	Statefulsets int `json:"statefulsets"`
-	Demonsets    int `json:"demonsets"`
-	Jobs         int `json:"jobs"`
-	Cronjobs     int `json:"cronjobs"`
-	PVCs         int `json:"pvcs"`
-	Services     int `json:"services"`
-	Ingresses    int `json:"ingresses"`
+	Pods         int       `json:"pods"`
+	Deployments  int       `json:"deployments"`
+	Statefulsets int       `json:"statefulsets"`
+	Daemonsets   int       `json:"daemonsets"`
+	Jobs         int       `json:"jobs"`
+	Cronjobs     int       `json:"cronjobs"`
+	PVCs         int       `json:"pvcs"`
+	Services     int       `json:"services"`
+	Ingresses    int       `json:"ingresses"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type GetProjectNamespaceK8sResourcesResponse struct {

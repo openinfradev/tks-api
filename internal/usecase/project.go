@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
@@ -12,6 +14,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -44,7 +47,7 @@ type IProjectUsecase interface {
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
 	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
-	GetK8sResources(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (out domain.ProjectNamespaceK8sResources, err error)
+	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error)
 }
 
 type ProjectUsecase struct {
@@ -420,18 +423,74 @@ func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId s
 	return kubernetes.MergeKubeconfigsWithSingleUser(kubeconfigs)
 }
 
-func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (out domain.ProjectNamespaceK8sResources, err error) {
+func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error) {
+	_, err = u.clusterRepository.Get(domain.ClusterId(stackId))
+	if err != nil {
+		return out, errors.Wrap(err, fmt.Sprintf("Failed to get cluster : stackId %s", stackId))
+	}
 
-	// to be implemented
-	out.Pods = 1
-	out.Deployments = 2
-	out.Statefulsets = 3
-	out.Demonsets = 4
-	out.Jobs = 5
-	out.Cronjobs = 6
-	out.PVCs = 7
-	out.Services = 8
-	out.Ingresses = 9
+	clientset_user, err := kubernetes.GetClientFromClusterId(stackId.String())
+	if err != nil {
+		return out, errors.Wrap(err, fmt.Sprintf("Failed to get clientset : stackId %s", stackId))
+	}
+
+	out.UpdatedAt = time.Now()
+
+	pods, err := clientset_user.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Pods = len(pods.Items)
+	} else {
+		log.Error("Failed to get pods. err : ", err)
+	}
+
+	pvcs, err := clientset_user.CoreV1().PersistentVolumeClaims(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.PVCs = len(pvcs.Items)
+	} else {
+		log.Error("Failed to get pvcs. err : ", err)
+	}
+
+	services, err := clientset_user.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Services = len(services.Items)
+	} else {
+		log.Error("Failed to get services. err : ", err)
+	}
+
+	ingresses, err := clientset_user.NetworkingV1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Ingresses = len(ingresses.Items)
+	} else {
+		log.Error("Failed to get ingresses. err : ", err)
+	}
+
+	deployments, err := clientset_user.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Deployments = len(deployments.Items)
+	} else {
+		log.Error("Failed to get deployments. err : ", err)
+	}
+
+	statefulsets, err := clientset_user.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Statefulsets = len(statefulsets.Items)
+	} else {
+		log.Error("Failed to get statefulsets. err : ", err)
+	}
+
+	daemonsets, err := clientset_user.AppsV1().DaemonSets(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Daemonsets = len(daemonsets.Items)
+	} else {
+		log.Error("Failed to get daemonsets. err : ", err)
+	}
+
+	jobs, err := clientset_user.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{})
+	if err == nil {
+		out.Jobs = len(jobs.Items)
+	} else {
+		log.Error("Failed to get jobs. err : ", err)
+	}
 
 	return
 }
