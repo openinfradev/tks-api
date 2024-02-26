@@ -32,6 +32,12 @@ type Role = struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
+type SimpleRoleResponse = struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type Policy = struct {
 	ID               string    `json:"id"`
 	Name             string    `json:"name"`
@@ -59,9 +65,10 @@ type CreateUserRequest struct {
 }
 
 type SimpleUserResponse struct {
-	ID        string `json:"id"`
-	AccountId string `json:"accountId"`
-	Name      string `json:"name"`
+	ID        string             `json:"id"`
+	AccountId string             `json:"accountId"`
+	Name      string             `json:"name"`
+	Role      SimpleRoleResponse `json:"role"`
 }
 
 type CreateUserResponse struct {
