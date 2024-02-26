@@ -128,5 +128,10 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// Audit
+	if err := db.AutoMigrate(&repository.Audit{}); err != nil {
+		return err
+	}
+
 	return nil
 }

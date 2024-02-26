@@ -21,7 +21,9 @@ const SORT_ORDER = "sortOrder"
 const PAGE_NUMBER = "pageNumber"
 const PAGE_SIZE = "pageSize"
 const FILTER = "filter"
+const FILTER_ARRAY = "filter[]"
 const OR = "or"
+const OR_ARRAY = "or[]"
 const COMBINED_FILTER = "combinedFilter"
 
 var DEFAULT_LIMIT = 10
@@ -188,7 +190,7 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 					return nil, fmt.Errorf("Invalid query string : combinedFilter ")
 				}
 			}
-		case FILTER, OR:
+		case FILTER, FILTER_ARRAY, OR, OR_ARRAY:
 			for _, filterValue := range value {
 				arr := strings.Split(filterValue, "|")
 
@@ -209,7 +211,7 @@ func NewPagination(urlParams *url.Values) (*Pagination, error) {
 				}
 
 				or := false
-				if key == OR {
+				if key == OR || key == OR_ARRAY {
 					or = true
 				}
 
