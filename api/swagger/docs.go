@@ -8038,7 +8038,7 @@ const docTemplate = `{
                 "cronjobs": {
                     "type": "integer"
                 },
-                "demonsets": {
+                "daemonsets": {
                     "type": "integer"
                 },
                 "deployments": {
@@ -8061,6 +8061,9 @@ const docTemplate = `{
                 },
                 "statefulsets": {
                     "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },

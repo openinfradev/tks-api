@@ -8032,7 +8032,7 @@
                 "cronjobs": {
                     "type": "integer"
                 },
-                "demonsets": {
+                "daemonsets": {
                     "type": "integer"
                 },
                 "deployments": {
@@ -8055,6 +8055,9 @@
                 },
                 "statefulsets": {
                     "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
