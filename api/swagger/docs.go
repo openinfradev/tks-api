@@ -7469,6 +7469,9 @@ const docTemplate = `{
         "domain.GetProjectMembersResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "projectMembers": {
                     "type": "array",
                     "items": {
@@ -7534,6 +7537,9 @@ const docTemplate = `{
         "domain.GetProjectsResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "projects": {
                     "type": "array",
                     "items": {

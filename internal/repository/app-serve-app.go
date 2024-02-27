@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -64,18 +63,12 @@ func (r *AppServeAppRepository) CreateTask(
 func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) (apps []domain.AppServeApp, err error) {
 	var clusters []Cluster
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-    // TODO: should return different records based on showAll param
-	filterFunc := CombinedGormFilter("app_serve_apps", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&domain.AppServeApp{}).
-		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&apps)
+	// TODO: should return different records based on showAll param
+	_, res := pg.Fetch(r.db.Model(&domain.AppServeApp{}).
+		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId), &clusters)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
 	}
@@ -132,17 +125,11 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 
 func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) (tasks []domain.AppServeAppTask, err error) {
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("app_serve_app_tasks", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&domain.AppServeAppTask{}).
-		Where("app_serve_app_tasks.app_serve_app_id = ?", appId))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&tasks)
+	_, res := pg.Fetch(r.db.Model(&domain.AppServeAppTask{}).
+		Where("app_serve_app_tasks.app_serve_app_id = ?", appId), &tasks)
 	if res.Error != nil {
 		return nil, fmt.Errorf("Error while finding tasks with appId: %s", appId)
 	}

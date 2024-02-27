@@ -1,9 +1,6 @@
 package repository
 
 import (
-	"fmt"
-	"math"
-
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
@@ -76,19 +73,14 @@ func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Org
 	var organizations []Organization
 	var out []domain.Organization
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("organizations", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&Organization{}))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&organizations)
+	_, res := pg.Fetch(r.db, &organizations)
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
 	for _, organization := range organizations {
 		outOrganization := r.reflect(organization)
 		out = append(out, outOrganization)

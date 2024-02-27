@@ -94,11 +94,7 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	}
 
 	urlParams := r.URL.Query()
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 	cloudAccounts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -114,7 +110,7 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

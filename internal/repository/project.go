@@ -2,7 +2,10 @@ package repository
 
 import (
 	"database/sql"
+
 	"github.com/google/uuid"
+
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
@@ -11,8 +14,8 @@ import (
 
 type IProjectRepository interface {
 	CreateProject(p *domain.Project) (string, error)
-	GetProjects(organizationId string, userId uuid.UUID) ([]domain.ProjectResponse, error)
-	GetProjectsByUserId(organizationId string, userId uuid.UUID) ([]domain.ProjectResponse, error)
+	GetProjects(organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetProjectsByUserId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
 	GetProjectById(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByIdAndLeader(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByName(organizationId string, projectName string) (*domain.Project, error)
@@ -21,8 +24,8 @@ type IProjectRepository interface {
 	GetProjectRoleByName(name string) (*domain.ProjectRole, error)
 	GetProjectRoleById(id string) (*domain.ProjectRole, error)
 	AddProjectMember(*domain.ProjectMember) (string, error)
-	GetProjectMembersByProjectId(projectId string) ([]domain.ProjectMember, error)
-	GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string) ([]domain.ProjectMember, error)
+	GetProjectMembersByProjectId(projectId string, pg *pagination.Pagination) ([]domain.ProjectMember, error)
+	GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string, pg *pagination.Pagination) ([]domain.ProjectMember, error)
 	GetProjectMemberCountByProjectId(projectId string) (*domain.GetProjectMemberCountResponse, error)
 	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	GetProjectMemberByUserId(projectId string, projectUserId string) (pm *domain.ProjectMember, err error)
@@ -30,7 +33,7 @@ type IProjectRepository interface {
 	UpdateProjectMemberRole(pm *domain.ProjectMember) error
 	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
 	GetProjectNamespaceByName(organizationId string, projectId string, stackId string, projectNamespace string) (*domain.ProjectNamespace, error)
-	GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error)
+	GetProjectNamespaces(organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error)
 	GetProjectNamespaceByPrimaryKey(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
@@ -57,7 +60,10 @@ func (r *ProjectRepository) CreateProject(p *domain.Project) (string, error) {
 	return p.ID, nil
 }
 
-func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
 	res := r.db.Raw(""+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
@@ -127,17 +133,15 @@ func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project")
-			return nil, nil
-		} else {
-			log.Error(res.Error)
-			return nil, res.Error
 		}
 	}
-
 	return pr, nil
 }
 
-func (r *ProjectRepository) GetProjectsByUserId(organizationId string, userId uuid.UUID) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetProjectsByUserId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
 	res := r.db.Raw(""+
 		"select p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
@@ -299,14 +303,14 @@ func (r *ProjectRepository) AddProjectMember(pm *domain.ProjectMember) (string, 
 	return pm.ID, nil
 }
 
-func (r *ProjectRepository) GetProjectMembersByProjectId(projectId string) (pms []domain.ProjectMember, err error) {
-	//res := r.db.Preload("ProjectUser").
-	//	Joins("ProjectRole").Where("project_id = ?", projectId).Find(&pms)
-	res := r.db.Joins("ProjectUser").
+func (r *ProjectRepository) GetProjectMembersByProjectId(projectId string, pg *pagination.Pagination) (pms []domain.ProjectMember, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+	_, res := pg.Fetch(r.db.Joins("ProjectUser").
 		Joins("ProjectRole").
 		Where("project_members.project_id = ?", projectId).
-		Order("project_members.created_at ASC").
-		Find(&pms)
+		Order("project_members.created_at ASC"), &pms)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project member")
@@ -320,13 +324,15 @@ func (r *ProjectRepository) GetProjectMembersByProjectId(projectId string) (pms 
 	return pms, nil
 }
 
-func (r *ProjectRepository) GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string) (pms []domain.ProjectMember, err error) {
-	res := r.db.Joins("ProjectUser").
-		//Joins("ProjectRole").
-		//Find(&pms, "project_members.project_id = ? and \"ProjectRole\".name = ?", projectId, memberRole)
+func (r *ProjectRepository) GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string, pg *pagination.Pagination) (pms []domain.ProjectMember, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+	_, res := pg.Fetch(r.db.Joins("ProjectUser").
 		InnerJoins("ProjectRole", r.db.Where(&domain.ProjectRole{Name: memberRole})).
 		Order("project_members.created_at ASC").
-		Find(&pms, "project_members.project_id = ?", projectId)
+		Where("project_members.project_id = ?", projectId), &pms)
+
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project member")
@@ -467,10 +473,12 @@ func (r *ProjectRepository) GetProjectNamespaceByName(organizationId string, pro
 	return pn, nil
 }
 
-func (r *ProjectRepository) GetProjectNamespaces(organizationId string, projectId string) (pns []domain.ProjectNamespace, err error) {
-	res := r.db.Where("project_id = ?", projectId).
-		Preload("Stack").
-		Find(&pns)
+func (r *ProjectRepository) GetProjectNamespaces(organizationId string, projectId string, pg *pagination.Pagination) (pns []domain.ProjectNamespace, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+	_, res := pg.Fetch(r.db.Where("project_id = ?", projectId).
+		Preload("Stack"), &pns)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Not found project namespaces")

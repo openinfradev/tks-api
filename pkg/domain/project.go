@@ -58,7 +58,8 @@ type ProjectResponse struct {
 }
 
 type GetProjectsResponse struct {
-	Projects []ProjectResponse `json:"projects"`
+	Projects   []ProjectResponse  `json:"projects"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 type ProjectDetailResponse struct {
@@ -192,6 +193,7 @@ type GetProjectMemberResponse struct {
 
 type GetProjectMembersResponse struct {
 	ProjectMembers []ProjectMemberResponse `json:"projectMembers"`
+	Pagination     PaginationResponse      `json:"pagination"`
 }
 
 type GetProjectMemberCountResponse struct {

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
@@ -80,20 +79,11 @@ func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
 func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (out []domain.AppGroup, err error) {
 	var appGroups []AppGroup
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("app_groups", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&AppGroup{}).
-		Where("cluster_id = ?", clusterId))
-	db.Count(&pg.TotalRows)
-
-	r.db.Model(&AppGroup{}).
-		Where("cluster_id = ?", clusterId).Where("id").Where("app_groups.status").Where("app_groups.deleted")
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&appGroups)
+	_, res := pg.Fetch(r.db.Model(&AppGroup{}).
+		Where("cluster_id = ?", clusterId), &appGroups)
 	if res.Error != nil {
 		return nil, res.Error
 	}

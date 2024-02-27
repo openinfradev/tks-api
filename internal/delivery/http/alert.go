@@ -95,11 +95,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlParams := r.URL.Query()
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 	// convert status
 	for i, filter := range pg.GetFilters() {
 		if filter.Column == "status" {
@@ -143,18 +139,9 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
-	/*
-		outFilters := make([]domain.FilterResponse, len(pg.Filters))
-		for j, filter := range pg.Filters {
-			if err := serializer.Map(filter, &outFilters[j]); err != nil {
-				log.InfoWithContext(r.Context(), err)
-			}
-		}
-		out.Pagination.Filters = outFilters
-	*/
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
