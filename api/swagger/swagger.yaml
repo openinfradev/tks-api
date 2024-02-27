@@ -1693,8 +1693,8 @@ definitions:
     properties:
       createdAt:
         description: |-
+          AppCount                int    `json:"appCount"`
           NamespaceCount          int        `json:"namespaceCount"`
-          AppCount                int        `json:"appCount"`
           MemberCount             int        `json:"memberCount"`
         type: string
       description:
@@ -1806,6 +1806,8 @@ definitions:
       description:
         type: string
       id:
+        type: string
+      isMyProject:
         type: string
       memberCount:
         type: integer
@@ -4005,6 +4007,10 @@ paths:
         in: path
         name: organizationId
         required: true
+        type: string
+      - description: (all | only)
+        in: query
+        name: query
         type: string
       produces:
       - application/json

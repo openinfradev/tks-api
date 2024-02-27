@@ -24,7 +24,7 @@ const (
 
 type IProjectUsecase interface {
 	CreateProject(*domain.Project) (string, error)
-	GetProjects(organizationId string) ([]domain.Project, error)
+	GetProjects(organizationId string, userId string, onlyMyProject bool) ([]domain.ProjectResponse, error)
 	GetProject(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error)
 	IsProjectNameExist(organizationId string, projectName string) (bool, error)
@@ -44,6 +44,7 @@ type IProjectUsecase interface {
 	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
+	GetAppCount(organizationId string, projectId string, namespace string) (appCount int, err error)
 
 	EnsureRequiredSetupForCluster(organizationId string, projectId string, stackId string) error
 	MayRemoveRequiredSetupForCluster(organizationId string, projectId string, stackId string) error
@@ -90,13 +91,26 @@ func (u *ProjectUsecase) CreateProject(p *domain.Project) (string, error) {
 	return projectId, nil
 }
 
-func (u *ProjectUsecase) GetProjects(organizationId string) (ps []domain.Project, err error) {
-	ps, err = u.projectRepo.GetProjects(organizationId)
+func (u *ProjectUsecase) GetProjects(organizationId string, userId string, onlyMyProject bool) (pr []domain.ProjectResponse, err error) {
+	userUuid, err := uuid.Parse(userId)
 	if err != nil {
 		log.Error(err)
-		return nil, errors.Wrap(err, "Failed to get projects.")
+		return nil, errors.Wrap(err, "Failed to parse uuid to string")
 	}
-	return ps, err
+	if onlyMyProject == false {
+		pr, err = u.projectRepo.GetProjects(organizationId, userUuid)
+		if err != nil {
+			log.Error(err)
+			return nil, errors.Wrap(err, "Failed to get projects.")
+		}
+	} else {
+		pr, err = u.projectRepo.GetProjectsByUserId(organizationId, userUuid)
+		if err != nil {
+			log.Error(err)
+			return nil, errors.Wrap(err, "Failed to get projects.")
+		}
+	}
+	return pr, err
 }
 
 func (u *ProjectUsecase) GetProject(organizationId string, projectId string) (*domain.Project, error) {
@@ -373,6 +387,20 @@ func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId
 		return errors.Wrap(err, "Failed to delete project namespace.")
 	}
 	return nil
+}
+
+func (u *ProjectUsecase) GetAppCount(organizationId string, projectId string, namespace string) (appCount int, err error) {
+	if namespace == "" {
+		appCount, err = u.projectRepo.GetAppCountByProjectId(organizationId, projectId)
+	} else {
+		appCount, err = u.projectRepo.GetAppCountByNamespace(organizationId, projectId, namespace)
+	}
+	if err != nil {
+		log.Error(err)
+		return 0, errors.Wrap(err, "Failed to retrieve app count.")
+	}
+
+	return appCount, nil
 }
 
 func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, projectId string, stackId string) error {
