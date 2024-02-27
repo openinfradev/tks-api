@@ -27,40 +27,38 @@ const (
 )
 
 type IProjectUsecase interface {
-	CreateProject(*domain.Project) (string, error)
-	GetProjects(organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
-	GetProject(organizationId string, projectId string) (*domain.Project, error)
-	GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error)
-	IsProjectNameExist(organizationId string, projectName string) (bool, error)
-	UpdateProject(p *domain.Project, newLeaderId string) error
-	GetProjectRole(id string) (*domain.ProjectRole, error)
-	GetProjectRoles(int) ([]domain.ProjectRole, error)
-	AddProjectMember(pm *domain.ProjectMember) (string, error)
-	GetProjectUser(projectUserId string) (*domain.ProjectUser, error)
-	GetProjectMember(projectMemberId string) (*domain.ProjectMember, error)
-	GetProjectMembers(projectId string, query int, pg *pagination.Pagination) ([]domain.ProjectMember, error)
-	GetProjectMemberCount(projectMemberId string) (*domain.GetProjectMemberCountResponse, error)
-	RemoveProjectMember(projectMemberId string) error
-	UpdateProjectMemberRole(pm *domain.ProjectMember) error
-	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
-	IsProjectNamespaceExist(organizationId string, projectId string, stackId string, projectNamespace string) (bool, error)
-	GetProjectNamespaces(organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error)
-	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
-	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
-	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
-	GetAppCount(organizationId string, projectId string, namespace string) (appCount int, err error)
-
-	EnsureRequiredSetupForCluster(organizationId string, projectId string, stackId string) error
-	MayRemoveRequiredSetupForCluster(organizationId string, projectId string, stackId string) error
-
-	CreateK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error
-	DeleteK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error
-	GetProjectKubeconfig(organizationId string, projectId string) (string, error)
+	CreateProject(ctx context.Context, p *domain.Project) (string, error)
+	GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetProject(ctx context.Context, organizationId string, projectId string) (*domain.Project, error)
+	GetProjectWithLeader(ctx context.Context, organizationId string, projectId string) (*domain.Project, error)
+	IsProjectNameExist(ctx context.Context, organizationId string, projectName string) (bool, error)
+	UpdateProject(ctx context.Context, p *domain.Project, newLeaderId string) error
+	GetProjectRole(ctx context.Context, id string) (*domain.ProjectRole, error)
+	GetProjectRoles(ctx context.Context, query int) ([]domain.ProjectRole, error)
+	AddProjectMember(ctx context.Context, pm *domain.ProjectMember) (string, error)
+	GetProjectUser(ctx context.Context, projectUserId string) (*domain.ProjectUser, error)
+	GetProjectMember(ctx context.Context, projectMemberId string) (*domain.ProjectMember, error)
+	GetProjectMembers(ctx context.Context, projectId string, query int, pg *pagination.Pagination) ([]domain.ProjectMember, error)
+	GetProjectMemberCount(ctx context.Context, projectMemberId string) (*domain.GetProjectMemberCountResponse, error)
+	RemoveProjectMember(ctx context.Context, projectMemberId string) error
+	UpdateProjectMemberRole(ctx context.Context, pm *domain.ProjectMember) error
+	CreateProjectNamespace(ctx context.Context, organizationId string, pn *domain.ProjectNamespace) error
+	IsProjectNamespaceExist(ctx context.Context, organizationId string, projectId string, stackId string, projectNamespace string) (bool, error)
+	GetProjectNamespaces(ctx context.Context, organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error)
+	GetProjectNamespace(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
+	UpdateProjectNamespace(ctx context.Context, pn *domain.ProjectNamespace) error
+	DeleteProjectNamespace(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) error
+	GetAppCount(ctx context.Context, organizationId string, projectId string, namespace string) (appCount int, err error)
+	EnsureRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error
+	MayRemoveRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error
+	CreateK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
+	DeleteK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
+	GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error)
 	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error)
-
-	AssignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error
-	UnassignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error
+	AssignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error
+	UnassignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error
 }
+
 type ProjectUsecase struct {
 	projectRepo            repository.IProjectRepository
 	userRepository         repository.IUserRepository
@@ -85,61 +83,61 @@ func NewProjectUsecase(r repository.Repository, kc keycloak.IKeycloak, argoClien
 	}
 }
 
-func (u *ProjectUsecase) CreateProject(p *domain.Project) (string, error) {
+func (u *ProjectUsecase) CreateProject(ctx context.Context, p *domain.Project) (string, error) {
 	projectId, err := u.projectRepo.CreateProject(p)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return "", errors.Wrap(err, "Failed to create project.")
 	}
 
 	return projectId, nil
 }
 
-func (u *ProjectUsecase) GetProjects(organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	userUuid, err := uuid.Parse(userId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to parse uuid to string")
 	}
 	if onlyMyProject == false {
 		pr, err = u.projectRepo.GetProjects(organizationId, userUuid, pg)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return nil, errors.Wrap(err, "Failed to get projects.")
 		}
 	} else {
 		pr, err = u.projectRepo.GetProjectsByUserId(organizationId, userUuid, pg)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return nil, errors.Wrap(err, "Failed to get projects.")
 		}
 	}
 	return pr, err
 }
 
-func (u *ProjectUsecase) GetProject(organizationId string, projectId string) (*domain.Project, error) {
+func (u *ProjectUsecase) GetProject(ctx context.Context, organizationId string, projectId string) (*domain.Project, error) {
 	p, err := u.projectRepo.GetProjectById(organizationId, projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to get projects.")
 	}
 	return p, err
 }
 
-func (u *ProjectUsecase) GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error) {
+func (u *ProjectUsecase) GetProjectWithLeader(ctx context.Context, organizationId string, projectId string) (*domain.Project, error) {
 	p, err := u.projectRepo.GetProjectByIdAndLeader(organizationId, projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to get projects.")
 	}
 	return p, err
 }
 
-func (u *ProjectUsecase) IsProjectNameExist(organizationId string, projectName string) (bool, error) {
+func (u *ProjectUsecase) IsProjectNameExist(ctx context.Context, organizationId string, projectName string) (bool, error) {
 	exist := true
 	p, err := u.projectRepo.GetProjectByName(organizationId, projectName)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		exist = false
 		return exist, errors.Wrap(err, "Failed to retrieve project name.")
 	}
@@ -149,7 +147,7 @@ func (u *ProjectUsecase) IsProjectNameExist(organizationId string, projectName s
 	return exist, nil
 }
 
-func (u *ProjectUsecase) UpdateProject(p *domain.Project, newLeaderId string) error {
+func (u *ProjectUsecase) UpdateProject(ctx context.Context, p *domain.Project, newLeaderId string) error {
 
 	var currentMemberId, currentLeaderId, projectRoleId string
 	for _, pm := range p.ProjectMembers {
@@ -161,17 +159,17 @@ func (u *ProjectUsecase) UpdateProject(p *domain.Project, newLeaderId string) er
 	p.ProjectMembers = nil
 
 	if err := u.projectRepo.UpdateProject(p); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to update project.")
 	}
 
 	if newLeaderId != "" && currentLeaderId != newLeaderId {
-		if err := u.RemoveProjectMember(currentMemberId); err != nil {
-			log.Error(err)
+		if err := u.RemoveProjectMember(ctx, currentMemberId); err != nil {
+			log.ErrorWithContext(ctx, err)
 			return errors.Wrap(err, "Failed to remove project member.")
 		}
 
-		pu, err := u.GetProjectUser(newLeaderId)
+		pu, err := u.GetProjectUser(ctx, newLeaderId)
 		if err != nil {
 			return err
 		}
@@ -193,7 +191,7 @@ func (u *ProjectUsecase) UpdateProject(p *domain.Project, newLeaderId string) er
 				IsProjectLeader: true,
 				CreatedAt:       *p.UpdatedAt,
 			}
-			res, err := u.AddProjectMember(newPm)
+			res, err := u.AddProjectMember(ctx, newPm)
 			if err != nil {
 				return err
 			}
@@ -205,7 +203,7 @@ func (u *ProjectUsecase) UpdateProject(p *domain.Project, newLeaderId string) er
 			pm.UpdatedAt = p.UpdatedAt
 			pm.ProjectUser = nil
 			pm.ProjectRole = nil
-			err := u.UpdateProjectMemberRole(pm)
+			err := u.UpdateProjectMemberRole(ctx, pm)
 			if err != nil {
 				return err
 			}
@@ -215,17 +213,17 @@ func (u *ProjectUsecase) UpdateProject(p *domain.Project, newLeaderId string) er
 	return nil
 }
 
-func (u *ProjectUsecase) GetProjectRole(id string) (*domain.ProjectRole, error) {
+func (u *ProjectUsecase) GetProjectRole(ctx context.Context, id string) (*domain.ProjectRole, error) {
 	pr, err := u.projectRepo.GetProjectRoleById(id)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to get project roles.")
 	}
 
 	return pr, nil
 }
 
-func (u *ProjectUsecase) GetProjectRoles(query int) (prs []domain.ProjectRole, err error) {
+func (u *ProjectUsecase) GetProjectRoles(ctx context.Context, query int) (prs []domain.ProjectRole, err error) {
 	var pr *domain.ProjectRole
 
 	if query == ProjectLeader {
@@ -238,7 +236,7 @@ func (u *ProjectUsecase) GetProjectRoles(query int) (prs []domain.ProjectRole, e
 		prs, err = u.projectRepo.GetAllProjectRoles()
 	}
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to get project roles.")
 	}
 
@@ -249,47 +247,47 @@ func (u *ProjectUsecase) GetProjectRoles(query int) (prs []domain.ProjectRole, e
 	return prs, nil
 }
 
-func (u *ProjectUsecase) AddProjectMember(pm *domain.ProjectMember) (string, error) {
+func (u *ProjectUsecase) AddProjectMember(ctx context.Context, pm *domain.ProjectMember) (string, error) {
 	projectMemberId, err := u.projectRepo.AddProjectMember(pm)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return "", errors.Wrap(err, "Failed to add project member to project.")
 	}
 	return projectMemberId, nil
 }
 
-func (u *ProjectUsecase) GetProjectUser(projectUserId string) (*domain.ProjectUser, error) {
+func (u *ProjectUsecase) GetProjectUser(ctx context.Context, projectUserId string) (*domain.ProjectUser, error) {
 	var uid uuid.UUID
 	uid, err := uuid.Parse(projectUserId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to parse uuid to string")
 	}
 
 	user, err := u.userRepository.GetByUuid(uid)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to retrieve user by id")
 	}
 	var pu domain.ProjectUser
 	if err = serializer.Map(user, &pu); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, err
 	}
 	return &pu, nil
 }
 
-func (u *ProjectUsecase) GetProjectMember(projectMemberId string) (pm *domain.ProjectMember, err error) {
+func (u *ProjectUsecase) GetProjectMember(ctx context.Context, projectMemberId string) (pm *domain.ProjectMember, err error) {
 	pm, err = u.projectRepo.GetProjectMemberById(projectMemberId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return pm, errors.Wrap(err, "Failed to get project member.")
 	}
 
 	return pm, nil
 }
 
-func (u *ProjectUsecase) GetProjectMembers(projectId string, query int, pg *pagination.Pagination) (pms []domain.ProjectMember, err error) {
+func (u *ProjectUsecase) GetProjectMembers(ctx context.Context, projectId string, query int, pg *pagination.Pagination) (pms []domain.ProjectMember, err error) {
 	if query == ProjectLeader {
 		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-leader", pg)
 	} else if query == ProjectMember {
@@ -300,53 +298,53 @@ func (u *ProjectUsecase) GetProjectMembers(projectId string, query int, pg *pagi
 		pms, err = u.projectRepo.GetProjectMembersByProjectId(projectId, pg)
 	}
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to get project members.")
 	}
 
 	return pms, nil
 }
 
-func (u *ProjectUsecase) GetProjectMemberCount(projectMemberId string) (pmcr *domain.GetProjectMemberCountResponse, err error) {
+func (u *ProjectUsecase) GetProjectMemberCount(ctx context.Context, projectMemberId string) (pmcr *domain.GetProjectMemberCountResponse, err error) {
 	pmcr, err = u.projectRepo.GetProjectMemberCountByProjectId(projectMemberId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return pmcr, errors.Wrap(err, "Failed to get project member count.")
 	}
 
 	return pmcr, nil
 }
 
-func (u *ProjectUsecase) RemoveProjectMember(projectMemberId string) error {
+func (u *ProjectUsecase) RemoveProjectMember(ctx context.Context, projectMemberId string) error {
 	if err := u.projectRepo.RemoveProjectMember(projectMemberId); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to remove project member to project.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) UpdateProjectMemberRole(pm *domain.ProjectMember) error {
+func (u *ProjectUsecase) UpdateProjectMemberRole(ctx context.Context, pm *domain.ProjectMember) error {
 
 	if err := u.projectRepo.UpdateProjectMemberRole(pm); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to remove project member to project.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error {
+func (u *ProjectUsecase) CreateProjectNamespace(ctx context.Context, organizationId string, pn *domain.ProjectNamespace) error {
 	if err := u.projectRepo.CreateProjectNamespace(organizationId, pn); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) IsProjectNamespaceExist(organizationId string, projectId string, stackId string, projectNamespace string) (bool, error) {
+func (u *ProjectUsecase) IsProjectNamespaceExist(ctx context.Context, organizationId string, projectId string, stackId string, projectNamespace string) (bool, error) {
 	exist := true
 	pn, err := u.projectRepo.GetProjectNamespaceByName(organizationId, projectId, stackId, projectNamespace)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		exist = false
 		return exist, errors.Wrap(err, "Failed to retrieve project namespace.")
 	}
@@ -356,61 +354,61 @@ func (u *ProjectUsecase) IsProjectNamespaceExist(organizationId string, projectI
 	return exist, nil
 }
 
-func (u *ProjectUsecase) GetProjectNamespaces(organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error) {
+func (u *ProjectUsecase) GetProjectNamespaces(ctx context.Context, organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error) {
 	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, pg)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to retrieve project namespaces.")
 	}
 
 	return pns, nil
 }
 
-func (u *ProjectUsecase) GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error) {
+func (u *ProjectUsecase) GetProjectNamespace(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error) {
 	pn, err := u.projectRepo.GetProjectNamespaceByPrimaryKey(organizationId, projectId, projectNamespace, stackId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return nil, errors.Wrap(err, "Failed to retrieve project namespace.")
 	}
 
 	return pn, nil
 }
 
-func (u *ProjectUsecase) UpdateProjectNamespace(pn *domain.ProjectNamespace) error {
+func (u *ProjectUsecase) UpdateProjectNamespace(ctx context.Context, pn *domain.ProjectNamespace) error {
 	if err := u.projectRepo.UpdateProjectNamespace(pn); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to update project namespace")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) DeleteProjectNamespace(organizationId string, projectId string,
+func (u *ProjectUsecase) DeleteProjectNamespace(ctx context.Context, organizationId string, projectId string,
 	stackId string, projectNamespace string) error {
 	if err := u.projectRepo.DeleteProjectNamespace(organizationId, projectId, projectNamespace, stackId); err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to delete project namespace.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) GetAppCount(organizationId string, projectId string, namespace string) (appCount int, err error) {
+func (u *ProjectUsecase) GetAppCount(ctx context.Context, organizationId string, projectId string, namespace string) (appCount int, err error) {
 	if namespace == "" {
 		appCount, err = u.projectRepo.GetAppCountByProjectId(organizationId, projectId)
 	} else {
 		appCount, err = u.projectRepo.GetAppCountByNamespace(organizationId, projectId, namespace)
 	}
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return 0, errors.Wrap(err, "Failed to retrieve app count.")
 	}
 
 	return appCount, nil
 }
 
-func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, projectId string, stackId string) error {
+func (u *ProjectUsecase) EnsureRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
@@ -427,35 +425,35 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, pr
 		return nil
 	}
 
-	if err := u.createK8SInitialResource(organizationId, projectId, stackId); err != nil {
-		log.Error(err)
+	if err := u.createK8SInitialResource(ctx, organizationId, projectId, stackId); err != nil {
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	if err := u.createKeycloakClientRoles(organizationId, projectId, stackId); err != nil {
-		log.Error(err)
+	if err := u.createKeycloakClientRoles(ctx, organizationId, projectId, stackId); err != nil {
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll, nil)
+	projectMembers, err := u.GetProjectMembers(ctx, projectId, ProjectAll, nil)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	for _, pm := range projectMembers {
-		err = u.assignEachKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
+		err = u.assignEachKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return errors.Wrap(err, "Failed to create project namespace.")
 		}
 	}
 
 	return nil
 }
-func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(organizationId string, projectId string, stackId string) error {
+func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	var nsCount int
@@ -470,189 +468,189 @@ func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(organizationId string,
 		return nil
 	}
 
-	if err := u.deleteK8SInitialResource(organizationId, projectId, stackId); err != nil {
-		log.Error(err)
+	if err := u.deleteK8SInitialResource(ctx, organizationId, projectId, stackId); err != nil {
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll, nil)
+	projectMembers, err := u.GetProjectMembers(ctx, projectId, ProjectAll, nil)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	for _, pm := range projectMembers {
-		err = u.unassignKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
+		err = u.unassignKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return errors.Wrap(err, "Failed to create project namespace.")
 		}
 	}
 
-	if err := u.deleteKeycloakClientRoles(organizationId, projectId, stackId); err != nil {
-		log.Error(err)
+	if err := u.deleteKeycloakClientRoles(ctx, organizationId, projectId, stackId); err != nil {
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	return nil
 }
-func (u *ProjectUsecase) createK8SInitialResource(organizationId string, projectId string, stackId string) error {
+func (u *ProjectUsecase) createK8SInitialResource(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	kubeconfig, err := kubernetes.GetKubeConfig(stackId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	pr, err := u.GetProject(organizationId, projectId)
+	pr, err := u.GetProject(ctx, organizationId, projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.EnsureClusterRole(kubeconfig, pr.Name)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.EnsureCommonClusterRole(kubeconfig, pr.Name)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.EnsureCommonClusterRoleBinding(kubeconfig, pr.Name)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	return nil
 }
-func (u *ProjectUsecase) deleteK8SInitialResource(organizationId string, projectId string, stackId string) error {
+func (u *ProjectUsecase) deleteK8SInitialResource(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	kubeconfig, err := kubernetes.GetKubeConfig(stackId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	pr, err := u.GetProject(organizationId, projectId)
+	pr, err := u.GetProject(ctx, organizationId, projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.RemoveClusterRole(kubeconfig, pr.Name)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.RemoveCommonClusterRole(kubeconfig, pr.Name)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.RemoveCommonClusterRoleBinding(kubeconfig, pr.Name)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	return nil
 }
-func (u *ProjectUsecase) createKeycloakClientRoles(organizationId string, projectId string, stackId string) error {
+func (u *ProjectUsecase) createKeycloakClientRoles(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	// create Roles in keycloak
 	for _, role := range []string{string(ProjectLeader), string(ProjectMember), string(ProjectViewer)} {
 		err := u.kc.EnsureClientRoleWithClientName(organizationId, stackId+"-k8s-api", role+"@"+projectId)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return errors.Wrap(err, "Failed to create project namespace.")
 		}
 	}
 	return nil
 }
-func (u *ProjectUsecase) deleteKeycloakClientRoles(organizationId string, projectId string, stackId string) error {
+func (u *ProjectUsecase) deleteKeycloakClientRoles(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	// first check whether the stac
 
 	// delete Roles in keycloak
 	for _, role := range []string{string(ProjectLeader), string(ProjectMember), string(ProjectViewer)} {
 		err := u.kc.DeleteClientRoleWithClientName(organizationId, stackId+"-k8s-api", role+"@"+projectId)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return errors.Wrap(err, "Failed to create project namespace.")
 		}
 	}
 	return nil
 }
-func (u *ProjectUsecase) CreateK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error {
+func (u *ProjectUsecase) CreateK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error {
 	kubeconfig, err := kubernetes.GetKubeConfig(stackId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	pr, err := u.GetProject(organizationId, projectId)
+	pr, err := u.GetProject(ctx, organizationId, projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	err = kubernetes.EnsureRoleBinding(kubeconfig, pr.Name, namespace)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
 	return nil
 }
-func (u *ProjectUsecase) DeleteK8SNSRoleBinding(organizationId string, projectId string, stackId string, namespace string) error {
+func (u *ProjectUsecase) DeleteK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (u *ProjectUsecase) AssignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error {
-	pm, err := u.GetProjectMember(projectMemberId)
+func (u *ProjectUsecase) AssignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error {
+	pm, err := u.GetProjectMember(ctx, projectMemberId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
-	err = u.assignEachKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
+	err = u.assignEachKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
 	return nil
 }
 
-func (u *ProjectUsecase) assignEachKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, userId string, roleName string) error {
+func (u *ProjectUsecase) assignEachKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, userId string, roleName string) error {
 	err := u.kc.AssignClientRoleToUser(organizationId, userId, stackId+"-k8s-api", roleName+"@"+projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) UnassignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, projectMemberId string) error {
-	pm, err := u.GetProjectMember(projectMemberId)
+func (u *ProjectUsecase) UnassignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error {
+	pm, err := u.GetProjectMember(ctx, projectMemberId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
-	err = u.unassignKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
+	err = u.unassignKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
 	return nil
 }
 
-func (u *ProjectUsecase) unassignKeycloakClientRoleToMember(organizationId string, projectId string, stackId string, userId string, roleName string) error {
+func (u *ProjectUsecase) unassignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, userId string, roleName string) error {
 	err := u.kc.UnassignClientRoleToUser(organizationId, userId, stackId+"-k8s-api", roleName+"@"+projectId)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	return nil
 }
 
-func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId string) (string, error) {
+func (u *ProjectUsecase) GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error) {
 	projectNamespaces, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.ErrorWithContext(ctx, err)
 		return "", errors.Wrap(err, "Failed to retrieve project namespaces.")
 	}
 
@@ -682,21 +680,21 @@ func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId s
 	for _, pn := range projectNamespaces {
 		kubeconfig, err := kubernetes.GetKubeConfig(pn.StackId)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return "", errors.Wrap(err, "Failed to retrieve kubeconfig.")
 		}
 
 		var config kubeConfigType
 		err = yaml.Unmarshal(kubeconfig, &config)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return "", errors.Wrap(err, "Failed to unmarshal kubeconfig.")
 		}
 		config.Contexts[0].Context.Namespace = pn.Namespace
 
 		kubeconfig, err = yaml.Marshal(config)
 		if err != nil {
-			log.Error(err)
+			log.ErrorWithContext(ctx, err)
 			return "", errors.Wrap(err, "Failed to marshal kubeconfig.")
 		}
 
@@ -723,56 +721,56 @@ func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId str
 	if err == nil {
 		out.Pods = len(pods.Items)
 	} else {
-		log.Error("Failed to get pods. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get pods. err : ", err)
 	}
 
 	pvcs, err := clientset_user.CoreV1().PersistentVolumeClaims(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.PVCs = len(pvcs.Items)
 	} else {
-		log.Error("Failed to get pvcs. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get pvcs. err : ", err)
 	}
 
 	services, err := clientset_user.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.Services = len(services.Items)
 	} else {
-		log.Error("Failed to get services. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get services. err : ", err)
 	}
 
 	ingresses, err := clientset_user.NetworkingV1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.Ingresses = len(ingresses.Items)
 	} else {
-		log.Error("Failed to get ingresses. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get ingresses. err : ", err)
 	}
 
 	deployments, err := clientset_user.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.Deployments = len(deployments.Items)
 	} else {
-		log.Error("Failed to get deployments. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get deployments. err : ", err)
 	}
 
 	statefulsets, err := clientset_user.AppsV1().StatefulSets(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.Statefulsets = len(statefulsets.Items)
 	} else {
-		log.Error("Failed to get statefulsets. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get statefulsets. err : ", err)
 	}
 
 	daemonsets, err := clientset_user.AppsV1().DaemonSets(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.Daemonsets = len(daemonsets.Items)
 	} else {
-		log.Error("Failed to get daemonsets. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get daemonsets. err : ", err)
 	}
 
 	jobs, err := clientset_user.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{})
 	if err == nil {
 		out.Jobs = len(jobs.Items)
 	} else {
-		log.Error("Failed to get jobs. err : ", err)
+		log.ErrorWithContext(ctx, "Failed to get jobs. err : ", err)
 	}
 
 	return
