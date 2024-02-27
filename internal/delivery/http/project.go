@@ -148,6 +148,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 // @Accept      json
 // @Produce     json
 // @Param       organizationId  path     string true "Organization ID"
+// @Param       query           query    string false "(all | only)"
 // @Success     200            {object}  domain.GetProjectsResponse
 // @Router      /organizations/{organizationId}/projects [get]
 // @Security    JWT
@@ -160,49 +161,27 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps, err := p.usecase.GetProjects(organizationId)
+	urlParams := r.URL.Query()
+	queryName := urlParams.Get("query")
+	onlyMyProject := false
+	if queryName == "only" {
+		onlyMyProject = true
+	}
+
+	// get myUserId from login component
+	requestUserInfo, ok := request.UserFrom(r.Context())
+	myUserId := requestUserInfo.GetUserId().String()
+	pr, err := p.usecase.GetProjects(organizationId, myUserId, onlyMyProject)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	// get myUserId from login component
-	requestUserInfo, ok := request.UserFrom(r.Context())
-	myUserId := requestUserInfo.GetUserId().String()
-	prs := make([]domain.ProjectResponse, 0)
-	for _, project := range ps {
-		var projectRoleId, projectRoleName string
-		for _, pm := range project.ProjectMembers {
-			if myUserId == pm.ProjectUserId.String() {
-				projectRoleId = pm.ProjectRoleId
-				projectRoleName = pm.ProjectRole.Name
-				continue
-			}
-		}
-		// TODO: implement AppCount
-		pr := domain.ProjectResponse{
-			ID:              project.ID,
-			OrganizationId:  project.OrganizationId,
-			Name:            project.Name,
-			Description:     project.Description,
-			ProjectRoleId:   projectRoleId,
-			ProjectRoleName: projectRoleName,
-			NamespaceCount:  len(project.ProjectNamespaces),
-			AppCount:        0,
-			MemberCount:     len(project.ProjectMembers),
-			CreatedAt:       project.CreatedAt,
-		}
-		prs = append(prs, pr)
-	}
-
-	var out domain.GetProjectsResponse
-	out.Projects = prs
-
-	if ps == nil {
-		ResponseJSON(w, r, http.StatusNotFound, out)
+	if pr == nil {
+		ResponseJSON(w, r, http.StatusNotFound, domain.GetProjectsResponse{})
 	} else {
-		ResponseJSON(w, r, http.StatusOK, out)
+		ResponseJSON(w, r, http.StatusOK, pr)
 	}
 }
 
@@ -239,6 +218,13 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//appCount, err := p.usecase.GetAppCount(organizationId, projectId)
+	//if err != nil {
+	//	log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
+	//	ErrorJSON(w, r, err)
+	//	return
+	//}
+
 	var out domain.GetProjectResponse
 	if project == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
@@ -268,10 +254,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	pdr.ProjectLeaderDepartment = projectLeaderDepartment
 	pdr.ProjectRoleId = projectRoleId
 	pdr.ProjectRoleName = projectRoleName
-	//pdr.NamespaceCount = len(project.ProjectNamespaces)
-	//pdr.MemberCount = len(project.ProjectMembers)
-	////TODO implement AppCount
-	//pdr.AppCount = 0
+	//pdr.AppCount = appCount
 
 	out.Project = &pdr
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -1234,10 +1217,15 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 			ErrorJSON(w, r, err)
 			return
 		}
-		pnr.StackName = pn.Stack.Name
-		//TODO: implement AppCount
-		pnr.AppCount = 0
+		appCount, err := p.usecase.GetAppCount(organizationId, projectId, pn.Namespace)
+		if err != nil {
+			log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
+			ErrorJSON(w, r, err)
+			return
+		}
 
+		pnr.StackName = pn.Stack.Name
+		pnr.AppCount = appCount
 		pnrs = append(pnrs, pnr)
 	}
 
@@ -1293,6 +1281,13 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	appCount, err := p.usecase.GetAppCount(organizationId, projectId, projectNamespace)
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var out domain.GetProjectNamespaceResponse
 	if pn == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
@@ -1306,8 +1301,7 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	pnr.StackName = pn.Stack.Name
-	//TODO: implement AppCount
-	pnr.AppCount = 0
+	pnr.AppCount = appCount
 
 	out.ProjectNamespace = &pnr
 	ResponseJSON(w, r, http.StatusOK, out)

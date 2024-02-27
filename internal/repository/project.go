@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
@@ -10,7 +11,8 @@ import (
 
 type IProjectRepository interface {
 	CreateProject(p *domain.Project) (string, error)
-	GetProjects(organizationId string) ([]domain.Project, error)
+	GetProjects(organizationId string, userId uuid.UUID) ([]domain.ProjectResponse, error)
+	GetProjectsByUserId(organizationId string, userId uuid.UUID) ([]domain.ProjectResponse, error)
 	GetProjectById(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByIdAndLeader(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByName(organizationId string, projectName string) (*domain.Project, error)
@@ -32,6 +34,8 @@ type IProjectRepository interface {
 	GetProjectNamespaceByPrimaryKey(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
+	GetAppCountByProjectId(organizationId string, projectId string) (int, error)
+	GetAppCountByNamespace(organizationId string, projectId string, namespace string) (int, error)
 }
 
 type ProjectRepository struct {
@@ -53,13 +57,73 @@ func (r *ProjectRepository) CreateProject(p *domain.Project) (string, error) {
 	return p.ID, nil
 }
 
-func (r *ProjectRepository) GetProjects(organizationId string) (ps []domain.Project, err error) {
-	res := r.db.Where("organization_id = ?", organizationId).
-		Preload("ProjectMembers").
-		Preload("ProjectMembers.ProjectRole").
-		Preload("ProjectMembers.ProjectUser").
-		Preload("ProjectNamespaces").
-		Find(&ps)
+func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID) (pr []domain.ProjectResponse, err error) {
+	res := r.db.Raw(""+
+		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
+		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"  from projects as p, "+
+		"       (select pm.project_id, pm.project_user_id, pm.project_role_id, pm.created_at, pm.is_project_leader, "+
+		"               pr.name as pr_name "+
+		"          from project_members as pm "+
+		"          left join project_roles as pr on pr.id = pm.project_role_id "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.project_user_id = @userId) as pm, "+
+		"       (select count(pn.stack_id || pn.project_id) as count "+
+		"          from project_namespaces as pn "+
+		"          left join projects as p on pn.project_id = p.id "+
+		"          left join project_members as pm on pn.project_id = pm.project_id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id = @userId) as pn, "+
+		"       (select count(asa.id) as count "+
+		"          from app_serve_apps as asa "+
+		"          left join projects as p on asa.project_id = p.id "+
+		"          left join project_members as pm on asa.project_id = pm.project_id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id = @userId) as asa, "+
+		"       (select count(pm.id) as count "+
+		"          from project_members as pm "+
+		"          left join projects as p on pm.project_id = p.id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id = @userId) as pm_count "+
+		" where p.id = pm.project_id "+
+		"   and p.organization_id = @organizationId "+
+		"union "+
+		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
+		"       false as is_my_project, '' as project_role_id, '' as project_role_name, "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"  from projects as p, "+
+		"       (select pm.project_id, pm.project_user_id, pm.project_role_id, pm.created_at, pm.is_project_leader, "+
+		"               pr.name as pr_name "+
+		"          from project_members as pm "+
+		"          left join project_roles as pr on pr.id = pm.project_role_id "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.project_user_id <> @userId) as pm, "+
+		"       (select count(pn.stack_id || pn.project_id) as count "+
+		"          from project_namespaces as pn "+
+		"          left join projects as p on pn.project_id = p.id "+
+		"          left join project_members as pm on pn.project_id = pm.project_id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id <> @userId) as pn, "+
+		"       (select count(asa.id) as count "+
+		"          from app_serve_apps as asa "+
+		"          left join projects as p on asa.project_id = p.id "+
+		"          left join project_members as pm on asa.project_id = pm.project_id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id <> @userId) as asa, "+
+		"       (select count(pm.id) as count "+
+		"          from project_members as pm "+
+		"          left join projects as p on pm.project_id = p.id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id <> @userId) as pm_count "+
+		" where p.id = pm.project_id "+
+		"   and p.organization_id = @organizationId "+
+		"   and p.id not in (select projects.id "+
+		"                      from projects "+
+		"                      left join project_members on project_members.project_id = projects.id "+
+		"                     where project_members.project_user_id = @userId) ",
+		sql.Named("organizationId", organizationId), sql.Named("userId", userId)).
+		Scan(&pr)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			log.Info("Cannot find project")
@@ -70,7 +134,53 @@ func (r *ProjectRepository) GetProjects(organizationId string) (ps []domain.Proj
 		}
 	}
 
-	return ps, nil
+	return pr, nil
+}
+
+func (r *ProjectRepository) GetProjectsByUserId(organizationId string, userId uuid.UUID) (pr []domain.ProjectResponse, err error) {
+	res := r.db.Raw(""+
+		"select p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
+		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"  from projects as p, "+
+		"       (select pm.project_id, pm.project_user_id, pm.project_role_id, pm.created_at, pm.is_project_leader, "+
+		"               pr.name as pr_name "+
+		"          from project_members as pm "+
+		"          left join project_roles as pr on pr.id = pm.project_role_id "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.project_user_id = @userId) as pm, "+
+		"       (select count(pn.stack_id || pn.project_id) as count "+
+		"          from project_namespaces as pn "+
+		"          left join projects as p on pn.project_id = p.id "+
+		"          left join project_members as pm on pn.project_id = pm.project_id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id = @userId) as pn, "+
+		"       (select count(asa.id) as count "+
+		"          from app_serve_apps as asa "+
+		"          left join projects as p on asa.project_id = p.id "+
+		"          left join project_members as pm on asa.project_id = pm.project_id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id = @userId) as asa, "+
+		"       (select count(pm.id) as count "+
+		"          from project_members as pm "+
+		"          left join projects as p on pm.project_id = p.id "+
+		"         where p.organization_id = @organizationId "+
+		"           and pm.project_user_id = @userId) as pm_count "+
+		" where p.id = pm.project_id "+
+		"   and p.organization_id = @organizationId", sql.Named("organizationId", organizationId), sql.Named("userId", userId)).
+		Scan(&pr)
+
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info("Cannot find project")
+			return nil, nil
+		} else {
+			log.Error(res.Error)
+			return nil, res.Error
+		}
+	}
+
+	return pr, nil
 }
 
 func (r *ProjectRepository) GetProjectById(organizationId string, projectId string) (p *domain.Project, err error) {
@@ -411,4 +521,30 @@ func (r *ProjectRepository) DeleteProjectNamespace(organizationId string, projec
 	}
 
 	return nil
+}
+
+func (r *ProjectRepository) GetAppCountByProjectId(organizationId string, projectId string) (appCount int, err error) {
+	res := r.db.Select("count(*) as app_count").
+		Table("app_serve_apps").
+		Where("organization_id = ? and project_Id = ?", organizationId, projectId).
+		Find(&appCount)
+	if res.Error != nil {
+		log.Error(res.Error)
+		return 0, res.Error
+	}
+
+	return appCount, nil
+}
+
+func (r *ProjectRepository) GetAppCountByNamespace(organizationId string, projectId string, namespace string) (appCount int, err error) {
+	res := r.db.Select("count(*) as app_count").
+		Table("app_serve_apps").
+		Where("organization_id = ? and project_Id = ? and namespace = ?", organizationId, projectId, namespace).
+		Find(&appCount)
+	if res.Error != nil {
+		log.Error(res.Error)
+		return 0, res.Error
+	}
+
+	return appCount, nil
 }

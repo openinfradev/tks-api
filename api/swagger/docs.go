@@ -2414,6 +2414,12 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "(all | only)",
+                        "name": "query",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -7935,7 +7941,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "createdAt": {
-                    "description": "NamespaceCount          int        ` + "`" + `json:\"namespaceCount\"` + "`" + `\nAppCount                int        ` + "`" + `json:\"appCount\"` + "`" + `\nMemberCount             int        ` + "`" + `json:\"memberCount\"` + "`" + `",
+                    "description": "AppCount                int    ` + "`" + `json:\"appCount\"` + "`" + `\nNamespaceCount          int        ` + "`" + `json:\"namespaceCount\"` + "`" + `\nMemberCount             int        ` + "`" + `json:\"memberCount\"` + "`" + `",
                     "type": "string"
                 },
                 "description": {
@@ -8103,6 +8109,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "isMyProject": {
                     "type": "string"
                 },
                 "memberCount": {
