@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -24,7 +25,7 @@ const (
 
 type IProjectUsecase interface {
 	CreateProject(*domain.Project) (string, error)
-	GetProjects(organizationId string, userId string, onlyMyProject bool) ([]domain.ProjectResponse, error)
+	GetProjects(organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
 	GetProject(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectWithLeader(organizationId string, projectId string) (*domain.Project, error)
 	IsProjectNameExist(organizationId string, projectName string) (bool, error)
@@ -34,13 +35,13 @@ type IProjectUsecase interface {
 	AddProjectMember(pm *domain.ProjectMember) (string, error)
 	GetProjectUser(projectUserId string) (*domain.ProjectUser, error)
 	GetProjectMember(projectMemberId string) (*domain.ProjectMember, error)
-	GetProjectMembers(projectId string, query int) ([]domain.ProjectMember, error)
+	GetProjectMembers(projectId string, query int, pg *pagination.Pagination) ([]domain.ProjectMember, error)
 	GetProjectMemberCount(projectMemberId string) (*domain.GetProjectMemberCountResponse, error)
 	RemoveProjectMember(projectMemberId string) error
 	UpdateProjectMemberRole(pm *domain.ProjectMember) error
 	CreateProjectNamespace(organizationId string, pn *domain.ProjectNamespace) error
 	IsProjectNamespaceExist(organizationId string, projectId string, stackId string, projectNamespace string) (bool, error)
-	GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error)
+	GetProjectNamespaces(organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error)
 	GetProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) (*domain.ProjectNamespace, error)
 	UpdateProjectNamespace(pn *domain.ProjectNamespace) error
 	DeleteProjectNamespace(organizationId string, projectId string, projectNamespace string, stackId string) error
@@ -91,20 +92,20 @@ func (u *ProjectUsecase) CreateProject(p *domain.Project) (string, error) {
 	return projectId, nil
 }
 
-func (u *ProjectUsecase) GetProjects(organizationId string, userId string, onlyMyProject bool) (pr []domain.ProjectResponse, err error) {
+func (u *ProjectUsecase) GetProjects(organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	userUuid, err := uuid.Parse(userId)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.Wrap(err, "Failed to parse uuid to string")
 	}
 	if onlyMyProject == false {
-		pr, err = u.projectRepo.GetProjects(organizationId, userUuid)
+		pr, err = u.projectRepo.GetProjects(organizationId, userUuid, pg)
 		if err != nil {
 			log.Error(err)
 			return nil, errors.Wrap(err, "Failed to get projects.")
 		}
 	} else {
-		pr, err = u.projectRepo.GetProjectsByUserId(organizationId, userUuid)
+		pr, err = u.projectRepo.GetProjectsByUserId(organizationId, userUuid, pg)
 		if err != nil {
 			log.Error(err)
 			return nil, errors.Wrap(err, "Failed to get projects.")
@@ -285,15 +286,15 @@ func (u *ProjectUsecase) GetProjectMember(projectMemberId string) (pm *domain.Pr
 	return pm, nil
 }
 
-func (u *ProjectUsecase) GetProjectMembers(projectId string, query int) (pms []domain.ProjectMember, err error) {
+func (u *ProjectUsecase) GetProjectMembers(projectId string, query int, pg *pagination.Pagination) (pms []domain.ProjectMember, err error) {
 	if query == ProjectLeader {
-		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-leader")
+		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-leader", pg)
 	} else if query == ProjectMember {
-		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-member")
+		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-member", pg)
 	} else if query == ProjectViewer {
-		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-viewer")
+		pms, err = u.projectRepo.GetProjectMembersByProjectIdAndRoleName(projectId, "project-viewer", pg)
 	} else {
-		pms, err = u.projectRepo.GetProjectMembersByProjectId(projectId)
+		pms, err = u.projectRepo.GetProjectMembersByProjectId(projectId, pg)
 	}
 	if err != nil {
 		log.Error(err)
@@ -352,8 +353,8 @@ func (u *ProjectUsecase) IsProjectNamespaceExist(organizationId string, projectI
 	return exist, nil
 }
 
-func (u *ProjectUsecase) GetProjectNamespaces(organizationId string, projectId string) ([]domain.ProjectNamespace, error) {
-	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
+func (u *ProjectUsecase) GetProjectNamespaces(organizationId string, projectId string, pg *pagination.Pagination) ([]domain.ProjectNamespace, error) {
+	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, pg)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.Wrap(err, "Failed to retrieve project namespaces.")
@@ -404,7 +405,7 @@ func (u *ProjectUsecase) GetAppCount(organizationId string, projectId string, na
 }
 
 func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, projectId string, stackId string) error {
-	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
+	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to create project namespace.")
@@ -433,7 +434,7 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, pr
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll)
+	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll, nil)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to create project namespace.")
@@ -449,7 +450,7 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(organizationId string, pr
 	return nil
 }
 func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(organizationId string, projectId string, stackId string) error {
-	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
+	pns, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to create project namespace.")
@@ -471,7 +472,7 @@ func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(organizationId string,
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 
-	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll)
+	projectMembers, err := u.GetProjectMembers(projectId, ProjectAll, nil)
 	if err != nil {
 		log.Error(err)
 		return errors.Wrap(err, "Failed to create project namespace.")
@@ -646,7 +647,7 @@ func (u *ProjectUsecase) unassignKeycloakClientRoleToMember(organizationId strin
 }
 
 func (u *ProjectUsecase) GetProjectKubeconfig(organizationId string, projectId string) (string, error) {
-	projectNamespaces, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId)
+	projectNamespaces, err := u.projectRepo.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		return "", errors.Wrap(err, "Failed to retrieve project namespaces.")

@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -147,6 +145,7 @@ func (r *UserRepository) NameFilter(name string) FilterFunc {
 func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 	var users []User
 	var res *gorm.DB
+
 	if filters == nil {
 		res = r.db.Model(&User{}).Preload("Organization").Preload("Role").Find(&users)
 	} else {
@@ -161,6 +160,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 		cFunc := combinedFilter(filters...)
 		res = cFunc(r.db.Model(&User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
+
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
@@ -181,16 +181,10 @@ func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizat
 	var users []User
 
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("users", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&User{}).Where("organization_id = ?", organizationId))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Preload("Organization").Preload("Role").Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&users)
+	_, res := pg.Fetch(r.db.Preload("Organization").Preload("Role").Model(&User{}).Where("organization_id = ?", organizationId), &users)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error

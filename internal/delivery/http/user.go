@@ -176,11 +176,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlParams := r.URL.Query()
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
@@ -196,7 +192,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

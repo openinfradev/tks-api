@@ -75,27 +75,9 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 	var stackTemplates []StackTemplate
 
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	/*
-		filterFunc := CombinedGormFilter("stack_templates", pg.GetFilters(), pg.CombinedFilter)
-		db := filterFunc(r.db.Model(&StackTemplate{}))
-		db.Count(&pg.TotalRows)
-
-		pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-		orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-		res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order("kube_type DESC,template_type ASC").Order(orderQuery).Find(&stackTemplates)
-		if res.Error != nil {
-			return nil, res.Error
-		}
-
-		for _, stackTemplate := range stackTemplates {
-			out = append(out, reflectStackTemplate(stackTemplate))
-		}
-	*/
-
-	//	paginator, res := filter.Scope(r.db.Order("kube_type DESC,template_type ASC"), pg.GetPaginationRequest(), &stackTemplates)
 	_, res := pg.Fetch(r.db, &stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error

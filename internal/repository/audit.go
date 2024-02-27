@@ -66,7 +66,7 @@ func (r *AuditRepository) Fetch(organizationId string, pg *pagination.Pagination
 	var audits []Audit
 
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
 	db := r.db.Model(&Audit{}).Preload(clause.Associations).Where("organization_id = ?", organizationId)

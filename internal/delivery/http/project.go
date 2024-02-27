@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 
 	"github.com/gorilla/mux"
@@ -168,20 +169,28 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 		onlyMyProject = true
 	}
 
+	pg := pagination.NewPagination(&urlParams)
+
 	// get myUserId from login component
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	myUserId := requestUserInfo.GetUserId().String()
-	pr, err := p.usecase.GetProjects(organizationId, myUserId, onlyMyProject)
+	pr, err := p.usecase.GetProjects(organizationId, myUserId, onlyMyProject, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
+	var out domain.GetProjectsResponse
+	out.Projects = pr
+	if out.Pagination, err = pg.Response(); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
 	if pr == nil {
 		ResponseJSON(w, r, http.StatusNotFound, domain.GetProjectsResponse{})
 	} else {
-		ResponseJSON(w, r, http.StatusOK, pr)
+		ResponseJSON(w, r, http.StatusOK, out)
 	}
 }
 
@@ -483,7 +492,9 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId)
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, pg)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -660,7 +671,8 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	pms, err := p.usecase.GetProjectMembers(projectId, query)
+	pg := pagination.NewPagination(&urlParams)
+	pms, err := p.usecase.GetProjectMembers(projectId, query, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project members ", err)
 		ErrorJSON(w, r, err)
@@ -692,6 +704,10 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	}
 
 	out = domain.GetProjectMembersResponse{ProjectMembers: pmrs}
+	if out.Pagination, err = pg.Response(); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
@@ -776,7 +792,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	}
 
 	// tasks for keycloak & k8s
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId)
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -839,7 +855,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 	}
 
 	// tasks for keycloak & k8s
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId)
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -926,7 +942,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId)
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -1003,7 +1019,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 		return
 	}
 
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId)
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -1197,7 +1213,9 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId)
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project namespaces.", err)
 		ErrorJSON(w, r, err)

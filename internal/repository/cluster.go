@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -111,19 +110,14 @@ func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
-	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&Cluster{}))
 
-	db.Count(&pg.TotalRows)
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&clusters)
+	_, res := pg.Fetch(r.db, &clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
 	for _, cluster := range clusters {
 		outCluster := reflectCluster(cluster)
 		out = append(out, outCluster)
@@ -134,21 +128,15 @@ func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []domain.Clust
 func (r *ClusterRepository) FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
-	pg.SortColumn = "created_at"
-	pg.SortOrder = "DESC"
-	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&Cluster{}).
+
+	_, res := pg.Fetch(r.db.Model(&Cluster{}).
 		Preload(clause.Associations).
 		Joins("left outer join cluster_favorites on clusters.id = cluster_favorites.cluster_id AND cluster_favorites.user_id = ?", userId).
-		Where("organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED))
+		Where("organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED).
+		Order("cluster_favorites.cluster_id"), &clusters)
 
-	db.Count(&pg.TotalRows)
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order("cluster_favorites.cluster_id").Order(orderQuery).Find(&clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -157,26 +145,16 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string, userId 
 		out = append(out, outCluster)
 	}
 
-	//log.Info(helper.ModelToJson(clusters))
 	return
 }
 
 func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
 	var clusters []Cluster
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
-	pg.SortColumn = "created_at"
-	pg.SortOrder = "DESC"
-	filterFunc := CombinedGormFilter("clusters", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&Cluster{}).Preload("CloudAccount").
-		Where("cloud_account_id = ?", cloudAccountId))
-
-	db.Count(&pg.TotalRows)
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&clusters)
+	_, res := pg.Fetch(r.db.Model(&Cluster{}).Preload("CloudAccount").
+		Where("cloud_account_id = ?", cloudAccountId), &clusters)
 	if res.Error != nil {
 		return nil, res.Error
 	}

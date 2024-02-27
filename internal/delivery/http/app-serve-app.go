@@ -253,12 +253,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		ErrorJSON(w, r, err)
 		return
 	}
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
-
+	pg := pagination.NewPagination(&urlParams)
 	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
@@ -269,7 +264,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = apps
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
@@ -452,11 +447,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	}
 
 	urlParams := r.URL.Query()
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 
 	tasks, err := h.usecase.GetAppServeAppTasks(appId, pg)
 	if err != nil {
@@ -468,7 +459,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	var out domain.GetAppServeAppTasksResponse
 	out.AppServeAppTasks = tasks
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 

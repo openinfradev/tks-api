@@ -1,7 +1,6 @@
 package pagination
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -151,87 +150,88 @@ func (p *Pagination) Response() (out domain.PaginationResponse, err error) {
 	return out, err
 }
 
-func NewPagination(urlParams *url.Values) (*Pagination, error) {
-	pg := NewDefaultPagination()
+func NewPagination(urlParams *url.Values) *Pagination {
+	pg := newDefaultPagination()
 
-	for key, value := range *urlParams {
-		switch key {
-		case SORT_COLUMN:
-			if value[0] != "" {
-				pg.SortColumn = value[0]
-			}
-		case SORT_ORDER:
-			if value[0] != "" {
-				pg.SortOrder = value[0]
-			}
-		case PAGE_NUMBER:
-			if value[0] != "" {
-				pg.Page, _ = strconv.Atoi(value[0])
-			}
-		case PAGE_SIZE:
-			if value[0] == "" {
-				if limitNum, err := strconv.Atoi(value[0]); err == nil {
-					pg.Limit = limitNum
+	if urlParams != nil {
+		for key, value := range *urlParams {
+			switch key {
+			case SORT_COLUMN:
+				if value[0] != "" {
+					pg.SortColumn = value[0]
 				}
-			}
-		case COMBINED_FILTER:
-			if len(value[0]) > 0 {
-				//"combinedFilter=key1,key2:value"
-				filterArray := strings.Split(value[0], ":")
-				if len(filterArray) == 2 {
-					keys := strings.Split(helper.ToSnakeCase(strings.Replace(filterArray[0], "[]", "", -1)), ",")
-					value := filterArray[1]
-
-					pg.CombinedFilter = CombinedFilter{
-						Columns: keys,
-						Value:   value,
+			case SORT_ORDER:
+				if value[0] != "" {
+					pg.SortOrder = value[0]
+				}
+			case PAGE_NUMBER:
+				if value[0] != "" {
+					pg.Page, _ = strconv.Atoi(value[0])
+				}
+			case PAGE_SIZE:
+				if value[0] == "" {
+					if limitNum, err := strconv.Atoi(value[0]); err == nil {
+						pg.Limit = limitNum
 					}
-				} else {
-					return nil, fmt.Errorf("Invalid query string : combinedFilter ")
 				}
-			}
-		case FILTER, FILTER_ARRAY, OR, OR_ARRAY:
-			for _, filterValue := range value {
-				arr := strings.Split(filterValue, "|")
+			case COMBINED_FILTER:
+				if len(value[0]) > 0 {
+					//"combinedFilter=key1,key2:value"
+					filterArray := strings.Split(value[0], ":")
+					if len(filterArray) == 2 {
+						keys := strings.Split(helper.ToSnakeCase(strings.Replace(filterArray[0], "[]", "", -1)), ",")
+						value := filterArray[1]
 
-				column := arr[0]
-				releation := ""
-				arrColumns := strings.Split(column, ".")
-				if len(arrColumns) > 1 {
-					releation = arrColumns[0]
-					column = arrColumns[1]
+						pg.CombinedFilter = CombinedFilter{
+							Columns: keys,
+							Value:   value,
+						}
+					} else {
+						return nil
+					}
 				}
+			case FILTER, FILTER_ARRAY, OR, OR_ARRAY:
+				for _, filterValue := range value {
+					arr := strings.Split(filterValue, "|")
 
-				trimmedStr := strings.Trim(arr[1], "[]")
-				values := strings.Split(trimmedStr, ",")
+					column := arr[0]
+					releation := ""
+					arrColumns := strings.Split(column, ".")
+					if len(arrColumns) > 1 {
+						releation = arrColumns[0]
+						column = arrColumns[1]
+					}
 
-				op := "$cont"
-				if len(arr) == 3 {
-					op = arr[2]
+					trimmedStr := strings.Trim(arr[1], "[]")
+					values := strings.Split(trimmedStr, ",")
+
+					op := "$cont"
+					if len(arr) == 3 {
+						op = arr[2]
+					}
+
+					or := false
+					if key == OR || key == OR_ARRAY {
+						or = true
+					}
+
+					pg.Filters = append(pg.Filters, Filter{
+						Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
+						Relation: releation,
+						Operator: op,
+						Values:   values,
+						Or:       or,
+					})
 				}
-
-				or := false
-				if key == OR || key == OR_ARRAY {
-					or = true
-				}
-
-				pg.Filters = append(pg.Filters, Filter{
-					Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
-					Relation: releation,
-					Operator: op,
-					Values:   values,
-					Or:       or,
-				})
 			}
 		}
 	}
-
 	pg.MakePaginationRequest()
 
-	return pg, nil
+	return pg
 }
 
-func NewDefaultPagination() *Pagination {
+func newDefaultPagination() *Pagination {
 	return &Pagination{
 		SortColumn: "created_at",
 		SortOrder:  "DESC",

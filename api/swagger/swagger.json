@@ -7463,6 +7463,9 @@
         "domain.GetProjectMembersResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "projectMembers": {
                     "type": "array",
                     "items": {
@@ -7528,6 +7531,9 @@
         "domain.GetProjectsResponse": {
             "type": "object",
             "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/domain.PaginationResponse"
+                },
                 "projects": {
                     "type": "array",
                     "items": {

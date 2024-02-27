@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -99,17 +98,11 @@ func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out dom
 func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.CloudAccount, err error) {
 	var cloudAccounts []CloudAccount
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
-	filterFunc := CombinedGormFilter("cloud_accounts", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&CloudAccount{}).
+	_, res := pg.Fetch(r.db.Model(&CloudAccount{}).
 		Preload(clause.Associations).
-		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&cloudAccounts)
+		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED), &cloudAccounts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
