@@ -50,23 +50,26 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 
 		message, description := "", ""
 		if fn, ok := auditMap[endpoint]; ok {
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				log.Error(err)
-			}
-			message, description = fn(lrw.GetBody(), body, statusCode)
-			r.Body = io.NopCloser(bytes.NewBuffer(body))
+			// workarround pingtoken
+			if endpoint != internalApi.PingToken {
+				body, err := io.ReadAll(r.Body)
+				if err != nil {
+					log.Error(err)
+				}
+				message, description = fn(lrw.GetBody(), body, statusCode)
+				r.Body = io.NopCloser(bytes.NewBuffer(body))
 
-			dto := domain.Audit{
-				OrganizationId: organizationId,
-				Group:          internalApi.ApiMap[endpoint].Group,
-				Message:        message,
-				Description:    description,
-				ClientIP:       GetClientIpAddress(w, r),
-				UserId:         &userId,
-			}
-			if _, err := a.repo.Create(dto); err != nil {
-				log.Error(err)
+				dto := domain.Audit{
+					OrganizationId: organizationId,
+					Group:          internalApi.ApiMap[endpoint].Group,
+					Message:        message,
+					Description:    description,
+					ClientIP:       GetClientIpAddress(w, r),
+					UserId:         &userId,
+				}
+				if _, err := a.repo.Create(dto); err != nil {
+					log.Error(err)
+				}
 			}
 		}
 
