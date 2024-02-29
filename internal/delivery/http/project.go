@@ -98,7 +98,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("Processing CREATE request for project '%s'...", project.Name)
 
-	projectId, err := p.usecase.CreateProject(project)
+	projectId, err := p.usecase.CreateProject(r.Context(), project)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -112,7 +112,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prs, err := p.usecase.GetProjectRoles(usecase.ProjectLeader)
+	prs, err := p.usecase.GetProjectRoles(r.Context(), usecase.ProjectLeader)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to retrieve project-leader id"))
@@ -130,7 +130,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:       now,
 	}
 
-	projectMemberId, err := p.usecase.AddProjectMember(pm)
+	projectMemberId, err := p.usecase.AddProjectMember(r.Context(), pm)
 	if err != nil {
 		log.Errorf("projectMemberId: %v", projectMemberId)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -174,7 +174,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	// get myUserId from login component
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	myUserId := requestUserInfo.GetUserId().String()
-	pr, err := p.usecase.GetProjects(organizationId, myUserId, onlyMyProject, pg)
+	pr, err := p.usecase.GetProjects(r.Context(), organizationId, myUserId, onlyMyProject, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)
@@ -220,7 +220,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := p.usecase.GetProjectWithLeader(organizationId, projectId)
+	project, err := p.usecase.GetProjectWithLeader(r.Context(), organizationId, projectId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to retrieve project", err)
 		ErrorJSON(w, r, err)
@@ -293,7 +293,7 @@ func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Reques
 	urlParams := r.URL.Query()
 	projectName := urlParams.Get("value")
 
-	exist, err := p.usecase.IsProjectNameExist(organizationId, projectName)
+	exist, err := p.usecase.IsProjectNameExist(r.Context(), organizationId, projectName)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -341,13 +341,13 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	project, err := p.usecase.GetProjectWithLeader(organizationId, projectId)
+	project, err := p.usecase.GetProjectWithLeader(r.Context(), organizationId, projectId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 	if project == nil {
-		project, err = p.usecase.GetProject(organizationId, projectId)
+		project, err = p.usecase.GetProject(r.Context(), organizationId, projectId)
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -358,7 +358,7 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	project.Description = projectReq.Description
 	project.UpdatedAt = &now
 
-	if err := p.usecase.UpdateProject(project, projectReq.ProjectLeaderId); err != nil {
+	if err := p.usecase.UpdateProject(r.Context(), project, projectReq.ProjectLeaderId); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -401,7 +401,7 @@ func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pr, err := p.usecase.GetProjectRole(projectRoleId)
+	pr, err := p.usecase.GetProjectRole(r.Context(), projectRoleId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project roles ", err)
 		ErrorJSON(w, r, err)
@@ -445,7 +445,7 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	prs, err := p.usecase.GetProjectRoles(query)
+	prs, err := p.usecase.GetProjectRoles(r.Context(), query)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project roles ", err)
 		ErrorJSON(w, r, err)
@@ -494,7 +494,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, pg)
+	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, pg)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -507,7 +507,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 
 	now := time.Now()
 	for _, pmr := range projectMemberReq.ProjectMemberRequests {
-		pu, err := p.usecase.GetProjectUser(pmr.ProjectUserId)
+		pu, err := p.usecase.GetProjectUser(r.Context(), pmr.ProjectUserId)
 		if err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectUserId"),
@@ -515,7 +515,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		pr, err := p.usecase.GetProjectRole(pmr.ProjectRoleId)
+		pr, err := p.usecase.GetProjectRole(r.Context(), pmr.ProjectRoleId)
 		if err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -535,7 +535,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 			ProjectRole:   nil,
 			CreatedAt:     now,
 		}
-		pmId, err := p.usecase.AddProjectMember(pm)
+		pmId, err := p.usecase.AddProjectMember(r.Context(), pm)
 		if err != nil {
 			log.Errorf("projectMemberId: %s", pmId)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -544,7 +544,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
-			if err := p.usecase.AssignKeycloakClientRoleToMember(organizationId, projectId, stackId, pmId); err != nil {
+			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pmId); err != nil {
 				log.Error(err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
@@ -594,7 +594,7 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	pm, err := p.usecase.GetProjectMember(projectMemberId)
+	pm, err := p.usecase.GetProjectMember(r.Context(), projectMemberId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project member ", err)
 		ErrorJSON(w, r, err)
@@ -672,7 +672,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	}
 
 	pg := pagination.NewPagination(&urlParams)
-	pms, err := p.usecase.GetProjectMembers(projectId, query, pg)
+	pms, err := p.usecase.GetProjectMembers(r.Context(), projectId, query, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project members ", err)
 		ErrorJSON(w, r, err)
@@ -739,7 +739,7 @@ func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	pmcr, err := p.usecase.GetProjectMemberCount(projectId)
+	pmcr, err := p.usecase.GetProjectMemberCount(r.Context(), projectId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project member count", err)
 		ErrorJSON(w, r, err)
@@ -792,7 +792,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	}
 
 	// tasks for keycloak & k8s
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
+	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -803,14 +803,14 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 		stackIds[pn.StackId] = struct{}{}
 	}
 	for stackId := range stackIds {
-		if err := p.usecase.UnassignKeycloakClientRoleToMember(organizationId, projectId, stackId, projectMemberId); err != nil {
+		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
 	}
 
-	if err := p.usecase.RemoveProjectMember(projectMemberId); err != nil {
+	if err := p.usecase.RemoveProjectMember(r.Context(), projectMemberId); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 
@@ -855,7 +855,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 	}
 
 	// tasks for keycloak & k8s
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
+	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -870,14 +870,14 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 	for _, pm := range projectMemberReq.ProjectMember {
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
-			if err := p.usecase.UnassignKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ProjectMemberId); err != nil {
+			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ProjectMemberId); err != nil {
 				log.Error(err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
 		}
 
-		if err := p.usecase.RemoveProjectMember(pm.ProjectMemberId); err != nil {
+		if err := p.usecase.RemoveProjectMember(r.Context(), pm.ProjectMemberId); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -930,7 +930,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	}
 
 	now := time.Now()
-	pm, err := p.usecase.GetProjectMember(projectMemberId)
+	pm, err := p.usecase.GetProjectMember(r.Context(), projectMemberId)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -942,7 +942,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
+	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -954,7 +954,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	}
 	// tasks for keycloak & k8s. Unassign old role
 	for stackId := range stackIds {
-		if err := p.usecase.UnassignKeycloakClientRoleToMember(organizationId, projectId, stackId, projectMemberId); err != nil {
+		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
@@ -966,13 +966,13 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	pm.ProjectRole = nil
 	pm.UpdatedAt = &now
 
-	if err := p.usecase.UpdateProjectMemberRole(pm); err != nil {
+	if err := p.usecase.UpdateProjectMemberRole(r.Context(), pm); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 	// tasks for keycloak & k8s. Assign new role
 	for stackId := range stackIds {
-		if err := p.usecase.AssignKeycloakClientRoleToMember(organizationId, projectId, stackId, projectMemberId); err != nil {
+		if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
@@ -1019,7 +1019,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 		return
 	}
 
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, nil)
+	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -1031,7 +1031,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 	}
 
 	for _, pmr := range projectMemberReq.ProjectMemberRoleRequests {
-		pm, err := p.usecase.GetProjectMember(pmr.ProjectMemberId)
+		pm, err := p.usecase.GetProjectMember(r.Context(), pmr.ProjectMemberId)
 		if err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -1044,7 +1044,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 		}
 
 		for stackId := range stackIds {
-			if err := p.usecase.UnassignKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ID); err != nil {
+			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ID); err != nil {
 				log.Error(err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
@@ -1056,13 +1056,13 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 		pm.ProjectRole = nil
 		pm.UpdatedAt = &now
 
-		if err := p.usecase.UpdateProjectMemberRole(pm); err != nil {
+		if err := p.usecase.UpdateProjectMemberRole(r.Context(), pm); err != nil {
 			ErrorJSON(w, r, err)
 			return
 		}
 
 		for stackId := range stackIds {
-			if err := p.usecase.AssignKeycloakClientRoleToMember(organizationId, projectId, stackId, pm.ID); err != nil {
+			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ID); err != nil {
 				log.Error(err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
@@ -1118,16 +1118,16 @@ func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Re
 	}
 
 	// tasks for keycloak & k8s
-	if err := p.usecase.EnsureRequiredSetupForCluster(organizationId, projectId, projectNamespaceReq.StackId); err != nil {
+	if err := p.usecase.EnsureRequiredSetupForCluster(r.Context(), organizationId, projectId, projectNamespaceReq.StackId); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	if err := p.usecase.CreateK8SNSRoleBinding(organizationId, projectId, projectNamespaceReq.StackId, projectNamespaceReq.Namespace); err != nil {
+	if err := p.usecase.CreateK8SNSRoleBinding(r.Context(), organizationId, projectId, projectNamespaceReq.StackId, projectNamespaceReq.Namespace); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 
-	if err := p.usecase.CreateProjectNamespace(organizationId, pn); err != nil {
+	if err := p.usecase.CreateProjectNamespace(r.Context(), organizationId, pn); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -1175,7 +1175,7 @@ func (p ProjectHandler) IsProjectNamespaceExist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	exist, err := p.usecase.IsProjectNamespaceExist(organizationId, projectId, stackId, projectNamespace)
+	exist, err := p.usecase.IsProjectNamespaceExist(r.Context(), organizationId, projectId, stackId, projectNamespace)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -1215,7 +1215,7 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-	pns, err := p.usecase.GetProjectNamespaces(organizationId, projectId, pg)
+	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project namespaces.", err)
 		ErrorJSON(w, r, err)
@@ -1235,7 +1235,7 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 			ErrorJSON(w, r, err)
 			return
 		}
-		appCount, err := p.usecase.GetAppCount(organizationId, projectId, pn.Namespace)
+		appCount, err := p.usecase.GetAppCount(r.Context(), organizationId, projectId, pn.Namespace)
 		if err != nil {
 			log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
 			ErrorJSON(w, r, err)
@@ -1292,14 +1292,14 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	pn, err := p.usecase.GetProjectNamespace(organizationId, projectId, projectNamespace, stackId)
+	pn, err := p.usecase.GetProjectNamespace(r.Context(), organizationId, projectId, projectNamespace, stackId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project namespace.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	appCount, err := p.usecase.GetAppCount(organizationId, projectId, projectNamespace)
+	appCount, err := p.usecase.GetAppCount(r.Context(), organizationId, projectId, projectNamespace)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
 		ErrorJSON(w, r, err)
@@ -1375,7 +1375,7 @@ func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Re
 	}
 
 	now := time.Now()
-	pn, err := p.usecase.GetProjectNamespace(organizationId, projectId, projectNamespace, stackId)
+	pn, err := p.usecase.GetProjectNamespace(r.Context(), organizationId, projectId, projectNamespace, stackId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project namespace.", err)
 		ErrorJSON(w, r, err)
@@ -1385,7 +1385,7 @@ func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Re
 	pn.Description = projectNamespaceReq.Description
 	pn.UpdatedAt = &now
 
-	if err := p.usecase.UpdateProjectNamespace(pn); err != nil {
+	if err := p.usecase.UpdateProjectNamespace(r.Context(), pn); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1498,7 +1498,7 @@ func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	kubeconfig, err := p.usecase.GetProjectKubeconfig(organizationId, projectId)
+	kubeconfig, err := p.usecase.GetProjectKubeconfig(r.Context(), organizationId, projectId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project kubeconfig.", err)
 		ErrorJSON(w, r, err)
