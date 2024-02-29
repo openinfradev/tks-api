@@ -38,9 +38,6 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 		}
 		userId := user.GetUserId()
 
-		requestBody := &bytes.Buffer{}
-		_, _ = io.Copy(requestBody, r.Body)
-
 		lrw := logging.NewLoggingResponseWriter(w)
 		handler.ServeHTTP(lrw, r)
 		statusCode := lrw.GetStatusCode()
@@ -53,11 +50,12 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 
 		message, description := "", ""
 		if fn, ok := auditMap[endpoint]; ok {
-			body, err := io.ReadAll(requestBody)
+			body, err := io.ReadAll(r.Body)
 			if err != nil {
 				log.Error(err)
 			}
 			message, description = fn(lrw.GetBody(), body, statusCode)
+			r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 			dto := domain.Audit{
 				OrganizationId: organizationId,
