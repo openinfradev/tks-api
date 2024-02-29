@@ -68,7 +68,7 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 
 	// TODO: should return different records based on showAll param
 	_, res := pg.Fetch(r.db.Model(&domain.AppServeApp{}).
-		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId), &clusters)
+		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId), &apps)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
 	}
