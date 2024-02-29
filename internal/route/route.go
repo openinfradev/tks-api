@@ -7,6 +7,7 @@ import (
 	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
 	"github.com/openinfradev/tks-api/internal/middleware/audit"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/requestRecoder"
+	"github.com/openinfradev/tks-api/internal/middleware/logging"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -17,12 +18,11 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
 	authKeycloak "github.com/openinfradev/tks-api/internal/middleware/auth/authenticator/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authorizer"
-	"github.com/openinfradev/tks-api/internal/middleware/logging"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	gcache "github.com/patrickmn/go-cache"
-	"github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"gorm.io/gorm"
 )
 
