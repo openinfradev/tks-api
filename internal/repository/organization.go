@@ -77,13 +77,6 @@ func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Org
 		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("organizations", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&domain.Organization{}))
-	db.Count(&pg.TotalRows)
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&organizations)
 	_, res := pg.Fetch(r.db, &organizations)
 	if res.Error != nil {
 		return nil, res.Error
