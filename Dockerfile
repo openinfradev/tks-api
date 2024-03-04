@@ -6,9 +6,8 @@ RUN wget https://github.com/swaggo/swag/releases/download/v1.16.3/swag_1.16.3_Li
 WORKDIR /app/backend
 COPY ./ .
 
-RUN swag init -g ./cmd/server/main.go --parseDependency --parseInternal -o ./api/swagger
-
 RUN go mod tidy
+RUN swag init -g ./cmd/server/main.go --parseDependency --parseInternal -o ./api/swagger
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/server ./cmd/server/main.go
 
 ENV TZ=Asia/Seoul
