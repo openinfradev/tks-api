@@ -37,13 +37,13 @@ type Audit struct {
 
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
+	Organization   domain.Organization `gorm:"foreignKey:OrganizationId"`
 	Group          string
 	Message        string
 	Description    string
 	ClientIP       string
-	UserId         *uuid.UUID `gorm:"type:uuid"`
-	User           User       `gorm:"foreignKey:UserId"`
+	UserId         *uuid.UUID  `gorm:"type:uuid"`
+	User           domain.User `gorm:"foreignKey:UserId"`
 }
 
 func (c *Audit) BeforeCreate(tx *gorm.DB) (err error) {

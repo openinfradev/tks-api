@@ -41,7 +41,7 @@ func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*domain.Endpoint
 	var endpoints []*domain.Endpoint
 
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("endpoints", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(e.db.Model(&domain.Endpoint{}))
