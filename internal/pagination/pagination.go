@@ -186,8 +186,6 @@ func NewPagination(urlParams *url.Values) *Pagination {
 							Columns: keys,
 							Value:   value,
 						}
-					} else {
-						return nil
 					}
 				}
 			case FILTER, FILTER_ARRAY, OR, OR_ARRAY:
