@@ -52,7 +52,7 @@ func NewUserHandler(h usecase.Usecase) IUserHandler {
 // @Param       organizationId path     string                    true "organizationId"
 // @Param       body           body     domain.CreateUserRequest  true "create user request"
 // @Success     200            {object} domain.CreateUserResponse "create user response"
-// @Router      /organizations/{organizationId}/users [post]
+// @Router      /api/1.0/organizations/{organizationId}/users [post]
 // @Security    JWT
 func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -116,7 +116,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "organizationId"
 // @Param       accountId      path     string true "accountId"
 // @Success     200            {object} domain.GetUserResponse
-// @Router      /organizations/{organizationId}/users/{accountId} [get]
+// @Router      /api/1.0/organizations/{organizationId}/users/{accountId} [get]
 // @Security    JWT
 func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -165,7 +165,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} []domain.ListUserBody
-// @Router      /organizations/{organizationId}/users [get]
+// @Router      /api/1.0/organizations/{organizationId}/users [get]
 // @Security    JWT
 func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -208,7 +208,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "organizationId"
 // @Param       accountId      path     string true "accountId"
 // @Success     200            {object} domain.User
-// @Router      /organizations/{organizationId}/users/{accountId} [delete]
+// @Router      /api/1.0/organizations/{organizationId}/users/{accountId} [delete]
 // @Security    JWT
 func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -248,7 +248,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Param       accountId      path     string                   true "accountId"
 // @Param       body           body     domain.UpdateUserRequest true "input"
 // @Success     200            {object} domain.UpdateUserResponse
-// @Router      /organizations/{organizationId}/users/{accountId} [put]
+// @Router      /api/1.0/organizations/{organizationId}/users/{accountId} [put]
 // @Security    JWT
 func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -314,7 +314,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path string true "organizationId"
 // @Param       accountId      path string true "accountId"
 // @Success     200
-// @Router      /organizations/{organizationId}/users/{accountId}/reset-password [put]
+// @Router      /api/1.0/organizations/{organizationId}/users/{accountId}/reset-password [put]
 // @Security    JWT
 func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -346,7 +346,7 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string true "organizationId"
 // @Success     200            {object} domain.GetMyProfileResponse
-// @Router      /organizations/{organizationId}/my-profile [get]
+// @Router      /api/1.0/organizations/{organizationId}/my-profile [get]
 // @Security    JWT
 func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
@@ -379,7 +379,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string                        true "organizationId"
 // @Param       body           body     domain.UpdateMyProfileRequest true "Required fields: password due to double-check"
 // @Success     200            {object} domain.UpdateMyProfileResponse
-// @Router      /organizations/{organizationId}/my-profile [put]
+// @Router      /api/1.0/organizations/{organizationId}/my-profile [put]
 // @Security    JWT
 func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
@@ -444,7 +444,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path string                       true "organizationId"
 // @Param       body           body domain.UpdatePasswordRequest true "update user password request"
 // @Success     200
-// @Router      /organizations/{organizationId}/my-profile/password [put]
+// @Router      /api/1.0/organizations/{organizationId}/my-profile/password [put]
 // @Security    JWT
 func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
@@ -494,7 +494,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path string true "organizationId"
 // @Success     200
 // @Failure     400 {object} httpErrors.RestError
-// @Router      /organizations/{organizationId}/my-profile/next-password-change [put]
+// @Router      /api/1.0/organizations/{organizationId}/my-profile/next-password-change [put]
 // @Security    JWT
 func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
@@ -521,7 +521,7 @@ func (u UserHandler) RenewPasswordExpiredDate(w http.ResponseWriter, r *http.Req
 // @Param       organizationId path string true "organizationId"
 // @Success     200
 // @Failure     400
-// @Router      /organizations/{organizationId}/my-profile [delete]
+// @Router      /api/1.0/organizations/{organizationId}/my-profile [delete]
 // @Security    JWT
 func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 	requestUserInfo, ok := request.UserFrom(r.Context())
@@ -545,7 +545,7 @@ func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "organizationId"
 // @Param       accountId      path     string true "accountId"
 // @Success     200            {object} domain.CheckExistedResponse
-// @Router      /organizations/{organizationId}/users/account-id/{accountId}/existence [get]
+// @Router      /api/1.0/organizations/{organizationId}/users/account-id/{accountId}/existence [get]
 // @Security    JWT
 func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -585,7 +585,7 @@ func (u UserHandler) CheckId(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "organizationId"
 // @Param       accountId      path     string true "email"
 // @Success     200            {object} domain.CheckExistedResponse
-// @Router      /organizations/{organizationId}/users/email/{email}/existence [get]
+// @Router      /api/1.0/organizations/{organizationId}/users/email/{email}/existence [get]
 // @Security    JWT
 func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

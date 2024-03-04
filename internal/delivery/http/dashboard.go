@@ -34,7 +34,7 @@ func NewDashboardHandler(h usecase.Usecase) *DashboardHandler {
 // @Param       duration       query    string true  "duration"
 // @Param       interval       query    string true  "interval"
 // @Success     200            {object} domain.GetDashboardChartsResponse
-// @Router      /organizations/{organizationId}/dashboard/charts [get]
+// @Router      /api/1.0/organizations/{organizationId}/dashboard/charts [get]
 // @Security    JWT
 func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -93,7 +93,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 // @Param       duration       query    string true "duration"
 // @Param       interval       query    string true "interval"
 // @Success     200            {object} domain.GetDashboardChartResponse
-// @Router      /organizations/{organizationId}/dashboard/charts/{chartType} [get]
+// @Router      /api/1.0/organizations/{organizationId}/dashboard/charts/{chartType} [get]
 // @Security    JWT
 func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -166,7 +166,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string true "organizationId"
 // @Success     200            {object} domain.GetDashboardStacksResponse
-// @Router      /organizations/{organizationId}/dashboard/stacks [get]
+// @Router      /api/1.0/organizations/{organizationId}/dashboard/stacks [get]
 // @Security    JWT
 func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -207,7 +207,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string true "organizationId"
 // @Success     200            {object} domain.GetDashboardResourcesResponse
-// @Router      /organizations/{organizationId}/dashboard/resources [get]
+// @Router      /api/1.0/organizations/{organizationId}/dashboard/resources [get]
 // @Security    JWT
 func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

@@ -87,7 +87,7 @@ func NewAppServeAppHandler(h usecase.Usecase) *AppServeAppHandler {
 // @Param       projectId path     string                          true "Project ID"
 // @Param       object         body     domain.CreateAppServeAppRequest true "Request body to create app"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps [post]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps [post]
 // @Security    JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -229,7 +229,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} []domain.AppServeApp
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -281,7 +281,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 // @Param       projectId path     string                          true "Project ID"
 // @Param       appId          path     string true "App ID"
 // @Success     200            {object} domain.GetAppServeAppResponse
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -344,7 +344,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 // @Param       projectId path     string                          true "Project ID"
 // @Param       appId          path     string true "App ID"
 // @Success     200            {object} domain.GetAppServeAppTaskResponse
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -388,7 +388,7 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 // @Param       projectId path     string                          true "Project ID"
 // @Param       stackId        query    string true "Stack ID"
 // @Success     200            {object} int64
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/count [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -430,7 +430,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} []domain.AppServeApp
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -477,7 +477,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 // @Param       appId          path     string true "App ID"
 // @Param       taskId          path     string true "Task ID"
 // @Success     200            {object} domain.GetAppServeAppTaskResponse
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId} [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId} [get]
 // @Security    JWT
 func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -643,7 +643,7 @@ func makeStage(task *domain.AppServeAppTask, app *domain.AppServeApp, pl string)
 // @Param       organizationId path     string true "Organization ID"
 // @Param       projectId path     string true "Project ID"
 // @Success     200 {object} bool
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist [get]
 // @Security    JWT
 func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -685,7 +685,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 // @Param       projectId path     string true "Project ID"
 // @Param       name           path     string true "name"
 // @Success     200            {object} bool
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence [get]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence [get]
 // @Security    JWT
 func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -726,7 +726,7 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 // @Param       appId          path     string                          true "App ID"
 // @Param       object         body     domain.UpdateAppServeAppRequest true "Request body to update app"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [put]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [put]
 // @Security    JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -836,7 +836,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param       appId          path     string                                true "App ID"
 // @Param       body           body     domain.UpdateAppServeAppStatusRequest true "Request body to update app status"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status [patch]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status [patch]
 // @Security    JWT
 func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -880,7 +880,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 // @Param       appId          path     string                                  true "appId"
 // @Param       body           body     domain.UpdateAppServeAppEndpointRequest true "Request body to update app endpoint"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint [patch]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint [patch]
 // @Security    JWT
 func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -928,7 +928,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 // @Param       projectId path     string true "Project ID"
 // @Param       appId          path     string true "App ID"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [delete]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [delete]
 // @Security    JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -966,7 +966,7 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 // @Param       appId          path     string                            true "App ID"
 // @Param       object         body     domain.RollbackAppServeAppRequest true "Request body to rollback app"
 // @Success     200            {object} string
-// @Router      /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback [post]
+// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback [post]
 // @Security    JWT
 func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
