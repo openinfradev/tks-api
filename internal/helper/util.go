@@ -96,6 +96,10 @@ func BoolP(value bool) *bool {
 	return &value
 }
 
+func StringP(value string) *string {
+	return &value
+}
+
 func UUIDP(value uuid.UUID) *uuid.UUID {
 	return &value
 }

@@ -78,12 +78,11 @@ func (r RoleRepository) ListTksRoles(organizationId string, pg *pagination.Pagin
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Joins("JOIN roles as r on r.id = tks_roles.role_id").
-		Where("r.organization_id = ?", organizationId).
+	res := db.
 		Offset(pg.GetOffset()).
 		Limit(pg.GetLimit()).
 		Order(orderQuery).
-		Find(&roles)
+		Find(&roles, "organization_id = ?", organizationId)
 	//res := db.Preload("Role").Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&objs)
 	if res.Error != nil {
 		return nil, res.Error
@@ -103,7 +102,7 @@ func (r RoleRepository) Get(id string) (*domain.Role, error) {
 
 func (r RoleRepository) GetTksRole(id string) (*domain.Role, error) {
 	var role domain.Role
-	if err := r.db.Preload("Role").First(&role, "role_id = ?", id).Error; err != nil {
+	if err := r.db.First(&role, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 

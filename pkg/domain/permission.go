@@ -1,21 +1,57 @@
-package rbac
+package domain
 
 import (
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/delivery/api"
 	"github.com/openinfradev/tks-api/internal/helper"
-	"github.com/openinfradev/tks-api/pkg/domain"
+	"gorm.io/gorm"
 )
 
-type PermissionSet struct {
-	Dashboard         *domain.Permission
-	Stack             *domain.Permission
-	SecurityPolicy    *domain.Permission
-	ProjectManagement *domain.Permission
-	Notification      *domain.Permission
-	Configuration     *domain.Permission
+type PermissionKind string
+
+const (
+	DashBoardPermission         PermissionKind = "대시보드"
+	StackPermission             PermissionKind = "스택 관리"
+	SecurityPolicyPermission    PermissionKind = "보안/정책 관리"
+	ProjectManagementPermission PermissionKind = "프로젝트 관리"
+	NotificationPermission      PermissionKind = "알림"
+	ConfigurationPermission     PermissionKind = "설정"
+)
+
+type Permission struct {
+	gorm.Model
+
+	ID   uuid.UUID `gorm:"primarykey;type:uuid;" json:"ID"`
+	Name string    `json:"name"`
+
+	IsAllowed *bool       `gorm:"type:boolean;" json:"is_allowed,omitempty"`
+	RoleID    *string     `json:"role_id,omitempty"`
+	Role      *Role       `gorm:"foreignKey:RoleID;references:ID;" json:"role,omitempty"`
+	Endpoints []*Endpoint `gorm:"many2many:permission_endpoints;" json:"endpoints,omitempty"`
+	// omit empty
+
+	ParentID *uuid.UUID    `json:"parent_id,omitempty"`
+	Parent   *Permission   `gorm:"foreignKey:ParentID;references:ID;" json:"parent,omitempty"`
+	Children []*Permission `gorm:"foreignKey:ParentID;references:ID;" json:"children,omitempty"`
 }
 
-func NewDefaultPermission() *PermissionSet {
+func (p *Permission) BeforeCreate(tx *gorm.DB) (err error) {
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
+	}
+	return nil
+}
+
+type PermissionSet struct {
+	Dashboard         *Permission `gorm:"-:all" json:"dashboard,omitempty"`
+	Stack             *Permission `gorm:"-:all" json:"stack,omitempty"`
+	SecurityPolicy    *Permission `gorm:"-:all" json:"security_policy,omitempty"`
+	ProjectManagement *Permission `gorm:"-:all" json:"project_management,omitempty"`
+	Notification      *Permission `gorm:"-:all" json:"notification,omitempty"`
+	Configuration     *Permission `gorm:"-:all" json:"configuration,omitempty"`
+}
+
+func NewDefaultPermissionSet() *PermissionSet {
 	return &PermissionSet{
 		Dashboard:         newDashboard(),
 		Stack:             newStack(),
@@ -26,10 +62,41 @@ func NewDefaultPermission() *PermissionSet {
 	}
 }
 
-func endpointObjects(eps ...api.Endpoint) []*domain.Endpoint {
-	var result []*domain.Endpoint
+type GetPermissionTemplatesResponse struct {
+	Permissions []*Permission `json:"permissions"`
+}
+
+type GetPermissionsByRoleIdResponse struct {
+	Permissions []*Permission `json:"permissions"`
+}
+
+type UpdatePermissionsByRoleIdRequest struct {
+	Permissions []*Permission `json:"permissions"`
+}
+
+func GetEdgePermission(root *Permission, edgePermissions []*Permission, f *func(permission Permission) bool) []*Permission {
+	if root.Children == nil {
+		return append(edgePermissions, root)
+	}
+
+	for _, child := range root.Children {
+		if f != nil && !(*f)(*child) {
+			continue
+		}
+		edgePermissions = GetEdgePermission(child, edgePermissions, f)
+	}
+
+	return edgePermissions
+}
+
+func SetRoleIDToPermission(roleID string, permission *Permission) {
+	permission.RoleID = helper.StringP(roleID)
+}
+
+func endpointObjects(eps ...api.Endpoint) []*Endpoint {
+	var result []*Endpoint
 	for _, ep := range eps {
-		result = append(result, &domain.Endpoint{
+		result = append(result, &Endpoint{
 			Name:  api.ApiMap[ep].Name,
 			Group: api.ApiMap[ep].Group,
 		})
@@ -37,13 +104,13 @@ func endpointObjects(eps ...api.Endpoint) []*domain.Endpoint {
 	return result
 }
 
-func newDashboard() *domain.Permission {
-	dashboard := &domain.Permission{
-		Name: "대시보드",
-		Children: []*domain.Permission{
+func newDashboard() *Permission {
+	dashboard := &Permission{
+		Name: string(DashBoardPermission),
+		Children: []*Permission{
 			{
 				Name: "대시보드",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -58,7 +125,7 @@ func newDashboard() *domain.Permission {
 			},
 			{
 				Name: "대시보드 설정",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -83,10 +150,10 @@ func newDashboard() *domain.Permission {
 	return dashboard
 }
 
-func newStack() *domain.Permission {
-	stack := &domain.Permission{
-		Name: "스택 관리",
-		Children: []*domain.Permission{
+func newStack() *Permission {
+	stack := &Permission{
+		Name: string(StackPermission),
+		Children: []*Permission{
 			{
 				Name:      "조회",
 				IsAllowed: helper.BoolP(false),
@@ -129,13 +196,13 @@ func newStack() *domain.Permission {
 	return stack
 }
 
-func newSecurityPolicy() *domain.Permission {
-	security_policy := &domain.Permission{
-		Name: "보안/정책 관리",
-		Children: []*domain.Permission{
+func newSecurityPolicy() *Permission {
+	security_policy := &Permission{
+		Name: string(SecurityPolicyPermission),
+		Children: []*Permission{
 			{
 				Name: "보안/정책",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -160,13 +227,13 @@ func newSecurityPolicy() *domain.Permission {
 	return security_policy
 }
 
-func newProjectManagement() *domain.Permission {
-	projectManagement := &domain.Permission{
-		Name: "프로젝트 관리",
-		Children: []*domain.Permission{
+func newProjectManagement() *Permission {
+	projectManagement := &Permission{
+		Name: string(ProjectManagementPermission),
+		Children: []*Permission{
 			{
 				Name: "프로젝트",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -186,7 +253,7 @@ func newProjectManagement() *domain.Permission {
 			},
 			{
 				Name: "앱 서빙",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -236,7 +303,7 @@ func newProjectManagement() *domain.Permission {
 			},
 			{
 				Name: "설정-일반",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -266,7 +333,7 @@ func newProjectManagement() *domain.Permission {
 			},
 			{
 				Name: "설정-멤버",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -302,7 +369,7 @@ func newProjectManagement() *domain.Permission {
 			},
 			{
 				Name: "설정-네임스페이스",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -338,13 +405,13 @@ func newProjectManagement() *domain.Permission {
 	return projectManagement
 }
 
-func newNotification() *domain.Permission {
-	notification := &domain.Permission{
-		Name: "알림",
-		Children: []*domain.Permission{
+func newNotification() *Permission {
+	notification := &Permission{
+		Name: string(NotificationPermission),
+		Children: []*Permission{
 			{
 				Name: "시스템 경고",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -353,7 +420,7 @@ func newNotification() *domain.Permission {
 			},
 			{
 				Name: "보안/정책 감사로그",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -366,13 +433,13 @@ func newNotification() *domain.Permission {
 	return notification
 }
 
-func newConfiguration() *domain.Permission {
-	configuration := &domain.Permission{
-		Name: "설정",
-		Children: []*domain.Permission{
+func newConfiguration() *Permission {
+	configuration := &Permission{
+		Name: string(ConfigurationPermission),
+		Children: []*Permission{
 			{
 				Name: "일반",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -385,7 +452,7 @@ func newConfiguration() *domain.Permission {
 			},
 			{
 				Name: "클라우드 계정",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -406,7 +473,7 @@ func newConfiguration() *domain.Permission {
 			},
 			{
 				Name: "스택 템플릿",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -415,7 +482,7 @@ func newConfiguration() *domain.Permission {
 			},
 			{
 				Name: "프로젝트 관리",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -436,7 +503,7 @@ func newConfiguration() *domain.Permission {
 			},
 			{
 				Name: "사용자",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -457,7 +524,7 @@ func newConfiguration() *domain.Permission {
 			},
 			{
 				Name: "사용자 권한 관리",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -478,7 +545,7 @@ func newConfiguration() *domain.Permission {
 			},
 			{
 				Name: "알림 설정",
-				Children: []*domain.Permission{
+				Children: []*Permission{
 					{
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
@@ -501,4 +568,60 @@ func newConfiguration() *domain.Permission {
 	}
 
 	return configuration
+}
+
+func (p *PermissionSet) SetAllowedPermissionSet() {
+	edgePermissions := make([]*Permission, 0)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Dashboard, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.SecurityPolicy, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Configuration, edgePermissions, nil)...)
+
+	for _, permission := range edgePermissions {
+		permission.IsAllowed = helper.BoolP(true)
+	}
+
+	return
+}
+
+func (p *PermissionSet) SetUserPermissionSet() {
+	f := func(permission Permission) bool {
+		return permission.Name == "조회"
+	}
+	edgePermissions := make([]*Permission, 0)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Dashboard, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, &f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.SecurityPolicy, edgePermissions, &f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, &f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, &f)...)
+	//edgePermissions = append(edgePermissions, GetEdgePermission(p.Configuration, edgePermissions, &f)...)
+
+	for _, permission := range edgePermissions {
+		permission.IsAllowed = helper.BoolP(true)
+	}
+
+	return
+}
+
+func (p *PermissionSet) SetRoleId(roleId string) {
+	setRoleIdToPermission(p.Dashboard, roleId)
+	setRoleIdToPermission(p.Stack, roleId)
+	setRoleIdToPermission(p.SecurityPolicy, roleId)
+	setRoleIdToPermission(p.ProjectManagement, roleId)
+	setRoleIdToPermission(p.Notification, roleId)
+	setRoleIdToPermission(p.Configuration, roleId)
+}
+
+func setRoleIdToPermission(root *Permission, roleId string) {
+	root.RoleID = helper.StringP(roleId)
+
+	if root.Children == nil {
+		return
+	}
+
+	for _, child := range root.Children {
+		setRoleIdToPermission(child, roleId)
+	}
 }

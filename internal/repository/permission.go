@@ -8,7 +8,7 @@ import (
 
 type IPermissionRepository interface {
 	Create(permission *domain.Permission) error
-	List() ([]*domain.Permission, error)
+	List(roleId string) ([]*domain.Permission, error)
 	Get(id uuid.UUID) (*domain.Permission, error)
 	Delete(id uuid.UUID) error
 	Update(permission *domain.Permission) error
@@ -49,10 +49,10 @@ func (r PermissionRepository) Create(p *domain.Permission) error {
 	return r.db.Create(p).Error
 }
 
-func (r PermissionRepository) List() ([]*domain.Permission, error) {
+func (r PermissionRepository) List(roleId string) ([]*domain.Permission, error) {
 	var permissions []*domain.Permission
 
-	err := r.db.Preload("Children.Children.Children.Children").Where("parent_id IS NULL").Find(&permissions).Error
+	err := r.db.Preload("Children.Children.Children.Children").Where("parent_id IS NULL AND role_id = ?", roleId).Find(&permissions).Error
 	if err != nil {
 		return nil, err
 	}
@@ -75,40 +75,6 @@ func (r PermissionRepository) Delete(id uuid.UUID) error {
 }
 
 func (r PermissionRepository) Update(p *domain.Permission) error {
-	return r.db.Save(p).Error
-
-	//var parent *Permission
-	//var children []*Permission
-	//
-	//if p.Parent != nil {
-	//	parent = &Permission{}
-	//	result := r.db.First(&parent, "id = ?", p.Parent.ID)
-	//	if result.Error != nil {
-	//		return result.Error
-	//	}
-	//}
-	//if p.Children != nil {
-	//	for _, child := range p.Children {
-	//		newChild := &Permission{}
-	//		result := r.db.First(&newChild, "id = ?", child.ID)
-	//		if result.Error != nil {
-	//			return result.Error
-	//		}
-	//		children = append(children, newChild)
-	//	}
-	//}
-	//
-	//permission := &Permission{}
-	//
-	//result := r.db.First(&permission, "id = ?", p.ID)
-	//if result.Error != nil {
-	//	return result.Error
-	//}
-	//
-	//permission.Name = p.Name
-	//permission.Parent = parent
-	//permission.Children = children
-	//permission.IsAllowed = p.IsAllowed
-	//
-	//return r.db.Save(permission).Error
+	// update on is_allowed
+	return r.db.Model(&domain.Permission{}).Where("id = ?", p.ID).Updates(map[string]interface{}{"is_allowed": p.IsAllowed}).Error
 }

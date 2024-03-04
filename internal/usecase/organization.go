@@ -63,26 +63,6 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		return "", err
 	}
 
-	// Create admin roles in DB
-	if _, err := u.roleRepo.Create(&domain.Role{
-		OrganizationID: organizationId,
-		Name:           "admin",
-		Description:    "admin",
-		Type:           string(domain.RoleTypeTks),
-	}); err != nil {
-		return "", err
-	}
-
-	// Create user roles in DB
-	if _, err := u.roleRepo.Create(&domain.Role{
-		OrganizationID: organizationId,
-		Name:           "user",
-		Description:    "user",
-		Type:           string(domain.RoleTypeTks),
-	}); err != nil {
-		return "", err
-	}
-
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"tks-create-contract-repo",
 		argowf.SubmitOptions{

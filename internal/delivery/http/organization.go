@@ -15,14 +15,18 @@ import (
 )
 
 type OrganizationHandler struct {
-	usecase     usecase.IOrganizationUsecase
-	userUsecase usecase.IUserUsecase
+	usecase           usecase.IOrganizationUsecase
+	userUsecase       usecase.IUserUsecase
+	roleUsecase       usecase.IRoleUsecase
+	permissionUsecase usecase.IPermissionUsecase
 }
 
 func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 	return &OrganizationHandler{
-		usecase:     u.Organization,
-		userUsecase: u.User,
+		usecase:           u.Organization,
+		userUsecase:       u.User,
+		roleUsecase:       u.Role,
+		permissionUsecase: u.Permission,
 	}
 }
 
@@ -59,6 +63,52 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 	organization.ID = organizationId
+
+	// Role 생성
+	adminRole := domain.Role{
+		OrganizationID: organizationId,
+		Name:           "admin",
+		Description:    "admin",
+		Type:           string(domain.RoleTypeTks),
+	}
+	adminRoleId, err := h.roleUsecase.CreateTksRole(&adminRole)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+	userRole := domain.Role{
+		OrganizationID: organizationId,
+		Name:           "user",
+		Description:    "user",
+		Type:           string(domain.RoleTypeTks),
+	}
+	userRoleId, err := h.roleUsecase.CreateTksRole(&userRole)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	// Permission 생성
+	adminPermissionSet := h.permissionUsecase.GetAllowedPermissionSet()
+	h.permissionUsecase.SetRoleIdToPermissionSet(adminRoleId, adminPermissionSet)
+	err = h.permissionUsecase.CreatePermissionSet(adminPermissionSet)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	userPermissionSet := h.permissionUsecase.GetUserPermissionSet()
+	h.permissionUsecase.SetRoleIdToPermissionSet(userRoleId, userPermissionSet)
+	err = h.permissionUsecase.CreatePermissionSet(userPermissionSet)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	// Admin user 생성
 	_, err = h.userUsecase.CreateAdmin(organizationId, input.Email)
 	if err != nil {

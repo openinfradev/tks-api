@@ -20,12 +20,14 @@ type IRoleHandler interface {
 }
 
 type RoleHandler struct {
-	roleUsecase usecase.IRoleUsecase
+	roleUsecase       usecase.IRoleUsecase
+	permissionUsecase usecase.IPermissionUsecase
 }
 
-func NewRoleHandler(roleUsecase usecase.IRoleUsecase) *RoleHandler {
+func NewRoleHandler(usecase usecase.Usecase) *RoleHandler {
 	return &RoleHandler{
-		roleUsecase: roleUsecase,
+		roleUsecase:       usecase.Role,
+		permissionUsecase: usecase.Permission,
 	}
 }
 
@@ -68,11 +70,24 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 		Type:           string(domain.RoleTypeTks),
 	}
 
-	if err := h.roleUsecase.CreateTksRole(&dto); err != nil {
+	// create role
+	var roleId string
+	if roleId, err = h.roleUsecase.CreateTksRole(&dto); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
+	// create permission
+	defaultPermissionSet := domain.NewDefaultPermissionSet()
+	h.permissionUsecase.SetRoleIdToPermissionSet(roleId, defaultPermissionSet)
+	err = h.permissionUsecase.CreatePermissionSet(defaultPermissionSet)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	// response
+	ResponseJSON(w, r, http.StatusOK, domain.CreateTksRoleResponse{ID: roleId})
 }
 
 // ListTksRoles godoc
@@ -238,7 +253,6 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	// input to dto
 	dto := domain.Role{
 		ID:          roleId,
-		Name:        input.Name,
 		Description: input.Description,
 	}
 

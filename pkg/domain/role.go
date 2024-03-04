@@ -58,6 +58,5 @@ type ListTksRoleResponse struct {
 }
 
 type UpdateTksRoleRequest struct {
-	Name        string `json:"name" validate:"required"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }

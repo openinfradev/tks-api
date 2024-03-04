@@ -68,20 +68,8 @@ const (
 	CreateApplication
 
 	// AppServeApp
-	CreateAppServeApp
-	GetAppServeApps
-	GetNumOfAppsOnStack
-	GetAppServeApp
 	GetAppServeAppTasksByAppId
 	GetAppServeAppTaskDetail
-	GetAppServeAppLatestTask
-	IsAppServeAppExist
-	IsAppServeAppNameExist
-	DeleteAppServeApp
-	UpdateAppServeApp
-	UpdateAppServeAppStatus
-	UpdateAppServeAppEndpoint
-	RollbackAppServeApp
 	CreateAppServeApp         // 프로젝트 관리/앱 서빙/배포 // 프로젝트 관리/앱 서빙/빌드
 	GetAppServeApps           // 프로젝트 관리/앱 서빙/조회
 	GetNumOfAppsOnStack       // 프로젝트 관리/앱 서빙/조회
@@ -157,7 +145,7 @@ const (
 	GetProjectNamespaces    // 프로젝트 관리/설정-네임스페이스/조회
 	GetProjectNamespace     // 프로젝트 관리/설정-네임스페이스/조회
 	UpdateProjectNamespace
-	DeleteProjectNamespace  // 프로젝트 관리/설정-네임스페이스/삭제
+	DeleteProjectNamespace // 프로젝트 관리/설정-네임스페이스/삭제
 	SetFavoriteProject
 	SetFavoriteProjectNamespace
 	UnSetFavoriteProject
@@ -176,6 +164,11 @@ const (
 	GetTksRole
 	DeleteTksRole
 	UpdateTksRole
+
+	// Permission
+	GetPermissionTemplates
+	GetPermissionsByRoleId
+	UpdatePermissionsByRoleId
 )
 
 var ApiMap = map[Endpoint]EndpointInfo{
