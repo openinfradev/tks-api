@@ -53,8 +53,8 @@ type Cluster struct {
 	Name                   string           `gorm:"index"`
 	CloudService           string           `gorm:"default:AWS"`
 	OrganizationId         string
-	Organization           Organization `gorm:"foreignKey:OrganizationId"`
-	Description            string       `gorm:"index"`
+	Organization           domain.Organization `gorm:"foreignKey:OrganizationId"`
+	Description            string              `gorm:"index"`
 	WorkflowId             string
 	Status                 domain.ClusterStatus
 	StatusDesc             string
@@ -76,10 +76,10 @@ type Cluster struct {
 	TksUserNode            int
 	TksUserNodeMax         int
 	TksUserNodeType        string
-	CreatorId              *uuid.UUID `gorm:"type:uuid"`
-	Creator                User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId              *uuid.UUID `gorm:"type:uuid"`
-	Updator                User       `gorm:"foreignKey:UpdatorId"`
+	CreatorId              *uuid.UUID  `gorm:"type:uuid"`
+	Creator                domain.User `gorm:"foreignKey:CreatorId"`
+	UpdatorId              *uuid.UUID  `gorm:"type:uuid"`
+	Updator                domain.User `gorm:"foreignKey:UpdatorId"`
 }
 
 type ClusterFavorite struct {
@@ -87,9 +87,9 @@ type ClusterFavorite struct {
 
 	ID        uuid.UUID `gorm:"primarykey;type:uuid"`
 	ClusterId domain.ClusterId
-	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
-	UserId    uuid.UUID `gorm:"type:uuid"`
-	User      User      `gorm:"foreignKey:UserId"`
+	Cluster   Cluster     `gorm:"foreignKey:ClusterId"`
+	UserId    uuid.UUID   `gorm:"type:uuid"`
+	User      domain.User `gorm:"foreignKey:UserId"`
 }
 
 func (c *ClusterFavorite) BeforeCreate(tx *gorm.DB) (err error) {

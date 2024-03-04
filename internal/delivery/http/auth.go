@@ -18,6 +18,7 @@ import (
 type IAuthHandler interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Logout(w http.ResponseWriter, r *http.Request)
+	// Deprecated: PingToken is deprecated. Use VerifyToken instead.
 	PingToken(w http.ResponseWriter, r *http.Request)
 	RefreshToken(w http.ResponseWriter, r *http.Request)
 	FindId(w http.ResponseWriter, r *http.Request)

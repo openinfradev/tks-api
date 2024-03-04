@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"testing"
 	"time"
 )
@@ -84,7 +85,7 @@ func TestConvert(t *testing.T) {
 			name: "test case User->GetUserResponse",
 			args: args{
 				src: User{
-					ID:           "",
+					ID:           uuid.New(),
 					AccountId:    "testAccount",
 					Password:     "testPassword",
 					Name:         "testName",

@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/delivery/api"
 	"os"
 	"strings"
 
@@ -57,18 +58,15 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&repository.CacheEmailCode{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.User{}); err != nil {
+	if err := db.AutoMigrate(&domain.User{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.Role{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.Policy{}); err != nil {
+	if err := db.AutoMigrate(&domain.Role{}); err != nil {
 		return err
 	}
 
 	// Organization
-	if err := db.AutoMigrate(&repository.Organization{}); err != nil {
+	if err := db.AutoMigrate(&domain.Organization{}); err != nil {
 		return err
 	}
 
@@ -114,11 +112,19 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
-	// Project
-	if err := db.AutoMigrate(&domain.Project{}); err != nil {
+	// Role
+	if err := db.AutoMigrate(&domain.Role{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&domain.ProjectRole{}); err != nil {
+	if err := db.AutoMigrate(&domain.Permission{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&domain.Endpoint{}); err != nil {
+		return err
+	}
+
+	// Project
+	if err := db.AutoMigrate(&domain.Project{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&domain.ProjectMember{}); err != nil {
@@ -126,6 +132,51 @@ func migrateSchema(db *gorm.DB) error {
 	}
 	if err := db.AutoMigrate(&domain.ProjectNamespace{}); err != nil {
 		return err
+	}
+	if err := db.AutoMigrate(&domain.ProjectRole{}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EnsureDefaultRows(db *gorm.DB) error {
+	// Create default rows
+	repoFactory := repository.Repository{
+		Auth:          repository.NewAuthRepository(db),
+		User:          repository.NewUserRepository(db),
+		Cluster:       repository.NewClusterRepository(db),
+		Organization:  repository.NewOrganizationRepository(db),
+		AppGroup:      repository.NewAppGroupRepository(db),
+		AppServeApp:   repository.NewAppServeAppRepository(db),
+		CloudAccount:  repository.NewCloudAccountRepository(db),
+		StackTemplate: repository.NewStackTemplateRepository(db),
+		Alert:         repository.NewAlertRepository(db),
+		Role:          repository.NewRoleRepository(db),
+		Permission:    repository.NewPermissionRepository(db),
+		Endpoint:      repository.NewEndpointRepository(db),
+		Project:       repository.NewProjectRepository(db),
+	}
+
+	//
+	eps, err := repoFactory.Endpoint.List(nil)
+	if err != nil {
+		return err
+	}
+
+	var storedEps = make(map[string]struct{})
+	for _, ep := range eps {
+		storedEps[ep.Name] = struct{}{}
+	}
+	for _, ep := range api.ApiMap {
+		if _, ok := storedEps[ep.Name]; !ok {
+			if err := repoFactory.Endpoint.Create(&domain.Endpoint{
+				Name:  ep.Name,
+				Group: ep.Group,
+			}); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Audit

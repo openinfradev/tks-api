@@ -50,7 +50,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		CloudAccount:  repository.NewCloudAccountRepository(db),
 		StackTemplate: repository.NewStackTemplateRepository(db),
 		Alert:         repository.NewAlertRepository(db),
+		Role:          repository.NewRoleRepository(db),
 		Project:       repository.NewProjectRepository(db),
+		Permission:    repository.NewPermissionRepository(db),
+		Endpoint:      repository.NewEndpointRepository(db),
 		Audit:         repository.NewAuditRepository(db),
 	}
 
@@ -68,6 +71,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Stack:         usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
 		Project:       usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 		Audit:         usecase.NewAuditUsecase(repoFactory),
+		Role:          usecase.NewRoleUsecase(repoFactory),
+		Permission:    usecase.NewPermissionUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -230,6 +235,18 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits", customMiddleware.Handle(internalApi.GetAudits, http.HandlerFunc(auditHandler.GetAudits))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.GetAudit, http.HandlerFunc(auditHandler.GetAudit))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.DeleteAudit, http.HandlerFunc(auditHandler.DeleteAudit))).Methods(http.MethodDelete)
+
+	roleHandler := delivery.NewRoleHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.CreateTksRole, http.HandlerFunc(roleHandler.CreateTksRole))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.ListTksRoles, http.HandlerFunc(roleHandler.ListTksRoles))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.GetTksRole, http.HandlerFunc(roleHandler.GetTksRole))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.DeleteTksRole, http.HandlerFunc(roleHandler.DeleteTksRole))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.UpdateTksRole, http.HandlerFunc(roleHandler.UpdateTksRole))).Methods(http.MethodPut)
+
+	permissionHandler := delivery.NewPermissionHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/permissions/templates", customMiddleware.Handle(internalApi.GetPermissionTemplates, http.HandlerFunc(permissionHandler.GetPermissionTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByRoleId, http.HandlerFunc(permissionHandler.GetPermissionsByRoleId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.UpdatePermissionsByRoleId, http.HandlerFunc(permissionHandler.UpdatePermissionsByRoleId))).Methods(http.MethodPut)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
 	// assets

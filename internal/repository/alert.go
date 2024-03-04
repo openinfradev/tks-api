@@ -43,7 +43,7 @@ type Alert struct {
 
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
+	Organization   domain.Organization `gorm:"foreignKey:OrganizationId"`
 	Name           string
 	Code           string
 	Description    string
@@ -72,8 +72,8 @@ type AlertAction struct {
 	AlertId uuid.UUID
 	Content string
 	Status  domain.AlertActionStatus
-	TakerId *uuid.UUID `gorm:"type:uuid"`
-	Taker   User       `gorm:"foreignKey:TakerId"`
+	TakerId *uuid.UUID  `gorm:"type:uuid"`
+	Taker   domain.User `gorm:"foreignKey:TakerId"`
 }
 
 func (c *AlertAction) BeforeCreate(tx *gorm.DB) (err error) {

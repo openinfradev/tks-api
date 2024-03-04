@@ -36,7 +36,6 @@ type IAuthUsecase interface {
 	FindId(code string, email string, userName string, organizationId string) (string, error)
 	FindPassword(code string, accountId string, email string, userName string, organizationId string) error
 	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
-	FetchRoles() (out []domain.Role, err error)
 	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
 	SingleSignOut(organizationId string) (string, []*http.Cookie, error)
 	VerifyToken(token string) (bool, error)
@@ -74,16 +73,19 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	if err != nil {
 		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
-	if !helper.CheckPasswordHash(user.Password, password) {
-		return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
-	}
+
 	var accountToken *domain.User
-	// Authentication with Keycloak
-	if organizationId == "master" && accountId == "admin" {
-		accountToken, err = u.kc.LoginAdmin(accountId, password)
-	} else {
-		accountToken, err = u.kc.Login(accountId, password, organizationId)
+	accountToken, err = u.kc.Login(accountId, password, organizationId)
+	if err != nil {
+		apiErr, ok := err.(*gocloak.APIError)
+		if ok {
+			if apiErr.Code == 401 {
+				return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
+			}
+		}
+		return domain.User{}, httpErrors.NewInternalServerError(err, "", "")
 	}
+	log.Errorf("err: %v", err)
 	if err != nil {
 		//TODO: implement not found handling
 		return domain.User{}, err
@@ -173,11 +175,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
-	userUuid, err := uuid.Parse((*users)[0].ID)
-	if err != nil {
-		return "", httpErrors.NewInternalServerError(err, "", "")
-	}
-	emailCode, err := u.authRepository.GetEmailCode(userUuid)
+	emailCode, err := u.authRepository.GetEmailCode((*users)[0].ID)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -187,7 +185,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	if emailCode.Code != code {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
-	if err := u.authRepository.DeleteEmailCode(userUuid); err != nil {
+	if err := u.authRepository.DeleteEmailCode((*users)[0].ID); err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -205,11 +203,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	user := (*users)[0]
-	userUuid, err := uuid.Parse(user.ID)
-	if err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	emailCode, err := u.authRepository.GetEmailCode(userUuid)
+	emailCode, err := u.authRepository.GetEmailCode(user.ID)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -236,10 +230,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if user.Password, err = helper.HashPassword(randomPassword); err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	if err = u.userRepository.UpdatePassword(userUuid, organizationId, user.Password, true); err != nil {
+	if err = u.userRepository.UpdatePasswordAt(user.ID, organizationId, true); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -255,7 +246,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = u.authRepository.DeleteEmailCode(userUuid); err != nil {
+	if err = u.authRepository.DeleteEmailCode(user.ID); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -285,17 +276,13 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	userUuid, err := uuid.Parse((*users)[0].ID)
+	_, err = u.authRepository.GetEmailCode((*users)[0].ID)
 	if err != nil {
-		return httpErrors.NewInternalServerError(err, "", "")
-	}
-	_, err = u.authRepository.GetEmailCode(userUuid)
-	if err != nil {
-		if err := u.authRepository.CreateEmailCode(userUuid, code); err != nil {
+		if err := u.authRepository.CreateEmailCode((*users)[0].ID, code); err != nil {
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	} else {
-		if err := u.authRepository.UpdateEmailCode(userUuid, code); err != nil {
+		if err := u.authRepository.UpdateEmailCode((*users)[0].ID, code); err != nil {
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
@@ -314,14 +301,6 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	}
 
 	return nil
-}
-
-func (u *AuthUsecase) FetchRoles() (out []domain.Role, err error) {
-	roles, err := u.userRepository.FetchRoles()
-	if err != nil {
-		return nil, err
-	}
-	return *roles, nil
 }
 
 func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error) {

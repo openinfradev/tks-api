@@ -49,10 +49,10 @@ type AppGroup struct {
 	WorkflowId   string
 	Status       domain.AppGroupStatus
 	StatusDesc   string
-	CreatorId    *uuid.UUID `gorm:"type:uuid"`
-	Creator      User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId    *uuid.UUID `gorm:"type:uuid"`
-	Updator      User       `gorm:"foreignKey:UpdatorId"`
+	CreatorId    *uuid.UUID  `gorm:"type:uuid"`
+	Creator      domain.User `gorm:"foreignKey:CreatorId"`
+	UpdatorId    *uuid.UUID  `gorm:"type:uuid"`
+	Updator      domain.User `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {

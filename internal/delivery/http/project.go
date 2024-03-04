@@ -54,7 +54,8 @@ type IProjectHandler interface {
 }
 
 type ProjectHandler struct {
-	usecase usecase.IProjectUsecase
+	usecase     usecase.IProjectUsecase
+	roleUsecase usecase.IRoleUsecase
 }
 
 func NewProjectHandler(u usecase.Usecase) IProjectHandler {

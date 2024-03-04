@@ -37,9 +37,9 @@ type StackTemplate struct {
 
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string       `gorm:"index"`
-	Description    string       `gorm:"index"`
+	Organization   domain.Organization `gorm:"foreignKey:OrganizationId"`
+	Name           string              `gorm:"index"`
+	Description    string              `gorm:"index"`
 	Template       string
 	TemplateType   string
 	Version        string
@@ -48,10 +48,10 @@ type StackTemplate struct {
 	KubeVersion    string
 	KubeType       string
 	Services       datatypes.JSON
-	CreatorId      *uuid.UUID `gorm:"type:uuid"`
-	Creator        User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId      *uuid.UUID `gorm:"type:uuid"`
-	Updator        User       `gorm:"foreignKey:UpdatorId"`
+	CreatorId      *uuid.UUID  `gorm:"type:uuid"`
+	Creator        domain.User `gorm:"foreignKey:CreatorId"`
+	UpdatorId      *uuid.UUID  `gorm:"type:uuid"`
+	Updator        domain.User `gorm:"foreignKey:UpdatorId"`
 }
 
 func (c *StackTemplate) BeforeCreate(tx *gorm.DB) (err error) {

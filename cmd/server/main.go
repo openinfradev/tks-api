@@ -117,6 +117,9 @@ func main() {
 		log.Fatal("cannot connect gormDB")
 	}
 
+	// Ensure default rows in database
+	err = database.EnsureDefaultRows(db)
+
 	// Initialize external client
 	var argoClient argowf.ArgoClient
 	if viper.GetString("argo-address") == "" || viper.GetInt("argo-port") == 0 {

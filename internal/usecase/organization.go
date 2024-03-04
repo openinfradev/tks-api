@@ -28,16 +28,18 @@ type IOrganizationUsecase interface {
 }
 
 type OrganizationUsecase struct {
-	repo repository.IOrganizationRepository
-	argo argowf.ArgoClient
-	kc   keycloak.IKeycloak
+	repo     repository.IOrganizationRepository
+	roleRepo repository.IRoleRepository
+	argo     argowf.ArgoClient
+	kc       keycloak.IKeycloak
 }
 
 func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo: r.Organization,
-		argo: argoClient,
-		kc:   kc,
+		repo:     r.Organization,
+		roleRepo: r.Role,
+		argo:     argoClient,
+		kc:       kc,
 	}
 }
 
@@ -55,10 +57,12 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 		return "", err
 	}
 
+	// Create organization in DB
 	_, err = u.repo.Create(organizationId, in.Name, creator, in.Phone, in.Description)
 	if err != nil {
 		return "", err
 	}
+
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		"tks-create-contract-repo",
 		argowf.SubmitOptions{
@@ -106,8 +110,18 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 		return err
 	}
 
-	// [TODO] validation
-	// cluster 나 appgroup 등이 삭제 되었는지 확인
+	// delete roles in DB
+	roles, err := u.roleRepo.ListTksRoles(organizationId, nil)
+	if err != nil {
+		return err
+	}
+	for _, role := range roles {
+		if err := u.roleRepo.Delete(role.ID); err != nil {
+			return err
+		}
+	}
+
+	// delete organization in DB
 	err = u.repo.Delete(organizationId)
 	if err != nil {
 		return err

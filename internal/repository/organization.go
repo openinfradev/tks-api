@@ -30,20 +30,21 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 	}
 }
 
-// Models
-type Organization struct {
-	gorm.Model
-
-	ID               string `gorm:"primarykey;type:varchar(36);not null"`
-	Name             string
-	Description      string
-	Phone            string
-	WorkflowId       string
-	Status           domain.OrganizationStatus
-	StatusDesc       string
-	Creator          uuid.UUID
-	PrimaryClusterId string // allow null
-}
+//
+//// Models
+//type Organization struct {
+//	gorm.Model
+//
+//	ID               string `gorm:"primarykey;type:varchar(36);not null"`
+//	Name             string
+//	Description      string
+//	Phone            string
+//	WorkflowId       string
+//	Status           domain.OrganizationStatus
+//	StatusDesc       string
+//	Creator          uuid.UUID
+//	PrimaryClusterId string // allow null
+//}
 
 //func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 //	c.ID = helper.GenerateOrganizationId()
@@ -52,10 +53,10 @@ type Organization struct {
 
 func (r *OrganizationRepository) Create(organizationId string, name string, creator uuid.UUID, phone string,
 	description string) (domain.Organization, error) {
-	organization := Organization{
+	organization := domain.Organization{
 		ID:          organizationId,
 		Name:        name,
-		Creator:     creator,
+		Creator:     creator.String(),
 		Phone:       phone,
 		Description: description,
 		Status:      domain.OrganizationStatus_PENDING,
@@ -70,7 +71,7 @@ func (r *OrganizationRepository) Create(organizationId string, name string, crea
 }
 
 func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Organization, error) {
-	var organizations []Organization
+	var organizations []domain.Organization
 	var out []domain.Organization
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
@@ -89,7 +90,7 @@ func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Org
 }
 
 func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
-	var organization Organization
+	var organization domain.Organization
 	res := r.db.First(&organization, "id = ?", id)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -100,8 +101,8 @@ func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
 }
 
 func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
-	var organization Organization
-	res := r.db.Model(&Organization{}).
+	var organization domain.Organization
+	res := r.db.Model(&domain.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"name":        in.Name,
@@ -113,7 +114,7 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error
 	}
-	res = r.db.Model(&Organization{}).Where("id = ?", organizationId).Find(&organization)
+	res = r.db.Model(&domain.Organization{}).Where("id = ?", organizationId).Find(&organization)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return domain.Organization{}, res.Error
@@ -123,7 +124,7 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 }
 
 func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error {
-	res := r.db.Model(&Organization{}).
+	res := r.db.Model(&domain.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"primary_cluster_id": primaryClusterId,
@@ -137,7 +138,7 @@ func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, p
 }
 
 func (r *OrganizationRepository) Delete(organizationId string) error {
-	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
+	res := r.db.Delete(&domain.Organization{}, "id = ?", organizationId)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -147,7 +148,7 @@ func (r *OrganizationRepository) Delete(organizationId string) error {
 }
 
 func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error {
-	res := r.db.Model(&Organization{}).
+	res := r.db.Model(&domain.Organization{}).
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {
@@ -157,14 +158,14 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 	return nil
 }
 
-func (r *OrganizationRepository) reflect(organization Organization) (out domain.Organization) {
+func (r *OrganizationRepository) reflect(organization domain.Organization) (out domain.Organization) {
 	if err := serializer.Map(organization.Model, &out); err != nil {
 		log.Error(err)
 	}
 	if err := serializer.Map(organization, &out); err != nil {
 		log.Error(err)
 	}
-	out.Creator = organization.Creator.String()
+	out.Creator = organization.Creator
 	return
 
 }
