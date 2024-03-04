@@ -47,7 +47,7 @@ func (r RoleRepository) List(pg *pagination.Pagination) ([]*domain.Role, error) 
 	var roles []*domain.Role
 
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&domain.Role{}))
@@ -69,7 +69,7 @@ func (r RoleRepository) ListTksRoles(organizationId string, pg *pagination.Pagin
 	var roles []*domain.Role
 
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
 	db := filterFunc(r.db.Model(&domain.Role{}))

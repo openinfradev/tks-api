@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/audit"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -73,14 +72,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	} else {
-		userId, _ := uuid.Parse(user.ID)
 		_, _ = h.auditUsecase.Create(r.Context(), domain.Audit{
 			OrganizationId: input.OrganizationId,
 			Group:          "Auth",
 			Message:        fmt.Sprintf("[%s]님이 로그인 하였습니다.", input.AccountId),
 			Description:    "",
 			ClientIP:       audit.GetClientIpAddress(w, r),
-			UserId:         &userId,
+			UserId:         &user.ID,
 		})
 	}
 
