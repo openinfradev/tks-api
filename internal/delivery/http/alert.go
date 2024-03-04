@@ -84,7 +84,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} domain.GetAlertsResponse
-// @Router      /organizations/{organizationId}/alerts [get]
+// @Router      /api/1.0/organizations/{organizationId}/alerts [get]
 // @Security    JWT
 func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -155,7 +155,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "organizationId"
 // @Param       alertId        path     string true "alertId"
 // @Success     200            {object} domain.GetAlertResponse
-// @Router      /organizations/{organizationId}/alerts/{alertId} [get]
+// @Router      /api/1.0/organizations/{organizationId}/alerts/{alertId} [get]
 // @Security    JWT
 func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -202,7 +202,7 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string                    true "organizationId"
 // @Param       body           body     domain.UpdateAlertRequest true "Update cloud setting request"
 // @Success     200            {object} nil
-// @Router      /organizations/{organizationId}/alerts/{alertId} [put]
+// @Router      /api/1.0/organizations/{organizationId}/alerts/{alertId} [put]
 // @Security    JWT
 func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("Need implementation"))
@@ -217,7 +217,7 @@ func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
 // @Param       organizationId path     string true "organizationId"
 // @Param       alertId        path     string true "alertId"
 // @Success     200            {object} nil
-// @Router      /organizations/{organizationId}/alerts/{alertId} [delete]
+// @Router      /api/1.0/organizations/{organizationId}/alerts/{alertId} [delete]
 // @Security    JWT
 func (h *AlertHandler) DeleteAlert(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("Need implementation"))
@@ -241,7 +241,7 @@ func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string true "organizationId"
 // @Success     200            {object} nil
-// @Router      /organizations/{organizationId}/alerts/{alertId}/actions [post]
+// @Router      /api/1.0/organizations/{organizationId}/alerts/{alertId}/actions [post]
 // @Security    JWT
 func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

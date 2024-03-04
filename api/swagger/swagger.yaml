@@ -1,4 +1,4 @@
-basePath: /api/1.0/
+basePath: /
 definitions:
   domain.ActionResponse:
     properties:
@@ -2495,7 +2495,7 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
-  /app-groups:
+  /api/1.0/app-groups:
     delete:
       consumes:
       - application/json
@@ -2584,7 +2584,7 @@ paths:
       summary: Install appGroup
       tags:
       - AppGroups
-  /app-groups/{appGroupId}:
+  /api/1.0/app-groups/{appGroupId}:
     get:
       consumes:
       - application/json
@@ -2607,7 +2607,7 @@ paths:
       summary: Get appGroup detail
       tags:
       - AppGroups
-  /app-groups/{appGroupId}/applications:
+  /api/1.0/app-groups/{appGroupId}/applications:
     get:
       consumes:
       - application/json
@@ -2656,7 +2656,7 @@ paths:
       summary: Create application
       tags:
       - AppGroups
-  /auth/find-id/code:
+  /api/1.0/auth/find-id/code:
     post:
       consumes:
       - application/json
@@ -2684,7 +2684,7 @@ paths:
       summary: Request to verify identity for lost id
       tags:
       - Auth
-  /auth/find-id/verification:
+  /api/1.0/auth/find-id/verification:
     post:
       consumes:
       - application/json
@@ -2712,7 +2712,7 @@ paths:
       summary: Request to find forgotten ID
       tags:
       - Auth
-  /auth/find-password/code:
+  /api/1.0/auth/find-password/code:
     post:
       consumes:
       - application/json
@@ -2740,7 +2740,7 @@ paths:
       summary: Request to verify identity for lost password
       tags:
       - Auth
-  /auth/find-password/verification:
+  /api/1.0/auth/find-password/verification:
     post:
       consumes:
       - application/json
@@ -2766,7 +2766,7 @@ paths:
       summary: Request to find forgotten password
       tags:
       - Auth
-  /auth/login:
+  /api/1.0/auth/login:
     post:
       consumes:
       - application/json
@@ -2788,7 +2788,7 @@ paths:
       summary: login
       tags:
       - Auth
-  /auth/logout:
+  /api/1.0/auth/logout:
     post:
       consumes:
       - application/json
@@ -2805,7 +2805,7 @@ paths:
       summary: logout
       tags:
       - Auth
-  /auth/ping:
+  /api/1.0/auth/ping:
     post:
       consumes:
       - application/json
@@ -2825,7 +2825,7 @@ paths:
       summary: ping with token
       tags:
       - Auth
-  /clusters:
+  /api/1.0/clusters:
     get:
       consumes:
       - application/json
@@ -2893,7 +2893,7 @@ paths:
       summary: Create cluster
       tags:
       - Clusters
-  /clusters/{clusterId}:
+  /api/1.0/clusters/{clusterId}:
     delete:
       consumes:
       - application/json
@@ -2938,7 +2938,7 @@ paths:
       summary: Get cluster
       tags:
       - Clusters
-  /clusters/{clusterId}/bootstrap-kubeconfig:
+  /api/1.0/clusters/{clusterId}/bootstrap-kubeconfig:
     get:
       consumes:
       - application/json
@@ -2971,7 +2971,7 @@ paths:
       summary: Create bootstrap kubeconfig for BYOH
       tags:
       - Clusters
-  /clusters/{clusterId}/install:
+  /api/1.0/clusters/{clusterId}/install:
     post:
       consumes:
       - application/json
@@ -2992,7 +2992,7 @@ paths:
       summary: Install cluster on tks cluster
       tags:
       - Clusters
-  /clusters/{clusterId}/nodes:
+  /api/1.0/clusters/{clusterId}/nodes:
     get:
       consumes:
       - application/json
@@ -3015,7 +3015,7 @@ paths:
       summary: Get nodes information for BYOH
       tags:
       - Clusters
-  /clusters/{clusterId}/site-values:
+  /api/1.0/clusters/{clusterId}/site-values:
     get:
       consumes:
       - application/json
@@ -3038,7 +3038,7 @@ paths:
       summary: Get cluster site values for creating
       tags:
       - Clusters
-  /clusters/import:
+  /api/1.0/clusters/import:
     post:
       consumes:
       - application/json
@@ -3062,7 +3062,7 @@ paths:
       summary: Import cluster
       tags:
       - Clusters
-  /organizations:
+  /api/1.0/organizations:
     get:
       consumes:
       - application/json
@@ -3128,7 +3128,7 @@ paths:
       summary: Create organization
       tags:
       - Organizations
-  /organizations/{organizationId}:
+  /api/1.0/organizations/{organizationId}:
     delete:
       consumes:
       - application/json
@@ -3201,7 +3201,7 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
-  /organizations/{organizationId}/alerts:
+  /api/1.0/organizations/{organizationId}/alerts:
     get:
       consumes:
       - application/json
@@ -3247,7 +3247,7 @@ paths:
       summary: Get Alerts
       tags:
       - Alerts
-  /organizations/{organizationId}/alerts/{alertId}:
+  /api/1.0/organizations/{organizationId}/alerts/{alertId}:
     delete:
       consumes:
       - application/json
@@ -3326,7 +3326,7 @@ paths:
       summary: Update Alert
       tags:
       - Alerts
-  /organizations/{organizationId}/alerts/{alertId}/actions:
+  /api/1.0/organizations/{organizationId}/alerts/{alertId}/actions:
     post:
       consumes:
       - application/json
@@ -3347,7 +3347,7 @@ paths:
       summary: Create alert action
       tags:
       - Alerts
-  /organizations/{organizationId}/audits:
+  /api/1.0/organizations/{organizationId}/audits:
     get:
       consumes:
       - application/json
@@ -3418,7 +3418,7 @@ paths:
       summary: Create Audit
       tags:
       - Audits
-  /organizations/{organizationId}/audits/{auditId}:
+  /api/1.0/organizations/{organizationId}/audits/{auditId}:
     delete:
       consumes:
       - application/json
@@ -3461,7 +3461,7 @@ paths:
       summary: Get Audit
       tags:
       - Audits
-  /organizations/{organizationId}/cloud-accounts:
+  /api/1.0/organizations/{organizationId}/cloud-accounts:
     get:
       consumes:
       - application/json
@@ -3535,7 +3535,7 @@ paths:
       summary: Create CloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}:
+  /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}:
     delete:
       consumes:
       - application/json
@@ -3620,7 +3620,7 @@ paths:
       summary: Update CloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error:
+  /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error:
     delete:
       consumes:
       - application/json
@@ -3646,7 +3646,7 @@ paths:
       summary: Delete Force CloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota:
+  /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota:
     get:
       consumes:
       - application/json
@@ -3674,7 +3674,7 @@ paths:
       summary: Get resource quota by cloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence:
+  /api/1.0/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence:
     get:
       consumes:
       - application/json
@@ -3702,7 +3702,7 @@ paths:
       summary: Check awsAccountId for cloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/cloud-accounts/name/{name}/existence:
+  /api/1.0/organizations/{organizationId}/cloud-accounts/name/{name}/existence:
     get:
       consumes:
       - application/json
@@ -3730,7 +3730,7 @@ paths:
       summary: Check name for cloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/dashboard/charts:
+  /api/1.0/organizations/{organizationId}/dashboard/charts:
     get:
       consumes:
       - application/json
@@ -3767,7 +3767,7 @@ paths:
       summary: Get charts data
       tags:
       - Dashboards
-  /organizations/{organizationId}/dashboard/charts/{chartType}:
+  /api/1.0/organizations/{organizationId}/dashboard/charts/{chartType}:
     get:
       consumes:
       - application/json
@@ -3805,7 +3805,7 @@ paths:
       summary: Get chart data
       tags:
       - Dashboards
-  /organizations/{organizationId}/dashboard/resources:
+  /api/1.0/organizations/{organizationId}/dashboard/resources:
     get:
       consumes:
       - application/json
@@ -3828,7 +3828,7 @@ paths:
       summary: Get resources
       tags:
       - Dashboards
-  /organizations/{organizationId}/dashboard/stacks:
+  /api/1.0/organizations/{organizationId}/dashboard/stacks:
     get:
       consumes:
       - application/json
@@ -3851,7 +3851,7 @@ paths:
       summary: Get stacks
       tags:
       - Dashboards
-  /organizations/{organizationId}/my-profile:
+  /api/1.0/organizations/{organizationId}/my-profile:
     delete:
       consumes:
       - application/json
@@ -3924,7 +3924,7 @@ paths:
       summary: Update my profile detail
       tags:
       - My-profile
-  /organizations/{organizationId}/my-profile/next-password-change:
+  /api/1.0/organizations/{organizationId}/my-profile/next-password-change:
     put:
       consumes:
       - application/json
@@ -3949,7 +3949,7 @@ paths:
       summary: Update user's password expired date to current date
       tags:
       - My-profile
-  /organizations/{organizationId}/my-profile/password:
+  /api/1.0/organizations/{organizationId}/my-profile/password:
     put:
       consumes:
       - application/json
@@ -3976,7 +3976,7 @@ paths:
       summary: Update user password detail
       tags:
       - My-profile
-  /organizations/{organizationId}/primary-cluster:
+  /api/1.0/organizations/{organizationId}/primary-cluster:
     patch:
       consumes:
       - application/json
@@ -4003,7 +4003,7 @@ paths:
       summary: Update primary cluster
       tags:
       - Organizations
-  /organizations/{organizationId}/projects:
+  /api/1.0/organizations/{organizationId}/projects:
     get:
       consumes:
       - application/json
@@ -4058,7 +4058,7 @@ paths:
       summary: Create new project
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}:
     get:
       consumes:
       - application/json
@@ -4119,7 +4119,7 @@ paths:
       summary: Update project
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps:
     get:
       consumes:
       - application/json
@@ -4209,7 +4209,7 @@ paths:
       summary: Install appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}:
     delete:
       consumes:
       - application/json
@@ -4312,7 +4312,7 @@ paths:
       summary: Update appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint:
     patch:
       consumes:
       - application/json
@@ -4351,7 +4351,7 @@ paths:
       summary: Update app endpoint
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist:
     get:
       consumes:
       - application/json
@@ -4379,7 +4379,7 @@ paths:
       summary: Get appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task:
     get:
       consumes:
       - application/json
@@ -4412,7 +4412,7 @@ paths:
       summary: Get latest task from appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback:
     post:
       consumes:
       - application/json
@@ -4451,7 +4451,7 @@ paths:
       summary: Rollback appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status:
     patch:
       consumes:
       - application/json
@@ -4490,7 +4490,7 @@ paths:
       summary: Update app status
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks:
     get:
       consumes:
       - application/json
@@ -4543,7 +4543,7 @@ paths:
       summary: Get appServeAppTask list
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}:
     get:
       consumes:
       - application/json
@@ -4581,7 +4581,7 @@ paths:
       summary: Get task detail from appServeApp
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/count:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count:
     get:
       consumes:
       - application/json
@@ -4614,7 +4614,7 @@ paths:
       summary: Get number of apps on given stack
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence:
     get:
       consumes:
       - application/json
@@ -4647,7 +4647,7 @@ paths:
       summary: Check duplicate appServeAppName
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/kubeconfig:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/kubeconfig:
     get:
       consumes:
       - application/json
@@ -4675,7 +4675,7 @@ paths:
       summary: Get project kubeconfig
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/members:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/members:
     delete:
       consumes:
       - application/json
@@ -4807,7 +4807,7 @@ paths:
       summary: Update project  member   Role
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}:
     delete:
       consumes:
       - application/json
@@ -4872,7 +4872,7 @@ paths:
       summary: Get project member
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role:
     put:
       consumes:
       - application/json
@@ -4911,7 +4911,7 @@ paths:
       summary: Update project  member   Role
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/members/count:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/members/count:
     get:
       consumes:
       - application/json
@@ -4939,7 +4939,7 @@ paths:
       summary: Get project member count group by project role
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/namespaces:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces:
     get:
       consumes:
       - application/json
@@ -5000,7 +5000,7 @@ paths:
       summary: Create project namespace
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}:
     delete:
       consumes:
       - application/json
@@ -5118,7 +5118,7 @@ paths:
       summary: Update project namespace
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence:
     get:
       consumes:
       - application/json
@@ -5156,7 +5156,7 @@ paths:
       summary: Check project namespace exist
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources:
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources:
     get:
       consumes:
       - application/json
@@ -5194,7 +5194,7 @@ paths:
       summary: Get k8s resources for project namespace
       tags:
       - Projects
-  /organizations/{organizationId}/projects/existence:
+  /api/1.0/organizations/{organizationId}/projects/existence:
     get:
       consumes:
       - application/json
@@ -5226,7 +5226,7 @@ paths:
       summary: Check project name exist
       tags:
       - Projects
-  /organizations/{organizationId}/projects/project-roles:
+  /api/1.0/organizations/{organizationId}/projects/project-roles:
     get:
       consumes:
       - application/json
@@ -5254,7 +5254,7 @@ paths:
       summary: Get project roles
       tags:
       - Projects
-  /organizations/{organizationId}/projects/project-roles/{projectRoleId}:
+  /api/1.0/organizations/{organizationId}/projects/project-roles/{projectRoleId}:
     get:
       consumes:
       - application/json
@@ -5282,7 +5282,7 @@ paths:
       summary: Get project role
       tags:
       - Projects
-  /organizations/{organizationId}/stacks:
+  /api/1.0/organizations/{organizationId}/stacks:
     get:
       consumes:
       - application/json
@@ -5353,7 +5353,7 @@ paths:
       summary: Create Stack
       tags:
       - Stacks
-  /organizations/{organizationId}/stacks/{stackId}:
+  /api/1.0/organizations/{organizationId}/stacks/{stackId}:
     delete:
       consumes:
       - application/json
@@ -5437,7 +5437,7 @@ paths:
       summary: Update Stack
       tags:
       - Stacks
-  /organizations/{organizationId}/stacks/{stackId}/favorite:
+  /api/1.0/organizations/{organizationId}/stacks/{stackId}/favorite:
     delete:
       consumes:
       - application/json
@@ -5488,7 +5488,7 @@ paths:
       summary: Set favorite stack
       tags:
       - Stacks
-  /organizations/{organizationId}/stacks/{stackId}/kube-config:
+  /api/1.0/organizations/{organizationId}/stacks/{stackId}/kube-config:
     get:
       consumes:
       - application/json
@@ -5516,7 +5516,7 @@ paths:
       summary: Get KubeConfig by stack
       tags:
       - Stacks
-  /organizations/{organizationId}/stacks/{stackId}/status:
+  /api/1.0/organizations/{organizationId}/stacks/{stackId}/status:
     get:
       consumes:
       - application/json
@@ -5544,7 +5544,7 @@ paths:
       summary: Get Stack Status
       tags:
       - Stacks
-  /organizations/{organizationId}/stacks/name/{name}/existence:
+  /api/1.0/organizations/{organizationId}/stacks/name/{name}/existence:
     get:
       consumes:
       - application/json
@@ -5575,7 +5575,7 @@ paths:
       summary: Check name for stack
       tags:
       - Stacks
-  /organizations/{organizationId}/users:
+  /api/1.0/organizations/{organizationId}/users:
     get:
       consumes:
       - application/json
@@ -5651,7 +5651,7 @@ paths:
       summary: Create user
       tags:
       - Users
-  /organizations/{organizationId}/users/{accountId}:
+  /api/1.0/organizations/{organizationId}/users/{accountId}:
     delete:
       consumes:
       - application/json
@@ -5739,7 +5739,7 @@ paths:
       summary: Update user
       tags:
       - Users
-  /organizations/{organizationId}/users/{accountId}/reset-password:
+  /api/1.0/organizations/{organizationId}/users/{accountId}/reset-password:
     put:
       consumes:
       - application/json
@@ -5766,7 +5766,7 @@ paths:
       summary: Reset user's password as temporary password by admin
       tags:
       - Users
-  /organizations/{organizationId}/users/account-id/{accountId}/existence:
+  /api/1.0/organizations/{organizationId}/users/account-id/{accountId}/existence:
     get:
       description: return true when accountId exists
       parameters:
@@ -5792,7 +5792,7 @@ paths:
       summary: Get user id existence
       tags:
       - Users
-  /organizations/{organizationId}/users/email/{email}/existence:
+  /api/1.0/organizations/{organizationId}/users/email/{email}/existence:
     get:
       description: return true when email exists
       parameters:
@@ -5818,7 +5818,7 @@ paths:
       summary: Get user email existence
       tags:
       - Users
-  /stack-templates:
+  /api/1.0/stack-templates:
     get:
       consumes:
       - application/json
@@ -5882,7 +5882,7 @@ paths:
       summary: Create StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
-  /stack-templates/{stackTemplateId}:
+  /api/1.0/stack-templates/{stackTemplateId}:
     delete:
       consumes:
       - application/json

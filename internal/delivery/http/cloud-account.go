@@ -35,7 +35,7 @@ func NewCloudAccountHandler(h usecase.Usecase) *CloudAccountHandler {
 // @Param       organizationId path     string                           true "organizationId"
 // @Param       body           body     domain.CreateCloudAccountRequest true "create cloud setting request"
 // @Success     200            {object} domain.CreateCloudAccountResponse
-// @Router      /organizations/{organizationId}/cloud-accounts [post]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts [post]
 // @Security    JWT
 func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -83,7 +83,7 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} domain.GetCloudAccountsResponse
-// @Router      /organizations/{organizationId}/cloud-accounts [get]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts [get]
 // @Security    JWT
 func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -126,7 +126,7 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 // @Param       organizationId path     string true "organizationId"
 // @Param       cloudAccountId path     string true "cloudAccountId"
 // @Success     200            {object} domain.GetCloudAccountResponse
-// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [get]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId} [get]
 // @Security    JWT
 func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -165,7 +165,7 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 // @Param       organizationId path     string                           true "organizationId"
 // @Param       body           body     domain.UpdateCloudAccountRequest true "Update cloud setting request"
 // @Success     200            {object} nil
-// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [put]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId} [put]
 // @Security    JWT
 func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -220,7 +220,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 // @Param       body           body     domain.DeleteCloudAccountRequest true "Delete cloud setting request"
 // @Param       cloudAccountId path     string                           true "cloudAccountId"
 // @Success     200            {object} nil
-// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId} [delete]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId} [delete]
 // @Security    JWT
 func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -267,7 +267,7 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 // @Param       organizationId path     string true "organizationId"
 // @Param       cloudAccountId path     string true "cloudAccountId"
 // @Success     200            {object} nil
-// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error [delete]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error [delete]
 // @Security    JWT
 func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -301,7 +301,7 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 // @Param       organizationId path     string true "organizationId"
 // @Param       name           path     string true "name"
 // @Success     200            {object} domain.CheckCloudAccountNameResponse
-// @Router      /organizations/{organizationId}/cloud-accounts/name/{name}/existence [GET]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/name/{name}/existence [GET]
 // @Security    JWT
 func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *http.Request) {
 	user, ok := request.UserFrom(r.Context())
@@ -343,7 +343,7 @@ func (h *CloudAccountHandler) CheckCloudAccountName(w http.ResponseWriter, r *ht
 // @Param       organizationId path     string true "organizationId"
 // @Param       awsAccountId   path     string true "awsAccountId"
 // @Success     200            {object} domain.CheckCloudAccountAwsAccountIdResponse
-// @Router      /organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence [GET]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence [GET]
 // @Security    JWT
 func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -379,7 +379,7 @@ func (h *CloudAccountHandler) CheckAwsAccountId(w http.ResponseWriter, r *http.R
 // @Param       organizationId path     string true "organizationId"
 // @Param       cloudAccountId path     string true "cloudAccountId"
 // @Success     200            {object} domain.GetCloudAccountResourceQuotaResponse
-// @Router      /organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota [GET]
+// @Router      /api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota [GET]
 // @Security    JWT
 func (h *CloudAccountHandler) GetResourceQuota(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

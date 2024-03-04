@@ -37,7 +37,7 @@ func NewClusterHandler(h usecase.Usecase) *ClusterHandler {
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
 // @Success     200            {object} domain.GetClustersResponse
-// @Router      /clusters [get]
+// @Router      /api/1.0/clusters [get]
 // @Security    JWT
 func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -74,7 +74,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       clusterId path     string true "clusterId"
 // @Success     200       {object} domain.Cluster
-// @Router      /clusters/{clusterId} [get]
+// @Router      /api/1.0/clusters/{clusterId} [get]
 // @Security    JWT
 func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -106,7 +106,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       clusterId path     string true "clusterId"
 // @Success     200       {object} domain.ClusterSiteValuesResponse
-// @Router      /clusters/{clusterId}/site-values [get]
+// @Router      /api/1.0/clusters/{clusterId}/site-values [get]
 // @Security    JWT
 func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -136,7 +136,7 @@ func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Req
 // @Produce     json
 // @Param       body body     domain.CreateClusterRequest true "create cluster request"
 // @Success     200  {object} domain.CreateClusterResponse
-// @Router      /clusters [post]
+// @Router      /api/1.0/clusters [post]
 // @Security    JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateClusterRequest{}
@@ -195,7 +195,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       body body     domain.ImportClusterRequest true "import cluster request"
 // @Success     200  {object} domain.ImportClusterResponse
-// @Router      /clusters/import [post]
+// @Router      /api/1.0/clusters/import [post]
 // @Security    JWT
 func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.ImportClusterRequest{}
@@ -237,7 +237,7 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       clusterId path     string true "clusterId"
 // @Success     200       {object} nil
-// @Router      /clusters/{clusterId}/install [post]
+// @Router      /api/1.0/clusters/{clusterId}/install [post]
 // @Security    JWT
 func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -264,7 +264,7 @@ func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) 
 // @Produce     json
 // @Param       clusterId path     string true "clusterId"
 // @Success     200       {object} domain.Cluster
-// @Router      /clusters/{clusterId} [delete]
+// @Router      /api/1.0/clusters/{clusterId} [delete]
 // @Security    JWT
 func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -290,7 +290,7 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 // @Accept      json
 // @Produce     json
 // @Success     200 {object} domain.CreateBootstrapKubeconfigResponse
-// @Router      /clusters/{clusterId}/bootstrap-kubeconfig [post]
+// @Router      /api/1.0/clusters/{clusterId}/bootstrap-kubeconfig [post]
 // @Security    JWT
 func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -318,7 +318,7 @@ func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *htt
 // @Accept      json
 // @Produce     json
 // @Success     200 {object} domain.GetBootstrapKubeconfigResponse
-// @Router      /clusters/{clusterId}/bootstrap-kubeconfig [get]
+// @Router      /api/1.0/clusters/{clusterId}/bootstrap-kubeconfig [get]
 // @Security    JWT
 func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -348,7 +348,7 @@ func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.R
 // @Produce     json
 // @Param       clusterId path     string true "clusterId"
 // @Success     200       {object} domain.GetClusterNodesResponse
-// @Router      /clusters/{clusterId}/nodes [get]
+// @Router      /api/1.0/clusters/{clusterId}/nodes [get]
 // @Security    JWT
 func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

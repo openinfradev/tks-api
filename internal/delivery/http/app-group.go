@@ -32,7 +32,7 @@ func NewAppGroupHandler(h usecase.Usecase) *AppGroupHandler {
 // @Produce     json
 // @Param       body body     domain.CreateAppGroupRequest true "create appgroup request"
 // @Success     200  {object} domain.CreateAppGroupResponse
-// @Router      /app-groups [post]
+// @Router      /api/1.0/app-groups [post]
 // @Security    JWT
 func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateAppGroupRequest{}
@@ -72,7 +72,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 // @Param       sortOrder   query    string   false "sortOrder"
 // @Param       filters     query    []string false "filters"
 // @Success     200         {object} domain.GetAppGroupsResponse
-// @Router      /app-groups [get]
+// @Router      /api/1.0/app-groups [get]
 // @Security    JWT
 func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -114,7 +114,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       appGroupId path     string true "appGroupId"
 // @Success     200        {object} domain.GetAppGroupResponse
-// @Router      /app-groups/{appGroupId} [get]
+// @Router      /api/1.0/app-groups/{appGroupId} [get]
 // @Security    JWT
 func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -150,7 +150,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       object body     string true "body"
 // @Success     200    {object} nil
-// @Router      /app-groups [delete]
+// @Router      /api/1.0/app-groups [delete]
 // @Security    JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -185,7 +185,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 // @Param       appGroupId      path     string true "appGroupId"
 // @Param       applicationType query    string true "applicationType"
 // @Success     200             {object} domain.GetApplicationsResponse
-// @Router      /app-groups/{appGroupId}/applications [get]
+// @Router      /api/1.0/app-groups/{appGroupId}/applications [get]
 // @Security    JWT
 func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -236,7 +236,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 // @Produce     json
 // @Param       object body     domain.CreateApplicationRequest true "body"
 // @Success     200    {object} nil
-// @Router      /app-groups/{appGroupId}/applications [post]
+// @Router      /api/1.0/app-groups/{appGroupId}/applications [post]
 // @Security    JWT
 func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

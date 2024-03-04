@@ -22,7 +22,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/app-groups": {
+        "/api/1.0/app-groups": {
             "get": {
                 "security": [
                     {
@@ -163,7 +163,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/app-groups/{appGroupId}": {
+        "/api/1.0/app-groups/{appGroupId}": {
             "get": {
                 "security": [
                     {
@@ -200,7 +200,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/app-groups/{appGroupId}/applications": {
+        "/api/1.0/app-groups/{appGroupId}/applications": {
             "get": {
                 "security": [
                     {
@@ -278,7 +278,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/find-id/code": {
+        "/api/1.0/auth/find-id/code": {
             "post": {
                 "description": "This API allows users to verify their identity for lost id by submitting required information",
                 "consumes": [
@@ -318,7 +318,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/find-id/verification": {
+        "/api/1.0/auth/find-id/verification": {
             "post": {
                 "description": "This API allows users to find their account ID by submitting required information",
                 "consumes": [
@@ -358,7 +358,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/find-password/code": {
+        "/api/1.0/auth/find-password/code": {
             "post": {
                 "description": "This API allows users to verify their identity for lost password by submitting required information",
                 "consumes": [
@@ -398,7 +398,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/find-password/verification": {
+        "/api/1.0/auth/find-password/verification": {
             "post": {
                 "description": "This API allows users to reset their forgotten password by submitting required information",
                 "consumes": [
@@ -435,7 +435,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/login": {
+        "/api/1.0/auth/login": {
             "post": {
                 "description": "login",
                 "consumes": [
@@ -469,7 +469,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/logout": {
+        "/api/1.0/auth/logout": {
             "post": {
                 "security": [
                     {
@@ -497,7 +497,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/ping": {
+        "/api/1.0/auth/ping": {
             "post": {
                 "description": "ping with token",
                 "consumes": [
@@ -528,7 +528,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters": {
+        "/api/1.0/clusters": {
             "get": {
                 "security": [
                     {
@@ -635,7 +635,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters/import": {
+        "/api/1.0/clusters/import": {
             "post": {
                 "security": [
                     {
@@ -674,7 +674,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters/{clusterId}": {
+        "/api/1.0/clusters/{clusterId}": {
             "get": {
                 "security": [
                     {
@@ -746,7 +746,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters/{clusterId}/bootstrap-kubeconfig": {
+        "/api/1.0/clusters/{clusterId}/bootstrap-kubeconfig": {
             "get": {
                 "security": [
                     {
@@ -800,7 +800,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters/{clusterId}/install": {
+        "/api/1.0/clusters/{clusterId}/install": {
             "post": {
                 "security": [
                     {
@@ -834,7 +834,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters/{clusterId}/nodes": {
+        "/api/1.0/clusters/{clusterId}/nodes": {
             "get": {
                 "security": [
                     {
@@ -871,7 +871,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/clusters/{clusterId}/site-values": {
+        "/api/1.0/clusters/{clusterId}/site-values": {
             "get": {
                 "security": [
                     {
@@ -908,7 +908,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations": {
+        "/api/1.0/organizations": {
             "get": {
                 "security": [
                     {
@@ -1012,7 +1012,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}": {
+        "/api/1.0/organizations/{organizationId}": {
             "get": {
                 "security": [
                     {
@@ -1128,7 +1128,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/alerts": {
+        "/api/1.0/organizations/{organizationId}/alerts": {
             "get": {
                 "security": [
                     {
@@ -1199,7 +1199,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/alerts/{alertId}": {
+        "/api/1.0/organizations/{organizationId}/alerts/{alertId}": {
             "get": {
                 "security": [
                     {
@@ -1323,7 +1323,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/alerts/{alertId}/actions": {
+        "/api/1.0/organizations/{organizationId}/alerts/{alertId}/actions": {
             "post": {
                 "security": [
                     {
@@ -1357,7 +1357,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/audits": {
+        "/api/1.0/organizations/{organizationId}/audits": {
             "get": {
                 "security": [
                     {
@@ -1468,7 +1468,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/audits/{auditId}": {
+        "/api/1.0/organizations/{organizationId}/audits/{auditId}": {
             "get": {
                 "security": [
                     {
@@ -1537,7 +1537,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts": {
+        "/api/1.0/organizations/{organizationId}/cloud-accounts": {
             "get": {
                 "security": [
                     {
@@ -1652,7 +1652,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence": {
+        "/api/1.0/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence": {
             "get": {
                 "security": [
                     {
@@ -1696,7 +1696,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts/name/{name}/existence": {
+        "/api/1.0/organizations/{organizationId}/cloud-accounts/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -1740,7 +1740,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}": {
+        "/api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}": {
             "get": {
                 "security": [
                     {
@@ -1873,7 +1873,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error": {
+        "/api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error": {
             "delete": {
                 "security": [
                     {
@@ -1914,7 +1914,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota": {
+        "/api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota": {
             "get": {
                 "security": [
                     {
@@ -1958,7 +1958,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboard/charts": {
+        "/api/1.0/organizations/{organizationId}/dashboard/charts": {
             "get": {
                 "security": [
                     {
@@ -2015,7 +2015,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboard/charts/{chartType}": {
+        "/api/1.0/organizations/{organizationId}/dashboard/charts/{chartType}": {
             "get": {
                 "security": [
                     {
@@ -2073,7 +2073,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboard/resources": {
+        "/api/1.0/organizations/{organizationId}/dashboard/resources": {
             "get": {
                 "security": [
                     {
@@ -2110,7 +2110,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboard/stacks": {
+        "/api/1.0/organizations/{organizationId}/dashboard/stacks": {
             "get": {
                 "security": [
                     {
@@ -2147,7 +2147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/my-profile": {
+        "/api/1.0/organizations/{organizationId}/my-profile": {
             "get": {
                 "security": [
                     {
@@ -2263,7 +2263,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/my-profile/next-password-change": {
+        "/api/1.0/organizations/{organizationId}/my-profile/next-password-change": {
             "put": {
                 "security": [
                     {
@@ -2303,7 +2303,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/my-profile/password": {
+        "/api/1.0/organizations/{organizationId}/my-profile/password": {
             "put": {
                 "security": [
                     {
@@ -2346,7 +2346,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/primary-cluster": {
+        "/api/1.0/organizations/{organizationId}/primary-cluster": {
             "patch": {
                 "security": [
                     {
@@ -2389,7 +2389,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects": {
+        "/api/1.0/organizations/{organizationId}/projects": {
             "get": {
                 "security": [
                     {
@@ -2476,7 +2476,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/existence": {
+        "/api/1.0/organizations/{organizationId}/projects/existence": {
             "get": {
                 "security": [
                     {
@@ -2526,7 +2526,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/project-roles": {
+        "/api/1.0/organizations/{organizationId}/projects/project-roles": {
             "get": {
                 "security": [
                     {
@@ -2569,7 +2569,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/project-roles/{projectRoleId}": {
+        "/api/1.0/organizations/{organizationId}/projects/project-roles/{projectRoleId}": {
             "get": {
                 "security": [
                     {
@@ -2613,7 +2613,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}": {
             "get": {
                 "security": [
                     {
@@ -2708,7 +2708,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps": {
             "get": {
                 "security": [
                     {
@@ -2846,7 +2846,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count": {
             "get": {
                 "security": [
                     {
@@ -2897,7 +2897,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -2948,7 +2948,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}": {
             "get": {
                 "security": [
                     {
@@ -3106,7 +3106,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint": {
             "patch": {
                 "security": [
                     {
@@ -3166,7 +3166,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist": {
             "get": {
                 "security": [
                     {
@@ -3210,7 +3210,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task": {
             "get": {
                 "security": [
                     {
@@ -3261,7 +3261,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback": {
             "post": {
                 "security": [
                     {
@@ -3321,7 +3321,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status": {
             "patch": {
                 "security": [
                     {
@@ -3381,7 +3381,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks": {
             "get": {
                 "security": [
                     {
@@ -3462,7 +3462,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}": {
             "get": {
                 "security": [
                     {
@@ -3520,7 +3520,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
             "get": {
                 "security": [
                     {
@@ -3564,7 +3564,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/members": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members": {
             "get": {
                 "security": [
                     {
@@ -3767,7 +3767,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/members/count": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members/count": {
             "get": {
                 "security": [
                     {
@@ -3811,7 +3811,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}": {
             "get": {
                 "security": [
                     {
@@ -3911,7 +3911,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role": {
             "put": {
                 "security": [
                     {
@@ -3971,7 +3971,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces": {
             "get": {
                 "security": [
                     {
@@ -4066,7 +4066,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}": {
             "get": {
                 "security": [
                     {
@@ -4245,7 +4245,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence": {
             "get": {
                 "security": [
                     {
@@ -4303,7 +4303,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources": {
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources": {
             "get": {
                 "security": [
                     {
@@ -4361,7 +4361,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks": {
+        "/api/1.0/organizations/{organizationId}/stacks": {
             "get": {
                 "security": [
                     {
@@ -4472,7 +4472,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/name/{name}/existence": {
+        "/api/1.0/organizations/{organizationId}/stacks/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -4520,7 +4520,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/{stackId}": {
+        "/api/1.0/organizations/{organizationId}/stacks/{stackId}": {
             "get": {
                 "security": [
                     {
@@ -4651,7 +4651,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/{stackId}/favorite": {
+        "/api/1.0/organizations/{organizationId}/stacks/{stackId}/favorite": {
             "post": {
                 "security": [
                     {
@@ -4731,7 +4731,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/{stackId}/kube-config": {
+        "/api/1.0/organizations/{organizationId}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
                     {
@@ -4775,7 +4775,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/stacks/{stackId}/status": {
+        "/api/1.0/organizations/{organizationId}/stacks/{stackId}/status": {
             "get": {
                 "security": [
                     {
@@ -4819,7 +4819,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/users": {
+        "/api/1.0/organizations/{organizationId}/users": {
             "get": {
                 "security": [
                     {
@@ -4937,7 +4937,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/users/account-id/{accountId}/existence": {
+        "/api/1.0/organizations/{organizationId}/users/account-id/{accountId}/existence": {
             "get": {
                 "security": [
                     {
@@ -4978,7 +4978,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/users/email/{email}/existence": {
+        "/api/1.0/organizations/{organizationId}/users/email/{email}/existence": {
             "get": {
                 "security": [
                     {
@@ -5019,7 +5019,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/users/{accountId}": {
+        "/api/1.0/organizations/{organizationId}/users/{accountId}": {
             "get": {
                 "security": [
                     {
@@ -5156,7 +5156,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/users/{accountId}/reset-password": {
+        "/api/1.0/organizations/{organizationId}/users/{accountId}/reset-password": {
             "put": {
                 "security": [
                     {
@@ -5197,7 +5197,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/stack-templates": {
+        "/api/1.0/stack-templates": {
             "get": {
                 "security": [
                     {
@@ -5298,7 +5298,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/stack-templates/{stackTemplateId}": {
+        "/api/1.0/stack-templates/{stackTemplateId}": {
             "get": {
                 "security": [
                     {
@@ -9149,7 +9149,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "tks-api-dev.taco-cat.xyz",
-	BasePath:         "/api/1.0/",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "tks-api service",
 	Description:      "This is backend api service for tks platform",
