@@ -413,6 +413,12 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 // @Router      /api/1.0/organizations/{organizationId}/my-profile [put]
 // @Security    JWT
 func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
@@ -442,10 +448,8 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
-	user.Organization = domain.Organization{
-		ID: requestUserInfo.GetOrganizationId(),
-	}
 
+	user.OrganizationId = organizationId
 	resUser, err := u.usecase.Update(ctx, requestUserInfo.GetUserId(), &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -875,7 +879,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 		return
 	}
-	_, err = u.authUsecase.Login(requestUserInfo.GetAccountId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -930,16 +934,29 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := r.Context()
-	var user domain.User
-	if err = serializer.Map(input, &user); err != nil {
+	// check admin password
+	requestUserInfo, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
+		return
+	}
+	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+	if err != nil {
 		ErrorJSON(w, r, err)
 		return
+	}
+
+	ctx := r.Context()
+	user := domain.User{
+		AccountId:   accountId,
+		Name:        input.Name,
+		Email:       input.Email,
+		Department:  input.Department,
+		Description: input.Description,
 	}
 	user.Organization = domain.Organization{
 		ID: organizationId,
 	}
-	user.AccountId = accountId
 
 	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
 	if err != nil {

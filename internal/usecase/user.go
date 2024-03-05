@@ -10,7 +10,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/mail"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -357,17 +356,9 @@ func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *domain
 }
 
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
-	userInfo, ok := request.UserFrom(ctx)
-	if !ok {
-		return nil, fmt.Errorf("user in the context is  empty")
-	}
+	var out domain.User
 
-	_, err := u.kc.Login(user.AccountId, user.Password, userInfo.GetOrganizationId())
-	if err != nil {
-		return nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid password"), "", "")
-	}
-
-	originUser, err := u.kc.GetUser(userInfo.GetOrganizationId(), accountId)
+	originUser, err := u.kc.GetUser(user.Organization.ID, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -375,13 +366,13 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if (originUser.Email == nil || *originUser.Email != user.Email) || (originUser.FirstName == nil || *originUser.FirstName != user.Name) {
 		originUser.Email = gocloak.StringP(user.Email)
 		originUser.FirstName = gocloak.StringP(user.Name)
-		err = u.kc.UpdateUser(userInfo.GetOrganizationId(), originUser)
+		err = u.kc.UpdateUser(user.Organization.ID, originUser)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(userInfo.GetOrganizationId()),
+	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(user.Organization.ID),
 		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
@@ -400,13 +391,12 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, err
 	}
 
-	*user, err = u.userRepository.UpdateWithUuid((*users)[0].ID, user.AccountId, user.Name, roleUuid, user.Email,
-		user.Department, user.Description)
+	out, err = u.userRepository.UpdateWithUuid((*users)[0].ID, user.AccountId, user.Name, roleUuid, user.Email, user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
 	}
 
-	return user, nil
+	return &out, nil
 }
 
 func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
@@ -503,48 +493,26 @@ func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.Us
 }
 
 func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId string, newUser *domain.User) (*domain.User, error) {
-	user, err := u.UpdateByAccountId(ctx, accountId, newUser)
+	deepCopyUser := *newUser
+	user, err := u.UpdateByAccountId(ctx, accountId, &deepCopyUser)
 	if err != nil {
 		return nil, err
 	}
 
-	userInfo, ok := request.UserFrom(ctx)
-	if !ok {
-		return nil, fmt.Errorf("user in the context is  empty")
-	}
-
 	if newUser.Role.Name != user.Role.Name {
-		originGroupName := fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())
-		newGroupName := fmt.Sprintf("%s@%s", user.Role.Name, userInfo.GetOrganizationId())
-		if err := u.kc.LeaveGroup(userInfo.GetOrganizationId(), user.ID.String(), originGroupName); err != nil {
+		originGroupName := fmt.Sprintf("%s@%s", user.Role.Name, newUser.Organization.ID)
+		newGroupName := fmt.Sprintf("%s@%s", newUser.Role.Name, newUser.Organization.ID)
+		if err := u.kc.LeaveGroup(newUser.Organization.ID, user.ID.String(), originGroupName); err != nil {
 			log.ErrorfWithContext(ctx, "leave group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
-		if err := u.kc.JoinGroup(userInfo.GetOrganizationId(), user.ID.String(), newGroupName); err != nil {
+		if err := u.kc.JoinGroup(newUser.Organization.ID, user.ID.String(), newGroupName); err != nil {
 			log.ErrorfWithContext(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
 
-	// Get user role
-	var roleUuid string
-	roles, err := u.roleRepository.ListTksRoles(user.Organization.ID, nil)
-	if err != nil {
-		return nil, err
-	}
-	if len(roles) == 0 {
-		return nil, httpErrors.NewInternalServerError(fmt.Errorf("role not found"), "", "")
-	}
-	for _, role := range roles {
-		if role.Name == user.Role.Name {
-			roleUuid = role.ID
-		}
-	}
-	if roleUuid == "" {
-		return nil, httpErrors.NewInternalServerError(fmt.Errorf("role not found"), "", "")
-	}
-
-	*user, err = u.userRepository.UpdateWithUuid(user.ID, user.AccountId, user.Name, roleUuid, user.Email,
+	*user, err = u.userRepository.UpdateWithUuid(user.ID, user.AccountId, user.Name, newUser.Role.ID, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
