@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	admin_domain "github.com/openinfradev/tks-api/pkg/domain/admin"
 	"net/http"
 	"strings"
 
@@ -31,15 +32,26 @@ type IUserHandler interface {
 
 	CheckId(w http.ResponseWriter, r *http.Request)
 	CheckEmail(w http.ResponseWriter, r *http.Request)
+
+	// Admin
+	Admin_Create(w http.ResponseWriter, r *http.Request)
+	Admin_List(w http.ResponseWriter, r *http.Request)
+	Admin_Get(w http.ResponseWriter, r *http.Request)
+	Admin_Delete(w http.ResponseWriter, r *http.Request)
+	Admin_Update(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
-	usecase usecase.IUserUsecase
+	usecase     usecase.IUserUsecase
+	authUsecase usecase.IAuthUsecase
+	roleUsecase usecase.IRoleUsecase
 }
 
 func NewUserHandler(h usecase.Usecase) IUserHandler {
 	return &UserHandler{
-		usecase: h.User,
+		usecase:     h.User,
+		authUsecase: h.Auth,
+		roleUsecase: h.Role,
 	}
 }
 
@@ -71,12 +83,6 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//userInfo, ok := request.UserFrom(r.Context())
-	//if !ok {
-	//	ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("user info not found in token")))
-	//	return
-	//}
-
 	ctx := r.Context()
 	var user domain.User
 	if err = serializer.Map(input, &user); err != nil {
@@ -84,6 +90,19 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Organization = domain.Organization{
 		ID: organizationId,
+	}
+
+	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+	for _, role := range roles {
+		if role.Name == input.Role {
+			user.Role = *role
+			break
+		}
 	}
 
 	resUser, err := u.usecase.Create(ctx, &user)
@@ -282,7 +301,19 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 	user.AccountId = accountId
-	user.Role.Name = input.Role
+
+	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+	for _, role := range roles {
+		if role.Name == input.Role {
+			user.Role = *role
+			break
+		}
+	}
 
 	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
 	if err != nil {
@@ -613,6 +644,333 @@ func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.CheckExistedResponse
 	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_Create godoc
+// @Tags        Admin
+// @Summary     Create user by admin
+// @Description Create user by admin
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string                    true "organizationId"
+// @Param       body           body     admin.CreateUserRequest  true "create user request"
+// @Success     200            {object} admin.CreateUserResponse "create user response"
+// @Router      /api/1.0/admin/organizations/{organizationId}/users [post]
+// @Security    JWT
+
+func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := admin_domain.CreateUserRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	user := domain.User{
+		Name:        input.Name,
+		AccountId:   input.AccountId,
+		Email:       input.Email,
+		Department:  input.Department,
+		Description: input.Description,
+	}
+
+	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	for _, role := range roles {
+		if role.Name == input.Role {
+			user.Role = *role
+			break
+		}
+	}
+
+	user.Organization = domain.Organization{
+		ID: organizationId,
+	}
+
+	// check admin password
+	requestUserInfo, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
+		return
+	}
+	_, err = u.authUsecase.Login(requestUserInfo.GetAccountId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	user.Password = u.usecase.GenerateRandomPassword()
+
+	resUser, err := u.usecase.Create(r.Context(), &user)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusConflict {
+			ErrorJSON(w, r, httpErrors.NewConflictError(err, "", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = u.usecase.SendEmailForTemporaryPassword(r.Context(), user.AccountId, organizationId, user.Password)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out admin_domain.CreateUserResponse
+
+	out.ID = resUser.ID.String()
+	ResponseJSON(w, r, http.StatusCreated, out)
+
+}
+
+// Admin_List godoc
+// @Tags        Admin
+// @Summary     Get user list by admin
+// @Description Get user list by admin
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string   true  "organizationId"
+// @Param       limit          query    string   false "pageSize"
+// @Param       page           query    string   false "pageNumber"
+// @Param       soertColumn    query    string   false "sortColumn"
+// @Param       sortOrder      query    string   false "sortOrder"
+// @Param       filters        query    []string false "filters"
+// @Success     200            {object} admin.ListUserResponse "user list response"
+// @Router      /api/1.0/admin/organizations/{organizationId}/users [get]
+// @Security    JWT
+
+func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out admin_domain.ListUserResponse
+	out.Users = make([]domain.ListUserBody, len(*users))
+	for i, user := range *users {
+		if err = serializer.Map(user, &out.Users[i]); err != nil {
+			log.ErrorWithContext(r.Context(), err)
+		}
+	}
+
+	if out.Pagination, err = pg.Response(); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_Get godoc
+// @Tags        Admin
+// @Summary     Get user detail by admin
+// @Description Get user detail by admin
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       accountId      path     string true "accountId"
+// @Success     200            {object} admin.GetUserResponse
+// @Router      /api/1.0/admin/organizations/{organizationId}/users/{accountId} [get]
+func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out admin_domain.GetUserResponse
+	if err = serializer.Map(*user, &out.User); err != nil {
+		log.ErrorWithContext(r.Context(), err)
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_Delete godoc
+// @Tags        Admin
+// @Summary     Delete user by admin
+// @Description Delete user by admin
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string true "organizationId"
+// @Param       accountId      path     string true "accountId"
+// @Success     200            {object} domain.User
+// @Router      /api/1.0/admin/organizations/{organizationId}/users/{accountId} [delete]
+// @Security    JWT
+
+func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		return
+	}
+
+	input := admin_domain.DeleteUserRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	// check admin password
+	requestUserInfo, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
+		return
+	}
+	_, err = u.authUsecase.Login(requestUserInfo.GetAccountId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = u.usecase.DeleteByAccountId(r.Context(), userId, organizationId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			return
+		}
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// Admin_Update godoc
+// @Tags        Admin
+// @Summary     Update user by admin
+// @Description Update user by admin
+// @Accept      json
+// @Produce     json
+// @Param       organizationId path     string                   true "organizationId"
+// @Param       accountId      path     string                   true "accountId"
+// @Param       body           body     admin.UpdateUserRequest true "input"
+// @Success     200            {object} admin.UpdateUserResponse
+// @Router      /api/1.0/admin/organizations/{organizationId}/users/{accountId} [put]
+// @Security    JWT
+func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountId, ok := vars["accountId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
+		return
+	}
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
+		return
+	}
+
+	input := admin_domain.UpdateUserRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+	var user domain.User
+	if err = serializer.Map(input, &user); err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	user.Organization = domain.Organization{
+		ID: organizationId,
+	}
+	user.AccountId = accountId
+
+	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+	for _, role := range roles {
+		if role.Name == input.Role {
+			user.Role = *role
+			break
+		}
+	}
+
+	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out admin_domain.UpdateUserResponse
+	if err = serializer.Map(*resUser, &out.User); err != nil {
+		log.ErrorWithContext(r.Context(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

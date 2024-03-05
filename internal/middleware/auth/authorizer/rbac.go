@@ -92,6 +92,31 @@ func RBACFilterWithEndpoint(handler http.Handler, repo repository.Repository) ht
 	})
 }
 
+func AdminApiFilter(handler http.Handler, repo repository.Repository) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestUserInfo, ok := request.UserFrom(r.Context())
+		if !ok {
+			internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
+			return
+		}
+
+		endpointInfo, ok := request.EndpointFrom(r.Context())
+		if !ok {
+			internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("endpoint not found"), "", ""))
+			return
+		}
+
+		if strings.HasPrefix(endpointInfo.String(), "Admin") {
+			if requestUserInfo.GetOrganizationId() != "master" {
+				internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+				return
+			}
+		}
+
+		handler.ServeHTTP(w, r)
+	})
+}
+
 //type pair struct {
 //	regexp string
 //	method string

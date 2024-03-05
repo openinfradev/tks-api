@@ -30,9 +30,11 @@ type IUserUsecase interface {
 	Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error)
 	ResetPassword(userId uuid.UUID) error
 	ResetPasswordByAccountId(accountId string, organizationId string) error
+	GenerateRandomPassword() string
 	Delete(userId uuid.UUID, organizationId string) error
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error)
+	SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error
 
 	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
@@ -138,6 +140,10 @@ func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId 
 	return u.ResetPassword(user.ID)
 }
 
+func (u *UserUsecase) GenerateRandomPassword() string {
+	return helper.GenerateRandomString(passwordLength)
+}
+
 func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
 	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
@@ -228,6 +234,27 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.
 	}
 
 	return resUser, nil
+}
+
+func (u *UserUsecase) SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error {
+	user, err := u.userRepository.Get(accountId, organizationId)
+	if err != nil {
+		return err
+	}
+
+	message, err := mail.MakeTemporaryPasswordMessage(user.Email, organizationId, accountId, password)
+	if err != nil {
+		return err
+	}
+
+	mailer := mail.New(message)
+
+	if err := mailer.SendMail(); err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string,

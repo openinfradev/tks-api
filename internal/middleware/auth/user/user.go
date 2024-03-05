@@ -7,6 +7,7 @@ import (
 // Info describes a user that has been authenticated to the system.
 type Info interface {
 	GetUserId() uuid.UUID
+	GetAccountId() string
 	GetOrganizationId() string
 	GetRoleOrganizationMapping() map[string]string
 	GetRoleProjectMapping() map[string]string
@@ -16,6 +17,7 @@ type Info interface {
 // for components that implement the UserInfo interface.
 type DefaultInfo struct {
 	UserId                  uuid.UUID
+	AccountId               string
 	OrganizationId          string
 	ProjectIds              []string
 	RoleOrganizationMapping map[string]string
@@ -24,6 +26,10 @@ type DefaultInfo struct {
 
 func (i *DefaultInfo) GetUserId() uuid.UUID {
 	return i.UserId
+}
+
+func (i *DefaultInfo) GetAccountId() string {
+	return i.AccountId
 }
 
 func (i *DefaultInfo) GetOrganizationId() string {

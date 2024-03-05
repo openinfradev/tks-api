@@ -169,4 +169,15 @@ const (
 	GetPermissionTemplates
 	GetPermissionsByRoleId
 	UpdatePermissionsByRoleId
+
+	// Admin_User
+	Admin_CreateUser
+	Admin_ListUser
+	Admin_GetUser
+	Admin_DeleteUser
+	Admin_UpdateUser
+
+	// Admin Role
+	Admin_ListTksRoles
+	Admin_GetTksRole
 )

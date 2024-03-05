@@ -515,6 +515,34 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "UpdatePermissionsByRoleId", 
 		Group: "Permission",
 	},
+    Admin_CreateUser: {
+		Name: "Admin_CreateUser", 
+		Group: "Admin_User",
+	},
+    Admin_ListUser: {
+		Name: "Admin_ListUser", 
+		Group: "Admin_User",
+	},
+    Admin_GetUser: {
+		Name: "Admin_GetUser", 
+		Group: "Admin_User",
+	},
+    Admin_DeleteUser: {
+		Name: "Admin_DeleteUser", 
+		Group: "Admin_User",
+	},
+    Admin_UpdateUser: {
+		Name: "Admin_UpdateUser", 
+		Group: "Admin_User",
+	},
+    Admin_ListTksRoles: {
+		Name: "Admin_ListTksRoles", 
+		Group: "Admin Role",
+	},
+    Admin_GetTksRole: {
+		Name: "Admin_GetTksRole", 
+		Group: "Admin Role",
+	},
 }
 func (e Endpoint) String() string {
 	switch e {
@@ -774,6 +802,20 @@ func (e Endpoint) String() string {
 		return "GetPermissionsByRoleId"
 	case UpdatePermissionsByRoleId:
 		return "UpdatePermissionsByRoleId"
+	case Admin_CreateUser:
+		return "Admin_CreateUser"
+	case Admin_ListUser:
+		return "Admin_ListUser"
+	case Admin_GetUser:
+		return "Admin_GetUser"
+	case Admin_DeleteUser:
+		return "Admin_DeleteUser"
+	case Admin_UpdateUser:
+		return "Admin_UpdateUser"
+	case Admin_ListTksRoles:
+		return "Admin_ListTksRoles"
+	case Admin_GetTksRole:
+		return "Admin_GetTksRole"
 	default:
 		return ""
 	}
@@ -1036,6 +1078,20 @@ func GetEndpoint(name string) Endpoint {
 		return GetPermissionsByRoleId
 	case "UpdatePermissionsByRoleId":
 		return UpdatePermissionsByRoleId
+	case "Admin_CreateUser":
+		return Admin_CreateUser
+	case "Admin_ListUser":
+		return Admin_ListUser
+	case "Admin_GetUser":
+		return Admin_GetUser
+	case "Admin_DeleteUser":
+		return Admin_DeleteUser
+	case "Admin_UpdateUser":
+		return Admin_UpdateUser
+	case "Admin_ListTksRoles":
+		return Admin_ListTksRoles
+	case "Admin_GetTksRole":
+		return Admin_GetTksRole
 	default:
 		return -1
 	}
