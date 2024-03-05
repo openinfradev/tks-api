@@ -20,16 +20,11 @@ type endpointDecl struct {
 	Group string
 }
 
-//const indexTemplateStr = ` // This is generated code. DO NOT EDIT.
-//
-//package api
-//
-//type Endpoint int
-//type EndpointInfo struct {
-//	Name  string
-//	Group string
-//}
-//`
+const indexTemplateStr = ` // This is generated code. DO NOT EDIT.
+
+package api
+
+`
 
 //const endpointTemplateStr = `// Comment below is special purpose for code generation.
 //// Do not edit this comment.
@@ -129,16 +124,16 @@ func main() {
 		log.Printf("Endpoint: %s, Group: %s\n", ep.Name, ep.Group)
 	}
 
-	//// contents for index
-	//indexTemplate := template.New("index")
-	//indexTemplate, err = indexTemplate.Parse(indexTemplateStr)
-	//if err != nil {
-	//	log.Fatalf("failed to parse template: %v", err)
-	//}
-	//var indexCode bytes.Buffer
-	//if err := indexTemplate.Execute(&indexCode, endpoints); err != nil {
-	//	log.Fatalf("failed to execute template: %v", err)
-	//}
+	// contents for index
+	indexTemplate := template.New("index")
+	indexTemplate, err = indexTemplate.Parse(indexTemplateStr)
+	if err != nil {
+		log.Fatalf("failed to parse template: %v", err)
+	}
+	var indexCode bytes.Buffer
+	if err := indexTemplate.Execute(&indexCode, endpoints); err != nil {
+		log.Fatalf("failed to execute template: %v", err)
+	}
 
 	//// contents for endpoint
 	//endpointTemplate := template.New("endpoint")
@@ -186,7 +181,7 @@ func main() {
 
 	// replace original file(endpointFilePath) with new contents
 	//contents := indexCode.String() + endpointCode.String() + apiMapCode.String() + stringFunctionCode.String() + getEndpointFunctionCode.String()
-	contents := apiMapCode.String() + stringFunctionCode.String() + getEndpointFunctionCode.String()
+	contents := indexCode.String() + apiMapCode.String() + stringFunctionCode.String() + getEndpointFunctionCode.String()
 	newFilePath := strings.Replace(endpointFilePath, "endpoint", "generated_endpoints.go", 1)
 
 	if err := ioutil.WriteFile(newFilePath, []byte(contents), 0644); err != nil {
