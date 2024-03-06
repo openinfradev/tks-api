@@ -35,15 +35,15 @@ func NewRoleHandler(usecase usecase.Usecase) *RoleHandler {
 }
 
 // CreateTksRole godoc
-// @Tags Role
-// @Summary Create Tks Role
-// @Description Create Tks Role
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param body body domain.CreateTksRoleRequest true "Create Tks Role Request"
-// @Success 200 {object} domain.CreateTksRoleResponse
-// @Router /organizations/{organizationId}/roles [post]
+//	@Tags			Role
+//	@Summary		Create Tks Role
+//	@Description	Create Tks Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string						true	"Organization ID"
+//	@Param			body			body		domain.CreateTksRoleRequest	true	"Create Tks Role Request"
+//	@Success		200				{object}	domain.CreateTksRoleResponse
+//	@Router			/organizations/{organizationId}/roles [post]
 
 func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
@@ -94,13 +94,13 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListTksRoles godoc
-// @Tags Role
-// @Summary List Tks Roles
-// @Description List Tks Roles
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Success 200 {object} domain.ListTksRoleResponse
-// @Router /organizations/{organizationId}/roles [get]
+//	@Tags			Role
+//	@Summary		List Tks Roles
+//	@Description	List Tks Roles
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.ListTksRoleResponse
+//	@Router			/organizations/{organizationId}/roles [get]
 func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	var organizationId string
@@ -147,14 +147,14 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTksRole godoc
-// @Tags Role
-// @Summary Get Tks Role
-// @Description Get Tks Role
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param roleId path string true "Role ID"
-// @Success 200 {object} domain.GetTksRoleResponse
-// @Router /organizations/{organizationId}/roles/{roleId} [get]
+//	@Tags			Role
+//	@Summary		Get Tks Role
+//	@Description	Get Tks Role
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			roleId			path		string	true	"Role ID"
+//	@Success		200				{object}	domain.GetTksRoleResponse
+//	@Router			/organizations/{organizationId}/roles/{roleId} [get]
 
 func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
@@ -188,14 +188,14 @@ func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteTksRole godoc
-// @Tags Role
-// @Summary Delete Tks Role
-// @Description Delete Tks Role
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param roleId path string true "Role ID"
-// @Success 200
-// @Router /organizations/{organizationId}/roles/{roleId} [delete]
+//	@Tags			Role
+//	@Summary		Delete Tks Role
+//	@Description	Delete Tks Role
+//	@Produce		json
+//	@Param			organizationId	path	string	true	"Organization ID"
+//	@Param			roleId			path	string	true	"Role ID"
+//	@Success		200
+//	@Router			/organizations/{organizationId}/roles/{roleId} [delete]
 
 func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
@@ -219,16 +219,16 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateTksRole godoc
-// @Tags Role
-// @Summary Update Tks Role
-// @Description Update Tks Role
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param roleId path string true "Role ID"
-// @Param body body domain.UpdateTksRoleRequest true "Update Tks Role Request"
-// @Success 200
-// @Router /organizations/{organizationId}/roles/{roleId} [put]
+//	@Tags			Role
+//	@Summary		Update Tks Role
+//	@Description	Update Tks Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path	string						true	"Organization ID"
+//	@Param			roleId			path	string						true	"Role ID"
+//	@Param			body			body	domain.UpdateTksRoleRequest	true	"Update Tks Role Request"
+//	@Success		200
+//	@Router			/organizations/{organizationId}/roles/{roleId} [put]
 
 func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
@@ -266,13 +266,13 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin_ListTksRoles godoc
-// @Tags Role
-// @Summary Admin List Tks Roles
-// @Description Admin List Tks Roles
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Success 200 {object} domain.ListTksRoleResponse
-// @Router /admin/organizations/{organizationId}/roles [get]
+//	@Tags			Role
+//	@Summary		Admin List Tks Roles
+//	@Description	Admin List Tks Roles
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.ListTksRoleResponse
+//	@Router			/admin/organizations/{organizationId}/roles [get]
 
 func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	// Same as ListTksRoles
@@ -321,14 +321,14 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 }
 
 // Admin_GetTksRole godoc
-// @Tags Role
-// @Summary Admin Get Tks Role
-// @Description Admin Get Tks Role
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param roleId path string true "Role ID"
-// @Success 200 {object} domain.GetTksRoleResponse
-// @Router /admin/organizations/{organizationId}/roles/{roleId} [get]
+//	@Tags			Role
+//	@Summary		Admin Get Tks Role
+//	@Description	Admin Get Tks Role
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			roleId			path		string	true	"Role ID"
+//	@Success		200				{object}	domain.GetTksRoleResponse
+//	@Router			/admin/organizations/{organizationId}/roles/{roleId} [get]
 
 func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// Same as GetTksRole

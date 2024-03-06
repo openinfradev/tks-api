@@ -3,9 +3,9 @@ package usecase_test
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/domain"
 	myRepository "github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
-	"github.com/openinfradev/tks-api/pkg/domain"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm_test/config"

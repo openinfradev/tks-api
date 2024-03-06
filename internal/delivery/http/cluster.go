@@ -25,20 +25,20 @@ func NewClusterHandler(h usecase.Usecase) *ClusterHandler {
 }
 
 // GetClusters godoc
-// @Tags        Clusters
-// @Summary     Get clusters
-// @Description Get cluster list
-// @Accept      json
-// @Produce     json
-// @Param       organizationId query    string   false "organizationId"
-// @Param       limit          query    string   false "pageSize"
-// @Param       page           query    string   false "pageNumber"
-// @Param       soertColumn    query    string   false "sortColumn"
-// @Param       sortOrder      query    string   false "sortOrder"
-// @Param       filters        query    []string false "filters"
-// @Success     200            {object} domain.GetClustersResponse
-// @Router      /api/1.0/clusters [get]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Get clusters
+//	@Description	Get cluster list
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	query		string		false	"organizationId"
+//	@Param			limit			query		string		false	"pageSize"
+//	@Param			page			query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.GetClustersResponse
+//	@Router			/api/1.0/clusters [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
@@ -67,15 +67,15 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetCluster godoc
-// @Tags        Clusters
-// @Summary     Get cluster
-// @Description Get cluster detail
-// @Accept      json
-// @Produce     json
-// @Param       clusterId path     string true "clusterId"
-// @Success     200       {object} domain.Cluster
-// @Router      /api/1.0/clusters/{clusterId} [get]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Get cluster
+//	@Description	Get cluster detail
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.Cluster
+//	@Router			/api/1.0/clusters/{clusterId} [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -99,15 +99,15 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetClusterSiteValues godoc
-// @Tags        Clusters
-// @Summary     Get cluster site values for creating
-// @Description Get cluster site values for creating
-// @Accept      json
-// @Produce     json
-// @Param       clusterId path     string true "clusterId"
-// @Success     200       {object} domain.ClusterSiteValuesResponse
-// @Router      /api/1.0/clusters/{clusterId}/site-values [get]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Get cluster site values for creating
+//	@Description	Get cluster site values for creating
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.ClusterSiteValuesResponse
+//	@Router			/api/1.0/clusters/{clusterId}/site-values [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -129,15 +129,15 @@ func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Req
 }
 
 // CreateCluster godoc
-// @Tags        Clusters
-// @Summary     Create cluster
-// @Description Create cluster
-// @Accept      json
-// @Produce     json
-// @Param       body body     domain.CreateClusterRequest true "create cluster request"
-// @Success     200  {object} domain.CreateClusterResponse
-// @Router      /api/1.0/clusters [post]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Create cluster
+//	@Description	Create cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.CreateClusterRequest	true	"create cluster request"
+//	@Success		200		{object}	domain.CreateClusterResponse
+//	@Router			/api/1.0/clusters [post]
+//	@Security		JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateClusterRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -188,15 +188,15 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // ImportCluster godoc
-// @Tags        Clusters
-// @Summary     Import cluster
-// @Description Import cluster
-// @Accept      json
-// @Produce     json
-// @Param       body body     domain.ImportClusterRequest true "import cluster request"
-// @Success     200  {object} domain.ImportClusterResponse
-// @Router      /api/1.0/clusters/import [post]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Import cluster
+//	@Description	Import cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.ImportClusterRequest	true	"import cluster request"
+//	@Success		200		{object}	domain.ImportClusterResponse
+//	@Router			/api/1.0/clusters/import [post]
+//	@Security		JWT
 func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.ImportClusterRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -230,15 +230,15 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // InstallCluster godoc
-// @Tags        Clusters
-// @Summary     Install cluster on tks cluster
-// @Description Install cluster on tks cluster
-// @Accept      json
-// @Produce     json
-// @Param       clusterId path     string true "clusterId"
-// @Success     200       {object} nil
-// @Router      /api/1.0/clusters/{clusterId}/install [post]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Install cluster on tks cluster
+//	@Description	Install cluster on tks cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	nil
+//	@Router			/api/1.0/clusters/{clusterId}/install [post]
+//	@Security		JWT
 func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -257,15 +257,15 @@ func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) 
 }
 
 // DeleteCluster godoc
-// @Tags        Clusters
-// @Summary     Delete cluster
-// @Description Delete cluster
-// @Accept      json
-// @Produce     json
-// @Param       clusterId path     string true "clusterId"
-// @Success     200       {object} domain.Cluster
-// @Router      /api/1.0/clusters/{clusterId} [delete]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Delete cluster
+//	@Description	Delete cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.Cluster
+//	@Router			/api/1.0/clusters/{clusterId} [delete]
+//	@Security		JWT
 func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -284,14 +284,14 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateBootstrapKubeconfig godoc
-// @Tags        Clusters
-// @Summary     Create bootstrap kubeconfig for BYOH
-// @Description Create bootstrap kubeconfig for BYOH
-// @Accept      json
-// @Produce     json
-// @Success     200 {object} domain.CreateBootstrapKubeconfigResponse
-// @Router      /api/1.0/clusters/{clusterId}/bootstrap-kubeconfig [post]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Create bootstrap kubeconfig for BYOH
+//	@Description	Create bootstrap kubeconfig for BYOH
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.CreateBootstrapKubeconfigResponse
+//	@Router			/api/1.0/clusters/{clusterId}/bootstrap-kubeconfig [post]
+//	@Security		JWT
 func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -312,14 +312,14 @@ func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *htt
 }
 
 // GetBootstrapKubeconfig godoc
-// @Tags        Clusters
-// @Summary     Get bootstrap kubeconfig for BYOH
-// @Description Get bootstrap kubeconfig for BYOH
-// @Accept      json
-// @Produce     json
-// @Success     200 {object} domain.GetBootstrapKubeconfigResponse
-// @Router      /api/1.0/clusters/{clusterId}/bootstrap-kubeconfig [get]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Get bootstrap kubeconfig for BYOH
+//	@Description	Get bootstrap kubeconfig for BYOH
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.GetBootstrapKubeconfigResponse
+//	@Router			/api/1.0/clusters/{clusterId}/bootstrap-kubeconfig [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -341,15 +341,15 @@ func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.R
 }
 
 // GetNodes godoc
-// @Tags        Clusters
-// @Summary     Get nodes information for BYOH
-// @Description Get nodes information for BYOH
-// @Accept      json
-// @Produce     json
-// @Param       clusterId path     string true "clusterId"
-// @Success     200       {object} domain.GetClusterNodesResponse
-// @Router      /api/1.0/clusters/{clusterId}/nodes [get]
-// @Security    JWT
+//	@Tags			Clusters
+//	@Summary		Get nodes information for BYOH
+//	@Description	Get nodes information for BYOH
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.GetClusterNodesResponse
+//	@Router			/api/1.0/clusters/{clusterId}/nodes [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["clusterId"]
@@ -377,14 +377,14 @@ func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {
 	// GetKubernetesInfo godoc
-	// @Tags        Clusters
-	// @Summary     Get kubernetes info
-	// @Description Get kubernetes info for cluster
-	// @Accept      json
-	// @Produce     json
-	// @Param       clusterId path     string true "clusterId"
-	// @Success     200       {object} ClusterKubeInfo
-	// @Router      /clusters/{clusterId}/kubeInfo [get]
+	//	@Tags			Clusters
+	//	@Summary		Get kubernetes info
+	//	@Description	Get kubernetes info for cluster
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	ClusterKubeInfo
+	//	@Router			/clusters/{clusterId}/kubeInfo [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
@@ -447,14 +447,14 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 
 func (h *ClusterHandler) GetClusterApplications(w http.ResponseWriter, r *http.Request) {
 	// GetClusterApplications godoc
-	// @Tags        Clusters
-	// @Summary     Get application list
-	// @Description Get application list by clusterId
-	// @Accept      json
-	// @Produce     json
-	// @Param       clusterId path     string false "clusterId"
-	// @Success     200       {object} []ApplicationJson
-	// @Router      /clusters/{clusterId}/applications [get]
+	//	@Tags			Clusters
+	//	@Summary		Get application list
+	//	@Description	Get application list by clusterId
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	false	"clusterId"
+	//	@Success		200			{object}	[]ApplicationJson
+	//	@Router			/clusters/{clusterId}/applications [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
@@ -596,14 +596,14 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 
 func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Request) {
 	// GetClusterKubeConfig godoc
-	// @Tags        Clusters
-	// @Summary     Get kubernetes kubeconfig
-	// @Description Get kubernetes kubeconfig for cluster
-	// @Accept      json
-	// @Produce     json
-	// @Param       clusterId path     string true "clusterId"
-	// @Success     200       {object} object
-	// @Router      /clusters/{clusterId}/kubeconfig [get]
+	//	@Tags			Clusters
+	//	@Summary		Get kubernetes kubeconfig
+	//	@Description	Get kubernetes kubeconfig for cluster
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	object
+	//	@Router			/clusters/{clusterId}/kubeconfig [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
@@ -635,14 +635,14 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 
 func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.Request) {
 	// GetClusterKubeResources godoc
-	// @Tags        Clusters
-	// @Summary     Get kubernetes resources
-	// @Description Get kubernetes resources
-	// @Accept      json
-	// @Produce     json
-	// @Param       clusterId path     string true "clusterId"
-	// @Success     200       {object} ClusterJson
-	// @Router      /clusters/{clusterId}/kube-resources [get]
+	//	@Tags			Clusters
+	//	@Summary		Get kubernetes resources
+	//	@Description	Get kubernetes resources
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	ClusterJson
+	//	@Router			/clusters/{clusterId}/kube-resources [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
@@ -828,14 +828,14 @@ func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.
 
 func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 	// SetIstioLabel godoc
-	// @Tags        Clusters
-	// @Summary     Set Istio label to namespace
-	// @Description Set istio label to namespace on kubernetes
-	// @Accept      json
-	// @Produce     json
-	// @Param       clusterId path     string true "clusterId"
-	// @Success     200       {object} object
-	// @Router      /clusters/{clusterId}/kube-resources/{namespace}/istio-label [post]
+	//	@Tags			Clusters
+	//	@Summary		Set Istio label to namespace
+	//	@Description	Set istio label to namespace on kubernetes
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	object
+	//	@Router			/clusters/{clusterId}/kube-resources/{namespace}/istio-label [post]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]

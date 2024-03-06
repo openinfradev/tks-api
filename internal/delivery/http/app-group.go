@@ -25,15 +25,15 @@ func NewAppGroupHandler(h usecase.Usecase) *AppGroupHandler {
 }
 
 // CreateAppGroup godoc
-// @Tags        AppGroups
-// @Summary     Install appGroup
-// @Description Install appGroup
-// @Accept      json
-// @Produce     json
-// @Param       body body     domain.CreateAppGroupRequest true "create appgroup request"
-// @Success     200  {object} domain.CreateAppGroupResponse
-// @Router      /api/1.0/app-groups [post]
-// @Security    JWT
+//	@Tags			AppGroups
+//	@Summary		Install appGroup
+//	@Description	Install appGroup
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.CreateAppGroupRequest	true	"create appgroup request"
+//	@Success		200		{object}	domain.CreateAppGroupResponse
+//	@Router			/api/1.0/app-groups [post]
+//	@Security		JWT
 func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateAppGroupRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -60,20 +60,20 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 }
 
 // GetAppGroups godoc
-// @Tags        AppGroups
-// @Summary     Get appGroup list
-// @Description Get appGroup list by giving params
-// @Accept      json
-// @Produce     json
-// @Param       clusterId   query    string   false "clusterId"
-// @Param       limit       query    string   false "pageSize"
-// @Param       page        query    string   false "pageNumber"
-// @Param       soertColumn query    string   false "sortColumn"
-// @Param       sortOrder   query    string   false "sortOrder"
-// @Param       filters     query    []string false "filters"
-// @Success     200         {object} domain.GetAppGroupsResponse
-// @Router      /api/1.0/app-groups [get]
-// @Security    JWT
+//	@Tags			AppGroups
+//	@Summary		Get appGroup list
+//	@Description	Get appGroup list by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	query		string		false	"clusterId"
+//	@Param			limit		query		string		false	"pageSize"
+//	@Param			page		query		string		false	"pageNumber"
+//	@Param			soertColumn	query		string		false	"sortColumn"
+//	@Param			sortOrder	query		string		false	"sortOrder"
+//	@Param			filters		query		[]string	false	"filters"
+//	@Success		200			{object}	domain.GetAppGroupsResponse
+//	@Router			/api/1.0/app-groups [get]
+//	@Security		JWT
 func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
@@ -107,15 +107,15 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAppGroup godoc
-// @Tags        AppGroups
-// @Summary     Get appGroup detail
-// @Description Get appGroup detail by appGroupId
-// @Accept      json
-// @Produce     json
-// @Param       appGroupId path     string true "appGroupId"
-// @Success     200        {object} domain.GetAppGroupResponse
-// @Router      /api/1.0/app-groups/{appGroupId} [get]
-// @Security    JWT
+//	@Tags			AppGroups
+//	@Summary		Get appGroup detail
+//	@Description	Get appGroup detail by appGroupId
+//	@Accept			json
+//	@Produce		json
+//	@Param			appGroupId	path		string	true	"appGroupId"
+//	@Success		200			{object}	domain.GetAppGroupResponse
+//	@Router			/api/1.0/app-groups/{appGroupId} [get]
+//	@Security		JWT
 func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -143,15 +143,15 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteAppGroup godoc
-// @Tags        AppGroups
-// @Summary     Uninstall appGroup
-// @Description Uninstall appGroup
-// @Accept      json
-// @Produce     json
-// @Param       object body     string true "body"
-// @Success     200    {object} nil
-// @Router      /api/1.0/app-groups [delete]
-// @Security    JWT
+//	@Tags			AppGroups
+//	@Summary		Uninstall appGroup
+//	@Description	Uninstall appGroup
+//	@Accept			json
+//	@Produce		json
+//	@Param			object	body		string	true	"body"
+//	@Success		200		{object}	nil
+//	@Router			/api/1.0/app-groups [delete]
+//	@Security		JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -177,16 +177,16 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 }
 
 // GetApplications godoc
-// @Tags        AppGroups
-// @Summary     Get applications
-// @Description Get applications
-// @Accept      json
-// @Produce     json
-// @Param       appGroupId      path     string true "appGroupId"
-// @Param       applicationType query    string true "applicationType"
-// @Success     200             {object} domain.GetApplicationsResponse
-// @Router      /api/1.0/app-groups/{appGroupId}/applications [get]
-// @Security    JWT
+//	@Tags			AppGroups
+//	@Summary		Get applications
+//	@Description	Get applications
+//	@Accept			json
+//	@Produce		json
+//	@Param			appGroupId		path		string	true	"appGroupId"
+//	@Param			applicationType	query		string	true	"applicationType"
+//	@Success		200				{object}	domain.GetApplicationsResponse
+//	@Router			/api/1.0/app-groups/{appGroupId}/applications [get]
+//	@Security		JWT
 func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -229,15 +229,15 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 }
 
 // CreateApplication godoc
-// @Tags        AppGroups
-// @Summary     Create application
-// @Description Create application
-// @Accept      json
-// @Produce     json
-// @Param       object body     domain.CreateApplicationRequest true "body"
-// @Success     200    {object} nil
-// @Router      /api/1.0/app-groups/{appGroupId}/applications [post]
-// @Security    JWT
+//	@Tags			AppGroups
+//	@Summary		Create application
+//	@Description	Create application
+//	@Accept			json
+//	@Produce		json
+//	@Param			object	body		domain.CreateApplicationRequest	true	"body"
+//	@Success		200		{object}	nil
+//	@Router			/api/1.0/app-groups/{appGroupId}/applications [post]
+//	@Security		JWT
 func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]

@@ -84,23 +84,23 @@ func init() {
 	swagger.SwaggerInfo.Host = address
 }
 
-// @title       tks-api service
-// @version     1.0
-// @description This is backend api service for tks platform
+//	@title			tks-api service
+//	@version		1.0
+//	@description	This is backend api service for tks platform
 
-// @contact.name taekyu.kang@sk.com
-// @contact.url
-// @contact.email taekyu.kang@sk.com
+//	@contact.name	taekyu.kang@sk.com
+//	@contact.url
+//	@contact.email	taekyu.kang@sk.com
 
-// @license.name Apache 2.0
-// @license.url  http://www.apache.org/licenses/LICENSE-2.0.html
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @securitydefinitions.apikey JWT
-// @in                         header
-// @name                       Authorization
+//	@securitydefinitions.apikey	JWT
+//	@in							header
+//	@name						Authorization
 
-// @host     tks-api-dev.taco-cat.xyz
-// @BasePath /
+//	@host		tks-api-dev.taco-cat.xyz
+//	@BasePath	/
 func main() {
 	log.Info("*** Arguments *** ")
 	for i, s := range viper.AllSettings() {

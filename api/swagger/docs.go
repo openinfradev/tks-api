@@ -7734,7 +7734,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "projectRole": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRole"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse"
                 }
             }
         },
@@ -7744,7 +7744,7 @@ const docTemplate = `{
                 "projectRoles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRole"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse"
                     }
                 }
             }
@@ -8474,7 +8474,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.ProjectRole": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {

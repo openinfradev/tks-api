@@ -26,13 +26,13 @@ func NewPermissionHandler(usecase usecase.Usecase) *PermissionHandler {
 }
 
 // GetPermissionTemplates godoc
-// @Tags Permission
-// @Summary Get Permission Templates
-// @Description Get Permission Templates
-// @Accept json
-// @Produce json
-// @Success 200 {object} domain.PermissionSet
-// @Router /permissions/templates [get]
+//	@Tags			Permission
+//	@Summary		Get Permission Templates
+//	@Description	Get Permission Templates
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.PermissionSet
+//	@Router			/permissions/templates [get]
 func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http.Request) {
 	permissionSet := domain.NewDefaultPermissionSet()
 
@@ -48,13 +48,13 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 }
 
 // GetPermissionsByRoleId godoc
-// @Tags Permission
-// @Summary Get Permissions By Role ID
-// @Description Get Permissions By Role ID
-// @Accept json
-// @Produce json
-// @Success 200 {object} domain.PermissionSet
-// @Router /roles/{roleId}/permissions [get]
+//	@Tags			Permission
+//	@Summary		Get Permissions By Role ID
+//	@Description	Get Permissions By Role ID
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.PermissionSet
+//	@Router			/roles/{roleId}/permissions [get]
 func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	var roleId string
@@ -85,15 +85,15 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 }
 
 // UpdatePermissionsByRoleId godoc
-// @Tags Permission
-// @Summary Update Permissions By Role ID
-// @Description Update Permissions By Role ID
-// @Accept json
-// @Produce json
-// @Param roleId path string true "Role ID"
-// @Param body body domain.UpdatePermissionsByRoleIdRequest true "Update Permissions By Role ID Request"
-// @Success 200
-// @Router /roles/{roleId}/permissions [put]
+//	@Tags			Permission
+//	@Summary		Update Permissions By Role ID
+//	@Description	Update Permissions By Role ID
+//	@Accept			json
+//	@Produce		json
+//	@Param			roleId	path	string									true	"Role ID"
+//	@Param			body	body	domain.UpdatePermissionsByRoleIdRequest	true	"Update Permissions By Role ID Request"
+//	@Success		200
+//	@Router			/roles/{roleId}/permissions [put]
 func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	log.Debug("UpdatePermissionsByRoleId Called")

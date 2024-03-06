@@ -5,8 +5,9 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/pkg/domain"
+	out_domain "github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -14,8 +15,8 @@ import (
 
 type IProjectRepository interface {
 	CreateProject(p *domain.Project) (string, error)
-	GetProjects(organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
-	GetProjectsByUserId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetProjects(organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]out_domain.ProjectResponse, error)
+	GetProjectsByUserId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]out_domain.ProjectResponse, error)
 	GetProjectById(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByIdAndLeader(organizationId string, projectId string) (*domain.Project, error)
 	GetProjectByName(organizationId string, projectName string) (*domain.Project, error)
@@ -26,7 +27,7 @@ type IProjectRepository interface {
 	AddProjectMember(*domain.ProjectMember) (string, error)
 	GetProjectMembersByProjectId(projectId string, pg *pagination.Pagination) ([]domain.ProjectMember, error)
 	GetProjectMembersByProjectIdAndRoleName(projectId string, memberRole string, pg *pagination.Pagination) ([]domain.ProjectMember, error)
-	GetProjectMemberCountByProjectId(projectId string) (*domain.GetProjectMemberCountResponse, error)
+	GetProjectMemberCountByProjectId(projectId string) (*out_domain.GetProjectMemberCountResponse, error)
 	GetProjectMemberById(projectMemberId string) (*domain.ProjectMember, error)
 	GetProjectMemberByUserId(projectId string, projectUserId string) (pm *domain.ProjectMember, err error)
 	RemoveProjectMember(projectMemberId string) error
@@ -60,7 +61,7 @@ func (r *ProjectRepository) CreateProject(p *domain.Project) (string, error) {
 	return p.ID, nil
 }
 
-func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []out_domain.ProjectResponse, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
@@ -138,7 +139,7 @@ func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID,
 	return pr, nil
 }
 
-func (r *ProjectRepository) GetProjectsByUserId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetProjectsByUserId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []out_domain.ProjectResponse, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
@@ -346,7 +347,7 @@ func (r *ProjectRepository) GetProjectMembersByProjectIdAndRoleName(projectId st
 	return pms, nil
 }
 
-func (r *ProjectRepository) GetProjectMemberCountByProjectId(projectId string) (pmcr *domain.GetProjectMemberCountResponse, err error) {
+func (r *ProjectRepository) GetProjectMemberCountByProjectId(projectId string) (pmcr *out_domain.GetProjectMemberCountResponse, err error) {
 	res := r.db.Raw(""+
 		"select (plc.count + pmc.count + pvc.count) as project_member_all_count,"+
 		"       plc.count as project_leader_count,"+

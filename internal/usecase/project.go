@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
-	"github.com/openinfradev/tks-api/pkg/domain"
+	out_domain "github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
@@ -28,7 +29,7 @@ const (
 
 type IProjectUsecase interface {
 	CreateProject(ctx context.Context, p *domain.Project) (string, error)
-	GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) ([]out_domain.ProjectResponse, error)
 	GetProject(ctx context.Context, organizationId string, projectId string) (*domain.Project, error)
 	GetProjectWithLeader(ctx context.Context, organizationId string, projectId string) (*domain.Project, error)
 	IsProjectNameExist(ctx context.Context, organizationId string, projectName string) (bool, error)
@@ -39,7 +40,7 @@ type IProjectUsecase interface {
 	GetProjectUser(ctx context.Context, projectUserId string) (*domain.ProjectUser, error)
 	GetProjectMember(ctx context.Context, projectMemberId string) (*domain.ProjectMember, error)
 	GetProjectMembers(ctx context.Context, projectId string, query int, pg *pagination.Pagination) ([]domain.ProjectMember, error)
-	GetProjectMemberCount(ctx context.Context, projectMemberId string) (*domain.GetProjectMemberCountResponse, error)
+	GetProjectMemberCount(ctx context.Context, projectMemberId string) (*out_domain.GetProjectMemberCountResponse, error)
 	RemoveProjectMember(ctx context.Context, projectMemberId string) error
 	UpdateProjectMemberRole(ctx context.Context, pm *domain.ProjectMember) error
 	CreateProjectNamespace(ctx context.Context, organizationId string, pn *domain.ProjectNamespace) error
@@ -54,7 +55,7 @@ type IProjectUsecase interface {
 	CreateK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
 	DeleteK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
 	GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error)
-	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error)
+	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId out_domain.StackId) (out out_domain.ProjectNamespaceK8sResources, err error)
 	AssignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error
 	UnassignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error
 }
@@ -93,7 +94,7 @@ func (u *ProjectUsecase) CreateProject(ctx context.Context, p *domain.Project) (
 	return projectId, nil
 }
 
-func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []out_domain.ProjectResponse, err error) {
 	userUuid, err := uuid.Parse(userId)
 	if err != nil {
 		log.ErrorWithContext(ctx, err)
@@ -305,7 +306,7 @@ func (u *ProjectUsecase) GetProjectMembers(ctx context.Context, projectId string
 	return pms, nil
 }
 
-func (u *ProjectUsecase) GetProjectMemberCount(ctx context.Context, projectMemberId string) (pmcr *domain.GetProjectMemberCountResponse, err error) {
+func (u *ProjectUsecase) GetProjectMemberCount(ctx context.Context, projectMemberId string) (pmcr *out_domain.GetProjectMemberCountResponse, err error) {
 	pmcr, err = u.projectRepo.GetProjectMemberCountByProjectId(projectMemberId)
 	if err != nil {
 		log.ErrorWithContext(ctx, err)
@@ -704,8 +705,8 @@ func (u *ProjectUsecase) GetProjectKubeconfig(ctx context.Context, organizationI
 	return kubernetes.MergeKubeconfigsWithSingleUser(kubeconfigs)
 }
 
-func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error) {
-	_, err = u.clusterRepository.Get(domain.ClusterId(stackId))
+func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId out_domain.StackId) (out out_domain.ProjectNamespaceK8sResources, err error) {
+	_, err = u.clusterRepository.Get(out_domain.ClusterId(stackId))
 	if err != nil {
 		return out, errors.Wrap(err, fmt.Sprintf("Failed to get cluster : stackId %s", stackId))
 	}
