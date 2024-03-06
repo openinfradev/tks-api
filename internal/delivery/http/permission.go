@@ -33,6 +33,8 @@ func NewPermissionHandler(usecase usecase.Usecase) *PermissionHandler {
 //	@Produce		json
 //	@Success		200	{object}	domain.PermissionSet
 //	@Router			/permissions/templates [get]
+//	@Security		JWT
+
 func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http.Request) {
 	permissionSet := domain.NewDefaultPermissionSet()
 
@@ -55,6 +57,8 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 //	@Produce		json
 //	@Success		200	{object}	domain.PermissionSet
 //	@Router			/roles/{roleId}/permissions [get]
+//	@Security		JWT
+
 func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	var roleId string
@@ -94,6 +98,8 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 //	@Param			body	body	domain.UpdatePermissionsByRoleIdRequest	true	"Update Permissions By Role ID Request"
 //	@Success		200
 //	@Router			/roles/{roleId}/permissions [put]
+//	@Security		JWT
+
 func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	log.Debug("UpdatePermissionsByRoleId Called")
