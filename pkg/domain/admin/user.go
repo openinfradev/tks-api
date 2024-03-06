@@ -12,7 +12,7 @@ type CreateUserRequest struct {
 	Role          string `json:"role" validate:"required"`
 	Department    string `json:"department" validate:"min=0,max=50"`
 	Description   string `json:"description" validate:"min=0,max=100"`
-	AdminPassword string `json:"adminPassword" validate:"required"`
+	AdminPassword string `json:"adminPassword"`
 }
 
 type CreateUserResponse struct {
@@ -46,7 +46,7 @@ type UpdateUserRequest struct {
 	Department    string `json:"department" validate:"min=0,max=50"`
 	Role          string `json:"role" validate:"required"`
 	Description   string `json:"description" validate:"min=0,max=100"`
-	AdminPassword string `json:"adminPassword" validate:"required"`
+	AdminPassword string `json:"adminPassword"`
 }
 
 type UpdateUserResponse struct {
@@ -65,5 +65,5 @@ type UpdateUserResponse struct {
 }
 
 type DeleteUserRequest struct {
-	AdminPassword string `json:"adminPassword" validate:"required"`
+	AdminPassword string `json:"adminPassword"`
 }
