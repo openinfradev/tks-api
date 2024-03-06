@@ -115,8 +115,14 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("session id is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
+	userAccountId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["preferred_username"].(string)
+	if !ok {
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("preferred_username is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+	}
+
 	userInfo := &user.DefaultInfo{
 		UserId:                  userId,
+		AccountId:               userAccountId,
 		OrganizationId:          organizationId,
 		ProjectIds:              projectIds,
 		RoleOrganizationMapping: roleOrganizationMapping,

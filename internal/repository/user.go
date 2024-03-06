@@ -99,7 +99,7 @@ func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name s
 		return domain.User{}, err
 	}
 
-	return r.reflect(user), nil
+	return user, nil
 }
 func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
 	return func(user *gorm.DB) *gorm.DB {
@@ -151,7 +151,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
 
 	var out []domain.User
 	for _, user := range users {
-		out = append(out, r.reflect(user))
+		out = append(out, user)
 	}
 
 	return &out, nil
@@ -172,7 +172,7 @@ func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizat
 
 	var out []domain.User
 	for _, user := range users {
-		out = append(out, r.reflect(user))
+		out = append(out, user)
 	}
 
 	return &out, nil
@@ -184,7 +184,7 @@ func (r *UserRepository) Get(accountId string, organizationId string) (domain.Us
 		return domain.User{}, err
 	}
 
-	return r.reflect(user), nil
+	return user, nil
 }
 func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err error) {
 	user := domain.User{}
@@ -198,7 +198,7 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err 
 		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
-	return r.reflect(user), nil
+	return user, nil
 }
 func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string,
 	email string, department string, description string) (domain.User, error) {
@@ -222,7 +222,7 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 	if res.Error != nil {
 		return domain.User{}, res.Error
 	}
-	return r.reflect(user), nil
+	return user, nil
 }
 func (r *UserRepository) UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error {
 	var updateUser = domain.User{}
@@ -279,7 +279,7 @@ func (r *UserRepository) GetRoleByName(roleName string) (domain.Role, error) {
 		return domain.Role{}, err
 	}
 
-	return r.reflectRole(role), nil
+	return role, nil
 }
 
 //func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
@@ -336,76 +336,4 @@ func (r *UserRepository) getRoleByName(roleName string) (domain.Role, error) {
 	//}
 
 	return role, nil
-}
-
-func (r *UserRepository) reflect(user domain.User) domain.User {
-	role := domain.Role{
-		ID:          user.Role.ID,
-		Name:        user.Role.Name,
-		Description: user.Role.Description,
-		Creator:     user.Role.Creator,
-		CreatedAt:   user.Role.CreatedAt,
-		UpdatedAt:   user.Role.UpdatedAt,
-	}
-	//for _, role := range user.Roles {
-	//	outRole := domain.Role{
-	//		ID:          role.ID.String(),
-	//		Name:        role.Name,
-	//		Description: role.Description,
-	//		Creator:     role.Creator.String(),
-	//		CreatedAt:   role.CreatedAt,
-	//		UpdatedAt:   role.UpdatedAt,
-	//	}
-	//	resRoles = append(resRoles, outRole)
-	//}
-
-	organization := domain.Organization{
-		ID:          user.Organization.ID,
-		Name:        user.Organization.Name,
-		Description: user.Organization.Description,
-		Phone:       user.Organization.Phone,
-		Status:      user.Organization.Status,
-		StatusDesc:  user.Organization.StatusDesc,
-		Creator:     user.Organization.Creator,
-		CreatedAt:   user.Organization.CreatedAt,
-		UpdatedAt:   user.Organization.UpdatedAt,
-	}
-	//for _, organization := range user.Organizations {
-	//	outOrganization := domain.Organization{
-	//		ID:          organization.ID,
-	//		Name:        organization.Name,
-	//		Description: organization.Description,
-	//		Creator:     organization.Creator.String(),
-	//		CreatedAt:   organization.CreatedAt,
-	//		UpdatedAt:   organization.UpdatedAt,
-	//	}
-	//	resOrganizations = append(resOrganizations, outOrganization)
-	//}
-
-	return domain.User{
-		ID:                user.ID,
-		AccountId:         user.AccountId,
-		Password:          user.Password,
-		Name:              user.Name,
-		Role:              role,
-		Organization:      organization,
-		Creator:           user.Creator,
-		CreatedAt:         user.CreatedAt,
-		UpdatedAt:         user.UpdatedAt,
-		Email:             user.Email,
-		Department:        user.Department,
-		Description:       user.Description,
-		PasswordUpdatedAt: user.PasswordUpdatedAt,
-	}
-}
-
-func (r *UserRepository) reflectRole(role domain.Role) domain.Role {
-	return domain.Role{
-		ID:          role.ID,
-		Name:        role.Name,
-		Description: role.Description,
-		Creator:     role.Creator,
-		CreatedAt:   role.CreatedAt,
-		UpdatedAt:   role.UpdatedAt,
-	}
 }

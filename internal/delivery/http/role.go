@@ -17,6 +17,9 @@ type IRoleHandler interface {
 	GetTksRole(w http.ResponseWriter, r *http.Request)
 	DeleteTksRole(w http.ResponseWriter, r *http.Request)
 	UpdateTksRole(w http.ResponseWriter, r *http.Request)
+
+	Admin_ListTksRoles(w http.ResponseWriter, r *http.Request)
+	Admin_GetTksRole(w http.ResponseWriter, r *http.Request)
 }
 
 type RoleHandler struct {
@@ -260,4 +263,101 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 
 	// response
 	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// Admin_ListTksRoles godoc
+// @Tags Role
+// @Summary Admin List Tks Roles
+// @Description Admin List Tks Roles
+// @Produce json
+// @Param organizationId path string true "Organization ID"
+// @Success 200 {object} domain.ListTksRoleResponse
+// @Router /admin/organizations/{organizationId}/roles [get]
+
+func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) {
+	// Same as ListTksRoles
+
+	var organizationId string
+
+	vars := mux.Vars(r)
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+
+	// query parameter
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+
+	// list roles
+	roles, err := h.roleUsecase.ListTksRoles(organizationId, pg)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.ListTksRoleResponse
+	out.Roles = make([]domain.GetTksRoleResponse, len(roles))
+	for i, role := range roles {
+		out.Roles[i] = domain.GetTksRoleResponse{
+			ID:             role.ID,
+			Name:           role.Name,
+			OrganizationID: role.OrganizationID,
+			Description:    role.Description,
+			Creator:        role.Creator.String(),
+			CreatedAt:      role.CreatedAt,
+			UpdatedAt:      role.UpdatedAt,
+		}
+	}
+
+	if err := serializer.Map(*pg, &out.Pagination); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+
+	// response
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_GetTksRole godoc
+// @Tags Role
+// @Summary Admin Get Tks Role
+// @Description Admin Get Tks Role
+// @Produce json
+// @Param organizationId path string true "Organization ID"
+// @Param roleId path string true "Role ID"
+// @Success 200 {object} domain.GetTksRoleResponse
+// @Router /admin/organizations/{organizationId}/roles/{roleId} [get]
+
+func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
+	// Same as GetTksRole
+
+	vars := mux.Vars(r)
+	var roleId string
+	if v, ok := vars["roleId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+	} else {
+		roleId = v
+	}
+
+	// get role
+	role, err := h.roleUsecase.GetTksRole(roleId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	// response
+	out := domain.GetTksRoleResponse{
+		ID:             role.ID,
+		Name:           role.Name,
+		OrganizationID: role.OrganizationID,
+		Description:    role.Description,
+		Creator:        role.Creator.String(),
+		CreatedAt:      role.CreatedAt,
+		UpdatedAt:      role.UpdatedAt,
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
