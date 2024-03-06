@@ -185,9 +185,9 @@ type GetProjectNamespaceK8sResourcesResponse struct {
 }
 
 type ProjectNamespaceResourcesUsage struct {
-	CPU    int `json:"cpu"`
-	Memory int `json:"memory"`
-	PV     int `json:"pv"`
+	Cpu     string `json:"cpu"`
+	Memory  string `json:"memory"`
+	Storage string `json:"storage"`
 }
 
 type GetProjectNamespaceResourcesUsageResponse struct {

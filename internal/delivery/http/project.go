@@ -52,6 +52,7 @@ type IProjectHandler interface {
 
 	GetProjectKubeconfig(w http.ResponseWriter, r *http.Request)
 	GetProjectNamespaceK8sResources(w http.ResponseWriter, r *http.Request)
+	GetProjectNamespaceResourcesUsage(w http.ResponseWriter, r *http.Request)
 }
 
 type ProjectHandler struct {
@@ -1594,6 +1595,7 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 }
 
 // GetProjectNamespaceResourcesUsage godoc
+//
 //	@Tags			Projects
 //	@Summary		Get resources usage for project namespace
 //	@Description	Get resources usage for project namespace
@@ -1603,7 +1605,7 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 //	@Param			projectId			path		string	true	"Project ID"
 //	@Param			stackId				path		string	true	"Stack ID"
 //	@Param			projectNamespace	path		string	true	"Project Namespace"
-//	@Success		200					{object}	domain.GetProjectNamespaceResourcesUsageResponse
+//	@Success		200					{object}	outdomain.GetProjectNamespaceResourcesUsageResponse
 //	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage [get]
 //	@Security		JWT
 func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter, r *http.Request) {
@@ -1631,14 +1633,14 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 		return
 	}
 
-	resourcesUsage, err := p.usecase.GetResourcesUsage(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
+	resourcesUsage, err := p.usecase.GetResourcesUsage(r.Context(), organizationId, projectId, projectNamespace, outdomain.StackId(stackId))
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	var out domain.GetProjectNamespaceResourcesUsageResponse
+	var out outdomain.GetProjectNamespaceResourcesUsageResponse
 	if err = serializer.Map(resourcesUsage, &out.ResourcesUsage); err != nil {
 		log.Error(err)
 	}

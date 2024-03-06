@@ -4451,6 +4451,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get resources usage for project namespace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get resources usage for project namespace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stack ID",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Namespace",
+                        "name": "projectNamespace",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/1.0/organizations/{organizationId}/stacks": {
             "get": {
                 "security": [
@@ -7703,6 +7761,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse": {
+            "type": "object",
+            "properties": {
+                "resourcesUsage": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResourcesUsage"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResponse": {
             "type": "object",
             "properties": {
@@ -8400,6 +8466,20 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResourcesUsage": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "type": "string"
+                },
+                "memory": {
+                    "type": "string"
+                },
+                "storage": {
                     "type": "string"
                 }
             }
