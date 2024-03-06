@@ -1421,13 +1421,13 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.GetProjectRoleResponse:
     properties:
       projectRole:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRole'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetProjectRolesResponse:
     properties:
       projectRoles:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRole'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetProjectsResponse:
@@ -1913,7 +1913,7 @@ definitions:
       projectRoleName:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.ProjectRole:
+  github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse:
     properties:
       createdAt:
         type: string

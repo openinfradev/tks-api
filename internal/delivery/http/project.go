@@ -12,8 +12,9 @@ import (
 	"github.com/openinfradev/tks-api/internal/serializer"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/domain"
 	"github.com/openinfradev/tks-api/internal/usecase"
-	"github.com/openinfradev/tks-api/pkg/domain"
+	outdomain "github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -65,16 +66,17 @@ func NewProjectHandler(u usecase.Usecase) IProjectHandler {
 }
 
 // CreateProject godoc
-// @Tags        Projects
-// @Summary     Create new project
-// @Description Create new project
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                      true "Organization ID"
-// @Param       request        body     domain.CreateProjectRequest true "Request body to create project"
-// @Success     200            {object} domain.CreateProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects [post]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Create new project
+//	@Description	Create new project
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string							true	"Organization ID"
+//	@Param			request			body		outdomain.CreateProjectRequest	true	"Request body to create project"
+//	@Success		200				{object}	outdomain.CreateProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects [post]
+//	@Security		JWT
 func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -84,7 +86,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 			"C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
-	var projectReq domain.CreateProjectRequest
+	var projectReq outdomain.CreateProjectRequest
 	if err := UnmarshalRequestInput(r, &projectReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -138,22 +140,23 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out := domain.CreateProjectResponse{ProjectId: projectId}
+	out := outdomain.CreateProjectResponse{ProjectId: projectId}
 	ResponseJSON(w, r, http.StatusOK, out)
 
 }
 
 // GetProjects godoc
-// @Tags        Projects
-// @Summary     Get projects
-// @Description Get projects
-// @Accept      json
-// @Produce     json
-// @Param       organizationId  path     string true "Organization ID"
-// @Param       query           query    string false "(all | only)"
-// @Success     200            {object}  domain.GetProjectsResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get projects
+//	@Description	Get projects
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			query			query		string	false	"(all | only)"
+//	@Success		200				{object}	outdomain.GetProjectsResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -182,30 +185,31 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out domain.GetProjectsResponse
+	var out outdomain.GetProjectsResponse
 	out.Projects = pr
 	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
 	if pr == nil {
-		ResponseJSON(w, r, http.StatusNotFound, domain.GetProjectsResponse{})
+		ResponseJSON(w, r, http.StatusNotFound, outdomain.GetProjectsResponse{})
 	} else {
 		ResponseJSON(w, r, http.StatusOK, out)
 	}
 }
 
 // GetProject   godoc
-// @Tags        Projects
-// @Summary     Get projects
-// @Description Get projects
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectId      path     string true "Project ID"
-// @Success     200            {object} domain.GetProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId} [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get projects
+//	@Description	Get projects
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Success		200				{object}	outdomain.GetProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId} [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -235,7 +239,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	var out domain.GetProjectResponse
+	var out outdomain.GetProjectResponse
 	if project == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
 		return
@@ -252,7 +256,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		projectRoleName = pu.ProjectRole.Name
 	}
 
-	var pdr domain.ProjectDetailResponse
+	var pdr outdomain.ProjectDetailResponse
 	if err = serializer.Map(*project, &pdr); err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, err)
@@ -271,17 +275,18 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 }
 
 // IsProjectNameExist godoc
-// @Tags        Projects
-// @Summary     Check project name exist
-// @Description Check project name exist
-// @Accept      json
-// @Produce     json
-// @Param       organizationId   path     string true  "Organization ID"
-// @Param       type             query    string false "type (name)"
-// @Param       value            query    string true  "value (project name)"
-// @Success     200              {object} domain.CheckExistedResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/existence [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Check project name exist
+//	@Description	Check project name exist
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			type			query		string	false	"type (name)"
+//	@Param			value			query		string	true	"value (project name)"
+//	@Success		200				{object}	outdomain.CheckExistedResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/existence [get]
+//	@Security		JWT
 func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -300,24 +305,25 @@ func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var out domain.CheckExistedResponse
+	var out outdomain.CheckExistedResponse
 	out.Existed = exist
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdateProject godoc
-// @Tags        Projects
-// @Summary     Update project
-// @Description Update project
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                      true "Organization ID"
-// @Param       projectId      path     string true "Project ID"
-// @Param       request        body     domain.UpdateProjectRequest true "Request body to update project"
-// @Success     200            {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId} [put]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Update project
+//	@Description	Update project
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string							true	"Organization ID"
+//	@Param			projectId		path		string							true	"Project ID"
+//	@Param			request			body		outdomain.UpdateProjectRequest	true	"Request body to update project"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId} [put]
+//	@Security		JWT
 func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -335,7 +341,7 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var projectReq domain.UpdateProjectRequest
+	var projectReq outdomain.UpdateProjectRequest
 	if err := UnmarshalRequestInput(r, &projectReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -364,7 +370,7 @@ func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
+	ResponseJSON(w, r, http.StatusOK, outdomain.CommonProjectResponse{Result: "OK"})
 }
 
 func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
@@ -374,16 +380,17 @@ func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetProjectRole godoc
-// @Tags        Projects
-// @Summary     Get project role
-// @Description Get project role by id
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectRoleId  path     string true "Project Role ID"
-// @Success     200            {object} domain.GetProjectRoleResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/project-roles/{projectRoleId} [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project role
+//	@Description	Get project role by id
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectRoleId	path		string	true	"Project Role ID"
+//	@Success		200				{object}	outdomain.GetProjectRoleResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/project-roles/{projectRoleId} [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -409,23 +416,24 @@ func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out domain.GetProjectRoleResponse
-	out.ProjectRole = *pr
+	var out outdomain.GetProjectRoleResponse
+	out.ProjectRole = outdomain.ProjectRoleResponse(*pr)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetProjectRoles godoc
-// @Tags        Projects
-// @Summary     Get project roles
-// @Description Get project roles by giving params
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true  "Organization ID"
-// @Param       query          query    string false "project role search by query (query=all), (query=leader), (query=member), (query=viewer)"
-// @Success     200            {object} domain.GetProjectRolesResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/project-roles [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project roles
+//	@Description	Get project roles by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			query			query		string	false	"project role search by query (query=all), (query=leader), (query=member), (query=viewer)"
+//	@Success		200				{object}	outdomain.GetProjectRolesResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/project-roles [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
@@ -453,24 +461,27 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var out domain.GetProjectRolesResponse
-	out.ProjectRoles = prs
+	var out outdomain.GetProjectRolesResponse
+	for _, pr := range prs {
+		out.ProjectRoles = append(out.ProjectRoles, outdomain.ProjectRoleResponse(pr))
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // AddProjectMember godoc
-// @Tags        Projects
-// @Summary     Add project member to project
-// @Description Add project member to project
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                         true "Organization ID"
-// @Param       projectId      path     string                         true "Project ID"
-// @Param       request        body     domain.AddProjectMemberRequest true "Request body to add project member"
-// @Success     200            {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members [post]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Add project member to project
+//	@Description	Add project member to project
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string								true	"Organization ID"
+//	@Param			projectId		path		string								true	"Project ID"
+//	@Param			request			body		outdomain.AddProjectMemberRequest	true	"Request body to add project member"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members [post]
+//	@Security		JWT
 func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -487,7 +498,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var projectMemberReq domain.AddProjectMemberRequest
+	var projectMemberReq outdomain.AddProjectMemberRequest
 	if err := UnmarshalRequestInput(r, &projectMemberReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -553,22 +564,23 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	out := domain.CommonProjectResponse{Result: "OK"}
+	out := outdomain.CommonProjectResponse{Result: "OK"}
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetProjectMember godoc
-// @Tags        Projects
-// @Summary     Get project member
-// @Description Get project member
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectId       path     string true "Project ID"
-// @Param       projectMemberId path     string true "Project Member ID"
-// @Success     200             {object} domain.GetProjectMemberResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId} [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project member
+//	@Description	Get project member
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			projectMemberId	path		string	true	"Project Member ID"
+//	@Success		200				{object}	outdomain.GetProjectMemberResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId} [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -602,7 +614,13 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	pmr := &domain.ProjectMemberResponse{
+	var out outdomain.GetProjectMemberResponse
+	if pm == nil {
+		ResponseJSON(w, r, http.StatusNotFound, out)
+		return
+	}
+
+	pmr := &outdomain.ProjectMemberResponse{
 		ID:                    pm.ID,
 		ProjectId:             pm.ProjectId,
 		ProjectUserId:         pm.ProjectUser.ID.String(),
@@ -616,26 +634,23 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 		UpdatedAt:             pm.UpdatedAt,
 	}
 
-	out := domain.GetProjectMemberResponse{ProjectMember: pmr}
-	if pm == nil {
-		ResponseJSON(w, r, http.StatusNotFound, out)
-		return
-	}
+	out.ProjectMember = pmr
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetProjectMembers godoc
-// @Tags        Projects
-// @Summary     Get project members
-// @Description Get project members
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectId      path     string true "Project ID"
-// @Param       query          query    string false "project member search by query (query=all), (query=leader), (query=member), (query=viewer)"
-// @Success     200            {object} domain.GetProjectMembersResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project members
+//	@Description	Get project members
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			query			query		string	false	"project member search by query (query=all), (query=leader), (query=member), (query=viewer)"
+//	@Success		200				{object}	outdomain.GetProjectMembersResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -680,15 +695,15 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var out domain.GetProjectMembersResponse
+	var out outdomain.GetProjectMembersResponse
 	if pms == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
 		return
 	}
 
-	pmrs := make([]domain.ProjectMemberResponse, 0)
+	pmrs := make([]outdomain.ProjectMemberResponse, 0)
 	for _, pm := range pms {
-		pmr := domain.ProjectMemberResponse{
+		pmr := outdomain.ProjectMemberResponse{
 			ID:                    pm.ID,
 			ProjectId:             pm.ProjectId,
 			ProjectUserId:         pm.ProjectUser.ID.String(),
@@ -704,7 +719,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 		pmrs = append(pmrs, pmr)
 	}
 
-	out = domain.GetProjectMembersResponse{ProjectMembers: pmrs}
+	out = outdomain.GetProjectMembersResponse{ProjectMembers: pmrs}
 	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -713,16 +728,17 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 }
 
 // GetProjectMemberCount godoc
-// @Tags        Projects
-// @Summary     Get project member count group by project role
-// @Description Get project member count group by project role
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectId      path     string true "Project ID"
-// @Success     200            {object} domain.GetProjectMemberCountResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members/count [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project member count group by project role
+//	@Description	Get project member count group by project role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Success		200				{object}	outdomain.GetProjectMemberCountResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members/count [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -748,24 +764,25 @@ func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Req
 	}
 
 	if pmcr == nil {
-		ResponseJSON(w, r, http.StatusNotFound, domain.GetProjectMembersResponse{})
+		ResponseJSON(w, r, http.StatusNotFound, outdomain.GetProjectMembersResponse{})
 		return
 	}
 	ResponseJSON(w, r, http.StatusOK, pmcr)
 }
 
 // RemoveProjectMember godoc
-// @Tags        Projects
-// @Summary     Remove project members to project
-// @Description Remove project members to project
-// @Accept      json
-// @Produce     json
-// @Param       organizationId  path     string true "Organization ID"
-// @Param       projectId       path     string true "Project ID"
-// @Param       projectMemberId path     string true "Project Member ID"
-// @Success     200            {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId} [delete]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Remove project members to project
+//	@Description	Remove project members to project
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			projectMemberId	path		string	true	"Project Member ID"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId} [delete]
+//	@Security		JWT
 func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -816,21 +833,22 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 		return
 
 	}
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
+	ResponseJSON(w, r, http.StatusOK, outdomain.CommonProjectResponse{Result: "OK"})
 }
 
 // RemoveProjectMembers godoc
-// @Tags        Projects
-// @Summary     Remove project members to project
-// @Description Remove project members to project
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                            true "Organization ID"
-// @Param       projectId      path     string                            true "Project ID"
-// @Param       request        body     domain.RemoveProjectMemberRequest true "Request body to remove project member"
-// @Success     200            {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members [delete]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Remove project members to project
+//	@Description	Remove project members to project
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string									true	"Organization ID"
+//	@Param			projectId		path		string									true	"Project ID"
+//	@Param			request			body		outdomain.RemoveProjectMemberRequest	true	"Request body to remove project member"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members [delete]
+//	@Security		JWT
 func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -849,7 +867,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var projectMemberReq domain.RemoveProjectMemberRequest
+	var projectMemberReq outdomain.RemoveProjectMemberRequest
 	if err := UnmarshalRequestInput(r, &projectMemberReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -883,22 +901,23 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 			return
 		}
 	}
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
+	ResponseJSON(w, r, http.StatusOK, outdomain.CommonProjectResponse{Result: "OK"})
 }
 
 // UpdateProjectMemberRole godoc
-// @Tags        Projects
-// @Summary     Update project  member   Role
-// @Description Update project  member   Role
-// @Accept      json
-// @Produce     json
-// @Param       organizationId  path     string                                true "Organization ID"
-// @Param       projectId       path     string                                true "Project ID"
-// @Param       projectMemberId path     string                                true "Project Member ID"
-// @Param       request         body     domain.UpdateProjectMemberRoleRequest true "Request body to update project member role"
-// @Success     200             {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role [put]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Update project  member   Role
+//	@Description	Update project  member   Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string										true	"Organization ID"
+//	@Param			projectId		path		string										true	"Project ID"
+//	@Param			projectMemberId	path		string										true	"Project Member ID"
+//	@Param			request			body		outdomain.UpdateProjectMemberRoleRequest	true	"Request body to update project member role"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role [put]
+//	@Security		JWT
 func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -924,7 +943,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var pmrReq domain.UpdateProjectMemberRoleRequest
+	var pmrReq outdomain.UpdateProjectMemberRoleRequest
 	if err := UnmarshalRequestInput(r, &pmrReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -980,21 +999,22 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		}
 	}
 
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
+	ResponseJSON(w, r, http.StatusOK, outdomain.CommonProjectResponse{Result: "OK"})
 }
 
 // UpdateProjectMembersRole godoc
-// @Tags        Projects
-// @Summary     Update project  member   Role
-// @Description Update project  member   Role
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                                 true "Organization ID"
-// @Param       projectId      path     string                                 true "Project ID"
-// @Param       request        body     domain.UpdateProjectMembersRoleRequest true "Request body to update project member role"
-// @Success     200             {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/members [put]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Update project  member   Role
+//	@Description	Update project  member   Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string										true	"Organization ID"
+//	@Param			projectId		path		string										true	"Project ID"
+//	@Param			request			body		outdomain.UpdateProjectMembersRoleRequest	true	"Request body to update project member role"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/members [put]
+//	@Security		JWT
 func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1014,7 +1034,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 	}
 
 	now := time.Now()
-	var projectMemberReq domain.UpdateProjectMembersRoleRequest
+	var projectMemberReq outdomain.UpdateProjectMembersRoleRequest
 	if err := UnmarshalRequestInput(r, &projectMemberReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -1071,21 +1091,22 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 		}
 	}
 
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
+	ResponseJSON(w, r, http.StatusOK, outdomain.CommonProjectResponse{Result: "OK"})
 }
 
 // CreateProjectNamespace godoc
-// @Tags        Projects
-// @Summary     Create project namespace
-// @Description Create project namespace
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                               true "Organization ID"
-// @Param       projectId      path     string                               true "Project ID"
-// @Param       request        body     domain.CreateProjectNamespaceRequest true "Request body to create project namespace"
-// @Success     200            {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces [post]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Create project namespace
+//	@Description	Create project namespace
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string										true	"Organization ID"
+//	@Param			projectId		path		string										true	"Project ID"
+//	@Param			request			body		outdomain.CreateProjectNamespaceRequest	true	"Request body to create project namespace"
+//	@Success		200				{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces [post]
+//	@Security		JWT
 func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1101,7 +1122,7 @@ func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var projectNamespaceReq domain.CreateProjectNamespaceRequest
+	var projectNamespaceReq outdomain.CreateProjectNamespaceRequest
 	if err := UnmarshalRequestInput(r, &projectNamespaceReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -1132,23 +1153,24 @@ func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Re
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	out := domain.CommonProjectResponse{Result: "OK"}
+	out := outdomain.CommonProjectResponse{Result: "OK"}
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // IsProjectNamespaceExist godoc
-// @Tags        Projects
-// @Summary     Check project namespace exist
-// @Description Check project namespace exist
-// @Accept      json
-// @Produce     json
-// @Param       organizationId   path     string true "Organization ID"
-// @Param       projectId        path     string true "Project ID"
-// @Param       stackId          path     string true "Project Stack ID"
-// @Param       projectNamespace path     string true "Project Namespace"
-// @Success     200              {object} domain.CheckExistedResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Check project namespace exist
+//	@Description	Check project namespace exist
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"Organization ID"
+//	@Param			projectId			path		string	true	"Project ID"
+//	@Param			stackId				path		string	true	"Project Stack ID"
+//	@Param			projectNamespace	path		string	true	"Project Namespace"
+//	@Success		200					{object}	outdomain.CheckExistedResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence [get]
+//	@Security		JWT
 func (p ProjectHandler) IsProjectNamespaceExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1182,23 +1204,24 @@ func (p ProjectHandler) IsProjectNamespaceExist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var out domain.CheckExistedResponse
+	var out outdomain.CheckExistedResponse
 	out.Existed = exist
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetProjectNamespaces godoc
-// @Tags        Projects
-// @Summary     Get project namespaces
-// @Description Get project namespaces
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectId      path     string true "Project ID"
-// @Success     200            {object} domain.GetProjectNamespacesResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project namespaces
+//	@Description	Get project namespaces
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Success		200				{object}	outdomain.GetProjectNamespacesResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1223,14 +1246,14 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var out domain.GetProjectNamespacesResponse
+	var out outdomain.GetProjectNamespacesResponse
 	if pns == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
 		return
 	}
-	pnrs := make([]domain.ProjectNamespaceResponse, 0)
+	pnrs := make([]outdomain.ProjectNamespaceResponse, 0)
 	for _, pn := range pns {
-		var pnr domain.ProjectNamespaceResponse
+		var pnr outdomain.ProjectNamespaceResponse
 		if err = serializer.Map(pn, &pnr); err != nil {
 			log.Error(err)
 			ErrorJSON(w, r, err)
@@ -1254,18 +1277,19 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 }
 
 // GetProjectNamespace godoc
-// @Tags        Projects
-// @Summary     Get project namespace
-// @Description Get project namespace
-// @Accept      json
-// @Produce     json
-// @Param       organizationId     path     string true "Organization ID"
-// @Param       projectId          path     string true "Project ID"
-// @Param       projectNamespace   path     string true "Project Namespace"
-// @Param       stackId            path     string true "Project Stack ID"
-// @Success     200                {object} domain.GetProjectNamespaceResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project namespace
+//	@Description	Get project namespace
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"Organization ID"
+//	@Param			projectId			path		string	true	"Project ID"
+//	@Param			projectNamespace	path		string	true	"Project Namespace"
+//	@Param			stackId				path		string	true	"Project Stack ID"
+//	@Success		200					{object}	outdomain.GetProjectNamespaceResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1307,13 +1331,13 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var out domain.GetProjectNamespaceResponse
+	var out outdomain.GetProjectNamespaceResponse
 	if pn == nil {
 		ResponseJSON(w, r, http.StatusNotFound, out)
 		return
 	}
 
-	var pnr domain.ProjectNamespaceResponse
+	var pnr outdomain.ProjectNamespaceResponse
 	if err = serializer.Map(*pn, &pnr); err != nil {
 		log.Error(err)
 		ErrorJSON(w, r, err)
@@ -1328,19 +1352,20 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 }
 
 // UpdateProjectNamespace godoc
-// @Tags        Projects
-// @Summary     Update project namespace
-// @Description Update project namespace
-// @Accept      json
-// @Produce     json
-// @Param       organizationId   path     string                               true "Organization ID"
-// @Param       projectId        path     string                               true "Project ID"
-// @Param       projectNamespace path     string                               true "Project Namespace"
-// @Param       stackId          path     string                               true "Project Stack ID"
-// @Param       request          body     domain.UpdateProjectNamespaceRequest true "Request body to update project namespace"
-// @Success     200              {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [put]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Update project namespace
+//	@Description	Update project namespace
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string										true	"Organization ID"
+//	@Param			projectId			path		string										true	"Project ID"
+//	@Param			projectNamespace	path		string										true	"Project Namespace"
+//	@Param			stackId				path		string										true	"Project Stack ID"
+//	@Param			request				body		outdomain.UpdateProjectNamespaceRequest	true	"Request body to update project namespace"
+//	@Success		200					{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [put]
+//	@Security		JWT
 func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1369,7 +1394,7 @@ func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var projectNamespaceReq domain.UpdateProjectNamespaceRequest
+	var projectNamespaceReq outdomain.UpdateProjectNamespaceRequest
 	if err := UnmarshalRequestInput(r, &projectNamespaceReq); err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -1391,22 +1416,23 @@ func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
+	ResponseJSON(w, r, http.StatusOK, outdomain.CommonProjectResponse{Result: "OK"})
 }
 
 // DeleteProjectNamespace godoc
-// @Tags        Projects
-// @Summary     Delete project namespace
-// @Description Delete project namespace
-// @Accept      json
-// @Produce     json
-// @Param       organizationId     path     string true "Organization ID"
-// @Param       projectId          path     string true "Project ID"
-// @Param       stackId            path     string true "Stack ID"
-// @Param       projectNamespace   path     string true "Project Namespace"
-// @Success     200                {object} domain.CommonProjectResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [delete]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Delete project namespace
+//	@Description	Delete project namespace
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"Organization ID"
+//	@Param			projectId			path		string	true	"Project ID"
+//	@Param			stackId				path		string	true	"Stack ID"
+//	@Param			projectNamespace	path		string	true	"Project Namespace"
+//	@Success		200					{object}	outdomain.CommonProjectResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [delete]
+//	@Security		JWT
 func (p ProjectHandler) DeleteProjectNamespace(w http.ResponseWriter, r *http.Request) {
 
 	//ToDo: from donggyu. uncomment lines below after implementing usecase.DeleteProjectNamespace.
@@ -1473,16 +1499,17 @@ func (p ProjectHandler) UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *
 }
 
 // GetProjectKubeconfig godoc
-// @Tags        Projects
-// @Summary     Get project kubeconfig
-// @Description Get project kubeconfig
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "Organization ID"
-// @Param       projectId      path     string true "Project ID"
-// @Success     200            {object} domain.GetProjectKubeconfigResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/kubeconfig [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get project kubeconfig
+//	@Description	Get project kubeconfig
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Success		200				{object}	outdomain.GetProjectKubeconfigResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/kubeconfig [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1506,7 +1533,7 @@ func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	out := domain.GetProjectKubeconfigResponse{
+	out := outdomain.GetProjectKubeconfigResponse{
 		Kubeconfig: kubeconfig,
 	}
 
@@ -1514,18 +1541,19 @@ func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Requ
 }
 
 // GetProjectNamespaceK8sResources godoc
-// @Tags        Projects
-// @Summary     Get k8s resources for project namespace
-// @Description Get k8s resources for project namespace
-// @Accept      json
-// @Produce     json
-// @Param       organizationId     path     string true "Organization ID"
-// @Param       projectId          path     string true "Project ID"
-// @Param       stackId            path     string true "Stack ID"
-// @Param       projectNamespace   path     string true "Project Namespace"
-// @Success     200                {object} domain.GetProjectNamespaceK8sResourcesResponse
-// @Router      /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources [get]
-// @Security    JWT
+//
+//	@Tags			Projects
+//	@Summary		Get k8s resources for project namespace
+//	@Description	Get k8s resources for project namespace
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"Organization ID"
+//	@Param			projectId			path		string	true	"Project ID"
+//	@Param			stackId				path		string	true	"Stack ID"
+//	@Param			projectNamespace	path		string	true	"Project Namespace"
+//	@Success		200					{object}	outdomain.GetProjectNamespaceK8sResourcesResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources [get]
+//	@Security		JWT
 func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -1551,14 +1579,14 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 		return
 	}
 
-	k8sResources, err := p.usecase.GetK8sResources(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
+	k8sResources, err := p.usecase.GetK8sResources(r.Context(), organizationId, projectId, projectNamespace, outdomain.StackId(stackId))
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	var out domain.GetProjectNamespaceK8sResourcesResponse
+	var out outdomain.GetProjectNamespaceK8sResourcesResponse
 	if err = serializer.Map(k8sResources, &out.K8sResources); err != nil {
 		log.Error(err)
 	}

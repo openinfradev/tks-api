@@ -31,15 +31,15 @@ func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 }
 
 // CreateOrganization godoc
-// @Tags        Organizations
-// @Summary     Create organization
-// @Description Create organization
-// @Accept      json
-// @Produce     json
-// @Param       body body     domain.CreateOrganizationRequest true "create organization request"
-// @Success     200  {object} object
-// @Router      /api/1.0/organizations [post]
-// @Security    JWT
+//	@Tags			Organizations
+//	@Summary		Create organization
+//	@Description	Create organization
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.CreateOrganizationRequest	true	"create organization request"
+//	@Success		200		{object}	object
+//	@Router			/api/1.0/organizations [post]
+//	@Security		JWT
 func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateOrganizationRequest{}
 
@@ -126,19 +126,19 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 }
 
 // GetOrganizations godoc
-// @Tags        Organizations
-// @Summary     Get organization list
-// @Description Get organization list
-// @Accept      json
-// @Produce     json
-// @Param       limit       query    string   false "pageSize"
-// @Param       page        query    string   false "pageNumber"
-// @Param       soertColumn query    string   false "sortColumn"
-// @Param       sortOrder   query    string   false "sortOrder"
-// @Param       filters     query    []string false "filters"
-// @Success     200         {object} []domain.ListOrganizationBody
-// @Router      /api/1.0/organizations [get]
-// @Security    JWT
+//	@Tags			Organizations
+//	@Summary		Get organization list
+//	@Description	Get organization list
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit		query		string		false	"pageSize"
+//	@Param			page		query		string		false	"pageNumber"
+//	@Param			soertColumn	query		string		false	"sortColumn"
+//	@Param			sortOrder	query		string		false	"sortOrder"
+//	@Param			filters		query		[]string	false	"filters"
+//	@Success		200			{object}	[]domain.ListOrganizationBody
+//	@Router			/api/1.0/organizations [get]
+//	@Security		JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
@@ -169,15 +169,15 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 }
 
 // GetOrganization godoc
-// @Tags        Organizations
-// @Summary     Get organization detail
-// @Description Get organization detail
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "organizationId"
-// @Success     200            {object} domain.GetOrganizationResponse
-// @Router      /api/1.0/organizations/{organizationId} [get]
-// @Security    JWT
+//	@Tags			Organizations
+//	@Summary		Get organization detail
+//	@Description	Get organization detail
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Success		200				{object}	domain.GetOrganizationResponse
+//	@Router			/api/1.0/organizations/{organizationId} [get]
+//	@Security		JWT
 func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -206,15 +206,15 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 }
 
 // DeleteOrganization godoc
-// @Tags        Organizations
-// @Summary     Delete organization
-// @Description Delete organization
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string true "organizationId"
-// @Success     200            {object} domain.Organization
-// @Router      /api/1.0/organizations/{organizationId} [delete]
-// @Security    JWT
+//	@Tags			Organizations
+//	@Summary		Delete organization
+//	@Description	Delete organization
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Success		200				{object}	domain.Organization
+//	@Router			/api/1.0/organizations/{organizationId} [delete]
+//	@Security		JWT
 func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -253,16 +253,16 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 }
 
 // UpdateOrganization godoc
-// @Tags        Organizations
-// @Summary     Update organization detail
-// @Description Update organization detail
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                           true "organizationId"
-// @Param       body           body     domain.UpdateOrganizationRequest true "update organization request"
-// @Success     200            {object} domain.UpdateOrganizationResponse
-// @Router      /api/1.0/organizations/{organizationId} [put]
-// @Security    JWT
+//	@Tags			Organizations
+//	@Summary		Update organization detail
+//	@Description	Update organization detail
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string								true	"organizationId"
+//	@Param			body			body		domain.UpdateOrganizationRequest	true	"update organization request"
+//	@Success		200				{object}	domain.UpdateOrganizationResponse
+//	@Router			/api/1.0/organizations/{organizationId} [put]
+//	@Security		JWT
 func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -298,16 +298,16 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 }
 
 // UpdatePrimaryCluster godoc
-// @Tags        Organizations
-// @Summary     Update primary cluster
-// @Description Update primary cluster
-// @Accept      json
-// @Produce     json
-// @Param       organizationId path     string                             true "organizationId"
-// @Param       body           body     domain.UpdatePrimaryClusterRequest true "update primary cluster request"
-// @Success     200            {object} nil
-// @Router      /api/1.0/organizations/{organizationId}/primary-cluster [patch]
-// @Security    JWT
+//	@Tags			Organizations
+//	@Summary		Update primary cluster
+//	@Description	Update primary cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string								true	"organizationId"
+//	@Param			body			body		domain.UpdatePrimaryClusterRequest	true	"update primary cluster request"
+//	@Success		200				{object}	nil
+//	@Router			/api/1.0/organizations/{organizationId}/primary-cluster [patch]
+//	@Security		JWT
 func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
