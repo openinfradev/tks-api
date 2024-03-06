@@ -1401,6 +1401,11 @@ definitions:
       k8sResources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceK8sResources'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse:
+    properties:
+      resourcesUsage:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResourcesUsage'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResponse:
     properties:
       projectNamespace:
@@ -1865,6 +1870,15 @@ definitions:
       statefulsets:
         type: integer
       updatedAt:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResourcesUsage:
+    properties:
+      cpu:
+        type: string
+      memory:
+        type: string
+      storage:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResponse:
@@ -5440,6 +5454,44 @@ paths:
       security:
       - JWT: []
       summary: Get k8s resources for project namespace
+      tags:
+      - Projects
+  /api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage:
+    get:
+      consumes:
+      - application/json
+      description: Get resources usage for project namespace
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Stack ID
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: Project Namespace
+        in: path
+        name: projectNamespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse'
+      security:
+      - JWT: []
+      summary: Get resources usage for project namespace
       tags:
       - Projects
   /api/1.0/organizations/{organizationId}/projects/existence:

@@ -183,3 +183,13 @@ type ProjectNamespaceK8sResources struct {
 type GetProjectNamespaceK8sResourcesResponse struct {
 	K8sResources ProjectNamespaceK8sResources `json:"k8sResources"`
 }
+
+type ProjectNamespaceResourcesUsage struct {
+	Cpu     string `json:"cpu"`
+	Memory  string `json:"memory"`
+	Storage string `json:"storage"`
+}
+
+type GetProjectNamespaceResourcesUsageResponse struct {
+	ResourcesUsage ProjectNamespaceResourcesUsage `json:"resourcesUsage"`
+}
