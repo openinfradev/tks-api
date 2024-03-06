@@ -16,6 +16,176 @@
     "host": "tks-api-dev.taco-cat.xyz",
     "basePath": "/",
     "paths": {
+        "/admin/1.0/stack-templates": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Create StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "description": "create stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/1.0/stack-templates/services": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get GetStackTemplateServices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get GetStackTemplateServices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateServicesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/1.0/stack-templates/{stackTemplateId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get StackTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Update StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "description": "Update stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete StackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Delete StackTemplate 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/api/1.0/admin/organizations/{organizationId}/users/{accountId}": {
             "get": {
                 "description": "Get user detail by admin",
@@ -5401,146 +5571,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Create StackTemplate",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Create StackTemplate 'NOT IMPLEMENTED'",
-                "parameters": [
-                    {
-                        "description": "create stack template request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/1.0/stack-templates/{stackTemplateId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get StackTemplate",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Get StackTemplate",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "stackTemplateId",
-                        "name": "stackTemplateId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update StackTemplate",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Update StackTemplate 'NOT IMPLEMENTED'",
-                "parameters": [
-                    {
-                        "description": "Update stack template request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Delete StackTemplate",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Delete StackTemplate 'NOT IMPLEMENTED'",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "stackTemplateId",
-                        "name": "stackTemplateId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
             }
         },
         "/organizations/{organizationId}/roles": {
@@ -7095,8 +7125,12 @@
         "github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest": {
             "type": "object",
             "required": [
+                "kubeType",
+                "kubeVersion",
                 "name",
+                "organizationIds",
                 "platform",
+                "serviceIds",
                 "template",
                 "version"
             ],
@@ -7112,11 +7146,29 @@
                 "description": {
                     "type": "string"
                 },
+                "kubeType": {
+                    "type": "string"
+                },
+                "kubeVersion": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
+                "organizationIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "platform": {
                     "type": "string"
+                },
+                "serviceIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "template": {
                     "type": "string"
@@ -7858,6 +7910,17 @@
             "properties": {
                 "stackTemplate": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateServicesResponse": {
+            "type": "object",
+            "properties": {
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse"
+                    }
                 }
             }
         },
@@ -8928,8 +8991,26 @@
                 "organizationId": {
                     "type": "string"
                 },
+                "organizationIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                    }
+                },
                 "platform": {
                     "type": "string"
+                },
+                "serviceIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "services": {
                     "type": "array",
@@ -8983,6 +9064,12 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse"
+                    }
                 },
                 "platform": {
                     "type": "string"

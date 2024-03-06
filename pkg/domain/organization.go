@@ -1,8 +1,9 @@
 package domain
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // enum
