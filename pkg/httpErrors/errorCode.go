@@ -77,6 +77,11 @@ var errorMap = map[ErrorCode]string{
 	"AG_NOT_FOUND_APPGROUP":        "지장한 앱그룹이 존재하지 않습니다.",
 	"AG_FAILED_TO_CREATE_APPGROUP": "앱그룹 생성에 실패하였습니다.",
 	"AG_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패하였습니다.",
+
+	// StackTemplate
+	"ST_CREATE_ALREADY_EXISTED_NAME": "스택 템플릿에 이미 존재하는 이름입니다.",
+	"ST_FAILED_UPDATE_ORGANIZATION":  "스택 템플릿에 조직을 설정하는데 실패했습니다.",
+	"ST_NOT_EXISTED_STACK_TEMPLATE":  "업데이트할 스택템플릿이 존재하지 않습니다.",
 }
 
 func (m ErrorCode) GetText() string {

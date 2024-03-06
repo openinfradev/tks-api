@@ -100,6 +100,7 @@ const (
 	GetStackTemplate
 	UpdateStackTemplate
 	DeleteStackTemplate
+	UpdateStackTemplateOrganizations
 
 	// Dashboard
 	GetChartsDashboard    // 대시보드/대시보드/조회

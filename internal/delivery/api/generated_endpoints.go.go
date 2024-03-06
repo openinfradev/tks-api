@@ -295,6 +295,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "DeleteStackTemplate", 
 		Group: "StackTemplate",
 	},
+    UpdateStackTemplateOrganizations: {
+		Name: "UpdateStackTemplateOrganizations", 
+		Group: "StackTemplate",
+	},
     GetChartsDashboard: {
 		Name: "GetChartsDashboard", 
 		Group: "Dashboard",
@@ -696,6 +700,8 @@ func (e Endpoint) String() string {
 		return "UpdateStackTemplate"
 	case DeleteStackTemplate:
 		return "DeleteStackTemplate"
+	case UpdateStackTemplateOrganizations:
+		return "UpdateStackTemplateOrganizations"
 	case GetChartsDashboard:
 		return "GetChartsDashboard"
 	case GetChartDashboard:
@@ -974,6 +980,8 @@ func GetEndpoint(name string) Endpoint {
 		return UpdateStackTemplate
 	case "DeleteStackTemplate":
 		return DeleteStackTemplate
+	case "UpdateStackTemplateOrganizations":
+		return UpdateStackTemplateOrganizations
 	case "GetChartsDashboard":
 		return GetChartsDashboard
 	case "GetChartDashboard":

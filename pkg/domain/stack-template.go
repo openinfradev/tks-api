@@ -105,9 +105,21 @@ type CreateStackTemplateResponse struct {
 }
 
 type UpdateStackTemplateRequest struct {
-	Description string `json:"description"`
+	Description  string   `json:"description"`
+	Template     string   `json:"template"`
+	TemplateType string   `json:"templateType"`
+	CloudService string   `json:"cloudService"`
+	Version      string   `json:"version"`
+	Platform     string   `json:"platform"`
+	KubeVersion  string   `json:"kubeVersion"`
+	KubeType     string   `json:"kubeType"`
+	ServiceIds   []string `json:"serviceIds" validate:"required"`
 }
 
 type GetStackTemplateServicesResponse struct {
 	Services []StackTemplateServiceResponse `json:"services"`
+}
+
+type UpdateStackTemplateOrganizationsRequest struct {
+	OrganizationIds []string `json:"organizationIds" validate:"required"`
 }

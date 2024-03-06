@@ -1014,6 +1014,22 @@ definitions:
       id:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleRequest:
+    properties:
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleResponse:
+    properties:
+      id:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateUserRequest:
     properties:
       accountId:
@@ -1138,6 +1154,15 @@ definitions:
     required:
     - accessKeyId
     - secretAccessKey
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.Endpoint:
+    properties:
+      createdAt:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
     properties:
@@ -1500,6 +1525,23 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackResponse'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetUserResponse:
     properties:
       user:
@@ -1574,6 +1616,15 @@ definitions:
         type: string
       updatedAt:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ListUserBody:
     properties:
@@ -1705,6 +1756,54 @@ definitions:
         type: integer
       totalRows:
         type: integer
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.Permission:
+    properties:
+      ID:
+        type: string
+      children:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      endpoints:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Endpoint'
+        type: array
+      id:
+        type: integer
+      is_allowed:
+        type: boolean
+      name:
+        type: string
+      parent:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+      parent_id:
+        type: string
+      role:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+      role_id:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.PermissionSet:
+    properties:
+      configuration:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+      dashboard:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+      notification:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+      project_management:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+      security_policy:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+      stack:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest:
     properties:
@@ -2367,6 +2466,13 @@ definitions:
     - newPassword
     - originPassword
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest:
+    properties:
+      permissions:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePrimaryClusterRequest:
     properties:
       primaryClusterId:
@@ -2410,9 +2516,45 @@ definitions:
       description:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateOrganizationsRequest:
+    properties:
+      organizationIds:
+        items:
+          type: string
+        type: array
+    required:
+    - organizationIds
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest:
     properties:
+      cloudService:
+        type: string
       description:
+        type: string
+      kubeType:
+        type: string
+      kubeVersion:
+        type: string
+      platform:
+        type: string
+      serviceIds:
+        items:
+          type: string
+        type: array
+      template:
+        type: string
+      templateType:
+        type: string
+      version:
+        type: string
+    required:
+    - serviceIds
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateTksRoleRequest:
+    properties:
+      description:
+        maxLength: 100
+        minLength: 0
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateUserRequest:
@@ -2586,7 +2728,6 @@ definitions:
       role:
         type: string
     required:
-    - adminPassword
     - email
     - role
     type: object
@@ -2670,6 +2811,49 @@ paths:
       summary: Get projects as admin
       tags:
       - Projects
+  /admin/organizations/{organizationId}/roles:
+    get:
+      description: Admin List Tks Roles
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse'
+      summary: Admin List Tks Roles
+      tags:
+      - Role
+  /admin/organizations/{organizationId}/roles/{roleId}:
+    get:
+      description: Admin Get Tks Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse'
+      summary: Admin Get Tks Role
+      tags:
+      - Role
   /admin/organizations/{organizationId}/users/{accountId}:
     get:
       consumes:
@@ -2730,6 +2914,46 @@ paths:
       tags:
       - Admin
   /admin/stack-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get StackTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get StackTemplates
+      tags:
+      - StackTemplates
     post:
       consumes:
       - application/json
@@ -2815,6 +3039,28 @@ paths:
       security:
       - JWT: []
       summary: Update StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+  /admin/stack-templates/{stackTemplateId}/organizations:
+    put:
+      consumes:
+      - application/json
+      description: Update StackTemplate organizations
+      parameters:
+      - description: Update stack template organizations request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateOrganizationsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update StackTemplate organizations
       tags:
       - StackTemplates
   /admin/stack-templates/services:
@@ -5659,6 +5905,178 @@ paths:
       summary: Get project role
       tags:
       - Projects
+  /organizations/{organizationId}/roles:
+    get:
+      description: List Tks Roles
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse'
+      security:
+      - JWT: []
+      summary: List Tks Roles
+      tags:
+      - Role
+    post:
+      consumes:
+      - application/json
+      description: Create Tks Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Create Tks Role Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleResponse'
+      security:
+      - JWT: []
+      summary: Create Tks Role
+      tags:
+      - Role
+  /organizations/{organizationId}/roles/{roleId}:
+    delete:
+      description: Delete Tks Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Tks Role
+      tags:
+      - Role
+    get:
+      description: Get Tks Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse'
+      security:
+      - JWT: []
+      summary: Get Tks Role
+      tags:
+      - Role
+    put:
+      consumes:
+      - application/json
+      description: Update Tks Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      - description: Update Tks Role Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateTksRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Tks Role
+      tags:
+      - Role
+  /organizations/{organizationId}/roles/{roleId}/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Get Permissions By Role ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet'
+      security:
+      - JWT: []
+      summary: Get Permissions By Role ID
+      tags:
+      - Permission
+    put:
+      consumes:
+      - application/json
+      description: Update Permissions By Role ID
+      parameters:
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      - description: Update Permissions By Role ID Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update Permissions By Role ID
+      tags:
+      - Permission
   /organizations/{organizationId}/stacks:
     get:
       consumes:
@@ -6195,47 +6613,23 @@ paths:
       summary: Get user email existence
       tags:
       - Users
-  /stack-templates:
+  /permissions/templates:
     get:
       consumes:
       - application/json
-      description: Get StackTemplates
-      parameters:
-      - description: pageSize
-        in: query
-        name: limit
-        type: string
-      - description: pageNumber
-        in: query
-        name: page
-        type: string
-      - description: sortColumn
-        in: query
-        name: soertColumn
-        type: string
-      - description: sortOrder
-        in: query
-        name: sortOrder
-        type: string
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: filters
-        type: array
+      description: Get Permission Templates
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet'
       security:
       - JWT: []
-      summary: Get StackTemplates
+      summary: Get Permission Templates
       tags:
-      - StackTemplates
+      - Permission
   /system-api/organizations/{organizationId}/alerts:
     post:
       consumes:

@@ -150,6 +150,21 @@ func (p *Pagination) Response() (out domain.PaginationResponse, err error) {
 	return out, err
 }
 
+func NewPaginationWithFilter(column string, releation string, op string, values []string) *Pagination {
+	pg := newDefaultPagination()
+
+	pg.Filters = append(pg.Filters, Filter{
+		Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
+		Relation: releation,
+		Operator: op,
+		Values:   values,
+		Or:       false,
+	})
+	pg.MakePaginationRequest()
+
+	return pg
+}
+
 func NewPagination(urlParams *url.Values) *Pagination {
 	pg := newDefaultPagination()
 
