@@ -1101,8 +1101,8 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 //	@Description	Create project namespace
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string										true	"Organization ID"
-//	@Param			projectId		path		string										true	"Project ID"
+//	@Param			organizationId	path		string									true	"Organization ID"
+//	@Param			projectId		path		string									true	"Project ID"
 //	@Param			request			body		outdomain.CreateProjectNamespaceRequest	true	"Request body to create project namespace"
 //	@Success		200				{object}	outdomain.CommonProjectResponse
 //	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces [post]
@@ -1358,10 +1358,10 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 //	@Description	Update project namespace
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId		path		string										true	"Organization ID"
-//	@Param			projectId			path		string										true	"Project ID"
-//	@Param			projectNamespace	path		string										true	"Project Namespace"
-//	@Param			stackId				path		string										true	"Project Stack ID"
+//	@Param			organizationId		path		string									true	"Organization ID"
+//	@Param			projectId			path		string									true	"Project ID"
+//	@Param			projectNamespace	path		string									true	"Project Namespace"
+//	@Param			stackId				path		string									true	"Project Stack ID"
 //	@Param			request				body		outdomain.UpdateProjectNamespaceRequest	true	"Request body to update project namespace"
 //	@Success		200					{object}	outdomain.CommonProjectResponse
 //	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId} [put]
