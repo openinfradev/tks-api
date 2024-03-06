@@ -69,60 +69,76 @@ func (r *ProjectRepository) GetProjects(organizationId string, userId uuid.UUID,
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
 		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
-		"  from projects as p, "+
-		"       (select pm.project_id, pm.project_user_id, pm.project_role_id, pm.created_at, pm.is_project_leader, "+
+		"  from projects as p "+
+		"  left join "+
+		"       (select pm.project_id as project_id, pm.project_user_id as project_user_id, pm.project_role_id as project_role_id, "+
+		"               pm.created_at as created_at, pm.is_project_leader as is_project_leader, "+
 		"               pr.name as pr_name "+
 		"          from project_members as pm "+
 		"          left join project_roles as pr on pr.id = pm.project_role_id "+
 		"          left join users on users.id = pm.project_user_id "+
-		"         where pm.project_user_id = @userId) as pm, "+
-		"       (select count(pn.stack_id || pn.project_id) as count "+
+		"         where pm.project_user_id = @userId) as pm on p.id = pm.project_id "+
+		"  left join "+
+		"       (select p.id as project_id, count(pn.stack_id || pn.project_id) as count "+
 		"          from project_namespaces as pn "+
 		"          left join projects as p on pn.project_id = p.id "+
 		"          left join project_members as pm on pn.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId) as pn, "+
-		"       (select count(asa.id) as count "+
+		"           and pm.project_user_id = @userId "+
+		"         group by p.id) as pn on p.id = pn.project_id "+
+		"  left join "+
+		"       (select p.id as project_id, count(asa.id) as count "+
 		"          from app_serve_apps as asa "+
 		"          left join projects as p on asa.project_id = p.id "+
 		"          left join project_members as pm on asa.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId) as asa, "+
-		"       (select count(pm.id) as count "+
+		"           and pm.project_user_id = @userId "+
+		"         group by p.id) as asa on p.id = asa.project_id "+
+		"  left join "+
+		"       (select p.id as project_id, count(pm.id) as count "+
 		"          from project_members as pm "+
 		"          left join projects as p on pm.project_id = p.id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId) as pm_count "+
+		"           and pm.project_user_id = @userId "+
+		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId "+
 		"union "+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       false as is_my_project, '' as project_role_id, '' as project_role_name, "+
 		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
-		"  from projects as p, "+
-		"       (select pm.project_id, pm.project_user_id, pm.project_role_id, pm.created_at, pm.is_project_leader, "+
+		"  from projects as p "+
+		"  left join "+
+		"       (select pm.project_id as project_id, pm.project_user_id as project_user_id, pm.project_role_id as project_role_id, "+
+		"               pm.created_at as created_at, pm.is_project_leader as is_project_leader, "+
 		"               pr.name as pr_name "+
 		"          from project_members as pm "+
 		"          left join project_roles as pr on pr.id = pm.project_role_id "+
 		"          left join users on users.id = pm.project_user_id "+
-		"         where pm.project_user_id <> @userId) as pm, "+
-		"       (select count(pn.stack_id || pn.project_id) as count "+
+		"         where pm.project_user_id <> @userId) as pm on p.id = pm.project_id "+
+		"  left join "+
+		"       (select p.id as project_id, count(pn.stack_id || pn.project_id) as count "+
 		"          from project_namespaces as pn "+
 		"          left join projects as p on pn.project_id = p.id "+
 		"          left join project_members as pm on pn.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id <> @userId) as pn, "+
-		"       (select count(asa.id) as count "+
+		"           and pm.project_user_id <> @userId "+
+		"         group by p.id) as pn on p.id = pn.project_id "+
+		"  left join "+
+		"       (select p.id as project_id, count(asa.id) as count "+
 		"          from app_serve_apps as asa "+
 		"          left join projects as p on asa.project_id = p.id "+
 		"          left join project_members as pm on asa.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id <> @userId) as asa, "+
-		"       (select count(pm.id) as count "+
+		"           and pm.project_user_id <> @userId "+
+		"         group by p.id) as asa on p.id = asa.project_id "+
+		"  left join "+
+		"       (select p.id as project_id, count(pm.id) as count "+
 		"          from project_members as pm "+
 		"          left join projects as p on pm.project_id = p.id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id <> @userId) as pm_count "+
+		"           and pm.project_user_id <> @userId "+
+		"         group by p.id) as pm_count on p.id = pm_count.project_id"+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId "+
 		"   and p.id not in (select projects.id "+
