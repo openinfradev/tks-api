@@ -178,11 +178,17 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quotas", customMiddleware.Handle(internalApi.GetResourceQuota, http.HandlerFunc(cloudAccountHandler.GetResourceQuota))).Methods(http.MethodGet)
 
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecaseFactory)
+	/* REMOVE START */
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", customMiddleware.Handle(internalApi.GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates", customMiddleware.Handle(internalApi.CreateStackTemplate, http.HandlerFunc(stackTemplateHandler.CreateStackTemplate))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.GetStackTemplate, http.HandlerFunc(stackTemplateHandler.GetStackTemplate))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.UpdateStackTemplate, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.DeleteStackTemplate, http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate))).Methods(http.MethodDelete)
+	/* REMOVE END */
+
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates", customMiddleware.Handle(internalApi.GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates", customMiddleware.Handle(internalApi.CreateStackTemplate, http.HandlerFunc(stackTemplateHandler.CreateStackTemplate))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/services", customMiddleware.Handle(internalApi.GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplateServices))).Methods(http.MethodGet)
 
 	dashboardHandler := delivery.NewDashboardHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", customMiddleware.Handle(internalApi.GetChartsDashboard, http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)

@@ -2,9 +2,10 @@ package database
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/delivery/api"
 	"os"
 	"strings"
+
+	"github.com/openinfradev/tks-api/internal/delivery/api"
 
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"

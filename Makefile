@@ -1,6 +1,7 @@
 .PHONY: docs
 docs:
 	swag init -g ./cmd/server/main.go --parseDependency --parseInternal -o ./api/swagger
+	swag fmt
 
 .PHONY: build
 build:
@@ -18,5 +19,6 @@ test:
 .PHONY: dev_run
 dev_run: 
 	swag init -g ./cmd/server/main.go --parseDependency --parseInternal -o ./api/swagger
+	swag fmt
 	go build ./cmd/server/main.go
 	./main

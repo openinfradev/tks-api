@@ -974,10 +974,22 @@ definitions:
         type: string
       description:
         type: string
+      kubeType:
+        type: string
+      kubeVersion:
+        type: string
       name:
         type: string
+      organizationIds:
+        items:
+          type: string
+        type: array
       platform:
         type: string
+      serviceIds:
+        items:
+          type: string
+        type: array
       template:
         type: string
       templateType:
@@ -988,8 +1000,12 @@ definitions:
       version:
         type: string
     required:
+    - kubeType
+    - kubeVersion
     - name
+    - organizationIds
     - platform
+    - serviceIds
     - template
     - version
     type: object
@@ -1462,6 +1478,13 @@ definitions:
     properties:
       stackTemplate:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateServicesResponse:
+    properties:
+      services:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse:
     properties:
@@ -2163,8 +2186,20 @@ definitions:
         type: string
       organizationId:
         type: string
+      organizationIds:
+        items:
+          type: string
+        type: array
+      organizations:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+        type: array
       platform:
         type: string
+      serviceIds:
+        items:
+          type: string
+        type: array
       services:
         items:
           type: integer
@@ -2200,6 +2235,10 @@ definitions:
         type: string
       name:
         type: string
+      organizations:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse'
+        type: array
       platform:
         type: string
       services:
@@ -2684,6 +2723,111 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/1.0/stack-templates:
+    post:
+      consumes:
+      - application/json
+      description: Create StackTemplate
+      parameters:
+      - description: create stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Create StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+  /admin/1.0/stack-templates/{stackTemplateId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete StackTemplate
+      parameters:
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+    get:
+      consumes:
+      - application/json
+      description: Get StackTemplate
+      parameters:
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get StackTemplate
+      tags:
+      - StackTemplates
+    put:
+      consumes:
+      - application/json
+      description: Update StackTemplate
+      parameters:
+      - description: Update stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update StackTemplate 'NOT IMPLEMENTED'
+      tags:
+      - StackTemplates
+  /admin/1.0/stack-templates/services:
+    get:
+      consumes:
+      - application/json
+      description: Get GetStackTemplateServices
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateServicesResponse'
+      security:
+      - JWT: []
+      summary: Get GetStackTemplateServices
+      tags:
+      - StackTemplates
   /api/1.0/admin/organizations/{organizationId}/users/{accountId}:
     get:
       consumes:
@@ -6105,93 +6249,6 @@ paths:
       security:
       - JWT: []
       summary: Get StackTemplates
-      tags:
-      - StackTemplates
-    post:
-      consumes:
-      - application/json
-      description: Create StackTemplate
-      parameters:
-      - description: create stack template request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse'
-      security:
-      - JWT: []
-      summary: Create StackTemplate 'NOT IMPLEMENTED'
-      tags:
-      - StackTemplates
-  /api/1.0/stack-templates/{stackTemplateId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete StackTemplate
-      parameters:
-      - description: stackTemplateId
-        in: path
-        name: stackTemplateId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Delete StackTemplate 'NOT IMPLEMENTED'
-      tags:
-      - StackTemplates
-    get:
-      consumes:
-      - application/json
-      description: Get StackTemplate
-      parameters:
-      - description: stackTemplateId
-        in: path
-        name: stackTemplateId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse'
-      security:
-      - JWT: []
-      summary: Get StackTemplate
-      tags:
-      - StackTemplates
-    put:
-      consumes:
-      - application/json
-      description: Update StackTemplate
-      parameters:
-      - description: Update stack template request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Update StackTemplate 'NOT IMPLEMENTED'
       tags:
       - StackTemplates
   /organizations/{organizationId}/roles:
