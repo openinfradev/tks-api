@@ -36,7 +36,7 @@ func NewStackTemplateHandler(h usecase.Usecase) *StackTemplateHandler {
 //	@Produce		json
 //	@Param			body	body		domain.CreateStackTemplateRequest	true	"create stack template request"
 //	@Success		200		{object}	domain.CreateStackTemplateResponse
-//	@Router			/admin/1.0/stack-templates [post]
+//	@Router			/admin/stack-templates [post]
 //	@Security		JWT
 func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateStackTemplateRequest{}
@@ -76,7 +76,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
 //	@Success		200			{object}	domain.GetStackTemplatesResponse
-//	@Router			/api/1.0/stack-templates [get]
+//	@Router			/stack-templates [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -116,7 +116,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 //	@Produce		json
 //	@Param			stackTemplateId	path		string	true	"stackTemplateId"
 //	@Success		200				{object}	domain.GetStackTemplateResponse
-//	@Router			/admin/1.0/stack-templates/{stackTemplateId} [get]
+//	@Router			/admin/stack-templates/{stackTemplateId} [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -168,7 +168,7 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 //	@Produce		json
 //	@Param			body	body		domain.UpdateStackTemplateRequest	true	"Update stack template request"
 //	@Success		200		{object}	nil
-//	@Router			/admin/1.0/stack-templates/{stackTemplateId} [put]
+//	@Router			/admin/stack-templates/{stackTemplateId} [put]
 //	@Security		JWT
 func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *http.Request) {
 	/*
@@ -210,7 +210,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 //	@Produce		json
 //	@Param			stackTemplateId	path		string	true	"stackTemplateId"
 //	@Success		200				{object}	nil
-//	@Router			/admin/1.0/stack-templates/{stackTemplateId} [delete]
+//	@Router			/admin/stack-templates/{stackTemplateId} [delete]
 //	@Security		JWT
 func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -231,7 +231,7 @@ func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *htt
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	domain.GetStackTemplateServicesResponse
-//	@Router			/admin/1.0/stack-templates/services [get]
+//	@Router			/admin/stack-templates/services [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetStackTemplateServices(w http.ResponseWriter, r *http.Request) {
 

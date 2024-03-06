@@ -28,6 +28,7 @@ func NewAlertHandler(h usecase.Usecase) *AlertHandler {
 }
 
 // CreateAlert godoc
+//
 //	@Tags			Alerts
 //	@Summary		Create alert. ADMIN ONLY
 //	@Description	Create alert. ADMIN ONLY
@@ -72,6 +73,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAlert godoc
+//
 //	@Tags			Alerts
 //	@Summary		Get Alerts
 //	@Description	Get Alerts
@@ -84,7 +86,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
 //	@Success		200				{object}	domain.GetAlertsResponse
-//	@Router			/api/1.0/organizations/{organizationId}/alerts [get]
+//	@Router			/organizations/{organizationId}/alerts [get]
 //	@Security		JWT
 func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -147,6 +149,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAlert godoc
+//
 //	@Tags			Alerts
 //	@Summary		Get Alert
 //	@Description	Get Alert
@@ -155,7 +158,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			alertId			path		string	true	"alertId"
 //	@Success		200				{object}	domain.GetAlertResponse
-//	@Router			/api/1.0/organizations/{organizationId}/alerts/{alertId} [get]
+//	@Router			/organizations/{organizationId}/alerts/{alertId} [get]
 //	@Security		JWT
 func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -194,6 +197,7 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateAlert godoc
+//
 //	@Tags			Alerts
 //	@Summary		Update Alert
 //	@Description	Update Alert
@@ -202,13 +206,14 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string						true	"organizationId"
 //	@Param			body			body		domain.UpdateAlertRequest	true	"Update cloud setting request"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/alerts/{alertId} [put]
+//	@Router			/organizations/{organizationId}/alerts/{alertId} [put]
 //	@Security		JWT
 func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("Need implementation"))
 }
 
 // DeleteAlert godoc
+//
 //	@Tags			Alerts
 //	@Summary		Delete Alert
 //	@Description	Delete Alert
@@ -217,7 +222,7 @@ func (h *AlertHandler) UpdateAlert(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			alertId			path		string	true	"alertId"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/alerts/{alertId} [delete]
+//	@Router			/organizations/{organizationId}/alerts/{alertId} [delete]
 //	@Security		JWT
 func (h *AlertHandler) DeleteAlert(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("Need implementation"))
@@ -234,6 +239,7 @@ func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateAlertAction godoc
+//
 //	@Tags			Alerts
 //	@Summary		Create alert action
 //	@Description	Create alert action
@@ -241,7 +247,7 @@ func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/alerts/{alertId}/actions [post]
+//	@Router			/organizations/{organizationId}/alerts/{alertId}/actions [post]
 //	@Security		JWT
 func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

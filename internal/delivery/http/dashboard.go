@@ -24,6 +24,7 @@ func NewDashboardHandler(h usecase.Usecase) *DashboardHandler {
 }
 
 // GetCharts godoc
+//
 //	@Tags			Dashboards
 //	@Summary		Get charts data
 //	@Description	Get charts data
@@ -34,7 +35,7 @@ func NewDashboardHandler(h usecase.Usecase) *DashboardHandler {
 //	@Param			duration		query		string	true	"duration"
 //	@Param			interval		query		string	true	"interval"
 //	@Success		200				{object}	domain.GetDashboardChartsResponse
-//	@Router			/api/1.0/organizations/{organizationId}/dashboard/charts [get]
+//	@Router			/organizations/{organizationId}/dashboard/charts [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -83,6 +84,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetCharts godoc
+//
 //	@Tags			Dashboards
 //	@Summary		Get chart data
 //	@Description	Get chart data
@@ -93,7 +95,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 //	@Param			duration		query		string	true	"duration"
 //	@Param			interval		query		string	true	"interval"
 //	@Success		200				{object}	domain.GetDashboardChartResponse
-//	@Router			/api/1.0/organizations/{organizationId}/dashboard/charts/{chartType} [get]
+//	@Router			/organizations/{organizationId}/dashboard/charts/{chartType} [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -159,6 +161,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStacks godoc
+//
 //	@Tags			Dashboards
 //	@Summary		Get stacks
 //	@Description	Get stacks
@@ -166,7 +169,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Success		200				{object}	domain.GetDashboardStacksResponse
-//	@Router			/api/1.0/organizations/{organizationId}/dashboard/stacks [get]
+//	@Router			/organizations/{organizationId}/dashboard/stacks [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -200,6 +203,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetResources godoc
+//
 //	@Tags			Dashboards
 //	@Summary		Get resources
 //	@Description	Get resources
@@ -207,7 +211,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Success		200				{object}	domain.GetDashboardResourcesResponse
-//	@Router			/api/1.0/organizations/{organizationId}/dashboard/resources [get]
+//	@Router			/organizations/{organizationId}/dashboard/resources [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
