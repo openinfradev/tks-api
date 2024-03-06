@@ -1592,3 +1592,55 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 	}
 	ResponseJSON(w, r, http.StatusOK, out)
 }
+
+// GetProjectNamespaceResourcesUsage godoc
+//	@Tags			Projects
+//	@Summary		Get resources usage for project namespace
+//	@Description	Get resources usage for project namespace
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"Organization ID"
+//	@Param			projectId			path		string	true	"Project ID"
+//	@Param			stackId				path		string	true	"Stack ID"
+//	@Param			projectNamespace	path		string	true	"Project Namespace"
+//	@Success		200					{object}	domain.GetProjectNamespaceResourcesUsageResponse
+//	@Router			/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage [get]
+//	@Security		JWT
+func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found in path"), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	projectNamespace, ok := vars["projectNamespace"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectNamespace"), "C_INVALID_PROJECT_NAMESPACE", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	resourcesUsage, err := p.usecase.GetResourcesUsage(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
+	if err != nil {
+		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetProjectNamespaceResourcesUsageResponse
+	if err = serializer.Map(resourcesUsage, &out.ResourcesUsage); err != nil {
+		log.Error(err)
+	}
+	ResponseJSON(w, r, http.StatusOK, out)
+}

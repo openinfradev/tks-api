@@ -56,6 +56,7 @@ type IProjectUsecase interface {
 	DeleteK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
 	GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error)
 	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId out_domain.StackId) (out out_domain.ProjectNamespaceK8sResources, err error)
+	GetResourcesUsage(ctx context.Context, organizationId string, projectId string, namespace string, stackId out_domain.StackId) (out out_domain.ProjectNamespaceResourcesUsage, err error)
 	AssignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error
 	UnassignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, stackId string, projectMemberId string) error
 }
@@ -772,6 +773,15 @@ func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId str
 		out.Jobs = len(jobs.Items)
 	} else {
 		log.ErrorWithContext(ctx, "Failed to get jobs. err : ", err)
+	}
+
+	return
+}
+
+func (u *ProjectUsecase) GetResourcesUsage(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceResourcesUsage, err error) {
+	_, err = u.clusterRepository.Get(domain.ClusterId(stackId))
+	if err != nil {
+		return out, errors.Wrap(err, fmt.Sprintf("Failed to get cluster : stackId %s", stackId))
 	}
 
 	return
