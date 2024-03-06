@@ -192,34 +192,37 @@ func NewPagination(urlParams *url.Values) *Pagination {
 				for _, filterValue := range value {
 					arr := strings.Split(filterValue, "|")
 
-					column := arr[0]
-					releation := ""
-					arrColumns := strings.Split(column, ".")
-					if len(arrColumns) > 1 {
-						releation = arrColumns[0]
-						column = arrColumns[1]
+					columns := strings.Split(arr[0], ",")
+					for i, column := range columns {
+						releation := ""
+						arrColumns := strings.Split(column, ".")
+						if len(arrColumns) > 1 {
+							releation = arrColumns[0]
+							column = arrColumns[1]
+						}
+
+						trimmedStr := strings.Trim(arr[1], "[]")
+						values := strings.Split(trimmedStr, ",")
+
+						op := "$cont"
+						if len(arr) == 3 {
+							op = arr[2]
+						}
+
+						or := false
+						if i > 0 || key == OR || key == OR_ARRAY {
+							or = true
+						}
+
+						pg.Filters = append(pg.Filters, Filter{
+							Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
+							Relation: releation,
+							Operator: op,
+							Values:   values,
+							Or:       or,
+						})
+
 					}
-
-					trimmedStr := strings.Trim(arr[1], "[]")
-					values := strings.Split(trimmedStr, ",")
-
-					op := "$cont"
-					if len(arr) == 3 {
-						op = arr[2]
-					}
-
-					or := false
-					if key == OR || key == OR_ARRAY {
-						or = true
-					}
-
-					pg.Filters = append(pg.Filters, Filter{
-						Column:   helper.ToSnakeCase(strings.Replace(column, "[]", "", -1)),
-						Relation: releation,
-						Operator: op,
-						Values:   values,
-						Or:       or,
-					})
 				}
 			}
 		}
