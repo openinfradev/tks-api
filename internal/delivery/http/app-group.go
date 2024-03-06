@@ -25,6 +25,7 @@ func NewAppGroupHandler(h usecase.Usecase) *AppGroupHandler {
 }
 
 // CreateAppGroup godoc
+//
 //	@Tags			AppGroups
 //	@Summary		Install appGroup
 //	@Description	Install appGroup
@@ -32,7 +33,7 @@ func NewAppGroupHandler(h usecase.Usecase) *AppGroupHandler {
 //	@Produce		json
 //	@Param			body	body		domain.CreateAppGroupRequest	true	"create appgroup request"
 //	@Success		200		{object}	domain.CreateAppGroupResponse
-//	@Router			/api/1.0/app-groups [post]
+//	@Router			/app-groups [post]
 //	@Security		JWT
 func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateAppGroupRequest{}
@@ -60,6 +61,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 }
 
 // GetAppGroups godoc
+//
 //	@Tags			AppGroups
 //	@Summary		Get appGroup list
 //	@Description	Get appGroup list by giving params
@@ -72,7 +74,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
 //	@Success		200			{object}	domain.GetAppGroupsResponse
-//	@Router			/api/1.0/app-groups [get]
+//	@Router			/app-groups [get]
 //	@Security		JWT
 func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -107,6 +109,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAppGroup godoc
+//
 //	@Tags			AppGroups
 //	@Summary		Get appGroup detail
 //	@Description	Get appGroup detail by appGroupId
@@ -114,7 +117,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			appGroupId	path		string	true	"appGroupId"
 //	@Success		200			{object}	domain.GetAppGroupResponse
-//	@Router			/api/1.0/app-groups/{appGroupId} [get]
+//	@Router			/app-groups/{appGroupId} [get]
 //	@Security		JWT
 func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -143,6 +146,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteAppGroup godoc
+//
 //	@Tags			AppGroups
 //	@Summary		Uninstall appGroup
 //	@Description	Uninstall appGroup
@@ -150,7 +154,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			object	body		string	true	"body"
 //	@Success		200		{object}	nil
-//	@Router			/api/1.0/app-groups [delete]
+//	@Router			/app-groups [delete]
 //	@Security		JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -177,6 +181,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 }
 
 // GetApplications godoc
+//
 //	@Tags			AppGroups
 //	@Summary		Get applications
 //	@Description	Get applications
@@ -185,7 +190,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 //	@Param			appGroupId		path		string	true	"appGroupId"
 //	@Param			applicationType	query		string	true	"applicationType"
 //	@Success		200				{object}	domain.GetApplicationsResponse
-//	@Router			/api/1.0/app-groups/{appGroupId}/applications [get]
+//	@Router			/app-groups/{appGroupId}/applications [get]
 //	@Security		JWT
 func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -229,6 +234,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 }
 
 // CreateApplication godoc
+//
 //	@Tags			AppGroups
 //	@Summary		Create application
 //	@Description	Create application
@@ -236,7 +242,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 //	@Produce		json
 //	@Param			object	body		domain.CreateApplicationRequest	true	"body"
 //	@Success		200		{object}	nil
-//	@Router			/api/1.0/app-groups/{appGroupId}/applications [post]
+//	@Router			/app-groups/{appGroupId}/applications [post]
 //	@Security		JWT
 func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

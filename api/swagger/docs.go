@@ -22,7 +22,97 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/1.0/stack-templates": {
+        "/admin/organizations/{organizationId}/users/{accountId}": {
+            "get": {
+                "description": "Get user detail by admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get user detail by admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user by admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update user by admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/stack-templates": {
             "post": {
                 "security": [
                     {
@@ -61,7 +151,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/1.0/stack-templates/services": {
+        "/admin/stack-templates/services": {
             "get": {
                 "security": [
                     {
@@ -89,7 +179,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/1.0/stack-templates/{stackTemplateId}": {
+        "/admin/stack-templates/{stackTemplateId}": {
             "get": {
                 "security": [
                     {
@@ -192,97 +282,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/admin/organizations/{organizationId}/users/{accountId}": {
-            "get": {
-                "description": "Get user detail by admin",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "summary": "Get user detail by admin",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "accountId",
-                        "name": "accountId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update user by admin",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "summary": "Update user by admin",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "accountId",
-                        "name": "accountId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "input",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/1.0/app-groups": {
+        "/app-groups": {
             "get": {
                 "security": [
                     {
@@ -423,7 +423,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/app-groups/{appGroupId}": {
+        "/app-groups/{appGroupId}": {
             "get": {
                 "security": [
                     {
@@ -460,7 +460,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/app-groups/{appGroupId}/applications": {
+        "/app-groups/{appGroupId}/applications": {
             "get": {
                 "security": [
                     {
@@ -538,7 +538,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/find-id/code": {
+        "/auth/find-id/code": {
             "post": {
                 "description": "This API allows users to verify their identity for lost id by submitting required information",
                 "consumes": [
@@ -578,7 +578,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/find-id/verification": {
+        "/auth/find-id/verification": {
             "post": {
                 "description": "This API allows users to find their account ID by submitting required information",
                 "consumes": [
@@ -618,7 +618,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/find-password/code": {
+        "/auth/find-password/code": {
             "post": {
                 "description": "This API allows users to verify their identity for lost password by submitting required information",
                 "consumes": [
@@ -658,7 +658,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/find-password/verification": {
+        "/auth/find-password/verification": {
             "post": {
                 "description": "This API allows users to reset their forgotten password by submitting required information",
                 "consumes": [
@@ -695,7 +695,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/login": {
+        "/auth/login": {
             "post": {
                 "description": "login",
                 "consumes": [
@@ -729,7 +729,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/logout": {
+        "/auth/logout": {
             "post": {
                 "security": [
                     {
@@ -757,7 +757,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/auth/ping": {
+        "/auth/ping": {
             "post": {
                 "description": "ping with token",
                 "consumes": [
@@ -788,7 +788,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters": {
+        "/clusters": {
             "get": {
                 "security": [
                     {
@@ -895,7 +895,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters/import": {
+        "/clusters/import": {
             "post": {
                 "security": [
                     {
@@ -934,7 +934,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters/{clusterId}": {
+        "/clusters/{clusterId}": {
             "get": {
                 "security": [
                     {
@@ -1006,7 +1006,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters/{clusterId}/bootstrap-kubeconfig": {
+        "/clusters/{clusterId}/bootstrap-kubeconfig": {
             "get": {
                 "security": [
                     {
@@ -1060,7 +1060,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters/{clusterId}/install": {
+        "/clusters/{clusterId}/install": {
             "post": {
                 "security": [
                     {
@@ -1094,7 +1094,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters/{clusterId}/nodes": {
+        "/clusters/{clusterId}/nodes": {
             "get": {
                 "security": [
                     {
@@ -1131,7 +1131,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/clusters/{clusterId}/site-values": {
+        "/clusters/{clusterId}/site-values": {
             "get": {
                 "security": [
                     {
@@ -1168,7 +1168,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations": {
+        "/organizations": {
             "get": {
                 "security": [
                     {
@@ -1272,7 +1272,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}": {
+        "/organizations/{organizationId}": {
             "get": {
                 "security": [
                     {
@@ -1388,7 +1388,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/alerts": {
+        "/organizations/{organizationId}/alerts": {
             "get": {
                 "security": [
                     {
@@ -1459,7 +1459,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/alerts/{alertId}": {
+        "/organizations/{organizationId}/alerts/{alertId}": {
             "get": {
                 "security": [
                     {
@@ -1583,7 +1583,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/alerts/{alertId}/actions": {
+        "/organizations/{organizationId}/alerts/{alertId}/actions": {
             "post": {
                 "security": [
                     {
@@ -1617,7 +1617,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/audits": {
+        "/organizations/{organizationId}/audits": {
             "get": {
                 "security": [
                     {
@@ -1728,7 +1728,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/audits/{auditId}": {
+        "/organizations/{organizationId}/audits/{auditId}": {
             "get": {
                 "security": [
                     {
@@ -1797,7 +1797,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/cloud-accounts": {
+        "/organizations/{organizationId}/cloud-accounts": {
             "get": {
                 "security": [
                     {
@@ -1912,7 +1912,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence": {
+        "/organizations/{organizationId}/cloud-accounts/aws-account-id/{awsAccountId}/existence": {
             "get": {
                 "security": [
                     {
@@ -1956,7 +1956,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/cloud-accounts/name/{name}/existence": {
+        "/organizations/{organizationId}/cloud-accounts/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -2000,7 +2000,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}": {
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}": {
             "get": {
                 "security": [
                     {
@@ -2133,7 +2133,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error": {
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/error": {
             "delete": {
                 "security": [
                     {
@@ -2174,7 +2174,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota": {
+        "/organizations/{organizationId}/cloud-accounts/{cloudAccountId}/quota": {
             "get": {
                 "security": [
                     {
@@ -2218,7 +2218,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/dashboard/charts": {
+        "/organizations/{organizationId}/dashboard/charts": {
             "get": {
                 "security": [
                     {
@@ -2275,7 +2275,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/dashboard/charts/{chartType}": {
+        "/organizations/{organizationId}/dashboard/charts/{chartType}": {
             "get": {
                 "security": [
                     {
@@ -2333,7 +2333,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/dashboard/resources": {
+        "/organizations/{organizationId}/dashboard/resources": {
             "get": {
                 "security": [
                     {
@@ -2370,7 +2370,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/dashboard/stacks": {
+        "/organizations/{organizationId}/dashboard/stacks": {
             "get": {
                 "security": [
                     {
@@ -2407,7 +2407,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/my-profile": {
+        "/organizations/{organizationId}/my-profile": {
             "get": {
                 "security": [
                     {
@@ -2523,7 +2523,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/my-profile/next-password-change": {
+        "/organizations/{organizationId}/my-profile/next-password-change": {
             "put": {
                 "security": [
                     {
@@ -2563,7 +2563,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/my-profile/password": {
+        "/organizations/{organizationId}/my-profile/password": {
             "put": {
                 "security": [
                     {
@@ -2606,7 +2606,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/primary-cluster": {
+        "/organizations/{organizationId}/primary-cluster": {
             "patch": {
                 "security": [
                     {
@@ -2649,7 +2649,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects": {
+        "/organizations/{organizationId}/projects": {
             "get": {
                 "security": [
                     {
@@ -2736,7 +2736,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/existence": {
+        "/organizations/{organizationId}/projects/existence": {
             "get": {
                 "security": [
                     {
@@ -2786,7 +2786,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/project-roles": {
+        "/organizations/{organizationId}/projects/project-roles": {
             "get": {
                 "security": [
                     {
@@ -2829,7 +2829,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/project-roles/{projectRoleId}": {
+        "/organizations/{organizationId}/projects/project-roles/{projectRoleId}": {
             "get": {
                 "security": [
                     {
@@ -2873,7 +2873,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}": {
+        "/organizations/{organizationId}/projects/{projectId}": {
             "get": {
                 "security": [
                     {
@@ -2968,7 +2968,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps": {
             "get": {
                 "security": [
                     {
@@ -3106,7 +3106,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count": {
             "get": {
                 "security": [
                     {
@@ -3157,7 +3157,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -3208,7 +3208,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}": {
             "get": {
                 "security": [
                     {
@@ -3366,7 +3366,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint": {
             "patch": {
                 "security": [
                     {
@@ -3426,7 +3426,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist": {
             "get": {
                 "security": [
                     {
@@ -3470,7 +3470,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task": {
             "get": {
                 "security": [
                     {
@@ -3521,7 +3521,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback": {
             "post": {
                 "security": [
                     {
@@ -3581,7 +3581,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status": {
             "patch": {
                 "security": [
                     {
@@ -3641,7 +3641,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks": {
             "get": {
                 "security": [
                     {
@@ -3722,7 +3722,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}": {
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}": {
             "get": {
                 "security": [
                     {
@@ -3780,7 +3780,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
+        "/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
             "get": {
                 "security": [
                     {
@@ -3824,7 +3824,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members": {
+        "/organizations/{organizationId}/projects/{projectId}/members": {
             "get": {
                 "security": [
                     {
@@ -4027,7 +4027,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members/count": {
+        "/organizations/{organizationId}/projects/{projectId}/members/count": {
             "get": {
                 "security": [
                     {
@@ -4071,7 +4071,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}": {
+        "/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}": {
             "get": {
                 "security": [
                     {
@@ -4171,7 +4171,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role": {
+        "/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role": {
             "put": {
                 "security": [
                     {
@@ -4231,7 +4231,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces": {
             "get": {
                 "security": [
                     {
@@ -4326,7 +4326,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}": {
             "get": {
                 "security": [
                     {
@@ -4505,7 +4505,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/existence": {
             "get": {
                 "security": [
                     {
@@ -4563,7 +4563,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/k8s-resources": {
             "get": {
                 "security": [
                     {
@@ -4621,7 +4621,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage": {
             "get": {
                 "security": [
                     {
@@ -4679,7 +4679,36 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/stacks": {
+        "/organizations/{organizationId}/roles": {
+            "get": {
+                "description": "List Tks Roles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "List Tks Roles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/stacks": {
             "get": {
                 "security": [
                     {
@@ -4790,7 +4819,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/stacks/name/{name}/existence": {
+        "/organizations/{organizationId}/stacks/name/{name}/existence": {
             "get": {
                 "security": [
                     {
@@ -4838,7 +4867,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/stacks/{stackId}": {
+        "/organizations/{organizationId}/stacks/{stackId}": {
             "get": {
                 "security": [
                     {
@@ -4969,7 +4998,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/stacks/{stackId}/favorite": {
+        "/organizations/{organizationId}/stacks/{stackId}/favorite": {
             "post": {
                 "security": [
                     {
@@ -5049,7 +5078,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/stacks/{stackId}/kube-config": {
+        "/organizations/{organizationId}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
                     {
@@ -5093,7 +5122,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/stacks/{stackId}/status": {
+        "/organizations/{organizationId}/stacks/{stackId}/status": {
             "get": {
                 "security": [
                     {
@@ -5137,7 +5166,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/users": {
+        "/organizations/{organizationId}/users": {
             "get": {
                 "security": [
                     {
@@ -5255,7 +5284,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/users/account-id/{accountId}/existence": {
+        "/organizations/{organizationId}/users/account-id/{accountId}/existence": {
             "get": {
                 "security": [
                     {
@@ -5296,7 +5325,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/users/email/{email}/existence": {
+        "/organizations/{organizationId}/users/email/{email}/existence": {
             "get": {
                 "security": [
                     {
@@ -5337,7 +5366,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/users/{accountId}": {
+        "/organizations/{organizationId}/users/{accountId}": {
             "get": {
                 "security": [
                     {
@@ -5474,7 +5503,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/1.0/organizations/{organizationId}/users/{accountId}/reset-password": {
+        "/organizations/{organizationId}/users/{accountId}/reset-password": {
             "put": {
                 "security": [
                     {
@@ -5511,99 +5540,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/api/1.0/stack-templates": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get StackTemplates",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Get StackTemplates",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "pageSize",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pageNumber",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortColumn",
-                        "name": "soertColumn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortOrder",
-                        "name": "sortOrder",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters",
-                        "name": "filters",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/roles": {
-            "get": {
-                "description": "List Tks Roles",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Role"
-                ],
-                "summary": "List Tks Roles",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse"
-                        }
                     }
                 }
             }
@@ -5686,6 +5622,70 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/stack-templates": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get StackTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get StackTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse"
+                        }
                     }
                 }
             }
@@ -9803,7 +9803,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "tks-api-dev.taco-cat.xyz",
-	BasePath:         "/",
+	BasePath:         "/api/1.0/",
 	Schemes:          []string{},
 	Title:            "tks-api service",
 	Description:      "This is backend api service for tks platform",

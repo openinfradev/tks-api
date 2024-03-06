@@ -99,8 +99,8 @@ func init() {
 //	@in							header
 //	@name						Authorization
 
-//	@host		tks-api-dev.taco-cat.xyz
-//	@BasePath	/
+// @host		tks-api-dev.taco-cat.xyz
+// @BasePath	/api/1.0/
 func main() {
 	log.Info("*** Arguments *** ")
 	for i, s := range viper.AllSettings() {

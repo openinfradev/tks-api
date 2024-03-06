@@ -25,6 +25,7 @@ func NewStackHandler(h usecase.Usecase) *StackHandler {
 }
 
 // CreateStack godoc
+//
 //	@Tags			Stacks
 //	@Summary		Create Stack
 //	@Description	Create Stack
@@ -33,7 +34,7 @@ func NewStackHandler(h usecase.Usecase) *StackHandler {
 //	@Param			organizationId	path		string						true	"organizationId"
 //	@Param			body			body		domain.CreateStackRequest	true	"create cloud setting request"
 //	@Success		200				{object}	domain.CreateStackResponse
-//	@Router			/api/1.0/organizations/{organizationId}/stacks [post]
+//	@Router			/organizations/{organizationId}/stacks [post]
 //	@Security		JWT
 func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -89,6 +90,7 @@ func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStack godoc
+//
 //	@Tags			Stacks
 //	@Summary		Get Stacks
 //	@Description	Get Stacks
@@ -101,7 +103,7 @@ func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 //	@Param			sortOrder		query		string	false	"sortOrder"
 //	@Param			combinedFilter	query		string	false	"combinedFilter"
 //	@Success		200				{object}	domain.GetStacksResponse
-//	@Router			/api/1.0/organizations/{organizationId}/stacks [get]
+//	@Router			/organizations/{organizationId}/stacks [get]
 //	@Security		JWT
 func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -141,6 +143,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStack godoc
+//
 //	@Tags			Stacks
 //	@Summary		Get Stack
 //	@Description	Get Stack
@@ -149,7 +152,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"stackId"
 //	@Success		200				{object}	domain.GetStackResponse
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId} [get]
+//	@Router			/organizations/{organizationId}/stacks/{stackId} [get]
 //	@Security		JWT
 func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -179,6 +182,7 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStackStatus godoc
+//
 //	@Tags			Stacks
 //	@Summary		Get Stack Status
 //	@Description	Get Stack Status
@@ -187,7 +191,7 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"stackId"
 //	@Success		200				{object}	domain.GetStackStatusResponse
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId}/status [get]
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/status [get]
 //	@Security		JWT
 func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -217,6 +221,7 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateStack godoc
+//
 //	@Tags			Stacks
 //	@Summary		Update Stack
 //	@Description	Update Stack
@@ -226,7 +231,7 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 //	@Param			stackId			path		string						true	"stackId"
 //	@Param			body			body		domain.UpdateStackRequest	true	"Update cloud setting request"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId} [put]
+//	@Router			/organizations/{organizationId}/stacks/{stackId} [put]
 //	@Security		JWT
 func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -272,6 +277,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteStack godoc
+//
 //	@Tags			Stacks
 //	@Summary		Delete Stack
 //	@Description	Delete Stack
@@ -280,7 +286,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"stackId"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId} [delete]
+//	@Router			/organizations/{organizationId}/stacks/{stackId} [delete]
 //	@Security		JWT
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -310,6 +316,7 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 }
 
 // CheckStackName godoc
+//
 //	@Tags			Stacks
 //	@Summary		Check name for stack
 //	@Description	Check name for stack
@@ -319,7 +326,7 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 //	@Param			stackId			path		string	true	"stackId"
 //	@Param			name			path		string	true	"name"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/name/{name}/existence [GET]
+//	@Router			/organizations/{organizationId}/stacks/name/{name}/existence [GET]
 //	@Security		JWT
 func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -353,6 +360,7 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStackKubeConfig godoc
+//
 //	@Tags			Stacks
 //	@Summary		Get KubeConfig by stack
 //	@Description	Get KubeConfig by stack
@@ -361,7 +369,7 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"organizationId"
 //	@Success		200				{object}	domain.GetStackKubeConfigResponse
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId}/kube-config [get]
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/kube-config [get]
 //	@Security		JWT
 func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -396,6 +404,7 @@ func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request
 }
 
 // SetFavorite godoc
+//
 //	@Tags			Stacks
 //	@Summary		Set favorite stack
 //	@Description	Set favorite stack
@@ -404,7 +413,7 @@ func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"stackId"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId}/favorite [post]
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/favorite [post]
 //	@Security		JWT
 func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -423,6 +432,7 @@ func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteFavorite godoc
+//
 //	@Tags			Stacks
 //	@Summary		Delete favorite stack
 //	@Description	Delete favorite stack
@@ -431,7 +441,7 @@ func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"stackId"
 //	@Success		200				{object}	nil
-//	@Router			/api/1.0/organizations/{organizationId}/stacks/{stackId}/favorite [delete]
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/favorite [delete]
 //	@Security		JWT
 func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
