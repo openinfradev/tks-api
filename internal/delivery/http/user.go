@@ -2,9 +2,10 @@ package http
 
 import (
 	"fmt"
-	admin_domain "github.com/openinfradev/tks-api/pkg/domain/admin"
 	"net/http"
 	"strings"
+
+	admin_domain "github.com/openinfradev/tks-api/pkg/domain/admin"
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -659,8 +660,8 @@ func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 // @Accept      json
 // @Produce     json
 // @Param       organizationId path     string                    true "organizationId"
-// @Param       body           body     admin.CreateUserRequest  true "create user request"
-// @Success     200            {object} admin.CreateUserResponse "create user response"
+// @Param       body           body     admin_domain.CreateUserRequest  true "create user request"
+// @Success     200            {object} admin_domain.CreateUserResponse "create user response"
 // @Router      /api/1.0/admin/organizations/{organizationId}/users [post]
 // @Security    JWT
 
@@ -759,7 +760,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 // @Param       soertColumn    query    string   false "sortColumn"
 // @Param       sortOrder      query    string   false "sortOrder"
 // @Param       filters        query    []string false "filters"
-// @Success     200            {object} admin.ListUserResponse "user list response"
+// @Success     200            {object} admin_domain.ListUserResponse "user list response"
 // @Router      /api/1.0/admin/organizations/{organizationId}/users [get]
 // @Security    JWT
 
@@ -803,7 +804,7 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string true "organizationId"
 // @Param       accountId      path     string true "accountId"
-// @Success     200            {object} admin.GetUserResponse
+// @Success     200            {object} admin_domain.GetUserResponse
 // @Router      /api/1.0/admin/organizations/{organizationId}/users/{accountId} [get]
 func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -847,7 +848,7 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string true "organizationId"
 // @Param       accountId      path     string true "accountId"
-// @Success     200            {object} domain.User
+// @Success     200            {object} admin_domain.User
 // @Router      /api/1.0/admin/organizations/{organizationId}/users/{accountId} [delete]
 // @Security    JWT
 
@@ -908,8 +909,8 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 // @Produce     json
 // @Param       organizationId path     string                   true "organizationId"
 // @Param       accountId      path     string                   true "accountId"
-// @Param       body           body     admin.UpdateUserRequest true "input"
-// @Success     200            {object} admin.UpdateUserResponse
+// @Param       body           body     admin_domain.UpdateUserRequest true "input"
+// @Success     200            {object} admin_domain.UpdateUserResponse
 // @Router      /api/1.0/admin/organizations/{organizationId}/users/{accountId} [put]
 // @Security    JWT
 func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {

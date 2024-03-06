@@ -22,6 +22,96 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/1.0/admin/organizations/{organizationId}/users/{accountId}": {
+            "get": {
+                "description": "Get user detail by admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get user detail by admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update user by admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update user by admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "accountId",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/1.0/app-groups": {
             "get": {
                 "security": [
@@ -86,7 +176,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAppGroupsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppGroupsResponse"
                         }
                     }
                 }
@@ -115,7 +205,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateAppGroupRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAppGroupRequest"
                         }
                     }
                 ],
@@ -123,7 +213,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateAppGroupResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAppGroupResponse"
                         }
                     }
                 }
@@ -194,7 +284,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAppGroupResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppGroupResponse"
                         }
                     }
                 }
@@ -238,7 +328,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetApplicationsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetApplicationsResponse"
                         }
                     }
                 }
@@ -267,7 +357,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateApplicationRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateApplicationRequest"
                         }
                     }
                 ],
@@ -298,7 +388,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.VerifyIdentityForLostIdRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdRequest"
                         }
                     }
                 ],
@@ -306,13 +396,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.VerifyIdentityForLostIdResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_httpErrors.RestError"
                         }
                     }
                 }
@@ -338,7 +428,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.FindIdRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.FindIdRequest"
                         }
                     }
                 ],
@@ -346,13 +436,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.FindIdResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.FindIdResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_httpErrors.RestError"
                         }
                     }
                 }
@@ -378,7 +468,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.VerifyIdentityForLostPasswordRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostPasswordRequest"
                         }
                     }
                 ],
@@ -386,13 +476,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.VerifyIdentityForLostPasswordResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostPasswordResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_httpErrors.RestError"
                         }
                     }
                 }
@@ -418,7 +508,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.FindPasswordRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.FindPasswordRequest"
                         }
                     }
                 ],
@@ -429,7 +519,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_httpErrors.RestError"
                         }
                     }
                 }
@@ -455,7 +545,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.LoginRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.LoginRequest"
                         }
                     }
                 ],
@@ -463,7 +553,7 @@ const docTemplate = `{
                     "200": {
                         "description": "user detail",
                         "schema": {
-                            "$ref": "#/definitions/domain.LoginResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.LoginResponse"
                         }
                     }
                 }
@@ -491,7 +581,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.LogoutResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.LogoutResponse"
                         }
                     }
                 }
@@ -517,7 +607,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.PingTokenRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest"
                         }
                     }
                 ],
@@ -592,7 +682,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetClustersResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClustersResponse"
                         }
                     }
                 }
@@ -621,7 +711,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateClusterRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateClusterRequest"
                         }
                     }
                 ],
@@ -629,7 +719,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateClusterResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateClusterResponse"
                         }
                     }
                 }
@@ -660,7 +750,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.ImportClusterRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest"
                         }
                     }
                 ],
@@ -668,7 +758,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.ImportClusterResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportClusterResponse"
                         }
                     }
                 }
@@ -705,7 +795,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Cluster"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Cluster"
                         }
                     }
                 }
@@ -740,7 +830,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Cluster"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Cluster"
                         }
                     }
                 }
@@ -768,7 +858,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetBootstrapKubeconfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetBootstrapKubeconfigResponse"
                         }
                     }
                 }
@@ -794,7 +884,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateBootstrapKubeconfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateBootstrapKubeconfigResponse"
                         }
                     }
                 }
@@ -865,7 +955,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetClusterNodesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterNodesResponse"
                         }
                     }
                 }
@@ -902,7 +992,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.ClusterSiteValuesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterSiteValuesResponse"
                         }
                     }
                 }
@@ -968,7 +1058,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.ListOrganizationBody"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListOrganizationBody"
                             }
                         }
                     }
@@ -998,7 +1088,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateOrganizationRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest"
                         }
                     }
                 ],
@@ -1043,7 +1133,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetOrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetOrganizationResponse"
                         }
                     }
                 }
@@ -1079,7 +1169,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateOrganizationRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationRequest"
                         }
                     }
                 ],
@@ -1087,7 +1177,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateOrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationResponse"
                         }
                     }
                 }
@@ -1122,7 +1212,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         }
                     }
                 }
@@ -1193,7 +1283,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAlertsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAlertsResponse"
                         }
                     }
                 }
@@ -1237,7 +1327,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAlertResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAlertResponse"
                         }
                     }
                 }
@@ -1273,7 +1363,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateAlertRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateAlertRequest"
                         }
                     }
                 ],
@@ -1425,7 +1515,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAuditsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse"
                         }
                     }
                 }
@@ -1454,7 +1544,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateAuditRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest"
                         }
                     }
                 ],
@@ -1462,7 +1552,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateAuditResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse"
                         }
                     }
                 }
@@ -1499,7 +1589,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAuditResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse"
                         }
                     }
                 }
@@ -1602,7 +1692,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudAccountsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetCloudAccountsResponse"
                         }
                     }
                 }
@@ -1638,7 +1728,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudAccountRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateCloudAccountRequest"
                         }
                     }
                 ],
@@ -1646,7 +1736,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateCloudAccountResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateCloudAccountResponse"
                         }
                     }
                 }
@@ -1690,7 +1780,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CheckCloudAccountAwsAccountIdResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckCloudAccountAwsAccountIdResponse"
                         }
                     }
                 }
@@ -1734,7 +1824,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CheckCloudAccountNameResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckCloudAccountNameResponse"
                         }
                     }
                 }
@@ -1778,7 +1868,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudAccountResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetCloudAccountResponse"
                         }
                     }
                 }
@@ -1814,7 +1904,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateCloudAccountRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateCloudAccountRequest"
                         }
                     }
                 ],
@@ -1855,7 +1945,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.DeleteCloudAccountRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteCloudAccountRequest"
                         }
                     },
                     {
@@ -1952,7 +2042,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetCloudAccountResourceQuotaResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetCloudAccountResourceQuotaResponse"
                         }
                     }
                 }
@@ -2009,7 +2099,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetDashboardChartsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartsResponse"
                         }
                     }
                 }
@@ -2067,7 +2157,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetDashboardChartResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartResponse"
                         }
                     }
                 }
@@ -2104,7 +2194,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetDashboardResourcesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResourcesResponse"
                         }
                     }
                 }
@@ -2141,7 +2231,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetDashboardStacksResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardStacksResponse"
                         }
                     }
                 }
@@ -2178,7 +2268,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetMyProfileResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetMyProfileResponse"
                         }
                     }
                 }
@@ -2214,7 +2304,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateMyProfileRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileRequest"
                         }
                     }
                 ],
@@ -2222,7 +2312,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateMyProfileResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileResponse"
                         }
                     }
                 }
@@ -2297,7 +2387,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/httpErrors.RestError"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_httpErrors.RestError"
                         }
                     }
                 }
@@ -2335,7 +2425,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdatePasswordRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePasswordRequest"
                         }
                     }
                 ],
@@ -2378,7 +2468,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdatePrimaryClusterRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePrimaryClusterRequest"
                         }
                     }
                 ],
@@ -2426,7 +2516,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectsResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectsResponse"
                         }
                     }
                 }
@@ -2462,7 +2552,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateProjectRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateProjectRequest"
                         }
                     }
                 ],
@@ -2470,7 +2560,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateProjectResponse"
                         }
                     }
                 }
@@ -2520,7 +2610,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CheckExistedResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
                         }
                     }
                 }
@@ -2563,7 +2653,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectRolesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectRolesResponse"
                         }
                     }
                 }
@@ -2607,7 +2697,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectRoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectRoleResponse"
                         }
                     }
                 }
@@ -2651,7 +2741,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectResponse"
                         }
                     }
                 }
@@ -2694,7 +2784,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateProjectRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateProjectRequest"
                         }
                     }
                 ],
@@ -2702,7 +2792,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -2788,7 +2878,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.AppServeApp"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                             }
                         }
                     }
@@ -2832,7 +2922,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateAppServeAppRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAppServeAppRequest"
                         }
                     }
                 ],
@@ -2993,7 +3083,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAppServeAppResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse"
                         }
                     }
                 }
@@ -3043,7 +3133,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateAppServeAppRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppRequest"
                         }
                     }
                 ],
@@ -3152,7 +3242,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateAppServeAppEndpointRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppEndpointRequest"
                         }
                     }
                 ],
@@ -3255,7 +3345,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAppServeAppTaskResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppTaskResponse"
                         }
                     }
                 }
@@ -3307,7 +3397,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.RollbackAppServeAppRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RollbackAppServeAppRequest"
                         }
                     }
                 ],
@@ -3367,7 +3457,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateAppServeAppStatusRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppStatusRequest"
                         }
                     }
                 ],
@@ -3455,7 +3545,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.AppServeApp"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                             }
                         }
                     }
@@ -3514,7 +3604,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetAppServeAppTaskResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppTaskResponse"
                         }
                     }
                 }
@@ -3558,7 +3648,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectKubeconfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectKubeconfigResponse"
                         }
                     }
                 }
@@ -3608,7 +3698,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectMembersResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectMembersResponse"
                         }
                     }
                 }
@@ -3651,7 +3741,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateProjectMembersRoleRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateProjectMembersRoleRequest"
                         }
                     }
                 ],
@@ -3659,7 +3749,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -3702,7 +3792,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.AddProjectMemberRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AddProjectMemberRequest"
                         }
                     }
                 ],
@@ -3710,7 +3800,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -3753,7 +3843,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.RemoveProjectMemberRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RemoveProjectMemberRequest"
                         }
                     }
                 ],
@@ -3761,7 +3851,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -3805,7 +3895,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectMemberCountResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectMemberCountResponse"
                         }
                     }
                 }
@@ -3856,7 +3946,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectMemberResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectMemberResponse"
                         }
                     }
                 }
@@ -3905,7 +3995,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -3957,7 +4047,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateProjectMemberRoleRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateProjectMemberRoleRequest"
                         }
                     }
                 ],
@@ -3965,7 +4055,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -4009,7 +4099,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectNamespacesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespacesResponse"
                         }
                     }
                 }
@@ -4052,7 +4142,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateProjectNamespaceRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateProjectNamespaceRequest"
                         }
                     }
                 ],
@@ -4060,7 +4150,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -4118,7 +4208,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectNamespaceResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResponse"
                         }
                     }
                 }
@@ -4175,7 +4265,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateProjectNamespaceRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateProjectNamespaceRequest"
                         }
                     }
                 ],
@@ -4183,7 +4273,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -4239,7 +4329,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CommonProjectResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse"
                         }
                     }
                 }
@@ -4297,7 +4387,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CheckExistedResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
                         }
                     }
                 }
@@ -4355,7 +4445,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetProjectNamespaceK8sResourcesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceK8sResourcesResponse"
                         }
                     }
                 }
@@ -4422,7 +4512,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetStacksResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStacksResponse"
                         }
                     }
                 }
@@ -4458,7 +4548,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateStackRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackRequest"
                         }
                     }
                 ],
@@ -4466,7 +4556,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateStackResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackResponse"
                         }
                     }
                 }
@@ -4558,7 +4648,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetStackResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackResponse"
                         }
                     }
                 }
@@ -4601,7 +4691,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateStackRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackRequest"
                         }
                     }
                 ],
@@ -4769,7 +4859,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetStackKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse"
                         }
                     }
                 }
@@ -4813,7 +4903,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetStackStatusResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackStatusResponse"
                         }
                     }
                 }
@@ -4886,7 +4976,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.ListUserBody"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListUserBody"
                             }
                         }
                     }
@@ -4923,7 +5013,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateUserRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateUserRequest"
                         }
                     }
                 ],
@@ -4931,7 +5021,7 @@ const docTemplate = `{
                     "200": {
                         "description": "create user response",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateUserResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateUserResponse"
                         }
                     }
                 }
@@ -4972,7 +5062,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CheckExistedResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
                         }
                     }
                 }
@@ -5013,7 +5103,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CheckExistedResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
                         }
                     }
                 }
@@ -5057,7 +5147,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetUserResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetUserResponse"
                         }
                     }
                 }
@@ -5100,7 +5190,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateUserRequest"
                         }
                     }
                 ],
@@ -5108,7 +5198,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateUserResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateUserResponse"
                         }
                     }
                 }
@@ -5150,7 +5240,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.User"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                         }
                     }
                 }
@@ -5255,7 +5345,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetStackTemplatesResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse"
                         }
                     }
                 }
@@ -5284,7 +5374,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateStackTemplateRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest"
                         }
                     }
                 ],
@@ -5292,7 +5382,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.CreateStackTemplateResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse"
                         }
                     }
                 }
@@ -5329,7 +5419,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.GetStackTemplateResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse"
                         }
                     }
                 }
@@ -5358,7 +5448,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.UpdateStackTemplateRequest"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest"
                         }
                     }
                 ],
@@ -5392,6 +5482,117 @@ const docTemplate = `{
                         "name": "stackTemplateId",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/roles": {
+            "get": {
+                "description": "List Tks Roles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Role"
+                ],
+                "summary": "List Tks Roles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/permissions/templates": {
+            "get": {
+                "description": "Get Permission Templates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Get Permission Templates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet"
+                        }
+                    }
+                }
+            }
+        },
+        "/roles/{roleId}/permissions": {
+            "get": {
+                "description": "Get Permissions By Role ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Get Permissions By Role ID",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update Permissions By Role ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Permission"
+                ],
+                "summary": "Update Permissions By Role ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Role ID",
+                        "name": "roleId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Permissions By Role ID Request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -5437,7 +5638,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.ActionResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ActionResponse": {
             "type": "object",
             "properties": {
                 "body": {
@@ -5462,18 +5663,18 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.AddProjectMemberRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.AddProjectMemberRequest": {
             "type": "object",
             "properties": {
                 "projectMembers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ProjectMemberRequest"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest"
                     }
                 }
             }
         },
-        "domain.AlertActionResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.AlertActionResponse": {
             "type": "object",
             "properties": {
                 "alertId": {
@@ -5492,27 +5693,27 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "taker": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "domain.AlertResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.AlertResponse": {
             "type": "object",
             "properties": {
                 "alertActions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.AlertActionResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertActionResponse"
                     }
                 },
                 "closedAt": {
                     "type": "string"
                 },
                 "cluster": {
-                    "$ref": "#/definitions/domain.SimpleClusterResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse"
                 },
                 "code": {
                     "type": "string"
@@ -5536,7 +5737,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "lastTaker": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "message": {
                     "type": "string"
@@ -5570,11 +5771,11 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.AppGroupResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse": {
             "type": "object",
             "properties": {
                 "appGroupType": {
-                    "$ref": "#/definitions/domain.AppGroupType"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppGroupType"
                 },
                 "clusterId": {
                     "type": "string"
@@ -5583,7 +5784,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -5595,7 +5796,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.AppGroupStatus"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppGroupStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -5604,14 +5805,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "workflowId": {
                     "type": "string"
                 }
             }
         },
-        "domain.AppGroupStatus": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppGroupStatus": {
             "type": "integer",
             "enum": [
                 0,
@@ -5632,7 +5833,7 @@ const docTemplate = `{
                 "AppGroupStatus_DELETE_ERROR"
             ]
         },
-        "domain.AppGroupType": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppGroupType": {
             "type": "integer",
             "enum": [
                 0,
@@ -5645,13 +5846,13 @@ const docTemplate = `{
                 "AppGroupType_SERVICE_MESH"
             ]
         },
-        "domain.AppServeApp": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppServeApp": {
             "type": "object",
             "properties": {
                 "appServeAppTasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.AppServeAppTask"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask"
                     }
                 },
                 "appType": {
@@ -5716,7 +5917,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.AppServeAppTask": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask": {
             "type": "object",
             "properties": {
                 "appConfig": {
@@ -5816,14 +6017,14 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ApplicationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ApplicationResponse": {
             "type": "object",
             "properties": {
                 "appGroupId": {
                     "type": "string"
                 },
                 "applicationType": {
-                    "$ref": "#/definitions/domain.ApplicationType"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ApplicationType"
                 },
                 "createdAt": {
                     "type": "string"
@@ -5842,7 +6043,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ApplicationType": {
+        "github_com_openinfradev_tks-api_pkg_domain.ApplicationType": {
             "type": "integer",
             "enum": [
                 0,
@@ -5871,7 +6072,7 @@ const docTemplate = `{
                 "ApplicationType_KUBERNETES_DASHBOARD"
             ]
         },
-        "domain.AuditResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.AuditResponse": {
             "type": "object",
             "properties": {
                 "clientIP": {
@@ -5893,7 +6094,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization": {
-                    "$ref": "#/definitions/domain.SimpleOrganizationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse"
                 },
                 "organizationId": {
                     "type": "string"
@@ -5902,14 +6103,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "userId": {
                     "type": "string"
                 }
             }
         },
-        "domain.Axis": {
+        "github_com_openinfradev_tks-api_pkg_domain.Axis": {
             "type": "object",
             "properties": {
                 "data": {
@@ -5920,7 +6121,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.BootstrapKubeconfig": {
+        "github_com_openinfradev_tks-api_pkg_domain.BootstrapKubeconfig": {
             "type": "object",
             "properties": {
                 "expiration": {
@@ -5928,30 +6129,30 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ChartData": {
+        "github_com_openinfradev_tks-api_pkg_domain.ChartData": {
             "type": "object",
             "properties": {
                 "podCounts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.PodCount"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PodCount"
                     }
                 },
                 "series": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.Unit"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Unit"
                     }
                 },
                 "xAxis": {
-                    "$ref": "#/definitions/domain.Axis"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Axis"
                 },
                 "yAxis": {
-                    "$ref": "#/definitions/domain.Axis"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Axis"
                 }
             }
         },
-        "domain.CheckCloudAccountAwsAccountIdResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CheckCloudAccountAwsAccountIdResponse": {
             "type": "object",
             "properties": {
                 "existed": {
@@ -5959,7 +6160,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CheckCloudAccountNameResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CheckCloudAccountNameResponse": {
             "type": "object",
             "properties": {
                 "existed": {
@@ -5967,7 +6168,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CheckExistedResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse": {
             "type": "object",
             "properties": {
                 "existed": {
@@ -5975,7 +6176,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CloudAccount": {
+        "github_com_openinfradev_tks-api_pkg_domain.CloudAccount": {
             "type": "object",
             "properties": {
                 "accessKeyId": {
@@ -5997,7 +6198,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                 },
                 "creatorId": {
                     "type": "string"
@@ -6024,7 +6225,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.CloudAccountStatus"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccountStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -6033,14 +6234,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                 },
                 "updatorId": {
                     "type": "string"
                 }
             }
         },
-        "domain.CloudAccountResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
                 "awsAccountId": {
@@ -6059,7 +6260,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -6083,11 +6284,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 }
             }
         },
-        "domain.CloudAccountStatus": {
+        "github_com_openinfradev_tks-api_pkg_domain.CloudAccountStatus": {
             "type": "integer",
             "enum": [
                 0,
@@ -6108,7 +6309,7 @@ const docTemplate = `{
                 "CloudAccountStatus_DELETE_ERROR"
             ]
         },
-        "domain.Cluster": {
+        "github_com_openinfradev_tks-api_pkg_domain.Cluster": {
             "type": "object",
             "properties": {
                 "byoClusterEndpointHost": {
@@ -6118,7 +6319,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "cloudAccount": {
-                    "$ref": "#/definitions/domain.CloudAccount"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccount"
                 },
                 "cloudAccountId": {
                     "type": "string"
@@ -6130,13 +6331,13 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "conf": {
-                    "$ref": "#/definitions/domain.ClusterConf"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterConf"
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                 },
                 "creatorId": {
                     "type": "string"
@@ -6166,13 +6367,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stackTemplate": {
-                    "$ref": "#/definitions/domain.StackTemplate"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplate"
                 },
                 "stackTemplateId": {
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.ClusterStatus"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -6181,14 +6382,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                 },
                 "updatorId": {
                     "type": "string"
                 }
             }
         },
-        "domain.ClusterConf": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterConf": {
             "type": "object",
             "properties": {
                 "tksCpNode": {
@@ -6220,7 +6421,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ClusterConfResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterConfResponse": {
             "type": "object",
             "properties": {
                 "tksCpNode": {
@@ -6252,7 +6453,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ClusterHost": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterHost": {
             "type": "object",
             "properties": {
                 "name": {
@@ -6263,7 +6464,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ClusterNode": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterNode": {
             "type": "object",
             "properties": {
                 "command": {
@@ -6272,7 +6473,7 @@ const docTemplate = `{
                 "hosts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ClusterHost"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterHost"
                     }
                 },
                 "registered": {
@@ -6295,7 +6496,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ClusterResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterResponse": {
             "type": "object",
             "properties": {
                 "byoClusterEndpointHost": {
@@ -6305,7 +6506,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "cloudAccount": {
-                    "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleCloudAccountResponse"
                 },
                 "cloudService": {
                     "type": "string"
@@ -6314,13 +6515,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "conf": {
-                    "$ref": "#/definitions/domain.ClusterConfResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterConfResponse"
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -6338,7 +6539,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stackTemplate": {
-                    "$ref": "#/definitions/domain.SimpleStackTemplateResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse"
                 },
                 "status": {
                     "type": "string"
@@ -6350,11 +6551,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 }
             }
         },
-        "domain.ClusterSiteValuesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterSiteValuesResponse": {
             "type": "object",
             "properties": {
                 "byoClusterEndpointHost": {
@@ -6401,7 +6602,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ClusterStatus": {
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterStatus": {
             "type": "integer",
             "enum": [
                 0,
@@ -6428,7 +6629,7 @@ const docTemplate = `{
                 "ClusterStatus_BOOTSTRAP_ERROR"
             ]
         },
-        "domain.CommonProjectResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse": {
             "type": "object",
             "properties": {
                 "result": {
@@ -6436,7 +6637,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateAppGroupRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateAppGroupRequest": {
             "type": "object",
             "required": [
                 "clusterId",
@@ -6461,7 +6662,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateAppGroupResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateAppGroupResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -6469,7 +6670,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateAppServeAppRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateAppServeAppRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -6547,7 +6748,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateApplicationRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateApplicationRequest": {
             "type": "object",
             "properties": {
                 "applicationType": {
@@ -6561,21 +6762,21 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateAuditRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest": {
             "type": "object"
         },
-        "domain.CreateAuditResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse": {
             "type": "object"
         },
-        "domain.CreateBootstrapKubeconfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateBootstrapKubeconfigResponse": {
             "type": "object",
             "properties": {
                 "kubeconfig": {
-                    "$ref": "#/definitions/domain.BootstrapKubeconfig"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.BootstrapKubeconfig"
                 }
             }
         },
-        "domain.CreateCloudAccountRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateCloudAccountRequest": {
             "type": "object",
             "required": [
                 "accessKeyId",
@@ -6619,7 +6820,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateCloudAccountResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateCloudAccountResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -6627,7 +6828,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateClusterRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateClusterRequest": {
             "type": "object",
             "required": [
                 "cloudService",
@@ -6699,7 +6900,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateClusterResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateClusterResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -6707,7 +6908,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateOrganizationRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest": {
             "type": "object",
             "required": [
                 "Email",
@@ -6730,7 +6931,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateProjectNamespaceRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateProjectNamespaceRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -6744,7 +6945,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateProjectRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateProjectRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -6761,7 +6962,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateProjectResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateProjectResponse": {
             "type": "object",
             "properties": {
                 "projectId": {
@@ -6769,7 +6970,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateStackRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateStackRequest": {
             "type": "object",
             "required": [
                 "cloudService",
@@ -6831,7 +7032,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateStackResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateStackResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -6839,7 +7040,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateStackTemplateRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -6880,7 +7081,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateStackTemplateResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -6888,7 +7089,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateUserRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateUserRequest": {
             "type": "object",
             "required": [
                 "accountId",
@@ -6928,7 +7129,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.CreateUserResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateUserResponse": {
             "type": "object",
             "properties": {
                 "user": {
@@ -6953,20 +7154,20 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/domain.Role"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         }
                     }
                 }
             }
         },
-        "domain.DashboardChartResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse": {
             "type": "object",
             "properties": {
                 "chartData": {
-                    "$ref": "#/definitions/domain.ChartData"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ChartData"
                 },
                 "chartType": {
                     "type": "string"
@@ -6997,7 +7198,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.DashboardResource": {
+        "github_com_openinfradev_tks-api_pkg_domain.DashboardResource": {
             "type": "object",
             "properties": {
                 "cpu": {
@@ -7014,7 +7215,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.DashboardStackResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.DashboardStackResponse": {
             "type": "object",
             "properties": {
                 "cpu": {
@@ -7049,7 +7250,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.DeleteCloudAccountRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.DeleteCloudAccountRequest": {
             "type": "object",
             "required": [
                 "accessKeyId",
@@ -7072,7 +7273,21 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.FilterResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.Endpoint": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.FilterResponse": {
             "type": "object",
             "properties": {
                 "column": {
@@ -7092,7 +7307,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.FindIdRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.FindIdRequest": {
             "type": "object",
             "required": [
                 "code",
@@ -7115,7 +7330,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.FindIdResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.FindIdResponse": {
             "type": "object",
             "properties": {
                 "accountId": {
@@ -7123,7 +7338,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.FindPasswordRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.FindPasswordRequest": {
             "type": "object",
             "required": [
                 "accountId",
@@ -7150,219 +7365,219 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GetAlertResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAlertResponse": {
             "type": "object",
             "properties": {
                 "alert": {
-                    "$ref": "#/definitions/domain.AlertResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertResponse"
                 }
             }
         },
-        "domain.GetAlertsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAlertsResponse": {
             "type": "object",
             "properties": {
                 "alerts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.AlertResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertResponse"
                     }
                 },
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 }
             }
         },
-        "domain.GetAppGroupResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAppGroupResponse": {
             "type": "object",
             "properties": {
                 "appGroup": {
-                    "$ref": "#/definitions/domain.AppGroupResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse"
                 }
             }
         },
-        "domain.GetAppGroupsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAppGroupsResponse": {
             "type": "object",
             "properties": {
                 "appGroups": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.AppGroupResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse"
                     }
                 },
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 }
             }
         },
-        "domain.GetAppServeAppResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse": {
             "type": "object",
             "properties": {
                 "appServeApp": {
-                    "$ref": "#/definitions/domain.AppServeApp"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                 },
                 "stages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StageResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StageResponse"
                     }
                 }
             }
         },
-        "domain.GetAppServeAppTaskResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppTaskResponse": {
             "type": "object",
             "properties": {
                 "appServeApp": {
-                    "$ref": "#/definitions/domain.AppServeApp"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                 },
                 "appServeAppTask": {
-                    "$ref": "#/definitions/domain.AppServeAppTask"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask"
                 },
                 "stages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StageResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StageResponse"
                     }
                 }
             }
         },
-        "domain.GetApplicationsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetApplicationsResponse": {
             "type": "object",
             "properties": {
                 "applications": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ApplicationResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ApplicationResponse"
                     }
                 }
             }
         },
-        "domain.GetAuditResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse": {
             "type": "object",
             "properties": {
                 "audit": {
-                    "$ref": "#/definitions/domain.AuditResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AuditResponse"
                 }
             }
         },
-        "domain.GetAuditsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse": {
             "type": "object",
             "properties": {
                 "audits": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.AuditResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AuditResponse"
                     }
                 },
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 }
             }
         },
-        "domain.GetBootstrapKubeconfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetBootstrapKubeconfigResponse": {
             "type": "object",
             "properties": {
                 "kubeconfig": {
-                    "$ref": "#/definitions/domain.BootstrapKubeconfig"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.BootstrapKubeconfig"
                 }
             }
         },
-        "domain.GetCloudAccountResourceQuotaResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetCloudAccountResourceQuotaResponse": {
             "type": "object",
             "properties": {
                 "available": {
                     "type": "boolean"
                 },
                 "resourceQuota": {
-                    "$ref": "#/definitions/domain.ResourceQuota"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ResourceQuota"
                 }
             }
         },
-        "domain.GetCloudAccountResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetCloudAccountResponse": {
             "type": "object",
             "properties": {
                 "cloudAccount": {
-                    "$ref": "#/definitions/domain.CloudAccountResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse"
                 }
             }
         },
-        "domain.GetCloudAccountsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetCloudAccountsResponse": {
             "type": "object",
             "properties": {
                 "cloudAccounts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.CloudAccountResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse"
                     }
                 },
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 }
             }
         },
-        "domain.GetClusterNodesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetClusterNodesResponse": {
             "type": "object",
             "properties": {
                 "nodes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ClusterNode"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterNode"
                     }
                 }
             }
         },
-        "domain.GetClustersResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetClustersResponse": {
             "type": "object",
             "properties": {
                 "clusters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ClusterResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterResponse"
                     }
                 },
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 }
             }
         },
-        "domain.GetDashboardChartResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartResponse": {
             "type": "object",
             "properties": {
                 "chart": {
-                    "$ref": "#/definitions/domain.DashboardChartResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse"
                 }
             }
         },
-        "domain.GetDashboardChartsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartsResponse": {
             "type": "object",
             "properties": {
                 "charts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.DashboardChartResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse"
                     }
                 }
             }
         },
-        "domain.GetDashboardResourcesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardResourcesResponse": {
             "type": "object",
             "properties": {
                 "resources": {
-                    "$ref": "#/definitions/domain.DashboardResource"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardResource"
                 }
             }
         },
-        "domain.GetDashboardStacksResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardStacksResponse": {
             "type": "object",
             "properties": {
                 "stacks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.DashboardStackResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardStackResponse"
                     }
                 }
             }
         },
-        "domain.GetMyProfileResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetMyProfileResponse": {
             "type": "object",
             "properties": {
                 "user": {
@@ -7384,16 +7599,16 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/domain.Role"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         }
                     }
                 }
             }
         },
-        "domain.GetOrganizationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetOrganizationResponse": {
             "type": "object",
             "properties": {
                 "organization": {
@@ -7433,7 +7648,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GetProjectKubeconfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectKubeconfigResponse": {
             "type": "object",
             "properties": {
                 "kubeconfig": {
@@ -7441,7 +7656,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GetProjectMemberCountResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectMemberCountResponse": {
             "type": "object",
             "properties": {
                 "projectLeaderCount": {
@@ -7458,97 +7673,97 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GetProjectMemberResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectMemberResponse": {
             "type": "object",
             "properties": {
                 "projectMember": {
-                    "$ref": "#/definitions/domain.ProjectMemberResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberResponse"
                 }
             }
         },
-        "domain.GetProjectMembersResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectMembersResponse": {
             "type": "object",
             "properties": {
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 },
                 "projectMembers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ProjectMemberResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberResponse"
                     }
                 }
             }
         },
-        "domain.GetProjectNamespaceK8sResourcesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceK8sResourcesResponse": {
             "type": "object",
             "properties": {
                 "k8sResources": {
-                    "$ref": "#/definitions/domain.ProjectNamespaceK8sResources"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceK8sResources"
                 }
             }
         },
-        "domain.GetProjectNamespaceResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResponse": {
             "type": "object",
             "properties": {
                 "projectNamespace": {
-                    "$ref": "#/definitions/domain.ProjectNamespaceResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResponse"
                 }
             }
         },
-        "domain.GetProjectNamespacesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespacesResponse": {
             "type": "object",
             "properties": {
                 "projectNamespaces": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ProjectNamespaceResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResponse"
                     }
                 }
             }
         },
-        "domain.GetProjectResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectResponse": {
             "type": "object",
             "properties": {
                 "project": {
-                    "$ref": "#/definitions/domain.ProjectDetailResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectDetailResponse"
                 }
             }
         },
-        "domain.GetProjectRoleResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectRoleResponse": {
             "type": "object",
             "properties": {
                 "projectRole": {
-                    "$ref": "#/definitions/domain.ProjectRole"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRole"
                 }
             }
         },
-        "domain.GetProjectRolesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectRolesResponse": {
             "type": "object",
             "properties": {
                 "projectRoles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ProjectRole"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectRole"
                     }
                 }
             }
         },
-        "domain.GetProjectsResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectsResponse": {
             "type": "object",
             "properties": {
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 },
                 "projects": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ProjectResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectResponse"
                     }
                 }
             }
         },
-        "domain.GetStackKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse": {
             "type": "object",
             "properties": {
                 "kubeConfig": {
@@ -7556,15 +7771,15 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.GetStackResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackResponse": {
             "type": "object",
             "properties": {
                 "stack": {
-                    "$ref": "#/definitions/domain.StackResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackResponse"
                 }
             }
         },
-        "domain.GetStackStatusResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackStatusResponse": {
             "type": "object",
             "properties": {
                 "stackStatus": {
@@ -7573,48 +7788,74 @@ const docTemplate = `{
                 "stepStatus": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackStepStatus"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackStepStatus"
                     }
                 }
             }
         },
-        "domain.GetStackTemplateResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse": {
             "type": "object",
             "properties": {
                 "stackTemplate": {
-                    "$ref": "#/definitions/domain.StackTemplateResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateResponse"
                 }
             }
         },
-        "domain.GetStackTemplatesResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse": {
             "type": "object",
             "properties": {
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 },
                 "stackTemplates": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackTemplateResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateResponse"
                     }
                 }
             }
         },
-        "domain.GetStacksResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStacksResponse": {
             "type": "object",
             "properties": {
                 "pagination": {
-                    "$ref": "#/definitions/domain.PaginationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 },
                 "stacks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackResponse"
                     }
                 }
             }
         },
-        "domain.GetUserResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetUserResponse": {
             "type": "object",
             "properties": {
                 "user": {
@@ -7645,10 +7886,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/domain.Role"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "updatedAt": {
                             "type": "string"
@@ -7657,7 +7898,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ImportClusterRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -7691,7 +7932,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ImportClusterResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ImportClusterResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -7699,7 +7940,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ListOrganizationBody": {
+        "github_com_openinfradev_tks-api_pkg_domain.ListOrganizationBody": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -7728,7 +7969,21 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ListUserBody": {
+        "github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ListUserBody": {
             "type": "object",
             "properties": {
                 "accountId": {
@@ -7756,17 +8011,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization": {
-                    "$ref": "#/definitions/domain.Organization"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                 },
                 "role": {
-                    "$ref": "#/definitions/domain.Role"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                 },
                 "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "domain.LoginRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.LoginRequest": {
             "type": "object",
             "required": [
                 "accountId",
@@ -7785,7 +8040,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.LoginResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.LoginResponse": {
             "type": "object",
             "properties": {
                 "user": {
@@ -7801,13 +8056,13 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "passwordExpired": {
                             "type": "boolean"
                         },
                         "role": {
-                            "$ref": "#/definitions/domain.Role"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "token": {
                             "type": "string"
@@ -7816,7 +8071,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.LogoutResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.LogoutResponse": {
             "type": "object",
             "properties": {
                 "ssoUrls": {
@@ -7830,7 +8085,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Organization": {
+        "github_com_openinfradev_tks-api_pkg_domain.Organization": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -7838,6 +8093,9 @@ const docTemplate = `{
                 },
                 "creator": {
                     "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
                     "type": "string"
@@ -7855,7 +8113,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/domain.OrganizationStatus"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -7865,7 +8123,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.OrganizationStatus": {
+        "github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus": {
             "type": "integer",
             "enum": [
                 0,
@@ -7888,13 +8146,13 @@ const docTemplate = `{
                 "OrganizationStatus_ERROR"
             ]
         },
-        "domain.PaginationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.PaginationResponse": {
             "type": "object",
             "properties": {
                 "filters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.FilterResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.FilterResponse"
                     }
                 },
                 "pageNumber": {
@@ -7917,7 +8175,80 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.PingTokenRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.Permission": {
+            "type": "object",
+            "properties": {
+                "ID": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Endpoint"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_allowed": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                },
+                "parent_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
+                },
+                "role_id": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.PermissionSet": {
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                },
+                "dashboard": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                },
+                "notification": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                },
+                "project_management": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                },
+                "security_policy": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                },
+                "stack": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest": {
             "type": "object",
             "required": [
                 "organizationId",
@@ -7932,7 +8263,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.PodCount": {
+        "github_com_openinfradev_tks-api_pkg_domain.PodCount": {
             "type": "object",
             "properties": {
                 "day": {
@@ -7943,7 +8274,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectDetailResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectDetailResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -7985,7 +8316,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectMemberRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest": {
             "type": "object",
             "required": [
                 "projectRoleId",
@@ -8000,7 +8331,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectMemberResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectMemberResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -8038,7 +8369,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectNamespaceK8sResources": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceK8sResources": {
             "type": "object",
             "properties": {
                 "cronjobs": {
@@ -8073,7 +8404,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectNamespaceResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceResponse": {
             "type": "object",
             "properties": {
                 "appCount": {
@@ -8105,7 +8436,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectResponse": {
             "type": "object",
             "properties": {
                 "appCount": {
@@ -8143,7 +8474,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ProjectRole": {
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectRole": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -8167,7 +8498,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.RemoveProjectMemberRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.RemoveProjectMemberRequest": {
             "type": "object",
             "properties": {
                 "projectMembers": {
@@ -8183,18 +8514,18 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.ResourceQuota": {
+        "github_com_openinfradev_tks-api_pkg_domain.ResourceQuota": {
             "type": "object",
             "properties": {
                 "quotas": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ResourceQuotaAttr"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ResourceQuotaAttr"
                     }
                 }
             }
         },
-        "domain.ResourceQuotaAttr": {
+        "github_com_openinfradev_tks-api_pkg_domain.ResourceQuotaAttr": {
             "type": "object",
             "properties": {
                 "quota": {
@@ -8211,7 +8542,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Role": {
+        "github_com_openinfradev_tks-api_pkg_domain.Role": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -8219,6 +8550,9 @@ const docTemplate = `{
                 },
                 "creator": {
                     "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
                     "type": "string"
@@ -8229,12 +8563,21 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "organization": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "domain.RollbackAppServeAppRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.RollbackAppServeAppRequest": {
             "type": "object",
             "properties": {
                 "taskId": {
@@ -8242,7 +8585,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SimpleCloudAccountResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleCloudAccountResponse": {
             "type": "object",
             "properties": {
                 "awsAccountId": {
@@ -8271,7 +8614,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SimpleClusterResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -8285,7 +8628,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SimpleOrganizationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8299,7 +8642,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SimpleRoleResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8313,7 +8656,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SimpleStackTemplateResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -8337,7 +8680,7 @@ const docTemplate = `{
                 "services": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse"
                     }
                 },
                 "template": {
@@ -8345,7 +8688,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.SimpleUserResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse": {
             "type": "object",
             "properties": {
                 "accountId": {
@@ -8358,11 +8701,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/domain.SimpleRoleResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse"
                 }
             }
         },
-        "domain.StackConfResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackConfResponse": {
             "type": "object",
             "required": [
                 "tksInfraNode",
@@ -8402,20 +8745,20 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackResponse": {
             "type": "object",
             "properties": {
                 "cloudAccount": {
-                    "$ref": "#/definitions/domain.SimpleCloudAccountResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleCloudAccountResponse"
                 },
                 "conf": {
-                    "$ref": "#/definitions/domain.StackConfResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackConfResponse"
                 },
                 "createdAt": {
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -8439,10 +8782,10 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "resource": {
-                    "$ref": "#/definitions/domain.DashboardStackResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardStackResponse"
                 },
                 "stackTemplate": {
-                    "$ref": "#/definitions/domain.SimpleStackTemplateResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse"
                 },
                 "status": {
                     "type": "string"
@@ -8454,14 +8797,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "userClusterEndpoint": {
                     "type": "string"
                 }
             }
         },
-        "domain.StackStepStatus": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackStepStatus": {
             "type": "object",
             "properties": {
                 "maxStep": {
@@ -8478,7 +8821,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackTemplate": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackTemplate": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -8488,7 +8831,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                 },
                 "creatorId": {
                     "type": "string"
@@ -8530,7 +8873,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.User"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
                 },
                 "updatorId": {
                     "type": "string"
@@ -8540,7 +8883,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackTemplateResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackTemplateResponse": {
             "type": "object",
             "properties": {
                 "cloudService": {
@@ -8550,7 +8893,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "creator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "description": {
                     "type": "string"
@@ -8573,7 +8916,7 @@ const docTemplate = `{
                 "services": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackTemplateServiceResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse"
                     }
                 },
                 "template": {
@@ -8586,14 +8929,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updator": {
-                    "$ref": "#/definitions/domain.SimpleUserResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
                 "version": {
                     "type": "string"
                 }
             }
         },
-        "domain.StackTemplateServiceApplicationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceApplicationResponse": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8607,13 +8950,13 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StackTemplateServiceResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse": {
             "type": "object",
             "properties": {
                 "applications": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.StackTemplateServiceApplicationResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceApplicationResponse"
                     }
                 },
                 "type": {
@@ -8621,13 +8964,13 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.StageResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.StageResponse": {
             "type": "object",
             "properties": {
                 "actions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/domain.ActionResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ActionResponse"
                     }
                 },
                 "name": {
@@ -8642,7 +8985,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.Unit": {
+        "github_com_openinfradev_tks-api_pkg_domain.Unit": {
             "type": "object",
             "properties": {
                 "data": {
@@ -8656,7 +8999,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateAlertRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateAlertRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8664,7 +9007,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateAppServeAppEndpointRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppEndpointRequest": {
             "type": "object",
             "required": [
                 "taskId"
@@ -8684,7 +9027,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateAppServeAppRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppRequest": {
             "type": "object",
             "properties": {
                 "abort": {
@@ -8727,7 +9070,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateAppServeAppStatusRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppStatusRequest": {
             "type": "object",
             "required": [
                 "status",
@@ -8745,7 +9088,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateCloudAccountRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateCloudAccountRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8753,7 +9096,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateMyProfileRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileRequest": {
             "type": "object",
             "required": [
                 "password"
@@ -8777,7 +9120,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateMyProfileResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileResponse": {
             "type": "object",
             "properties": {
                 "user": {
@@ -8799,16 +9142,16 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/domain.Role"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         }
                     }
                 }
             }
         },
-        "domain.UpdateOrganizationRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -8832,7 +9175,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateOrganizationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationResponse": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8849,7 +9192,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdatePasswordRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdatePasswordRequest": {
             "type": "object",
             "required": [
                 "newPassword",
@@ -8864,7 +9207,18 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdatePrimaryClusterRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdatePrimaryClusterRequest": {
             "type": "object",
             "properties": {
                 "primaryClusterId": {
@@ -8872,7 +9226,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateProjectMemberRoleRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateProjectMemberRoleRequest": {
             "type": "object",
             "properties": {
                 "projectRoleId": {
@@ -8880,7 +9234,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateProjectMembersRoleRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateProjectMembersRoleRequest": {
             "type": "object",
             "properties": {
                 "projectMembers": {
@@ -8899,7 +9253,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateProjectNamespaceRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateProjectNamespaceRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8907,7 +9261,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateProjectRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateProjectRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -8924,7 +9278,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateStackRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateStackRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8932,7 +9286,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateStackTemplateRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateStackTemplateRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -8940,7 +9294,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateUserRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -8970,7 +9324,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.UpdateUserResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateUserResponse": {
             "type": "object",
             "properties": {
                 "user": {
@@ -8998,10 +9352,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/domain.Organization"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/domain.Role"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "updatedAt": {
                             "type": "string"
@@ -9010,7 +9364,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.User": {
+        "github_com_openinfradev_tks-api_pkg_domain.User": {
             "type": "object",
             "properties": {
                 "accountId": {
@@ -9038,7 +9392,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization": {
-                    "$ref": "#/definitions/domain.Organization"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                },
+                "organizationId": {
+                    "type": "string"
                 },
                 "password": {
                     "type": "string"
@@ -9050,7 +9407,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/domain.Role"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
+                },
+                "roleId": {
+                    "type": "string"
                 },
                 "token": {
                     "type": "string"
@@ -9060,7 +9420,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.VerifyIdentityForLostIdRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -9079,7 +9439,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.VerifyIdentityForLostIdResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdResponse": {
             "type": "object",
             "properties": {
                 "validityPeriod": {
@@ -9087,7 +9447,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.VerifyIdentityForLostPasswordRequest": {
+        "github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostPasswordRequest": {
             "type": "object",
             "required": [
                 "accountId",
@@ -9110,7 +9470,7 @@ const docTemplate = `{
                 }
             }
         },
-        "domain.VerifyIdentityForLostPasswordResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostPasswordResponse": {
             "type": "object",
             "properties": {
                 "validityPeriod": {
@@ -9118,7 +9478,122 @@ const docTemplate = `{
                 }
             }
         },
-        "httpErrors.RestError": {
+        "github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "createdAt": {
+                            "type": "string"
+                        },
+                        "creator": {
+                            "type": "string"
+                        },
+                        "department": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
+                        },
+                        "updatedAt": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest": {
+            "type": "object",
+            "required": [
+                "adminPassword",
+                "email",
+                "role"
+            ],
+            "properties": {
+                "adminPassword": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 0
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 0
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserResponse": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "accountId": {
+                            "type": "string"
+                        },
+                        "createdAt": {
+                            "type": "string"
+                        },
+                        "department": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "email": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "organization": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                        },
+                        "role": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
+                        },
+                        "updatedAt": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_httpErrors.RestError": {
             "type": "object",
             "properties": {
                 "code": {
@@ -9132,6 +9607,18 @@ const docTemplate = `{
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         }
