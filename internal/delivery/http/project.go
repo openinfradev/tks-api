@@ -74,7 +74,7 @@ func NewProjectHandler(u usecase.Usecase) IProjectHandler {
 //	@Description	Create new project
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string							true	"Organization ID"
+//	@Param			organizationId	path		string						true	"Organization ID"
 //	@Param			request			body		domain.CreateProjectRequest	true	"Request body to create project"
 //	@Success		200				{object}	domain.CreateProjectResponse
 //	@Router			/organizations/{organizationId}/projects [post]
@@ -362,8 +362,8 @@ func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Reques
 //	@Description	Update project
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string							true	"Organization ID"
-//	@Param			projectId		path		string							true	"Project ID"
+//	@Param			organizationId	path		string						true	"Organization ID"
+//	@Param			projectId		path		string						true	"Project ID"
 //	@Param			request			body		domain.UpdateProjectRequest	true	"Request body to update project"
 //	@Success		200				{object}	domain.CommonProjectResponse
 //	@Router			/organizations/{organizationId}/projects/{projectId} [put]
@@ -520,8 +520,8 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 //	@Description	Add project member to project
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string								true	"Organization ID"
-//	@Param			projectId		path		string								true	"Project ID"
+//	@Param			organizationId	path		string							true	"Organization ID"
+//	@Param			projectId		path		string							true	"Project ID"
 //	@Param			request			body		domain.AddProjectMemberRequest	true	"Request body to add project member"
 //	@Success		200				{object}	domain.CommonProjectResponse
 //	@Router			/organizations/{organizationId}/projects/{projectId}/members [post]
@@ -887,8 +887,8 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 //	@Description	Remove project members to project
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string									true	"Organization ID"
-//	@Param			projectId		path		string									true	"Project ID"
+//	@Param			organizationId	path		string								true	"Organization ID"
+//	@Param			projectId		path		string								true	"Project ID"
 //	@Param			request			body		domain.RemoveProjectMemberRequest	true	"Request body to remove project member"
 //	@Success		200				{object}	domain.CommonProjectResponse
 //	@Router			/organizations/{organizationId}/projects/{projectId}/members [delete]
@@ -955,9 +955,9 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 //	@Description	Update project  member   Role
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string										true	"Organization ID"
-//	@Param			projectId		path		string										true	"Project ID"
-//	@Param			projectMemberId	path		string										true	"Project Member ID"
+//	@Param			organizationId	path		string									true	"Organization ID"
+//	@Param			projectId		path		string									true	"Project ID"
+//	@Param			projectMemberId	path		string									true	"Project Member ID"
 //	@Param			request			body		domain.UpdateProjectMemberRoleRequest	true	"Request body to update project member role"
 //	@Success		200				{object}	domain.CommonProjectResponse
 //	@Router			/organizations/{organizationId}/projects/{projectId}/members/{projectMemberId}/role [put]
@@ -1053,8 +1053,8 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 //	@Description	Update project  member   Role
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string										true	"Organization ID"
-//	@Param			projectId		path		string										true	"Project ID"
+//	@Param			organizationId	path		string									true	"Organization ID"
+//	@Param			projectId		path		string									true	"Project ID"
 //	@Param			request			body		domain.UpdateProjectMembersRoleRequest	true	"Request body to update project member role"
 //	@Success		200				{object}	domain.CommonProjectResponse
 //	@Router			/organizations/{organizationId}/projects/{projectId}/members [put]
