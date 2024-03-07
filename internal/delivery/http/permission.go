@@ -56,7 +56,7 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{object}	domain.PermissionSet
-//	@Router			organizations/{organizationId}/roles/{roleId}/permissions [get]
+//	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [get]
 //	@Security		JWT
 
 func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +97,7 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 //	@Param			roleId	path	string									true	"Role ID"
 //	@Param			body	body	domain.UpdatePermissionsByRoleIdRequest	true	"Update Permissions By Role ID Request"
 //	@Success		200
-//	@Router			organizations/{organizationId}/roles/{roleId}/permissions [put]
+//	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [put]
 //	@Security		JWT
 
 func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
