@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	indomain "github.com/openinfradev/tks-api/internal/domain"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
@@ -126,16 +126,16 @@ func migrateSchema(db *gorm.DB) error {
 	}
 
 	// Project
-	if err := db.AutoMigrate(&indomain.Project{}); err != nil {
+	if err := db.AutoMigrate(&model.Project{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&indomain.ProjectMember{}); err != nil {
+	if err := db.AutoMigrate(&model.ProjectMember{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&indomain.ProjectNamespace{}); err != nil {
+	if err := db.AutoMigrate(&model.ProjectNamespace{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&indomain.ProjectRole{}); err != nil {
+	if err := db.AutoMigrate(&model.ProjectRole{}); err != nil {
 		return err
 	}
 

@@ -180,4 +180,7 @@ const (
 	// Admin Role
 	Admin_ListTksRoles
 	Admin_GetTksRole
+
+	// Admin Project
+	Admin_GetProjects
 )
