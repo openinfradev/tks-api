@@ -543,6 +543,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_GetTksRole", 
 		Group: "Admin Role",
 	},
+    Admin_GetProjects: {
+		Name: "Admin_GetProjects", 
+		Group: "Admin Project",
+	},
 }
 func (e Endpoint) String() string {
 	switch e {
@@ -816,6 +820,8 @@ func (e Endpoint) String() string {
 		return "Admin_ListTksRoles"
 	case Admin_GetTksRole:
 		return "Admin_GetTksRole"
+	case Admin_GetProjects:
+		return "Admin_GetProjects"
 	default:
 		return ""
 	}
@@ -1092,6 +1098,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_ListTksRoles
 	case "Admin_GetTksRole":
 		return Admin_GetTksRole
+	case "Admin_GetProjects":
+		return Admin_GetProjects
 	default:
 		return -1
 	}

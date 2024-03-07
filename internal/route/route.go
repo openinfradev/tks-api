@@ -260,6 +260,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	// Admin
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.Admin_ListTksRoles, http.HandlerFunc(roleHandler.Admin_ListTksRoles))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.Admin_GetTksRole, http.HandlerFunc(roleHandler.Admin_GetTksRole))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/projects", customMiddleware.Handle(internalApi.Admin_GetProjects, http.HandlerFunc(projectHandler.Admin_GetProjects))).Methods(http.MethodGet)
 
 	permissionHandler := delivery.NewPermissionHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/permissions/templates", customMiddleware.Handle(internalApi.GetPermissionTemplates, http.HandlerFunc(permissionHandler.GetPermissionTemplates))).Methods(http.MethodGet)

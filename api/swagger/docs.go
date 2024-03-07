@@ -22,6 +22,43 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/organizations/{organizationId}/projects": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get projects as admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get projects as admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/organizations/{organizationId}/users/{accountId}": {
             "get": {
                 "description": "Get user detail by admin",
@@ -4679,35 +4716,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/roles": {
-            "get": {
-                "description": "List Tks Roles",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Role"
-                ],
-                "summary": "List Tks Roles",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/organizations/{organizationId}/stacks": {
             "get": {
                 "security": [
@@ -5535,88 +5543,6 @@ const docTemplate = `{
                         "name": "accountId",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/permissions/templates": {
-            "get": {
-                "description": "Get Permission Templates",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Get Permission Templates",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet"
-                        }
-                    }
-                }
-            }
-        },
-        "/roles/{roleId}/permissions": {
-            "get": {
-                "description": "Get Permissions By Role ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Get Permissions By Role ID",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update Permissions By Role ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Update Permissions By Role ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Role ID",
-                        "name": "roleId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Update Permissions By Role ID Request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest"
-                        }
                     }
                 ],
                 "responses": {
@@ -7383,20 +7309,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.Endpoint": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.FilterResponse": {
             "type": "object",
             "properties": {
@@ -7958,32 +7870,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "creator": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "organizationId": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.GetUserResponse": {
             "type": "object",
             "properties": {
@@ -8095,20 +7981,6 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse": {
-            "type": "object",
-            "properties": {
-                "pagination": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
-                },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse"
-                    }
                 }
             }
         },
@@ -8301,79 +8173,6 @@ const docTemplate = `{
                 },
                 "totalRows": {
                     "type": "integer"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.Permission": {
-            "type": "object",
-            "properties": {
-                "ID": {
-                    "type": "string"
-                },
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                    }
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "endpoints": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Endpoint"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_allowed": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parent": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                },
-                "parent_id": {
-                    "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
-                },
-                "role_id": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.PermissionSet": {
-            "type": "object",
-            "properties": {
-                "configuration": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                },
-                "dashboard": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                },
-                "notification": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                },
-                "project_management": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                },
-                "security_policy": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                },
-                "stack": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 }
             }
         },
@@ -9371,17 +9170,6 @@ const docTemplate = `{
                 },
                 "originPassword": {
                     "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest": {
-            "type": "object",
-            "properties": {
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
-                    }
                 }
             }
         },
