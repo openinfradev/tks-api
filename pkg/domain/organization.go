@@ -58,6 +58,7 @@ type Organization struct {
 	Description      string             `json:"description"`
 	Phone            string             `json:"phone"`
 	PrimaryClusterId string             `json:"primaryClusterId"`
+	WorkflowId       string             `json:"-"`
 	Status           OrganizationStatus `json:"status"`
 	StatusDesc       string             `json:"statusDesc"`
 	Creator          string             `json:"creator"`
