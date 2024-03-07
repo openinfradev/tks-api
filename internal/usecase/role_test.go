@@ -2,14 +2,14 @@ package usecase_test
 
 import (
 	"fmt"
+	"gorm_test/config"
+	"testing"
+
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/domain"
 	myRepository "github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm_test/config"
-	"testing"
 )
 
 func TestNewRoleUsecase(t *testing.T) {
