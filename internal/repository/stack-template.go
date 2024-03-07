@@ -78,7 +78,7 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db, &stackTemplates)
+	_, res := pg.Fetch(r.db.Preload(clause.Associations), &stackTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -94,10 +94,14 @@ func (r *StackTemplateRepository) Create(dto domain.StackTemplate) (stackTemplat
 	stackTemplate := StackTemplate{
 		Name:         dto.Name,
 		Description:  dto.Description,
-		CloudService: dto.CloudService,
-		Platform:     dto.Platform,
 		Template:     dto.Template,
 		TemplateType: dto.TemplateType,
+		Version:      dto.Version,
+		CloudService: dto.CloudService,
+		Platform:     dto.Platform,
+		KubeVersion:  dto.KubeVersion,
+		KubeType:     dto.KubeType,
+		Services:     dto.Services,
 		CreatorId:    &dto.CreatorId,
 		UpdatorId:    &dto.CreatorId}
 	res := r.db.Create(&stackTemplate)
@@ -111,8 +115,16 @@ func (r *StackTemplateRepository) Update(dto domain.StackTemplate) (err error) {
 	res := r.db.Model(&StackTemplate{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{
-			"Description": dto.Description,
-			"UpdatorId":   dto.UpdatorId})
+			"Template":     dto.Template,
+			"TemplateType": dto.TemplateType,
+			"Version":      dto.Version,
+			"CloudService": dto.CloudService,
+			"Platform":     dto.Platform,
+			"KubeVersion":  dto.KubeVersion,
+			"KubeType":     dto.KubeType,
+			"Services":     dto.Services,
+			"Description":  dto.Description,
+			"UpdatorId":    dto.UpdatorId})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -148,6 +160,7 @@ func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate
 	if err := serializer.Map(stackTemplate, &out); err != nil {
 		log.Error(err)
 	}
+
 	out.Services = stackTemplate.Services
 	return
 }

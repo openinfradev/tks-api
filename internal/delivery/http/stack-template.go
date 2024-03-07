@@ -76,7 +76,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
 //	@Success		200			{object}	domain.GetStackTemplatesResponse
-//	@Router			/stack-templates [get]
+//	@Router			/admin/stack-templates [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -92,6 +92,14 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	for i, stackTemplate := range stackTemplates {
 		if err := serializer.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
+		}
+
+		out.StackTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
+		for j, organization := range stackTemplate.Organizations {
+			if err := serializer.Map(organization, &out.StackTemplates[i].Organizations[j]); err != nil {
+				log.InfoWithContext(r.Context(), err)
+				continue
+			}
 		}
 
 		err := json.Unmarshal(stackTemplate.Services, &out.StackTemplates[i].Services)
@@ -171,34 +179,31 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 //	@Router			/admin/stack-templates/{stackTemplateId} [put]
 //	@Security		JWT
 func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *http.Request) {
-	/*
-		vars := mux.Vars(r)
-		strId, ok := vars["stackTemplateId"]
-		if !ok {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackTemplateId")))
-			return
-		}
+	vars := mux.Vars(r)
+	strId, ok := vars["stackTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		return
+	}
 
-		stackTemplateId, err := uuid.Parse(strId)
-		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s")))
-			return
-		}
+	stackTemplateId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		return
+	}
 
-		var dto domain.StackTemplate
-		if err := serializer.Map(r, &dto); err != nil {
-			log.InfoWithContext(r.Context(),err)
-		}
-		dto.ID = stackTemplateId
+	var dto domain.StackTemplate
+	if err := serializer.Map(r, &dto); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+	dto.ID = stackTemplateId
 
-		err = h.usecase.Update(r.Context(), dto)
-		if err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
-	*/
-
-	ErrorJSON(w, r, fmt.Errorf("need implementation"))
+	err = h.usecase.Update(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // DeleteStackTemplate godoc
@@ -248,4 +253,50 @@ func (h *StackTemplateHandler) GetStackTemplateServices(w http.ResponseWriter, r
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// UpdateStackTemplateOrganizations godoc
+//
+//	@Tags			StackTemplates
+//	@Summary		Update StackTemplate organizations
+//	@Description	Update StackTemplate organizations
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.UpdateStackTemplateOrganizationsRequest	true	"Update stack template organizations request"
+//	@Success		200		{object}	nil
+//	@Router			/admin/stack-templates/{stackTemplateId}/organizations [put]
+//	@Security		JWT
+func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["stackTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		return
+	}
+
+	stackTemplateId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		return
+	}
+
+	input := domain.UpdateStackTemplateOrganizationsRequest{}
+	err = UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var dto domain.StackTemplate
+	if err := serializer.Map(input, &dto); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+	dto.ID = stackTemplateId
+
+	err = h.usecase.UpdateOrganizations(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
