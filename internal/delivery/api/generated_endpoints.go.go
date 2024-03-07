@@ -275,28 +275,32 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetResourceQuota", 
 		Group: "CloudAccount",
 	},
-    GetStackTemplates: {
-		Name: "GetStackTemplates", 
+    Admin_GetStackTemplates: {
+		Name: "Admin_GetStackTemplates", 
 		Group: "StackTemplate",
 	},
-    CreateStackTemplate: {
-		Name: "CreateStackTemplate", 
+    Admin_GetStackTemplate: {
+		Name: "Admin_GetStackTemplate", 
 		Group: "StackTemplate",
 	},
-    GetStackTemplate: {
-		Name: "GetStackTemplate", 
+    Admin_GetStackTemplateServices: {
+		Name: "Admin_GetStackTemplateServices", 
 		Group: "StackTemplate",
 	},
-    UpdateStackTemplate: {
-		Name: "UpdateStackTemplate", 
+    Admin_CreateStackTemplate: {
+		Name: "Admin_CreateStackTemplate", 
 		Group: "StackTemplate",
 	},
-    DeleteStackTemplate: {
-		Name: "DeleteStackTemplate", 
+    Admin_UpdateStackTemplate: {
+		Name: "Admin_UpdateStackTemplate", 
 		Group: "StackTemplate",
 	},
-    UpdateStackTemplateOrganizations: {
-		Name: "UpdateStackTemplateOrganizations", 
+    Admin_DeleteStackTemplate: {
+		Name: "Admin_DeleteStackTemplate", 
+		Group: "StackTemplate",
+	},
+    Admin_UpdateStackTemplateOrganizations: {
+		Name: "Admin_UpdateStackTemplateOrganizations", 
 		Group: "StackTemplate",
 	},
     GetChartsDashboard: {
@@ -690,18 +694,20 @@ func (e Endpoint) String() string {
 		return "DeleteForceCloudAccount"
 	case GetResourceQuota:
 		return "GetResourceQuota"
-	case GetStackTemplates:
-		return "GetStackTemplates"
-	case CreateStackTemplate:
-		return "CreateStackTemplate"
-	case GetStackTemplate:
-		return "GetStackTemplate"
-	case UpdateStackTemplate:
-		return "UpdateStackTemplate"
-	case DeleteStackTemplate:
-		return "DeleteStackTemplate"
-	case UpdateStackTemplateOrganizations:
-		return "UpdateStackTemplateOrganizations"
+	case Admin_GetStackTemplates:
+		return "Admin_GetStackTemplates"
+	case Admin_GetStackTemplate:
+		return "Admin_GetStackTemplate"
+	case Admin_GetStackTemplateServices:
+		return "Admin_GetStackTemplateServices"
+	case Admin_CreateStackTemplate:
+		return "Admin_CreateStackTemplate"
+	case Admin_UpdateStackTemplate:
+		return "Admin_UpdateStackTemplate"
+	case Admin_DeleteStackTemplate:
+		return "Admin_DeleteStackTemplate"
+	case Admin_UpdateStackTemplateOrganizations:
+		return "Admin_UpdateStackTemplateOrganizations"
 	case GetChartsDashboard:
 		return "GetChartsDashboard"
 	case GetChartDashboard:
@@ -970,18 +976,20 @@ func GetEndpoint(name string) Endpoint {
 		return DeleteForceCloudAccount
 	case "GetResourceQuota":
 		return GetResourceQuota
-	case "GetStackTemplates":
-		return GetStackTemplates
-	case "CreateStackTemplate":
-		return CreateStackTemplate
-	case "GetStackTemplate":
-		return GetStackTemplate
-	case "UpdateStackTemplate":
-		return UpdateStackTemplate
-	case "DeleteStackTemplate":
-		return DeleteStackTemplate
-	case "UpdateStackTemplateOrganizations":
-		return UpdateStackTemplateOrganizations
+	case "Admin_GetStackTemplates":
+		return Admin_GetStackTemplates
+	case "Admin_GetStackTemplate":
+		return Admin_GetStackTemplate
+	case "Admin_GetStackTemplateServices":
+		return Admin_GetStackTemplateServices
+	case "Admin_CreateStackTemplate":
+		return Admin_CreateStackTemplate
+	case "Admin_UpdateStackTemplate":
+		return Admin_UpdateStackTemplate
+	case "Admin_DeleteStackTemplate":
+		return Admin_DeleteStackTemplate
+	case "Admin_UpdateStackTemplateOrganizations":
+		return Admin_UpdateStackTemplateOrganizations
 	case "GetChartsDashboard":
 		return GetChartsDashboard
 	case "GetChartDashboard":

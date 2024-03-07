@@ -95,12 +95,13 @@ const (
 	GetResourceQuota
 
 	// StackTemplate
-	GetStackTemplates
-	CreateStackTemplate
-	GetStackTemplate
-	UpdateStackTemplate
-	DeleteStackTemplate
-	UpdateStackTemplateOrganizations
+	Admin_GetStackTemplates
+	Admin_GetStackTemplate
+	Admin_GetStackTemplateServices
+	Admin_CreateStackTemplate
+	Admin_UpdateStackTemplate
+	Admin_DeleteStackTemplate
+	Admin_UpdateStackTemplateOrganizations
 
 	// Dashboard
 	GetChartsDashboard    // 대시보드/대시보드/조회
