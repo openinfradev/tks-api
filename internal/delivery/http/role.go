@@ -35,6 +35,7 @@ func NewRoleHandler(usecase usecase.Usecase) *RoleHandler {
 }
 
 // CreateTksRole godoc
+//
 //	@Tags			Role
 //	@Summary		Create Tks Role
 //	@Description	Create Tks Role
@@ -45,7 +46,6 @@ func NewRoleHandler(usecase usecase.Usecase) *RoleHandler {
 //	@Success		200				{object}	domain.CreateTksRoleResponse
 //	@Router			/organizations/{organizationId}/roles [post]
 //	@Security		JWT
-
 func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	var organizationId string
@@ -95,6 +95,7 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // ListTksRoles godoc
+//
 //	@Tags			Role
 //	@Summary		List Tks Roles
 //	@Description	List Tks Roles
@@ -103,7 +104,6 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 //	@Success		200				{object}	domain.ListTksRoleResponse
 //	@Router			/organizations/{organizationId}/roles [get]
 //	@Security		JWT
-
 func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	var organizationId string
@@ -150,6 +150,7 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTksRole godoc
+//
 //	@Tags			Role
 //	@Summary		Get Tks Role
 //	@Description	Get Tks Role
@@ -159,7 +160,6 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 //	@Success		200				{object}	domain.GetTksRoleResponse
 //	@Router			/organizations/{organizationId}/roles/{roleId} [get]
 //	@Security		JWT
-
 func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	vars := mux.Vars(r)
@@ -192,6 +192,7 @@ func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteTksRole godoc
+//
 //	@Tags			Role
 //	@Summary		Delete Tks Role
 //	@Description	Delete Tks Role
@@ -201,7 +202,6 @@ func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 //	@Success		200
 //	@Router			/organizations/{organizationId}/roles/{roleId} [delete]
 //	@Security		JWT
-
 func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	vars := mux.Vars(r)
@@ -224,6 +224,7 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateTksRole godoc
+//
 //	@Tags			Role
 //	@Summary		Update Tks Role
 //	@Description	Update Tks Role
@@ -235,7 +236,6 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 //	@Success		200
 //	@Router			/organizations/{organizationId}/roles/{roleId} [put]
 //	@Security		JWT
-
 func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	vars := mux.Vars(r)
@@ -272,6 +272,7 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin_ListTksRoles godoc
+//
 //	@Tags			Role
 //	@Summary		Admin List Tks Roles
 //	@Description	Admin List Tks Roles
@@ -279,7 +280,6 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string	true	"Organization ID"
 //	@Success		200				{object}	domain.ListTksRoleResponse
 //	@Router			/admin/organizations/{organizationId}/roles [get]
-
 func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	// Same as ListTksRoles
 
@@ -327,6 +327,7 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 }
 
 // Admin_GetTksRole godoc
+//
 //	@Tags			Role
 //	@Summary		Admin Get Tks Role
 //	@Description	Admin Get Tks Role
@@ -335,7 +336,6 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 //	@Param			roleId			path		string	true	"Role ID"
 //	@Success		200				{object}	domain.GetTksRoleResponse
 //	@Router			/admin/organizations/{organizationId}/roles/{roleId} [get]
-
 func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// Same as GetTksRole
 

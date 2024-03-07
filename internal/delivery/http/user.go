@@ -695,6 +695,21 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TKS 관리자가 아닌 경우 Password 확인
+	if organizationId != "master" {
+		// check admin password
+		requestUserInfo, ok := request.UserFrom(r.Context())
+		if !ok {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
+			return
+		}
+		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+	}
+
 	user := domain.User{
 		Name:        input.Name,
 		AccountId:   input.AccountId,
@@ -719,18 +734,6 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 
 	user.Organization = domain.Organization{
 		ID: organizationId,
-	}
-
-	// check admin password
-	requestUserInfo, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
-		return
-	}
-	_, err = u.authUsecase.Login(requestUserInfo.GetAccountId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
 	}
 
 	user.Password = u.usecase.GenerateRandomPassword()
@@ -880,27 +883,31 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := admin_domain.DeleteUserRequest{}
-	err := UnmarshalRequestInput(r, &input)
-	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
-		ErrorJSON(w, r, err)
-		return
+	// TKS 관리자가 아닌 경우 Password 확인
+	if organizationId != "master" {
+		err := UnmarshalRequestInput(r, &input)
+		if err != nil {
+			log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		// check admin password
+		requestUserInfo, ok := request.UserFrom(r.Context())
+		if !ok {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
+			return
+		}
+		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
 	}
 
-	// check admin password
-	requestUserInfo, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
-		return
-	}
-	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	err = u.usecase.DeleteByAccountId(r.Context(), userId, organizationId)
+	err := u.usecase.DeleteByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -950,16 +957,19 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check admin password
-	requestUserInfo, ok := request.UserFrom(r.Context())
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
-		return
-	}
-	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
+	// TKS 관리자가 아닌 경우 Password 확인
+	if organizationId != "master" {
+		// check admin password
+		requestUserInfo, ok := request.UserFrom(r.Context())
+		if !ok {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
+			return
+		}
+		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
 	}
 
 	ctx := r.Context()

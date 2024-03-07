@@ -26,6 +26,7 @@ func NewPermissionHandler(usecase usecase.Usecase) *PermissionHandler {
 }
 
 // GetPermissionTemplates godoc
+//
 //	@Tags			Permission
 //	@Summary		Get Permission Templates
 //	@Description	Get Permission Templates
@@ -34,7 +35,6 @@ func NewPermissionHandler(usecase usecase.Usecase) *PermissionHandler {
 //	@Success		200	{object}	domain.PermissionSet
 //	@Router			/permissions/templates [get]
 //	@Security		JWT
-
 func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http.Request) {
 	permissionSet := domain.NewDefaultPermissionSet()
 
@@ -50,6 +50,7 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 }
 
 // GetPermissionsByRoleId godoc
+//
 //	@Tags			Permission
 //	@Summary		Get Permissions By Role ID
 //	@Description	Get Permissions By Role ID
@@ -58,7 +59,6 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 //	@Success		200	{object}	domain.PermissionSet
 //	@Router			organizations/{organizationId}/roles/{roleId}/permissions [get]
 //	@Security		JWT
-
 func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	var roleId string
@@ -89,6 +89,7 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 }
 
 // UpdatePermissionsByRoleId godoc
+//
 //	@Tags			Permission
 //	@Summary		Update Permissions By Role ID
 //	@Description	Update Permissions By Role ID
@@ -99,7 +100,6 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 //	@Success		200
 //	@Router			organizations/{organizationId}/roles/{roleId}/permissions [put]
 //	@Security		JWT
-
 func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	log.Debug("UpdatePermissionsByRoleId Called")
