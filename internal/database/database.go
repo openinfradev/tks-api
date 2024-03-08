@@ -7,6 +7,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/delivery/api"
 
+	internal_gorm "github.com/openinfradev/tks-api/internal/gorm"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -37,9 +38,10 @@ func InitDB() (*gorm.DB, error) {
 	default:
 		level = logger.Silent
 	}
+	newLogger := internal_gorm.NewGormLogger().LogMode(level)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(level),
+		Logger: newLogger,
 	})
 	if err != nil {
 		return nil, err
