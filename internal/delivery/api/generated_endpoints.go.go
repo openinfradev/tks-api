@@ -555,6 +555,178 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_GetProjects", 
 		Group: "Admin Project",
 	},
+    ListPolicyTemplate: {
+		Name: "ListPolicyTemplate", 
+		Group: "PolicyTemplate",
+	},
+    CreatePolicyTemplate: {
+		Name: "CreatePolicyTemplate", 
+		Group: "PolicyTemplate",
+	},
+    DeletePolicyTemplate: {
+		Name: "DeletePolicyTemplate", 
+		Group: "PolicyTemplate",
+	},
+    GetPolicyTemplate: {
+		Name: "GetPolicyTemplate", 
+		Group: "PolicyTemplate",
+	},
+    UpdatePolicyTemplate: {
+		Name: "UpdatePolicyTemplate", 
+		Group: "PolicyTemplate",
+	},
+    GetPolicyTemplateDeploy: {
+		Name: "GetPolicyTemplateDeploy", 
+		Group: "PolicyTemplate",
+	},
+    ListPolicyTemplateStatistics: {
+		Name: "ListPolicyTemplateStatistics", 
+		Group: "PolicyTemplate",
+	},
+    ListPolicyTemplateVersions: {
+		Name: "ListPolicyTemplateVersions", 
+		Group: "PolicyTemplate",
+	},
+    CreatePolicyTemplateVersion: {
+		Name: "CreatePolicyTemplateVersion", 
+		Group: "PolicyTemplate",
+	},
+    DeletePolicyTemplateVersion: {
+		Name: "DeletePolicyTemplateVersion", 
+		Group: "PolicyTemplate",
+	},
+    GetPolicyTemplateVersion: {
+		Name: "GetPolicyTemplateVersion", 
+		Group: "PolicyTemplate",
+	},
+    ExistsPolicyTemplateKind: {
+		Name: "ExistsPolicyTemplateKind", 
+		Group: "PolicyTemplate",
+	},
+    ExistsPolicyTemplateName: {
+		Name: "ExistsPolicyTemplateName", 
+		Group: "PolicyTemplate",
+	},
+    ListClusterPolicyStatus: {
+		Name: "ListClusterPolicyStatus", 
+		Group: "ClusterPolicyStatus",
+	},
+    GetClusterPolicyTemplateStatus: {
+		Name: "GetClusterPolicyTemplateStatus", 
+		Group: "ClusterPolicyStatus",
+	},
+    UpdateClusterPolicyTemplateStatus: {
+		Name: "UpdateClusterPolicyTemplateStatus", 
+		Group: "ClusterPolicyStatus",
+	},
+    GetMandatoryPolicies: {
+		Name: "GetMandatoryPolicies", 
+		Group: "Policy",
+	},
+    SetMandatoryPolicies: {
+		Name: "SetMandatoryPolicies", 
+		Group: "Policy",
+	},
+    ListPolicy: {
+		Name: "ListPolicy", 
+		Group: "Policy",
+	},
+    CreatePolicy: {
+		Name: "CreatePolicy", 
+		Group: "Policy",
+	},
+    DeletePolicy: {
+		Name: "DeletePolicy", 
+		Group: "Policy",
+	},
+    GetPolicy: {
+		Name: "GetPolicy", 
+		Group: "Policy",
+	},
+    UpdatePolicy: {
+		Name: "UpdatePolicy", 
+		Group: "Policy",
+	},
+    UpdatePolicyTargetClusters: {
+		Name: "UpdatePolicyTargetClusters", 
+		Group: "Policy",
+	},
+    ExistsPolicyName: {
+		Name: "ExistsPolicyName", 
+		Group: "Policy",
+	},
+    ListOrganizationPolicyTemplate: {
+		Name: "ListOrganizationPolicyTemplate", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    CreateOrganizationPolicyTemplate: {
+		Name: "CreateOrganizationPolicyTemplate", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    DeleteOrganizationPolicyTemplate: {
+		Name: "DeleteOrganizationPolicyTemplate", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    GetOrganizationPolicyTemplate: {
+		Name: "GetOrganizationPolicyTemplate", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    UpdateOrganizationPolicyTemplate: {
+		Name: "UpdateOrganizationPolicyTemplate", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    GetOrganizationPolicyTemplateDeploy: {
+		Name: "GetOrganizationPolicyTemplateDeploy", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    ListOrganizationPolicyTemplateStatistics: {
+		Name: "ListOrganizationPolicyTemplateStatistics", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    ListOrganizationPolicyTemplateVersions: {
+		Name: "ListOrganizationPolicyTemplateVersions", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    CreateOrganizationPolicyTemplateVersion: {
+		Name: "CreateOrganizationPolicyTemplateVersion", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    DeleteOrganizationPolicyTemplateVersion: {
+		Name: "DeleteOrganizationPolicyTemplateVersion", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    GetOrganizationPolicyTemplateVersion: {
+		Name: "GetOrganizationPolicyTemplateVersion", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    ExistsOrganizationPolicyTemplateKind: {
+		Name: "ExistsOrganizationPolicyTemplateKind", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    ExistsOrganizationPolicyTemplateName: {
+		Name: "ExistsOrganizationPolicyTemplateName", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    ListPolicyTemplateExample: {
+		Name: "ListPolicyTemplateExample", 
+		Group: "PolicyTemplateExample",
+	},
+    GetPolicyTemplateExample: {
+		Name: "GetPolicyTemplateExample", 
+		Group: "PolicyTemplateExample",
+	},
+    UpdatePolicyTemplateExample: {
+		Name: "UpdatePolicyTemplateExample", 
+		Group: "PolicyTemplateExample",
+	},
+    DeletePolicyTemplateExample: {
+		Name: "DeletePolicyTemplateExample", 
+		Group: "PolicyTemplateExample",
+	},
+    CompileRego: {
+		Name: "CompileRego", 
+		Group: "Utility",
+	},
 }
 func (e Endpoint) String() string {
 	switch e {
@@ -834,6 +1006,92 @@ func (e Endpoint) String() string {
 		return "Admin_GetTksRole"
 	case Admin_GetProjects:
 		return "Admin_GetProjects"
+	case ListPolicyTemplate:
+		return "ListPolicyTemplate"
+	case CreatePolicyTemplate:
+		return "CreatePolicyTemplate"
+	case DeletePolicyTemplate:
+		return "DeletePolicyTemplate"
+	case GetPolicyTemplate:
+		return "GetPolicyTemplate"
+	case UpdatePolicyTemplate:
+		return "UpdatePolicyTemplate"
+	case GetPolicyTemplateDeploy:
+		return "GetPolicyTemplateDeploy"
+	case ListPolicyTemplateStatistics:
+		return "ListPolicyTemplateStatistics"
+	case ListPolicyTemplateVersions:
+		return "ListPolicyTemplateVersions"
+	case CreatePolicyTemplateVersion:
+		return "CreatePolicyTemplateVersion"
+	case DeletePolicyTemplateVersion:
+		return "DeletePolicyTemplateVersion"
+	case GetPolicyTemplateVersion:
+		return "GetPolicyTemplateVersion"
+	case ExistsPolicyTemplateKind:
+		return "ExistsPolicyTemplateKind"
+	case ExistsPolicyTemplateName:
+		return "ExistsPolicyTemplateName"
+	case ListClusterPolicyStatus:
+		return "ListClusterPolicyStatus"
+	case GetClusterPolicyTemplateStatus:
+		return "GetClusterPolicyTemplateStatus"
+	case UpdateClusterPolicyTemplateStatus:
+		return "UpdateClusterPolicyTemplateStatus"
+	case GetMandatoryPolicies:
+		return "GetMandatoryPolicies"
+	case SetMandatoryPolicies:
+		return "SetMandatoryPolicies"
+	case ListPolicy:
+		return "ListPolicy"
+	case CreatePolicy:
+		return "CreatePolicy"
+	case DeletePolicy:
+		return "DeletePolicy"
+	case GetPolicy:
+		return "GetPolicy"
+	case UpdatePolicy:
+		return "UpdatePolicy"
+	case UpdatePolicyTargetClusters:
+		return "UpdatePolicyTargetClusters"
+	case ExistsPolicyName:
+		return "ExistsPolicyName"
+	case ListOrganizationPolicyTemplate:
+		return "ListOrganizationPolicyTemplate"
+	case CreateOrganizationPolicyTemplate:
+		return "CreateOrganizationPolicyTemplate"
+	case DeleteOrganizationPolicyTemplate:
+		return "DeleteOrganizationPolicyTemplate"
+	case GetOrganizationPolicyTemplate:
+		return "GetOrganizationPolicyTemplate"
+	case UpdateOrganizationPolicyTemplate:
+		return "UpdateOrganizationPolicyTemplate"
+	case GetOrganizationPolicyTemplateDeploy:
+		return "GetOrganizationPolicyTemplateDeploy"
+	case ListOrganizationPolicyTemplateStatistics:
+		return "ListOrganizationPolicyTemplateStatistics"
+	case ListOrganizationPolicyTemplateVersions:
+		return "ListOrganizationPolicyTemplateVersions"
+	case CreateOrganizationPolicyTemplateVersion:
+		return "CreateOrganizationPolicyTemplateVersion"
+	case DeleteOrganizationPolicyTemplateVersion:
+		return "DeleteOrganizationPolicyTemplateVersion"
+	case GetOrganizationPolicyTemplateVersion:
+		return "GetOrganizationPolicyTemplateVersion"
+	case ExistsOrganizationPolicyTemplateKind:
+		return "ExistsOrganizationPolicyTemplateKind"
+	case ExistsOrganizationPolicyTemplateName:
+		return "ExistsOrganizationPolicyTemplateName"
+	case ListPolicyTemplateExample:
+		return "ListPolicyTemplateExample"
+	case GetPolicyTemplateExample:
+		return "GetPolicyTemplateExample"
+	case UpdatePolicyTemplateExample:
+		return "UpdatePolicyTemplateExample"
+	case DeletePolicyTemplateExample:
+		return "DeletePolicyTemplateExample"
+	case CompileRego:
+		return "CompileRego"
 	default:
 		return ""
 	}
@@ -1116,6 +1374,92 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_GetTksRole
 	case "Admin_GetProjects":
 		return Admin_GetProjects
+	case "ListPolicyTemplate":
+		return ListPolicyTemplate
+	case "CreatePolicyTemplate":
+		return CreatePolicyTemplate
+	case "DeletePolicyTemplate":
+		return DeletePolicyTemplate
+	case "GetPolicyTemplate":
+		return GetPolicyTemplate
+	case "UpdatePolicyTemplate":
+		return UpdatePolicyTemplate
+	case "GetPolicyTemplateDeploy":
+		return GetPolicyTemplateDeploy
+	case "ListPolicyTemplateStatistics":
+		return ListPolicyTemplateStatistics
+	case "ListPolicyTemplateVersions":
+		return ListPolicyTemplateVersions
+	case "CreatePolicyTemplateVersion":
+		return CreatePolicyTemplateVersion
+	case "DeletePolicyTemplateVersion":
+		return DeletePolicyTemplateVersion
+	case "GetPolicyTemplateVersion":
+		return GetPolicyTemplateVersion
+	case "ExistsPolicyTemplateKind":
+		return ExistsPolicyTemplateKind
+	case "ExistsPolicyTemplateName":
+		return ExistsPolicyTemplateName
+	case "ListClusterPolicyStatus":
+		return ListClusterPolicyStatus
+	case "GetClusterPolicyTemplateStatus":
+		return GetClusterPolicyTemplateStatus
+	case "UpdateClusterPolicyTemplateStatus":
+		return UpdateClusterPolicyTemplateStatus
+	case "GetMandatoryPolicies":
+		return GetMandatoryPolicies
+	case "SetMandatoryPolicies":
+		return SetMandatoryPolicies
+	case "ListPolicy":
+		return ListPolicy
+	case "CreatePolicy":
+		return CreatePolicy
+	case "DeletePolicy":
+		return DeletePolicy
+	case "GetPolicy":
+		return GetPolicy
+	case "UpdatePolicy":
+		return UpdatePolicy
+	case "UpdatePolicyTargetClusters":
+		return UpdatePolicyTargetClusters
+	case "ExistsPolicyName":
+		return ExistsPolicyName
+	case "ListOrganizationPolicyTemplate":
+		return ListOrganizationPolicyTemplate
+	case "CreateOrganizationPolicyTemplate":
+		return CreateOrganizationPolicyTemplate
+	case "DeleteOrganizationPolicyTemplate":
+		return DeleteOrganizationPolicyTemplate
+	case "GetOrganizationPolicyTemplate":
+		return GetOrganizationPolicyTemplate
+	case "UpdateOrganizationPolicyTemplate":
+		return UpdateOrganizationPolicyTemplate
+	case "GetOrganizationPolicyTemplateDeploy":
+		return GetOrganizationPolicyTemplateDeploy
+	case "ListOrganizationPolicyTemplateStatistics":
+		return ListOrganizationPolicyTemplateStatistics
+	case "ListOrganizationPolicyTemplateVersions":
+		return ListOrganizationPolicyTemplateVersions
+	case "CreateOrganizationPolicyTemplateVersion":
+		return CreateOrganizationPolicyTemplateVersion
+	case "DeleteOrganizationPolicyTemplateVersion":
+		return DeleteOrganizationPolicyTemplateVersion
+	case "GetOrganizationPolicyTemplateVersion":
+		return GetOrganizationPolicyTemplateVersion
+	case "ExistsOrganizationPolicyTemplateKind":
+		return ExistsOrganizationPolicyTemplateKind
+	case "ExistsOrganizationPolicyTemplateName":
+		return ExistsOrganizationPolicyTemplateName
+	case "ListPolicyTemplateExample":
+		return ListPolicyTemplateExample
+	case "GetPolicyTemplateExample":
+		return GetPolicyTemplateExample
+	case "UpdatePolicyTemplateExample":
+		return UpdatePolicyTemplateExample
+	case "DeletePolicyTemplateExample":
+		return DeletePolicyTemplateExample
+	case "CompileRego":
+		return CompileRego
 	default:
 		return -1
 	}

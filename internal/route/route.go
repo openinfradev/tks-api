@@ -41,38 +41,41 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	cache := gcache.New(5*time.Minute, 10*time.Minute)
 
 	repoFactory := repository.Repository{
-		Auth:          repository.NewAuthRepository(db),
-		User:          repository.NewUserRepository(db),
-		Cluster:       repository.NewClusterRepository(db),
-		Organization:  repository.NewOrganizationRepository(db),
-		AppGroup:      repository.NewAppGroupRepository(db),
-		AppServeApp:   repository.NewAppServeAppRepository(db),
-		CloudAccount:  repository.NewCloudAccountRepository(db),
-		StackTemplate: repository.NewStackTemplateRepository(db),
-		Alert:         repository.NewAlertRepository(db),
-		Role:          repository.NewRoleRepository(db),
-		Project:       repository.NewProjectRepository(db),
-		Permission:    repository.NewPermissionRepository(db),
-		Endpoint:      repository.NewEndpointRepository(db),
-		Audit:         repository.NewAuditRepository(db),
+		Auth:           repository.NewAuthRepository(db),
+		User:           repository.NewUserRepository(db),
+		Cluster:        repository.NewClusterRepository(db),
+		Organization:   repository.NewOrganizationRepository(db),
+		AppGroup:       repository.NewAppGroupRepository(db),
+		AppServeApp:    repository.NewAppServeAppRepository(db),
+		CloudAccount:   repository.NewCloudAccountRepository(db),
+		StackTemplate:  repository.NewStackTemplateRepository(db),
+		Alert:          repository.NewAlertRepository(db),
+		Role:           repository.NewRoleRepository(db),
+		Project:        repository.NewProjectRepository(db),
+		Permission:     repository.NewPermissionRepository(db),
+		Endpoint:       repository.NewEndpointRepository(db),
+		Audit:          repository.NewAuditRepository(db),
+		PolicyTemplate: repository.NewPolicyTemplateRepository(db),
 	}
 
 	usecaseFactory := usecase.Usecase{
-		Auth:          usecase.NewAuthUsecase(repoFactory, kc),
-		User:          usecase.NewUserUsecase(repoFactory, kc),
-		Cluster:       usecase.NewClusterUsecase(repoFactory, argoClient, cache),
-		Organization:  usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
-		AppGroup:      usecase.NewAppGroupUsecase(repoFactory, argoClient),
-		AppServeApp:   usecase.NewAppServeAppUsecase(repoFactory, argoClient),
-		CloudAccount:  usecase.NewCloudAccountUsecase(repoFactory, argoClient),
-		StackTemplate: usecase.NewStackTemplateUsecase(repoFactory),
-		Dashboard:     usecase.NewDashboardUsecase(repoFactory, cache),
-		Alert:         usecase.NewAlertUsecase(repoFactory),
-		Stack:         usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
-		Project:       usecase.NewProjectUsecase(repoFactory, kc, argoClient),
-		Audit:         usecase.NewAuditUsecase(repoFactory),
-		Role:          usecase.NewRoleUsecase(repoFactory),
-		Permission:    usecase.NewPermissionUsecase(repoFactory),
+		Auth:           usecase.NewAuthUsecase(repoFactory, kc),
+		User:           usecase.NewUserUsecase(repoFactory, kc),
+		Cluster:        usecase.NewClusterUsecase(repoFactory, argoClient, cache),
+		Organization:   usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
+		AppGroup:       usecase.NewAppGroupUsecase(repoFactory, argoClient),
+		AppServeApp:    usecase.NewAppServeAppUsecase(repoFactory, argoClient),
+		CloudAccount:   usecase.NewCloudAccountUsecase(repoFactory, argoClient),
+		StackTemplate:  usecase.NewStackTemplateUsecase(repoFactory),
+		Dashboard:      usecase.NewDashboardUsecase(repoFactory, cache),
+		Alert:          usecase.NewAlertUsecase(repoFactory),
+		Stack:          usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
+		Project:        usecase.NewProjectUsecase(repoFactory, kc, argoClient),
+		Audit:          usecase.NewAuditUsecase(repoFactory),
+		Role:           usecase.NewRoleUsecase(repoFactory),
+		Permission:     usecase.NewPermissionUsecase(repoFactory),
+		PolicyTemplate: usecase.NewPolicyTemplateUsecase(repoFactory),
+		Utility:        usecase.NewUtilityUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -264,6 +267,25 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.UpdatePermissionsByRoleId, http.HandlerFunc(permissionHandler.UpdatePermissionsByRoleId))).Methods(http.MethodPut)
 
 	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", alertHandler.CreateAlert).Methods(http.MethodPost)
+
+	policyTemplateHandler := delivery.NewPolicyTemplateHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates", customMiddleware.Handle(internalApi.ListPolicyTemplate, http.HandlerFunc(policyTemplateHandler.ListPolicyTemplate))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates", customMiddleware.Handle(internalApi.CreatePolicyTemplate, http.HandlerFunc(policyTemplateHandler.CreatePolicyTemplate))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}", customMiddleware.Handle(internalApi.DeletePolicyTemplate, http.HandlerFunc(policyTemplateHandler.DeletePolicyTemplate))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}", customMiddleware.Handle(internalApi.GetPolicyTemplate, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplate))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}", customMiddleware.Handle(internalApi.UpdatePolicyTemplate, http.HandlerFunc(policyTemplateHandler.UpdatePolicyTemplate))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/deploy ", customMiddleware.Handle(internalApi.GetPolicyTemplateDeploy, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplateDeploy))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/statistics", customMiddleware.Handle(internalApi.ListPolicyTemplateStatistics, http.HandlerFunc(policyTemplateHandler.ListPolicyTemplateStatistics))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/versions", customMiddleware.Handle(internalApi.ListPolicyTemplateVersions, http.HandlerFunc(policyTemplateHandler.ListPolicyTemplateVersions))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/versions", customMiddleware.Handle(internalApi.CreatePolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.CreatePolicyTemplateVersion))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.DeletePolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.DeletePolicyTemplateVersion))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.GetPolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplateVersion))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/kind/{policyTemplateKind}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateKind, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateKind))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/name/{policyTemplateName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateName, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateName))).Methods(http.MethodGet)
+
+	utilityHandler := delivery.NewUtilityHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/utility/rego-compile", customMiddleware.Handle(internalApi.CompileRego, http.HandlerFunc(utilityHandler.RegoCompile))).Methods(http.MethodPost)
+
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
 	r.PathPrefix("/").Handler(httpSwagger.WrapHandler).Methods(http.MethodGet)
