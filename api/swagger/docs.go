@@ -7924,6 +7924,10 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateRequest": {
             "type": "object",
+            "required": [
+                "kind",
+                "rego"
+            ],
             "properties": {
                 "deprecated": {
                     "type": "boolean",
@@ -7971,10 +7975,6 @@ const docTemplate = `{
                     ],
                     "example": "medium"
                 },
-                "target": {
-                    "type": "string",
-                    "example": "admission.k8s.gatekeeper.sh"
-                },
                 "templateName": {
                     "type": "string",
                     "example": "필수 Label 검사"
@@ -7983,6 +7983,12 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionRequest": {
             "type": "object",
+            "required": [
+                "currentVersion",
+                "expectedVersion",
+                "rego",
+                "versionUpType"
+            ],
             "properties": {
                 "currentVersion": {
                     "type": "string",
@@ -9905,6 +9911,9 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.RegoCompileRequest": {
             "type": "object",
+            "required": [
+                "rego"
+            ],
             "properties": {
                 "rego": {
                     "type": "string",

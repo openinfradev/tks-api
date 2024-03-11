@@ -99,31 +99,30 @@ type PolicyTemplate struct {
 }
 
 type CreateCommonPolicyTemplateRequest struct {
-	TemplateName     string         `json:"templateName" example:"필수 Label 검사"`
-	Kind             string         `json:"kind" example:"K8sRequiredLabels"`
+	TemplateName     string         `json:"templateName" example:"필수 Label 검사" validate:"name"`
+	Kind             string         `json:"kind" example:"K8sRequiredLabels" validate:"required"`
 	Severity         string         `json:"severity" enums:"low,medium,high" example:"medium"`
 	Deprecated       bool           `json:"deprecated" example:"false"`
 	Description      string         `json:"description,omitempty"  example:"이 정책은 ..."`
 	ParametersSchema []ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
-	Rego string   `json:"rego" example:"rego 코드"`
+	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
 	Libs []string `json:"libs" example:"rego 코드"`
 
 	// Tags []string `json:"tags,omitempty" example:"k8s,label"`
 }
 
 type CreatePolicyTemplateRequest struct {
-	TemplateName     string         `json:"templateName" example:"필수 Label 검사"`
-	Kind             string         `json:"kind" example:"K8sRequiredLabels"`
+	TemplateName     string         `json:"templateName" example:"필수 Label 검사" validate:"name"`
+	Kind             string         `json:"kind" example:"K8sRequiredLabels" validate:"required"`
 	Severity         string         `json:"severity" enums:"low,medium,high" example:"medium"`
 	Deprecated       bool           `json:"deprecated" example:"false"`
-	Target           string         `json:"target,omitempty" example:"admission.k8s.gatekeeper.sh"`
 	Description      string         `json:"description,omitempty"  example:"이 정책은 ..."`
 	ParametersSchema []ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
-	Rego string   `json:"rego" example:"rego 코드"`
+	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
 	Libs []string `json:"libs" example:"rego 코드"`
 
 	PermittedOrganizationIds []string `json:"permittedOrganizationIds"`
@@ -210,14 +209,14 @@ type GetOrganizationPolicyTemplateVersionResponse struct {
 }
 
 type CreatePolicyTemplateVersionRequest struct {
-	VersionUpType   string `json:"versionUpType" enums:"major,minor,patch" example:"minor"`
-	CurrentVersion  string `json:"currentVersion" example:"v1.0.0"`
-	ExpectedVersion string `json:"expectedVersion" example:"v1.1.0"`
+	VersionUpType   string `json:"versionUpType" enums:"major,minor,patch" example:"minor" validate:"required"`
+	CurrentVersion  string `json:"currentVersion" example:"v1.0.0" validate:"required"`
+	ExpectedVersion string `json:"expectedVersion" example:"v1.1.0" validate:"required"`
 
 	ParametersSchema []ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
-	Rego string   `json:"rego" example:"rego 코드"`
+	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
 	Libs []string `json:"libs" example:"rego 코드"`
 }
 
@@ -286,7 +285,7 @@ type ParameterDef struct {
 }
 
 type RegoCompileRequest struct {
-	Rego string `json:"rego" example:"Rego 코드"`
+	Rego string `json:"rego" example:"Rego 코드" validate:"required"`
 }
 
 type RegoCompieError struct {

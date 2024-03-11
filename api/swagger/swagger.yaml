@@ -933,12 +933,12 @@ definitions:
         - high
         example: medium
         type: string
-      target:
-        example: admission.k8s.gatekeeper.sh
-        type: string
       templateName:
         example: 필수 Label 검사
         type: string
+    required:
+    - kind
+    - rego
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionRequest:
     properties:
@@ -968,6 +968,11 @@ definitions:
         - patch
         example: minor
         type: string
+    required:
+    - currentVersion
+    - expectedVersion
+    - rego
+    - versionUpType
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionResponse:
     properties:
@@ -2223,6 +2228,8 @@ definitions:
       rego:
         example: Rego 코드
         type: string
+    required:
+    - rego
     type: object
   github_com_openinfradev_tks-api_pkg_domain.RegoCompileResponse:
     properties:
