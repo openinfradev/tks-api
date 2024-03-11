@@ -48,23 +48,23 @@ func NewPolicyTemplateUsecase(r repository.Repository) IPolicyTemplateUsecase {
 func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto domain.PolicyTemplate) (policyTemplateId string, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "P_INVALID_TOKEN", "")
+		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
 	}
 
 	exists, err := u.repo.ExistByName(dto.TemplateName)
 	if err == nil && exists {
-		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY_TEMPLATE_NAME", "policy template name already exists")
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_CREATE_ALREADY_EXISTED_NAME", "policy template name already exists")
 	}
 
 	exists, err = u.repo.ExistByKind(dto.Kind)
 	if err == nil && exists {
-		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY_TEMPLATE_KIND", "policy template kind already exists")
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_CREATE_ALREADY_EXISTED_KIND", "policy template kind already exists")
 	}
 
 	for _, organizationId := range dto.PermittedOrganizationIds {
 		_, err = u.organizationRepo.Get(organizationId)
 		if err != nil {
-			return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", "")
+			return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 		}
 	}
 
@@ -119,12 +119,12 @@ func (u *PolicyTemplateUsecase) Get(ctx context.Context, policyTemplateID uuid.U
 func (u *PolicyTemplateUsecase) Update(ctx context.Context, policyTemplateId uuid.UUID, update domain.UpdatePolicyTemplateRequest) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
 	}
 
 	_, err = u.repo.GetByID(policyTemplateId)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err, "P_FAILED_FETCH_POLICY_TEMPLATE", "")
+		return httpErrors.NewNotFoundError(err, "PT_FAILED_FETCH_POLICY_TEMPLATE", "")
 	}
 
 	exists, err := u.repo.ExistByName(*update.TemplateName)
@@ -136,7 +136,7 @@ func (u *PolicyTemplateUsecase) Update(ctx context.Context, policyTemplateId uui
 		for _, organizationId := range *update.PermittedOrganizationIds {
 			_, err = u.organizationRepo.Get(organizationId)
 			if err != nil {
-				return httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", "")
+				return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 			}
 		}
 	}
@@ -251,8 +251,8 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 		for _, compileError := range compiler.Errors {
 			response.Errors = append(response.Errors, domain.RegoCompieError{
 				Status:  400,
-				Code:    "P_INVALID_REGO_SYNTAX",
-				Message: "Invalid rego syntax",
+				Code:    "PT_INVALID_REGO_SYNTAX",
+				Message: "invalid rego syntax",
 				Text: fmt.Sprintf("[%d:%d] %s",
 					compileError.Location.Row, compileError.Location.Col,
 					compileError.Message),

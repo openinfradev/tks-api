@@ -4,20 +4,21 @@ type ErrorCode string
 
 var errorMap = map[ErrorCode]string{
 	// Common
-	"C_INTERNAL_ERROR":            "예상하지 못한 오류가 발생했습니다. 문제가 계속되면 관리자에게 문의해주세요.",
-	"C_INVALID_ACCOUNT_ID":        "유효하지 않은 어카운트 아이디입니다. 어카운트 아이디를 확인하세요.",
-	"C_INVALID_STACK_ID":          "유효하지 않은 스택 아이디입니다. 스택 아이디를 확인하세요.",
-	"C_INVALID_CLUSTER_ID":        "유효하지 않은 클러스터 아이디입니다. 클러스터 아이디를 확인하세요.",
-	"C_INVALID_APPGROUP_ID":       "유효하지 않은 앱그룹 아이디입니다. 앱그룹 아이디를 확인하세요.",
-	"C_INVALID_ORGANIZATION_ID":   "유효하지 않은 조직 아이디입니다. 조직 아이디를 확인하세요.",
-	"C_INVALID_PROJECT_ID":        "유효하지 않은 프로젝트 아이디입니다. 아이디를 확인하세요.",
-	"C_INVALID_CLOUD_ACCOUNT_ID":  "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
-	"C_INVALID_STACK_TEMPLATE_ID": "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
-	"C_INVALID_ASA_ID":            "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
-	"C_INVALID_ASA_TASK_ID":       "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
-	"C_INVALID_CLOUD_SERVICE":     "유효하지 않은 클라우드서비스입니다.",
-	"C_INVALID_AUDIT_ID":          "유효하지 않은 로그 아이디입니다. 로그 아이디를 확인하세요.",
-	"C_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패했습니다.",
+	"C_INTERNAL_ERROR":             "예상하지 못한 오류가 발생했습니다. 문제가 계속되면 관리자에게 문의해주세요.",
+	"C_INVALID_ACCOUNT_ID":         "유효하지 않은 어카운트 아이디입니다. 어카운트 아이디를 확인하세요.",
+	"C_INVALID_STACK_ID":           "유효하지 않은 스택 아이디입니다. 스택 아이디를 확인하세요.",
+	"C_INVALID_CLUSTER_ID":         "유효하지 않은 클러스터 아이디입니다. 클러스터 아이디를 확인하세요.",
+	"C_INVALID_APPGROUP_ID":        "유효하지 않은 앱그룹 아이디입니다. 앱그룹 아이디를 확인하세요.",
+	"C_INVALID_ORGANIZATION_ID":    "유효하지 않은 조직 아이디입니다. 조직 아이디를 확인하세요.",
+	"C_INVALID_PROJECT_ID":         "유효하지 않은 프로젝트 아이디입니다. 아이디를 확인하세요.",
+	"C_INVALID_CLOUD_ACCOUNT_ID":   "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
+	"C_INVALID_STACK_TEMPLATE_ID":  "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
+	"C_INVALID_ASA_ID":             "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
+	"C_INVALID_ASA_TASK_ID":        "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
+	"C_INVALID_CLOUD_SERVICE":      "유효하지 않은 클라우드서비스입니다.",
+	"C_INVALID_AUDIT_ID":           "유효하지 않은 로그 아이디입니다. 로그 아이디를 확인하세요.",
+	"C_INVALID_POLICY_TEMPLATE_ID": "유효하지 않은 정책 템플릿 아이디입니다. 정책 템플릿 아이디를 확인하세요.",
+	"C_FAILED_TO_CALL_WORKFLOW":    "워크플로우 호출에 실패했습니다.",
 
 	// Auth
 	"A_INVALID_ID":              "아이디가 존재하지 않습니다.",
@@ -82,6 +83,19 @@ var errorMap = map[ErrorCode]string{
 	"ST_CREATE_ALREADY_EXISTED_NAME": "스택 템플릿에 이미 존재하는 이름입니다.",
 	"ST_FAILED_UPDATE_ORGANIZATION":  "스택 템플릿에 조직을 설정하는데 실패했습니다.",
 	"ST_NOT_EXISTED_STACK_TEMPLATE":  "업데이트할 스택템플릿이 존재하지 않습니다.",
+
+	// PolicyTemplate
+	"PT_CREATE_ALREADY_EXISTED_NAME":       "정첵 템플릿에 이미 존재하는 이름입니다.",
+	"PT_CREATE_ALREADY_EXISTED_KIND":       "정책 템플릿에 이미 존재하는 유형입니다.",
+	"PT_NOT_FOUND_POLICY_TEMPLATE":         "정책 템플릿이 존재하지 않습니다.",
+	"PT_INVALID_KIND":                      "유효하지 않은 정책 템플릿 유형입니다. 정책 템플릿 유형을 확인하세요.",
+	"PT_FAILED_FETCH_POLICY_TEMPLATE":      "정책 템플릿 ID에 해당하는 정책 템플릿을 가져오는데 실패했습니다.",
+	"PT_INVALID_REGO_SYNTAX":               "Rego 문법 오류입니다.",
+	"PT_INVALID_POLICY_TEMPLATE_VERSION":   "유효하지 않은 정책 템플릿 버전닙니다. 정책 템플릿 버전을 확인하세요.",
+	"PT_NOT_FOUND_POLICY_TEMPLATE_VERSION": "정책 템플릿 버전이 존재하지 않습니다.",
+	"PT_INVALID_POLICY_TEMPLATE_NAME":      "유효하지 않은 정책 템플릿 이름입니다. 정책 템플릿 이름을 확인하세요.",
+	"PT_INVALID_POLICY_TEMPLATE_KIND":      "유효하지 않은 정책 템플릿 유형입니다. 정책 템플릿 유형을 확인하세요.",
+	"PT_INVALID_REGO_PARSEPARAMETER":       "유효하지 않은 Rego 파싱 설정입니다. Rego 파싱 설정을 확인하세요.",
 }
 
 func (m ErrorCode) GetText() string {

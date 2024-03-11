@@ -100,19 +100,14 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-
-		ErrorJSON(w, r, err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -157,7 +152,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *h
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -204,7 +199,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -212,7 +207,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
 			return
 		}
 
@@ -224,7 +219,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE", ""))
 			return
 		}
 
@@ -298,19 +293,14 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-
-		ErrorJSON(w, r, err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -319,7 +309,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
 		}
 
@@ -406,25 +396,19 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
 	version, ok := vars["version"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid version"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid version"), "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
 		return
 	}
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-
-		ErrorJSON(w, r, err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -432,7 +416,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
 		}
 
@@ -464,19 +448,13 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-
-		ErrorJSON(w, r, err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -492,7 +470,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 
 	currentVer, err := semver.NewVersion(input.CurrentVersion)
 	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid currentVersion"), "C_INVALID_CURRENT_VERSION", fmt.Sprintf("invalid version format '%s'", input.CurrentVersion)))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid currentVersion"), "PT_INVALID_POLICY_TEMPLATE_VERSION", fmt.Sprintf("invalid version format '%s'", input.CurrentVersion)))
 		return
 	}
 
@@ -513,7 +491,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 	}
 
 	if expectedVersion != input.ExpectedVersion {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid expectedVersion"), "C_INVALID_EXPECTED_VERSION", fmt.Sprintf("expected version mismatch '%s' != '%s'",
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid expectedVersion"), "PT_INVALID_POLICY_TEMPLATE_VERSION", fmt.Sprintf("expected version mismatch '%s' != '%s'",
 			input.ExpectedVersion, expectedVersion)))
 	}
 
@@ -546,25 +524,20 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
 
 	version, ok := vars["version"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid version"), "C_INVALID_VERSION", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid version"), "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
 		return
 	}
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-
-		ErrorJSON(w, r, err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
 		return
 	}
 
@@ -573,7 +546,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
 		}
 
@@ -600,7 +573,7 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, 
 	policyTemplateName, ok := vars["policyTemplateName"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("policyTemplateName not found in path"),
-			"C_INVALID_POLICYTEMPLATE_NAME", ""))
+			"PT_INVALID_POLICY_TEMPLATE_NAME", ""))
 		return
 	}
 
@@ -632,7 +605,7 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, 
 	policyTemplateKind, ok := vars["policyTemplateKind"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("policyTemplateKind not found in path"),
-			"C_INVALID_POLICY_TEMPLATE_KIND", ""))
+			"PT_INVALID_POLICY_TEMPLATE_KIND", ""))
 		return
 	}
 
@@ -668,7 +641,7 @@ func (h *PolicyTemplateHandler) RegoCompile(w http.ResponseWriter, r *http.Reque
 	if ok {
 		parsedBool, err := strconv.ParseBool(parse)
 		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid parseParameter: '%s'", parse), "U_INVALID_REGO_PARSEPARAM", ""))
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid parseParameter: '%s'", parse), "PT_INVALID_REGO_PARSEPARAMETER", ""))
 			return
 		}
 		parseParameter = parsedBool
