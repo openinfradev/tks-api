@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -35,6 +36,7 @@ type IPolicyTemplateHandler interface {
 	GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request)
+	RegoCompile(w http.ResponseWriter, r *http.Request)
 }
 
 func NewPolicyTemplateHandler(u usecase.Usecase) IPolicyTemplateHandler {
@@ -52,7 +54,7 @@ func NewPolicyTemplateHandler(u usecase.Usecase) IPolicyTemplateHandler {
 //	@Produce		json
 //	@Param			body	body		domain.CreatePolicyTemplateRequest	true	"create policy template request"
 //	@Success		200		{object}	domain.CreatePolicyTemplateReponse
-//	@Router			/api/1.0/admin/policytemplates [post]
+//	@Router			/admin/policytemplates [post]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreatePolicyTemplateRequest{}
@@ -92,7 +94,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 //	@Param			policyTemplateId	path		string								true	"정책 템플릿 식별자(uuid)"
 //	@Param			body				body		domain.UpdatePolicyTemplateRequest	true	"update  policy template request"
 //	@Success		200					{object}	nil
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId} [patch]
+//	@Router			/admin/policytemplates/{policyTemplateId} [patch]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -149,7 +151,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 //	@Produce		json
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Success		200					{object}	nil
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId} [delete]
+//	@Router			/admin/policytemplates/{policyTemplateId} [delete]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -196,7 +198,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *h
 //	@Produce		json
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Success		200					{object}	domain.GetPolicyTemplateResponse
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId} [get]
+//	@Router			/admin/policytemplates/{policyTemplateId} [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -251,7 +253,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
 //	@Success		200			{object}	domain.ListPolicyTemplateResponse
-//	@Router			/api/1.0/admin/policytemplates [get]
+//	@Router			/admin/policytemplates [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
@@ -289,7 +291,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 //	@Produce		json
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Success		200					{object}	domain.ListPolicyTemplateVersionsResponse
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId}/versions [get]
+//	@Router			/admin/policytemplates/{policyTemplateId}/versions [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -342,7 +344,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 //	@Produce		json
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Success		200					{object}	domain.ListPolicyTemplateStatisticsResponse
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId}/statistics [get]
+//	@Router			/admin/policytemplates/{policyTemplateId}/statistics [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request) {
 	// result := domain.ListPolicyTemplateStatisticsResponse{
@@ -371,7 +373,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWrit
 //	@Produce		json
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Success		200					{object}	domain.GetPolicyTemplateDeployResponse
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId}/deploy [get]
+//	@Router			/admin/policytemplates/{policyTemplateId}/deploy [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request) {
 	// c1 := util.UUIDGen()
@@ -398,7 +400,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateDeploy(w http.ResponseWriter, r
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Param			version				path		string	true	"조회할 버전(v0.0.0 형식)"
 //	@Success		200					{object}	domain.GetPolicyTemplateVersionResponse
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId}/versions/{version} [get]
+//	@Router			/admin/policytemplates/{policyTemplateId}/versions/{version} [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -456,7 +458,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 //	@Param			policyTemplateId	path		string										true	"정책 템플릿 식별자(uuid)"
 //	@Param			body				body		domain.CreatePolicyTemplateVersionRequest	true	"create policy template version request"
 //	@Success		200					{object}	domain.CreatePolicyTemplateVersionResponse
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId}/versions [post]
+//	@Router			/admin/policytemplates/{policyTemplateId}/versions [post]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -538,7 +540,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 //	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Param			version				path		string	true	"삭제할 버전(v0.0.0 형식)"
 //	@Success		200					{object}	nil
-//	@Router			/api/1.0/admin/policytemplates/{policyTemplateId}/versions/{version} [delete]
+//	@Router			/admin/policytemplates/{policyTemplateId}/versions/{version} [delete]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -591,7 +593,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 //	@Produce		json
 //	@Param			policyTemplateName	path		string	true	"정책 템플릿 이름"
 //	@Success		200					{object}	domain.CheckExistedResponse
-//	@Router			/api/1.0/admin/policytemplates/name/{policyTemplateName}/existence [get]
+//	@Router			/admin/policytemplates/name/{policyTemplateName}/existence [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -623,7 +625,7 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, 
 //	@Produce		json
 //	@Param			policyTemplateKind	path		string	true	"정책 템플릿 이름"
 //	@Success		200					{object}	domain.ExistsPolicyTemplateKindResponse
-//	@Router			/api/1.0/admin/policytemplates/kind/{policyTemplateKind}/existence [get]
+//	@Router			/admin/policytemplates/kind/{policyTemplateKind}/existence [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -644,4 +646,50 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, 
 	out.Existed = exist
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// CompileRego godoc
+//
+//	@Tags			PolicyTemplate
+//	@Summary		[CompileRego] Rego 코드 컴파일 및 파라미터 파싱
+//	@Description	Rego 코드 컴파일 및 파라미터 파싱을 수행한다. 파라미터 파싱을 위해서는 먼저 컴파일이 성공해야 하며, parseParameter를 false로 하면 컴파일만 수행할 수 있다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			parseParameter	query		bool						true	"파라미터 파싱 여부"
+//	@Param			body			body		domain.RegoCompileRequest	true	"Rego 코드"
+//	@Success		200				{object}	domain.RegoCompileResponse
+//	@Router			/policytemplates/rego-compile [post]
+//	@Security		JWT
+func (h *PolicyTemplateHandler) RegoCompile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	parseParameter := false
+
+	parse, ok := vars["parseParameter"]
+	if ok {
+		parsedBool, err := strconv.ParseBool(parse)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid parseParameter: '%s'", parse), "U_INVALID_REGO_PARSEPARAM", ""))
+			return
+		}
+		parseParameter = parsedBool
+	}
+
+	input := domain.RegoCompileRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	response, err := h.usecase.RegoCompile(&input, parseParameter)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusCreated, response)
 }

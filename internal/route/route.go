@@ -75,7 +75,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Role:           usecase.NewRoleUsecase(repoFactory),
 		Permission:     usecase.NewPermissionUsecase(repoFactory),
 		PolicyTemplate: usecase.NewPolicyTemplateUsecase(repoFactory),
-		Utility:        usecase.NewUtilityUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -282,9 +281,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.GetPolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplateVersion))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/kind/{policyTemplateKind}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateKind, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateKind))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policytemplates/name/{policyTemplateName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateName, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateName))).Methods(http.MethodGet)
-
-	utilityHandler := delivery.NewUtilityHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+"/utility/rego-compile", customMiddleware.Handle(internalApi.CompileRego, http.HandlerFunc(utilityHandler.RegoCompile))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/policytemplates/rego-compile", customMiddleware.Handle(internalApi.CompileRego, http.HandlerFunc(policyTemplateHandler.RegoCompile))).Methods(http.MethodPost)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)

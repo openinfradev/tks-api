@@ -17,5 +17,4 @@ type Usecase struct {
 	Permission     IPermissionUsecase
 	Audit          IAuditUsecase
 	PolicyTemplate IPolicyTemplateUsecase
-	Utility        IUtilityUsecase
 }
