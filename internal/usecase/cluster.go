@@ -204,7 +204,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
@@ -266,7 +266,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
@@ -313,7 +313,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_BOOTSTRAPPING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
@@ -365,7 +365,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, cluster.ID, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
@@ -572,7 +572,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 	}
 
 	token := kubeconfigData.Users[0].User.Token[:6]
-	log.InfoWithContext(ctx, "token : ", token)
+	log.Info(ctx, "token : ", token)
 
 	secrets, err := client.CoreV1().Secrets("kube-system").Get(context.TODO(), "bootstrap-token-"+token, metav1.GetOptions{})
 	if err != nil {
@@ -651,7 +651,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 	tksUserNodeRegistered, tksUserNodeRegistering, tksUserHosts := 0, 0, make([]domain.ClusterHost, 0)
 	for _, host := range hosts.Items {
 		label := host.Labels["role"]
-		log.InfoWithContext(ctx, "label : ", label)
+		log.Info(ctx, "label : ", label)
 		if len(label) < 12 {
 			continue
 		}

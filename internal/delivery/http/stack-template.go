@@ -49,7 +49,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 
 	var dto model.StackTemplate
 	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	id, err := h.usecase.Create(r.Context(), dto)
@@ -92,13 +92,13 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	out.StackTemplates = make([]domain.StackTemplateResponse, len(stackTemplates))
 	for i, stackTemplate := range stackTemplates {
 		if err := serializer.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 		}
 
 		out.StackTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
 		for j, organization := range stackTemplate.Organizations {
 			if err := serializer.Map(organization, &out.StackTemplates[i].Organizations[j]); err != nil {
-				log.InfoWithContext(r.Context(), err)
+				log.Info(r.Context(), err)
 				continue
 			}
 		}
@@ -110,7 +110,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -149,13 +149,13 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 
 	var out domain.GetStackTemplateResponse
 	if err := serializer.Map(stackTemplate, &out.StackTemplate); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	out.StackTemplate.Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
 	for i, organization := range stackTemplate.Organizations {
 		if err := serializer.Map(organization, &out.StackTemplate.Organizations[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -195,7 +195,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 
 	var dto model.StackTemplate
 	if err := serializer.Map(r, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 	dto.ID = stackTemplateId
 
@@ -290,7 +290,7 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 
 	var dto model.StackTemplate
 	if err := serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 	dto.ID = stackTemplateId
 

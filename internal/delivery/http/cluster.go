@@ -55,7 +55,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	out.Clusters = make([]domain.ClusterResponse, len(clusters))
 	for i, cluster := range clusters {
 		if err := serializer.Map(cluster, &out.Clusters[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 
@@ -68,7 +68,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -101,7 +101,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetClusterResponse
 	if err := serializer.Map(cluster, &out.Cluster); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -159,7 +159,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 
 	var dto model.Cluster
 	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	dto.ClusterType = domain.ClusterType_USER
@@ -213,7 +213,7 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 
 	var dto model.Cluster
 	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 	dto.SetDefaultConf()
 
@@ -872,7 +872,7 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.InfoWithContext(r.Context(),input)
+		log.Info(r.Context(),input)
 
 		if input.Value != "enabled" && input.Value != "disabled" {
 			ErrorJSON(w, r, "invalid value", http.StatusBadRequest)

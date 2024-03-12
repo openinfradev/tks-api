@@ -190,7 +190,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetProjectsResponse
 	out.Projects = pr
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	if pr == nil {
@@ -232,7 +232,7 @@ func (p ProjectHandler) Admin_GetProjects(w http.ResponseWriter, r *http.Request
 	var out domain.GetProjectsResponse
 	out.Projects = pr
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	if pr == nil {
@@ -765,7 +765,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 
 	out = domain.GetProjectMembersResponse{ProjectMembers: pmrs}
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

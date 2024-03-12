@@ -75,7 +75,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	out.Charts = make([]domain.DashboardChartResponse, len(charts))
 	for i, chart := range charts {
 		if err := serializer.Map(chart, &out.Charts[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -154,7 +154,7 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.DashboardChartResponse
 	if err := serializer.Map(charts[0], &out); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -194,7 +194,7 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	out.Stacks = make([]domain.DashboardStackResponse, len(stacks))
 	for i, stack := range stacks {
 		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -232,7 +232,7 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 	}
 	var out domain.GetDashboardResourcesResponse
 	if err := serializer.Map(resources, &out.Resources); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

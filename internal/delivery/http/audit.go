@@ -69,12 +69,12 @@ func (h *AuditHandler) GetAudits(w http.ResponseWriter, r *http.Request) {
 	out.Audits = make([]domain.AuditResponse, len(audits))
 	for i, audit := range audits {
 		if err := serializer.Map(audit, &out.Audits[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 		}
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -114,7 +114,7 @@ func (h *AuditHandler) GetAudit(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetAuditResponse
 	if err := serializer.Map(audit, &out.Audit); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

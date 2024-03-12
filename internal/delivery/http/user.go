@@ -217,7 +217,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -807,7 +807,7 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

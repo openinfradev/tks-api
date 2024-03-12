@@ -201,7 +201,7 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto model.AlertAct
 	if err != nil {
 		return uuid.Nil, err
 	}
-	log.InfoWithContext(ctx, "newly created alertActionId:", alertActionId)
+	log.Info(ctx, "newly created alertActionId:", alertActionId)
 
 	return
 }

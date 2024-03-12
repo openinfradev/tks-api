@@ -105,7 +105,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
 	if err = serializer.Map(dto, &stackConf); err != nil {
-		log.InfoWithContext(ctx, err)
+		log.Info(ctx, err)
 	}
 	if stackTemplate.CloudService == "AWS" && stackTemplate.KubeType == "AWS" {
 		if stackConf.TksCpNode == 0 {
@@ -198,7 +198,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
 	if err = serializer.Map(cluster, &stackConf); err != nil {
-		log.InfoWithContext(ctx, err)
+		log.Info(ctx, err)
 	}
 
 	workflow := "tks-stack-install"

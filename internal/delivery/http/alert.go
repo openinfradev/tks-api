@@ -53,7 +53,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 			log.ErrorWithContext(r.Context(),err)
 		}
 		bodyString := string(bodyBytes)
-		log.InfoWithContext(r.Context(),bodyString)
+		log.Info(r.Context(),bodyString)
 	*/
 
 	// 외부로부터(alert manager) 오는 데이터이므로, dto 변환없이 by-pass 처리한다.
@@ -127,13 +127,13 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	out.Alerts = make([]domain.AlertResponse, len(alerts))
 	for i, alert := range alerts {
 		if err := serializer.Map(alert, &out.Alerts[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 		}
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
 			if err := serializer.Map(alertAction, &outAlertActions[j]); err != nil {
-				log.InfoWithContext(r.Context(), err)
+				log.Info(r.Context(), err)
 			}
 		}
 		out.Alerts[i].AlertActions = outAlertActions
@@ -143,7 +143,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -183,12 +183,12 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetAlertResponse
 	if err := serializer.Map(alert, &out.Alert); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 	outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 	for j, alertAction := range alert.AlertActions {
 		if err := serializer.Map(alertAction, &outAlertActions[j]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -236,7 +236,7 @@ func (h *AlertHandler) AlertTest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.InfoWithContext(r.Context(), "TEST ", body)
+	log.Info(r.Context(), "TEST ", body)
 }
 
 // CreateAlertAction godoc
@@ -271,11 +271,11 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.InfoWithContext(r.Context(), "alert : ", helper.ModelToJson(input))
+	log.Info(r.Context(), "alert : ", helper.ModelToJson(input))
 
 	var dto model.AlertAction
 	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 	dto.AlertId = alertId
 

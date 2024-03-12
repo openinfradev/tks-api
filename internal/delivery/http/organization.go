@@ -170,11 +170,11 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 			log.ErrorWithContext(r.Context(), err)
 		}
 
-		log.InfoWithContext(r.Context(), organization)
+		log.Info(r.Context(), organization)
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

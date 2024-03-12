@@ -144,7 +144,7 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	// response
@@ -321,7 +321,7 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	// response

@@ -80,7 +80,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
-	log.InfoWithContext(ctx, "newly created CloudAccount ID:", cloudAccountId)
+	log.Info(ctx, "newly created CloudAccount ID:", cloudAccountId)
 
 	// FOR TEST. ADD MAGIC KEYWORD
 	if strings.Contains(dto.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
@@ -106,7 +106,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
-	log.InfoWithContext(ctx, "submited workflow :", workflowId)
+	log.Info(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, cloudAccountId, workflowId, domain.CloudAccountStatus_CREATING); err != nil {
 		return uuid.Nil, errors.Wrap(err, "Failed to initialize status")
@@ -211,7 +211,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
 		return fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
-	log.InfoWithContext(ctx, "submited workflow :", workflowId)
+	log.Info(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
@@ -268,7 +268,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 	stsSvc := sts.NewFromConfig(cfg)
 
 	if !strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-		log.InfoWithContext(ctx, "Use assume role. awsAccountId : ", cloudAccount.AwsAccountId)
+		log.Info(ctx, "Use assume role. awsAccountId : ", cloudAccount.AwsAccountId)
 		creds := stscreds.NewAssumeRoleProvider(stsSvc, "arn:aws:iam::"+cloudAccount.AwsAccountId+":role/controllers.cluster-api-provider-aws.sigs.k8s.io")
 		cfg.Credentials = aws.NewCredentialsCache(creds)
 	}

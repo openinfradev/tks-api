@@ -70,7 +70,7 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
-	log.InfoWithContext(ctx, "newly created StackTemplate ID:", stackTemplateId)
+	log.Info(ctx, "newly created StackTemplate ID:", stackTemplateId)
 
 	dto.ID = stackTemplateId
 	err = u.UpdateOrganizations(ctx, dto)

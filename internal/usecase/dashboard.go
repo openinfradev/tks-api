@@ -106,7 +106,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		stack := reflectClusterToStack(cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
 		if err := serializer.Map(stack, &dashboardStack); err != nil {
-			log.InfoWithContext(ctx, err)
+			log.Info(ctx, err)
 		}
 
 		memory, disk := u.getStackMemoryDisk(stackMemoryDisk.Data.Result, cluster.ID.String())
