@@ -182,7 +182,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	myUserId := requestUserInfo.GetUserId().String()
 	pr, err := p.usecase.GetProjects(r.Context(), organizationId, myUserId, onlyMyProject, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to retrieve projects ", err)
+		log.Error(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -224,7 +224,7 @@ func (p ProjectHandler) Admin_GetProjects(w http.ResponseWriter, r *http.Request
 	pg := pagination.NewPagination(&urlParams)
 	pr, err := p.usecase.GetProjects(r.Context(), organizationId, "", false, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to retrieve projects ", err)
+		log.Error(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -271,14 +271,14 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 
 	project, err := p.usecase.GetProjectWithLeader(r.Context(), organizationId, projectId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to retrieve project", err)
+		log.Error(r.Context(), "Failed to retrieve project", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	//appCount, err := p.usecase.GetAppCount(organizationId, projectId)
 	//if err != nil {
-	//	log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
+	//	log.Error(r.Context(), "Failed to retrieve app count", err)
 	//	ErrorJSON(w, r, err)
 	//	return
 	//}
@@ -455,7 +455,7 @@ func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 
 	pr, err := p.usecase.GetProjectRole(r.Context(), projectRoleId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project roles ", err)
+		log.Error(r.Context(), "Failed to get project roles ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -492,7 +492,7 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 	} else if strings.EqualFold(queryParam, "viewer") {
 		query = usecase.ProjectViewer
 	} else {
-		log.ErrorWithContext(r.Context(), "Invalid query params. Err: ")
+		log.Error(r.Context(), "Invalid query params. Err: ")
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid query params"),
 			"C_INVALID_QUERY_PARAM", ""))
 		return
@@ -500,7 +500,7 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 
 	prs, err := p.usecase.GetProjectRoles(r.Context(), query)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project roles ", err)
+		log.Error(r.Context(), "Failed to get project roles ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -653,7 +653,7 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 
 	pm, err := p.usecase.GetProjectMember(r.Context(), projectMemberId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project member ", err)
+		log.Error(r.Context(), "Failed to get project member ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -725,7 +725,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	} else if strings.EqualFold(queryParam, "viewer") {
 		query = usecase.ProjectViewer
 	} else {
-		log.ErrorWithContext(r.Context(), "Invalid query params. Err: ")
+		log.Error(r.Context(), "Invalid query params. Err: ")
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid query params"),
 			"C_INVALID_QUERY_PARAM", ""))
 		return
@@ -734,7 +734,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	pg := pagination.NewPagination(&urlParams)
 	pms, err := p.usecase.GetProjectMembers(r.Context(), projectId, query, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project members ", err)
+		log.Error(r.Context(), "Failed to get project members ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -802,7 +802,7 @@ func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Req
 
 	pmcr, err := p.usecase.GetProjectMemberCount(r.Context(), projectId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project member count", err)
+		log.Error(r.Context(), "Failed to get project member count", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1285,7 +1285,7 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 	pg := pagination.NewPagination(&urlParams)
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project namespaces.", err)
+		log.Error(r.Context(), "Failed to get project namespaces.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1305,7 +1305,7 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 		}
 		appCount, err := p.usecase.GetAppCount(r.Context(), organizationId, projectId, pn.Namespace)
 		if err != nil {
-			log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
+			log.Error(r.Context(), "Failed to retrieve app count", err)
 			ErrorJSON(w, r, err)
 			return
 		}
@@ -1363,14 +1363,14 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 
 	pn, err := p.usecase.GetProjectNamespace(r.Context(), organizationId, projectId, projectNamespace, stackId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project namespace.", err)
+		log.Error(r.Context(), "Failed to get project namespace.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	appCount, err := p.usecase.GetAppCount(r.Context(), organizationId, projectId, projectNamespace)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to retrieve app count", err)
+		log.Error(r.Context(), "Failed to retrieve app count", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1447,7 +1447,7 @@ func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Re
 	now := time.Now()
 	pn, err := p.usecase.GetProjectNamespace(r.Context(), organizationId, projectId, projectNamespace, stackId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project namespace.", err)
+		log.Error(r.Context(), "Failed to get project namespace.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1572,7 +1572,7 @@ func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Requ
 
 	kubeconfig, err := p.usecase.GetProjectKubeconfig(r.Context(), organizationId, projectId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project kubeconfig.", err)
+		log.Error(r.Context(), "Failed to get project kubeconfig.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1625,7 +1625,7 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 
 	k8sResources, err := p.usecase.GetK8sResources(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
+		log.Error(r.Context(), "Failed to get project resources.", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1678,7 +1678,7 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 
 	resourcesUsage, err := p.usecase.GetResourcesUsage(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get project resources.", err)
+		log.Error(r.Context(), "Failed to get project resources.", err)
 		ErrorJSON(w, r, err)
 		return
 	}

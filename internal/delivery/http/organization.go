@@ -56,7 +56,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	ctx := r.Context()
 	var organization model.Organization
 	if err = serializer.Map(input, &organization); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	organizationId, err := h.usecase.Create(ctx, &organization)
@@ -130,7 +130,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 
 	var out domain.CreateOrganizationResponse
 	if err = serializer.Map(organization, &out); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -167,7 +167,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 
 	for i, organization := range *organizations {
 		if err = serializer.Map(organization, &out.Organizations[i]); err != nil {
-			log.ErrorWithContext(r.Context(), err)
+			log.Error(r.Context(), err)
 		}
 
 		log.Info(r.Context(), organization)
@@ -212,7 +212,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	}
 	var out domain.GetOrganizationResponse
 	if err = serializer.Map(organization, &out.Organization); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	out.Organization.StackTemplates = make([]domain.SimpleStackTemplateResponse, len(organization.StackTemplates))
@@ -326,7 +326,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 
 	var out domain.UpdateOrganizationResponse
 	if err = serializer.Map(organization, &out); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

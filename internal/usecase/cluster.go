@@ -201,7 +201,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
 	log.Info(ctx, "Successfully submited workflow: ", workflowId)
@@ -263,7 +263,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
 	log.Info(ctx, "Successfully submited workflow: ", workflowId)
@@ -310,7 +310,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
 	log.Info(ctx, "Successfully submited workflow: ", workflowId)
@@ -362,7 +362,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return err
 	}
 	log.Info(ctx, "Successfully submited workflow: ", workflowId)
@@ -431,7 +431,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return errors.Wrap(err, "Failed to call argo workflow")
 	}
 
@@ -454,7 +454,7 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	out.ClusterRegion = "ap-northeast-2"
 
 	if err := serializer.Map(cluster, &out); err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 	}
 
 	if cluster.StackTemplate.CloudService == "AWS" && cluster.StackTemplate.KubeType == "AWS" {
@@ -463,7 +463,7 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	}
 
 	if err := serializer.Map(cluster, &out); err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 	}
 
 	/*
@@ -496,7 +496,7 @@ func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterI
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
 	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
@@ -576,7 +576,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 
 	secrets, err := client.CoreV1().Secrets("kube-system").Get(context.TODO(), "bootstrap-token-"+token, metav1.GetOptions{})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return out, err
 	}
 
@@ -790,7 +790,7 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 		numOfAz = int(rawConf.NumOfAz)
 
 		if numOfAz > 3 {
-			log.ErrorWithContext(ctx,"Error: numOfAz cannot exceed 3.")
+			log.Error(ctx,"Error: numOfAz cannot exceed 3.")
 			temp_err := fmt.Errorf("Error: numOfAz cannot exceed 3.")
 			return nil, temp_err
 		}
@@ -823,11 +823,11 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 	}
 
 	if !found {
-		log.ErrorWithContext(ctx,"Couldn't find entry for region ", region)
+		log.Error(ctx,"Couldn't find entry for region ", region)
 	}
 
 	if numOfAz > maxAzForSelectedRegion {
-		log.ErrorWithContext(ctx,"Invalid numOfAz: exceeded the number of Az in region ", region)
+		log.Error(ctx,"Invalid numOfAz: exceeded the number of Az in region ", region)
 		temp_err := fmt.Errorf("Invalid numOfAz: exceeded the number of Az in region %s", region)
 		return nil, temp_err
 	}
@@ -838,7 +838,7 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 		log.DebugWithContext(ctx,"No machineReplicas param. Using default values..")
 	} else {
 		if remainder := replicas % numOfAz; remainder != 0 {
-			log.ErrorWithContext(ctx,"Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
+			log.Error(ctx,"Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
 			temp_err := fmt.Errorf("Invalid machineReplicas: it should be multiple of numOfAz %d", numOfAz)
 			return nil, temp_err
 		} else {

@@ -103,7 +103,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return uuid.Nil, fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info(ctx, "submited workflow :", workflowId)
@@ -208,7 +208,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info(ctx, "submited workflow :", workflowId)
@@ -251,7 +251,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 
 	awsAccessKeyId, awsSecretAccessKey, _ := kubernetes.GetAwsSecret()
 	if err != nil || awsAccessKeyId == "" || awsSecretAccessKey == "" {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return false, out, httpErrors.NewInternalServerError(fmt.Errorf("Invalid aws secret."), "", "")
 	}
 
@@ -262,7 +262,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 			},
 		}))
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 	}
 
 	stsSvc := sts.NewFromConfig(cfg)
@@ -357,7 +357,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 			o.Region = "ap-northeast-2"
 		})
 		if err != nil {
-			log.ErrorWithContext(ctx, err)
+			log.Error(ctx, err)
 			return false, out, err
 		}
 		currentUsage.EIP = len(res.Addresses)

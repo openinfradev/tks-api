@@ -105,7 +105,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 
 		err := json.Unmarshal(stackTemplate.Services, &out.StackTemplates[i].Services)
 		if err != nil {
-			log.ErrorWithContext(r.Context(), err)
+			log.Error(r.Context(), err)
 		}
 	}
 
@@ -162,7 +162,7 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 
 	err = json.Unmarshal(stackTemplate.Services, &out.StackTemplate.Services)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -245,12 +245,12 @@ func (h *StackTemplateHandler) GetStackTemplateServices(w http.ResponseWriter, r
 	out.Services = make([]domain.StackTemplateServiceResponse, 2)
 	err := json.Unmarshal([]byte(internal.SERVICE_LMA), &out.Services[0])
 	if err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	err = json.Unmarshal([]byte(internal.SERVICE_SERVICE_MESH), &out.Services[1])
 	if err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

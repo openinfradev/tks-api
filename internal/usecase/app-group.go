@@ -142,13 +142,13 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 		workflowTemplate = "tks-service-mesh"
 
 	default:
-		log.ErrorWithContext(ctx, "invalid appGroup type ", dto.AppGroupType.String())
+		log.Error(ctx, "invalid appGroup type ", dto.AppGroupType.String())
 		return "", errors.Wrap(err, fmt.Sprintf("Invalid appGroup type. %s", dto.AppGroupType.String()))
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CALL_WORKFLOW", "")
 	}
 

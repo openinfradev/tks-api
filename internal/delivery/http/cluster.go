@@ -395,12 +395,12 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 		}
 
 		clientset_user, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId ", clusterId)
+			log.Error(r.Context(),"Failed to get clientset for clusterId ", clusterId)
 			InternalServerError(w)
 			return
 		}
@@ -414,21 +414,21 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		if err == nil {
 			out.KubeInfo.Pods = len(pods.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get pods. err : ", err)
+			log.Error(r.Context(),"Failed to get pods. err : ", err)
 		}
 
 		nodes, err := clientset_user.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		if err == nil {
 			out.KubeInfo.Nodes = len(nodes.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get nodes. err : ", err)
+			log.Error(r.Context(),"Failed to get nodes. err : ", err)
 		}
 
 		services, err := clientset_user.CoreV1().Services("").List(context.TODO(), metav1.ListOptions{})
 		if err == nil {
 			out.KubeInfo.Services = len(services.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get services. err : ", err)
+			log.Error(r.Context(),"Failed to get services. err : ", err)
 
 		}
 
@@ -436,7 +436,7 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		if err == nil {
 			out.KubeInfo.Namespaces = len(namespaces.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get namespaces. err : ", err)
+			log.Error(r.Context(),"Failed to get namespaces. err : ", err)
 
 		}
 
@@ -444,7 +444,7 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		if err == nil {
 			out.KubeInfo.Version = version
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get kubernetes version. err : ", err)
+			log.Error(r.Context(),"Failed to get kubernetes version. err : ", err)
 		}
 
 		ResponseJSON(w, r, http.StatusOK, out)
@@ -465,14 +465,14 @@ func (h *ClusterHandler) GetClusterApplications(w http.ResponseWriter, r *http.R
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 		}
 
 		var applications = []*pb.AppGroup{}
 		res, err := appInfoClient.GetAppGroupsByClusterID(context.TODO(), &pb.IDRequest{ID: clusterId})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get appgroups err : ", err)
+			log.Error(r.Context(),"Failed to get appgroups err : ", err)
 			InternalServerError(w)
 			return
 		}
@@ -497,7 +497,7 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 		}
 
@@ -508,7 +508,7 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 
 		res, err := appInfoClient.GetAppGroupsByClusterID(context.TODO(), &pb.IDRequest{Id: clusterId})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get appgroups err : ", err)
+			log.Error(r.Context(),"Failed to get appgroups err : ", err)
 			InternalServerError(w)
 			return
 		}
@@ -525,19 +525,19 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 
 			clientset, err := h.GetClientFromClusterId(appGroup.GetClusterId())
 			if err != nil {
-				log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId", appGroup.GetClusterId())
+				log.Error(r.Context(),"Failed to get clientset for clusterId", appGroup.GetClusterId())
 				continue
 			}
 
 			pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 			if err != nil {
-				log.ErrorWithContext(r.Context(),"Failed to get pods. ", err)
+				log.Error(r.Context(),"Failed to get pods. ", err)
 				continue
 			}
 
 			services, err := clientset.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
 			if err != nil {
-				log.ErrorWithContext(r.Context(),"Failed to get service. ", err)
+				log.Error(r.Context(),"Failed to get service. ", err)
 				continue
 			}
 
@@ -614,7 +614,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 			return
 		}
@@ -653,48 +653,48 @@ func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "Invalid clusterId", http.StatusBadRequest)
 		}
 
 		clientset, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId", clusterId)
+			log.Error(r.Context(),"Failed to get clientset for clusterId", clusterId)
 			InternalServerError(w)
 			return
 		}
 
 		pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get pods", err)
+			log.Error(r.Context(),"Failed to get pods", err)
 			InternalServerError(w)
 			return
 		}
 
 		services, err := clientset.CoreV1().Services("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get services", err)
+			log.Error(r.Context(),"Failed to get services", err)
 			InternalServerError(w)
 			return
 		}
 
 		namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get namespaces", err)
+			log.Error(r.Context(),"Failed to get namespaces", err)
 			InternalServerError(w)
 			return
 		}
 
 		events, err := clientset.CoreV1().Events("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get events", err)
+			log.Error(r.Context(),"Failed to get events", err)
 			InternalServerError(w)
 			return
 		}
 
 		nodes, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get events", err)
+			log.Error(r.Context(),"Failed to get events", err)
 			InternalServerError(w)
 			return
 		}
@@ -846,13 +846,13 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 			return
 		}
 		namespace, ok := vars["namespace"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get namespace")
+			log.Error(r.Context(),"Failed to get namespace")
 			ErrorJSON(w, r, "invalid namespace", http.StatusBadRequest)
 			return
 		}
@@ -862,12 +862,12 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 			return
 		}
 		err = json.Unmarshal(body, &input)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 			ErrorJSON(w, r, "invalid json", http.StatusBadRequest)
 			return
 		}
@@ -883,7 +883,7 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 
 		clientset, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId", clusterId)
+			log.Error(r.Context(),"Failed to get clientset for clusterId", clusterId)
 			InternalServerError(w)
 			return
 		}

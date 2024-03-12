@@ -50,7 +50,7 @@ func (h *AlertHandler) CreateAlert(w http.ResponseWriter, r *http.Request) {
 		// webhook 으로 부터 받은 body parse
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 		}
 		bodyString := string(bodyBytes)
 		log.Info(r.Context(),bodyString)

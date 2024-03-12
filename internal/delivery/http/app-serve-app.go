@@ -252,14 +252,14 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	showAll, err := strconv.ParseBool(showAllParam)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to convert showAll params. Err: ", err)
+		log.Error(r.Context(), "Failed to convert showAll params. Err: ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 	pg := pagination.NewPagination(&urlParams)
 	apps, err := h.usecase.GetAppServeApps(r.Context(), organizationId, showAll, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
+		log.Error(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -469,7 +469,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 
 	tasks, err := h.usecase.GetAppServeAppTasks(r.Context(), appId, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get app-serve-app-tasks ", err)
+		log.Error(r.Context(), "Failed to get app-serve-app-tasks ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -984,7 +984,7 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 
 	res, err := h.usecase.DeleteAppServeApp(r.Context(), appId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to delete appId err : ", err)
+		log.Error(r.Context(), "Failed to delete appId err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}

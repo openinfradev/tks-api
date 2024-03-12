@@ -89,7 +89,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var user model.User
 	if err = serializer.Map(input, &user); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 	user.Organization = model.Organization{
 		ID: organizationId,
@@ -122,7 +122,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.CreateUserResponse
 	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusCreated, out)
@@ -169,7 +169,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetUserResponse
 	if err = serializer.Map(*user, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -212,7 +212,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
 		if err = serializer.Map(user, &out.Users[i]); err != nil {
-			log.ErrorWithContext(r.Context(), err)
+			log.Error(r.Context(), err)
 		}
 	}
 
@@ -335,7 +335,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.UpdateUserResponse
 	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -402,7 +402,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetMyProfileResponse
 	if err = serializer.Map(*user, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -454,7 +454,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var user model.User
 	if err = serializer.Map(input, &user); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -472,7 +472,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.UpdateMyProfileResponse
 	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -802,7 +802,7 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
 		if err = serializer.Map(user, &out.Users[i]); err != nil {
-			log.ErrorWithContext(r.Context(), err)
+			log.Error(r.Context(), err)
 		}
 	}
 
@@ -852,7 +852,7 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 
 	var out admin_domain.GetUserResponse
 	if err = serializer.Map(*user, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -1011,7 +1011,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 
 	var out admin_domain.UpdateUserResponse
 	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}

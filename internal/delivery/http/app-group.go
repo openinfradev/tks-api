@@ -173,7 +173,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 
 	err := h.usecase.Delete(r.Context(), appGroupId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to delete appGroup err : ", err)
+		log.Error(r.Context(), "Failed to delete appGroup err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -217,7 +217,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 
 	applications, err := h.usecase.GetApplications(r.Context(), appGroupId, applicationType)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get applications err : ", err)
+		log.Error(r.Context(), "Failed to get applications err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -273,7 +273,7 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 
 	err = h.usecase.UpdateApplication(r.Context(), dto)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to update application err : ", err)
+		log.Error(r.Context(), "Failed to update application err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}

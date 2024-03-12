@@ -138,7 +138,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
 	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
@@ -214,7 +214,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
 	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
@@ -447,17 +447,17 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return err
 	}
 	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
 
 	// Remove Cluster & AppGroup status description
 	if err := u.appGroupRepo.InitWorkflowDescription(ctx, cluster.ID); err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 	}
 	if err := u.clusterRepo.InitWorkflowDescription(ctx, cluster.ID); err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 	}
 
 	// wait & get clusterId ( max 1min 	)

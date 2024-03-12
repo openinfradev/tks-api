@@ -60,18 +60,18 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 		clusterId := alert.Labels.TacoCluster
 		organizationId, err := u.getOrganizationFromCluster(&allClusters, clusterId)
 		if err != nil {
-			log.ErrorWithContext(ctx, err)
+			log.Error(ctx, err)
 			continue
 		}
 
 		organization, err := u.organizationRepo.Get(ctx, organizationId)
 		if err != nil {
-			log.ErrorWithContext(ctx, err)
+			log.Error(ctx, err)
 			continue
 		}
 		primaryCluster, err := u.clusterRepo.Get(ctx, domain.ClusterId(organization.PrimaryClusterId))
 		if err != nil {
-			log.ErrorWithContext(ctx, err)
+			log.Error(ctx, err)
 			continue
 		}
 

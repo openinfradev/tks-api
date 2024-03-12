@@ -80,7 +80,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 
 	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
@@ -139,7 +139,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error) {
 	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(thanosUrl)
