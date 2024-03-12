@@ -19,18 +19,18 @@ import (
 )
 
 type IUserUsecase interface {
-	CreateAdmin(organizationId string, accountId string, accountName string, email string) (*model.User, error)
-	DeleteAdmin(organizationId string) error
+	CreateAdmin(ctx context.Context, organizationId string, accountId string, accountName string, email string) (*model.User, error)
+	DeleteAdmin(ctx context.Context, organizationId string) error
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *model.User) (*model.User, error)
 	List(ctx context.Context, organizationId string) (*[]model.User, error)
 	ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]model.User, error)
-	Get(userId uuid.UUID) (*model.User, error)
+	Get(ctx context.Context, userId uuid.UUID) (*model.User, error)
 	Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error)
-	ResetPassword(userId uuid.UUID) error
-	ResetPasswordByAccountId(accountId string, organizationId string) error
-	GenerateRandomPassword() string
-	Delete(userId uuid.UUID, organizationId string) error
+	ResetPassword(ctx context.Context, userId uuid.UUID) error
+	ResetPasswordByAccountId(ctx context.Context, accountId string, organizationId string) error
+	GenerateRandomPassword(ctx context.Context, ) string
+	Delete(ctx context.Context, userId uuid.UUID, organizationId string) error
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*model.User, error)
 	GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error)
 	SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error
@@ -40,8 +40,8 @@ type IUserUsecase interface {
 	RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error
 	RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error
 	DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error
-	ValidateAccount(userId uuid.UUID, password string, organizationId string) error
-	ValidateAccountByAccountId(accountId string, password string, organizationId string) error
+	ValidateAccount(ctx context.Context, userId uuid.UUID, password string, organizationId string) error
+	ValidateAccountByAccountId(ctx context.Context, accountId string, password string, organizationId string) error
 
 	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *model.User) (*model.User, error)
 }
@@ -54,7 +54,7 @@ type UserUsecase struct {
 }
 
 func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error {
-	user, err := u.userRepository.GetByUuid(userId)
+	user, err := u.userRepository.GetByUuid(ctx, userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
@@ -62,7 +62,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	err = u.userRepository.UpdatePasswordAt(userId, user.Organization.ID, false)
+	err = u.userRepository.UpdatePasswordAt(ctx, userId, user.Organization.ID, false)
 	if err != nil {
 		log.ErrorfWithContext(ctx, "failed to update password expired time: %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -72,7 +72,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 }
 
 func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error {
-	user, err := u.userRepository.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(ctx, accountId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status != http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
@@ -82,8 +82,8 @@ func (u *UserUsecase) RenewalPasswordExpiredTimeByAccountId(ctx context.Context,
 	return u.RenewalPasswordExpiredTime(ctx, user.ID)
 }
 
-func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
-	user, err := u.userRepository.GetByUuid(userId)
+func (u *UserUsecase) ResetPassword(ctx context.Context, userId uuid.UUID) error {
+	user, err := u.userRepository.GetByUuid(ctx, userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
@@ -109,7 +109,7 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = u.userRepository.UpdatePasswordAt(userId, user.Organization.ID, true); err != nil {
+	if err = u.userRepository.UpdatePasswordAt(ctx, userId, user.Organization.ID, true); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -128,23 +128,23 @@ func (u *UserUsecase) ResetPassword(userId uuid.UUID) error {
 	return nil
 }
 
-func (u *UserUsecase) ResetPasswordByAccountId(accountId string, organizationId string) error {
-	user, err := u.userRepository.Get(accountId, organizationId)
+func (u *UserUsecase) ResetPasswordByAccountId(ctx context.Context, accountId string, organizationId string) error {
+	user, err := u.userRepository.Get(ctx, accountId, organizationId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	return u.ResetPassword(user.ID)
+	return u.ResetPassword(ctx, user.ID)
 }
 
-func (u *UserUsecase) GenerateRandomPassword() string {
+func (u *UserUsecase) GenerateRandomPassword(ctx context.Context) string {
 	return helper.GenerateRandomString(passwordLength)
 }
 
-func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organizationId string) error {
-	user, err := u.userRepository.GetByUuid(userId)
+func (u *UserUsecase) ValidateAccount(ctx context.Context, userId uuid.UUID, password string, organizationId string) error {
+	user, err := u.userRepository.GetByUuid(ctx, userId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 	}
@@ -155,7 +155,7 @@ func (u *UserUsecase) ValidateAccount(userId uuid.UUID, password string, organiz
 	return nil
 }
 
-func (u *UserUsecase) ValidateAccountByAccountId(accountId string, password string, organizationId string) error {
+func (u *UserUsecase) ValidateAccountByAccountId(ctx context.Context, accountId string, password string, organizationId string) error {
 	_, err := u.kc.Login(organizationId, accountId, password)
 	return err
 }
@@ -164,7 +164,7 @@ func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) erro
 	// TODO: implement me as transaction
 	// TODO: clean users in keycloak
 
-	err := u.userRepository.Flush(organizationId)
+	err := u.userRepository.Flush(ctx, organizationId)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) erro
 	return nil
 }
 
-func (u *UserUsecase) DeleteAdmin(organizationId string) error {
+func (u *UserUsecase) DeleteAdmin(ctx context.Context, organizationId string) error {
 	user, err := u.kc.GetUser(organizationId, "admin")
 	if err != nil {
 		return errors.Wrap(err, "get user failed")
@@ -188,7 +188,7 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 		return errors.Wrap(err, "parse user id failed")
 	}
 
-	err = u.userRepository.DeleteWithUuid(userUuid)
+	err = u.userRepository.DeleteWithUuid(ctx, userUuid)
 	if err != nil {
 		return errors.Wrap(err, "delete user failed")
 	}
@@ -196,7 +196,7 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 	return nil
 }
 
-func (u *UserUsecase) CreateAdmin(organizationId string, accountId string, accountName string, email string) (*model.User, error) {
+func (u *UserUsecase) CreateAdmin(ctx context.Context, organizationId string, accountId string, accountName string, email string) (*model.User, error) {
 	// Generate Admin user object
 	randomPassword := helper.GenerateRandomString(passwordLength)
 	user := model.User{
@@ -219,7 +219,7 @@ func (u *UserUsecase) CreateAdmin(organizationId string, accountId string, accou
 	}
 
 	// Send mail of temporary password
-	organizationInfo, err := u.organizationRepository.Get(organizationId)
+	organizationInfo, err := u.organizationRepository.Get(ctx, organizationId)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func (u *UserUsecase) CreateAdmin(organizationId string, accountId string, accou
 }
 
 func (u *UserUsecase) SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error {
-	user, err := u.userRepository.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(ctx, accountId, organizationId)
 	if err != nil {
 		return err
 	}
@@ -282,12 +282,12 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	}
 
 	// update password UpdateAt in DB
-	user, err := u.userRepository.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(ctx, accountId, organizationId)
 	if err != nil {
 		return errors.Wrap(err, "getting user from repository failed")
 	}
 
-	err = u.userRepository.UpdatePasswordAt(user.ID, organizationId, false)
+	err = u.userRepository.UpdatePasswordAt(ctx, user.ID, organizationId, false)
 	if err != nil {
 		return errors.Wrap(err, "updating user in repository failed")
 	}
@@ -296,7 +296,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 }
 
 func (u *UserUsecase) List(ctx context.Context, organizationId string) (users *[]model.User, err error) {
-	users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId))
+	users, err = u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId))
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (u *UserUsecase) List(ctx context.Context, organizationId string) (users *[
 }
 
 func (u *UserUsecase) ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (users *[]model.User, err error) {
-	users, err = u.userRepository.ListWithPagination(pg, organizationId)
+	users, err = u.userRepository.ListWithPagination(ctx, pg, organizationId)
 	if err != nil {
 		return nil, err
 	}
@@ -313,8 +313,8 @@ func (u *UserUsecase) ListWithPagination(ctx context.Context, organizationId str
 	return
 }
 
-func (u *UserUsecase) Get(userId uuid.UUID) (*model.User, error) {
-	user, err := u.userRepository.GetByUuid(userId)
+func (u *UserUsecase) Get(ctx context.Context, userId uuid.UUID) (*model.User, error) {
+	user, err := u.userRepository.GetByUuid(ctx, userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return nil, httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
@@ -326,7 +326,7 @@ func (u *UserUsecase) Get(userId uuid.UUID) (*model.User, error) {
 }
 
 func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*model.User, error) {
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+	users, err := u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
 		return nil, err
@@ -336,7 +336,7 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, orga
 }
 
 func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error) {
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+	users, err := u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.EmailFilter(email))
 	if err != nil {
 		return nil, err
@@ -346,7 +346,7 @@ func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organization
 }
 
 func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error) {
-	storedUser, err := u.Get(userId)
+	storedUser, err := u.Get(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +372,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		}
 	}
 
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(user.Organization.ID),
+	users, err := u.userRepository.List(ctx, u.userRepository.OrganizationFilter(user.Organization.ID),
 		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
@@ -391,7 +391,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, err
 	}
 
-	out, err = u.userRepository.UpdateWithUuid((*users)[0].ID, user.AccountId, user.Name, roleUuid, user.Email, user.Department, user.Description)
+	out, err = u.userRepository.UpdateWithUuid(ctx, (*users)[0].ID, user.AccountId, user.Name, roleUuid, user.Email, user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
 	}
@@ -399,13 +399,13 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	return &out, nil
 }
 
-func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
-	user, err := u.userRepository.GetByUuid(userId)
+func (u *UserUsecase) Delete(ctx context.Context, userId uuid.UUID, organizationId string) error {
+	user, err := u.userRepository.GetByUuid(ctx, userId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("not found user"), "", "")
 	}
 
-	err = u.userRepository.DeleteWithUuid(userId)
+	err = u.userRepository.DeleteWithUuid(ctx, userId)
 	if err != nil {
 		return err
 	}
@@ -419,12 +419,12 @@ func (u *UserUsecase) Delete(userId uuid.UUID, organizationId string) error {
 	return nil
 }
 func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, organizationId string) error {
-	user, err := u.userRepository.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(ctx, accountId, organizationId)
 	if err != nil {
 		return err
 	}
 
-	err = u.userRepository.DeleteWithUuid(user.ID)
+	err = u.userRepository.DeleteWithUuid(ctx, user.ID)
 	if err != nil {
 		return err
 	}
@@ -460,7 +460,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User
 
 	// Get user role
 	var roleUuid string
-	roles, err := u.roleRepository.ListTksRoles(user.Organization.ID, nil)
+	roles, err := u.roleRepository.ListTksRoles(ctx, user.Organization.ID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -483,7 +483,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User
 	}
 
 	// Create user in DB
-	resUser, err := u.userRepository.CreateWithUuid(userUuid, user.AccountId, user.Name, user.Email,
+	resUser, err := u.userRepository.CreateWithUuid(ctx, userUuid, user.AccountId, user.Name, user.Email,
 		user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
@@ -512,7 +512,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 		}
 	}
 
-	*user, err = u.userRepository.UpdateWithUuid(user.ID, user.AccountId, user.Name, newUser.Role.ID, user.Email,
+	*user, err = u.userRepository.UpdateWithUuid(ctx, user.ID, user.AccountId, user.Name, newUser.Role.ID, user.Email,
 		user.Department, user.Description)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -176,7 +177,10 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	}
 
 	//
-	eps, err := repoFactory.Endpoint.List(nil)
+
+	ctx := context.Background()
+
+	eps, err := repoFactory.Endpoint.List(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -187,7 +191,7 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	}
 	for _, ep := range api.ApiMap {
 		if _, ok := storedEps[ep.Name]; !ok {
-			if err := repoFactory.Endpoint.Create(&model.Endpoint{
+			if err := repoFactory.Endpoint.Create(ctx, &model.Endpoint{
 				Name:  ep.Name,
 				Group: ep.Group,
 			}); err != nil {

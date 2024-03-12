@@ -109,9 +109,9 @@ func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *p
 
 	if organizationId == "" {
 		// [TODO] 사용자가 속한 organization 리스트
-		out, err = u.repo.Fetch(pg)
+		out, err = u.repo.Fetch(ctx, pg)
 	} else {
-		out, err = u.repo.FetchByOrganizationId(organizationId, user.GetUserId(), pg)
+		out, err = u.repo.FetchByOrganizationId(ctx, organizationId, user.GetUserId(), pg)
 	}
 
 	if err != nil {
@@ -125,7 +125,7 @@ func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccount
 		return nil, fmt.Errorf("Invalid cloudAccountId")
 	}
 
-	out, err = u.repo.Fetch(pg)
+	out, err = u.repo.Fetch(ctx, pg)
 
 	if err != nil {
 		return nil, err
@@ -139,13 +139,13 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.repo.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
 	// check cloudAccount
-	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId, nil)
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(ctx, dto.OrganizationId, nil)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 	}
@@ -168,7 +168,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 	}
 
 	// check stackTemplate
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -178,7 +178,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
-	clusterId, err = u.repo.Create(dto)
+	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
@@ -206,7 +206,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 	}
 	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -219,18 +219,18 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.repo.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
-	_, err = u.organizationRepo.Get(dto.OrganizationId)
+	_, err = u.organizationRepo.Get(ctx, dto.OrganizationId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", "")
 	}
 
 	// check stackTemplate
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -241,7 +241,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		dto.ID = "tks-admin"
 		dto.Name = "tks-admin"
 	}
-	clusterId, err = u.repo.Create(dto)
+	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
@@ -268,7 +268,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 	}
 	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -281,12 +281,12 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.repo.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -297,7 +297,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
-	clusterId, err = u.repo.Create(dto)
+	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
@@ -315,7 +315,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 	}
 	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_BOOTSTRAPPING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_BOOTSTRAPPING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -328,7 +328,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", "")
 	}
@@ -336,7 +336,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService"), "C_INVALID_CLOUD_SERVICE", "")
 	}
 
-	stackTemplate, err := u.stackTemplateRepo.Get(cluster.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, cluster.StackTemplateId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -367,7 +367,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 	}
 	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(cluster.ID, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, cluster.ID, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -375,7 +375,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 }
 
 func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (out model.Cluster, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return model.Cluster{}, err
 	}
@@ -384,7 +384,7 @@ func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (o
 }
 
 func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId) (err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
@@ -393,7 +393,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		return fmt.Errorf("The cluster can not be deleted. cluster status : %s", cluster.Status)
 	}
 
-	resAppGroups, err := u.appGroupRepo.Fetch(clusterId, nil)
+	resAppGroups, err := u.appGroupRepo.Fetch(ctx, clusterId, nil)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get appgroup")
 	}
@@ -408,7 +408,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	// check cloudAccount
 	tksCloudAccountId := "NULL"
 	if cluster.CloudService != domain.CloudService_BYOH {
-		cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccount.ID)
+		cloudAccount, err := u.cloudAccountRepo.Get(ctx, cluster.CloudAccount.ID)
 		if err != nil {
 			return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
 		}
@@ -437,7 +437,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 
 	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -445,7 +445,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 }
 
 func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return domain.ClusterSiteValuesResponse{}, errors.Wrap(err, "Failed to get cluster")
 	}
@@ -483,7 +483,7 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 }
 
 func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterId domain.ClusterId) (out domain.BootstrapKubeconfig, err error) {
-	_, err = u.repo.Get(clusterId)
+	_, err = u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return out, httpErrors.NewNotFoundError(err, "", "")
 	}
@@ -528,7 +528,7 @@ func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterI
 }
 
 func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId domain.ClusterId) (out domain.BootstrapKubeconfig, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return out, httpErrors.NewNotFoundError(err, "", "")
 	}
@@ -599,7 +599,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 }
 
 func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterId) (out []domain.ClusterNode, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")

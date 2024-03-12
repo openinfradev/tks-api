@@ -51,7 +51,7 @@ func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboar
 }
 
 func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
-	_, err = u.organizationRepo.Get(organizationId)
+	_, err = u.organizationRepo.Get(ctx, organizationId)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid organization")
 	}
@@ -61,7 +61,7 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 			continue
 		}
 
-		chart, err := u.getChartFromPrometheus(organizationId, strType, duration, interval, year, month)
+		chart, err := u.getChartFromPrometheus(ctx, organizationId, strType, duration, interval, year, month)
 		if err != nil {
 			return nil, err
 		}
@@ -73,12 +73,12 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 }
 
 func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error) {
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
 	}
 
-	thanosUrl, err := u.getThanosUrl(organizationId)
+	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
 	if err != nil {
 		log.ErrorWithContext(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
@@ -99,7 +99,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 	}
 
 	for _, cluster := range clusters {
-		appGroups, err := u.appGroupRepo.Fetch(cluster.ID, nil)
+		appGroups, err := u.appGroupRepo.Fetch(ctx, cluster.ID, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +137,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 }
 
 func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error) {
-	thanosUrl, err := u.getThanosUrl(organizationId)
+	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
 	if err != nil {
 		log.ErrorWithContext(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
@@ -149,7 +149,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	}
 
 	// Stack
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
 	}
@@ -222,8 +222,8 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	return
 }
 
-func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
-	thanosUrl, err := u.getThanosUrl(organizationId)
+func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
+	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
 	if err != nil {
 		log.Error(err)
 		return res, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
@@ -286,12 +286,12 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			return res, fmt.Errorf("Invalid month")
 		}
 
-		alerts, err := u.alertRepo.FetchPodRestart(organizationId, startDate, endDate)
+		alerts, err := u.alertRepo.FetchPodRestart(ctx, organizationId, startDate, endDate)
 		if err != nil {
 			return res, err
 		}
 
-		organization, err := u.organizationRepo.Get(organizationId)
+		organization, err := u.organizationRepo.Get(ctx, organizationId)
 		if err != nil {
 			return res, err
 		}
@@ -375,7 +375,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			yAxisData = append(yAxisData, u.getChartYValue(val.Values, xAxis, percentage))
 		}
 
-		clusterName, err := u.getClusterNameFromId(val.Metric.TacoCluster)
+		clusterName, err := u.getClusterNameFromId(ctx, val.Metric.TacoCluster)
 		if err != nil {
 			clusterName = val.Metric.TacoCluster
 		}
@@ -402,14 +402,14 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 
 }
 
-func (u *DashboardUsecase) getThanosUrl(organizationId string) (out string, err error) {
+func (u *DashboardUsecase) getThanosUrl(ctx context.Context, organizationId string) (out string, err error) {
 	const prefix = "CACHE_KEY_THANOS_URL"
 	value, found := u.cache.Get(prefix + organizationId)
 	if found {
 		return value.(string), nil
 	}
 
-	organization, err := u.organizationRepo.Get(organizationId)
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
 	if err != nil {
 		return out, errors.Wrap(err, "Failed to get organization")
 	}
@@ -530,14 +530,14 @@ func (u *DashboardUsecase) getStackCpu(result []thanos.MetricDataResult, cluster
 	return
 }
 
-func (u *DashboardUsecase) getClusterNameFromId(clusterId string) (clusterName string, err error) {
+func (u *DashboardUsecase) getClusterNameFromId(ctx context.Context, clusterId string) (clusterName string, err error) {
 	const prefix = "CACHE_KEY_CLUSTER_NAME_FROM_ID"
 	value, found := u.cache.Get(prefix + clusterId)
 	if found {
 		return value.(string), nil
 	}
 
-	cluster, err := u.clusterRepo.Get(domain.ClusterId(clusterId))
+	cluster, err := u.clusterRepo.Get(ctx, domain.ClusterId(clusterId))
 	if err != nil {
 		return clusterName, errors.Wrap(err, "Failed to get cluster")
 	}

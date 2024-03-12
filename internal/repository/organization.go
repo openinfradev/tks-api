@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -12,14 +13,14 @@ import (
 
 // Interfaces
 type IOrganizationRepository interface {
-	Create(dto *model.Organization) (model.Organization, error)
-	Fetch(pg *pagination.Pagination) (res *[]model.Organization, err error)
-	Get(organizationId string) (res model.Organization, err error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
-	UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error
-	UpdateAdminId(organizationId string, adminId uuid.UUID) error
-	Delete(organizationId string) (err error)
-	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
+	Create(ctx context.Context, dto *model.Organization) (model.Organization, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) (res *[]model.Organization, err error)
+	Get(ctx context.Context, organizationId string) (res model.Organization, err error)
+	Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
+	UpdatePrimaryClusterId(ctx context.Context, organizationId string, primaryClusterId string) error
+	UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
+	Delete(ctx context.Context, organizationId string) (err error)
+	InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
 
 type OrganizationRepository struct {
@@ -53,7 +54,7 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 //	return nil
 //}
 
-func (r *OrganizationRepository) Create(dto *model.Organization) (model.Organization, error) {
+func (r *OrganizationRepository) Create(ctx context.Context, dto *model.Organization) (model.Organization, error) {
 	organization := model.Organization{
 		ID:          dto.ID,
 		Name:        dto.Name,
@@ -62,7 +63,7 @@ func (r *OrganizationRepository) Create(dto *model.Organization) (model.Organiza
 		Status:      domain.OrganizationStatus_PENDING,
 		Phone:       dto.Phone,
 	}
-	res := r.db.Create(&organization)
+	res := r.db.WithContext(ctx).Create(&organization)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
@@ -71,20 +72,20 @@ func (r *OrganizationRepository) Create(dto *model.Organization) (model.Organiza
 	return organization, nil
 }
 
-func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (out *[]model.Organization, err error) {
+func (r *OrganizationRepository) Fetch(ctx context.Context, pg *pagination.Pagination) (out *[]model.Organization, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Preload(clause.Associations), &out)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations), &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	return
 }
 
-func (r *OrganizationRepository) Get(id string) (out model.Organization, err error) {
-	res := r.db.Preload(clause.Associations).
+func (r *OrganizationRepository) Get(ctx context.Context, id string) (out model.Organization, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).
 		First(&out, "id = ?", id)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -93,8 +94,8 @@ func (r *OrganizationRepository) Get(id string) (out model.Organization, err err
 	return
 }
 
-func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (out model.Organization, err error) {
-	res := r.db.Model(&model.Organization{}).
+func (r *OrganizationRepository) Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (out model.Organization, err error) {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"name":        in.Name,
@@ -114,8 +115,8 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 	return
 }
 
-func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error {
-	res := r.db.Model(&model.Organization{}).
+func (r *OrganizationRepository) UpdatePrimaryClusterId(ctx context.Context, organizationId string, primaryClusterId string) error {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"primary_cluster_id": primaryClusterId,
@@ -128,8 +129,8 @@ func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, p
 	return nil
 }
 
-func (r *OrganizationRepository) UpdateAdminId(organizationId string, adminId uuid.UUID) (err error) {
-	res := r.db.Model(&model.Organization{}).
+func (r *OrganizationRepository) UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"admin_id": adminId,
@@ -142,8 +143,8 @@ func (r *OrganizationRepository) UpdateAdminId(organizationId string, adminId uu
 	return nil
 }
 
-func (r *OrganizationRepository) Delete(organizationId string) error {
-	res := r.db.Delete(&model.Organization{}, "id = ?", organizationId)
+func (r *OrganizationRepository) Delete(ctx context.Context, organizationId string) error {
+	res := r.db.WithContext(ctx).Delete(&model.Organization{}, "id = ?", organizationId)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -152,8 +153,8 @@ func (r *OrganizationRepository) Delete(organizationId string) error {
 	return nil
 }
 
-func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error {
-	res := r.db.Model(&model.Organization{}).
+func (r *OrganizationRepository) InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {

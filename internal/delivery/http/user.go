@@ -95,7 +95,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -309,7 +309,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	user.AccountId = accountId
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -368,7 +368,7 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := u.usecase.ResetPasswordByAccountId(accountId, organizationId)
+	err := u.usecase.ResetPasswordByAccountId(r.Context(), accountId, organizationId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -395,7 +395,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.usecase.Get(requestUserInfo.GetUserId())
+	user, err := u.usecase.Get(r.Context(), requestUserInfo.GetUserId())
 	if err != nil {
 		ErrorJSON(w, r, err)
 	}
@@ -444,7 +444,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
+	err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -506,7 +506,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.usecase.Get(requestUserInfo.GetUserId())
+	user, err := u.usecase.Get(r.Context(), requestUserInfo.GetUserId())
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -577,7 +577,7 @@ func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request context"), "A_INVALID_TOKEN", ""))
 		return
 	}
-	if err := u.usecase.Delete(requestUserInfo.GetUserId(), requestUserInfo.GetOrganizationId()); err != nil {
+	if err := u.usecase.Delete(r.Context(), requestUserInfo.GetUserId(), requestUserInfo.GetOrganizationId()); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -704,7 +704,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 			return
 		}
-		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -719,7 +719,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		Description: input.Description,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -737,7 +737,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 
-	user.Password = u.usecase.GenerateRandomPassword()
+	user.Password = u.usecase.GenerateRandomPassword(r.Context())
 
 	resUser, err := u.usecase.Create(r.Context(), &user)
 	if err != nil {
@@ -901,7 +901,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 			return
 		}
-		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -966,7 +966,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 			return
 		}
-		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -985,7 +985,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)

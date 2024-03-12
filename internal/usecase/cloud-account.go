@@ -76,7 +76,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "사용 중인 AwsAccountId 입니다. 관리자에게 문의하세요.")
 	}
 
-	cloudAccountId, err = u.repo.Create(dto)
+	cloudAccountId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -84,7 +84,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 
 	// FOR TEST. ADD MAGIC KEYWORD
 	if strings.Contains(dto.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
-		if err := u.repo.InitWorkflow(cloudAccountId, "", domain.CloudAccountStatus_CREATED); err != nil {
+		if err := u.repo.InitWorkflow(ctx, cloudAccountId, "", domain.CloudAccountStatus_CREATED); err != nil {
 			return uuid.Nil, errors.Wrap(err, "Failed to initialize status")
 		}
 		return cloudAccountId, nil
@@ -108,7 +108,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 	}
 	log.InfoWithContext(ctx, "submited workflow :", workflowId)
 
-	if err := u.repo.InitWorkflow(cloudAccountId, workflowId, domain.CloudAccountStatus_CREATING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, cloudAccountId, workflowId, domain.CloudAccountStatus_CREATING); err != nil {
 		return uuid.Nil, errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -124,7 +124,7 @@ func (u *CloudAccountUsecase) Update(ctx context.Context, dto model.CloudAccount
 
 	dto.Resource = "TODO server result or additional information"
 	dto.UpdatorId = &userId
-	err := u.repo.Update(dto)
+	err := u.repo.Update(ctx, dto)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -132,48 +132,48 @@ func (u *CloudAccountUsecase) Update(ctx context.Context, dto model.CloudAccount
 }
 
 func (u *CloudAccountUsecase) Get(ctx context.Context, cloudAccountId uuid.UUID) (res model.CloudAccount, err error) {
-	res, err = u.repo.Get(cloudAccountId)
+	res, err = u.repo.Get(ctx, cloudAccountId)
 	if err != nil {
 		return model.CloudAccount{}, err
 	}
 
-	res.Clusters = u.getClusterCnt(cloudAccountId)
+	res.Clusters = u.getClusterCnt(ctx, cloudAccountId)
 
 	return
 }
 
 func (u *CloudAccountUsecase) GetByName(ctx context.Context, organizationId string, name string) (res model.CloudAccount, err error) {
-	res, err = u.repo.GetByName(organizationId, name)
+	res, err = u.repo.GetByName(ctx, organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
 		}
 		return model.CloudAccount{}, err
 	}
-	res.Clusters = u.getClusterCnt(res.ID)
+	res.Clusters = u.getClusterCnt(ctx, res.ID)
 	return
 }
 
 func (u *CloudAccountUsecase) GetByAwsAccountId(ctx context.Context, awsAccountId string) (res model.CloudAccount, err error) {
-	res, err = u.repo.GetByAwsAccountId(awsAccountId)
+	res, err = u.repo.GetByAwsAccountId(ctx, awsAccountId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
 		}
 		return model.CloudAccount{}, err
 	}
-	res.Clusters = u.getClusterCnt(res.ID)
+	res.Clusters = u.getClusterCnt(ctx, res.ID)
 	return
 }
 
 func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (cloudAccounts []model.CloudAccount, err error) {
-	cloudAccounts, err = u.repo.Fetch(organizationId, pg)
+	cloudAccounts, err = u.repo.Fetch(ctx, organizationId, pg)
 	if err != nil {
 		return nil, err
 	}
 
 	for i, cloudAccount := range cloudAccounts {
-		cloudAccounts[i].Clusters = u.getClusterCnt(cloudAccount.ID)
+		cloudAccounts[i].Clusters = u.getClusterCnt(ctx, cloudAccount.ID)
 	}
 	return
 }
@@ -191,7 +191,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 	}
 	dto.UpdatorId = &userId
 
-	if u.getClusterCnt(dto.ID) > 0 {
+	if u.getClusterCnt(ctx, dto.ID) > 0 {
 		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
 	}
 
@@ -213,7 +213,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 	}
 	log.InfoWithContext(ctx, "submited workflow :", workflowId)
 
-	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -221,7 +221,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 }
 
 func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) (err error) {
-	cloudAccount, err := u.repo.Get(cloudAccountId)
+	cloudAccount, err := u.repo.Get(ctx, cloudAccountId)
 	if err != nil {
 		return err
 	}
@@ -231,11 +231,11 @@ func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uu
 		return fmt.Errorf("The status is not CREATE_ERROR. %s", cloudAccount.Status)
 	}
 
-	if u.getClusterCnt(cloudAccountId) > 0 {
+	if u.getClusterCnt(ctx, cloudAccountId) > 0 {
 		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
 	}
 
-	err = u.repo.Delete(cloudAccountId)
+	err = u.repo.Delete(ctx, cloudAccountId)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uu
 }
 
 func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccountId uuid.UUID) (available bool, out domain.ResourceQuota, err error) {
-	cloudAccount, err := u.repo.Get(cloudAccountId)
+	cloudAccount, err := u.repo.Get(ctx, cloudAccountId)
 	if err != nil {
 		return false, out, err
 	}
@@ -442,10 +442,10 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 	return true, out, nil
 }
 
-func (u *CloudAccountUsecase) getClusterCnt(cloudAccountId uuid.UUID) (cnt int) {
+func (u *CloudAccountUsecase) getClusterCnt(ctx context.Context, cloudAccountId uuid.UUID) (cnt int) {
 	cnt = 0
 
-	clusters, err := u.clusterRepo.FetchByCloudAccountId(cloudAccountId, nil)
+	clusters, err := u.clusterRepo.FetchByCloudAccountId(ctx, cloudAccountId, nil)
 	if err != nil {
 		log.Error("Failed to get clusters by cloudAccountId. err : ", err)
 		return cnt

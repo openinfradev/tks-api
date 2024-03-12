@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,17 +14,17 @@ import (
 
 // Interface
 type IUserRepository interface {
-	CreateWithUuid(uuid uuid.UUID, accountId string, name string, email string,
+	CreateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, email string,
 		department string, description string, organizationId string, roleId string) (model.User, error)
-	List(filters ...FilterFunc) (out *[]model.User, err error)
-	ListWithPagination(pg *pagination.Pagination, organizationId string) (out *[]model.User, err error)
-	Get(accountId string, organizationId string) (model.User, error)
-	GetByUuid(userId uuid.UUID) (model.User, error)
-	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string, email string,
+	List(ctx context.Context, filters ...FilterFunc) (out *[]model.User, err error)
+	ListWithPagination(ctx context.Context, pg *pagination.Pagination, organizationId string) (out *[]model.User, err error)
+	Get(ctx context.Context, accountId string, organizationId string) (model.User, error)
+	GetByUuid(ctx context.Context, userId uuid.UUID) (model.User, error)
+	UpdateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, roleId string, email string,
 		department string, description string) (model.User, error)
-	UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error
-	DeleteWithUuid(uuid uuid.UUID) error
-	Flush(organizationId string) error
+	UpdatePasswordAt(ctx context.Context, userId uuid.UUID, organizationId string, isTemporary bool) error
+	DeleteWithUuid(ctx context.Context, uuid uuid.UUID) error
+	Flush(ctx context.Context, organizationId string) error
 
 	AccountIdFilter(accountId string) FilterFunc
 	OrganizationFilter(organization string) FilterFunc
@@ -35,8 +36,8 @@ type UserRepository struct {
 	db *gorm.DB
 }
 
-func (r *UserRepository) Flush(organizationId string) error {
-	res := r.db.Where("organization_id = ?", organizationId).Delete(&model.User{})
+func (r *UserRepository) Flush(ctx context.Context, organizationId string) error {
+	res := r.db.WithContext(ctx).Where("organization_id = ?", organizationId).Delete(&model.User{})
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -50,33 +51,7 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 	}
 }
 
-//// Models
-//type User struct {
-//	gorm.Model
-//
-//	ID             uuid.UUID `gorm:"primarykey;type:uuid"`
-//	AccountId      string
-//	Name           string
-//	Password       string
-//	AuthType       string `gorm:"authType"`
-//	RoleId         uuid.UUID
-//	Role           Role `gorm:"foreignKey:RoleId;references:ID"`
-//	OrganizationId string
-//	Organization   Organization `gorm:"foreignKey:OrganizationId;references:ID"`
-//	Creator        uuid.UUID
-//	Email          string
-//	Department     string
-//	Description    string
-//
-//	PasswordUpdatedAt time.Time `json:"passwordUpdatedAt"`
-//}
-
-//func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
-//	g.PasswordUpdatedAt = time.Now()
-//	return nil
-//}
-
-func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, email string,
+func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, email string,
 	department string, description string, organizationId string, roleId string) (model.User, error) {
 
 	newUser := model.User{
@@ -89,45 +64,25 @@ func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name s
 		OrganizationId: organizationId,
 		RoleId:         roleId,
 	}
-	res := r.db.Create(&newUser)
+	res := r.db.WithContext(ctx).Create(&newUser)
 	if res.Error != nil {
 		log.Error(res.Error.Error())
 		return model.User{}, res.Error
 	}
-	user, err := r.getUserByAccountId(accountId, organizationId)
+	user, err := r.getUserByAccountId(nil, accountId, organizationId)
 	if err != nil {
 		return model.User{}, err
 	}
 
 	return user, nil
 }
-func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
-	return func(user *gorm.DB) *gorm.DB {
-		return user.Where("account_id = ?", accountId)
-	}
-}
-func (r *UserRepository) OrganizationFilter(organization string) FilterFunc {
-	return func(user *gorm.DB) *gorm.DB {
-		return user.Where("organization_id = ?", organization)
-	}
-}
-func (r *UserRepository) EmailFilter(email string) FilterFunc {
-	return func(user *gorm.DB) *gorm.DB {
-		return user.Where("email = ?", email)
-	}
-}
-func (r *UserRepository) NameFilter(name string) FilterFunc {
-	return func(user *gorm.DB) *gorm.DB {
-		return user.Where("name = ?", name)
-	}
-}
 
-func (r *UserRepository) List(filters ...FilterFunc) (*[]model.User, error) {
+func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]model.User, error) {
 	var users []model.User
 	var res *gorm.DB
 
 	if filters == nil {
-		res = r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Find(&users)
+		res = r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").Find(&users)
 	} else {
 		combinedFilter := func(filters ...FilterFunc) FilterFunc {
 			return func(user *gorm.DB) *gorm.DB {
@@ -157,14 +112,14 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]model.User, error) {
 	return &out, nil
 }
 
-func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizationId string) (*[]model.User, error) {
+func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.Pagination, organizationId string) (*[]model.User, error) {
 	var users []model.User
 
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Preload("Organization").Preload("Role").Model(&model.User{}).Where("organization_id = ?", organizationId), &users)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Role").Model(&model.User{}).Where("organization_id = ?", organizationId), &users)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
@@ -178,17 +133,18 @@ func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizat
 	return &out, nil
 }
 
-func (r *UserRepository) Get(accountId string, organizationId string) (model.User, error) {
-	user, err := r.getUserByAccountId(accountId, organizationId)
+func (r *UserRepository) Get(ctx context.Context, accountId string, organizationId string) (model.User, error) {
+	user, err := r.getUserByAccountId(ctx, accountId, organizationId)
 	if err != nil {
 		return model.User{}, err
 	}
 
 	return user, nil
 }
-func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser model.User, err error) {
+
+func (r *UserRepository) GetByUuid(ctx context.Context, userId uuid.UUID) (respUser model.User, err error) {
 	user := model.User{}
-	res := r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
+	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
 
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -200,10 +156,10 @@ func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser model.User, err e
 
 	return user, nil
 }
-func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string,
+func (r *UserRepository) UpdateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, roleId string,
 	email string, department string, description string) (model.User, error) {
 	var user model.User
-	res := r.db.Model(&model.User{}).Where("id = ?", uuid).Updates(model.User{
+	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", uuid).Updates(model.User{
 		AccountId:   accountId,
 		Name:        name,
 		Email:       email,
@@ -224,14 +180,15 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 	}
 	return user, nil
 }
-func (r *UserRepository) UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error {
+
+func (r *UserRepository) UpdatePasswordAt(ctx context.Context, userId uuid.UUID, organizationId string, isTemporary bool) error {
 	var updateUser = model.User{}
 	if isTemporary {
 		updateUser.PasswordUpdatedAt = time.Time{}
 	} else {
 		updateUser.PasswordUpdatedAt = time.Now()
 	}
-	res := r.db.Model(&model.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
+	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
 		Select("password_updated_at").Updates(updateUser)
 
 	if res.RowsAffected == 0 || res.Error != nil {
@@ -244,8 +201,9 @@ func (r *UserRepository) UpdatePasswordAt(userId uuid.UUID, organizationId strin
 
 	return nil
 }
-func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
-	res := r.db.Unscoped().Delete(&model.User{}, "id = ?", uuid)
+
+func (r *UserRepository) DeleteWithUuid(ctx context.Context, uuid uuid.UUID) error {
+	res := r.db.WithContext(ctx).Unscoped().Delete(&model.User{}, "id = ?", uuid)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -253,28 +211,8 @@ func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
 	return nil
 }
 
-//// Deprecated:
-//type Policy struct {
-//	gorm.Model
-//
-//	//ID               uuid.UUID `gorm:"primarykey;type:uuid;"`
-//	RoleId           uuid.UUID
-//	Role             Role `gorm:"references:ID"`
-//	Name             string
-//	Description      string
-//	Create           bool `gorm:"column:c"`
-//	CreatePriviledge string
-//	Update           bool `gorm:"column:u"`
-//	UpdatePriviledge string
-//	Read             bool `gorm:"column:r"`
-//	ReadPriviledge   string
-//	Delete           bool `gorm:"column:d"`
-//	DeletePriviledge string
-//	Creator          uuid.UUID
-//}
-
-func (r *UserRepository) GetRoleByName(roleName string) (model.Role, error) {
-	role, err := r.getRoleByName(roleName)
+func (r *UserRepository) GetRoleByName(ctx context.Context, roleName string) (model.Role, error) {
+	role, err := r.getRoleByName(ctx, roleName)
 	if err != nil {
 		return model.Role{}, err
 	}
@@ -305,9 +243,9 @@ func (r *UserRepository) GetRoleByName(roleName string) (model.Role, error) {
 //}
 
 // private members
-func (r *UserRepository) getUserByAccountId(accountId string, organizationId string) (model.User, error) {
+func (r *UserRepository) getUserByAccountId(ctx context.Context, accountId string, organizationId string) (model.User, error) {
 	user := model.User{}
-	res := r.db.Model(&model.User{}).Preload("Organization").Preload("Role").
+	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
@@ -320,9 +258,9 @@ func (r *UserRepository) getUserByAccountId(accountId string, organizationId str
 	return user, nil
 }
 
-func (r *UserRepository) getRoleByName(roleName string) (model.Role, error) {
+func (r *UserRepository) getRoleByName(ctx context.Context, roleName string) (model.Role, error) {
 	role := model.Role{}
-	res := r.db.First(&role, "name = ?", roleName)
+	res := r.db.WithContext(ctx).First(&role, "name = ?", roleName)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Role{}, res.Error
@@ -331,9 +269,29 @@ func (r *UserRepository) getRoleByName(roleName string) (model.Role, error) {
 		return model.Role{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
-	//if res.RowsAffected == 0 {
-	//	return Role{}, nil
-	//}
-
 	return role, nil
+}
+
+func (r *UserRepository) AccountIdFilter(accountId string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("account_id = ?", accountId)
+	}
+}
+
+func (r *UserRepository) OrganizationFilter(organization string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("organization_id = ?", organization)
+	}
+}
+
+func (r *UserRepository) EmailFilter(email string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("email = ?", email)
+	}
+}
+
+func (r *UserRepository) NameFilter(name string) FilterFunc {
+	return func(user *gorm.DB) *gorm.DB {
+		return user.Where("name = ?", name)
+	}
 }

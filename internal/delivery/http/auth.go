@@ -19,7 +19,6 @@ type IAuthHandler interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Logout(w http.ResponseWriter, r *http.Request)
 	// Deprecated: PingToken is deprecated. Use VerifyToken instead.
-	PingToken(w http.ResponseWriter, r *http.Request)
 	RefreshToken(w http.ResponseWriter, r *http.Request)
 	FindId(w http.ResponseWriter, r *http.Request)
 	FindPassword(w http.ResponseWriter, r *http.Request)
@@ -59,7 +58,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
+	user, err := h.usecase.Login(r.Context(), input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
 		errorResponse, _ := httpErrors.ErrorResponse(err)
 		_, _ = h.auditUsecase.Create(r.Context(), model.Audit{
@@ -85,7 +84,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cookies []*http.Cookie
-	if targetCookies, err := h.usecase.SingleSignIn(input.OrganizationId, input.AccountId, input.Password); err != nil {
+	if targetCookies, err := h.usecase.SingleSignIn(r.Context(), input.OrganizationId, input.AccountId, input.Password); err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 	} else {
 		cookies = append(cookies, targetCookies...)
@@ -132,7 +131,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	organizationId := userInfo.GetOrganizationId()
 
-	err := h.usecase.Logout(sessionId, organizationId)
+	err := h.usecase.Logout(r.Context(), sessionId, organizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -140,7 +139,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cookies []*http.Cookie
-	redirectUrl, targetCookies, err := h.usecase.SingleSignOut(organizationId)
+	redirectUrl, targetCookies, err := h.usecase.SingleSignOut(r.Context(), organizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 	}
@@ -184,7 +183,7 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accountId, err := h.usecase.FindId(input.Code, input.Email, input.UserName, input.OrganizationId)
+	accountId, err := h.usecase.FindId(r.Context(), input.Code, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
@@ -216,7 +215,7 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.usecase.FindPassword(input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
+	err = h.usecase.FindPassword(r.Context(), input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -245,7 +244,7 @@ func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = h.usecase.VerifyIdentity("", input.Email, input.UserName, input.OrganizationId)
+	err = h.usecase.VerifyIdentity(r.Context(), "", input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -276,7 +275,7 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 		return
 	}
 
-	err = h.usecase.VerifyIdentity(input.AccountId, input.Email, input.UserName, input.OrganizationId)
+	err = h.usecase.VerifyIdentity(r.Context(), input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -286,34 +285,6 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 	out.ValidityPeriod = fmt.Sprintf("%.0f", internal.EmailCodeExpireTime.Seconds())
 
 	ResponseJSON(w, r, http.StatusOK, out)
-}
-
-// Login godoc
-//
-//	@Tags			Auth
-//	@Summary		ping with token
-//	@Description	ping with token
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body		domain.PingTokenRequest	true	"token info"
-//	@Success		200		{object}	nil
-//	@Router			/auth/ping [post]
-func (h *AuthHandler) PingToken(w http.ResponseWriter, r *http.Request) {
-	input := domain.PingTokenRequest{}
-	err := UnmarshalRequestInput(r, &input)
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	err = h.usecase.PingToken(input.Token, input.OrganizationId)
-	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // VerifyToken godoc
@@ -332,7 +303,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isActive, err := h.usecase.VerifyToken(token)
+	isActive, err := h.usecase.VerifyToken(r.Context(), token)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))

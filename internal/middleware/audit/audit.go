@@ -67,7 +67,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 					ClientIP:       GetClientIpAddress(w, r),
 					UserId:         &userId,
 				}
-				if _, err := a.repo.Create(dto); err != nil {
+				if _, err := a.repo.Create(r.Context(), dto); err != nil {
 					log.Error(err)
 				}
 			}

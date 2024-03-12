@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
@@ -19,7 +20,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
@@ -31,15 +31,14 @@ import (
 )
 
 type IAuthUsecase interface {
-	Login(accountId string, password string, organizationId string) (model.User, error)
-	Logout(accessToken string, organizationId string) error
-	PingToken(accessToken string, organizationId string) error
-	FindId(code string, email string, userName string, organizationId string) (string, error)
-	FindPassword(code string, accountId string, email string, userName string, organizationId string) error
-	VerifyIdentity(accountId string, email string, userName string, organizationId string) error
-	SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error)
-	SingleSignOut(organizationId string) (string, []*http.Cookie, error)
-	VerifyToken(token string) (bool, error)
+	Login(ctx context.Context, accountId string, password string, organizationId string) (model.User, error)
+	Logout(ctx context.Context, accessToken string, organizationId string) error
+	FindId(ctx context.Context, code string, email string, userName string, organizationId string) (string, error)
+	FindPassword(ctx context.Context, code string, accountId string, email string, userName string, organizationId string) error
+	VerifyIdentity(ctx context.Context, accountId string, email string, userName string, organizationId string) error
+	SingleSignIn(ctx context.Context, organizationId, accountId, password string) ([]*http.Cookie, error)
+	SingleSignOut(ctx context.Context, organizationId string) (string, []*http.Cookie, error)
+	VerifyToken(ctx context.Context, token string) (bool, error)
 }
 
 const (
@@ -68,9 +67,9 @@ func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase
 	}
 }
 
-func (u *AuthUsecase) Login(accountId string, password string, organizationId string) (model.User, error) {
+func (u *AuthUsecase) Login(ctx context.Context, accountId string, password string, organizationId string) (model.User, error) {
 	// Authentication with DB
-	user, err := u.userRepository.Get(accountId, organizationId)
+	user, err := u.userRepository.Get(ctx, accountId, organizationId)
 	if err != nil {
 		return model.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
@@ -102,7 +101,7 @@ func (u *AuthUsecase) Login(accountId string, password string, organizationId st
 	return user, nil
 }
 
-func (u *AuthUsecase) Logout(accessToken string, organizationName string) error {
+func (u *AuthUsecase) Logout(ctx context.Context, accessToken string, organizationName string) error {
 	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
 	err := u.kc.Logout(accessToken, organizationName)
 	if err != nil {
@@ -111,64 +110,8 @@ func (u *AuthUsecase) Logout(accessToken string, organizationName string) error 
 	return nil
 }
 
-func (u *AuthUsecase) PingToken(accessToken string, organizationId string) error {
-	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(accessToken, jwtWithouKey.MapClaims{})
-	if err != nil {
-		return err
-	}
-
-	if parsedToken.Method.Alg() != "RS256" {
-		return fmt.Errorf("invalid token")
-	}
-
-	if parsedToken.Claims.Valid() != nil {
-		return fmt.Errorf("invalid token")
-	}
-
-	isActive, err := u.kc.VerifyAccessToken(accessToken, organizationId)
-	if err != nil {
-		log.Errorf("failed to verify access token: %v", err)
-		return err
-	}
-	if !isActive {
-		return fmt.Errorf("token is not active")
-	}
-
-	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
-	if err != nil {
-		log.Errorf("failed to verify access token: %v", err)
-
-		return err
-	}
-	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
-	if !ok {
-		return fmt.Errorf("session id is not found in token")
-	}
-
-	sessionIds, err := u.kc.GetSessions(userId.String(), organizationId)
-	if err != nil {
-		log.Errorf("failed to get sessions: %v", err)
-
-		return err
-	}
-	if len(*sessionIds) == 0 {
-		return fmt.Errorf("invalid session")
-	}
-	var matched bool = false
-	for _, id := range *sessionIds {
-		if id == requestSessionId {
-			matched = true
-			break
-		}
-	}
-	if !matched {
-		return fmt.Errorf("invalid session")
-	}
-	return nil
-}
-
-func (u *AuthUsecase) FindId(code string, email string, userName string, organizationId string) (string, error) {
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+func (u *AuthUsecase) FindId(ctx context.Context, code string, email string, userName string, organizationId string) (string, error) {
+	users, err := u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
 		return "", httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
@@ -176,7 +119,7 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
-	emailCode, err := u.authRepository.GetEmailCode((*users)[0].ID)
+	emailCode, err := u.authRepository.GetEmailCode(ctx, (*users)[0].ID)
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -186,15 +129,15 @@ func (u *AuthUsecase) FindId(code string, email string, userName string, organiz
 	if emailCode.Code != code {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid code"), "A_INVALID_CODE", "")
 	}
-	if err := u.authRepository.DeleteEmailCode((*users)[0].ID); err != nil {
+	if err := u.authRepository.DeleteEmailCode(ctx, (*users)[0].ID); err != nil {
 		return "", httpErrors.NewInternalServerError(err, "", "")
 	}
 
 	return (*users)[0].AccountId, nil
 }
 
-func (u *AuthUsecase) FindPassword(code string, accountId string, email string, userName string, organizationId string) error {
-	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+func (u *AuthUsecase) FindPassword(ctx context.Context, code string, accountId string, email string, userName string, organizationId string) error {
+	users, err := u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 		u.userRepository.EmailFilter(email))
 	if err != nil && users == nil {
@@ -204,7 +147,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 	user := (*users)[0]
-	emailCode, err := u.authRepository.GetEmailCode(user.ID)
+	emailCode, err := u.authRepository.GetEmailCode(ctx, user.ID)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -231,7 +174,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = u.userRepository.UpdatePasswordAt(user.ID, organizationId, true); err != nil {
+	if err = u.userRepository.UpdatePasswordAt(ctx, user.ID, organizationId, true); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -247,22 +190,22 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	if err = u.authRepository.DeleteEmailCode(user.ID); err != nil {
+	if err = u.authRepository.DeleteEmailCode(ctx, user.ID); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
 	return nil
 }
 
-func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName string, organizationId string) error {
+func (u *AuthUsecase) VerifyIdentity(ctx context.Context, accountId string, email string, userName string, organizationId string) error {
 	var users *[]model.User
 	var err error
 
 	if accountId == "" {
-		users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+		users, err = u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId),
 			u.userRepository.NameFilter(userName), u.userRepository.EmailFilter(email))
 	} else {
-		users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
+		users, err = u.userRepository.List(ctx, u.userRepository.OrganizationFilter(organizationId),
 			u.userRepository.AccountIdFilter(accountId), u.userRepository.NameFilter(userName),
 			u.userRepository.EmailFilter(email))
 	}
@@ -277,13 +220,13 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
-	_, err = u.authRepository.GetEmailCode((*users)[0].ID)
+	_, err = u.authRepository.GetEmailCode(ctx, (*users)[0].ID)
 	if err != nil {
-		if err := u.authRepository.CreateEmailCode((*users)[0].ID, code); err != nil {
+		if err := u.authRepository.CreateEmailCode(ctx, (*users)[0].ID, code); err != nil {
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	} else {
-		if err := u.authRepository.UpdateEmailCode((*users)[0].ID, code); err != nil {
+		if err := u.authRepository.UpdateEmailCode(ctx, (*users)[0].ID, code); err != nil {
 			return httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
@@ -304,7 +247,7 @@ func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName st
 	return nil
 }
 
-func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) ([]*http.Cookie, error) {
+func (u *AuthUsecase) SingleSignIn(ctx context.Context, organizationId, accountId, password string) ([]*http.Cookie, error) {
 	cookies, err := makingCookie(organizationId, accountId, password)
 	if err != nil {
 		return nil, err
@@ -316,22 +259,22 @@ func (u *AuthUsecase) SingleSignIn(organizationId, accountId, password string) (
 	return cookies, nil
 }
 
-func (u *AuthUsecase) SingleSignOut(organizationId string) (string, []*http.Cookie, error) {
+func (u *AuthUsecase) SingleSignOut(ctx context.Context, organizationId string) (string, []*http.Cookie, error) {
 	var redirectUrl string
 
-	organization, err := u.organizationRepository.Get(organizationId)
+	organization, err := u.organizationRepository.Get(ctx, organizationId)
 	if err != nil {
 		return "", nil, err
 	}
 
-	appGroupsInPrimaryCluster, err := u.appgroupRepository.Fetch(domain.ClusterId(organization.PrimaryClusterId), nil)
+	appGroupsInPrimaryCluster, err := u.appgroupRepository.Fetch(ctx, domain.ClusterId(organization.PrimaryClusterId), nil)
 	if err != nil {
 		return "", nil, err
 	}
 
 	for _, appGroup := range appGroupsInPrimaryCluster {
 		if appGroup.AppGroupType == domain.AppGroupType_LMA {
-			applications, err := u.appgroupRepository.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			applications, err := u.appgroupRepository.GetApplications(ctx, appGroup.ID, domain.ApplicationType_GRAFANA)
 			if err != nil {
 				return "", nil, err
 			}
@@ -366,7 +309,7 @@ func (u *AuthUsecase) SingleSignOut(organizationId string) (string, []*http.Cook
 	return redirectUrl, cookies, nil
 }
 
-func (u *AuthUsecase) VerifyToken(token string) (bool, error) {
+func (u *AuthUsecase) VerifyToken(ctx context.Context, token string) (bool, error) {
 	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
 	if err != nil {
 		return false, err

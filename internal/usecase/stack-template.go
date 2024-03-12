@@ -66,7 +66,7 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 	services = services + "]"
 	dto.Services = []byte(services)
 
-	stackTemplateId, err = u.repo.Create(dto)
+	stackTemplateId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -82,12 +82,12 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 }
 
 func (u *StackTemplateUsecase) Update(ctx context.Context, dto model.StackTemplate) error {
-	_, err := u.repo.Get(dto.ID)
+	_, err := u.repo.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "ST_NOT_EXISTED_STACK_TEMPLATE", "")
 	}
 
-	err = u.repo.Update(dto)
+	err = u.repo.Update(ctx, dto)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (u *StackTemplateUsecase) Update(ctx context.Context, dto model.StackTempla
 }
 
 func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplateId uuid.UUID) (res model.StackTemplate, err error) {
-	res, err = u.repo.Get(stackTemplateId)
+	res, err = u.repo.Get(ctx, stackTemplateId)
 	if err != nil {
 		return res, err
 	}
@@ -103,7 +103,7 @@ func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplateId uuid.UUI
 }
 
 func (u *StackTemplateUsecase) GetByName(ctx context.Context, name string) (out model.StackTemplate, err error) {
-	out, err = u.repo.GetByName(name)
+	out, err = u.repo.GetByName(ctx, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return out, httpErrors.NewNotFoundError(err, "ST_FAILED_FETCH_STACK_TEMPLATE", "")
@@ -115,7 +115,7 @@ func (u *StackTemplateUsecase) GetByName(ctx context.Context, name string) (out 
 }
 
 func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (res []model.StackTemplate, err error) {
-	res, err = u.repo.Fetch(pg)
+	res, err = u.repo.Fetch(ctx, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Paginat
 }
 
 func (u *StackTemplateUsecase) FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (res []model.StackTemplate, err error) {
-	res, err = u.repo.FetchWithOrganization(organizationId, pg)
+	res, err = u.repo.FetchWithOrganization(ctx, organizationId, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -135,20 +135,20 @@ func (u *StackTemplateUsecase) Delete(ctx context.Context, dto model.StackTempla
 }
 
 func (u *StackTemplateUsecase) UpdateOrganizations(ctx context.Context, dto model.StackTemplate) error {
-	_, err := u.repo.Get(dto.ID)
+	_, err := u.repo.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "ST_NOT_EXISTED_STACK_TEMPLATE", "")
 	}
 
 	organizations := make([]model.Organization, 0)
 	for _, organizationId := range dto.OrganizationIds {
-		organization, err := u.organizationRepo.Get(organizationId)
+		organization, err := u.organizationRepo.Get(ctx, organizationId)
 		if err == nil {
 			organizations = append(organizations, organization)
 		}
 	}
 
-	err = u.repo.UpdateOrganizations(dto.ID, organizations)
+	err = u.repo.UpdateOrganizations(ctx, dto.ID, organizations)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "ST_FAILED_UPDATE_ORGANIZATION", "")
 	}

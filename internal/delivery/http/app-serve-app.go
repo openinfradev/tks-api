@@ -152,7 +152,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	exist, err := h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, app.Name)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -173,7 +173,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 			r1 := rand.New(src)
 			ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
 
-			nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
+			nsExist, err = h.usecase.IsAppServeAppNamespaceExist(r.Context(), app.TargetClusterId, ns)
 			if err != nil {
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
@@ -201,7 +201,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	_, _, err = h.usecase.CreateAppServeApp(&app)
+	_, _, err = h.usecase.CreateAppServeApp(r.Context(), &app)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -257,7 +257,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	pg := pagination.NewPagination(&urlParams)
-	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
+	apps, err := h.usecase.GetAppServeApps(r.Context(), organizationId, showAll, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
@@ -314,7 +314,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
-	app, err := h.usecase.GetAppServeAppById(appId)
+	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -376,7 +376,7 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
 		return
 	}
-	task, err := h.usecase.GetAppServeAppLatestTask(appId)
+	task, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -424,7 +424,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	}
 	fmt.Printf("stackId = [%s]\n", stackId)
 
-	numApps, err := h.usecase.GetNumOfAppsOnStack(organizationId, stackId)
+	numApps, err := h.usecase.GetNumOfAppsOnStack(r.Context(), organizationId, stackId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -467,7 +467,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
 
-	tasks, err := h.usecase.GetAppServeAppTasks(appId, pg)
+	tasks, err := h.usecase.GetAppServeAppTasks(r.Context(), appId, pg)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to get app-serve-app-tasks ", err)
 		ErrorJSON(w, r, err)
@@ -535,7 +535,7 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 		return
 	}
 
-	task, app, err := h.usecase.GetAppServeAppTaskById(taskId)
+	task, app, err := h.usecase.GetAppServeAppTaskById(r.Context(), taskId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -693,7 +693,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppExist(appId)
+	exist, err := h.usecase.IsAppServeAppExist(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -734,7 +734,7 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 		return
 	}
 
-	existed, err := h.usecase.IsAppServeAppNameExist(organizationId, appName)
+	existed, err := h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, appName)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -776,7 +776,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	app, err := h.usecase.GetAppServeAppById(appId)
+	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -843,11 +843,11 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	var res string
 	if appReq.Promote {
-		res, err = h.usecase.PromoteAppServeApp(appId)
+		res, err = h.usecase.PromoteAppServeApp(r.Context(), appId)
 	} else if appReq.Abort {
-		res, err = h.usecase.AbortAppServeApp(appId)
+		res, err = h.usecase.AbortAppServeApp(r.Context(), appId)
 	} else {
-		res, err = h.usecase.UpdateAppServeApp(app, &task)
+		res, err = h.usecase.UpdateAppServeApp(r.Context(), app, &task)
 	}
 
 	if err != nil {
@@ -894,7 +894,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 		return
 	}
 
-	res, err := h.usecase.UpdateAppServeAppStatus(appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
+	res, err := h.usecase.UpdateAppServeAppStatus(r.Context(), appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
@@ -940,6 +940,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 	}
 
 	res, err := h.usecase.UpdateAppServeAppEndpoint(
+		r.Context(),
 		appId,
 		appReq.TaskID,
 		appReq.EndpointUrl,
@@ -981,7 +982,7 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	res, err := h.usecase.DeleteAppServeApp(appId)
+	res, err := h.usecase.DeleteAppServeApp(r.Context(), appId)
 	if err != nil {
 		log.ErrorWithContext(r.Context(), "Failed to delete appId err : ", err)
 		ErrorJSON(w, r, err)
@@ -1031,7 +1032,7 @@ func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.
 		return
 	}
 
-	res, err := h.usecase.RollbackAppServeApp(appId, appReq.TaskId)
+	res, err := h.usecase.RollbackAppServeApp(r.Context(), appId, appReq.TaskId)
 
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))

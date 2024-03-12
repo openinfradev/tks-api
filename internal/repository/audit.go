@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -13,10 +14,10 @@ import (
 
 // Interfaces
 type IAuditRepository interface {
-	Get(auditId uuid.UUID) (model.Audit, error)
-	Fetch(pg *pagination.Pagination) ([]model.Audit, error)
-	Create(dto model.Audit) (auditId uuid.UUID, err error)
-	Delete(auditId uuid.UUID) (err error)
+	Get(ctx context.Context, auditId uuid.UUID) (model.Audit, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.Audit, error)
+	Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error)
+	Delete(ctx context.Context, auditId uuid.UUID) (err error)
 }
 
 type AuditRepository struct {
@@ -30,20 +31,20 @@ func NewAuditRepository(db *gorm.DB) IAuditRepository {
 }
 
 // Logics
-func (r *AuditRepository) Get(auditId uuid.UUID) (out model.Audit, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "id = ?", auditId)
+func (r *AuditRepository) Get(ctx context.Context, auditId uuid.UUID) (out model.Audit, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "id = ?", auditId)
 	if res.Error != nil {
 		return
 	}
 	return
 }
 
-func (r *AuditRepository) Fetch(pg *pagination.Pagination) (out []model.Audit, err error) {
+func (r *AuditRepository) Fetch(ctx context.Context, pg *pagination.Pagination) (out []model.Audit, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	db := r.db.Model(&model.Audit{}).Preload(clause.Associations)
+	db := r.db.WithContext(ctx).Model(&model.Audit{}).Preload(clause.Associations)
 	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
 		return nil, res.Error
@@ -51,7 +52,7 @@ func (r *AuditRepository) Fetch(pg *pagination.Pagination) (out []model.Audit, e
 	return
 }
 
-func (r *AuditRepository) Create(dto model.Audit) (auditId uuid.UUID, err error) {
+func (r *AuditRepository) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
 	audit := model.Audit{
 		OrganizationId: dto.OrganizationId,
 		Group:          dto.Group,
@@ -59,13 +60,13 @@ func (r *AuditRepository) Create(dto model.Audit) (auditId uuid.UUID, err error)
 		Description:    dto.Description,
 		ClientIP:       dto.ClientIP,
 		UserId:         dto.UserId}
-	res := r.db.Create(&audit)
+	res := r.db.WithContext(ctx).Create(&audit)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
 	return audit.ID, nil
 }
 
-func (r *AuditRepository) Delete(auditId uuid.UUID) (err error) {
+func (r *AuditRepository) Delete(ctx context.Context, auditId uuid.UUID) (err error) {
 	return fmt.Errorf("to be implemented")
 }

@@ -117,6 +117,30 @@ func AdminApiFilter(handler http.Handler, repo repository.Repository) http.Handl
 	})
 }
 
+func RequestOrganizationValidationFilter(handler http.Handler, repo repository.Repository) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestUserInfo, ok := request.UserFrom(r.Context())
+		if !ok {
+			internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
+			return
+		}
+
+		vars := mux.Vars(r)
+		organizationId, ok := vars["organizationId"]
+		if !ok {
+			//internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("organizationId not found"), "", ""))
+			//return
+			log.Warn("RequestOrganizationValidationFilter: organizationId not found. Passing through unsafely.")
+		}
+		if organizationId != requestUserInfo.GetOrganizationId() {
+			internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+			return
+		}
+
+		handler.ServeHTTP(w, r)
+	})
+}
+
 //type pair struct {
 //	regexp string
 //	method string

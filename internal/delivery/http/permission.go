@@ -79,7 +79,7 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 		roleId = v
 	}
 
-	permissionSet, err := h.permissionUsecase.GetPermissionSetByRoleId(roleId)
+	permissionSet, err := h.permissionUsecase.GetPermissionSetByRoleId(r.Context(), roleId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -143,7 +143,7 @@ func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *h
 			log.InfoWithContext(r.Context(), err)
 		}
 
-		if err := h.permissionUsecase.UpdatePermission(&permission); err != nil {
+		if err := h.permissionUsecase.UpdatePermission(r.Context(), &permission); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}

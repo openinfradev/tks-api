@@ -74,7 +74,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		Description:    "admin",
 		Type:           string(domain.RoleTypeTks),
 	}
-	adminRoleId, err := h.roleUsecase.CreateTksRole(&adminRole)
+	adminRoleId, err := h.roleUsecase.CreateTksRole(r.Context(), &adminRole)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -86,7 +86,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		Description:    "user",
 		Type:           string(domain.RoleTypeTks),
 	}
-	userRoleId, err := h.roleUsecase.CreateTksRole(&userRole)
+	userRoleId, err := h.roleUsecase.CreateTksRole(r.Context(), &userRole)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -94,18 +94,18 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	// Permission 생성
-	adminPermissionSet := h.permissionUsecase.GetAllowedPermissionSet()
-	h.permissionUsecase.SetRoleIdToPermissionSet(adminRoleId, adminPermissionSet)
-	err = h.permissionUsecase.CreatePermissionSet(adminPermissionSet)
+	adminPermissionSet := h.permissionUsecase.GetAllowedPermissionSet(r.Context())
+	h.permissionUsecase.SetRoleIdToPermissionSet(r.Context(), adminRoleId, adminPermissionSet)
+	err = h.permissionUsecase.CreatePermissionSet(r.Context(), adminPermissionSet)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	userPermissionSet := h.permissionUsecase.GetUserPermissionSet()
-	h.permissionUsecase.SetRoleIdToPermissionSet(userRoleId, userPermissionSet)
-	err = h.permissionUsecase.CreatePermissionSet(userPermissionSet)
+	userPermissionSet := h.permissionUsecase.GetUserPermissionSet(r.Context())
+	h.permissionUsecase.SetRoleIdToPermissionSet(r.Context(), userRoleId, userPermissionSet)
+	err = h.permissionUsecase.CreatePermissionSet(r.Context(), userPermissionSet)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -113,14 +113,14 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	// Admin user 생성
-	admin, err := h.userUsecase.CreateAdmin(organizationId, input.AdminAccountId, input.AdminName, input.AdminEmail)
+	admin, err := h.userUsecase.CreateAdmin(r.Context(), organizationId, input.AdminAccountId, input.AdminName, input.AdminEmail)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	err = h.usecase.ChangeAdminId(organizationId, admin.ID)
+	err = h.usecase.ChangeAdminId(r.Context(), organizationId, admin.ID)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
@@ -154,7 +154,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-	organizations, err := h.usecase.Fetch(pg)
+	organizations, err := h.usecase.Fetch(r.Context(), pg)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 
@@ -199,7 +199,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	organization, err := h.usecase.Get(organizationId)
+	organization, err := h.usecase.Get(r.Context(), organizationId)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -269,7 +269,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 	}
 
 	// organization 삭제
-	err = h.usecase.Delete(organizationId, token)
+	err = h.usecase.Delete(r.Context(), organizationId, token)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -313,7 +313,7 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	organization, err := h.usecase.Update(organizationId, input)
+	organization, err := h.usecase.Update(r.Context(), organizationId, input)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -359,7 +359,7 @@ func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = h.usecase.UpdatePrimaryClusterId(organizationId, input.PrimaryClusterId)
+	err = h.usecase.UpdatePrimaryClusterId(r.Context(), organizationId, input.PrimaryClusterId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
