@@ -103,133 +103,149 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 // [TODO] more pretty
-func Info(v ...interface{}) {
+func Info(ctx context.Context, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Info(v...)
-	} else {
-		logger.Info(v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Info(v...)
 }
-func Infof(format string, v ...interface{}) {
+func Infof(ctx context.Context, format string, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Infof(format, v...)
-	} else {
-		logger.Infof(format, v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
-}
-func InfoWithContext(ctx context.Context, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Info(v...)
-}
-func InfofWithContext(ctx context.Context, format string, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Infof(format, v...)
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Infof(format, v...)
 }
 
-func Warn(v ...interface{}) {
+func Warn(ctx context.Context, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Warn(v...)
-	} else {
-		logger.Warn(v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Warn(v...)
 }
-func Warnf(format string, v ...interface{}) {
+func Warnf(ctx context.Context, format string, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Warnf(format, v...)
-	} else {
-		logger.Warnf(format, v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
-}
-func WarnWithContext(ctx context.Context, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Warn(v...)
-}
-func WarnfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Warnf(format, v...)
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Warnf(format, v...)
 }
 
-func Debug(v ...interface{}) {
+func Debug(ctx context.Context, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Debug(v...)
-	} else {
-		logger.Debug(v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Debug(v...)
 }
-func Debugf(format string, v ...interface{}) {
+func Debugf(ctx context.Context, format string, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Debugf(format, v...)
-	} else {
-		logger.Debugf(format, v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
-}
-func DebugWithContext(ctx context.Context, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Debug(v...)
-}
-func DebugfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Debugf(format, v...)
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Debugf(format, v...)
 }
 
-func Error(v ...interface{}) {
+func Error(ctx context.Context, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Error(v...)
-	} else {
-		logger.Error(v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Error(v...)
 }
-func Errorf(format string, v ...interface{}) {
+func Errorf(ctx context.Context, format string, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Errorf(format, v...)
-	} else {
-		logger.Errorf(format, v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
-}
-func ErrorWithContext(ctx context.Context, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Error(v...)
-}
-func ErrorfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logger.WithField(string(internal.ContextKeyRequestID), ctx.Value(internal.ContextKeyRequestID)).Errorf(format, v...)
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Errorf(format, v...)
 }
 
-func Fatal(v ...interface{}) {
+func Fatal(ctx context.Context, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Fatal(v...)
-	} else {
-		logger.Fatal(v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Fatal(v...)
 }
-func Fatalf(format string, v ...interface{}) {
+func Fatalf(ctx context.Context, format string, v ...interface{}) {
+	fields := logrus.Fields{}
+
 	if _, file, line, ok := runtime.Caller(1); ok {
 		relativePath := getRelativeFilePath(file)
-		logger.WithFields(logrus.Fields{
-			"file": relativePath + ":" + strconv.Itoa(line),
-		}).Fatalf(format, v...)
-	} else {
-		logger.Fatalf(format, v...)
+		fields["file"] = relativePath + ":" + strconv.Itoa(line)
 	}
+
+	if ctx != nil {
+		fields[string(internal.ContextKeyRequestID)] = ctx.Value(internal.ContextKeyRequestID)
+	}
+
+	logger.WithFields(fields).Fatalf(format, v...)
 }
 
 func Disable() {
