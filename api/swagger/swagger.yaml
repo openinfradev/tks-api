@@ -1207,6 +1207,11 @@ definitions:
     - accessKeyId
     - secretAccessKey
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse:
+    properties:
+      id:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.EndpointResponse:
     properties:
       createdAt:
@@ -4189,6 +4194,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse'
       security:
       - JWT: []
       summary: Delete organization
@@ -6535,6 +6542,64 @@ paths:
       summary: Update Permissions By Role ID
       tags:
       - Permission
+  /organizations/{organizationId}/stack-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization StackTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get Organization StackTemplates
+      tags:
+      - StackTemplates
+  /organizations/{organizationId}/stack-templates/{stackTemplateId}:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization StackTemplate
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get Organization StackTemplate
+      tags:
+      - StackTemplates
   /organizations/{organizationId}/stacks:
     get:
       consumes:

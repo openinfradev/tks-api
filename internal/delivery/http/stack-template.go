@@ -367,7 +367,7 @@ func (h *StackTemplateHandler) GetOrganizationStackTemplates(w http.ResponseWrit
 //	@Description	Get Organization StackTemplate
 //	@Accept			json
 //	@Produce		json
-//	@Success		200			{object}	domain.GetStackTemplateResponse
+//	@Success		200	{object}	domain.GetStackTemplateResponse
 //	@Router			/organizations/{organizationId}/stack-templates/{stackTemplateId} [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetOrganizationStackTemplate(w http.ResponseWriter, r *http.Request) {

@@ -217,7 +217,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
-//	@Success		200				{object}	DeleteOrganizationResponse
+//	@Success		200				{object}	domain.DeleteOrganizationResponse
 //	@Router			/organizations/{organizationId} [delete]
 //	@Security		JWT
 func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
