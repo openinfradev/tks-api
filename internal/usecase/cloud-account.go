@@ -91,6 +91,7 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"tks-create-aws-cloud-account",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -196,6 +197,7 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"tks-delete-aws-cloud-account",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -249,7 +251,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 		return false, out, err
 	}
 
-	awsAccessKeyId, awsSecretAccessKey, _ := kubernetes.GetAwsSecret()
+	awsAccessKeyId, awsSecretAccessKey, _ := kubernetes.GetAwsSecret(ctx)
 	if err != nil || awsAccessKeyId == "" || awsSecretAccessKey == "" {
 		log.Error(ctx, err)
 		return false, out, httpErrors.NewInternalServerError(fmt.Errorf("Invalid aws secret."), "", "")
@@ -368,7 +370,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 		if err != nil {
 			return false, out, err
 		}
-		log.DebugfWithContext(ctx, "%s %s %v", *res.Quota.QuotaName, *res.Quota.QuotaCode, *res.Quota.Value)
+		log.Debugf(ctx, "%s %s %v", *res.Quota.QuotaName, *res.Quota.QuotaCode, *res.Quota.Value)
 
 		quotaValue := int(*res.Quota.Value)
 
@@ -380,7 +382,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 		// Cluster 1
 		switch key {
 		case "L-69A177A2": // NLB
-			log.InfofWithContext(ctx, "NLB : usage %d, quota %d", currentUsage.NLB, quotaValue)
+			log.Infof(ctx, "NLB : usage %d, quota %d", currentUsage.NLB, quotaValue)
 			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
 				Type:     "NLB",
 				Usage:    currentUsage.NLB,
@@ -391,7 +393,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				available = false
 			}
 		case "L-E9E9831D": // Classic
-			log.InfofWithContext(ctx, "CLB : usage %d, quota %d", currentUsage.CLB, quotaValue)
+			log.Infof(ctx, "CLB : usage %d, quota %d", currentUsage.CLB, quotaValue)
 			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
 				Type:     "CLB",
 				Usage:    currentUsage.CLB,
@@ -402,7 +404,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				available = false
 			}
 		case "L-A4707A72": // IGW
-			log.InfofWithContext(ctx, "IGW : usage %d, quota %d", currentUsage.IGW, quotaValue)
+			log.Infof(ctx, "IGW : usage %d, quota %d", currentUsage.IGW, quotaValue)
 			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
 				Type:     "IGW",
 				Usage:    currentUsage.IGW,
@@ -413,7 +415,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				available = false
 			}
 		case "L-1194D53C": // Cluster
-			log.InfofWithContext(ctx, "Cluster : usage %d, quota %d", currentUsage.Cluster, quotaValue)
+			log.Infof(ctx, "Cluster : usage %d, quota %d", currentUsage.Cluster, quotaValue)
 			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
 				Type:     "EKS",
 				Usage:    currentUsage.Cluster,
@@ -424,7 +426,7 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				available = false
 			}
 		case "L-0263D0A3": // Elastic IP
-			log.InfofWithContext(ctx, "Elastic IP : usage %d, quota %d", currentUsage.EIP, quotaValue)
+			log.Infof(ctx, "Elastic IP : usage %d, quota %d", currentUsage.EIP, quotaValue)
 			out.Quotas = append(out.Quotas, domain.ResourceQuotaAttr{
 				Type:     "EIP",
 				Usage:    currentUsage.EIP,
@@ -447,7 +449,7 @@ func (u *CloudAccountUsecase) getClusterCnt(ctx context.Context, cloudAccountId 
 
 	clusters, err := u.clusterRepo.FetchByCloudAccountId(ctx, cloudAccountId, nil)
 	if err != nil {
-		log.Error("Failed to get clusters by cloudAccountId. err : ", err)
+		log.Error(ctx, "Failed to get clusters by cloudAccountId. err : ", err)
 		return cnt
 	}
 

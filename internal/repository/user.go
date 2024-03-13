@@ -39,7 +39,7 @@ type UserRepository struct {
 func (r *UserRepository) Flush(ctx context.Context, organizationId string) error {
 	res := r.db.WithContext(ctx).Where("organization_id = ?", organizationId).Delete(&model.User{})
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -66,7 +66,7 @@ func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, acc
 	}
 	res := r.db.WithContext(ctx).Create(&newUser)
 	if res.Error != nil {
-		log.Error(res.Error.Error())
+		log.Error(ctx, res.Error.Error())
 		return model.User{}, res.Error
 	}
 	user, err := r.getUserByAccountId(nil, accountId, organizationId)
@@ -97,7 +97,7 @@ func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]mo
 	}
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -121,7 +121,7 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 
 	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Role").Model(&model.User{}).Where("organization_id = ?", organizationId), &users)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 
@@ -147,7 +147,7 @@ func (r *UserRepository) GetByUuid(ctx context.Context, userId uuid.UUID) (respU
 	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -171,7 +171,7 @@ func (r *UserRepository) UpdateWithUuid(ctx context.Context, uuid uuid.UUID, acc
 		return model.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.User{}, res.Error
 	}
 	res = r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
@@ -195,7 +195,7 @@ func (r *UserRepository) UpdatePasswordAt(ctx context.Context, userId uuid.UUID,
 		return httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -205,7 +205,7 @@ func (r *UserRepository) UpdatePasswordAt(ctx context.Context, userId uuid.UUID,
 func (r *UserRepository) DeleteWithUuid(ctx context.Context, uuid uuid.UUID) error {
 	res := r.db.WithContext(ctx).Unscoped().Delete(&model.User{}, "id = ?", uuid)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -248,7 +248,7 @@ func (r *UserRepository) getUserByAccountId(ctx context.Context, accountId strin
 	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -262,7 +262,7 @@ func (r *UserRepository) getRoleByName(ctx context.Context, roleName string) (mo
 	role := model.Role{}
 	res := r.db.WithContext(ctx).First(&role, "name = ?", roleName)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Role{}, res.Error
 	}
 	if res.RowsAffected == 0 {

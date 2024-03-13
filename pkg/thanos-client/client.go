@@ -1,6 +1,7 @@
 package thanos
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,8 +14,8 @@ import (
 )
 
 type ThanosClient interface {
-	Get(query string) (Metric, error)
-	FetchRange(query string, start int, end int, step int) (out Metric, err error)
+	Get(ctx context.Context, query string) (Metric, error)
+	FetchRange(ctx context.Context, query string, start int, end int, step int) (out Metric, err error)
 }
 
 type ThanosClientImpl struct {
@@ -44,10 +45,10 @@ func New(host string, port int, ssl bool, token string) (ThanosClient, error) {
 	}, nil
 }
 
-func (c *ThanosClientImpl) Get(query string) (out Metric, err error) {
+func (c *ThanosClientImpl) Get(ctx context.Context, query string) (out Metric, err error) {
 	url := c.url + "/api/v1/query?query=" + url.QueryEscape(query)
 
-	log.Info("url : ", url)
+	log.Info(ctx, "url : ", url)
 	res, err := c.client.Get(url)
 	if err != nil {
 		return out, err
@@ -61,7 +62,7 @@ func (c *ThanosClientImpl) Get(query string) (out Metric, err error) {
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Error("error closing http body")
+			log.Error(ctx, "error closing http body")
 		}
 	}()
 
@@ -75,16 +76,16 @@ func (c *ThanosClientImpl) Get(query string) (out Metric, err error) {
 		return out, err
 	}
 
-	log.Info(helper.ModelToJson(out))
+	log.Info(ctx, helper.ModelToJson(out))
 	return
 }
 
-func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int) (out Metric, err error) {
+func (c *ThanosClientImpl) FetchRange(ctx context.Context, query string, start int, end int, step int) (out Metric, err error) {
 	rangeParam := fmt.Sprintf("&dedup=true&partial_response=false&start=%d&end=%d&step=%d&max_source_resolution=0s", start, end, step)
 	query = url.QueryEscape(query) + rangeParam
 	url := c.url + "/api/v1/query_range?query=" + query
 
-	log.Info("url : ", url)
+	log.Info(ctx, "url : ", url)
 	res, err := c.client.Get(url)
 	if err != nil {
 		return out, err
@@ -98,7 +99,7 @@ func (c *ThanosClientImpl) FetchRange(query string, start int, end int, step int
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Error("error closing http body")
+			log.Error(ctx, "error closing http body")
 		}
 	}()
 

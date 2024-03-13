@@ -103,15 +103,15 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 	extEnv := app.AppServeAppTasks[0].ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
-		log.Debug("extraEnv received: ", extEnv)
+		log.Debug(ctx, "extraEnv received: ", extEnv)
 
 		tempMap := map[string]string{}
 		err := json.Unmarshal([]byte(extEnv), &tempMap)
 		if err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
 		}
-		log.Debugf("extraEnv marshalled: %v", tempMap)
+		log.Debugf(ctx, "extraEnv marshalled: %v", tempMap)
 
 		newExtEnv := map[string]string{}
 		for key, val := range tempMap {
@@ -122,12 +122,12 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 
 		mJson, _ := json.Marshal(newExtEnv)
 		extEnv = string(mJson)
-		log.Debug("After transform, extraEnv: ", extEnv)
+		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
 	appId, taskId, err := u.repo.CreateAppServeApp(ctx, app)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", "", errors.Wrap(err, "Failed to create app.")
 	}
 
@@ -168,14 +168,14 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 		"tks_api_url=" + viper.GetString("external-address"),
 	}
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, opts)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, opts)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", "", errors.Wrap(err, fmt.Sprintf("failed to submit workflow. %s", workflow))
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return appId, app.Name, nil
 }
@@ -226,7 +226,7 @@ func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId strin
 func (u *AppServeAppUsecase) GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error) {
 	tasks, err := u.repo.GetAppServeAppTasksByAppId(ctx, appId, pg)
 	if err != nil {
-		log.Debugf("Tasks: %v", tasks)
+		log.Debugf(ctx, "Tasks: %v", tasks)
 	}
 
 	return tasks, nil
@@ -286,36 +286,36 @@ func (u *AppServeAppUsecase) IsAppServeAppNameExist(ctx context.Context, orgId s
 }
 
 func (u *AppServeAppUsecase) IsAppServeAppNamespaceExist(ctx context.Context, clusterId string, new_ns string) (bool, error) {
-	clientset, err := kubernetes.GetClientFromClusterId(clusterId)
+	clientset, err := kubernetes.GetClientFromClusterId(ctx, clusterId)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return false, err
 	}
 
 	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return false, err
 	}
 	for _, ns := range namespaces.Items {
 		if new_ns == ns.ObjectMeta.Name {
-			log.Debugf("Namespace %s already exists.", new_ns)
+			log.Debugf(ctx, "Namespace %s already exists.", new_ns)
 			return true, nil
 		}
 	}
-	log.Debugf("Namespace %s is available", new_ns)
+	log.Debugf(ctx, "Namespace %s is available", new_ns)
 	return false, nil
 }
 
 func (u *AppServeAppUsecase) UpdateAppServeAppStatus(ctx context.Context, appId string, taskId string, status string,
 	output string) (string, error) {
 
-	log.Info("Starting status update process..")
+	log.Info(ctx, "Starting status update process..")
 
 	err := u.repo.UpdateStatus(ctx, appId, taskId, status, output)
 	if err != nil {
-		log.Info("appId = ", appId)
-		log.Info("taskId = ", taskId)
+		log.Info(ctx, "appId = ", appId)
+		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app status. Err: %s", err)
 	}
 	return fmt.Sprintf("The appId '%s' status is being updated.", appId), nil
@@ -329,12 +329,12 @@ func (u *AppServeAppUsecase) UpdateAppServeAppEndpoint(
 	previewEndpoint string,
 	helmRevision int32) (string, error) {
 
-	log.Info("Starting endpoint update process..")
+	log.Info(ctx, "Starting endpoint update process..")
 
 	err := u.repo.UpdateEndpoint(ctx, appId, taskId, endpoint, previewEndpoint, helmRevision)
 	if err != nil {
-		log.Info("appId = ", appId)
-		log.Info("taskId = ", taskId)
+		log.Info(ctx, "appId = ", appId)
+		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update endpoint. Err: %s", err)
 	}
 	return fmt.Sprintf("The appId '%s' endpoint is being updated.", appId), nil
@@ -373,24 +373,24 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string
 
 	taskId, err := u.repo.CreateTask(ctx, appTask)
 	if err != nil {
-		log.Error("taskId = ", taskId)
-		log.Error("Failed to create delete task. Err:", err)
+		log.Error(ctx, "taskId = ", taskId)
+		log.Error(ctx, "Failed to create delete task. Err:", err)
 		return "", errors.Wrap(err, "Failed to create delete task.")
 	}
 
-	log.Info("Updating app status to 'DELETING'..")
+	log.Info(ctx, "Updating app status to 'DELETING'..")
 
 	err = u.repo.UpdateStatus(ctx, appId, taskId, "DELETING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", taskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app status on DeleteAppServeApp. Err: %s", err)
 	}
 
 	workflow := "delete-java-app"
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
@@ -402,10 +402,10 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string
 		},
 	})
 	if err != nil {
-		log.Error("Failed to submit workflow. Err:", err)
+		log.Error(ctx, "Failed to submit workflow. Err:", err)
 		return "", errors.Wrap(err, "Failed to submit workflow.")
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("The app %s is being deleted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
@@ -426,7 +426,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.A
 		return "승인대기 또는 프로모트 작업 중에는 업그레이드를 수행할 수 없습니다", fmt.Errorf("Update not possible. The app is waiting for promote or in the middle of promote process.")
 	}
 
-	log.Info("Starting normal update process..")
+	log.Info(ctx, "Starting normal update process..")
 
 	// TODO: for more strict validation, check if immutable fields are provided by user
 	// and those values are changed or not. (name, type, app_type, target_cluster)
@@ -456,15 +456,15 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.A
 	extEnv := appTask.ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
-		log.Debug("extraEnv received: ", extEnv)
+		log.Debug(ctx, "extraEnv received: ", extEnv)
 
 		tempMap := map[string]string{}
 		err = json.Unmarshal([]byte(extEnv), &tempMap)
 		if err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return "", errors.Wrap(err, "Failed to process extraEnv param.")
 		}
-		log.Debugf("extraEnv marshalled: %v", tempMap)
+		log.Debugf(ctx, "extraEnv marshalled: %v", tempMap)
 
 		newExtEnv := map[string]string{}
 		for key, val := range tempMap {
@@ -475,31 +475,31 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.A
 
 		mJson, _ := json.Marshal(newExtEnv)
 		extEnv = string(mJson)
-		log.Debug("After transform, extraEnv: ", extEnv)
+		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
 	taskId, err := u.repo.CreateTask(ctx, appTask)
 	if err != nil {
-		log.Info("taskId = ", taskId)
+		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
 	}
 
 	// Sync new task status to the parent app
-	log.Info("Updating app status to 'PREPARING'..")
+	log.Info(ctx, "Updating app status to 'PREPARING'..")
 
 	err = u.repo.UpdateStatus(ctx, app.ID, taskId, "PREPARING", "")
 	if err != nil {
-		log.Debug("appId = ", app.ID)
-		log.Debug("taskId = ", taskId)
+		log.Debug(ctx, "appId = ", app.ID)
+		log.Debug(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "serve-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"type=" + app.Type,
 			"strategy=" + appTask.Strategy,
@@ -530,10 +530,10 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.A
 		},
 	})
 	if err != nil {
-		log.Error("Failed to submit workflow. Err:", err)
+		log.Error(ctx, "Failed to submit workflow. Err:", err)
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	var message string
 	if appTask.Strategy == "rolling-update" {
@@ -558,24 +558,24 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(ctx context.Context, appId strin
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
 	strategy := app.AppServeAppTasks[0].Strategy
-	log.Info("latestTaskId = ", latestTaskId)
-	log.Info("strategy = ", strategy)
+	log.Info(ctx, "latestTaskId = ", latestTaskId)
+	log.Info(ctx, "strategy = ", strategy)
 
-	log.Info("Updating app status to 'PROMOTING'..")
+	log.Info(ctx, "Updating app status to 'PROMOTING'..")
 
 	err = u.repo.UpdateStatus(ctx, appId, latestTaskId, "PROMOTING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", latestTaskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", latestTaskId)
 		return "", fmt.Errorf("failed to update app status on PromoteAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "promote-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
@@ -588,10 +588,10 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(ctx context.Context, appId strin
 		},
 	})
 	if err != nil {
-		log.Error("failed to submit workflow. Err:", err)
+		log.Error(ctx, "failed to submit workflow. Err:", err)
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
@@ -610,25 +610,25 @@ func (u *AppServeAppUsecase) AbortAppServeApp(ctx context.Context, appId string)
 	// Get the latest task ID so that the task status can be modified inside workflow once the abort process is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
 	strategy := app.AppServeAppTasks[0].Strategy
-	log.Info("latestTaskId = ", latestTaskId)
-	log.Info("strategy = ", strategy)
+	log.Info(ctx, "latestTaskId = ", latestTaskId)
+	log.Info(ctx, "strategy = ", strategy)
 
-	log.Info("Updating app status to 'ABORTING'..")
+	log.Info(ctx, "Updating app status to 'ABORTING'..")
 
 	err = u.repo.UpdateStatus(ctx, appId, latestTaskId, "ABORTING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", latestTaskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", latestTaskId)
 		return "", fmt.Errorf("failed to update app status on AbortAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "abort-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
 	// Call argo workflow
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
@@ -643,14 +643,14 @@ func (u *AppServeAppUsecase) AbortAppServeApp(ctx context.Context, appId string)
 	if err != nil {
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
 func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId string, taskId string) (ret string, err error) {
-	log.Info("Starting rollback process..")
+	log.Info(ctx, "Starting rollback process..")
 
 	app, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
@@ -683,25 +683,25 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId stri
 	// Creates new task record from the target task
 	newTaskId, err := u.repo.CreateTask(ctx, &task)
 	if err != nil {
-		log.Info("taskId = ", newTaskId)
+		log.Info(ctx, "taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)
 	}
 
-	log.Info("Updating app status to 'ROLLBACKING'..")
+	log.Info(ctx, "Updating app status to 'ROLLBACKING'..")
 
 	err = u.repo.UpdateStatus(ctx, appId, newTaskId, "ROLLBACKING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", newTaskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to update app status on RollbackAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "rollback-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
@@ -714,10 +714,10 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId stri
 		},
 	})
 	if err != nil {
-		log.Error("Failed to submit workflow. Err:", err)
+		log.Error(ctx, "Failed to submit workflow. Err:", err)
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("Rollback app Request '%v' is successfully submitted", taskId), nil
 }

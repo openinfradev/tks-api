@@ -49,7 +49,7 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 // Logics
 func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 	if trxHandle == nil {
-		log.Info("Transaction Database not found")
+		log.Info(nil, "Transaction Database not found")
 		return r
 	}
 	r.tx = trxHandle
@@ -150,7 +150,7 @@ func (r *ClusterRepository) Create(ctx context.Context, dto model.Cluster) (clus
 
 	res := r.db.WithContext(ctx).Create(&cluster)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 
@@ -203,7 +203,7 @@ func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.Cl
 	var clusterFavorites []model.ClusterFavorite
 	res := r.db.WithContext(ctx).Where("cluster_id = ? AND user_id = ?", clusterId, userId).Find(&clusterFavorites)
 	if res.Error != nil {
-		log.Info(res.Error)
+		log.Info(ctx, res.Error)
 		return res.Error
 	}
 
@@ -217,7 +217,7 @@ func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.Cl
 	}
 	resCreate := r.db.Create(&clusterFavorite)
 	if resCreate.Error != nil {
-		log.Error(resCreate.Error)
+		log.Error(ctx, resCreate.Error)
 		return fmt.Errorf("could not create cluster favorite for clusterId %s, userId %s", clusterId, userId)
 	}
 
@@ -227,7 +227,7 @@ func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.Cl
 func (r *ClusterRepository) DeleteFavorite(ctx context.Context, clusterId domain.ClusterId, userId uuid.UUID) error {
 	res := r.db.WithContext(ctx).Unscoped().Delete(&model.ClusterFavorite{}, "cluster_id = ? AND user_id = ?", clusterId, userId)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return fmt.Errorf("could not delete cluster favorite for clusterId %s, userId %s", clusterId, userId)
 	}
 	return nil

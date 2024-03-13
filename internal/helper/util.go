@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
@@ -37,20 +37,10 @@ func ModelToJson(in any) string {
 	return s
 }
 
-func Transcode(in, out interface{}) {
-	buf := new(bytes.Buffer)
-	if err := json.NewEncoder(buf).Encode(in); err != nil {
-		log.Error(err)
-	}
-	if err := json.NewDecoder(buf).Decode(out); err != nil {
-		log.Error(err)
-	}
-}
-
-func GenerateEmailCode() (string, error) {
+func GenerateEmailCode(ctx context.Context) (string, error) {
 	num, err := rand.Int(rand.Reader, big.NewInt(900000))
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 	num = num.Add(num, big.NewInt(100000))
@@ -64,7 +54,7 @@ func IsDurationExpired(targetTime time.Time, duration time.Duration) bool {
 	return diff > duration
 }
 
-func SplitAddress(url string) (address string, port int) {
+func SplitAddress(ctx context.Context, url string) (address string, port int) {
 	url = strings.TrimSuffix(url, "\n")
 	arr := strings.Split(url, ":")
 	address = arr[0] + ":" + arr[1]
@@ -79,7 +69,7 @@ func SplitAddress(url string) (address string, port int) {
 	}
 	port = portNum
 
-	log.Infof("address : %s, port : %d", address, port)
+	log.Infof(ctx, "address : %s, port : %d", address, port)
 	return
 }
 

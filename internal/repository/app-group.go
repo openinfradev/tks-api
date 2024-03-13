@@ -71,7 +71,7 @@ func (r *AppGroupRepository) Create(ctx context.Context, dto model.AppGroup) (ap
 	}
 	res := r.db.WithContext(ctx).Create(&appGroup)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 

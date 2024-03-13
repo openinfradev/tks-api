@@ -146,7 +146,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 		return "", errors.Wrap(err, fmt.Sprintf("Invalid appGroup type. %s", dto.AppGroupType.String()))
 	}
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflowTemplate, opts)
 	if err != nil {
 		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CALL_WORKFLOW", "")
@@ -235,12 +235,12 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 		"object_store=" + tksObjectStore,
 	}
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflowTemplate, opts)
 	if err != nil {
 		return fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 
-	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
+	log.Debug(ctx, "submited workflow name : ", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, id, workflowId, domain.AppGroupStatus_DELETING); err != nil {
 		return fmt.Errorf("Failed to initialize appGroup status. err : %s", err)

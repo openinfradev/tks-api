@@ -38,7 +38,7 @@ func RBACFilter(handler http.Handler, repo repository.Repository) http.Handler {
 					return
 				}
 			} else {
-				log.Warn("RBACFilter: organizationId not found. Passing through unsafely.")
+				log.Warn(r.Context(), "RBACFilter: organizationId not found. Passing through unsafely.")
 			}
 		}
 
@@ -130,7 +130,7 @@ func RequestOrganizationValidationFilter(handler http.Handler, repo repository.R
 		if !ok {
 			//internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("organizationId not found"), "", ""))
 			//return
-			log.Warn("RequestOrganizationValidationFilter: organizationId not found. Passing through unsafely.")
+			log.Warn(r.Context(), "RequestOrganizationValidationFilter: organizationId not found. Passing through unsafely.")
 		}
 		if organizationId != requestUserInfo.GetOrganizationId() {
 			internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))

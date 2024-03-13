@@ -104,7 +104,7 @@ func (r *AppServeAppRepository) GetAppServeAppById(ctx context.Context, appId st
 
 	res := r.db.WithContext(ctx).Where("id = ?", appId).First(&app)
 	if res.Error != nil {
-		log.Debug(res.Error)
+		log.Debug(ctx, res.Error)
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -113,7 +113,7 @@ func (r *AppServeAppRepository) GetAppServeAppById(ctx context.Context, appId st
 
 	// Populate tasks into app object
 	if err := r.db.WithContext(ctx).Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks); err != nil {
-		log.Debug(err)
+		log.Debug(ctx, err)
 		return nil, err
 	}
 
@@ -151,7 +151,7 @@ func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, task
 	// Retrieve task info
 	res := r.db.WithContext(ctx).Where("id = ?", taskId).First(&task)
 	if res.Error != nil {
-		log.Debug(res.Error)
+		log.Debug(ctx, res.Error)
 		return nil, nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -161,7 +161,7 @@ func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, task
 	// Retrieve app info
 	res = r.db.WithContext(ctx).Where("id = ?", task.AppServeAppId).First(&app)
 	if res.Error != nil {
-		log.Debug(res.Error)
+		log.Debug(ctx, res.Error)
 		return nil, nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -177,7 +177,7 @@ func (r *AppServeAppRepository) GetAppServeAppLatestTask(ctx context.Context, ap
 	// TODO: Does this work?? where's app ID here?
 	res := r.db.WithContext(ctx).Order("created_at desc").First(&task)
 	if res.Error != nil {
-		log.Debug(res.Error)
+		log.Debug(ctx, res.Error)
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
@@ -204,7 +204,7 @@ func (r *AppServeAppRepository) IsAppServeAppExist(ctx context.Context, appId st
 
 	res := r.db.WithContext(ctx).Table("app_serve_apps").Where("id = ? AND status <> 'DELETE_SUCCESS'", appId).Count(&result)
 	if res.Error != nil {
-		log.Debug(res.Error)
+		log.Debug(ctx, res.Error)
 		return 0, res.Error
 	}
 	return result, nil
@@ -217,10 +217,10 @@ func (r *AppServeAppRepository) IsAppServeAppNameExist(ctx context.Context, orgI
 		"AND name = '%v' "+
 		"AND status <> 'DELETE_SUCCESS'", orgId, appName)
 
-	log.Info("query = ", queryString)
+	log.Info(ctx, "query = ", queryString)
 	res := r.db.WithContext(ctx).Table("app_serve_apps").Where(queryString).Count(&result)
 	if res.Error != nil {
-		log.Debug(res.Error)
+		log.Debug(ctx, res.Error)
 		return 0, res.Error
 	}
 	return result, nil

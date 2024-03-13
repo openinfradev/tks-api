@@ -83,17 +83,17 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
-	address, port := helper.SplitAddress(thanosUrl)
+	address, port := helper.SplitAddress(ctx, thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return out, errors.Wrap(err, "failed to create thanos client")
 	}
-	stackMemoryDisk, err := thanosClient.Get("sum by (__name__, taco_cluster) ({__name__=~\"node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes\"})")
+	stackMemoryDisk, err := thanosClient.Get(ctx, "sum by (__name__, taco_cluster) ({__name__=~\"node_memory_MemFree_bytes|machine_memory_bytes|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes\"})")
 	if err != nil {
 		return out, err
 	}
 
-	stackCpu, err := thanosClient.Get("avg by (taco_cluster) (instance:node_cpu:ratio*100)")
+	stackCpu, err := thanosClient.Get(ctx, "avg by (taco_cluster) (instance:node_cpu:ratio*100)")
 	if err != nil {
 		return out, err
 	}
@@ -103,7 +103,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		if err != nil {
 			return nil, err
 		}
-		stack := reflectClusterToStack(cluster, appGroups)
+		stack := reflectClusterToStack(ctx, cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
 		if err := serializer.Map(stack, &dashboardStack); err != nil {
 			log.Info(ctx, err)
@@ -142,7 +142,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
-	address, port := helper.SplitAddress(thanosUrl)
+	address, port := helper.SplitAddress(ctx, thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return out, errors.Wrap(err, "failed to create thanos client")
@@ -167,7 +167,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	/*
 		{"data":{"result":[{"metric":{"taco_cluster":"cmsai5k5l"},"value":[1683608185.65,"32"]},{"metric":{"taco_cluster":"crjfh12oc"},"value":[1683608185.65,"12"]}],"vector":""},"status":"success"}
 	*/
-	result, err := thanosClient.Get("sum by (taco_cluster) (machine_cpu_cores)")
+	result, err := thanosClient.Get(ctx, "sum by (taco_cluster) (machine_cpu_cores)")
 	if err != nil {
 		return out, err
 	}
@@ -184,7 +184,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	out.Cpu = fmt.Sprintf("%d 개", cpu)
 
 	// Memory
-	result, err = thanosClient.Get("sum by (taco_cluster) (machine_memory_bytes)")
+	result, err = thanosClient.Get(ctx, "sum by (taco_cluster) (machine_memory_bytes)")
 	if err != nil {
 		return out, err
 	}
@@ -202,7 +202,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	out.Memory = fmt.Sprintf("%v GiB", math.Round(memory))
 
 	// Storage
-	result, err = thanosClient.Get("sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
+	result, err = thanosClient.Get(ctx, "sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
 	if err != nil {
 		return out, err
 	}
@@ -225,10 +225,10 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
 	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return res, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
-	address, port := helper.SplitAddress(thanosUrl)
+	address, port := helper.SplitAddress(ctx, thanosUrl)
 	thanosClient, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return res, errors.Wrap(err, "failed to create thanos client")
@@ -296,7 +296,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizat
 			return res, err
 		}
 
-		log.Info(organization.CreatedAt.Format("2006-01-02"))
+		log.Info(ctx, organization.CreatedAt.Format("2006-01-02"))
 
 		podCounts := []domain.PodCount{}
 		for day := rangeDate(startDate, endDate); ; {
@@ -341,7 +341,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizat
 		return domain.DashboardChart{}, fmt.Errorf("No data")
 	}
 
-	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+	result, err := thanosClient.FetchRange(ctx, query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
 	if err != nil {
 		return res, err
 	}
@@ -419,7 +419,7 @@ func (u *DashboardUsecase) getThanosUrl(ctx context.Context, organizationId stri
 		return out, fmt.Errorf("Invalid primary clusterId")
 	}
 
-	clientset_admin, err := kubernetes.GetClientAdminCluster()
+	clientset_admin, err := kubernetes.GetClientAdminCluster(ctx)
 	if err != nil {
 		return out, errors.Wrap(err, "Failed to get client set for user cluster")
 	}
@@ -427,9 +427,9 @@ func (u *DashboardUsecase) getThanosUrl(ctx context.Context, organizationId stri
 	// tks-endpoint-secret 이 있다면 그 secret 내의 endpoint 를 사용한다.
 	secrets, err := clientset_admin.CoreV1().Secrets(organization.PrimaryClusterId).Get(context.TODO(), "tks-endpoint-secret", metav1.GetOptions{})
 	if err != nil {
-		log.Info("cannot found tks-endpoint-secret. so use LoadBalancer...")
+		log.Info(ctx, "cannot found tks-endpoint-secret. so use LoadBalancer...")
 
-		clientset_user, err := kubernetes.GetClientFromClusterId(organization.PrimaryClusterId)
+		clientset_user, err := kubernetes.GetClientFromClusterId(ctx, organization.PrimaryClusterId)
 		if err != nil {
 			return out, errors.Wrap(err, "Failed to get client set for user cluster")
 		}
@@ -456,7 +456,7 @@ func (u *DashboardUsecase) getThanosUrl(ctx context.Context, organizationId stri
 		}
 	} else {
 		out = "http://" + string(secrets.Data["thanos"])
-		log.Info("thanosUrl : ", out)
+		log.Info(ctx, "thanosUrl : ", out)
 		u.cache.Set(prefix+organizationId, out, gcache.DefaultExpiration)
 		return out, nil
 	}

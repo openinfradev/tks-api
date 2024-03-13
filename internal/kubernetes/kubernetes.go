@@ -22,30 +22,30 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
-func getAdminConfig() (*rest.Config, error) {
+func getAdminConfig(ctx context.Context) (*rest.Config, error) {
 	kubeconfigPath := viper.GetString("kubeconfig-path")
 	if kubeconfigPath == "" {
-		log.Info("Use in-cluster config")
+		log.Info(ctx, "Use in-cluster config")
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			log.Error("Failed to load incluster kubeconfig")
+			log.Error(ctx, "Failed to load incluster kubeconfig")
 			return nil, err
 		}
 		return config, nil
 	} else {
 		config, err := clientcmd.BuildConfigFromFlags("", viper.GetString("kubeconfig-path"))
 		if err != nil {
-			log.Error("Failed to local kubeconfig")
+			log.Error(ctx, "Failed to local kubeconfig")
 			return nil, err
 		}
 		return config, nil
 	}
 }
 
-func GetClientAdminCluster() (*kubernetes.Clientset, error) {
-	config, err := getAdminConfig()
+func GetClientAdminCluster(ctx context.Context) (*kubernetes.Clientset, error) {
+	config, err := getAdminConfig(ctx)
 	if err != nil {
-		log.Error("Failed to load kubeconfig")
+		log.Error(ctx, "Failed to load kubeconfig")
 		return nil, err
 	}
 
@@ -57,15 +57,15 @@ func GetClientAdminCluster() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-func GetAwsSecret() (awsAccessKeyId string, awsSecretAccessKey string, err error) {
-	clientset, err := GetClientAdminCluster()
+func GetAwsSecret(ctx context.Context) (awsAccessKeyId string, awsSecretAccessKey string, err error) {
+	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return "", "", err
 	}
 
 	secrets, err := clientset.CoreV1().Secrets("argo").Get(context.TODO(), "awsconfig-secret", metav1.GetOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", "", err
 	}
 
@@ -81,15 +81,15 @@ func GetAwsSecret() (awsAccessKeyId string, awsSecretAccessKey string, err error
 	return
 }
 
-func GetAwsAccountIdSecret() (awsAccountId string, err error) {
-	clientset, err := GetClientAdminCluster()
+func GetAwsAccountIdSecret(ctx context.Context) (awsAccountId string, err error) {
+	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return "", err
 	}
 
 	secrets, err := clientset.CoreV1().Secrets("argo").Get(context.TODO(), "tks-aws-user", metav1.GetOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 
@@ -97,36 +97,36 @@ func GetAwsAccountIdSecret() (awsAccountId string, err error) {
 	return
 }
 
-func GetKubeConfig(clusterId string) ([]byte, error) {
-	clientset, err := GetClientAdminCluster()
+func GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
+	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-user-kubeconfig", metav1.GetOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return nil, err
 	}
 
 	return secrets.Data["value"], nil
 }
 
-func GetClientFromClusterId(clusterId string) (*kubernetes.Clientset, error) {
-	clientset, err := GetClientAdminCluster()
+func GetClientFromClusterId(ctx context.Context, clusterId string) (*kubernetes.Clientset, error) {
+	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return nil, err
 	}
 
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(secrets.Data["value"])
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return nil, err
 	}
 	clientset_user, err := kubernetes.NewForConfig(config_user)
@@ -137,64 +137,64 @@ func GetClientFromClusterId(clusterId string) (*kubernetes.Clientset, error) {
 	return clientset_user, nil
 }
 
-func GetKubernetesVserionByClusterId(clusterId string) (string, error) {
-	clientset, err := GetClientAdminCluster()
+func GetKubernetesVserionByClusterId(ctx context.Context, clusterId string) (string, error) {
+	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return "", err
 	}
 
 	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(secrets.Data["value"])
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config_user)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 
 	information, err := discoveryClient.ServerVersion()
 	if err != nil {
-		log.Error("Error while fetching server version information", err)
+		log.Error(ctx, "Error while fetching server version information", err)
 		return "", err
 	}
 
 	return information.GitVersion, nil
 }
 
-func GetKubernetesVserion() (string, error) {
-	config, err := getAdminConfig()
+func GetKubernetesVserion(ctx context.Context) (string, error) {
+	config, err := getAdminConfig(ctx)
 	if err != nil {
-		log.Error("Failed to load kubeconfig")
+		log.Error(ctx, "Failed to load kubeconfig")
 		return "", err
 	}
 
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 
 	information, err := discoveryClient.ServerVersion()
 	if err != nil {
-		log.Error("Error while fetching server version information", err)
+		log.Error(ctx, "Error while fetching server version information", err)
 		return "", err
 	}
 
 	return information.GitVersion, nil
 }
 
-func GetResourceApiVersion(kubeconfig []byte, kind string) (string, error) {
+func GetResourceApiVersion(ctx context.Context, kubeconfig []byte, kind string) (string, error) {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 
@@ -202,7 +202,7 @@ func GetResourceApiVersion(kubeconfig []byte, kind string) (string, error) {
 
 	apiResourceList, err := clientset.Discovery().ServerPreferredResources()
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", err
 	}
 
@@ -217,10 +217,10 @@ func GetResourceApiVersion(kubeconfig []byte, kind string) (string, error) {
 	return "", nil
 }
 
-func EnsureClusterRole(kubeconfig []byte, projectName string) error {
+func EnsureClusterRole(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -233,13 +233,13 @@ func EnsureClusterRole(kubeconfig []byte, projectName string) error {
 		if _, err := clientset.RbacV1().ClusterRoles().Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
 			_, err = clientset.RbacV1().ClusterRoles().Create(context.Background(), obj, metav1.CreateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		} else {
 			_, err = clientset.RbacV1().ClusterRoles().Update(context.Background(), obj, metav1.UpdateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		}
@@ -248,10 +248,10 @@ func EnsureClusterRole(kubeconfig []byte, projectName string) error {
 	return nil
 }
 
-func RemoveClusterRole(kubeconfig []byte, projectName string) error {
+func RemoveClusterRole(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -260,17 +260,17 @@ func RemoveClusterRole(kubeconfig []byte, projectName string) error {
 	// remove clusterrole object
 	for _, role := range []string{leaderRole, memberRole, viewerRole} {
 		if err := clientset.RbacV1().ClusterRoles().Delete(context.Background(), projectName+"-"+role, metav1.DeleteOptions{}); err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 		}
 	}
 
 	return nil
 }
 
-func EnsureClusterRoleBinding(kubeconfig []byte, projectName string) error {
+func EnsureClusterRoleBinding(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -281,13 +281,13 @@ func EnsureClusterRoleBinding(kubeconfig []byte, projectName string) error {
 		if _, err = clientset.RbacV1().ClusterRoleBindings().Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
 			_, err = clientset.RbacV1().ClusterRoleBindings().Create(context.Background(), obj, metav1.CreateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		} else {
 			_, err = clientset.RbacV1().ClusterRoleBindings().Update(context.Background(), obj, metav1.UpdateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		}
@@ -296,10 +296,10 @@ func EnsureClusterRoleBinding(kubeconfig []byte, projectName string) error {
 	return nil
 }
 
-func RemoveClusterRoleBinding(kubeconfig []byte, projectName string) error {
+func RemoveClusterRoleBinding(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -307,17 +307,17 @@ func RemoveClusterRoleBinding(kubeconfig []byte, projectName string) error {
 
 	for _, role := range []string{leaderRole, memberRole, viewerRole} {
 		if err := clientset.RbacV1().ClusterRoleBindings().Delete(context.Background(), projectName+"-"+role, metav1.DeleteOptions{}); err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 		}
 	}
 
 	return nil
 }
 
-func EnsureRoleBinding(kubeconfig []byte, projectName string, namespace string) error {
+func EnsureRoleBinding(ctx context.Context, kubeconfig []byte, projectName string, namespace string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -328,13 +328,13 @@ func EnsureRoleBinding(kubeconfig []byte, projectName string, namespace string) 
 		if _, err = clientset.RbacV1().RoleBindings(namespace).Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
 			_, err = clientset.RbacV1().RoleBindings(namespace).Create(context.Background(), obj, metav1.CreateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		} else {
 			_, err = clientset.RbacV1().RoleBindings(namespace).Update(context.Background(), obj, metav1.UpdateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		}
@@ -343,10 +343,10 @@ func EnsureRoleBinding(kubeconfig []byte, projectName string, namespace string) 
 	return nil
 }
 
-func RemoveRoleBinding(kubeconfig []byte, projectName string, namespace string) error {
+func RemoveRoleBinding(ctx context.Context, kubeconfig []byte, projectName string, namespace string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -354,7 +354,7 @@ func RemoveRoleBinding(kubeconfig []byte, projectName string, namespace string) 
 
 	for _, role := range []string{leaderRole, memberRole, viewerRole} {
 		if err := clientset.RbacV1().RoleBindings(namespace).Delete(context.Background(), projectName+"-"+role, metav1.DeleteOptions{}); err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 		}
 	}
 
@@ -396,10 +396,10 @@ func getClusterRole(role, objName string) *rbacV1.ClusterRole {
 	return &clusterRole
 }
 
-func EnsureCommonClusterRole(kubeconfig []byte, projectName string) error {
+func EnsureCommonClusterRole(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -409,13 +409,13 @@ func EnsureCommonClusterRole(kubeconfig []byte, projectName string) error {
 	if _, err = clientset.RbacV1().ClusterRoles().Get(context.Background(), projectName+"-common", metav1.GetOptions{}); err != nil {
 		_, err = clientset.RbacV1().ClusterRoles().Create(context.Background(), obj, metav1.CreateOptions{})
 		if err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return err
 		}
 	} else {
 		_, err = clientset.RbacV1().ClusterRoles().Update(context.Background(), obj, metav1.UpdateOptions{})
 		if err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return err
 		}
 	}
@@ -423,27 +423,27 @@ func EnsureCommonClusterRole(kubeconfig []byte, projectName string) error {
 	return nil
 }
 
-func RemoveCommonClusterRole(kubeconfig []byte, projectName string) error {
+func RemoveCommonClusterRole(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
 	clientset := kubernetes.NewForConfigOrDie(config_user)
 
 	if err := clientset.RbacV1().ClusterRoles().Delete(context.Background(), projectName+"-common", metav1.DeleteOptions{}); err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
 	return nil
 }
 
-func EnsureCommonClusterRoleBinding(kubeconfig []byte, projectName string) error {
+func EnsureCommonClusterRoleBinding(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -454,13 +454,13 @@ func EnsureCommonClusterRoleBinding(kubeconfig []byte, projectName string) error
 		if _, err = clientset.RbacV1().ClusterRoleBindings().Get(context.Background(), projectName+"-common"+"-"+role, metav1.GetOptions{}); err != nil {
 			_, err = clientset.RbacV1().ClusterRoleBindings().Create(context.Background(), obj, metav1.CreateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		} else {
 			_, err = clientset.RbacV1().ClusterRoleBindings().Update(context.Background(), obj, metav1.UpdateOptions{})
 			if err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 				return err
 			}
 		}
@@ -469,10 +469,10 @@ func EnsureCommonClusterRoleBinding(kubeconfig []byte, projectName string) error
 	return nil
 }
 
-func RemoveCommonClusterRoleBinding(kubeconfig []byte, projectName string) error {
+func RemoveCommonClusterRoleBinding(ctx context.Context, kubeconfig []byte, projectName string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return err
 	}
 
@@ -480,7 +480,7 @@ func RemoveCommonClusterRoleBinding(kubeconfig []byte, projectName string) error
 
 	for _, role := range []string{leaderRole, memberRole, viewerRole} {
 		if err := clientset.RbacV1().ClusterRoles().Delete(context.Background(), projectName+"-common-"+role, metav1.DeleteOptions{}); err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return err
 		}
 	}

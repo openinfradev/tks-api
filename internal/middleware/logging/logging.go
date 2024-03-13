@@ -29,7 +29,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(lrw, r)
 
 		statusCode := lrw.GetStatusCode()
-		log.InfofWithContext(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String())
-		log.InfofWithContext(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
+		log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String())
+		log.Infof(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }

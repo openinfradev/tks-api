@@ -33,7 +33,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, ok := request.UserFrom(r.Context())
 		if !ok {
-			log.Error("Invalid user token")
+			log.Error(r.Context(), "Invalid user token")
 			return
 		}
 		userId := user.GetUserId()
@@ -54,9 +54,9 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 			if endpoint != internalApi.PingToken {
 				body, err := io.ReadAll(r.Body)
 				if err != nil {
-					log.Error(err)
+					log.Error(r.Context(), err)
 				}
-				message, description = fn(lrw.GetBody(), body, statusCode)
+				message, description = fn(r.Context(), lrw.GetBody(), body, statusCode)
 				r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 				dto := model.Audit{
@@ -68,7 +68,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 					UserId:         &userId,
 				}
 				if _, err := a.repo.Create(r.Context(), dto); err != nil {
-					log.Error(err)
+					log.Error(r.Context(), err)
 				}
 			}
 		}

@@ -82,7 +82,7 @@ func NewProjectHandler(u usecase.Usecase) IProjectHandler {
 func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -101,7 +101,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		Description:    projectReq.Description,
 		CreatedAt:      now,
 	}
-	log.Infof("Processing CREATE request for project '%s'...", project.Name)
+	log.Infof(r.Context(), "Processing CREATE request for project '%s'...", project.Name)
 
 	projectId, err := p.usecase.CreateProject(r.Context(), project)
 	if err != nil {
@@ -112,14 +112,14 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	project.ID = projectId
 	ProjectLeaderId, err := uuid.Parse(projectReq.ProjectLeaderId)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to parse uuid to string"))
 		return
 	}
 
 	prs, err := p.usecase.GetProjectRoles(r.Context(), usecase.ProjectLeader)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", "Failed to retrieve project-leader id"))
 		return
 	}
@@ -137,7 +137,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 
 	projectMemberId, err := p.usecase.AddProjectMember(r.Context(), pm)
 	if err != nil {
-		log.Errorf("projectMemberId: %v", projectMemberId)
+		log.Errorf(r.Context(), "projectMemberId: %v", projectMemberId)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -302,7 +302,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 
 	var pdr domain.ProjectDetailResponse
 	if err = serializer.Map(*project, &pdr); err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -371,14 +371,14 @@ func (p ProjectHandler) IsProjectNameExist(w http.ResponseWriter, r *http.Reques
 func (p ProjectHandler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -438,7 +438,7 @@ func (p ProjectHandler) DeleteProject(w http.ResponseWriter, r *http.Request) {
 func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -446,7 +446,7 @@ func (p ProjectHandler) GetProjectRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	projectRoleId, ok := vars["projectRoleId"]
-	log.Debugf("projectRoleId = [%v]\n", projectRoleId)
+	log.Debugf(r.Context(), "projectRoleId = [%v]\n", projectRoleId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectRoleId"),
 			"C_INVALID_PROJECT_ROLE_ID", ""))
@@ -529,7 +529,7 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -552,7 +552,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 	pg := pagination.NewPagination(&urlParams)
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, pg)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -565,7 +565,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 	for _, pmr := range projectMemberReq.ProjectMemberRequests {
 		pu, err := p.usecase.GetProjectUser(r.Context(), pmr.ProjectUserId)
 		if err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectUserId"),
 				"C_INVALID_PROJECT_USER_ID", ""))
 			return
@@ -573,7 +573,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 
 		pr, err := p.usecase.GetProjectRole(r.Context(), pmr.ProjectRoleId)
 		if err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -593,7 +593,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		}
 		pmId, err := p.usecase.AddProjectMember(r.Context(), pm)
 		if err != nil {
-			log.Errorf("projectMemberId: %s", pmId)
+			log.Errorf(r.Context(), "projectMemberId: %s", pmId)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -601,7 +601,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
 			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pmId); err != nil {
-				log.Error(err)
+				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
@@ -628,7 +628,7 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -636,7 +636,7 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -644,7 +644,7 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 	}
 
 	projectMemberId, ok := vars["projectMemberId"]
-	log.Debugf("projectMemberId = [%v]\n", projectMemberId)
+	log.Debugf(r.Context(), "projectMemberId = [%v]\n", projectMemberId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectMemberId"),
 			"C_INVALID_PROJECT_MEMBER_ID", ""))
@@ -698,7 +698,7 @@ func (p ProjectHandler) GetProjectMember(w http.ResponseWriter, r *http.Request)
 func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -786,7 +786,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -830,7 +830,7 @@ func (p ProjectHandler) GetProjectMemberCount(w http.ResponseWriter, r *http.Req
 func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -838,7 +838,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -846,7 +846,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	}
 
 	projectMemberId, ok := vars["projectMemberId"]
-	log.Debugf("projectMemberId = [%v]\n", projectMemberId)
+	log.Debugf(r.Context(), "projectMemberId = [%v]\n", projectMemberId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectMemberId"),
 			"C_INVALID_PROJECT_MEMBER_ID", ""))
@@ -856,7 +856,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	// tasks for keycloak & k8s
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -866,7 +866,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	}
 	for stackId := range stackIds {
 		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -896,7 +896,7 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -904,7 +904,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -920,7 +920,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 	// tasks for keycloak & k8s
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -934,7 +934,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
 			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ProjectMemberId); err != nil {
-				log.Error(err)
+				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
@@ -965,7 +965,7 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -973,7 +973,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -996,7 +996,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	now := time.Now()
 	pm, err := p.usecase.GetProjectMember(r.Context(), projectMemberId)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -1008,7 +1008,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -1019,7 +1019,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	// tasks for keycloak & k8s. Unassign old role
 	for stackId := range stackIds {
 		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -1037,7 +1037,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	// tasks for keycloak & k8s. Assign new role
 	for stackId := range stackIds {
 		if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -1062,7 +1062,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -1070,7 +1070,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectId"),
 			"C_INVALID_PROJECT_ID", ""))
@@ -1086,7 +1086,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -1098,7 +1098,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 	for _, pmr := range projectMemberReq.ProjectMemberRoleRequests {
 		pm, err := p.usecase.GetProjectMember(r.Context(), pmr.ProjectMemberId)
 		if err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -1110,7 +1110,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 
 		for stackId := range stackIds {
 			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ID); err != nil {
-				log.Error(err)
+				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
@@ -1128,7 +1128,7 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 
 		for stackId := range stackIds {
 			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ID); err != nil {
-				log.Error(err)
+				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
@@ -1299,7 +1299,7 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 	for _, pn := range pns {
 		var pnr domain.ProjectNamespaceResponse
 		if err = serializer.Map(pn, &pnr); err != nil {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			ErrorJSON(w, r, err)
 			return
 		}
@@ -1383,7 +1383,7 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 
 	var pnr domain.ProjectNamespaceResponse
 	if err = serializer.Map(*pn, &pnr); err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1413,7 +1413,7 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 func (p ProjectHandler) UpdateProjectNamespace(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
 			"C_INVALID_ORGANIZATION_ID", ""))
@@ -1632,7 +1632,7 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 
 	var out domain.GetProjectNamespaceK8sResourcesResponse
 	if err = serializer.Map(k8sResources, &out.K8sResources); err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 	}
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -1685,7 +1685,7 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 
 	var out domain.GetProjectNamespaceResourcesUsageResponse
 	if err = serializer.Map(resourcesUsage, &out.ResourcesUsage); err != nil {
-		log.Error(err)
+		log.Error(r.Context(), err)
 	}
 	ResponseJSON(w, r, http.StatusOK, out)
 }

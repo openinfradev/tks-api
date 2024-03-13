@@ -274,7 +274,7 @@ func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster model.
 	case "pvc-full":
 		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	default:
-		log.ErrorfWithContext(ctx, "Invalid alert name %s", alert.Labels.AlertName)
+		log.Errorf(ctx, "Invalid alert name %s", alert.Labels.AlertName)
 	}
 
 	return

@@ -32,7 +32,7 @@ func (a *defaultAuthenticator) WithAuthentication(handler http.Handler) http.Han
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp, ok, err := a.auth.AuthenticateRequest(r)
 		if !ok {
-			log.Error(err)
+			log.Error(r.Context(), err)
 			internalHttp.ErrorJSON(w, r, err)
 			return
 		}

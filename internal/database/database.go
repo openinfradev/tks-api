@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"os"
 	"strings"
 
@@ -179,8 +181,9 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	//
 
 	ctx := context.Background()
-
-	eps, err := repoFactory.Endpoint.List(ctx, nil)
+	pg := pagination.NewPagination(nil)
+	pg.Limit = 1000
+	eps, err := repoFactory.Endpoint.List(ctx, pg)
 	if err != nil {
 		return err
 	}
@@ -189,7 +192,10 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	for _, ep := range eps {
 		storedEps[ep.Name] = struct{}{}
 	}
+	log.Debugf(context.Background(), "storedEps: %+v", storedEps)
 	for _, ep := range api.ApiMap {
+		log.Debug(context.Background(), "ep.Name", ep.Name)
+		log.Debug(context.Background(), "storedEps[ep.Name]", storedEps[ep.Name])
 		if _, ok := storedEps[ep.Name]; !ok {
 			if err := repoFactory.Endpoint.Create(ctx, &model.Endpoint{
 				Name:  ep.Name,

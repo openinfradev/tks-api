@@ -110,7 +110,7 @@ func (h *AuditHandler) GetAudit(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
-	log.Info(audit)
+	log.Info(r.Context(), audit)
 
 	var out domain.GetAuditResponse
 	if err := serializer.Map(audit, &out.Audit); err != nil {

@@ -86,7 +86,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 	if len(clusters) == 0 {
 		isPrimary = true
 	}
-	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
+	log.Debug(ctx, "isPrimary ", isPrimary)
 
 	if dto.CloudService == domain.CloudService_BYOH {
 		if dto.ClusterEndpoint == "" {
@@ -122,7 +122,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 	}
 
 	workflow := "tks-stack-create"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"cluster_name=" + dto.Name,
@@ -141,18 +141,18 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 		log.Error(ctx, err)
 		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
-	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+	log.Debug(ctx, "Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
 	dto.ID = domain.StackId("")
 	for i := 0; i < 60; i++ {
 		time.Sleep(time.Second * 5)
-		workflow, err := u.argo.GetWorkflow("argo", workflowId)
+		workflow, err := u.argo.GetWorkflow(ctx, "argo", workflowId)
 		if err != nil {
 			return "", err
 		}
 
-		log.DebugWithContext(ctx, "workflow ", workflow)
+		log.Debug(ctx, "workflow ", workflow)
 		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
 			return "", fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
 		}
@@ -189,7 +189,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 	if len(clusters) == 0 {
 		isPrimary = true
 	}
-	log.DebugWithContext(ctx, "isPrimary ", isPrimary)
+	log.Debug(ctx, "isPrimary ", isPrimary)
 
 	if cluster.CloudService != domain.CloudService_BYOH {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "S_INVALID_CLOUD_SERVICE", "")
@@ -202,7 +202,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 	}
 
 	workflow := "tks-stack-install"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"cluster_id=" + cluster.ID.String(),
@@ -217,7 +217,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 		log.Error(ctx, err)
 		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
-	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+	log.Debug(ctx, "Submitted workflow: ", workflowId)
 
 	return nil
 }
@@ -242,7 +242,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 	}
 
 	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, cluster.OrganizationId)
-	out = reflectClusterToStack(cluster, appGroups)
+	out = reflectClusterToStack(ctx, cluster, appGroups)
 
 	if organization.PrimaryClusterId == cluster.ID.String() {
 		out.PrimaryCluster = true
@@ -251,7 +251,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 	for _, resource := range stackResources {
 		if resource.ID == domain.StackId(cluster.ID) {
 			if err := serializer.Map(resource, &out.Resource); err != nil {
-				log.Error(err)
+				log.Error(ctx, err)
 			}
 		}
 	}
@@ -290,7 +290,7 @@ func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, nam
 		return out, err
 	}
 
-	out = reflectClusterToStack(cluster, appGroups)
+	out = reflectClusterToStack(ctx, cluster, appGroups)
 	return
 }
 
@@ -318,7 +318,7 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 			return nil, err
 		}
 
-		outStack := reflectClusterToStack(cluster, appGroups)
+		outStack := reflectClusterToStack(ctx, cluster, appGroups)
 		if organization.PrimaryClusterId == cluster.ID.String() {
 			outStack.PrimaryCluster = true
 		}
@@ -338,7 +338,7 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 		for _, resource := range stackResources {
 			if resource.ID == domain.StackId(cluster.ID) {
 				if err := serializer.Map(resource, &outStack.Resource); err != nil {
-					log.Error(err)
+					log.Error(ctx, err)
 				}
 			}
 		}
@@ -437,7 +437,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 	// [TODO] BYOH 삭제는 어떻게 처리하는게 좋은가?
 
 	workflow := "tks-stack-delete"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"organization_id=" + dto.OrganizationId,
@@ -450,7 +450,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 		log.Error(ctx, err)
 		return err
 	}
-	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+	log.Debug(ctx, "Submitted workflow: ", workflowId)
 
 	// Remove Cluster & AppGroup status description
 	if err := u.appGroupRepo.InitWorkflowDescription(ctx, cluster.ID); err != nil {
@@ -463,7 +463,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < 60; i++ {
 		time.Sleep(time.Second * 2)
-		workflow, err := u.argo.GetWorkflow("argo", workflowId)
+		workflow, err := u.argo.GetWorkflow(ctx, "argo", workflowId)
 		if err != nil {
 			return err
 		}
@@ -482,7 +482,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 }
 
 func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error) {
-	kubeconfig, err := kubernetes.GetKubeConfig(stackId.String())
+	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId.String())
 	//kubeconfig, err := kubernetes.GetKubeConfig("cmsai5k5l")
 	if err != nil {
 		return "", err
@@ -618,9 +618,9 @@ func (u *StackUsecase) DeleteFavorite(ctx context.Context, stackId domain.StackI
 	return nil
 }
 
-func reflectClusterToStack(cluster model.Cluster, appGroups []model.AppGroup) (out model.Stack) {
+func reflectClusterToStack(ctx context.Context, cluster model.Cluster, appGroups []model.AppGroup) (out model.Stack) {
 	if err := serializer.Map(cluster, &out); err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 	}
 
 	status, statusDesc := getStackStatus(cluster, appGroups)

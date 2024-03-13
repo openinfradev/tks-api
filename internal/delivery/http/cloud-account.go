@@ -184,7 +184,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
-	log.DebugWithContext(r.Context(), "[TODO] organization check", organizationId)
+	log.Debug(r.Context(), "[TODO] organization check", organizationId)
 
 	cloudAccountId, err := uuid.Parse(strId)
 	if err != nil {

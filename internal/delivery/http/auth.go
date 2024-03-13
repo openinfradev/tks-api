@@ -69,7 +69,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			ClientIP:       audit.GetClientIpAddress(w, r),
 			UserId:         nil,
 		})
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	} else {
@@ -85,7 +85,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var cookies []*http.Cookie
 	if targetCookies, err := h.usecase.SingleSignIn(r.Context(), input.OrganizationId, input.AccountId, input.Password); err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 	} else {
 		cookies = append(cookies, targetCookies...)
 	}
@@ -119,13 +119,13 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, ok := request.SessionFrom(ctx)
 	if !ok {
-		log.ErrorfWithContext(r.Context(), "session id is not found")
+		log.Errorf(r.Context(), "session id is not found")
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("session id is not found"), "A_NO_SESSION", ""))
 		return
 	}
 	userInfo, ok := request.UserFrom(ctx)
 	if !ok {
-		log.ErrorfWithContext(r.Context(), "user info is not found")
+		log.Errorf(r.Context(), "user info is not found")
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user info is not found"), "A_NO_SESSION", ""))
 		return
 	}
@@ -133,7 +133,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	err := h.usecase.Logout(r.Context(), sessionId, organizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -141,7 +141,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	var cookies []*http.Cookie
 	redirectUrl, targetCookies, err := h.usecase.SingleSignOut(r.Context(), organizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 	}
 	cookies = append(cookies, targetCookies...)
 	if len(cookies) > 0 {
@@ -185,7 +185,7 @@ func (h *AuthHandler) FindId(w http.ResponseWriter, r *http.Request) {
 
 	accountId, err := h.usecase.FindId(r.Context(), input.Code, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -217,7 +217,7 @@ func (h *AuthHandler) FindPassword(w http.ResponseWriter, r *http.Request) {
 
 	err = h.usecase.FindPassword(r.Context(), input.Code, input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -246,7 +246,7 @@ func (h *AuthHandler) VerifyIdentityForLostId(w http.ResponseWriter, r *http.Req
 
 	err = h.usecase.VerifyIdentity(r.Context(), "", input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -277,7 +277,7 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 
 	err = h.usecase.VerifyIdentity(r.Context(), input.AccountId, input.Email, input.UserName, input.OrganizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -298,14 +298,14 @@ func (h *AuthHandler) VerifyIdentityForLostPassword(w http.ResponseWriter, r *ht
 func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	token, ok := request.TokenFrom(r.Context())
 	if !ok {
-		log.ErrorfWithContext(r.Context(), "token is not found")
+		log.Errorf(r.Context(), "token is not found")
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("token is not found"), "C_INTERNAL_ERROR", ""))
 		return
 	}
 
 	isActive, err := h.usecase.VerifyToken(r.Context(), token)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}

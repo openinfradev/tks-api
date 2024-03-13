@@ -57,7 +57,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization
 	in.CreatorId = &userId
 
 	// Create realm in keycloak
-	if organizationId, err = u.kc.CreateRealm(helper.GenerateOrganizationId()); err != nil {
+	if organizationId, err = u.kc.CreateRealm(ctx, helper.GenerateOrganizationId()); err != nil {
 		return "", err
 	}
 	in.ID = organizationId
@@ -69,6 +69,7 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"tks-create-contract-repo",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -119,7 +120,7 @@ func (u *OrganizationUsecase) Delete(ctx context.Context, organizationId string,
 	}
 
 	// Delete realm in keycloak
-	if err := u.kc.DeleteRealm(organizationId); err != nil {
+	if err := u.kc.DeleteRealm(ctx, organizationId); err != nil {
 		return err
 	}
 

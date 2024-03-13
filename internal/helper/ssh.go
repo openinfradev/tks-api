@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/openinfradev/tks-api/pkg/log"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -114,12 +113,12 @@ func (sws *LogicSshWsSession) receiveWsMsg(exitCh chan bool) {
 			//read websocket msg
 			_, wsData, err := wsConn.ReadMessage()
 			if err != nil {
-				log.Error(err)
-				log.Error("reading webSocket message failed")
+				//log.Error(err)
+				//log.Error("reading webSocket message failed")
 				return
 			}
-			cmd := bytes.NewBuffer(wsData).String()
-			log.Debug(cmd)
+			//cmd := bytes.NewBuffer(wsData).String()
+			//log.Debug(cmd)
 			//unmashal bytes into struct
 			/*
 					if err := json.Unmarshal(wsData, &msgObj); err != nil {
@@ -140,7 +139,8 @@ func (sws *LogicSshWsSession) receiveWsMsg(exitCh chan bool) {
 // sendWebsocketInputCommandToSshSessionStdinPipe
 func (sws *LogicSshWsSession) sendWebsocketInputCommandToSshSessionStdinPipe(cmdBytes []byte) {
 	if _, err := sws.stdinPipe.Write(cmdBytes); err != nil {
-		log.Error("ws cmd bytes write to ssh.stdin pipe failed")
+
+		//log.Error("ws cmd bytes write to ssh.stdin pipe failed")
 	}
 }
 
@@ -162,11 +162,11 @@ func (sws *LogicSshWsSession) sendComboOutput(exitCh chan bool) {
 			if len(bs) > 0 {
 				err := wsConn.WriteMessage(websocket.TextMessage, bs)
 				if err != nil {
-					log.Error("ssh sending combo output to webSocket failed")
+					//log.Error("ssh sending combo output to webSocket failed")
 				}
 				_, err = sws.logBuff.Write(bs)
 				if err != nil {
-					log.Error("combo output to log buffer failed")
+					//log.Error("combo output to log buffer failed")
 				}
 				sws.comboOutput.buffer.Reset()
 			}
@@ -179,7 +179,7 @@ func (sws *LogicSshWsSession) sendComboOutput(exitCh chan bool) {
 
 func (sws *LogicSshWsSession) Wait(quitChan chan bool) {
 	if err := sws.session.Wait(); err != nil {
-		log.Error("ssh session wait failed")
+		//log.Error("ssh session wait failed")
 		setQuit(quitChan)
 	}
 }

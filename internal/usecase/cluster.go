@@ -184,6 +184,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -249,6 +250,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 	kubeconfigBase64 := base64.StdEncoding.EncodeToString([]byte(dto.Kubeconfig))
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"import-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -290,7 +292,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
-	log.InfofWithContext(ctx, "%s %s", stackTemplate.CloudService, dto.CloudService)
+	log.Infof(ctx, "%s %s", stackTemplate.CloudService, dto.CloudService)
 	if stackTemplate.CloudService != dto.CloudService {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService for stackTemplate "), "", "")
 	}
@@ -303,7 +305,7 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 	}
 
 	workflow := "create-byoh-bootstrapkubeconfig"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"cluster_id=" + clusterId.String(),
@@ -345,6 +347,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -419,6 +422,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"tks-remove-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -435,7 +439,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		return errors.Wrap(err, "Failed to call argo workflow")
 	}
 
-	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
+	log.Debug(ctx, "submited workflow name : ", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
@@ -489,7 +493,7 @@ func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterI
 	}
 
 	workflow := "create-byoh-bootstrapkubeconfig"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"cluster_id=" + clusterId.String(),
@@ -499,17 +503,17 @@ func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterI
 		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
-	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+	log.Debug(ctx, "Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < 60; i++ {
 		time.Sleep(time.Second * 3)
-		workflow, err := u.argo.GetWorkflow("argo", workflowId)
+		workflow, err := u.argo.GetWorkflow(ctx, "argo", workflowId)
 		if err != nil {
 			return out, err
 		}
 
-		log.DebugWithContext(ctx, "workflow ", workflow)
+		log.Debug(ctx, "workflow ", workflow)
 
 		if workflow.Status.Phase == "Succeeded" {
 			break
@@ -532,7 +536,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 	if err != nil {
 		return out, httpErrors.NewNotFoundError(err, "", "")
 	}
-	client, err := kubernetes.GetClientAdminCluster()
+	client, err := kubernetes.GetClientAdminCluster(ctx)
 	if err != nil {
 		return out, err
 	}
@@ -553,7 +557,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 		return out, err
 	}
 
-	log.DebugWithContext(ctx, helper.ModelToJson(kubeconfig.Status.BootstrapKubeconfigData))
+	log.Debug(ctx, helper.ModelToJson(kubeconfig.Status.BootstrapKubeconfigData))
 
 	type BootstrapKubeconfigUser struct {
 		Users []struct {
@@ -580,7 +584,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 		return out, err
 	}
 
-	log.Info(secrets.Data["expiration"][:])
+	log.Info(ctx, secrets.Data["expiration"][:])
 
 	// 2023-10-17T11:05:33Z
 	now := time.Now()
@@ -610,7 +614,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "", "")
 	}
 
-	client, err := kubernetes.GetClientAdminCluster()
+	client, err := kubernetes.GetClientAdminCluster(ctx)
 	if err != nil {
 		return out, err
 	}
@@ -815,9 +819,9 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 	var found bool = false
 	for key, val := range azPerRegion {
 		if strings.Contains(key, region) {
-			log.DebugWithContext(ctx,"Found region : ", key)
+			log.Debug(ctx,"Found region : ", key)
 			maxAzForSelectedRegion = val
-			log.DebugWithContext(ctx,"Trimmed azNum var: ", maxAzForSelectedRegion)
+			log.Debug(ctx,"Trimmed azNum var: ", maxAzForSelectedRegion)
 			found = true
 		}
 	}
@@ -835,14 +839,14 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 	// Validate if machineReplicas is multiple of number of AZ
 	replicas := int(rawConf.MachineReplicas)
 	if replicas == 0 {
-		log.DebugWithContext(ctx,"No machineReplicas param. Using default values..")
+		log.Debug(ctx,"No machineReplicas param. Using default values..")
 	} else {
 		if remainder := replicas % numOfAz; remainder != 0 {
 			log.Error(ctx,"Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
 			temp_err := fmt.Errorf("Invalid machineReplicas: it should be multiple of numOfAz %d", numOfAz)
 			return nil, temp_err
 		} else {
-			log.DebugWithContext(ctx,"Valid replicas and numOfAz. Caculating minSize & maxSize..")
+			log.Debug(ctx,"Valid replicas and numOfAz. Caculating minSize & maxSize..")
 			minSizePerAz = int(replicas / numOfAz)
 			maxSizePerAz = minSizePerAz * 5
 
@@ -851,8 +855,8 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 				fmt.Printf("maxSizePerAz exceeded maximum value %d, so adjusted to %d", MAX_SIZE_PER_AZ, MAX_SIZE_PER_AZ)
 				maxSizePerAz = MAX_SIZE_PER_AZ
 			}
-			log.DebugWithContext(ctx,"Derived minSizePerAz: ", minSizePerAz)
-			log.DebugWithContext(ctx,"Derived maxSizePerAz: ", maxSizePerAz)
+			log.Debug(ctx,"Derived minSizePerAz: ", minSizePerAz)
+			log.Debug(ctx,"Derived maxSizePerAz: ", maxSizePerAz)
 		}
 	}
 

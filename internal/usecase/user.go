@@ -64,7 +64,7 @@ func (u *UserUsecase) RenewalPasswordExpiredTime(ctx context.Context, userId uui
 
 	err = u.userRepository.UpdatePasswordAt(ctx, userId, user.Organization.ID, false)
 	if err != nil {
-		log.ErrorfWithContext(ctx, "failed to update password expired time: %v", err)
+		log.Errorf(ctx, "failed to update password expired time: %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -89,7 +89,7 @@ func (u *UserUsecase) ResetPassword(ctx context.Context, userId uuid.UUID) error
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 		}
 	}
-	userInKeycloak, err := u.kc.GetUser(user.Organization.ID, user.AccountId)
+	userInKeycloak, err := u.kc.GetUser(ctx, user.Organization.ID, user.AccountId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
@@ -105,7 +105,7 @@ func (u *UserUsecase) ResetPassword(ctx context.Context, userId uuid.UUID) error
 			Temporary: gocloak.BoolP(false),
 		},
 	}
-	if err = u.kc.UpdateUser(user.Organization.ID, userInKeycloak); err != nil {
+	if err = u.kc.UpdateUser(ctx, user.Organization.ID, userInKeycloak); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -113,15 +113,15 @@ func (u *UserUsecase) ResetPassword(ctx context.Context, userId uuid.UUID) error
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	message, err := mail.MakeTemporaryPasswordMessage(user.Email, user.Organization.ID, user.AccountId, randomPassword)
+	message, err := mail.MakeTemporaryPasswordMessage(ctx, user.Email, user.Organization.ID, user.AccountId, randomPassword)
 	if err != nil {
-		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		log.Errorf(ctx, "mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
 	mailer := mail.New(message)
 
-	if err := mailer.SendMail(); err != nil {
+	if err := mailer.SendMail(ctx); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -148,7 +148,7 @@ func (u *UserUsecase) ValidateAccount(ctx context.Context, userId uuid.UUID, pas
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
 	}
-	_, err = u.kc.Login(user.AccountId, password, organizationId)
+	_, err = u.kc.Login(ctx, user.AccountId, password, organizationId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid password"), "A_INVALID_PASSWORD", "")
 	}
@@ -156,7 +156,7 @@ func (u *UserUsecase) ValidateAccount(ctx context.Context, userId uuid.UUID, pas
 }
 
 func (u *UserUsecase) ValidateAccountByAccountId(ctx context.Context, accountId string, password string, organizationId string) error {
-	_, err := u.kc.Login(organizationId, accountId, password)
+	_, err := u.kc.Login(ctx, organizationId, accountId, password)
 	return err
 }
 
@@ -173,12 +173,12 @@ func (u *UserUsecase) DeleteAll(ctx context.Context, organizationId string) erro
 }
 
 func (u *UserUsecase) DeleteAdmin(ctx context.Context, organizationId string) error {
-	user, err := u.kc.GetUser(organizationId, "admin")
+	user, err := u.kc.GetUser(ctx, organizationId, "admin")
 	if err != nil {
 		return errors.Wrap(err, "get user failed")
 	}
 
-	err = u.kc.DeleteUser(organizationId, "admin")
+	err = u.kc.DeleteUser(ctx, organizationId, "admin")
 	if err != nil {
 		return errors.Wrap(err, "delete user failed")
 	}
@@ -223,12 +223,12 @@ func (u *UserUsecase) CreateAdmin(ctx context.Context, organizationId string, ac
 	if err != nil {
 		return nil, err
 	}
-	message, err := mail.MakeGeneratingOrganizationMessage(organizationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
+	message, err := mail.MakeGeneratingOrganizationMessage(ctx, organizationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
 	if err != nil {
 		return nil, httpErrors.NewInternalServerError(err, "", "")
 	}
 	mailer := mail.New(message)
-	if err := mailer.SendMail(); err != nil {
+	if err := mailer.SendMail(ctx); err != nil {
 		return nil, httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -241,14 +241,14 @@ func (u *UserUsecase) SendEmailForTemporaryPassword(ctx context.Context, account
 		return err
 	}
 
-	message, err := mail.MakeTemporaryPasswordMessage(user.Email, organizationId, accountId, password)
+	message, err := mail.MakeTemporaryPasswordMessage(ctx, user.Email, organizationId, accountId, password)
 	if err != nil {
 		return err
 	}
 
 	mailer := mail.New(message)
 
-	if err := mailer.SendMail(); err != nil {
+	if err := mailer.SendMail(ctx); err != nil {
 		return err
 	}
 
@@ -261,10 +261,10 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	if originPassword == newPassword {
 		return httpErrors.NewBadRequestError(fmt.Errorf("new password is same with origin password"), "A_SAME_OLD_PASSWORD", "")
 	}
-	if _, err := u.kc.Login(accountId, originPassword, organizationId); err != nil {
+	if _, err := u.kc.Login(ctx, accountId, originPassword, organizationId); err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid origin password"), "A_INVALID_PASSWORD", "")
 	}
-	originUser, err := u.kc.GetUser(organizationId, accountId)
+	originUser, err := u.kc.GetUser(ctx, organizationId, accountId)
 	if err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 		},
 	}
 
-	err = u.kc.UpdateUser(organizationId, originUser)
+	err = u.kc.UpdateUser(ctx, organizationId, originUser)
 	if err != nil {
 		return errors.Wrap(err, "updating user in keycloak failed")
 	}
@@ -358,7 +358,7 @@ func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *model.
 func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *model.User) (*model.User, error) {
 	var out model.User
 
-	originUser, err := u.kc.GetUser(user.Organization.ID, accountId)
+	originUser, err := u.kc.GetUser(ctx, user.Organization.ID, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -366,7 +366,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 	if (originUser.Email == nil || *originUser.Email != user.Email) || (originUser.FirstName == nil || *originUser.FirstName != user.Name) {
 		originUser.Email = gocloak.StringP(user.Email)
 		originUser.FirstName = gocloak.StringP(user.Name)
-		err = u.kc.UpdateUser(user.Organization.ID, originUser)
+		err = u.kc.UpdateUser(ctx, user.Organization.ID, originUser)
 		if err != nil {
 			return nil, err
 		}
@@ -411,7 +411,7 @@ func (u *UserUsecase) Delete(ctx context.Context, userId uuid.UUID, organization
 	}
 
 	// Delete user in keycloak
-	err = u.kc.DeleteUser(organizationId, user.AccountId)
+	err = u.kc.DeleteUser(ctx, organizationId, user.AccountId)
 	if err != nil {
 		return err
 	}
@@ -430,7 +430,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 	}
 
 	// Delete user in keycloak
-	err = u.kc.DeleteUser(organizationId, accountId)
+	err = u.kc.DeleteUser(ctx, organizationId, accountId)
 	if err != nil {
 		return err
 	}
@@ -441,7 +441,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User, error) {
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}
-	userUuidStr, err := u.kc.CreateUser(user.Organization.ID, &gocloak.User{
+	userUuidStr, err := u.kc.CreateUser(ctx, user.Organization.ID, &gocloak.User{
 		Username: gocloak.StringP(user.AccountId),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
@@ -502,12 +502,12 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 	if newUser.Role.Name != user.Role.Name {
 		originGroupName := fmt.Sprintf("%s@%s", user.Role.Name, newUser.Organization.ID)
 		newGroupName := fmt.Sprintf("%s@%s", newUser.Role.Name, newUser.Organization.ID)
-		if err := u.kc.LeaveGroup(newUser.Organization.ID, user.ID.String(), originGroupName); err != nil {
-			log.ErrorfWithContext(ctx, "leave group in keycloak failed: %v", err)
+		if err := u.kc.LeaveGroup(ctx, newUser.Organization.ID, user.ID.String(), originGroupName); err != nil {
+			log.Errorf(ctx, "leave group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
-		if err := u.kc.JoinGroup(newUser.Organization.ID, user.ID.String(), newGroupName); err != nil {
-			log.ErrorfWithContext(ctx, "join group in keycloak failed: %v", err)
+		if err := u.kc.JoinGroup(ctx, newUser.Organization.ID, user.ID.String(), newGroupName); err != nil {
+			log.Errorf(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 	}

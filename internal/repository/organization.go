@@ -65,7 +65,7 @@ func (r *OrganizationRepository) Create(ctx context.Context, dto *model.Organiza
 	}
 	res := r.db.WithContext(ctx).Create(&organization)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
 	}
 
@@ -88,7 +88,7 @@ func (r *OrganizationRepository) Get(ctx context.Context, id string) (out model.
 	res := r.db.WithContext(ctx).Preload(clause.Associations).
 		First(&out, "id = ?", id)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
 	}
 	return
@@ -104,12 +104,12 @@ func (r *OrganizationRepository) Update(ctx context.Context, organizationId stri
 		})
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
 	}
 	res = r.db.Model(&model.Organization{}).Where("id = ?", organizationId).Find(&out)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
 	}
 	return
@@ -123,7 +123,7 @@ func (r *OrganizationRepository) UpdatePrimaryClusterId(ctx context.Context, org
 		})
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -137,7 +137,7 @@ func (r *OrganizationRepository) UpdateAdminId(ctx context.Context, organization
 		})
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
@@ -146,7 +146,7 @@ func (r *OrganizationRepository) UpdateAdminId(ctx context.Context, organization
 func (r *OrganizationRepository) Delete(ctx context.Context, organizationId string) error {
 	res := r.db.WithContext(ctx).Delete(&model.Organization{}, "id = ?", organizationId)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
@@ -158,7 +158,7 @@ func (r *OrganizationRepository) InitWorkflow(ctx context.Context, organizationI
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil

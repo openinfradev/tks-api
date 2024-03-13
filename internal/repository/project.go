@@ -151,7 +151,7 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		Scan(&pr)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project")
+			log.Info(ctx, "Cannot find project")
 		}
 	}
 	return pr, nil
@@ -203,10 +203,10 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project")
+			log.Info(ctx, "Cannot find project")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -256,10 +256,10 @@ func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId s
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project")
+			log.Info(ctx, "Cannot find project")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -271,10 +271,10 @@ func (r *ProjectRepository) GetProjectById(ctx context.Context, organizationId s
 	res := r.db.WithContext(ctx).Limit(1).Where("organization_id = ? and id = ?", organizationId, projectId).First(&p)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project")
+			log.Info(ctx, "Cannot find project")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -291,10 +291,10 @@ func (r *ProjectRepository) GetProjectByIdAndLeader(ctx context.Context, organiz
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project")
+			log.Info(ctx, "Cannot find project")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -308,10 +308,10 @@ func (r *ProjectRepository) GetProjectByName(ctx context.Context, organizationId
 		First(&p)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found project name")
+			log.Info(ctx, "Not found project name")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -333,10 +333,10 @@ func (r *ProjectRepository) GetProjectRoleById(ctx context.Context, id string) (
 	res := r.db.WithContext(ctx).First(pr)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project role")
+			log.Info(ctx, "Cannot find project role")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -348,10 +348,10 @@ func (r *ProjectRepository) GetAllProjectRoles(ctx context.Context) (prs []model
 	res := r.db.WithContext(ctx).Find(&prs)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project roles")
+			log.Info(ctx, "Cannot find project roles")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -363,10 +363,10 @@ func (r *ProjectRepository) GetProjectRoleByName(ctx context.Context, name strin
 	res := r.db.WithContext(ctx).Where("name = ?", name).First(&pr)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project roles")
+			log.Info(ctx, "Cannot find project roles")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -393,10 +393,10 @@ func (r *ProjectRepository) GetProjectMembersByProjectId(ctx context.Context, pr
 		Order("project_members.created_at ASC"), &pms)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project member")
+			log.Info(ctx, "Cannot find project member")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -415,10 +415,10 @@ func (r *ProjectRepository) GetProjectMembersByProjectIdAndRoleName(ctx context.
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project member")
+			log.Info(ctx, "Cannot find project member")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -450,10 +450,10 @@ func (r *ProjectRepository) GetProjectMemberCountByProjectId(ctx context.Context
 		Scan(&pmcr)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project member count")
+			log.Info(ctx, "Cannot find project member count")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -466,10 +466,10 @@ func (r *ProjectRepository) GetProjectMemberById(ctx context.Context, projectMem
 		Joins("ProjectRole").Where("project_members.id = ?", projectMemberId).First(&pm)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project member")
+			log.Info(ctx, "Cannot find project member")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -482,10 +482,10 @@ func (r *ProjectRepository) GetProjectMemberByUserId(ctx context.Context, projec
 		Joins("ProjectRole").Where("project_id = ? and project_user_id = ?", projectId, projectUserId).First(&pm)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Cannot find project member")
+			log.Info(ctx, "Cannot find project member")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -542,10 +542,10 @@ func (r *ProjectRepository) GetProjectNamespaceByName(ctx context.Context, organ
 		First(&pn)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found project namespace")
+			log.Info(ctx, "Not found project namespace")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -561,10 +561,10 @@ func (r *ProjectRepository) GetProjectNamespaces(ctx context.Context, organizati
 		Preload("Stack"), &pns)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found project namespaces")
+			log.Info(ctx, "Not found project namespaces")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -580,10 +580,10 @@ func (r *ProjectRepository) GetProjectNamespaceByPrimaryKey(ctx context.Context,
 		First(&pn)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found project namespace")
+			log.Info(ctx, "Not found project namespace")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -617,7 +617,7 @@ func (r *ProjectRepository) GetAppCountByProjectId(ctx context.Context, organiza
 		Where("organization_id = ? and project_Id = ?", organizationId, projectId).
 		Find(&appCount)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return 0, res.Error
 	}
 
@@ -630,7 +630,7 @@ func (r *ProjectRepository) GetAppCountByNamespace(ctx context.Context, organiza
 		Where("organization_id = ? and project_Id = ? and namespace = ?", organizationId, projectId, namespace).
 		Find(&appCount)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return 0, res.Error
 	}
 

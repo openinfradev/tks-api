@@ -109,13 +109,6 @@ var defaultPermissionOfAdmin = defaultPermission{
 		internalApi.DeleteForceCloudAccount,
 		internalApi.GetResourceQuota,
 
-		// StackTemplate
-		internalApi.GetStackTemplates,
-		internalApi.CreateStackTemplate,
-		internalApi.GetStackTemplate,
-		internalApi.UpdateStackTemplate,
-		internalApi.DeleteStackTemplate,
-
 		// Dashboard
 		internalApi.GetChartsDashboard,
 		internalApi.GetChartDashboard,
@@ -225,8 +218,8 @@ var defaultPermissionOfUser = defaultPermission{
 		internalApi.GetResourceQuota,
 
 		// StackTemplate
-		internalApi.GetStackTemplates,
-		internalApi.GetStackTemplate,
+		internalApi.Admin_GetStackTemplates,
+		internalApi.Admin_GetStackTemplate,
 
 		// Dashboard
 		internalApi.GetChartsDashboard,

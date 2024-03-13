@@ -80,7 +80,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -97,7 +97,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -110,7 +110,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	resUser, err := u.usecase.Create(ctx, &user)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusConflict {
 			ErrorJSON(w, r, httpErrors.NewConflictError(err, "", ""))
 			return
@@ -156,7 +156,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -203,7 +203,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	pg := pagination.NewPagination(&urlParams)
 	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -254,7 +254,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -292,7 +292,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	input := domain.UpdateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -311,7 +311,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -438,7 +438,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	input := domain.UpdateMyProfileRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -446,7 +446,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -522,7 +522,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -690,7 +690,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 	input := admin_domain.CreateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -721,7 +721,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 
 	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -741,7 +741,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 
 	resUser, err := u.usecase.Create(r.Context(), &user)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusConflict {
 			ErrorJSON(w, r, httpErrors.NewConflictError(err, "", ""))
 			return
@@ -753,7 +753,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 
 	err = u.usecase.SendEmailForTemporaryPassword(r.Context(), user.AccountId, organizationId, user.Password)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -793,7 +793,7 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 	pg := pagination.NewPagination(&urlParams)
 	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -839,7 +839,7 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -889,7 +889,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 	if organizationId != "master" {
 		err := UnmarshalRequestInput(r, &input)
 		if err != nil {
-			log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+			log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 			ErrorJSON(w, r, err)
 			return
@@ -914,7 +914,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -952,7 +952,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 	input := admin_domain.UpdateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -987,7 +987,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 
 	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}

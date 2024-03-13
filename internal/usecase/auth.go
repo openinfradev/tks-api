@@ -75,7 +75,7 @@ func (u *AuthUsecase) Login(ctx context.Context, accountId string, password stri
 	}
 
 	var accountToken *model.User
-	accountToken, err = u.kc.Login(accountId, password, organizationId)
+	accountToken, err = u.kc.Login(ctx, accountId, password, organizationId)
 	if err != nil {
 		apiErr, ok := err.(*gocloak.APIError)
 		if ok {
@@ -84,11 +84,6 @@ func (u *AuthUsecase) Login(ctx context.Context, accountId string, password stri
 			}
 		}
 		return model.User{}, httpErrors.NewInternalServerError(err, "", "")
-	}
-	log.Errorf("err: %v", err)
-	if err != nil {
-		//TODO: implement not found handling
-		return model.User{}, err
 	}
 
 	// Insert token
@@ -103,7 +98,7 @@ func (u *AuthUsecase) Login(ctx context.Context, accountId string, password stri
 
 func (u *AuthUsecase) Logout(ctx context.Context, accessToken string, organizationName string) error {
 	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
-	err := u.kc.Logout(accessToken, organizationName)
+	err := u.kc.Logout(ctx, accessToken, organizationName)
 	if err != nil {
 		return err
 	}
@@ -159,7 +154,7 @@ func (u *AuthUsecase) FindPassword(ctx context.Context, code string, accountId s
 	}
 	randomPassword := helper.GenerateRandomString(passwordLength)
 
-	originUser, err := u.kc.GetUser(organizationId, accountId)
+	originUser, err := u.kc.GetUser(ctx, organizationId, accountId)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -170,7 +165,7 @@ func (u *AuthUsecase) FindPassword(ctx context.Context, code string, accountId s
 			Temporary: gocloak.BoolP(false),
 		},
 	}
-	if err = u.kc.UpdateUser(organizationId, originUser); err != nil {
+	if err = u.kc.UpdateUser(ctx, organizationId, originUser); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -178,15 +173,15 @@ func (u *AuthUsecase) FindPassword(ctx context.Context, code string, accountId s
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	message, err := mail.MakeTemporaryPasswordMessage(email, organizationId, accountId, randomPassword)
+	message, err := mail.MakeTemporaryPasswordMessage(ctx, email, organizationId, accountId, randomPassword)
 	if err != nil {
-		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		log.Errorf(ctx, "mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
 	mailer := mail.New(message)
 
-	if err := mailer.SendMail(); err != nil {
+	if err := mailer.SendMail(ctx); err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -216,7 +211,7 @@ func (u *AuthUsecase) VerifyIdentity(ctx context.Context, accountId string, emai
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
-	code, err := helper.GenerateEmailCode()
+	code, err := helper.GenerateEmailCode(ctx)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -231,16 +226,16 @@ func (u *AuthUsecase) VerifyIdentity(ctx context.Context, accountId string, emai
 		}
 	}
 
-	message, err := mail.MakeVerityIdentityMessage(email, code)
+	message, err := mail.MakeVerityIdentityMessage(ctx, email, code)
 	if err != nil {
-		log.Errorf("mail.MakeVerityIdentityMessage error. %v", err)
+		log.Errorf(ctx, "mail.MakeVerityIdentityMessage error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
 	mailer := mail.New(message)
 
-	if err := mailer.SendMail(); err != nil {
-		log.Errorf("mailer.SendMail error. %v", err)
+	if err := mailer.SendMail(ctx); err != nil {
+		log.Errorf(ctx, "mailer.SendMail error. %v", err)
 		return httpErrors.NewInternalServerError(err, "", "")
 	}
 
@@ -248,7 +243,7 @@ func (u *AuthUsecase) VerifyIdentity(ctx context.Context, accountId string, emai
 }
 
 func (u *AuthUsecase) SingleSignIn(ctx context.Context, organizationId, accountId, password string) ([]*http.Cookie, error) {
-	cookies, err := makingCookie(organizationId, accountId, password)
+	cookies, err := makingCookie(ctx, organizationId, accountId, password)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +314,7 @@ func (u *AuthUsecase) VerifyToken(ctx context.Context, token string) (bool, erro
 		return false, fmt.Errorf("organization is not found in token")
 	}
 
-	isActive, err := u.kc.VerifyAccessToken(token, org)
+	isActive, err := u.kc.VerifyAccessToken(ctx, token, org)
 	if err != nil {
 		return false, err
 	}
@@ -364,7 +359,7 @@ func extractFormAction(htmlContent string) (string, error) {
 	return f(doc), nil
 }
 
-func makingCookie(organizationId, userName, password string) ([]*http.Cookie, error) {
+func makingCookie(ctx context.Context, organizationId, userName, password string) ([]*http.Cookie, error) {
 	stateCode, err := genStateString()
 	if err != nil {
 		return nil, err
@@ -394,7 +389,7 @@ func makingCookie(organizationId, userName, password string) ([]*http.Cookie, er
 	req.Header.Add("Accept", "text/html")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorf("Error while creating new request: %v", err)
+		log.Errorf(ctx, "Error while creating new request: %v", err)
 		return nil, err
 	}
 	cookies := resp.Cookies()
@@ -410,7 +405,7 @@ func makingCookie(organizationId, userName, password string) ([]*http.Cookie, er
 
 	s, err := extractFormAction(htmlContent)
 	if err != nil {
-		log.Errorf("Error while creating new request: %v", err)
+		log.Errorf(ctx, "Error while creating new request: %v", err)
 		return nil, err
 	}
 

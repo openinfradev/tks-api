@@ -27,7 +27,7 @@ func init() {
 }
 
 func ErrorJSON(w http.ResponseWriter, r *http.Request, err error) {
-	log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+	log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 	errorResponse, status := httpErrors.ErrorResponse(err)
 	ResponseJSON(w, r, status, errorResponse)
 }

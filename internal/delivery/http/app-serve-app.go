@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -94,14 +95,14 @@ func NewAppServeAppHandler(h usecase.Usecase) *AppServeAppHandler {
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId"), "C_INVALID_PROJECT_ID", ""))
 		return
@@ -122,7 +123,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	log.Infof("Processing CREATE request for app '%s'...", app.Name)
+	log.Infof(r.Context(), "Processing CREATE request for app '%s'...", app.Name)
 
 	now := time.Now()
 	app.OrganizationId = organizationId
@@ -180,10 +181,10 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 			}
 		}
 
-		log.Infof("Created new namespace: %s", ns)
+		log.Infof(r.Context(), "Created new namespace: %s", ns)
 		app.Namespace = ns
 	} else {
-		log.Infof("Using existing namespace: %s", app.Namespace)
+		log.Infof(r.Context(), "Using existing namespace: %s", app.Namespace)
 	}
 
 	// Validate port param for springboot app
@@ -268,7 +269,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	out.AppServeApps = make([]domain.AppServeAppResponse, len(apps))
 	for i, app := range apps {
 		if err := serializer.Map(app, &out.AppServeApps[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -338,7 +339,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 
 	var out domain.GetAppServeAppResponse
 	if err := serializer.Map(app, &out.AppServeApp); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	// NOTE: makeStages function's been changed to use task instead of app
@@ -388,7 +389,7 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 
 	var out domain.GetAppServeAppTaskResponse
 	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -411,7 +412,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%s]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%s]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
 		return
@@ -478,7 +479,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	out.AppServeAppTasks = make([]domain.AppServeAppTaskResponse, len(tasks))
 	for i, task := range tasks {
 		if err := serializer.Map(task, &out.AppServeAppTasks[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -508,28 +509,28 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId: [%s]", organizationId), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
-	log.Debugf("appId = [%s]\n", appId)
+	log.Debugf(r.Context(), "appId = [%s]\n", appId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: [%s]", appId), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	taskId, ok := vars["taskId"]
-	log.Debugf("taskId = [%s]\n", taskId)
+	log.Debugf(r.Context(), "taskId = [%s]\n", taskId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid taskId: [%s]", taskId), "C_INVALID_ASA_TASK_ID", ""))
 		return
@@ -552,18 +553,18 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 
 	var out domain.GetAppServeAppTaskResponse
 	if err := serializer.Map(app, &out.AppServeApp); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
-	out.Stages = makeStages(task, app)
+	out.Stages = makeStages(r.Context(), task, app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-func makeStages(task *model.AppServeAppTask, app *model.AppServeApp) []domain.StageResponse {
+func makeStages(ctx context.Context, task *model.AppServeAppTask, app *model.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
 	var stage domain.StageResponse
@@ -592,20 +593,20 @@ func makeStages(task *model.AppServeAppTask, app *model.AppServeApp) []domain.St
 			pipelines = []string{"deploy", "promote"}
 		}
 	} else {
-		log.Error("Unexpected case happened while making stages!")
+		log.Error(ctx, "Unexpected case happened while making stages!")
 	}
 
 	fmt.Printf("Pipeline stages: %v\n", pipelines)
 
 	for _, pl := range pipelines {
-		stage = makeStage(task, app, pl)
+		stage = makeStage(ctx, task, app, pl)
 		stages = append(stages, stage)
 	}
 
 	return stages
 }
 
-func makeStage(task *model.AppServeAppTask, app *model.AppServeApp, pl string) domain.StageResponse {
+func makeStage(ctx context.Context, task *model.AppServeAppTask, app *model.AppServeApp, pl string) domain.StageResponse {
 	taskStatus := task.Status
 	strategy := task.Strategy
 
@@ -634,7 +635,7 @@ func makeStage(task *model.AppServeAppTask, app *model.AppServeApp, pl string) d
 				actions = append(actions, action)
 			}
 		} else {
-			log.Error("Not supported strategy!")
+			log.Error(ctx, "Not supported strategy!")
 		}
 
 	} else if stage.Status == "PROMOTE_WAIT" && strategy == "blue-green" {
