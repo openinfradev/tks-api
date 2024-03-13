@@ -12,20 +12,21 @@ import (
 type FilterFunc func(user *gorm.DB) *gorm.DB
 
 type Repository struct {
-	Auth          IAuthRepository
-	User          IUserRepository
-	Cluster       IClusterRepository
-	Organization  IOrganizationRepository
-	AppGroup      IAppGroupRepository
-	AppServeApp   IAppServeAppRepository
-	CloudAccount  ICloudAccountRepository
-	StackTemplate IStackTemplateRepository
-	Alert         IAlertRepository
-	Role          IRoleRepository
-	Permission    IPermissionRepository
-	Endpoint      IEndpointRepository
-	Project       IProjectRepository
-	Audit         IAuditRepository
+	Auth           IAuthRepository
+	User           IUserRepository
+	Cluster        IClusterRepository
+	Organization   IOrganizationRepository
+	AppGroup       IAppGroupRepository
+	AppServeApp    IAppServeAppRepository
+	CloudAccount   ICloudAccountRepository
+	StackTemplate  IStackTemplateRepository
+	Alert          IAlertRepository
+	Role           IRoleRepository
+	Permission     IPermissionRepository
+	Endpoint       IEndpointRepository
+	Project        IProjectRepository
+	Audit          IAuditRepository
+	PolicyTemplate IPolicyTemplateRepository
 }
 
 func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {

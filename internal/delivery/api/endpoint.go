@@ -185,4 +185,58 @@ const (
 
 	// Admin Project
 	Admin_GetProjects
+	// PolicyTemplate
+	ListPolicyTemplate
+	CreatePolicyTemplate
+	DeletePolicyTemplate
+	GetPolicyTemplate
+	UpdatePolicyTemplate
+	GetPolicyTemplateDeploy
+	ListPolicyTemplateStatistics
+	ListPolicyTemplateVersions
+	CreatePolicyTemplateVersion
+	DeletePolicyTemplateVersion
+	GetPolicyTemplateVersion
+	ExistsPolicyTemplateKind
+	ExistsPolicyTemplateName
+
+	// ClusterPolicyStatus
+	ListClusterPolicyStatus
+	GetClusterPolicyTemplateStatus
+	UpdateClusterPolicyTemplateStatus
+
+	// Policy
+	GetMandatoryPolicies
+	SetMandatoryPolicies
+	ListPolicy
+	CreatePolicy
+	DeletePolicy
+	GetPolicy
+	UpdatePolicy
+	UpdatePolicyTargetClusters
+	ExistsPolicyName
+
+	// OrganizationPolicyTemplate
+	ListOrganizationPolicyTemplate
+	CreateOrganizationPolicyTemplate
+	DeleteOrganizationPolicyTemplate
+	GetOrganizationPolicyTemplate
+	UpdateOrganizationPolicyTemplate
+	GetOrganizationPolicyTemplateDeploy
+	ListOrganizationPolicyTemplateStatistics
+	ListOrganizationPolicyTemplateVersions
+	CreateOrganizationPolicyTemplateVersion
+	DeleteOrganizationPolicyTemplateVersion
+	GetOrganizationPolicyTemplateVersion
+	ExistsOrganizationPolicyTemplateKind
+	ExistsOrganizationPolicyTemplateName
+
+	// PolicyTemplateExample
+	ListPolicyTemplateExample
+	GetPolicyTemplateExample
+	UpdatePolicyTemplateExample
+	DeletePolicyTemplateExample
+
+	// Utility
+	CompileRego
 )

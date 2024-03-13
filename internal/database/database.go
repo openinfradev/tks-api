@@ -186,5 +186,14 @@ func EnsureDefaultRows(db *gorm.DB) error {
 		return err
 	}
 
+	// PolicyTemplate
+	if err := db.AutoMigrate(&repository.PolicyTemplateSupportedVersion{}); err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&repository.PolicyTemplate{}); err != nil {
+		return err
+	}
+
 	return nil
 }
