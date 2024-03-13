@@ -33,3 +33,8 @@ func (c *StackTemplate) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = uuid.New()
 	return nil
 }
+
+type StackTemplateOrganization struct {
+	StackTemplateId uuid.UUID `gorm:"primarykey"`
+	OrganizationId  string    `gorm:"primarykey"`
+}

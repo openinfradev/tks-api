@@ -9281,9 +9281,6 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "creator": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -9306,9 +9303,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                },
-                "workflowId": {
                     "type": "string"
                 }
             }
@@ -9365,7 +9359,6 @@ const docTemplate = `{
                 }
             }
         },
-<<<<<<< Updated upstream
         "github_com_openinfradev_tks-api_pkg_domain.ParameterDef": {
             "type": "object",
             "properties": {
@@ -9389,10 +9382,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.Permission": {
-=======
         "github_com_openinfradev_tks-api_pkg_domain.PermissionResponse": {
->>>>>>> Stashed changes
             "type": "object",
             "properties": {
                 "ID": {
@@ -10022,20 +10012,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -10079,9 +10055,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse"
                 }
             }
         },

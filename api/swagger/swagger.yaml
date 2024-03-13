@@ -1802,8 +1802,6 @@ definitions:
     properties:
       createdAt:
         type: string
-      creator:
-        type: string
       description:
         type: string
       id:
@@ -1819,8 +1817,6 @@ definitions:
       statusDesc:
         type: string
       updatedAt:
-        type: string
-      workflowId:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus:
@@ -1862,7 +1858,6 @@ definitions:
       totalRows:
         type: integer
     type: object
-<<<<<<< Updated upstream
   github_com_openinfradev_tks-api_pkg_domain.ParameterDef:
     properties:
       children:
@@ -1878,10 +1873,7 @@ definitions:
       type:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Permission:
-=======
   github_com_openinfradev_tks-api_pkg_domain.PermissionResponse:
->>>>>>> Stashed changes
     properties:
       ID:
         type: string
@@ -2302,15 +2294,6 @@ definitions:
       name:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse:
-    properties:
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse:
     properties:
       cloudService:
@@ -2340,8 +2323,6 @@ definitions:
         type: string
       name:
         type: string
-      role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.StackConfResponse:
     properties:

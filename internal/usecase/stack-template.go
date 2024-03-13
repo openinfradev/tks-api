@@ -17,6 +17,7 @@ import (
 type IStackTemplateUsecase interface {
 	Get(ctx context.Context, stackTemplateId uuid.UUID) (model.StackTemplate, error)
 	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.StackTemplate, error)
+	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.StackTemplate, error)
 	Create(ctx context.Context, dto model.StackTemplate) (stackTemplate uuid.UUID, err error)
 	Update(ctx context.Context, dto model.StackTemplate) error
 	Delete(ctx context.Context, dto model.StackTemplate) error
@@ -100,6 +101,14 @@ func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplateId uuid.UUI
 
 func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (res []model.StackTemplate, err error) {
 	res, err = u.repo.Fetch(pg)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (u *StackTemplateUsecase) FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (res []model.StackTemplate, err error) {
+	res, err = u.repo.FetchWithOrganization(organizationId, pg)
 	if err != nil {
 		return nil, err
 	}

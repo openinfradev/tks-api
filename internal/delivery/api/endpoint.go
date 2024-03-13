@@ -102,6 +102,8 @@ const (
 	Admin_UpdateStackTemplate
 	Admin_DeleteStackTemplate
 	Admin_UpdateStackTemplateOrganizations
+	GetOrganizationStackTemplates
+	GetOrganizationStackTemplate
 
 	// Dashboard
 	GetChartsDashboard    // 대시보드/대시보드/조회

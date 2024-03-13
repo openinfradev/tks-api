@@ -13,6 +13,7 @@ import (
 type IStackTemplateRepository interface {
 	Get(stackTemplateId uuid.UUID) (model.StackTemplate, error)
 	Fetch(pg *pagination.Pagination) ([]model.StackTemplate, error)
+	FetchWithOrganization(organizationId string, pg *pagination.Pagination) (out []model.StackTemplate, err error)
 	Create(dto model.StackTemplate) (stackTemplateId uuid.UUID, err error)
 	Update(dto model.StackTemplate) (err error)
 	Delete(dto model.StackTemplate) (err error)
@@ -44,6 +45,21 @@ func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []model.
 	}
 
 	_, res := pg.Fetch(r.db.Preload(clause.Associations), &out)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return
+}
+
+func (r *StackTemplateRepository) FetchWithOrganization(organizationId string, pg *pagination.Pagination) (out []model.StackTemplate, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+
+	_, res := pg.Fetch(
+		r.db.Preload(clause.Associations).
+			Joins("JOIN stack_template_organizations ON stack_template_organizations.stack_template_id = stack_templates.id AND stack_template_organizations.organization_id = ?", organizationId),
+		&out)
 	if res.Error != nil {
 		return nil, res.Error
 	}

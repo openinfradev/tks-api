@@ -316,6 +316,7 @@ func getField(field string, sch *schema.Schema, blacklist *Blacklist) (*schema.F
 			if !ok || (relation.Type != schema.HasOne && relation.Type != schema.BelongsTo) {
 				return nil, nil, ""
 			}
+
 			s = relation.FieldSchema
 			if blacklist != nil {
 				blacklist = blacklist.Relations[v]

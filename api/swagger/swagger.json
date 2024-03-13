@@ -9275,9 +9275,6 @@
                 "createdAt": {
                     "type": "string"
                 },
-                "creator": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -9300,9 +9297,6 @@
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                },
-                "workflowId": {
                     "type": "string"
                 }
             }
@@ -9359,7 +9353,6 @@
                 }
             }
         },
-<<<<<<< Updated upstream
         "github_com_openinfradev_tks-api_pkg_domain.ParameterDef": {
             "type": "object",
             "properties": {
@@ -9383,10 +9376,7 @@
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.Permission": {
-=======
         "github_com_openinfradev_tks-api_pkg_domain.PermissionResponse": {
->>>>>>> Stashed changes
             "type": "object",
             "properties": {
                 "ID": {
@@ -10016,20 +10006,6 @@
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -10073,9 +10049,6 @@
                 },
                 "name": {
                     "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse"
                 }
             }
         },

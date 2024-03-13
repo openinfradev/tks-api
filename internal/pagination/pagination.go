@@ -86,6 +86,10 @@ func (p *Pagination) GetFilters() []Filter {
 	return p.Filters
 }
 
+func (p *Pagination) AddFilter(f Filter) {
+	p.Filters = append(p.Filters, f)
+}
+
 func (p *Pagination) MakePaginationRequest() {
 	if p.PaginationRequest == nil {
 		p.PaginationRequest = &goyave.Request{}
@@ -116,9 +120,11 @@ func (p *Pagination) MakePaginationRequest() {
 	}
 	pgSorts = append(pgSorts, &pgSort)
 
+	pgJoins := filter.Join{}
+
 	p.PaginationRequest.Data = map[string]interface{}{
-		"filter": pgFilters,
-		//"join":     pgJoins,
+		"filter":   pgFilters,
+		"join":     pgJoins,
 		"page":     p.Page,
 		"per_page": p.Limit,
 		"sort":     pgSorts,

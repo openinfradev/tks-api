@@ -187,6 +187,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}/organizations", customMiddleware.Handle(internalApi.Admin_UpdateStackTemplateOrganizations, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplateOrganizations))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdateStackTemplate, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_DeleteStackTemplate, http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates", customMiddleware.Handle(internalApi.GetOrganizationStackTemplates, http.HandlerFunc(stackTemplateHandler.GetOrganizationStackTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.GetOrganizationStackTemplate, http.HandlerFunc(stackTemplateHandler.GetOrganizationStackTemplate))).Methods(http.MethodGet)
 
 	dashboardHandler := delivery.NewDashboardHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", customMiddleware.Handle(internalApi.GetChartsDashboard, http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)
