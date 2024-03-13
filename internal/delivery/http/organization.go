@@ -217,7 +217,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
-//	@Success		200				{object}	nil
+//	@Success		200				{object}	DeleteOrganizationResponse
 //	@Router			/organizations/{organizationId} [delete]
 //	@Security		JWT
 func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
@@ -254,7 +254,10 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, nil)
+	out := domain.DeleteOrganizationResponse{
+		ID: organizationId,
+	}
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // UpdateOrganization godoc

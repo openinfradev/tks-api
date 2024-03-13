@@ -131,3 +131,7 @@ type GetCloudAccountResourceQuotaResponse struct {
 	Available     bool          `json:"available"`
 	ResourceQuota ResourceQuota `json:"resourceQuota"`
 }
+
+type DeleteCloudAccountResponse struct {
+	ID string `json:"id"`
+}

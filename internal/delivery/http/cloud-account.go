@@ -296,7 +296,11 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, nil)
+	out := domain.DeleteCloudAccountResponse{
+		ID: cloudAccountId,
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // CheckCloudAccountName godoc

@@ -123,3 +123,7 @@ type UpdateOrganizationResponse struct {
 type UpdatePrimaryClusterRequest struct {
 	PrimaryClusterId string `json:"primaryClusterId"`
 }
+
+type DeleteOrganizationResponse struct {
+	ID string `json:"id"`
+}
