@@ -9,6 +9,8 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gorm.io/gorm"
 
 	"goyave.dev/goyave/v4"
@@ -212,7 +214,7 @@ func NewPagination(urlParams *url.Values) *Pagination {
 						releation := ""
 						arrColumns := strings.Split(column, ".")
 						if len(arrColumns) > 1 {
-							releation = arrColumns[0]
+							releation = cases.Title(language.English, cases.Compact).String(arrColumns[0])
 							column = arrColumns[1]
 						}
 

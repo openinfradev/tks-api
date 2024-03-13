@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -46,7 +47,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var dto domain.StackTemplate
+	var dto model.StackTemplate
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -192,7 +193,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var dto domain.StackTemplate
+	var dto model.StackTemplate
 	if err := serializer.Map(r, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -287,7 +288,7 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 		return
 	}
 
-	var dto domain.StackTemplate
+	var dto model.StackTemplate
 	if err := serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}

@@ -330,6 +330,7 @@ func getField(field string, sch *schema.Schema, blacklist *Blacklist) (*schema.F
 	if !ok {
 		return nil, nil, ""
 	}
+
 	return col, s, joinName
 }
 

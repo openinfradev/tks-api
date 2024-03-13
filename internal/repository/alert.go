@@ -4,27 +4,25 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IAlertRepository interface {
-	Get(alertId uuid.UUID) (domain.Alert, error)
-	GetByName(organizationId string, name string) (domain.Alert, error)
-	Fetch(organizationId string, pg *pagination.Pagination) ([]domain.Alert, error)
-	FetchPodRestart(organizationId string, start time.Time, end time.Time) ([]domain.Alert, error)
-	Create(dto domain.Alert) (alertId uuid.UUID, err error)
-	Update(dto domain.Alert) (err error)
-	Delete(dto domain.Alert) (err error)
+	Get(alertId uuid.UUID) (model.Alert, error)
+	GetByName(organizationId string, name string) (model.Alert, error)
+	Fetch(organizationId string, pg *pagination.Pagination) ([]model.Alert, error)
+	FetchPodRestart(organizationId string, start time.Time, end time.Time) ([]model.Alert, error)
+	Create(dto model.Alert) (alertId uuid.UUID, err error)
+	Update(dto model.Alert) (err error)
+	Delete(dto model.Alert) (err error)
 
-	CreateAlertAction(dto domain.AlertAction) (alertActionId uuid.UUID, err error)
+	CreateAlertAction(dto model.AlertAction) (alertActionId uuid.UUID, err error)
 }
 
 type AlertRepository struct {
@@ -37,114 +35,55 @@ func NewAlertRepository(db *gorm.DB) IAlertRepository {
 	}
 }
 
-// Models
-type Alert struct {
-	gorm.Model
-
-	ID             uuid.UUID `gorm:"primarykey"`
-	OrganizationId string
-	Organization   domain.Organization `gorm:"foreignKey:OrganizationId"`
-	Name           string
-	Code           string
-	Description    string
-	Grade          string
-	Message        string
-	ClusterId      domain.ClusterId
-	Cluster        Cluster `gorm:"foreignKey:ClusterId"`
-	Node           string
-	CheckPoint     string
-	GrafanaUrl     string
-	Summary        string
-	AlertActions   []AlertAction
-	RawData        datatypes.JSON
-	Status         domain.AlertActionStatus `gorm:"index"`
-}
-
-func (c *Alert) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
-type AlertAction struct {
-	gorm.Model
-
-	ID      uuid.UUID `gorm:"primarykey"`
-	AlertId uuid.UUID
-	Content string
-	Status  domain.AlertActionStatus
-	TakerId *uuid.UUID  `gorm:"type:uuid"`
-	Taker   domain.User `gorm:"foreignKey:TakerId"`
-}
-
-func (c *AlertAction) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
 // Logics
-func (r *AlertRepository) Get(alertId uuid.UUID) (out domain.Alert, err error) {
-	var alert Alert
-	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&alert, "id = ?", alertId)
+func (r *AlertRepository) Get(alertId uuid.UUID) (out model.Alert, err error) {
+	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&out, "id = ?", alertId)
 	if res.Error != nil {
-		return domain.Alert{}, res.Error
+		return model.Alert{}, res.Error
 	}
-	out = reflectAlert(alert)
 	return
 }
 
-func (r *AlertRepository) GetByName(organizationId string, name string) (out domain.Alert, err error) {
-	var alert Alert
-	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&alert, "organization_id = ? AND name = ?", organizationId, name)
-
+func (r *AlertRepository) GetByName(organizationId string, name string) (out model.Alert, err error) {
+	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
 	if res.Error != nil {
-		return domain.Alert{}, res.Error
+		return model.Alert{}, res.Error
 	}
-	out = reflectAlert(alert)
 	return
 }
 
-func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []domain.Alert, err error) {
-	var alerts []Alert
+func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []model.Alert, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Model(&Alert{}).
+	_, res := pg.Fetch(r.db.Model(&model.Alert{}).
 		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")
 		}).Preload("AlertActions.Taker").
 		Preload("Cluster", "status = 2").
 		Preload("Organization").
 		Joins("join clusters on clusters.id = alerts.cluster_id AND clusters.status = 2").
-		Where("alerts.organization_id = ?", organizationId), &alerts)
+		Where("alerts.organization_id = ?", organizationId), &out)
 
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
-	for _, alert := range alerts {
-		out = append(out, reflectAlert(alert))
-	}
 	return
 }
 
-func (r *AlertRepository) FetchPodRestart(organizationId string, start time.Time, end time.Time) (out []domain.Alert, err error) {
-	var alerts []Alert
+func (r *AlertRepository) FetchPodRestart(organizationId string, start time.Time, end time.Time) (out []model.Alert, err error) {
 	res := r.db.Preload(clause.Associations).Order("created_at DESC").
 		Where("organization_id = ? AND name = 'pod-restart-frequently' AND created_at BETWEEN ? AND ?", organizationId, start, end).
-		Find(&alerts)
+		Find(&out)
 	if res.Error != nil {
 		return nil, res.Error
-	}
-
-	for _, alert := range alerts {
-		out = append(out, reflectAlert(alert))
 	}
 	return
 }
 
-func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error) {
-	alert := Alert{
+func (r *AlertRepository) Create(dto model.Alert) (alertId uuid.UUID, err error) {
+	alert := model.Alert{
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
 		Code:           dto.Code,
@@ -166,8 +105,8 @@ func (r *AlertRepository) Create(dto domain.Alert) (alertId uuid.UUID, err error
 	return alert.ID, nil
 }
 
-func (r *AlertRepository) Update(dto domain.Alert) (err error) {
-	res := r.db.Model(&Alert{}).
+func (r *AlertRepository) Update(dto model.Alert) (err error) {
+	res := r.db.Model(&model.Alert{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{"Description": dto.Description})
 	if res.Error != nil {
@@ -176,16 +115,16 @@ func (r *AlertRepository) Update(dto domain.Alert) (err error) {
 	return nil
 }
 
-func (r *AlertRepository) Delete(dto domain.Alert) (err error) {
-	res := r.db.Delete(&Alert{}, "id = ?", dto.ID)
+func (r *AlertRepository) Delete(dto model.Alert) (err error) {
+	res := r.db.Delete(&model.Alert{}, "id = ?", dto.ID)
 	if res.Error != nil {
 		return res.Error
 	}
 	return nil
 }
 
-func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
-	alert := AlertAction{
+func (r *AlertRepository) CreateAlertAction(dto model.AlertAction) (alertActionId uuid.UUID, err error) {
+	alert := model.AlertAction{
 		AlertId: dto.AlertId,
 		Content: dto.Content,
 		Status:  dto.Status,
@@ -195,7 +134,7 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
-	res = r.db.Model(&Alert{}).
+	res = r.db.Model(&model.Alert{}).
 		Where("id = ?", dto.AlertId).
 		Update("status", dto.Status)
 	if res.Error != nil {
@@ -203,26 +142,4 @@ func (r *AlertRepository) CreateAlertAction(dto domain.AlertAction) (alertAction
 	}
 
 	return alert.ID, nil
-}
-
-func reflectAlert(alert Alert) (out domain.Alert) {
-	if err := serializer.Map(alert.Model, &out); err != nil {
-		log.Error(err)
-	}
-	if err := serializer.Map(alert, &out); err != nil {
-		log.Error(err)
-	}
-
-	out.AlertActions = make([]domain.AlertAction, len(alert.AlertActions))
-	for i, alertAction := range alert.AlertActions {
-		if err := serializer.Map(alertAction.Model, &out.AlertActions[i]); err != nil {
-			log.Error(err)
-			continue
-		}
-		if err := serializer.Map(alertAction, &out.AlertActions[i]); err != nil {
-			log.Error(err)
-			continue
-		}
-	}
-	return
 }

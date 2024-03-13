@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -26,8 +27,8 @@ import (
 )
 
 type IDashboardUsecase interface {
-	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
-	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
+	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []model.DashboardChart, err error)
+	GetStacks(ctx context.Context, organizationId string) (out []model.DashboardStack, err error)
 	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
 }
 
@@ -49,7 +50,7 @@ func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboar
 	}
 }
 
-func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {
+func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []model.DashboardChart, err error) {
 	_, err = u.organizationRepo.Get(organizationId)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid organization")
@@ -71,7 +72,7 @@ func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string,
 	return
 }
 
-func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error) {
+func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string) (out []model.DashboardStack, err error) {
 	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
 	if err != nil {
 		return out, err
@@ -103,7 +104,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 			return nil, err
 		}
 		stack := reflectClusterToStack(cluster, appGroups)
-		dashboardStack := domain.DashboardStack{}
+		dashboardStack := model.DashboardStack{}
 		if err := serializer.Map(stack, &dashboardStack); err != nil {
 			log.InfoWithContext(ctx, err)
 		}
@@ -153,11 +154,11 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 		return out, err
 	}
 
-	filteredClusters := funk.Filter(clusters, func(x domain.Cluster) bool {
+	filteredClusters := funk.Filter(clusters, func(x model.Cluster) bool {
 		return x.Status != domain.ClusterStatus_DELETED
 	})
 	if filteredClusters != nil {
-		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]domain.Cluster)))
+		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]model.Cluster)))
 	} else {
 		out.Stack = "0 개"
 	}
@@ -221,7 +222,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	return
 }
 
-func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res domain.DashboardChart, err error) {
+func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartType string, duration string, interval string, year string, month string) (res model.DashboardChart, err error) {
 	thanosUrl, err := u.getThanosUrl(organizationId)
 	if err != nil {
 		log.Error(err)
@@ -326,7 +327,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 		chartData.YAxis = nil
 		chartData.PodCounts = podCounts
 
-		return domain.DashboardChart{
+		return model.DashboardChart{
 			ChartType:      domain.ChartType_POD_CALENDAR,
 			OrganizationId: organizationId,
 			Name:           "POD 기동 현황",
@@ -337,7 +338,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 			UpdatedAt:      time.Now(),
 		}, nil
 	default:
-		return domain.DashboardChart{}, fmt.Errorf("No data")
+		return model.DashboardChart{}, fmt.Errorf("No data")
 	}
 
 	result, err := thanosClient.FetchRange(query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
@@ -388,7 +389,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(organizationId string, chartTy
 	chartData.XAxis = &domain.Axis{}
 	chartData.XAxis.Data = xAxisData
 
-	return domain.DashboardChart{
+	return model.DashboardChart{
 		ChartType:      new(domain.ChartType).FromString(chartType),
 		OrganizationId: organizationId,
 		Name:           chartType,
