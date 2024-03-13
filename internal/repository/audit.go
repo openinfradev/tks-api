@@ -14,7 +14,7 @@ import (
 // Interfaces
 type IAuditRepository interface {
 	Get(auditId uuid.UUID) (model.Audit, error)
-	Fetch(organizationId string, pg *pagination.Pagination) ([]model.Audit, error)
+	Fetch(pg *pagination.Pagination) ([]model.Audit, error)
 	Create(dto model.Audit) (auditId uuid.UUID, err error)
 	Delete(auditId uuid.UUID) (err error)
 }
@@ -38,12 +38,12 @@ func (r *AuditRepository) Get(auditId uuid.UUID) (out model.Audit, err error) {
 	return
 }
 
-func (r *AuditRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []model.Audit, err error) {
+func (r *AuditRepository) Fetch(pg *pagination.Pagination) (out []model.Audit, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	db := r.db.Model(&model.Audit{}).Preload(clause.Associations).Where("audits.organization_id = ?", organizationId)
+	db := r.db.Model(&model.Audit{}).Preload(clause.Associations)
 	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
 		return nil, res.Error

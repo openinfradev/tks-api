@@ -13,7 +13,7 @@ import (
 
 type IAuditUsecase interface {
 	Get(ctx context.Context, auditId uuid.UUID) (model.Audit, error)
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.Audit, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.Audit, error)
 	Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error)
 	Delete(ctx context.Context, dto model.Audit) error
 }
@@ -51,8 +51,8 @@ func (u *AuditUsecase) Get(ctx context.Context, auditId uuid.UUID) (res model.Au
 	return
 }
 
-func (u *AuditUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (audits []model.Audit, err error) {
-	audits, err = u.repo.Fetch(organizationId, pg)
+func (u *AuditUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (audits []model.Audit, err error) {
+	audits, err = u.repo.Fetch(pg)
 	if err != nil {
 		return nil, err
 	}

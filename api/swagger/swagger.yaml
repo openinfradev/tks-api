@@ -2925,6 +2925,120 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/audits:
+    get:
+      consumes:
+      - application/json
+      description: Get Audits
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filter
+        type: array
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: or
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse'
+      security:
+      - JWT: []
+      summary: Get Audits
+      tags:
+      - Audits
+    post:
+      consumes:
+      - application/json
+      description: Create Audit
+      parameters:
+      - description: create audit request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse'
+      security:
+      - JWT: []
+      summary: Create Audit
+      tags:
+      - Audits
+  /admin/audits/{auditId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Audit
+      parameters:
+      - description: auditId
+        in: path
+        name: auditId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Audit 'NOT IMPLEMENTED'
+      tags:
+      - Audits
+    get:
+      consumes:
+      - application/json
+      description: Get Audit
+      parameters:
+      - description: auditId
+        in: path
+        name: auditId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse'
+      security:
+      - JWT: []
+      summary: Get Audit
+      tags:
+      - Audits
   /admin/organizations/{organizationId}/projects:
     get:
       consumes:
@@ -3441,7 +3555,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse'
       security:
       - JWT: []
-      summary: Create StackTemplate 'NOT IMPLEMENTED'
+      summary: Create StackTemplate
       tags:
       - StackTemplates
   /admin/stack-templates/{stackTemplateId}:
@@ -3462,7 +3576,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Delete StackTemplate 'NOT IMPLEMENTED'
+      summary: Delete StackTemplate
       tags:
       - StackTemplates
     get:
@@ -3505,7 +3619,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Update StackTemplate 'NOT IMPLEMENTED'
+      summary: Update StackTemplate
       tags:
       - StackTemplates
   /admin/stack-templates/{stackTemplateId}/organizations:
@@ -4397,120 +4511,6 @@ paths:
       summary: Create alert action
       tags:
       - Alerts
-  /organizations/{organizationId}/audits:
-    get:
-      consumes:
-      - application/json
-      description: Get Audits
-      parameters:
-      - description: pageSize
-        in: query
-        name: limit
-        type: string
-      - description: pageNumber
-        in: query
-        name: page
-        type: string
-      - description: sortColumn
-        in: query
-        name: soertColumn
-        type: string
-      - description: sortOrder
-        in: query
-        name: sortOrder
-        type: string
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: filter
-        type: array
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: or
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse'
-      security:
-      - JWT: []
-      summary: Get Audits
-      tags:
-      - Audits
-    post:
-      consumes:
-      - application/json
-      description: Create Audit
-      parameters:
-      - description: create audit request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse'
-      security:
-      - JWT: []
-      summary: Create Audit
-      tags:
-      - Audits
-  /organizations/{organizationId}/audits/{auditId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete Audit
-      parameters:
-      - description: auditId
-        in: path
-        name: auditId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Delete Audit 'NOT IMPLEMENTED'
-      tags:
-      - Audits
-    get:
-      consumes:
-      - application/json
-      description: Get Audit
-      parameters:
-      - description: auditId
-        in: path
-        name: auditId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse'
-      security:
-      - JWT: []
-      summary: Get Audit
-      tags:
-      - Audits
   /organizations/{organizationId}/cloud-accounts:
     get:
       consumes:

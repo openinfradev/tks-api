@@ -31,7 +31,7 @@ func NewStackTemplateHandler(h usecase.Usecase) *StackTemplateHandler {
 // CreateStackTemplate godoc
 //
 //	@Tags			StackTemplates
-//	@Summary		Create StackTemplate 'NOT IMPLEMENTED'
+//	@Summary		Create StackTemplate
 //	@Description	Create StackTemplate
 //	@Accept			json
 //	@Produce		json
@@ -171,7 +171,7 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 // UpdateStackTemplate godoc
 //
 //	@Tags			StackTemplates
-//	@Summary		Update StackTemplate 'NOT IMPLEMENTED'
+//	@Summary		Update StackTemplate
 //	@Description	Update StackTemplate
 //	@Accept			json
 //	@Produce		json
@@ -210,7 +210,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 // DeleteStackTemplate godoc
 //
 //	@Tags			StackTemplates
-//	@Summary		Delete StackTemplate 'NOT IMPLEMENTED'
+//	@Summary		Delete StackTemplate
 //	@Description	Delete StackTemplate
 //	@Accept			json
 //	@Produce		json
