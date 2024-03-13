@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -153,11 +154,11 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 		return out, err
 	}
 
-	filteredClusters := funk.Filter(clusters, func(x domain.Cluster) bool {
+	filteredClusters := funk.Filter(clusters, func(x model.Cluster) bool {
 		return x.Status != domain.ClusterStatus_DELETED
 	})
 	if filteredClusters != nil {
-		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]domain.Cluster)))
+		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]model.Cluster)))
 	} else {
 		out.Stack = "0 개"
 	}

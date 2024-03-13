@@ -3,7 +3,6 @@ package domain
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
@@ -81,34 +80,6 @@ func (m ClusterType) FromString(s string) ClusterType {
 		}
 	}
 	return ClusterType_USER
-}
-
-// model
-type Cluster struct {
-	ID                     ClusterId
-	CloudService           string
-	OrganizationId         string
-	Name                   string
-	Description            string
-	CloudAccountId         uuid.UUID
-	CloudAccount           CloudAccount
-	StackTemplateId        uuid.UUID
-	StackTemplate          StackTemplate
-	Status                 ClusterStatus
-	StatusDesc             string
-	Conf                   ClusterConf
-	Favorited              bool
-	CreatorId              *uuid.UUID
-	Creator                User
-	ClusterType            ClusterType
-	UpdatorId              *uuid.UUID
-	Updator                User
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
-	ByoClusterEndpointHost string
-	ByoClusterEndpointPort int
-	IsStack                bool
-	Kubeconfig             []byte
 }
 
 type ClusterConf struct {
@@ -239,6 +210,7 @@ type ClusterResponse struct {
 	ByoClusterEndpointHost string                      `json:"byoClusterEndpointHost,omitempty"`
 	ByoClusterEndpointInt  int                         `json:"byoClusterEndpointPort,omitempty"`
 	IsStack                bool                        `json:"isStack,omitempty"`
+	Favorited              bool                        `json:"favorited,omitempty"`
 }
 
 type SimpleClusterResponse struct {

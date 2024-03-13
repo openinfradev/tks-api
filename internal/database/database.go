@@ -14,7 +14,6 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
-	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 func InitDB() (*gorm.DB, error) {
@@ -60,68 +59,68 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&repository.CacheEmailCode{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&domain.User{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&domain.Role{}); err != nil {
+	if err := db.AutoMigrate(&model.Role{}); err != nil {
 		return err
 	}
 
 	// Organization
-	if err := db.AutoMigrate(&domain.Organization{}); err != nil {
+	if err := db.AutoMigrate(&model.Organization{}); err != nil {
 		return err
 	}
 
 	// CloudAccount
-	if err := db.AutoMigrate(&repository.CloudAccount{}); err != nil {
+	if err := db.AutoMigrate(&model.CloudAccount{}); err != nil {
 		return err
 	}
 
 	// StackTemplate
-	if err := db.AutoMigrate(&repository.StackTemplate{}); err != nil {
+	if err := db.AutoMigrate(&model.StackTemplate{}); err != nil {
 		return err
 	}
 
 	// Cluster
-	if err := db.AutoMigrate(&repository.Cluster{}); err != nil {
+	if err := db.AutoMigrate(&model.Cluster{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.ClusterFavorite{}); err != nil {
+	if err := db.AutoMigrate(&model.ClusterFavorite{}); err != nil {
 		return err
 	}
 
 	// Services
-	if err := db.AutoMigrate(&repository.AppGroup{}); err != nil {
+	if err := db.AutoMigrate(&model.AppGroup{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.Application{}); err != nil {
+	if err := db.AutoMigrate(&model.Application{}); err != nil {
 		return err
 	}
 
 	// AppServe
-	if err := db.AutoMigrate(&domain.AppServeApp{}); err != nil {
+	if err := db.AutoMigrate(&model.AppServeApp{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&domain.AppServeAppTask{}); err != nil {
+	if err := db.AutoMigrate(&model.AppServeAppTask{}); err != nil {
 		return err
 	}
 
 	// Alert
-	if err := db.AutoMigrate(&repository.Alert{}); err != nil {
+	if err := db.AutoMigrate(&model.Alert{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.AlertAction{}); err != nil {
+	if err := db.AutoMigrate(&model.AlertAction{}); err != nil {
 		return err
 	}
 
 	// Role
-	if err := db.AutoMigrate(&domain.Role{}); err != nil {
+	if err := db.AutoMigrate(&model.Role{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&domain.Permission{}); err != nil {
+	if err := db.AutoMigrate(&model.Permission{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&domain.Endpoint{}); err != nil {
+	if err := db.AutoMigrate(&model.Endpoint{}); err != nil {
 		return err
 	}
 
@@ -136,6 +135,20 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 	if err := db.AutoMigrate(&model.ProjectRole{}); err != nil {
+		return err
+	}
+
+	// Audit
+	if err := db.AutoMigrate(&model.Audit{}); err != nil {
+		return err
+	}
+
+	// PolicyTemplate
+	if err := db.AutoMigrate(&model.PolicyTemplateSupportedVersion{}); err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&model.PolicyTemplate{}); err != nil {
 		return err
 	}
 
@@ -172,27 +185,13 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	}
 	for _, ep := range api.ApiMap {
 		if _, ok := storedEps[ep.Name]; !ok {
-			if err := repoFactory.Endpoint.Create(&domain.Endpoint{
+			if err := repoFactory.Endpoint.Create(&model.Endpoint{
 				Name:  ep.Name,
 				Group: ep.Group,
 			}); err != nil {
 				return err
 			}
 		}
-	}
-
-	// Audit
-	if err := db.AutoMigrate(&repository.Audit{}); err != nil {
-		return err
-	}
-
-	// PolicyTemplate
-	if err := db.AutoMigrate(&repository.PolicyTemplateSupportedVersion{}); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&repository.PolicyTemplate{}); err != nil {
-		return err
 	}
 
 	return nil

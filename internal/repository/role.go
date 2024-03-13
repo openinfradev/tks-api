@@ -2,29 +2,30 @@ package repository
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/pkg/domain"
-	"gorm.io/gorm"
 	"math"
+
+	"github.com/openinfradev/tks-api/internal/model"
+	"github.com/openinfradev/tks-api/internal/pagination"
+	"gorm.io/gorm"
 )
 
 type IRoleRepository interface {
-	Create(roleObj *domain.Role) (string, error)
-	List(pg *pagination.Pagination) ([]*domain.Role, error)
-	ListTksRoles(organizationId string, pg *pagination.Pagination) ([]*domain.Role, error)
-	Get(id string) (*domain.Role, error)
-	GetTksRole(id string) (*domain.Role, error)
-	GetTksRoleByRoleName(roleName string) (*domain.Role, error)
+	Create(roleObj *model.Role) (string, error)
+	List(pg *pagination.Pagination) ([]*model.Role, error)
+	ListTksRoles(organizationId string, pg *pagination.Pagination) ([]*model.Role, error)
+	Get(id string) (*model.Role, error)
+	GetTksRole(id string) (*model.Role, error)
+	GetTksRoleByRoleName(roleName string) (*model.Role, error)
 	Delete(id string) error
-	Update(roleObj *domain.Role) error
+	Update(roleObj *model.Role) error
 }
 
 type RoleRepository struct {
 	db *gorm.DB
 }
 
-func (r RoleRepository) GetTksRoleByRoleName(roleName string) (*domain.Role, error) {
-	var role domain.Role
+func (r RoleRepository) GetTksRoleByRoleName(roleName string) (*model.Role, error) {
+	var role model.Role
 	if err := r.db.Preload("Role").First(&role, "Role.name = ?", roleName).Error; err != nil {
 		return nil, err
 	}
@@ -32,7 +33,7 @@ func (r RoleRepository) GetTksRoleByRoleName(roleName string) (*domain.Role, err
 	return &role, nil
 }
 
-func (r RoleRepository) Create(roleObj *domain.Role) (string, error) {
+func (r RoleRepository) Create(roleObj *model.Role) (string, error) {
 	if roleObj == nil {
 		return "", fmt.Errorf("roleObj is nil")
 	}
@@ -43,14 +44,14 @@ func (r RoleRepository) Create(roleObj *domain.Role) (string, error) {
 	return roleObj.ID, nil
 }
 
-func (r RoleRepository) List(pg *pagination.Pagination) ([]*domain.Role, error) {
-	var roles []*domain.Role
+func (r RoleRepository) List(pg *pagination.Pagination) ([]*model.Role, error) {
+	var roles []*model.Role
 
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&domain.Role{}))
+	db := filterFunc(r.db.Model(&model.Role{}))
 
 	db.Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
@@ -65,14 +66,14 @@ func (r RoleRepository) List(pg *pagination.Pagination) ([]*domain.Role, error) 
 	return roles, nil
 }
 
-func (r RoleRepository) ListTksRoles(organizationId string, pg *pagination.Pagination) ([]*domain.Role, error) {
-	var roles []*domain.Role
+func (r RoleRepository) ListTksRoles(organizationId string, pg *pagination.Pagination) ([]*model.Role, error) {
+	var roles []*model.Role
 
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&domain.Role{}))
+	db := filterFunc(r.db.Model(&model.Role{}))
 
 	db.Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
@@ -91,8 +92,8 @@ func (r RoleRepository) ListTksRoles(organizationId string, pg *pagination.Pagin
 	return roles, nil
 }
 
-func (r RoleRepository) Get(id string) (*domain.Role, error) {
-	var role domain.Role
+func (r RoleRepository) Get(id string) (*model.Role, error) {
+	var role model.Role
 	if err := r.db.First(&role, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
@@ -100,8 +101,8 @@ func (r RoleRepository) Get(id string) (*domain.Role, error) {
 	return &role, nil
 }
 
-func (r RoleRepository) GetTksRole(id string) (*domain.Role, error) {
-	var role domain.Role
+func (r RoleRepository) GetTksRole(id string) (*model.Role, error) {
+	var role model.Role
 	if err := r.db.First(&role, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
@@ -109,12 +110,12 @@ func (r RoleRepository) GetTksRole(id string) (*domain.Role, error) {
 	return &role, nil
 }
 
-func (r RoleRepository) Update(roleObj *domain.Role) error {
+func (r RoleRepository) Update(roleObj *model.Role) error {
 	if roleObj == nil {
 		return fmt.Errorf("roleObj is nil")
 	}
 
-	err := r.db.Model(&domain.Role{}).Where("id = ?", roleObj.ID).Updates(domain.Role{
+	err := r.db.Model(&model.Role{}).Where("id = ?", roleObj.ID).Updates(model.Role{
 		Name:        roleObj.Name,
 		Description: roleObj.Description,
 	}).Error
@@ -127,7 +128,7 @@ func (r RoleRepository) Update(roleObj *domain.Role) error {
 }
 
 func (r RoleRepository) Delete(id string) error {
-	if err := r.db.Delete(&domain.Role{}, "id = ?", id).Error; err != nil {
+	if err := r.db.Delete(&model.Role{}, "id = ?", id).Error; err != nil {
 		return err
 	}
 

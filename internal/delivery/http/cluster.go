@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -58,6 +58,13 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 			log.InfoWithContext(r.Context(), err)
 			continue
 		}
+
+		if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+			out.Clusters[i].Favorited = true
+		} else {
+			out.Clusters[i].Favorited = false
+		}
+
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
@@ -75,7 +82,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			clusterId	path		string	true	"clusterId"
-//	@Success		200			{object}	domain.Cluster
+//	@Success		200			{object}	domain.GetClusterResponse
 //	@Router			/clusters/{clusterId} [get]
 //	@Security		JWT
 func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
@@ -150,19 +157,13 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Cluster
+	var dto model.Cluster
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 
-	if err = serializer.Map(input, &dto.Conf); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
-	// [TODO] set default value
 	dto.ClusterType = domain.ClusterType_USER
-	dto.Conf.SetDefault()
-	log.InfoWithContext(r.Context(), dto.Conf)
+	dto.SetDefaultConf()
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId := domain.ClusterId("")
@@ -210,18 +211,13 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Cluster
+	var dto model.Cluster
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
+	dto.SetDefaultConf()
 
-	if err = serializer.Map(input, &dto.Conf); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-	dto.Conf.SetDefault()
-	log.InfoWithContext(r.Context(), dto.Conf)
-
-	dto.CloudAccountId = uuid.Nil
+	dto.CloudAccountId = nil
 	clusterId, err := h.usecase.Import(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -270,7 +266,7 @@ func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) 
 //	@Accept			json
 //	@Produce		json
 //	@Param			clusterId	path		string	true	"clusterId"
-//	@Success		200			{object}	domain.Cluster
+//	@Success		200			{object}	nil
 //	@Router			/clusters/{clusterId} [delete]
 //	@Security		JWT
 func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {

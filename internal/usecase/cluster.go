@@ -8,13 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	byoh "github.com/vmware-tanzu/cluster-api-provider-bringyourownhost/apis/infrastructure/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
@@ -25,19 +23,21 @@ import (
 	gcache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	byoh "github.com/vmware-tanzu/cluster-api-provider-bringyourownhost/apis/infrastructure/v1beta1"
 	"gopkg.in/yaml.v3"
 	"gorm.io/gorm"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type IClusterUsecase interface {
 	WithTrx(*gorm.DB) IClusterUsecase
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Cluster, error)
-	FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error)
-	Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
-	Import(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
-	Bootstrap(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.Cluster, error)
+	FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []model.Cluster, err error)
+	Create(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
+	Import(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
+	Bootstrap(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
 	Install(ctx context.Context, clusterId domain.ClusterId) (err error)
-	Get(ctx context.Context, clusterId domain.ClusterId) (out domain.Cluster, err error)
+	Get(ctx context.Context, clusterId domain.ClusterId) (out model.Cluster, err error)
 	GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
 	Delete(ctx context.Context, clusterId domain.ClusterId) (err error)
 	CreateBootstrapKubeconfig(ctx context.Context, clusterId domain.ClusterId) (out domain.BootstrapKubeconfig, err error)
@@ -101,7 +101,7 @@ func (u *ClusterUsecase) WithTrx(trxHandle *gorm.DB) IClusterUsecase {
 	return u
 }
 
-func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Cluster, err error) {
+func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.Cluster, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
@@ -120,7 +120,7 @@ func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *p
 	return out, nil
 }
 
-func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []domain.Cluster, err error) {
+func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []model.Cluster, err error) {
 	if cloudAccountId == uuid.Nil {
 		return nil, fmt.Errorf("Invalid cloudAccountId")
 	}
@@ -133,7 +133,7 @@ func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccount
 	return out, nil
 }
 
-func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error) {
+func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
@@ -153,7 +153,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	tksCloudAccountId := dto.CloudAccountId.String()
 	isExist := false
 	for _, ca := range cloudAccounts {
-		if ca.ID == dto.CloudAccountId {
+		if ca.ID == *dto.CloudAccountId {
 
 			// FOR TEST. ADD MAGIC KEYWORD
 			if strings.Contains(ca.Name, domain.CLOUD_ACCOUNT_INCLUSTER) {
@@ -213,7 +213,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto domain.Cluster) (cluste
 	return clusterId, nil
 }
 
-func (u *ClusterUsecase) Import(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error) {
+func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
@@ -275,7 +275,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto domain.Cluster) (cluste
 	return clusterId, nil
 }
 
-func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto domain.Cluster) (clusterId domain.ClusterId, err error) {
+func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
@@ -374,10 +374,10 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 	return nil
 }
 
-func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (out domain.Cluster, err error) {
+func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (out model.Cluster, err error) {
 	cluster, err := u.repo.Get(clusterId)
 	if err != nil {
-		return domain.Cluster{}, err
+		return model.Cluster{}, err
 	}
 
 	return cluster, nil
@@ -453,13 +453,13 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	out.SshKeyName = "tks-seoul"
 	out.ClusterRegion = "ap-northeast-2"
 
-	if err := serializer.Map(cluster.Conf, &out); err != nil {
+	if err := serializer.Map(cluster, &out); err != nil {
 		log.ErrorWithContext(ctx, err)
 	}
 
 	if cluster.StackTemplate.CloudService == "AWS" && cluster.StackTemplate.KubeType == "AWS" {
-		out.TksUserNode = cluster.Conf.TksUserNode / domain.MAX_AZ_NUM
-		out.TksUserNodeMax = cluster.Conf.TksUserNodeMax / domain.MAX_AZ_NUM
+		out.TksUserNode = cluster.TksUserNode / domain.MAX_AZ_NUM
+		out.TksUserNodeMax = cluster.TksUserNodeMax / domain.MAX_AZ_NUM
 	}
 
 	if err := serializer.Map(cluster, &out); err != nil {
@@ -712,30 +712,30 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 	out = []domain.ClusterNode{
 		{
 			Type:        "TKS_CP_NODE",
-			Targeted:    cluster.Conf.TksCpNode,
+			Targeted:    cluster.TksCpNode,
 			Registered:  tksCpNodeRegistered,
 			Registering: tksCpNodeRegistering,
-			Status:      clusterNodeStatus(cluster.Conf.TksCpNode, tksCpNodeRegistered),
+			Status:      clusterNodeStatus(cluster.TksCpNode, tksCpNodeRegistered),
 			Command:     command + "control-plane",
 			Validity:    bootstrapKubeconfig.Expiration,
 			Hosts:       tksCpHosts,
 		},
 		{
 			Type:        "TKS_INFRA_NODE",
-			Targeted:    cluster.Conf.TksInfraNode,
+			Targeted:    cluster.TksInfraNode,
 			Registered:  tksInfraNodeRegistered,
 			Registering: tksInfraNodeRegistering,
-			Status:      clusterNodeStatus(cluster.Conf.TksInfraNode, tksInfraNodeRegistered),
+			Status:      clusterNodeStatus(cluster.TksInfraNode, tksInfraNodeRegistered),
 			Command:     command + "tks",
 			Validity:    bootstrapKubeconfig.Expiration,
 			Hosts:       tksInfraHosts,
 		},
 		{
 			Type:        "TKS_USER_NODE",
-			Targeted:    cluster.Conf.TksUserNode,
+			Targeted:    cluster.TksUserNode,
 			Registered:  tksUserNodeRegistered,
 			Registering: tksUserNodeRegistering,
-			Status:      clusterNodeStatus(cluster.Conf.TksUserNode, tksUserNodeRegistered),
+			Status:      clusterNodeStatus(cluster.TksUserNode, tksUserNodeRegistered),
 			Command:     command + "worker",
 			Validity:    bootstrapKubeconfig.Expiration,
 			Hosts:       tksUserHosts,
@@ -779,7 +779,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 }
 
 /*
-func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clusterConf *domain.ClusterConf, err error) {
+func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clusterConf *model.ClusterConf, err error) {
 	region := "ap-northeast-2"
 	if rawConf != nil && rawConf.Region != "" {
 		region = rawConf.Region
@@ -857,7 +857,7 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *domain.ClusterConf) (clus
 	}
 
 	// Construct cluster conf
-	tempConf := domain.ClusterConf{
+	tempConf := model.ClusterConf{
 		SshKeyName:   sshKeyName,
 		Region:       region,
 		NumOfAz:      int(numOfAz),

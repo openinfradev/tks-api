@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
@@ -11,10 +11,10 @@ import (
 
 // Interfaces
 type IOrganizationRepository interface {
-	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (domain.Organization, error)
-	Fetch(pg *pagination.Pagination) (res *[]domain.Organization, err error)
-	Get(organizationId string) (res domain.Organization, err error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
+	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (model.Organization, error)
+	Fetch(pg *pagination.Pagination) (res *[]model.Organization, err error)
+	Get(organizationId string) (res model.Organization, err error)
+	Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
 	UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error
 	Delete(organizationId string) (err error)
 	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
@@ -40,7 +40,7 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 //	Description      string
 //	Phone            string
 //	WorkflowId       string
-//	Status           domain.OrganizationStatus
+//	Status           model.OrganizationStatus
 //	StatusDesc       string
 //	Creator          uuid.UUID
 //	PrimaryClusterId string // allow null
@@ -52,8 +52,8 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 //}
 
 func (r *OrganizationRepository) Create(organizationId string, name string, creator uuid.UUID, phone string,
-	description string) (domain.Organization, error) {
-	organization := domain.Organization{
+	description string) (model.Organization, error) {
+	organization := model.Organization{
 		ID:          organizationId,
 		Name:        name,
 		Creator:     creator.String(),
@@ -64,45 +64,36 @@ func (r *OrganizationRepository) Create(organizationId string, name string, crea
 	res := r.db.Create(&organization)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		return model.Organization{}, res.Error
 	}
 
-	return r.reflect(organization), nil
+	return organization, nil
 }
 
-func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Organization, error) {
-	var organizations []domain.Organization
-	var out []domain.Organization
+func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (out *[]model.Organization, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db, &organizations)
+	_, res := pg.Fetch(r.db, &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
-	for _, organization := range organizations {
-		outOrganization := r.reflect(organization)
-		out = append(out, outOrganization)
-	}
-	return &out, nil
+	return
 }
 
-func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
-	var organization domain.Organization
-	res := r.db.First(&organization, "id = ?", id)
+func (r *OrganizationRepository) Get(id string) (out model.Organization, err error) {
+	res := r.db.First(&out, "id = ?", id)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		return model.Organization{}, res.Error
 	}
 
-	return r.reflect(organization), nil
+	return
 }
 
-func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
-	var organization domain.Organization
-	res := r.db.Model(&domain.Organization{}).
+func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (out model.Organization, err error) {
+	res := r.db.Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"name":        in.Name,
@@ -112,19 +103,19 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		return model.Organization{}, res.Error
 	}
-	res = r.db.Model(&domain.Organization{}).Where("id = ?", organizationId).Find(&organization)
+	res = r.db.Model(&model.Organization{}).Where("id = ?", organizationId).Find(&out)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		return model.Organization{}, res.Error
 	}
 
-	return r.reflect(organization), nil
+	return
 }
 
 func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error {
-	res := r.db.Model(&domain.Organization{}).
+	res := r.db.Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"primary_cluster_id": primaryClusterId,
@@ -138,7 +129,7 @@ func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, p
 }
 
 func (r *OrganizationRepository) Delete(organizationId string) error {
-	res := r.db.Delete(&domain.Organization{}, "id = ?", organizationId)
+	res := r.db.Delete(&model.Organization{}, "id = ?", organizationId)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -148,7 +139,7 @@ func (r *OrganizationRepository) Delete(organizationId string) error {
 }
 
 func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error {
-	res := r.db.Model(&domain.Organization{}).
+	res := r.db.Model(&model.Organization{}).
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {
@@ -156,16 +147,4 @@ func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId 
 		return res.Error
 	}
 	return nil
-}
-
-func (r *OrganizationRepository) reflect(organization domain.Organization) (out domain.Organization) {
-	if err := serializer.Map(organization.Model, &out); err != nil {
-		log.Error(err)
-	}
-	if err := serializer.Map(organization, &out); err != nil {
-		log.Error(err)
-	}
-	out.Creator = organization.Creator
-	return
-
 }

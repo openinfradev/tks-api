@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/openinfradev/tks-api/internal/kubernetes"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -23,19 +24,19 @@ import (
 )
 
 type IAppServeAppUsecase interface {
-	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
-	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
-	GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]domain.AppServeAppTask, error)
-	GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error)
-	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
+	CreateAppServeApp(app *model.AppServeApp) (appId string, taskId string, err error)
+	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
+	GetAppServeAppById(appId string) (*model.AppServeApp, error)
+	GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
+	GetAppServeAppTaskById(taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
+	GetAppServeAppLatestTask(appId string) (*model.AppServeAppTask, error)
 	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(appId string) (bool, error)
 	IsAppServeAppNameExist(orgId string, appName string) (bool, error)
 	IsAppServeAppNamespaceExist(clusterId string, namespace string) (bool, error)
 	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(appId string) (res string, err error)
-	UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error)
+	UpdateAppServeApp(app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error)
 	UpdateAppServeAppEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
 	PromoteAppServeApp(appId string) (ret string, err error)
 	AbortAppServeApp(appId string) (ret string, err error)
@@ -58,7 +59,7 @@ func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient
 	}
 }
 
-func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string, string, error) {
+func (u *AppServeAppUsecase) CreateAppServeApp(app *model.AppServeApp) (string, string, error) {
 	if app == nil {
 		return "", "", fmt.Errorf("invalid app obj")
 	}
@@ -179,7 +180,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *domain.AppServeApp) (string,
 	return appId, app.Name, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error) {
+func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
 	apps, err := u.repo.GetAppServeApps(organizationId, showAll, pg)
 	if err != nil {
 		fmt.Println(apps)
@@ -188,7 +189,7 @@ func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool
 	return apps, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
+func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*model.AppServeApp, error) {
 	asa, err := u.repo.GetAppServeAppById(appId)
 	if err != nil {
 		return nil, err
@@ -222,7 +223,7 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*domain.AppServeA
 	return asa, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]domain.AppServeAppTask, error) {
+func (u *AppServeAppUsecase) GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error) {
 	tasks, err := u.repo.GetAppServeAppTasksByAppId(appId, pg)
 	if err != nil {
 		log.Debugf("Tasks: %v", tasks)
@@ -231,7 +232,7 @@ func (u *AppServeAppUsecase) GetAppServeAppTasks(appId string, pg *pagination.Pa
 	return tasks, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error) {
+func (u *AppServeAppUsecase) GetAppServeAppTaskById(taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
 	task, app, err := u.repo.GetAppServeAppTaskById(taskId)
 	if err != nil {
 		return nil, nil, err
@@ -240,7 +241,7 @@ func (u *AppServeAppUsecase) GetAppServeAppTaskById(taskId string) (*domain.AppS
 	return task, app, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
+func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*model.AppServeAppTask, error) {
 	task, err := u.repo.GetAppServeAppLatestTask(appId)
 	if err != nil {
 		return nil, err
@@ -361,7 +362,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 	 * Start delete task *
 	 ********************/
 
-	appTask := &domain.AppServeAppTask{
+	appTask := &model.AppServeAppTask{
 		AppServeAppId: app.ID,
 		Version:       strconv.Itoa(len(app.AppServeAppTasks) + 1),
 		ArtifactUrl:   "",
@@ -412,7 +413,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) UpdateAppServeApp(app *domain.AppServeApp, appTask *domain.AppServeAppTask) (ret string, err error) {
+func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error) {
 	if appTask == nil {
 		return "", errors.New("invalid parameters. appTask is nil")
 	}
@@ -659,7 +660,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 	}
 
 	// Find target(dest) task
-	var task domain.AppServeAppTask
+	var task model.AppServeAppTask
 	for _, t := range app.AppServeAppTasks {
 		if t.ID == taskId {
 			task = t

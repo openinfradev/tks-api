@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -67,7 +68,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 		return
 	}
 
-	var dto domain.PolicyTemplate
+	var dto model.PolicyTemplate
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/audit"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -61,7 +62,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := h.usecase.Login(input.AccountId, input.Password, input.OrganizationId)
 	if err != nil {
 		errorResponse, _ := httpErrors.ErrorResponse(err)
-		_, _ = h.auditUsecase.Create(r.Context(), domain.Audit{
+		_, _ = h.auditUsecase.Create(r.Context(), model.Audit{
 			OrganizationId: input.OrganizationId,
 			Group:          "Auth",
 			Message:        fmt.Sprintf("[%s]님이 로그인에 실패하였습니다.", input.AccountId),
@@ -73,7 +74,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	} else {
-		_, _ = h.auditUsecase.Create(r.Context(), domain.Audit{
+		_, _ = h.auditUsecase.Create(r.Context(), model.Audit{
 			OrganizationId: input.OrganizationId,
 			Group:          "Auth",
 			Message:        fmt.Sprintf("[%s]님이 로그인 하였습니다.", input.AccountId),
