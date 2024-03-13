@@ -138,6 +138,20 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// Audit
+	if err := db.AutoMigrate(&model.Audit{}); err != nil {
+		return err
+	}
+
+	// PolicyTemplate
+	if err := db.AutoMigrate(&model.PolicyTemplateSupportedVersion{}); err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&model.PolicyTemplate{}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -180,22 +194,5 @@ func EnsureDefaultRows(db *gorm.DB) error {
 		}
 	}
 
-<<<<<<< Updated upstream
-	// Audit
-	if err := db.AutoMigrate(&repository.Audit{}); err != nil {
-		return err
-	}
-
-	// PolicyTemplate
-	if err := db.AutoMigrate(&repository.PolicyTemplateSupportedVersion{}); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&repository.PolicyTemplate{}); err != nil {
-		return err
-	}
-
-=======
->>>>>>> Stashed changes
 	return nil
 }

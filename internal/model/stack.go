@@ -29,7 +29,7 @@ type Stack = struct {
 	Updator         User
 	Favorited       bool
 	ClusterEndpoint string
-	Resource        DashboardStack
+	Resource        domain.DashboardStack
 }
 
 type StackConf struct {
