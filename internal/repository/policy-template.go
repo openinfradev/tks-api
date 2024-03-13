@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -17,20 +18,20 @@ import (
 )
 
 type IPolicyTemplateRepository interface {
-	Create(dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error)
-	Update(dto domain.UpdatePolicyTemplateUpdate) (err error)
-	Fetch(pg *pagination.Pagination) (out []model.PolicyTemplate, err error)
-	GetByName(policyTemplateName string) (out *model.PolicyTemplate, err error)
-	GetByKind(policyTemplateKind string) (out *model.PolicyTemplate, err error)
-	GetByID(policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error)
-	Delete(policyTemplateId uuid.UUID) (err error)
-	ExistByName(policyTemplateName string) (exist bool, err error)
-	ExistByKind(policyTemplateKind string) (exist bool, err error)
-	ExistByID(policyTemplateId uuid.UUID) (exist bool, err error)
-	ListPolicyTemplateVersions(policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
-	GetPolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
-	DeletePolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (err error)
-	CreatePolicyTemplateVersion(policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
+	Create(ctx context.Context, dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error)
+	Update(ctx context.Context, dto domain.UpdatePolicyTemplateUpdate) (err error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) (out []model.PolicyTemplate, err error)
+	GetByName(ctx context.Context, policyTemplateName string) (out *model.PolicyTemplate, err error)
+	GetByKind(ctx context.Context, policyTemplateKind string) (out *model.PolicyTemplate, err error)
+	GetByID(ctx context.Context, policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error)
+	Delete(ctx context.Context, policyTemplateId uuid.UUID) (err error)
+	ExistByName(ctx context.Context, policyTemplateName string) (exist bool, err error)
+	ExistByKind(ctx context.Context, policyTemplateKind string) (exist bool, err error)
+	ExistByID(ctx context.Context, policyTemplateId uuid.UUID) (exist bool, err error)
+	ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
+	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
+	DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error)
+	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
 }
 
 type PolicyTemplateRepository struct {
@@ -43,7 +44,7 @@ func NewPolicyTemplateRepository(db *gorm.DB) IPolicyTemplateRepository {
 	}
 }
 
-func (r *PolicyTemplateRepository) Create(dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error) {
+func (r *PolicyTemplateRepository) Create(ctx context.Context, dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error) {
 	jsonByte, err := json.Marshal(dto.ParametersSchema)
 
 	if err != nil {
@@ -98,7 +99,7 @@ func (r *PolicyTemplateRepository) Create(dto model.PolicyTemplate) (policyTempl
 	return policyTemplate.ID, nil
 }
 
-func (r *PolicyTemplateRepository) Update(dto domain.UpdatePolicyTemplateUpdate) (err error) {
+func (r *PolicyTemplateRepository) Update(ctx context.Context, dto domain.UpdatePolicyTemplateUpdate) (err error) {
 	updateMap := make(map[string]interface{})
 
 	updateMap["updator_id"] = dto.UpdatorId
@@ -154,7 +155,7 @@ func (r *PolicyTemplateRepository) Update(dto domain.UpdatePolicyTemplateUpdate)
 	})
 }
 
-func (r *PolicyTemplateRepository) Fetch(pg *pagination.Pagination) (out []model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) Fetch(ctx context.Context, pg *pagination.Pagination) (out []model.PolicyTemplate, err error) {
 	var policyTemplates []model.PolicyTemplate
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
@@ -174,24 +175,24 @@ func (r *PolicyTemplateRepository) Fetch(pg *pagination.Pagination) (out []model
 
 		if res.Error != nil {
 			if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-				log.Info("Not found policyTemplate version")
+				log.Info(ctx, "Not found policyTemplate version")
 			} else {
-				log.Error(res.Error)
+				log.Error(ctx, res.Error)
 			}
 		}
 
-		outPolicyTemplate := r.reflectPolicyTemplate(policyTemplate, policyTemplateVersion)
+		outPolicyTemplate := r.reflectPolicyTemplate(ctx, policyTemplate, policyTemplateVersion)
 		out = append(out, outPolicyTemplate)
 	}
 	return out, nil
 }
 
-func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.PolicyTemplate, policyTemplateVersion model.PolicyTemplateSupportedVersion) (out model.PolicyTemplate) {
+func (r *PolicyTemplateRepository) reflectPolicyTemplate(ctx context.Context, policyTemplate model.PolicyTemplate, policyTemplateVersion model.PolicyTemplateSupportedVersion) (out model.PolicyTemplate) {
 	if err := serializer.Map(policyTemplate.Model, &out); err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 	}
 	if err := serializer.Map(policyTemplate, &out); err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 	}
 	out.TemplateName = policyTemplate.Name
 	out.ID = policyTemplate.ID
@@ -200,7 +201,7 @@ func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.Po
 
 	if len(policyTemplateVersion.ParameterSchema) > 0 {
 		if err := json.Unmarshal([]byte(policyTemplateVersion.ParameterSchema), &schemas); err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 		} else {
 			out.ParametersSchema = schemas
 		}
@@ -227,7 +228,7 @@ func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.Po
 	return
 }
 
-func (r *PolicyTemplateRepository) ExistsBy(key string, value interface{}) (exists bool, err error) {
+func (r *PolicyTemplateRepository) ExistsBy(ctx context.Context, key string, value interface{}) (exists bool, err error) {
 	query := fmt.Sprintf("%s = ?", key)
 
 	var policyTemplate model.PolicyTemplate
@@ -236,10 +237,10 @@ func (r *PolicyTemplateRepository) ExistsBy(key string, value interface{}) (exis
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Infof("Not found policyTemplate %s='%v'", key, value)
+			log.Infof(ctx, "Not found policyTemplate %s='%v'", key, value)
 			return false, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return false, res.Error
 		}
 	}
@@ -247,19 +248,19 @@ func (r *PolicyTemplateRepository) ExistsBy(key string, value interface{}) (exis
 	return true, nil
 }
 
-func (r *PolicyTemplateRepository) ExistByName(policyTemplateName string) (exist bool, err error) {
-	return r.ExistsBy("name", policyTemplateName)
+func (r *PolicyTemplateRepository) ExistByName(ctx context.Context, policyTemplateName string) (exist bool, err error) {
+	return r.ExistsBy(ctx, "name", policyTemplateName)
 }
 
-func (r *PolicyTemplateRepository) ExistByKind(policyTemplateKind string) (exist bool, err error) {
-	return r.ExistsBy("kind", policyTemplateKind)
+func (r *PolicyTemplateRepository) ExistByKind(ctx context.Context, policyTemplateKind string) (exist bool, err error) {
+	return r.ExistsBy(ctx, "kind", policyTemplateKind)
 }
 
-func (r *PolicyTemplateRepository) ExistByID(policyTemplateId uuid.UUID) (exist bool, err error) {
-	return r.ExistsBy("id", policyTemplateId)
+func (r *PolicyTemplateRepository) ExistByID(ctx context.Context, policyTemplateId uuid.UUID) (exist bool, err error) {
+	return r.ExistsBy(ctx, "id", policyTemplateId)
 }
 
-func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) GetBy(ctx context.Context, key string, value interface{}) (out *model.PolicyTemplate, err error) {
 	query := fmt.Sprintf("%s = ?", key)
 
 	var policyTemplate model.PolicyTemplate
@@ -268,10 +269,10 @@ func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *mo
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Infof("Not found policyTemplate %s='%v'", key, value)
+			log.Infof(ctx, "Not found policyTemplate %s='%v'", key, value)
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -282,24 +283,24 @@ func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *mo
 		First(&policyTemplateVersion)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found policyTemplate version")
+			log.Info(ctx, "Not found policyTemplate version")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
 
 	fmt.Printf("BBBB %+v\n", policyTemplate.PermittedOrganizations)
 
-	result := r.reflectPolicyTemplate(policyTemplate, policyTemplateVersion)
+	result := r.reflectPolicyTemplate(ctx, policyTemplate, policyTemplateVersion)
 	fmt.Printf("2222BBBB %+v\n", result.PermittedOrganizations)
 
 	return &result, nil
 }
 
-func (r *PolicyTemplateRepository) GetByID(policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error) {
-	return r.GetBy("id", policyTemplateId)
+func (r *PolicyTemplateRepository) GetByID(ctx context.Context, policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error) {
+	return r.GetBy(ctx, "id", policyTemplateId)
 
 	// var policyTemplate PolicyTemplate
 	// res := r.db.Preload(clause.Associations).Where("id = ?", policyTemplateId).
@@ -320,8 +321,8 @@ func (r *PolicyTemplateRepository) GetByID(policyTemplateId uuid.UUID) (out *mod
 	// return &result, nil
 }
 
-func (r *PolicyTemplateRepository) GetByName(policyTemplateName string) (out *model.PolicyTemplate, err error) {
-	return r.GetBy("name", policyTemplateName)
+func (r *PolicyTemplateRepository) GetByName(ctx context.Context, policyTemplateName string) (out *model.PolicyTemplate, err error) {
+	return r.GetBy(ctx, "name", policyTemplateName)
 
 	// var policyTemplate PolicyTemplate
 	// res := r.db.Limit(1).
@@ -342,11 +343,11 @@ func (r *PolicyTemplateRepository) GetByName(policyTemplateName string) (out *mo
 	// return &result, nil
 }
 
-func (r *PolicyTemplateRepository) GetByKind(policyTemplateKind string) (out *model.PolicyTemplate, err error) {
-	return r.GetBy("kind", policyTemplateKind)
+func (r *PolicyTemplateRepository) GetByKind(ctx context.Context, policyTemplateKind string) (out *model.PolicyTemplate, err error) {
+	return r.GetBy(ctx, "kind", policyTemplateKind)
 }
 
-func (r *PolicyTemplateRepository) Delete(policyTemplateId uuid.UUID) (err error) {
+func (r *PolicyTemplateRepository) Delete(ctx context.Context, policyTemplateId uuid.UUID) (err error) {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("policy_template_id = ?", policyTemplateId).Delete(&model.PolicyTemplateSupportedVersion{}).Error; err != nil {
 			return err
@@ -364,16 +365,16 @@ func (r *PolicyTemplateRepository) Delete(policyTemplateId uuid.UUID) (err error
 	})
 }
 
-func (r *PolicyTemplateRepository) ListPolicyTemplateVersions(policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error) {
+func (r *PolicyTemplateRepository) ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error) {
 	var supportedVersions []model.PolicyTemplateSupportedVersion
 	res := r.db.Where("policy_template_id = ?", policyTemplateId).Find(&supportedVersions)
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found policyTemplate kind")
+			log.Info(ctx, "Not found policyTemplate kind")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -391,17 +392,17 @@ func (r *PolicyTemplateRepository) ListPolicyTemplateVersions(policyTemplateId u
 	return result, nil
 }
 
-func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error) {
 	var policyTemplateVersion model.PolicyTemplateSupportedVersion
 	res := r.db.
 		Where("policy_template_id = ? and version = ?", policyTemplateId, version).
 		First(&policyTemplateVersion)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found policyTemplate version")
+			log.Info(ctx, "Not found policyTemplate version")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
@@ -412,29 +413,29 @@ func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(policyTemplateId uui
 		First(&policyTemplate)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found policyTemplate id")
+			log.Info(ctx, "Not found policyTemplate id")
 			return nil, nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return nil, res.Error
 		}
 	}
 
-	result := r.reflectPolicyTemplate(policyTemplate, policyTemplateVersion)
+	result := r.reflectPolicyTemplate(ctx, policyTemplate, policyTemplateVersion)
 
 	return &result, nil
 }
 
-func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (err error) {
+func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error) {
 	var policyTemplate model.PolicyTemplate
 	res := r.db.Select("version").First(&policyTemplate)
 
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found policyTemplate id")
+			log.Info(ctx, "Not found policyTemplate id")
 			return nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return res.Error
 		}
 	}
@@ -451,10 +452,10 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(policyTemplateId 
 		Delete(&policyTemplateVersion)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Info("Not found policyTemplate version")
+			log.Info(ctx, "Not found policyTemplate version")
 			return nil
 		} else {
-			log.Error(res.Error)
+			log.Error(ctx, res.Error)
 			return res.Error
 		}
 	}
@@ -462,7 +463,7 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(policyTemplateId 
 	return nil
 }
 
-func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
+func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
 	var policyTemplateVersion model.PolicyTemplateSupportedVersion
 	res := r.db.Limit(1).
 		Where("policy_template_id = ? and version = ?", policyTemplateId, version).
@@ -471,13 +472,13 @@ func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(policyTemplateId 
 	if res.Error == nil {
 		err = errors.Errorf("Version %s already exists for the policyTemplate", newVersion)
 
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 
 		return "", err
 	}
 
 	if !errors.Is(res.Error, gorm.ErrRecordNotFound) {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 
@@ -491,7 +492,7 @@ func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(policyTemplateId 
 	if err != nil {
 		parseErr := errors.Errorf("Unable to parse parameter schema: %v", err)
 
-		log.Error(parseErr)
+		log.Error(ctx, parseErr)
 
 		return "", parseErr
 	}

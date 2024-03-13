@@ -63,14 +63,14 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 	err := UnmarshalRequestInput(r, &input)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	var dto model.PolicyTemplate
 	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	policyTemplateId, err := h.usecase.Create(r.Context(), dto)
@@ -107,7 +107,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
@@ -117,7 +117,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 	err = UnmarshalRequestInput(r, &input)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -125,7 +125,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 	err = h.usecase.Update(r.Context(), id, input)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
@@ -159,7 +159,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *h
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
@@ -172,7 +172,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *h
 	err = h.usecase.Delete(r.Context(), id)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
@@ -206,7 +206,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
 			return
@@ -218,7 +218,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 
 	policyTemplate, err := h.usecase.Get(r.Context(), id)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE", ""))
 			return
@@ -230,7 +230,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 
 	var out domain.GetPolicyTemplateResponse
 	if err = serializer.Map(*policyTemplate, &out.PolicyTemplate); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -266,13 +266,13 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 	out.PolicyTemplates = make([]domain.PolicyTemplateResponse, len(policyTemplates))
 	for i, policyTemplate := range policyTemplates {
 		if err := serializer.Map(policyTemplate, &out.PolicyTemplates[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
 	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -300,7 +300,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
 		return
 	}
@@ -308,7 +308,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 	policyTemplateVersions, err := h.usecase.ListPolicyTemplateVersions(r.Context(), id)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
@@ -320,7 +320,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 
 	var out domain.ListPolicyTemplateVersionsResponse
 	if err = serializer.Map(*policyTemplateVersions, &out); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -415,7 +415,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 
 	policyTemplate, err := h.usecase.GetPolicyTemplateVersion(r.Context(), id, version)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
@@ -427,7 +427,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 
 	var out domain.GetPolicyTemplateVersionResponse
 	if err = serializer.Map(*policyTemplate, &out.PolicyTemplate); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -464,7 +464,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 	err = UnmarshalRequestInput(r, &input)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -537,7 +537,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 
 	id, err := uuid.Parse(policyTemplateId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
 		return
 	}
@@ -545,7 +545,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 	err = h.usecase.DeletePolicyTemplateVersion(r.Context(), id, version)
 
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
@@ -651,7 +651,7 @@ func (h *PolicyTemplateHandler) RegoCompile(w http.ResponseWriter, r *http.Reque
 	input := domain.RegoCompileRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -659,7 +659,7 @@ func (h *PolicyTemplateHandler) RegoCompile(w http.ResponseWriter, r *http.Reque
 
 	response, err := h.usecase.RegoCompile(&input, parseParameter)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return

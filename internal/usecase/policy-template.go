@@ -53,18 +53,18 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	exists, err := u.repo.ExistByName(dto.TemplateName)
+	exists, err := u.repo.ExistByName(ctx, dto.TemplateName)
 	if err == nil && exists {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_CREATE_ALREADY_EXISTED_NAME", "policy template name already exists")
 	}
 
-	exists, err = u.repo.ExistByKind(dto.Kind)
+	exists, err = u.repo.ExistByKind(ctx, dto.Kind)
 	if err == nil && exists {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_CREATE_ALREADY_EXISTED_KIND", "policy template kind already exists")
 	}
 
 	for _, organizationId := range dto.PermittedOrganizationIds {
-		_, err = u.organizationRepo.Get(organizationId)
+		_, err = u.organizationRepo.Get(ctx, organizationId)
 		if err != nil {
 			return "", httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 		}
@@ -72,7 +72,7 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
-	id, err := u.repo.Create(dto)
+	id, err := u.repo.Create(ctx, dto)
 
 	if err != nil {
 		return "", err
@@ -82,13 +82,13 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 }
 
 func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (policyTemplates []model.PolicyTemplate, err error) {
-	policyTemplates, err = u.repo.Fetch(pg)
+	policyTemplates, err = u.repo.Fetch(ctx, pg)
 
 	if err != nil {
 		return nil, err
 	}
 
-	organizations, err := u.organizationRepo.Fetch(nil)
+	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err == nil {
 		for i, policyTemplate := range policyTemplates {
 			permittedOrgIdSet := u.getPermittedOrganiationIdSet(&policyTemplate)
@@ -102,7 +102,7 @@ func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagina
 }
 
 func (u *PolicyTemplateUsecase) Get(ctx context.Context, policyTemplateID uuid.UUID) (policyTemplates *model.PolicyTemplate, err error) {
-	policyTemplate, err := u.repo.GetByID(policyTemplateID)
+	policyTemplate, err := u.repo.GetByID(ctx, policyTemplateID)
 
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (u *PolicyTemplateUsecase) Get(ctx context.Context, policyTemplateID uuid.U
 
 	permittedOrgIdSet := u.getPermittedOrganiationIdSet(policyTemplate)
 
-	organizations, err := u.organizationRepo.Fetch(nil)
+	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err == nil {
 		u.updatePermittedOrganizations(organizations, permittedOrgIdSet, policyTemplate)
 	}
@@ -124,19 +124,19 @@ func (u *PolicyTemplateUsecase) Update(ctx context.Context, policyTemplateId uui
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	_, err = u.repo.GetByID(policyTemplateId)
+	_, err = u.repo.GetByID(ctx, policyTemplateId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "PT_FAILED_FETCH_POLICY_TEMPLATE", "")
 	}
 
-	exists, err := u.repo.ExistByName(*update.TemplateName)
+	exists, err := u.repo.ExistByName(ctx, *update.TemplateName)
 	if err == nil && exists {
 		return httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY_TEMPLATE_NAME", "policy template name already exists")
 	}
 
 	if update.PermittedOrganizationIds != nil {
 		for _, organizationId := range *update.PermittedOrganizationIds {
-			_, err = u.organizationRepo.Get(organizationId)
+			_, err = u.organizationRepo.Get(ctx, organizationId)
 			if err != nil {
 				return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 			}
@@ -155,7 +155,7 @@ func (u *PolicyTemplateUsecase) Update(ctx context.Context, policyTemplateId uui
 		PermittedOrganizationIds: update.PermittedOrganizationIds,
 	}
 
-	err = u.repo.Update(dto)
+	err = u.repo.Update(ctx, dto)
 	if err != nil {
 		return err
 	}
@@ -164,19 +164,19 @@ func (u *PolicyTemplateUsecase) Update(ctx context.Context, policyTemplateId uui
 }
 
 func (u *PolicyTemplateUsecase) Delete(ctx context.Context, policyTemplateId uuid.UUID) (err error) {
-	return u.repo.Delete(policyTemplateId)
+	return u.repo.Delete(ctx, policyTemplateId)
 }
 
 func (u *PolicyTemplateUsecase) IsPolicyTemplateNameExist(ctx context.Context, policyTemplateName string) (bool, error) {
-	return u.repo.ExistByName(policyTemplateName)
+	return u.repo.ExistByName(ctx, policyTemplateName)
 }
 
 func (u *PolicyTemplateUsecase) IsPolicyTemplateKindExist(ctx context.Context, policyTemplateKind string) (bool, error) {
-	return u.repo.ExistByKind(policyTemplateKind)
+	return u.repo.ExistByKind(ctx, policyTemplateKind)
 }
 
 func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error) {
-	policyTemplate, err := u.repo.GetPolicyTemplateVersion(policyTemplateId, version)
+	policyTemplate, err := u.repo.GetPolicyTemplateVersion(ctx, policyTemplateId, version)
 
 	if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, po
 
 	permittedOrgIdSet := u.getPermittedOrganiationIdSet(policyTemplate)
 
-	organizations, err := u.organizationRepo.Fetch(nil)
+	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err == nil {
 		u.updatePermittedOrganizations(organizations, permittedOrgIdSet, policyTemplate)
 	}
@@ -234,15 +234,15 @@ func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(policyTemplate *model
 }
 
 func (u *PolicyTemplateUsecase) ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error) {
-	return u.repo.ListPolicyTemplateVersions(policyTemplateId)
+	return u.repo.ListPolicyTemplateVersions(ctx, policyTemplateId)
 }
 
 func (u *PolicyTemplateUsecase) DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error) {
-	return u.repo.DeletePolicyTemplateVersion(policyTemplateId, version)
+	return u.repo.DeletePolicyTemplateVersion(ctx, policyTemplateId, version)
 }
 
 func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
-	return u.repo.CreatePolicyTemplateVersion(policyTemplateId, newVersion, schema, rego, libs)
+	return u.repo.CreatePolicyTemplateVersion(ctx, policyTemplateId, newVersion, schema, rego, libs)
 }
 
 func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error) {
