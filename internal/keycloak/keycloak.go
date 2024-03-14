@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
@@ -18,15 +18,15 @@ import (
 type IKeycloak interface {
 	InitializeKeycloak() error
 
-	LoginAdmin(accountId string, password string) (*domain.User, error)
-	Login(accountId string, password string, organizationId string) (*domain.User, error)
+	LoginAdmin(accountId string, password string) (*model.User, error)
+	Login(accountId string, password string, organizationId string) (*model.User, error)
 	Logout(sessionId string, organizationId string) error
 
 	CreateRealm(organizationId string) (string, error)
-	GetRealm(organizationId string) (*domain.Organization, error)
-	GetRealms() ([]*domain.Organization, error)
+	GetRealm(organizationId string) (*model.Organization, error)
+	GetRealms() ([]*model.Organization, error)
 	DeleteRealm(organizationId string) error
-	UpdateRealm(organizationId string, organizationConfig domain.Organization) error
+	UpdateRealm(organizationId string, organizationConfig model.Organization) error
 
 	CreateUser(organizationId string, user *gocloak.User) (string, error)
 	GetUser(organizationId string, userAccountId string) (*gocloak.User, error)
@@ -51,7 +51,7 @@ type Keycloak struct {
 	adminCliToken *gocloak.JWT
 }
 
-func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, error) {
+func (k *Keycloak) LoginAdmin(accountId string, password string) (*model.User, error) {
 	ctx := context.Background()
 	JWTToken, err := k.client.LoginAdmin(ctx, accountId, password, DefaultMasterRealm)
 	if err != nil {
@@ -59,17 +59,17 @@ func (k *Keycloak) LoginAdmin(accountId string, password string) (*domain.User, 
 		return nil, err
 	}
 
-	return &domain.User{Token: JWTToken.AccessToken}, nil
+	return &model.User{Token: JWTToken.AccessToken}, nil
 }
 
-func (k *Keycloak) Login(accountId string, password string, organizationId string) (*domain.User, error) {
+func (k *Keycloak) Login(accountId string, password string, organizationId string) (*model.User, error) {
 	ctx := context.Background()
 	JWTToken, err := k.client.Login(ctx, DefaultClientID, k.config.ClientSecret, organizationId, accountId, password)
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
-	return &domain.User{Token: JWTToken.AccessToken}, nil
+	return &model.User{Token: JWTToken.AccessToken}, nil
 }
 
 func New(config *Config) IKeycloak {
@@ -249,7 +249,7 @@ func (k *Keycloak) CreateRealm(organizationId string) (string, error) {
 	return realmUUID, nil
 }
 
-func (k *Keycloak) GetRealm(organizationId string) (*domain.Organization, error) {
+func (k *Keycloak) GetRealm(organizationId string) (*model.Organization, error) {
 	ctx := context.Background()
 	token := k.adminCliToken
 	realm, err := k.client.GetRealm(ctx, token.AccessToken, organizationId)
@@ -260,14 +260,14 @@ func (k *Keycloak) GetRealm(organizationId string) (*domain.Organization, error)
 	return k.reflectOrganization(*realm), nil
 }
 
-func (k *Keycloak) GetRealms() ([]*domain.Organization, error) {
+func (k *Keycloak) GetRealms() ([]*model.Organization, error) {
 	ctx := context.Background()
 	token := k.adminCliToken
 	realms, err := k.client.GetRealms(ctx, token.AccessToken)
 	if err != nil {
 		return nil, err
 	}
-	organization := make([]*domain.Organization, 0)
+	organization := make([]*model.Organization, 0)
 	for _, realm := range realms {
 		organization = append(organization, k.reflectOrganization(*realm))
 	}
@@ -275,7 +275,7 @@ func (k *Keycloak) GetRealms() ([]*domain.Organization, error) {
 	return organization, nil
 }
 
-func (k *Keycloak) UpdateRealm(organizationId string, organizationConfig domain.Organization) error {
+func (k *Keycloak) UpdateRealm(organizationId string, organizationConfig model.Organization) error {
 	ctx := context.Background()
 	token := k.adminCliToken
 	realm := k.reflectRealmRepresentation(organizationConfig)
@@ -844,14 +844,14 @@ func (k *Keycloak) createDefaultClient(ctx context.Context, accessToken string, 
 	return id, nil
 }
 
-func (k *Keycloak) reflectOrganization(org gocloak.RealmRepresentation) *domain.Organization {
-	return &domain.Organization{
+func (k *Keycloak) reflectOrganization(org gocloak.RealmRepresentation) *model.Organization {
+	return &model.Organization{
 		ID:   *org.ID,
 		Name: *org.Realm,
 	}
 }
 
-func (k *Keycloak) reflectRealmRepresentation(org domain.Organization) *gocloak.RealmRepresentation {
+func (k *Keycloak) reflectRealmRepresentation(org model.Organization) *gocloak.RealmRepresentation {
 	return &gocloak.RealmRepresentation{
 		Realm: gocloak.StringP(org.Name),
 	}

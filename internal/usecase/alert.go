@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -20,14 +20,14 @@ import (
 )
 
 type IAlertUsecase interface {
-	Get(ctx context.Context, alertId uuid.UUID) (domain.Alert, error)
-	GetByName(ctx context.Context, organizationId string, name string) (domain.Alert, error)
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Alert, error)
+	Get(ctx context.Context, alertId uuid.UUID) (model.Alert, error)
+	GetByName(ctx context.Context, organizationId string, name string) (model.Alert, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.Alert, error)
 	Create(ctx context.Context, dto domain.CreateAlertRequest) (err error)
-	Update(ctx context.Context, dto domain.Alert) error
-	Delete(ctx context.Context, dto domain.Alert) error
+	Update(ctx context.Context, dto model.Alert) error
+	Delete(ctx context.Context, dto model.Alert) error
 
-	CreateAlertAction(ctx context.Context, dto domain.AlertAction) (alertActionId uuid.UUID, err error)
+	CreateAlertAction(ctx context.Context, dto model.AlertAction) (alertActionId uuid.UUID, err error)
 }
 
 type AlertUsecase struct {
@@ -101,7 +101,7 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 			node = alert.Labels.Instance
 		}
 
-		dto := domain.Alert{
+		dto := model.Alert{
 			OrganizationId: organizationId,
 			Name:           alert.Labels.AlertName,
 			Code:           alert.Labels.AlertName,
@@ -125,11 +125,11 @@ func (u *AlertUsecase) Create(ctx context.Context, input domain.CreateAlertReque
 	return nil
 }
 
-func (u *AlertUsecase) Update(ctx context.Context, dto domain.Alert) error {
+func (u *AlertUsecase) Update(ctx context.Context, dto model.Alert) error {
 	return nil
 }
 
-func (u *AlertUsecase) Get(ctx context.Context, alertId uuid.UUID) (alert domain.Alert, err error) {
+func (u *AlertUsecase) Get(ctx context.Context, alertId uuid.UUID) (alert model.Alert, err error) {
 	alert, err = u.repo.Get(alertId)
 	if err != nil {
 		return alert, err
@@ -139,7 +139,7 @@ func (u *AlertUsecase) Get(ctx context.Context, alertId uuid.UUID) (alert domain
 	return
 }
 
-func (u *AlertUsecase) GetByName(ctx context.Context, organizationId string, name string) (out domain.Alert, err error) {
+func (u *AlertUsecase) GetByName(ctx context.Context, organizationId string, name string) (out model.Alert, err error) {
 	out, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -150,7 +150,7 @@ func (u *AlertUsecase) GetByName(ctx context.Context, organizationId string, nam
 	return
 }
 
-func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (alerts []domain.Alert, err error) {
+func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (alerts []model.Alert, err error) {
 	alerts, err = u.repo.Fetch(organizationId, pg)
 	if err != nil {
 		return nil, err
@@ -163,8 +163,8 @@ func (u *AlertUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 	return alerts, nil
 }
 
-func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error) {
-	user, ok := request.UserFrom(ctx)
+func (u *AlertUsecase) Delete(ctx context.Context, dto model.Alert) (err error) {
+	_, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
 	}
@@ -174,8 +174,6 @@ func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error)
 		return httpErrors.NewNotFoundError(err, "AL_NOT_FOUND_ALERT", "")
 	}
 
-	*dto.UpdatorId = user.GetUserId()
-
 	err = u.repo.Delete(dto)
 	if err != nil {
 		return err
@@ -184,7 +182,7 @@ func (u *AlertUsecase) Delete(ctx context.Context, dto domain.Alert) (err error)
 	return nil
 }
 
-func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAction) (alertActionId uuid.UUID, err error) {
+func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto model.AlertAction) (alertActionId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return uuid.Nil, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
@@ -208,7 +206,7 @@ func (u *AlertUsecase) CreateAlertAction(ctx context.Context, dto domain.AlertAc
 	return
 }
 
-func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, strId string) (organizationId string, err error) {
+func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]model.Cluster, strId string) (organizationId string, err error) {
 	clusterId := domain.ClusterId(strId)
 	if !clusterId.Validate() {
 		return "", fmt.Errorf("Invalid clusterId %s", strId)
@@ -223,9 +221,9 @@ func (u *AlertUsecase) getOrganizationFromCluster(clusters *[]domain.Cluster, st
 	return "", fmt.Errorf("No martched organization %s", strId)
 }
 
-func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
+func (u *AlertUsecase) makeAdditionalInfo(alert *model.Alert) {
 	alert.FiredAt = &alert.CreatedAt
-	//alert.Status = domain.AlertActionStatus_CREATED
+	//alert.Status = model.AlertActionStatus_CREATED
 
 	if len(alert.AlertActions) > 0 {
 		alert.TakedAt = &alert.AlertActions[0].CreatedAt
@@ -242,7 +240,7 @@ func (u *AlertUsecase) makeAdditionalInfo(alert *domain.Alert) {
 	}
 }
 
-func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster domain.Cluster, alert domain.CreateAlertRequestAlert, clusterId domain.ClusterId) (url string) {
+func (u *AlertUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster model.Cluster, alert domain.CreateAlertRequestAlert, clusterId domain.ClusterId) (url string) {
 	primaryGrafanaEndpoint := ""
 	appGroups, err := u.appGroupRepo.Fetch(primaryCluster.ID, nil)
 	if err == nil {

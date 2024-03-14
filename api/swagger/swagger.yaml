@@ -1,5 +1,128 @@
 basePath: /api/1.0/
 definitions:
+  github_com_openinfradev_tks-api_internal_model.AppServeApp:
+    properties:
+      appServeAppTasks:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeAppTask'
+        type: array
+      appType:
+        description: appType (spring/springboot)
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      endpointUrl:
+        description: endpoint URL of deployed app
+        type: string
+      grafanaUrl:
+        description: grafana dashboard URL for deployed app
+        type: string
+      id:
+        type: string
+      name:
+        description: application name
+        type: string
+      namespace:
+        description: application namespace
+        type: string
+      organizationId:
+        description: contractId is a contract ID which this app belongs to
+        type: string
+      previewEndpointUrl:
+        description: preview svc endpoint URL in B/G deployment
+        type: string
+      projectId:
+        description: project ID which this app belongs to
+        type: string
+      status:
+        description: status is status of deployed app
+        type: string
+      targetClusterId:
+        description: target cluster to which the app is deployed
+        type: string
+      targetClusterName:
+        description: target cluster name
+        type: string
+      type:
+        description: type (build/deploy/all)
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_internal_model.AppServeAppTask:
+    properties:
+      appConfig:
+        description: java app config
+        type: string
+      appSecret:
+        description: java app secret
+        type: string
+      appServeAppId:
+        description: ID for appServeApp that this task belongs to
+        type: string
+      artifactUrl:
+        description: URL of java app artifact (Eg, Jar)
+        type: string
+      availableRollback:
+        type: boolean
+      createdAt:
+        description: createdAt is  a creation timestamp for the application
+        type: string
+      deletedAt:
+        type: string
+      executablePath:
+        description: Executable path of app image
+        type: string
+      extraEnv:
+        description: env variable list for java app
+        type: string
+      helmRevision:
+        description: revision of deployed helm release
+        type: integer
+      id:
+        type: string
+      imageUrl:
+        description: URL of built image for app
+        type: string
+      output:
+        description: output for task result
+        type: string
+      port:
+        description: java app port
+        type: string
+      profile:
+        description: java app profile
+        type: string
+      pvAccessMode:
+        type: string
+      pvEnabled:
+        type: boolean
+      pvMountPath:
+        type: string
+      pvSize:
+        type: string
+      pvStorageClass:
+        type: string
+      resourceSpec:
+        description: resource spec of app pod
+        type: string
+      rollbackVersion:
+        description: rollback target version
+        type: string
+      status:
+        description: status is app status
+        type: string
+      strategy:
+        description: deployment strategy (eg, rolling-update)
+        type: string
+      updatedAt:
+        type: string
+      version:
+        description: application version
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ActionResponse:
     properties:
       body:
@@ -143,11 +266,11 @@ definitions:
     - AppGroupType_UNSPECIFIED
     - AppGroupType_LMA
     - AppGroupType_SERVICE_MESH
-  github_com_openinfradev_tks-api_pkg_domain.AppServeApp:
+  github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse:
     properties:
       appServeAppTasks:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse'
         type: array
       appType:
         description: appType (spring/springboot)
@@ -194,7 +317,7 @@ definitions:
       updatedAt:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask:
+  github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse:
     properties:
       appConfig:
         description: java app config
@@ -331,8 +454,6 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
-      userId:
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.Axis:
     properties:
@@ -376,49 +497,6 @@ definitions:
       existed:
         type: boolean
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.CloudAccount:
-    properties:
-      accessKeyId:
-        type: string
-      awsAccountId:
-        type: string
-      cloudService:
-        type: string
-      clusters:
-        type: integer
-      createdAt:
-        type: string
-      createdIAM:
-        type: boolean
-      creator:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
-      creatorId:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      organizationId:
-        type: string
-      resource:
-        type: string
-      secretAccessKey:
-        type: string
-      sessionToken:
-        type: string
-      status:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccountStatus'
-      statusDesc:
-        type: string
-      updatedAt:
-        type: string
-      updator:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
-      updatorId:
-        type: string
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse:
     properties:
       awsAccountId:
@@ -449,98 +527,6 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.CloudAccountStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    type: integer
-    x-enum-varnames:
-    - CloudAccountStatus_PENDING
-    - CloudAccountStatus_CREATING
-    - CloudAccountStatus_CREATED
-    - CloudAccountStatus_DELETING
-    - CloudAccountStatus_DELETED
-    - CloudAccountStatus_CREATE_ERROR
-    - CloudAccountStatus_DELETE_ERROR
-  github_com_openinfradev_tks-api_pkg_domain.Cluster:
-    properties:
-      byoClusterEndpointHost:
-        type: string
-      byoClusterEndpointPort:
-        type: integer
-      cloudAccount:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccount'
-      cloudAccountId:
-        type: string
-      cloudService:
-        type: string
-      clusterType:
-        type: integer
-      conf:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterConf'
-      createdAt:
-        type: string
-      creator:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
-      creatorId:
-        type: string
-      description:
-        type: string
-      favorited:
-        type: boolean
-      id:
-        type: string
-      isStack:
-        type: boolean
-      kubeconfig:
-        items:
-          type: integer
-        type: array
-      name:
-        type: string
-      organizationId:
-        type: string
-      stackTemplate:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplate'
-      stackTemplateId:
-        type: string
-      status:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterStatus'
-      statusDesc:
-        type: string
-      updatedAt:
-        type: string
-      updator:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
-      updatorId:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.ClusterConf:
-    properties:
-      tksCpNode:
-        type: integer
-      tksCpNodeMax:
-        type: integer
-      tksCpNodeType:
-        type: string
-      tksInfraNode:
-        type: integer
-      tksInfraNodeMax:
-        type: integer
-      tksInfraNodeType:
-        type: string
-      tksUserNode:
-        type: integer
-      tksUserNodeMax:
-        type: integer
-      tksUserNodeType:
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ClusterConfResponse:
     properties:
@@ -611,6 +597,8 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       description:
         type: string
+      favorited:
+        type: boolean
       id:
         type: string
       isStack:
@@ -661,30 +649,6 @@ definitions:
       tksUserNodeType:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.ClusterStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    - 8
-    - 9
-    type: integer
-    x-enum-varnames:
-    - ClusterStatus_PENDING
-    - ClusterStatus_INSTALLING
-    - ClusterStatus_RUNNING
-    - ClusterStatus_DELETING
-    - ClusterStatus_DELETED
-    - ClusterStatus_INSTALL_ERROR
-    - ClusterStatus_DELETE_ERROR
-    - ClusterStatus_BOOTSTRAPPING
-    - ClusterStatus_BOOTSTRAPPED
-    - ClusterStatus_BOOTSTRAP_ERROR
   github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse:
     properties:
       result:
@@ -1164,9 +1128,9 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse:
@@ -1243,13 +1207,20 @@ definitions:
     - accessKeyId
     - secretAccessKey
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Endpoint:
+  github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.EndpointResponse:
     properties:
       createdAt:
         type: string
       group:
         type: string
       name:
+        type: string
+      updatedAt:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse:
@@ -1338,7 +1309,7 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse:
     properties:
       appServeApp:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse'
       stages:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StageResponse'
@@ -1347,9 +1318,9 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppTaskResponse:
     properties:
       appServeApp:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse'
       appServeAppTask:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse'
       stages:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StageResponse'
@@ -1409,6 +1380,11 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterNode'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetClusterResponse:
+    properties:
+      cluster:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterResponse'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetClustersResponse:
     properties:
       clusters:
@@ -1457,9 +1433,9 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetOrganizationResponse:
@@ -1670,9 +1646,9 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
           updatedAt:
             type: string
         type: object
@@ -1779,9 +1755,9 @@ definitions:
       name:
         type: string
       organization:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
       role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
       updatedAt:
         type: string
     type: object
@@ -1809,11 +1785,11 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           passwordExpired:
             type: boolean
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
           token:
             type: string
         type: object
@@ -1827,14 +1803,10 @@ definitions:
           type: array
         type: object
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Organization:
+  github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse:
     properties:
       createdAt:
         type: string
-      creator:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       description:
         type: string
       id:
@@ -1906,53 +1878,45 @@ definitions:
       type:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Permission:
+  github_com_openinfradev_tks-api_pkg_domain.PermissionResponse:
     properties:
       ID:
         type: string
       children:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
         type: array
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       endpoints:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Endpoint'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.EndpointResponse'
         type: array
-      id:
-        type: integer
       is_allowed:
         type: boolean
       name:
         type: string
       parent:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       parent_id:
         type: string
       role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
       role_id:
         type: string
-      updatedAt:
-        type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.PermissionSet:
+  github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse:
     properties:
       configuration:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       dashboard:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       notification:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       project_management:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       security_policy:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       stack:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PermittedOrganization:
     properties:
@@ -2191,6 +2155,8 @@ definitions:
         type: string
       projectRoleName:
         type: string
+      updatedAt:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ProjectRoleResponse:
     properties:
@@ -2270,14 +2236,12 @@ definitions:
       usage:
         type: integer
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Role:
+  github_com_openinfradev_tks-api_pkg_domain.RoleResponse:
     properties:
       createdAt:
         type: string
       creator:
         type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       description:
         type: string
       id:
@@ -2285,7 +2249,7 @@ definitions:
       name:
         type: string
       organization:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
       organizationId:
         type: string
       type:
@@ -2335,15 +2299,6 @@ definitions:
       name:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse:
-    properties:
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse:
     properties:
       cloudService:
@@ -2373,8 +2328,6 @@ definitions:
         type: string
       name:
         type: string
-      role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.StackConfResponse:
     properties:
@@ -2453,59 +2406,6 @@ definitions:
         type: string
       step:
         type: integer
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.StackTemplate:
-    properties:
-      cloudService:
-        type: string
-      createdAt:
-        type: string
-      creator:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
-      creatorId:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      kubeType:
-        type: string
-      kubeVersion:
-        type: string
-      name:
-        type: string
-      organizationId:
-        type: string
-      organizationIds:
-        items:
-          type: string
-        type: array
-      organizations:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
-        type: array
-      platform:
-        type: string
-      serviceIds:
-        items:
-          type: string
-        type: array
-      services:
-        items:
-          type: integer
-        type: array
-      template:
-        type: string
-      templateType:
-        type: string
-      updatedAt:
-        type: string
-      updator:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
-      updatorId:
-        type: string
-      version:
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.StackTemplateResponse:
     properties:
@@ -2683,9 +2583,9 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationRequest:
@@ -2730,7 +2630,7 @@ definitions:
     properties:
       permissions:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest:
@@ -2880,49 +2780,12 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
           updatedAt:
             type: string
         type: object
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.User:
-    properties:
-      accountId:
-        type: string
-      createdAt:
-        type: string
-      creator:
-        type: string
-      department:
-        type: string
-      description:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      organization:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
-      organizationId:
-        type: string
-      password:
-        type: string
-      passwordExpired:
-        type: boolean
-      passwordUpdatedAt:
-        type: string
-      role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
-      roleId:
-        type: string
-      token:
-        type: string
-      updatedAt:
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdRequest:
     properties:
@@ -2984,9 +2847,9 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
           updatedAt:
             type: string
         type: object
@@ -3032,9 +2895,9 @@ definitions:
           name:
             type: string
           organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
           updatedAt:
             type: string
         type: object
@@ -3050,14 +2913,6 @@ definitions:
       text:
         type: string
     type: object
-  gorm.DeletedAt:
-    properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
-    type: object
 host: tks-api-dev.taco-cat.xyz
 info:
   contact:
@@ -3070,6 +2925,120 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/audits:
+    get:
+      consumes:
+      - application/json
+      description: Get Audits
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filter
+        type: array
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: or
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse'
+      security:
+      - JWT: []
+      summary: Get Audits
+      tags:
+      - Audits
+    post:
+      consumes:
+      - application/json
+      description: Create Audit
+      parameters:
+      - description: create audit request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse'
+      security:
+      - JWT: []
+      summary: Create Audit
+      tags:
+      - Audits
+  /admin/audits/{auditId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Audit
+      parameters:
+      - description: auditId
+        in: path
+        name: auditId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete Audit 'NOT IMPLEMENTED'
+      tags:
+      - Audits
+    get:
+      consumes:
+      - application/json
+      description: Get Audit
+      parameters:
+      - description: auditId
+        in: path
+        name: auditId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse'
+      security:
+      - JWT: []
+      summary: Get Audit
+      tags:
+      - Audits
   /admin/organizations/{organizationId}/projects:
     get:
       consumes:
@@ -3586,7 +3555,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackTemplateResponse'
       security:
       - JWT: []
-      summary: Create StackTemplate 'NOT IMPLEMENTED'
+      summary: Create StackTemplate
       tags:
       - StackTemplates
   /admin/stack-templates/{stackTemplateId}:
@@ -3607,7 +3576,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Delete StackTemplate 'NOT IMPLEMENTED'
+      summary: Delete StackTemplate
       tags:
       - StackTemplates
     get:
@@ -3650,7 +3619,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Update StackTemplate 'NOT IMPLEMENTED'
+      summary: Update StackTemplate
       tags:
       - StackTemplates
   /admin/stack-templates/{stackTemplateId}/organizations:
@@ -4106,8 +4075,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Cluster'
       security:
       - JWT: []
       summary: Delete cluster
@@ -4129,7 +4096,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Cluster'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterResponse'
       security:
       - JWT: []
       summary: Get cluster
@@ -4342,7 +4309,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse'
       security:
       - JWT: []
       summary: Delete organization
@@ -4544,120 +4511,6 @@ paths:
       summary: Create alert action
       tags:
       - Alerts
-  /organizations/{organizationId}/audits:
-    get:
-      consumes:
-      - application/json
-      description: Get Audits
-      parameters:
-      - description: pageSize
-        in: query
-        name: limit
-        type: string
-      - description: pageNumber
-        in: query
-        name: page
-        type: string
-      - description: sortColumn
-        in: query
-        name: soertColumn
-        type: string
-      - description: sortOrder
-        in: query
-        name: sortOrder
-        type: string
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: filter
-        type: array
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: or
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse'
-      security:
-      - JWT: []
-      summary: Get Audits
-      tags:
-      - Audits
-    post:
-      consumes:
-      - application/json
-      description: Create Audit
-      parameters:
-      - description: create audit request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse'
-      security:
-      - JWT: []
-      summary: Create Audit
-      tags:
-      - Audits
-  /organizations/{organizationId}/audits/{auditId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete Audit
-      parameters:
-      - description: auditId
-        in: path
-        name: auditId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Delete Audit 'NOT IMPLEMENTED'
-      tags:
-      - Audits
-    get:
-      consumes:
-      - application/json
-      description: Get Audit
-      parameters:
-      - description: auditId
-        in: path
-        name: auditId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse'
-      security:
-      - JWT: []
-      summary: Get Audit
-      tags:
-      - Audits
   /organizations/{organizationId}/cloud-accounts:
     get:
       consumes:
@@ -5366,7 +5219,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp'
+              $ref: '#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeApp'
             type: array
       security:
       - JWT: []
@@ -5733,7 +5586,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp'
+              $ref: '#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeApp'
             type: array
       security:
       - JWT: []
@@ -6657,7 +6510,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse'
       security:
       - JWT: []
       summary: Get Permissions By Role ID
@@ -6689,6 +6542,64 @@ paths:
       summary: Update Permissions By Role ID
       tags:
       - Permission
+  /organizations/{organizationId}/stack-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization StackTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get Organization StackTemplates
+      tags:
+      - StackTemplates
+  /organizations/{organizationId}/stack-templates/{stackTemplateId}:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization StackTemplate
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get Organization StackTemplate
+      tags:
+      - StackTemplates
   /organizations/{organizationId}/stacks:
     get:
       consumes:
@@ -7079,8 +6990,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.User'
       security:
       - JWT: []
       summary: Delete user
@@ -7236,7 +7145,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse'
       security:
       - JWT: []
       summary: Get Permission Templates

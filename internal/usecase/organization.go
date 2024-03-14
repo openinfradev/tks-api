@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -19,10 +20,10 @@ import (
 )
 
 type IOrganizationUsecase interface {
-	Create(context.Context, *domain.Organization) (organizationId string, err error)
-	Fetch(pg *pagination.Pagination) (*[]domain.Organization, error)
-	Get(organizationId string) (domain.Organization, error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
+	Create(context.Context, *model.Organization) (organizationId string, err error)
+	Fetch(pg *pagination.Pagination) (*[]model.Organization, error)
+	Get(organizationId string) (model.Organization, error)
+	Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
 	UpdatePrimaryClusterId(organizationId string, clusterId string) (err error)
 	Delete(organizationId string, accessToken string) error
 }
@@ -43,7 +44,7 @@ func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClien
 	}
 }
 
-func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organization) (organizationId string, err error) {
+func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization) (organizationId string, err error) {
 	creator := uuid.Nil
 	if in.Creator != "" {
 		creator, err = uuid.Parse(in.Creator)
@@ -84,17 +85,17 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *domain.Organizatio
 
 	return organizationId, nil
 }
-func (u *OrganizationUsecase) Fetch(pg *pagination.Pagination) (out *[]domain.Organization, err error) {
+func (u *OrganizationUsecase) Fetch(pg *pagination.Pagination) (out *[]model.Organization, err error) {
 	organizations, err := u.repo.Fetch(pg)
 	if err != nil {
 		return nil, err
 	}
 	return organizations, nil
 }
-func (u *OrganizationUsecase) Get(organizationId string) (res domain.Organization, err error) {
+func (u *OrganizationUsecase) Get(organizationId string) (res model.Organization, err error) {
 	res, err = u.repo.Get(organizationId)
 	if err != nil {
-		return domain.Organization{}, httpErrors.NewNotFoundError(err, "", "")
+		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
 	return res, nil
 }
@@ -130,15 +131,15 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 	return nil
 }
 
-func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
+func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error) {
 	_, err := u.Get(organizationId)
 	if err != nil {
-		return domain.Organization{}, httpErrors.NewNotFoundError(err, "", "")
+		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
 
 	res, err := u.repo.Update(organizationId, in)
 	if err != nil {
-		return domain.Organization{}, err
+		return model.Organization{}, err
 	}
 
 	return res, nil

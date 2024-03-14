@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -11,19 +12,19 @@ import (
 )
 
 type IAppServeAppRepository interface {
-	CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]domain.AppServeApp, error)
-	GetAppServeAppById(appId string) (*domain.AppServeApp, error)
+	CreateAppServeApp(app *model.AppServeApp) (appId string, taskId string, err error)
+	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
+	GetAppServeAppById(appId string) (*model.AppServeApp, error)
 
-	GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) ([]domain.AppServeAppTask, error)
-	GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error)
+	GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
+	GetAppServeAppTaskById(taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
 
-	GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error)
+	GetAppServeAppLatestTask(appId string) (*model.AppServeAppTask, error)
 	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
 
 	IsAppServeAppExist(appId string) (int64, error)
 	IsAppServeAppNameExist(orgId string, appName string) (int64, error)
-	CreateTask(task *domain.AppServeAppTask) (taskId string, err error)
+	CreateTask(task *model.AppServeAppTask) (taskId string, err error)
 	UpdateStatus(appId string, taskId string, status string, output string) error
 	UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
 	GetTaskCountById(appId string) (int64, error)
@@ -39,7 +40,7 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 	}
 }
 
-func (r *AppServeAppRepository) CreateAppServeApp(app *domain.AppServeApp) (appId string, taskId string, err error) {
+func (r *AppServeAppRepository) CreateAppServeApp(app *model.AppServeApp) (appId string, taskId string, err error) {
 
 	res := r.db.Create(&app)
 	if res.Error != nil {
@@ -51,7 +52,7 @@ func (r *AppServeAppRepository) CreateAppServeApp(app *domain.AppServeApp) (appI
 
 // Update creates new appServeApp task for existing appServeApp.
 func (r *AppServeAppRepository) CreateTask(
-	task *domain.AppServeAppTask) (string, error) {
+	task *model.AppServeAppTask) (string, error) {
 	res := r.db.Create(task)
 	if res.Error != nil {
 		return "", res.Error
@@ -60,14 +61,14 @@ func (r *AppServeAppRepository) CreateTask(
 	return task.ID, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) (apps []domain.AppServeApp, err error) {
-	var clusters []Cluster
+func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) (apps []model.AppServeApp, err error) {
+	var clusters []model.Cluster
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
 	// TODO: should return different records based on showAll param
-	_, res := pg.Fetch(r.db.Model(&domain.AppServeApp{}).
+	_, res := pg.Fetch(r.db.Model(&model.AppServeApp{}).
 		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId), &apps)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
@@ -97,9 +98,9 @@ func (r *AppServeAppRepository) GetAppServeApps(organizationId string, showAll b
 	return
 }
 
-func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppServeApp, error) {
-	var app domain.AppServeApp
-	var cluster Cluster
+func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*model.AppServeApp, error) {
+	var app model.AppServeApp
+	var cluster model.Cluster
 
 	res := r.db.Where("id = ?", appId).First(&app)
 	if res.Error != nil {
@@ -123,12 +124,12 @@ func (r *AppServeAppRepository) GetAppServeAppById(appId string) (*domain.AppSer
 	return &app, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) (tasks []domain.AppServeAppTask, err error) {
+func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(appId string, pg *pagination.Pagination) (tasks []model.AppServeAppTask, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Model(&domain.AppServeAppTask{}).
+	_, res := pg.Fetch(r.db.Model(&model.AppServeAppTask{}).
 		Where("app_serve_app_tasks.app_serve_app_id = ?", appId), &tasks)
 	if res.Error != nil {
 		return nil, fmt.Errorf("Error while finding tasks with appId: %s", appId)
@@ -143,9 +144,9 @@ func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(appId string, pg *pag
 }
 
 // Return single task info along with its parent app info
-func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*domain.AppServeAppTask, *domain.AppServeApp, error) {
-	var task domain.AppServeAppTask
-	var app domain.AppServeApp
+func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
+	var task model.AppServeAppTask
+	var app model.AppServeApp
 
 	// Retrieve task info
 	res := r.db.Where("id = ?", taskId).First(&task)
@@ -170,8 +171,8 @@ func (r *AppServeAppRepository) GetAppServeAppTaskById(taskId string) (*domain.A
 	return &task, &app, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*domain.AppServeAppTask, error) {
-	var task domain.AppServeAppTask
+func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*model.AppServeAppTask, error) {
+	var task model.AppServeAppTask
 
 	// TODO: Does this work?? where's app ID here?
 	res := r.db.Order("created_at desc").First(&task)
@@ -187,7 +188,7 @@ func (r *AppServeAppRepository) GetAppServeAppLatestTask(appId string) (*domain.
 }
 
 func (r *AppServeAppRepository) GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error) {
-	var apps []domain.AppServeApp
+	var apps []model.AppServeApp
 
 	queryStr := fmt.Sprintf("organization_id = '%s' AND target_cluster_id = '%s' AND status <> 'DELETE_SUCCESS'", organizationId, clusterId)
 	res := r.db.Find(&apps, queryStr)
@@ -227,7 +228,7 @@ func (r *AppServeAppRepository) IsAppServeAppNameExist(orgId string, appName str
 
 func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status string, output string) error {
 	now := time.Now()
-	app := domain.AppServeApp{
+	app := model.AppServeApp{
 		ID:        appId,
 		Status:    status,
 		UpdatedAt: &now,
@@ -237,7 +238,7 @@ func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status
 		return fmt.Errorf("UpdateStatus: nothing updated in AppServeApp with ID %s", appId)
 	}
 
-	task := domain.AppServeAppTask{
+	task := model.AppServeAppTask{
 		ID:        taskId,
 		Status:    status,
 		Output:    output,
@@ -249,16 +250,16 @@ func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status
 	}
 
 	//// Update task status
-	//res := r.db.Model(&domain.AppServeAppTask{}).
+	//res := r.db.Model(&model.AppServeAppTask{}).
 	//	Where("ID = ?", taskId).
-	//	Updates(domain.AppServeAppTask{Status: status, Output: output})
+	//	Updates(model.AppServeAppTask{Status: status, Output: output})
 	//
 	//if res.Error != nil || res.RowsAffected == 0 {
 	//	return fmt.Errorf("UpdateStatus: nothing updated in AppServeAppTask with ID %s", taskId)
 	//}
 	//
 	//// Update status of the app.
-	//res = r.db.Model(&domain.AppServeApp{}).
+	//res = r.db.Model(&model.AppServeApp{}).
 	//	Where("ID = ?", appId).
 	//	Update("Status", status)
 	//if res.Error != nil || res.RowsAffected == 0 {
@@ -270,14 +271,14 @@ func (r *AppServeAppRepository) UpdateStatus(appId string, taskId string, status
 
 func (r *AppServeAppRepository) UpdateEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error {
 	now := time.Now()
-	app := domain.AppServeApp{
+	app := model.AppServeApp{
 		ID:                 appId,
 		EndpointUrl:        endpoint,
 		PreviewEndpointUrl: previewEndpoint,
 		UpdatedAt:          &now,
 	}
 
-	task := domain.AppServeAppTask{
+	task := model.AppServeAppTask{
 		ID:           taskId,
 		HelmRevision: helmRevision,
 		UpdatedAt:    &now,
@@ -316,7 +317,7 @@ func (r *AppServeAppRepository) UpdateEndpoint(appId string, taskId string, endp
 
 func (r *AppServeAppRepository) GetTaskCountById(appId string) (int64, error) {
 	var count int64
-	if err := r.db.Model(&domain.AppServeAppTask{}).Where("AppServeAppId = ?", appId).Count(&count); err != nil {
+	if err := r.db.Model(&model.AppServeAppTask{}).Where("AppServeAppId = ?", appId).Count(&count); err != nil {
 		return 0, fmt.Errorf("could not select count AppServeAppTask with ID: %s", appId)
 	}
 	return count, nil
