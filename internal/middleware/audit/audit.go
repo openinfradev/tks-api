@@ -10,8 +10,8 @@ import (
 	internalApi "github.com/openinfradev/tks-api/internal/delivery/api"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/middleware/logging"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
@@ -59,7 +59,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 				message, description = fn(lrw.GetBody(), body, statusCode)
 				r.Body = io.NopCloser(bytes.NewBuffer(body))
 
-				dto := model.Audit{
+				dto := domain.Audit{
 					OrganizationId: organizationId,
 					Group:          internalApi.ApiMap[endpoint].Group,
 					Message:        message,

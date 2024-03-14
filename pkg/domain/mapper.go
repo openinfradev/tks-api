@@ -1,0 +1,140 @@
+package domain
+
+import (
+	"fmt"
+	"reflect"
+
+	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/pkg/log"
+)
+
+type ConverterMap map[compositeKey]func(interface{}) (interface{}, error)
+
+type compositeKey struct {
+	srcType reflect.Type
+	dstType reflect.Type
+}
+
+func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) error {
+	srcVal := reflect.ValueOf(src)
+	srcType := srcVal.Type()
+
+	dstVal := reflect.ValueOf(dst)
+	if dstVal.Kind() != reflect.Ptr || dstVal.IsNil() {
+		return fmt.Errorf("dst must be a non-nil pointer")
+	}
+	dstElem := dstVal.Elem()
+
+	for i := 0; i < srcVal.NumField(); i++ {
+		fieldName := srcType.Field(i).Name
+		srcField := srcVal.Field(i)
+		dstField := dstElem.FieldByName(fieldName)
+
+		if dstField.IsValid() && dstField.CanSet() {
+			if dstField.Type() == srcField.Type() {
+				dstField.Set(srcField)
+				continue
+			} else if srcField.Type().Kind() == reflect.Struct && dstField.Type().Kind() == reflect.Struct {
+				if err := recursiveMap(srcField.Interface(), dstField.Addr().Interface(), converterMap); err != nil {
+					return err
+				}
+			} else {
+				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
+				if converter, ok := converterMap[converterKey]; ok {
+					if converted, err := converter(srcField.Interface()); err != nil {
+						return err
+					} else {
+						dstField.Set(reflect.ValueOf(converted))
+					}
+				} else {
+					log.Debugf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					continue
+				}
+			}
+
+			/*
+				 else if srcField.Type().Kind() == reflect.Ptr && dstField.Type().Kind() == reflect.Ptr {
+					log.Info("AAA ", dstField.Type())
+					ptr := reflect.New(dstField.Elem().Type())
+					if err := recursiveMap(srcField.Elem().Interface(), ptr.Elem().Interface(), converterMap); err != nil {
+						return err
+					}
+				}
+			*/
+
+		}
+	}
+
+	return nil
+}
+func Map(src interface{}, dst interface{}) error {
+	return recursiveMap(src, dst, ConverterMap{
+		{srcType: reflect.TypeOf((*uuid.UUID)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(uuid.UUID).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*uuid.UUID)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			val, _ := uuid.Parse(i.(string))
+			return val, nil
+		},
+		{srcType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(OrganizationStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*OrganizationStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return organizationStatusMap[i.(string)], nil
+		},
+		{srcType: reflect.TypeOf((*Role)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(Role).Name, nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*Role)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return Role{Name: i.(string)}, nil
+		},
+		{srcType: reflect.TypeOf((*ClusterStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(ClusterStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ClusterStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(ClusterStatus).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*AppGroupStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(AppGroupStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AppGroupStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(AppGroupStatus).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*AppGroupType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(AppGroupType).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AppGroupType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(AppGroupType).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*StackStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(StackStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*StackStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(StackStatus).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*ChartType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(ChartType).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ChartType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(ChartType).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(AlertActionStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*AlertActionStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(AlertActionStatus).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*ApplicationType)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(ApplicationType).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*ApplicationType)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(ApplicationType).FromString(i.(string)), nil
+		},
+		{srcType: reflect.TypeOf((*CloudAccountStatus)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
+			return i.(CloudAccountStatus).String(), nil
+		},
+		{srcType: reflect.TypeOf(""), dstType: reflect.TypeOf((*CloudAccountStatus)(nil)).Elem()}: func(i interface{}) (interface{}, error) {
+			return new(CloudAccountStatus).FromString(i.(string)), nil
+		},
+	})
+}

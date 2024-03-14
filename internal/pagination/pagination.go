@@ -9,8 +9,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"gorm.io/gorm"
 
 	"goyave.dev/goyave/v4"
@@ -86,10 +84,6 @@ func (p *Pagination) GetFilters() []Filter {
 	return p.Filters
 }
 
-func (p *Pagination) AddFilter(f Filter) {
-	p.Filters = append(p.Filters, f)
-}
-
 func (p *Pagination) MakePaginationRequest() {
 	if p.PaginationRequest == nil {
 		p.PaginationRequest = &goyave.Request{}
@@ -120,11 +114,9 @@ func (p *Pagination) MakePaginationRequest() {
 	}
 	pgSorts = append(pgSorts, &pgSort)
 
-	pgJoins := filter.Join{}
-
 	p.PaginationRequest.Data = map[string]interface{}{
-		"filter":   pgFilters,
-		"join":     pgJoins,
+		"filter": pgFilters,
+		//"join":     pgJoins,
 		"page":     p.Page,
 		"per_page": p.Limit,
 		"sort":     pgSorts,
@@ -220,7 +212,7 @@ func NewPagination(urlParams *url.Values) *Pagination {
 						releation := ""
 						arrColumns := strings.Split(column, ".")
 						if len(arrColumns) > 1 {
-							releation = cases.Title(language.English, cases.Compact).String(arrColumns[0])
+							releation = arrColumns[0]
 							column = arrColumns[1]
 						}
 

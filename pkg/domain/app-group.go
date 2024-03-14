@@ -114,6 +114,33 @@ func (m AppGroupType) FromString(s string) AppGroupType {
 	return AppGroupType_UNSPECIFIED
 }
 
+type AppGroup = struct {
+	ID           AppGroupId
+	Name         string
+	ClusterId    ClusterId
+	AppGroupType AppGroupType
+	Description  string
+	WorkflowId   string
+	Status       AppGroupStatus
+	StatusDesc   string
+	CreatorId    *uuid.UUID
+	Creator      User
+	UpdatorId    *uuid.UUID
+	Updator      User
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type Application = struct {
+	ID              uuid.UUID
+	AppGroupId      AppGroupId
+	Endpoint        string
+	Metadata        string
+	ApplicationType ApplicationType
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type AppGroupResponse = struct {
 	ID           AppGroupId         `json:"id"`
 	Name         string             `json:"name"`

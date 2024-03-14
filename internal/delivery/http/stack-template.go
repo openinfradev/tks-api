@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -31,7 +30,7 @@ func NewStackTemplateHandler(h usecase.Usecase) *StackTemplateHandler {
 // CreateStackTemplate godoc
 //
 //	@Tags			StackTemplates
-//	@Summary		Create StackTemplate
+//	@Summary		Create StackTemplate 'NOT IMPLEMENTED'
 //	@Description	Create StackTemplate
 //	@Accept			json
 //	@Produce		json
@@ -47,7 +46,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var dto model.StackTemplate
+	var dto domain.StackTemplate
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -171,7 +170,7 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 // UpdateStackTemplate godoc
 //
 //	@Tags			StackTemplates
-//	@Summary		Update StackTemplate
+//	@Summary		Update StackTemplate 'NOT IMPLEMENTED'
 //	@Description	Update StackTemplate
 //	@Accept			json
 //	@Produce		json
@@ -193,7 +192,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 		return
 	}
 
-	var dto model.StackTemplate
+	var dto domain.StackTemplate
 	if err := serializer.Map(r, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -210,7 +209,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 // DeleteStackTemplate godoc
 //
 //	@Tags			StackTemplates
-//	@Summary		Delete StackTemplate
+//	@Summary		Delete StackTemplate 'NOT IMPLEMENTED'
 //	@Description	Delete StackTemplate
 //	@Accept			json
 //	@Produce		json
@@ -288,7 +287,7 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 		return
 	}
 
-	var dto model.StackTemplate
+	var dto domain.StackTemplate
 	if err := serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -300,118 +299,4 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 		return
 	}
 	ResponseJSON(w, r, http.StatusOK, nil)
-}
-
-// GetOrganizationStackTemplates godoc
-//
-//	@Tags			StackTemplates
-//	@Summary		Get Organization StackTemplates
-//	@Description	Get Organization StackTemplates
-//	@Accept			json
-//	@Produce		json
-//	@Param			limit		query		string		false	"pageSize"
-//	@Param			page		query		string		false	"pageNumber"
-//	@Param			soertColumn	query		string		false	"sortColumn"
-//	@Param			sortOrder	query		string		false	"sortOrder"
-//	@Param			filters		query		[]string	false	"filters"
-//	@Success		200			{object}	domain.GetStackTemplatesResponse
-//	@Router			/organizations/{organizationId}/stack-templates [get]
-//	@Security		JWT
-func (h *StackTemplateHandler) GetOrganizationStackTemplates(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-
-	urlParams := r.URL.Query()
-	pg := pagination.NewPagination(&urlParams)
-	stackTemplates, err := h.usecase.FetchWithOrganization(r.Context(), organizationId, pg)
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var out domain.GetStackTemplatesResponse
-	out.StackTemplates = make([]domain.StackTemplateResponse, len(stackTemplates))
-	for i, stackTemplate := range stackTemplates {
-		if err := serializer.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
-		}
-
-		out.StackTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
-		for j, organization := range stackTemplate.Organizations {
-			if err := serializer.Map(organization, &out.StackTemplates[i].Organizations[j]); err != nil {
-				log.InfoWithContext(r.Context(), err)
-			}
-		}
-
-		err := json.Unmarshal(stackTemplate.Services, &out.StackTemplates[i].Services)
-		if err != nil {
-			log.ErrorWithContext(r.Context(), err)
-		}
-	}
-
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
-}
-
-// GetOrganizationStackTemplate godoc
-//
-//	@Tags			StackTemplates
-//	@Summary		Get Organization StackTemplate
-//	@Description	Get Organization StackTemplate
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	domain.GetStackTemplateResponse
-//	@Router			/organizations/{organizationId}/stack-templates/{stackTemplateId} [get]
-//	@Security		JWT
-func (h *StackTemplateHandler) GetOrganizationStackTemplate(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	_, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-
-	strId, ok := vars["stackTemplateId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
-		return
-	}
-
-	stackTemplateId, err := uuid.Parse(strId)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
-		return
-	}
-
-	stackTemplate, err := h.usecase.Get(r.Context(), stackTemplateId)
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var out domain.GetStackTemplateResponse
-	if err := serializer.Map(stackTemplate, &out.StackTemplate); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
-	out.StackTemplate.Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
-	for i, organization := range stackTemplate.Organizations {
-		if err := serializer.Map(organization, &out.StackTemplate.Organizations[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
-		}
-	}
-
-	err = json.Unmarshal(stackTemplate.Services, &out.StackTemplate.Services)
-	if err != nil {
-		log.ErrorWithContext(r.Context(), err)
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
 }

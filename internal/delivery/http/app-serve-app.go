@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/openinfradev/tks-api/internal"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -116,7 +115,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	(appReq).SetDefaultValue()
 
-	var app model.AppServeApp
+	var app domain.AppServeApp
 	if err = serializer.Map(appReq, &app); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
@@ -132,7 +131,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	app.Status = "PREPARING"
 	app.CreatedAt = now
 
-	var task model.AppServeAppTask
+	var task domain.AppServeAppTask
 	if err = serializer.Map(appReq, &task); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
@@ -231,7 +230,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 //	@Param			soertColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
-//	@Success		200				{object}	[]model.AppServeApp
+//	@Success		200				{object}	[]domain.AppServeApp
 //	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps [get]
 //	@Security		JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
@@ -265,13 +264,7 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	}
 
 	var out domain.GetAppServeAppsResponse
-	out.AppServeApps = make([]domain.AppServeAppResponse, len(apps))
-	for i, app := range apps {
-		if err := serializer.Map(app, &out.AppServeApps[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
-			continue
-		}
-	}
+	out.AppServeApps = apps
 
 	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
@@ -324,7 +317,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	newTasks := make([]model.AppServeAppTask, 0)
+	newTasks := make([]domain.AppServeAppTask, 0)
 
 	for idx, t := range app.AppServeAppTasks {
 		// Rollbacking to latest task should be blocked.
@@ -337,10 +330,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	app.AppServeAppTasks = newTasks
 
 	var out domain.GetAppServeAppResponse
-	if err := serializer.Map(app, &out.AppServeApp); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
+	out.AppServeApp = *app
 	// NOTE: makeStages function's been changed to use task instead of app
 	//out.Stages = makeStages(app)
 
@@ -387,9 +377,7 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
+	out.AppServeAppTask = *task
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -447,7 +435,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 //	@Param			sortColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
-//	@Success		200				{object}	[]model.AppServeApp
+//	@Success		200				{object}	[]domain.AppServeApp
 //	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks [get]
 //	@Security		JWT
 func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r *http.Request) {
@@ -475,13 +463,7 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	}
 
 	var out domain.GetAppServeAppTasksResponse
-	out.AppServeAppTasks = make([]domain.AppServeAppTaskResponse, len(tasks))
-	for i, task := range tasks {
-		if err := serializer.Map(task, &out.AppServeAppTasks[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
-			continue
-		}
-	}
+	out.AppServeAppTasks = tasks
 
 	if out.Pagination, err = pg.Response(); err != nil {
 		log.InfoWithContext(r.Context(), err)
@@ -551,19 +533,14 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(app, &out.AppServeApp); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
+	out.AppServeApp = *app
+	out.AppServeAppTask = *task
 	out.Stages = makeStages(task, app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-func makeStages(task *model.AppServeAppTask, app *model.AppServeApp) []domain.StageResponse {
+func makeStages(task *domain.AppServeAppTask, app *domain.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
 	var stage domain.StageResponse
@@ -605,7 +582,7 @@ func makeStages(task *model.AppServeAppTask, app *model.AppServeApp) []domain.St
 	return stages
 }
 
-func makeStage(task *model.AppServeAppTask, app *model.AppServeApp, pl string) domain.StageResponse {
+func makeStage(task *domain.AppServeAppTask, app *domain.AppServeApp, pl string) domain.StageResponse {
 	taskStatus := task.Status
 	strategy := task.Strategy
 
@@ -797,7 +774,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	// from existing app config.
 	//appReq.SetDefaultValue()
 
-	var task model.AppServeAppTask
+	var task domain.AppServeAppTask
 	//tasks := app.AppServeAppTasks
 	//sort.Slice(tasks, func(i, j int) bool {
 	//	return tasks[i].CreatedAt.String() > tasks[j].CreatedAt.String()

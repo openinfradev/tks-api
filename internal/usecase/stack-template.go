@@ -7,21 +7,20 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IStackTemplateUsecase interface {
-	Get(ctx context.Context, stackTemplateId uuid.UUID) (model.StackTemplate, error)
-	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.StackTemplate, error)
-	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.StackTemplate, error)
-	Create(ctx context.Context, dto model.StackTemplate) (stackTemplate uuid.UUID, err error)
-	Update(ctx context.Context, dto model.StackTemplate) error
-	Delete(ctx context.Context, dto model.StackTemplate) error
-	UpdateOrganizations(ctx context.Context, dto model.StackTemplate) error
+	Get(ctx context.Context, stackTemplateId uuid.UUID) (domain.StackTemplate, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) ([]domain.StackTemplate, error)
+	Create(ctx context.Context, dto domain.StackTemplate) (stackTemplate uuid.UUID, err error)
+	Update(ctx context.Context, dto domain.StackTemplate) error
+	Delete(ctx context.Context, dto domain.StackTemplate) error
+	UpdateOrganizations(ctx context.Context, dto domain.StackTemplate) error
 }
 
 type StackTemplateUsecase struct {
@@ -36,14 +35,13 @@ func NewStackTemplateUsecase(r repository.Repository) IStackTemplateUsecase {
 	}
 }
 
-func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTemplate) (stackTemplateId uuid.UUID, err error) {
+func (u *StackTemplateUsecase) Create(ctx context.Context, dto domain.StackTemplate) (stackTemplateId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
-	userId := user.GetUserId()
-	dto.CreatorId = &userId
-	dto.UpdatorId = &userId
+	dto.CreatorId = user.GetUserId()
+	dto.UpdatorId = user.GetUserId()
 
 	pg := pagination.NewPaginationWithFilter("name", "", "$eq", []string{dto.Name})
 	stackTemplates, _ := u.Fetch(ctx, pg)
@@ -78,7 +76,7 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 	return stackTemplateId, nil
 }
 
-func (u *StackTemplateUsecase) Update(ctx context.Context, dto model.StackTemplate) error {
+func (u *StackTemplateUsecase) Update(ctx context.Context, dto domain.StackTemplate) error {
 	_, err := u.repo.Get(dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "ST_NOT_EXISTED_STACK_TEMPLATE", "")
@@ -91,15 +89,15 @@ func (u *StackTemplateUsecase) Update(ctx context.Context, dto model.StackTempla
 	return nil
 }
 
-func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplateId uuid.UUID) (res model.StackTemplate, err error) {
+func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplateId uuid.UUID) (res domain.StackTemplate, err error) {
 	res, err = u.repo.Get(stackTemplateId)
 	if err != nil {
-		return model.StackTemplate{}, err
+		return domain.StackTemplate{}, err
 	}
 	return
 }
 
-func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (res []model.StackTemplate, err error) {
+func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (res []domain.StackTemplate, err error) {
 	res, err = u.repo.Fetch(pg)
 	if err != nil {
 		return nil, err
@@ -107,25 +105,17 @@ func (u *StackTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Paginat
 	return res, nil
 }
 
-func (u *StackTemplateUsecase) FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (res []model.StackTemplate, err error) {
-	res, err = u.repo.FetchWithOrganization(organizationId, pg)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (u *StackTemplateUsecase) Delete(ctx context.Context, dto model.StackTemplate) (err error) {
+func (u *StackTemplateUsecase) Delete(ctx context.Context, dto domain.StackTemplate) (err error) {
 	return nil
 }
 
-func (u *StackTemplateUsecase) UpdateOrganizations(ctx context.Context, dto model.StackTemplate) error {
+func (u *StackTemplateUsecase) UpdateOrganizations(ctx context.Context, dto domain.StackTemplate) error {
 	_, err := u.repo.Get(dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "ST_NOT_EXISTED_STACK_TEMPLATE", "")
 	}
 
-	organizations := make([]model.Organization, 0)
+	organizations := make([]domain.Organization, 0)
 	for _, organizationId := range dto.OrganizationIds {
 		organization, err := u.organizationRepo.Get(organizationId)
 		if err == nil {

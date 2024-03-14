@@ -9,23 +9,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type IPolicyTemplateUsecase interface {
-	Create(ctx context.Context, policyTemplate model.PolicyTemplate) (policyTemplateId string, err error)
-	Fetch(ctx context.Context, pg *pagination.Pagination) (policyTemplates []model.PolicyTemplate, err error)
+	Create(ctx context.Context, policyTemplate domain.PolicyTemplate) (policyTemplateId string, err error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) (policyTemplates []domain.PolicyTemplate, err error)
 	Update(ctx context.Context, policyTemplateId uuid.UUID, update domain.UpdatePolicyTemplateRequest) (err error)
-	Get(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplates *model.PolicyTemplate, err error)
+	Get(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplates *domain.PolicyTemplate, err error)
 	Delete(ctx context.Context, policyTemplateId uuid.UUID) (err error)
 	IsPolicyTemplateNameExist(ctx context.Context, policyTemplateName string) (bool, error)
 	IsPolicyTemplateKindExist(ctx context.Context, policyTemplateKind string) (bool, error)
-	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
+	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *domain.PolicyTemplate, err error)
 	ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
 	DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error)
 	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
@@ -47,7 +45,7 @@ func NewPolicyTemplateUsecase(r repository.Repository) IPolicyTemplateUsecase {
 	}
 }
 
-func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemplate) (policyTemplateId string, err error) {
+func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto domain.PolicyTemplate) (policyTemplateId string, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
@@ -81,7 +79,7 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 	return id.String(), nil
 }
 
-func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (policyTemplates []model.PolicyTemplate, err error) {
+func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (policyTemplates []domain.PolicyTemplate, err error) {
 	policyTemplates, err = u.repo.Fetch(pg)
 
 	if err != nil {
@@ -101,7 +99,7 @@ func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagina
 
 }
 
-func (u *PolicyTemplateUsecase) Get(ctx context.Context, policyTemplateID uuid.UUID) (policyTemplates *model.PolicyTemplate, err error) {
+func (u *PolicyTemplateUsecase) Get(ctx context.Context, policyTemplateID uuid.UUID) (policyTemplates *domain.PolicyTemplate, err error) {
 	policyTemplate, err := u.repo.GetByID(policyTemplateID)
 
 	if err != nil {
@@ -175,7 +173,7 @@ func (u *PolicyTemplateUsecase) IsPolicyTemplateKindExist(ctx context.Context, p
 	return u.repo.ExistByKind(policyTemplateKind)
 }
 
-func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error) {
+func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *domain.PolicyTemplate, err error) {
 	policyTemplate, err := u.repo.GetPolicyTemplateVersion(policyTemplateId, version)
 
 	if err != nil {
@@ -192,11 +190,9 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, po
 	return policyTemplate, nil
 }
 
-func (*PolicyTemplateUsecase) updatePermittedOrganizations(organizations *[]model.Organization, permittedOrgIdSet map[string]string, policyTemplate *model.PolicyTemplate) {
+func (*PolicyTemplateUsecase) updatePermittedOrganizations(organizations *[]domain.Organization, permittedOrgIdSet map[string]string, policyTemplate *domain.PolicyTemplate) {
 	// 허용리스트가 비어있으면 모든 Org에 대해서 허용
 	permitted := len(permittedOrgIdSet) == 0
-
-	log.Info("CHECK HERE ", permitted)
 
 	for _, organization := range *organizations {
 
@@ -205,30 +201,21 @@ func (*PolicyTemplateUsecase) updatePermittedOrganizations(organizations *[]mode
 		if !ok {
 			policyTemplate.PermittedOrganizations = append(
 				policyTemplate.PermittedOrganizations,
-
-				// ktkfree : 역시 이부분 확인 부탁 드립니다.
-				/*
-					domain.PermittedOrganization{
-						OrganizationId:   organization.ID,
-						OrganizationName: organization.Name,
-						Permitted:        permitted,
-					}
-				*/
-			)
+				domain.PermittedOrganization{
+					OrganizationId:   organization.ID,
+					OrganizationName: organization.Name,
+					Permitted:        permitted,
+				})
 		}
 	}
 }
 
-func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(policyTemplate *model.PolicyTemplate) map[string]string {
+func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(policyTemplate *domain.PolicyTemplate) map[string]string {
 	permittedOrgIdSet := make(map[string]string)
 
 	for _, permittedOrg := range policyTemplate.PermittedOrganizations {
 		// Set 처리를 위해서 키만 사용, 값은 아무거나
-
-		// ktkfree : 이부분 확인 부탁 드립니다.
-		//
-		//permittedOrgIdSet[permittedOrg.OrganizationId] = "1"
-		log.Info("CHECK HERE ", permittedOrg)
+		permittedOrgIdSet[permittedOrg.OrganizationId] = "1"
 	}
 	return permittedOrgIdSet
 }

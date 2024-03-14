@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -50,7 +49,6 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 	if err != nil {
 		return err
 	}
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	err = json.Unmarshal(body, &in)
 	if err != nil {

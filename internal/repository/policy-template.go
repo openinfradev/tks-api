@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -17,18 +16,18 @@ import (
 )
 
 type IPolicyTemplateRepository interface {
-	Create(dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error)
+	Create(dto domain.PolicyTemplate) (policyTemplateId uuid.UUID, err error)
 	Update(dto domain.UpdatePolicyTemplateUpdate) (err error)
-	Fetch(pg *pagination.Pagination) (out []model.PolicyTemplate, err error)
-	GetByName(policyTemplateName string) (out *model.PolicyTemplate, err error)
-	GetByKind(policyTemplateKind string) (out *model.PolicyTemplate, err error)
-	GetByID(policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error)
+	Fetch(pg *pagination.Pagination) (out []domain.PolicyTemplate, err error)
+	GetByName(policyTemplateName string) (out *domain.PolicyTemplate, err error)
+	GetByKind(policyTemplateKind string) (out *domain.PolicyTemplate, err error)
+	GetByID(policyTemplateId uuid.UUID) (out *domain.PolicyTemplate, err error)
 	Delete(policyTemplateId uuid.UUID) (err error)
 	ExistByName(policyTemplateName string) (exist bool, err error)
 	ExistByKind(policyTemplateKind string) (exist bool, err error)
 	ExistByID(policyTemplateId uuid.UUID) (exist bool, err error)
 	ListPolicyTemplateVersions(policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
-	GetPolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
+	GetPolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *domain.PolicyTemplate, err error)
 	DeletePolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (err error)
 	CreatePolicyTemplateVersion(policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
 }
@@ -43,18 +42,54 @@ func NewPolicyTemplateRepository(db *gorm.DB) IPolicyTemplateRepository {
 	}
 }
 
-func (r *PolicyTemplateRepository) Create(dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error) {
+type PolicyTemplateSupportedVersion struct {
+	gorm.Model
+
+	PolicyTemplateId uuid.UUID `gorm:"index:template_version,unique"`
+	Version          string    `gorm:"index:template_version,unique"`
+
+	ParameterSchema string `gorm:"type:text"`
+	Rego            string `gorm:"type:text"`
+	Libs            string `gorm:"type:text"`
+}
+
+type PolicyTemplate struct {
+	gorm.Model
+
+	ID                     uuid.UUID `gorm:"primarykey;type:varchar(36);not null"`
+	Type                   string    // Org or Tks
+	Name                   string
+	Version                string
+	SupportedVersions      []PolicyTemplateSupportedVersion `gorm:"foreignKey:PolicyTemplateId"`
+	Description            string
+	Kind                   string
+	Deprecated             bool
+	Mandatory              bool // Tks 인 경우에는 무시
+	Severity               string
+	PermittedOrganizations []domain.Organization `gorm:"many2many:policy_template_permitted_organiations;"`
+	CreatorId              *uuid.UUID            `gorm:"type:uuid"`
+	Creator                domain.User           `gorm:"foreignKey:CreatorId"`
+	UpdatorId              *uuid.UUID            `gorm:"type:uuid"`
+	Updator                domain.User           `gorm:"foreignKey:UpdatorId"`
+}
+
+func (c *PolicyTemplate) BeforeCreate(tx *gorm.DB) (err error) {
+	c.ID = uuid.New()
+	return nil
+}
+
+func (r *PolicyTemplateRepository) Create(dto domain.PolicyTemplate) (policyTemplateId uuid.UUID, err error) {
 	jsonByte, err := json.Marshal(dto.ParametersSchema)
 
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	policyTemplate := model.PolicyTemplate{
+	policyTemplate := PolicyTemplate{
 		Type:    "tks",
 		Name:    dto.TemplateName,
 		Version: "v1.0.0",
-		SupportedVersions: []model.PolicyTemplateSupportedVersion{
+		SupportedVersions: []PolicyTemplateSupportedVersion{
 			{
 				Version:         "v1.0.0",
 				ParameterSchema: string(jsonByte),
@@ -76,9 +111,9 @@ func (r *PolicyTemplateRepository) Create(dto model.PolicyTemplate) (policyTempl
 		}
 
 		if dto.PermittedOrganizationIds != nil {
-			permittedOrganizations := make([]model.Organization, len(dto.PermittedOrganizationIds))
+			permittedOrganizations := make([]domain.Organization, len(dto.PermittedOrganizationIds))
 			for i, permittedOrganizationId := range dto.PermittedOrganizationIds {
-				permittedOrganizations[i] = model.Organization{ID: permittedOrganizationId}
+				permittedOrganizations[i] = domain.Organization{ID: permittedOrganizationId}
 			}
 
 			err = tx.Model(&policyTemplate).Association("PermittedOrganizations").Replace(permittedOrganizations)
@@ -121,14 +156,14 @@ func (r *PolicyTemplateRepository) Update(dto domain.UpdatePolicyTemplateUpdate)
 
 	fmt.Printf("--updateMap=%+v\n--", updateMap)
 
-	var policyTemplate model.PolicyTemplate
+	var policyTemplate PolicyTemplate
 	policyTemplate.ID = dto.ID
 
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if dto.PermittedOrganizationIds != nil {
-			permittedOrganizations := make([]model.Organization, len(*dto.PermittedOrganizationIds))
+			permittedOrganizations := make([]domain.Organization, len(*dto.PermittedOrganizationIds))
 			for i, permittedOrganizationId := range *dto.PermittedOrganizationIds {
-				permittedOrganizations[i] = model.Organization{ID: permittedOrganizationId}
+				permittedOrganizations[i] = domain.Organization{ID: permittedOrganizationId}
 			}
 
 			err = r.db.Model(&policyTemplate).Limit(1).
@@ -154,20 +189,20 @@ func (r *PolicyTemplateRepository) Update(dto domain.UpdatePolicyTemplateUpdate)
 	})
 }
 
-func (r *PolicyTemplateRepository) Fetch(pg *pagination.Pagination) (out []model.PolicyTemplate, err error) {
-	var policyTemplates []model.PolicyTemplate
+func (r *PolicyTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain.PolicyTemplate, err error) {
+	var policyTemplates []PolicyTemplate
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Preload(clause.Associations).Model(&model.PolicyTemplate{}).
+	_, res := pg.Fetch(r.db.Preload(clause.Associations).Model(&PolicyTemplate{}).
 		Where("type = 'tks'"), &policyTemplates)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 
 	for _, policyTemplate := range policyTemplates {
-		var policyTemplateVersion model.PolicyTemplateSupportedVersion
+		var policyTemplateVersion PolicyTemplateSupportedVersion
 		res = r.db.
 			Where("policy_template_id = ? and version = ?", policyTemplate.ID, policyTemplate.Version).
 			First(&policyTemplateVersion)
@@ -186,7 +221,7 @@ func (r *PolicyTemplateRepository) Fetch(pg *pagination.Pagination) (out []model
 	return out, nil
 }
 
-func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.PolicyTemplate, policyTemplateVersion model.PolicyTemplateSupportedVersion) (out model.PolicyTemplate) {
+func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate PolicyTemplate, policyTemplateVersion PolicyTemplateSupportedVersion) (out domain.PolicyTemplate) {
 	if err := serializer.Map(policyTemplate.Model, &out); err != nil {
 		log.Error(err)
 	}
@@ -194,7 +229,7 @@ func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.Po
 		log.Error(err)
 	}
 	out.TemplateName = policyTemplate.Name
-	out.ID = policyTemplate.ID
+	out.ID = domain.PolicyTemplateId(policyTemplate.ID.String())
 
 	var schemas []domain.ParameterDef
 
@@ -206,20 +241,14 @@ func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.Po
 		}
 	}
 
-	// ktkfree : 이 부분은 재 구현 부탁 드립니다.
-	// PermittedOrganizations 필드가 model 과 response 를 위한 객체의 형이 다르네요.
-	// 아울러 reflect 는 repository 가 아닌 usecase 에 표현되는게 더 좋겠습니다.
-
-	/*
-		out.PermittedOrganizations = make([]domain.PermittedOrganization, len(policyTemplate.PermittedOrganizations))
-		for i, org := range policyTemplate.PermittedOrganizations {
-			out.PermittedOrganizations[i] = domain.PermittedOrganization{
-				OrganizationId:   org.ID,
-				OrganizationName: org.Name,
-				Permitted:        true,
-			}
+	out.PermittedOrganizations = make([]domain.PermittedOrganization, len(policyTemplate.PermittedOrganizations))
+	for i, org := range policyTemplate.PermittedOrganizations {
+		out.PermittedOrganizations[i] = domain.PermittedOrganization{
+			OrganizationId:   org.ID,
+			OrganizationName: org.Name,
+			Permitted:        true,
 		}
-	*/
+	}
 
 	out.Rego = policyTemplateVersion.Rego
 	out.Libs = strings.Split(policyTemplateVersion.Libs, "---\n")
@@ -230,7 +259,7 @@ func (r *PolicyTemplateRepository) reflectPolicyTemplate(policyTemplate model.Po
 func (r *PolicyTemplateRepository) ExistsBy(key string, value interface{}) (exists bool, err error) {
 	query := fmt.Sprintf("%s = ?", key)
 
-	var policyTemplate model.PolicyTemplate
+	var policyTemplate PolicyTemplate
 	res := r.db.Where(query, value).
 		First(&policyTemplate)
 
@@ -259,10 +288,10 @@ func (r *PolicyTemplateRepository) ExistByID(policyTemplateId uuid.UUID) (exist 
 	return r.ExistsBy("id", policyTemplateId)
 }
 
-func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *domain.PolicyTemplate, err error) {
 	query := fmt.Sprintf("%s = ?", key)
 
-	var policyTemplate model.PolicyTemplate
+	var policyTemplate PolicyTemplate
 	res := r.db.Preload(clause.Associations).Where(query, value).
 		First(&policyTemplate)
 
@@ -276,7 +305,7 @@ func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *mo
 		}
 	}
 
-	var policyTemplateVersion model.PolicyTemplateSupportedVersion
+	var policyTemplateVersion PolicyTemplateSupportedVersion
 	res = r.db.Limit(1).
 		Where("policy_template_id = ? and version = ?", policyTemplate.ID, policyTemplate.Version).
 		First(&policyTemplateVersion)
@@ -298,7 +327,7 @@ func (r *PolicyTemplateRepository) GetBy(key string, value interface{}) (out *mo
 	return &result, nil
 }
 
-func (r *PolicyTemplateRepository) GetByID(policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) GetByID(policyTemplateId uuid.UUID) (out *domain.PolicyTemplate, err error) {
 	return r.GetBy("id", policyTemplateId)
 
 	// var policyTemplate PolicyTemplate
@@ -320,7 +349,7 @@ func (r *PolicyTemplateRepository) GetByID(policyTemplateId uuid.UUID) (out *mod
 	// return &result, nil
 }
 
-func (r *PolicyTemplateRepository) GetByName(policyTemplateName string) (out *model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) GetByName(policyTemplateName string) (out *domain.PolicyTemplate, err error) {
 	return r.GetBy("name", policyTemplateName)
 
 	// var policyTemplate PolicyTemplate
@@ -342,21 +371,21 @@ func (r *PolicyTemplateRepository) GetByName(policyTemplateName string) (out *mo
 	// return &result, nil
 }
 
-func (r *PolicyTemplateRepository) GetByKind(policyTemplateKind string) (out *model.PolicyTemplate, err error) {
+func (r *PolicyTemplateRepository) GetByKind(policyTemplateKind string) (out *domain.PolicyTemplate, err error) {
 	return r.GetBy("kind", policyTemplateKind)
 }
 
 func (r *PolicyTemplateRepository) Delete(policyTemplateId uuid.UUID) (err error) {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("policy_template_id = ?", policyTemplateId).Delete(&model.PolicyTemplateSupportedVersion{}).Error; err != nil {
+		if err := tx.Where("policy_template_id = ?", policyTemplateId).Delete(&PolicyTemplateSupportedVersion{}).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Model(&model.PolicyTemplate{ID: policyTemplateId}).Association("PermittedOrganizations").Clear(); err != nil {
+		if err := tx.Model(&PolicyTemplate{ID: policyTemplateId}).Association("PermittedOrganizations").Clear(); err != nil {
 			return err
 		}
 
-		if err := tx.Where("id = ?", policyTemplateId).Delete(&model.PolicyTemplate{}).Error; err != nil {
+		if err := tx.Where("id = ?", policyTemplateId).Delete(&PolicyTemplate{}).Error; err != nil {
 			return err
 		}
 
@@ -365,7 +394,7 @@ func (r *PolicyTemplateRepository) Delete(policyTemplateId uuid.UUID) (err error
 }
 
 func (r *PolicyTemplateRepository) ListPolicyTemplateVersions(policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error) {
-	var supportedVersions []model.PolicyTemplateSupportedVersion
+	var supportedVersions []PolicyTemplateSupportedVersion
 	res := r.db.Where("policy_template_id = ?", policyTemplateId).Find(&supportedVersions)
 
 	if res.Error != nil {
@@ -391,8 +420,8 @@ func (r *PolicyTemplateRepository) ListPolicyTemplateVersions(policyTemplateId u
 	return result, nil
 }
 
-func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error) {
-	var policyTemplateVersion model.PolicyTemplateSupportedVersion
+func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *domain.PolicyTemplate, err error) {
+	var policyTemplateVersion PolicyTemplateSupportedVersion
 	res := r.db.
 		Where("policy_template_id = ? and version = ?", policyTemplateId, version).
 		First(&policyTemplateVersion)
@@ -406,7 +435,7 @@ func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(policyTemplateId uui
 		}
 	}
 
-	var policyTemplate model.PolicyTemplate
+	var policyTemplate PolicyTemplate
 	res = r.db.
 		Where("id = ?", policyTemplateId).
 		First(&policyTemplate)
@@ -426,7 +455,7 @@ func (r *PolicyTemplateRepository) GetPolicyTemplateVersion(policyTemplateId uui
 }
 
 func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(policyTemplateId uuid.UUID, version string) (err error) {
-	var policyTemplate model.PolicyTemplate
+	var policyTemplate PolicyTemplate
 	res := r.db.Select("version").First(&policyTemplate)
 
 	if res.Error != nil {
@@ -446,7 +475,7 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(policyTemplateId 
 
 	// TODO: Operator에 현재 버전 사용중인 정책이 있는지 체크 필요
 
-	var policyTemplateVersion model.PolicyTemplateSupportedVersion
+	var policyTemplateVersion PolicyTemplateSupportedVersion
 	res = r.db.Where("policy_template_id = ? and version = ?", policyTemplateId, version).
 		Delete(&policyTemplateVersion)
 	if res.Error != nil {
@@ -463,7 +492,7 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(policyTemplateId 
 }
 
 func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
-	var policyTemplateVersion model.PolicyTemplateSupportedVersion
+	var policyTemplateVersion PolicyTemplateSupportedVersion
 	res := r.db.Limit(1).
 		Where("policy_template_id = ? and version = ?", policyTemplateId, version).
 		First(&policyTemplateVersion)
@@ -496,7 +525,7 @@ func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(policyTemplateId 
 		return "", parseErr
 	}
 
-	newPolicyTemplateVersion := &model.PolicyTemplateSupportedVersion{
+	newPolicyTemplateVersion := &PolicyTemplateSupportedVersion{
 		PolicyTemplateId: policyTemplateId,
 		Version:          newVersion,
 		Rego:             rego,
@@ -509,7 +538,7 @@ func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(policyTemplateId 
 			return err
 		}
 
-		if err := tx.Model(&model.PolicyTemplate{}).Where("id = ?", policyTemplateId).Update("version", newVersion).Error; err != nil {
+		if err := tx.Model(&PolicyTemplate{}).Where("id = ?", policyTemplateId).Update("version", newVersion).Error; err != nil {
 			return err
 		}
 

@@ -1,15 +1,12 @@
 package http
 
 import (
-	"net/http"
-
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/model"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"net/http"
 )
 
 type IPermissionHandler interface {
@@ -35,24 +32,19 @@ func NewPermissionHandler(usecase usecase.Usecase) *PermissionHandler {
 //	@Description	Get Permission Templates
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain.PermissionSetResponse
+//	@Success		200	{object}	domain.PermissionSet
 //	@Router			/permissions/templates [get]
 //	@Security		JWT
 func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http.Request) {
-	permissionSet := model.NewDefaultPermissionSet()
-
-	var premissionSetResponse domain.PermissionSetResponse
-	if err := serializer.Map(permissionSet, &premissionSetResponse); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
+	permissionSet := domain.NewDefaultPermissionSet()
 
 	var out domain.GetPermissionTemplatesResponse
-	out.Permissions = append(out.Permissions, premissionSetResponse.Dashboard)
-	out.Permissions = append(out.Permissions, premissionSetResponse.Stack)
-	out.Permissions = append(out.Permissions, premissionSetResponse.SecurityPolicy)
-	out.Permissions = append(out.Permissions, premissionSetResponse.ProjectManagement)
-	out.Permissions = append(out.Permissions, premissionSetResponse.Notification)
-	out.Permissions = append(out.Permissions, premissionSetResponse.Configuration)
+	out.Permissions = append(out.Permissions, permissionSet.Dashboard)
+	out.Permissions = append(out.Permissions, permissionSet.Stack)
+	out.Permissions = append(out.Permissions, permissionSet.SecurityPolicy)
+	out.Permissions = append(out.Permissions, permissionSet.ProjectManagement)
+	out.Permissions = append(out.Permissions, permissionSet.Notification)
+	out.Permissions = append(out.Permissions, permissionSet.Configuration)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -64,7 +56,7 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 //	@Description	Get Permissions By Role ID
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain.PermissionSetResponse
+//	@Success		200	{object}	domain.PermissionSet
 //	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [get]
 //	@Security		JWT
 func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
@@ -85,18 +77,13 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 		return
 	}
 
-	var premissionSetResponse domain.PermissionSetResponse
-	if err := serializer.Map(permissionSet, &premissionSetResponse); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
 	var out domain.GetPermissionsByRoleIdResponse
-	out.Permissions = append(out.Permissions, premissionSetResponse.Dashboard)
-	out.Permissions = append(out.Permissions, premissionSetResponse.Stack)
-	out.Permissions = append(out.Permissions, premissionSetResponse.SecurityPolicy)
-	out.Permissions = append(out.Permissions, premissionSetResponse.ProjectManagement)
-	out.Permissions = append(out.Permissions, premissionSetResponse.Notification)
-	out.Permissions = append(out.Permissions, premissionSetResponse.Configuration)
+	out.Permissions = append(out.Permissions, permissionSet.Dashboard)
+	out.Permissions = append(out.Permissions, permissionSet.Stack)
+	out.Permissions = append(out.Permissions, permissionSet.SecurityPolicy)
+	out.Permissions = append(out.Permissions, permissionSet.ProjectManagement)
+	out.Permissions = append(out.Permissions, permissionSet.Notification)
+	out.Permissions = append(out.Permissions, permissionSet.Configuration)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -135,15 +122,9 @@ func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *h
 	}
 	log.Debugf("input: %+v", input)
 
-	for _, permissionResponse := range input.Permissions {
-		log.Debugf("permissionResponse: %+v", permissionResponse)
-
-		var permission model.Permission
-		if err := serializer.Map(permissionResponse, &permission); err != nil {
-			log.InfoWithContext(r.Context(), err)
-		}
-
-		if err := h.permissionUsecase.UpdatePermission(&permission); err != nil {
+	for _, permission := range input.Permissions {
+		log.Debugf("permission: %+v", permission)
+		if err := h.permissionUsecase.UpdatePermission(permission); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}

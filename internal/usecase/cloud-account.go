@@ -15,10 +15,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
+
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -32,14 +32,14 @@ import (
 const MAX_WORKFLOW_TIME = 30
 
 type ICloudAccountUsecase interface {
-	Get(ctx context.Context, cloudAccountId uuid.UUID) (model.CloudAccount, error)
-	GetByName(ctx context.Context, organizationId string, name string) (model.CloudAccount, error)
-	GetByAwsAccountId(ctx context.Context, awsAccountId string) (model.CloudAccount, error)
+	Get(ctx context.Context, cloudAccountId uuid.UUID) (domain.CloudAccount, error)
+	GetByName(ctx context.Context, organizationId string, name string) (domain.CloudAccount, error)
+	GetByAwsAccountId(ctx context.Context, awsAccountId string) (domain.CloudAccount, error)
 	GetResourceQuota(ctx context.Context, cloudAccountId uuid.UUID) (available bool, out domain.ResourceQuota, err error)
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.CloudAccount, error)
-	Create(ctx context.Context, dto model.CloudAccount) (cloudAccountId uuid.UUID, err error)
-	Update(ctx context.Context, dto model.CloudAccount) error
-	Delete(ctx context.Context, dto model.CloudAccount) error
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.CloudAccount, error)
+	Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error)
+	Update(ctx context.Context, dto domain.CloudAccount) error
+	Delete(ctx context.Context, dto domain.CloudAccount) error
 	DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) error
 }
 
@@ -57,15 +57,14 @@ func NewCloudAccountUsecase(r repository.Repository, argoClient argowf.ArgoClien
 	}
 }
 
-func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount) (cloudAccountId uuid.UUID, err error) {
+func (u *CloudAccountUsecase) Create(ctx context.Context, dto domain.CloudAccount) (cloudAccountId uuid.UUID, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
-	userId := user.GetUserId()
 
 	dto.Resource = "TODO server result or additional information"
-	dto.CreatorId = &userId
+	dto.CreatorId = user.GetUserId()
 
 	_, err = u.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
@@ -115,15 +114,14 @@ func (u *CloudAccountUsecase) Create(ctx context.Context, dto model.CloudAccount
 	return cloudAccountId, nil
 }
 
-func (u *CloudAccountUsecase) Update(ctx context.Context, dto model.CloudAccount) error {
+func (u *CloudAccountUsecase) Update(ctx context.Context, dto domain.CloudAccount) error {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
-	userId := user.GetUserId()
 
 	dto.Resource = "TODO server result or additional information"
-	dto.UpdatorId = &userId
+	dto.UpdatorId = user.GetUserId()
 	err := u.repo.Update(dto)
 	if err != nil {
 		return httpErrors.NewInternalServerError(err, "", "")
@@ -131,10 +129,10 @@ func (u *CloudAccountUsecase) Update(ctx context.Context, dto model.CloudAccount
 	return nil
 }
 
-func (u *CloudAccountUsecase) Get(ctx context.Context, cloudAccountId uuid.UUID) (res model.CloudAccount, err error) {
+func (u *CloudAccountUsecase) Get(ctx context.Context, cloudAccountId uuid.UUID) (res domain.CloudAccount, err error) {
 	res, err = u.repo.Get(cloudAccountId)
 	if err != nil {
-		return model.CloudAccount{}, err
+		return domain.CloudAccount{}, err
 	}
 
 	res.Clusters = u.getClusterCnt(cloudAccountId)
@@ -142,31 +140,31 @@ func (u *CloudAccountUsecase) Get(ctx context.Context, cloudAccountId uuid.UUID)
 	return
 }
 
-func (u *CloudAccountUsecase) GetByName(ctx context.Context, organizationId string, name string) (res model.CloudAccount, err error) {
+func (u *CloudAccountUsecase) GetByName(ctx context.Context, organizationId string, name string) (res domain.CloudAccount, err error) {
 	res, err = u.repo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return model.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
+			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
 		}
-		return model.CloudAccount{}, err
+		return domain.CloudAccount{}, err
 	}
 	res.Clusters = u.getClusterCnt(res.ID)
 	return
 }
 
-func (u *CloudAccountUsecase) GetByAwsAccountId(ctx context.Context, awsAccountId string) (res model.CloudAccount, err error) {
+func (u *CloudAccountUsecase) GetByAwsAccountId(ctx context.Context, awsAccountId string) (res domain.CloudAccount, err error) {
 	res, err = u.repo.GetByAwsAccountId(awsAccountId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return model.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
+			return domain.CloudAccount{}, httpErrors.NewNotFoundError(err, "", "")
 		}
-		return model.CloudAccount{}, err
+		return domain.CloudAccount{}, err
 	}
 	res.Clusters = u.getClusterCnt(res.ID)
 	return
 }
 
-func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (cloudAccounts []model.CloudAccount, err error) {
+func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (cloudAccounts []domain.CloudAccount, err error) {
 	cloudAccounts, err = u.repo.Fetch(organizationId, pg)
 	if err != nil {
 		return nil, err
@@ -178,18 +176,17 @@ func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string, 
 	return
 }
 
-func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount) (err error) {
+func (u *CloudAccountUsecase) Delete(ctx context.Context, dto domain.CloudAccount) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
-	userId := user.GetUserId()
 
 	cloudAccount, err := u.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
-	dto.UpdatorId = &userId
+	dto.UpdatorId = user.GetUserId()
 
 	if u.getClusterCnt(dto.ID) > 0 {
 		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")

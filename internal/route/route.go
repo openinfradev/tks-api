@@ -181,14 +181,12 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates", customMiddleware.Handle(internalApi.Admin_GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/services", customMiddleware.Handle(internalApi.Admin_GetStackTemplateServices, http.HandlerFunc(stackTemplateHandler.GetStackTemplateServices))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplate))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates", customMiddleware.Handle(internalApi.Admin_CreateStackTemplate, http.HandlerFunc(stackTemplateHandler.CreateStackTemplate))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/services", customMiddleware.Handle(internalApi.Admin_GetStackTemplateServices, http.HandlerFunc(stackTemplateHandler.GetStackTemplateServices))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}/organizations", customMiddleware.Handle(internalApi.Admin_UpdateStackTemplateOrganizations, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplateOrganizations))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdateStackTemplate, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_DeleteStackTemplate, http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates", customMiddleware.Handle(internalApi.GetOrganizationStackTemplates, http.HandlerFunc(stackTemplateHandler.GetOrganizationStackTemplates))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.GetOrganizationStackTemplate, http.HandlerFunc(stackTemplateHandler.GetOrganizationStackTemplate))).Methods(http.MethodGet)
 
 	dashboardHandler := delivery.NewDashboardHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts", customMiddleware.Handle(internalApi.GetChartsDashboard, http.HandlerFunc(dashboardHandler.GetCharts))).Methods(http.MethodGet)
@@ -246,9 +244,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/kubeconfig", customMiddleware.Handle(internalApi.GetProjectKubeconfig, http.HandlerFunc(projectHandler.GetProjectKubeconfig))).Methods(http.MethodGet)
 
 	auditHandler := delivery.NewAuditHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+"/admin/audits", customMiddleware.Handle(internalApi.GetAudits, http.HandlerFunc(auditHandler.GetAudits))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/admin/audits/{auditId}", customMiddleware.Handle(internalApi.GetAudit, http.HandlerFunc(auditHandler.GetAudit))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/admin/audits/{auditId}", customMiddleware.Handle(internalApi.DeleteAudit, http.HandlerFunc(auditHandler.DeleteAudit))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits", customMiddleware.Handle(internalApi.GetAudits, http.HandlerFunc(auditHandler.GetAudits))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.GetAudit, http.HandlerFunc(auditHandler.GetAudit))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/audits/{auditId}", customMiddleware.Handle(internalApi.DeleteAudit, http.HandlerFunc(auditHandler.DeleteAudit))).Methods(http.MethodDelete)
 
 	roleHandler := delivery.NewRoleHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.CreateTksRole, http.HandlerFunc(roleHandler.CreateTksRole))).Methods(http.MethodPost)

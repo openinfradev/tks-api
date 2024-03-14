@@ -34,7 +34,7 @@ func NewAuditHandler(h usecase.Usecase) *AuditHandler {
 //	@Produce		json
 //	@Param			body	body		domain.CreateAuditRequest	true	"create audit request"
 //	@Success		200		{object}	domain.CreateAuditResponse
-//	@Router			/admin/audits [post]
+//	@Router			/organizations/{organizationId}/audits [post]
 //	@Security		JWT
 func (h *AuditHandler) CreateAudit(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("need implementation"))
@@ -54,12 +54,19 @@ func (h *AuditHandler) CreateAudit(w http.ResponseWriter, r *http.Request) {
 //	@Param			filter		query		[]string	false	"filters"
 //	@Param			or			query		[]string	false	"filters"
 //	@Success		200			{object}	domain.GetAuditsResponse
-//	@Router			/admin/audits [get]
+//	@Router			/organizations/{organizationId}/audits [get]
 //	@Security		JWT
 func (h *AuditHandler) GetAudits(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-	audits, err := h.usecase.Fetch(r.Context(), pg)
+	audits, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -89,7 +96,7 @@ func (h *AuditHandler) GetAudits(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			auditId	path		string	true	"auditId"
 //	@Success		200		{object}	domain.GetAuditResponse
-//	@Router			/admin/audits/{auditId} [get]
+//	@Router			/organizations/{organizationId}/audits/{auditId} [get]
 //	@Security		JWT
 func (h *AuditHandler) GetAudit(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -130,7 +137,7 @@ func (h *AuditHandler) GetAudit(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			auditId	path		string	true	"auditId"
 //	@Success		200		{object}	nil
-//	@Router			/admin/audits/{auditId} [delete]
+//	@Router			/organizations/{organizationId}/audits/{auditId} [delete]
 //	@Security		JWT
 func (h *AuditHandler) DeleteAudit(w http.ResponseWriter, r *http.Request) {
 	ErrorJSON(w, r, fmt.Errorf("need implementation"))

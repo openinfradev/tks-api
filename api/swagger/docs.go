@@ -22,186 +22,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/audits": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get Audits",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Audits"
-                ],
-                "summary": "Get Audits",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "pageSize",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pageNumber",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortColumn",
-                        "name": "soertColumn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortOrder",
-                        "name": "sortOrder",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters",
-                        "name": "filter",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters",
-                        "name": "or",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Create Audit",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Audits"
-                ],
-                "summary": "Create Audit",
-                "parameters": [
-                    {
-                        "description": "create audit request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/audits/{auditId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get Audit",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Audits"
-                ],
-                "summary": "Get Audit",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "auditId",
-                        "name": "auditId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Delete Audit",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Audits"
-                ],
-                "summary": "Delete Audit 'NOT IMPLEMENTED'",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "auditId",
-                        "name": "auditId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/admin/organizations/{organizationId}/projects": {
             "get": {
                 "security": [
@@ -996,7 +816,7 @@ const docTemplate = `{
                 "tags": [
                     "StackTemplates"
                 ],
-                "summary": "Create StackTemplate",
+                "summary": "Create StackTemplate 'NOT IMPLEMENTED'",
                 "parameters": [
                     {
                         "description": "create stack template request",
@@ -1098,7 +918,7 @@ const docTemplate = `{
                 "tags": [
                     "StackTemplates"
                 ],
-                "summary": "Update StackTemplate",
+                "summary": "Update StackTemplate 'NOT IMPLEMENTED'",
                 "parameters": [
                     {
                         "description": "Update stack template request",
@@ -1132,7 +952,7 @@ const docTemplate = `{
                 "tags": [
                     "StackTemplates"
                 ],
-                "summary": "Delete StackTemplate",
+                "summary": "Delete StackTemplate 'NOT IMPLEMENTED'",
                 "parameters": [
                     {
                         "type": "string",
@@ -1868,7 +1688,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Cluster"
                         }
                     }
                 }
@@ -1901,7 +1721,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Cluster"
+                        }
                     }
                 }
             }
@@ -2282,7 +2105,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         }
                     }
                 }
@@ -2506,6 +2329,186 @@ const docTemplate = `{
                         "type": "string",
                         "description": "organizationId",
                         "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/audits": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Audits",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Get Audits",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "or",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditsResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Create Audit",
+                "parameters": [
+                    {
+                        "description": "create audit request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateAuditResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/audits/{auditId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Get Audit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auditId",
+                        "name": "auditId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAuditResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Audit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Audits"
+                ],
+                "summary": "Delete Audit 'NOT IMPLEMENTED'",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "auditId",
+                        "name": "auditId",
                         "in": "path",
                         "required": true
                     }
@@ -3768,7 +3771,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeApp"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                             }
                         }
                     }
@@ -4435,7 +4438,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeApp"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                             }
                         }
                     }
@@ -5624,7 +5627,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet"
                         }
                     }
                 }
@@ -5667,98 +5670,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/stack-templates": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get Organization StackTemplates",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Get Organization StackTemplates",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "pageSize",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pageNumber",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortColumn",
-                        "name": "soertColumn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortOrder",
-                        "name": "sortOrder",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters",
-                        "name": "filters",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/stack-templates/{stackTemplateId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get Organization StackTemplate",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "StackTemplates"
-                ],
-                "summary": "Get Organization StackTemplate",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateResponse"
-                        }
                     }
                 }
             }
@@ -6550,7 +6461,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                        }
                     }
                 }
             }
@@ -6618,7 +6532,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSet"
                         }
                     }
                 }
@@ -6706,177 +6620,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_openinfradev_tks-api_internal_model.AppServeApp": {
-            "type": "object",
-            "properties": {
-                "appServeAppTasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeAppTask"
-                    }
-                },
-                "appType": {
-                    "description": "appType (spring/springboot)",
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "endpointUrl": {
-                    "description": "endpoint URL of deployed app",
-                    "type": "string"
-                },
-                "grafanaUrl": {
-                    "description": "grafana dashboard URL for deployed app",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "description": "application name",
-                    "type": "string"
-                },
-                "namespace": {
-                    "description": "application namespace",
-                    "type": "string"
-                },
-                "organizationId": {
-                    "description": "contractId is a contract ID which this app belongs to",
-                    "type": "string"
-                },
-                "previewEndpointUrl": {
-                    "description": "preview svc endpoint URL in B/G deployment",
-                    "type": "string"
-                },
-                "projectId": {
-                    "description": "project ID which this app belongs to",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "status is status of deployed app",
-                    "type": "string"
-                },
-                "targetClusterId": {
-                    "description": "target cluster to which the app is deployed",
-                    "type": "string"
-                },
-                "targetClusterName": {
-                    "description": "target cluster name",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "type (build/deploy/all)",
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_internal_model.AppServeAppTask": {
-            "type": "object",
-            "properties": {
-                "appConfig": {
-                    "description": "java app config",
-                    "type": "string"
-                },
-                "appSecret": {
-                    "description": "java app secret",
-                    "type": "string"
-                },
-                "appServeAppId": {
-                    "description": "ID for appServeApp that this task belongs to",
-                    "type": "string"
-                },
-                "artifactUrl": {
-                    "description": "URL of java app artifact (Eg, Jar)",
-                    "type": "string"
-                },
-                "availableRollback": {
-                    "type": "boolean"
-                },
-                "createdAt": {
-                    "description": "createdAt is  a creation timestamp for the application",
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "executablePath": {
-                    "description": "Executable path of app image",
-                    "type": "string"
-                },
-                "extraEnv": {
-                    "description": "env variable list for java app",
-                    "type": "string"
-                },
-                "helmRevision": {
-                    "description": "revision of deployed helm release",
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "imageUrl": {
-                    "description": "URL of built image for app",
-                    "type": "string"
-                },
-                "output": {
-                    "description": "output for task result",
-                    "type": "string"
-                },
-                "port": {
-                    "description": "java app port",
-                    "type": "string"
-                },
-                "profile": {
-                    "description": "java app profile",
-                    "type": "string"
-                },
-                "pvAccessMode": {
-                    "type": "string"
-                },
-                "pvEnabled": {
-                    "type": "boolean"
-                },
-                "pvMountPath": {
-                    "type": "string"
-                },
-                "pvSize": {
-                    "type": "string"
-                },
-                "pvStorageClass": {
-                    "type": "string"
-                },
-                "resourceSpec": {
-                    "description": "resource spec of app pod",
-                    "type": "string"
-                },
-                "rollbackVersion": {
-                    "description": "rollback target version",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "status is app status",
-                    "type": "string"
-                },
-                "strategy": {
-                    "description": "deployment strategy (eg, rolling-update)",
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "version": {
-                    "description": "application version",
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.ActionResponse": {
             "type": "object",
             "properties": {
@@ -7085,13 +6828,13 @@ const docTemplate = `{
                 "AppGroupType_SERVICE_MESH"
             ]
         },
-        "github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppServeApp": {
             "type": "object",
             "properties": {
                 "appServeAppTasks": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask"
                     }
                 },
                 "appType": {
@@ -7156,7 +6899,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask": {
             "type": "object",
             "properties": {
                 "appConfig": {
@@ -7343,6 +7086,9 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "userId": {
+                    "type": "string"
                 }
             }
         },
@@ -7412,6 +7158,71 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.CloudAccount": {
+            "type": "object",
+            "properties": {
+                "accessKeyId": {
+                    "type": "string"
+                },
+                "awsAccountId": {
+                    "type": "string"
+                },
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusters": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdIAM": {
+                    "type": "boolean"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                },
+                "creatorId": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "secretAccessKey": {
+                    "type": "string"
+                },
+                "sessionToken": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccountStatus"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                },
+                "updatorId": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
@@ -7456,6 +7267,139 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CloudAccountStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "CloudAccountStatus_PENDING",
+                "CloudAccountStatus_CREATING",
+                "CloudAccountStatus_CREATED",
+                "CloudAccountStatus_DELETING",
+                "CloudAccountStatus_DELETED",
+                "CloudAccountStatus_CREATE_ERROR",
+                "CloudAccountStatus_DELETE_ERROR"
+            ]
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.Cluster": {
+            "type": "object",
+            "properties": {
+                "byoClusterEndpointHost": {
+                    "type": "string"
+                },
+                "byoClusterEndpointPort": {
+                    "type": "integer"
+                },
+                "cloudAccount": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CloudAccount"
+                },
+                "cloudAccountId": {
+                    "type": "string"
+                },
+                "cloudService": {
+                    "type": "string"
+                },
+                "clusterType": {
+                    "type": "integer"
+                },
+                "conf": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterConf"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                },
+                "creatorId": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "favorited": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isStack": {
+                    "type": "boolean"
+                },
+                "kubeconfig": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "stackTemplate": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplate"
+                },
+                "stackTemplateId": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterStatus"
+                },
+                "statusDesc": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                },
+                "updatorId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterConf": {
+            "type": "object",
+            "properties": {
+                "tksCpNode": {
+                    "type": "integer"
+                },
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
+                    "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
+                    "type": "string"
                 }
             }
         },
@@ -7564,9 +7508,6 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "favorited": {
-                    "type": "boolean"
-                },
                 "id": {
                     "type": "string"
                 },
@@ -7642,6 +7583,33 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+            ],
+            "x-enum-varnames": [
+                "ClusterStatus_PENDING",
+                "ClusterStatus_INSTALLING",
+                "ClusterStatus_RUNNING",
+                "ClusterStatus_DELETING",
+                "ClusterStatus_DELETED",
+                "ClusterStatus_INSTALL_ERROR",
+                "ClusterStatus_DELETE_ERROR",
+                "ClusterStatus_BOOTSTRAPPING",
+                "ClusterStatus_BOOTSTRAPPED",
+                "ClusterStatus_BOOTSTRAP_ERROR"
+            ]
         },
         "github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse": {
             "type": "object",
@@ -8338,10 +8306,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         }
                     }
                 }
@@ -8457,15 +8425,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.EndpointResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.Endpoint": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -8475,9 +8435,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -8611,7 +8568,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "appServeApp": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                 },
                 "stages": {
                     "type": "array",
@@ -8625,10 +8582,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "appServeApp": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeApp"
                 },
                 "appServeAppTask": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTask"
                 },
                 "stages": {
                     "type": "array",
@@ -8723,14 +8680,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetClusterResponse": {
-            "type": "object",
-            "properties": {
-                "cluster": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterResponse"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.GetClustersResponse": {
             "type": "object",
             "properties": {
@@ -8805,10 +8754,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         }
                     }
                 }
@@ -9138,10 +9087,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "updatedAt": {
                             "type": "string"
@@ -9304,10 +9253,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                 },
                 "role": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -9349,13 +9298,13 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "passwordExpired": {
                             "type": "boolean"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "token": {
                             "type": "string"
@@ -9378,11 +9327,17 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.Organization": {
             "type": "object",
             "properties": {
                 "createdAt": {
                     "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
                     "type": "string"
@@ -9485,7 +9440,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.PermissionResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.Permission": {
             "type": "object",
             "properties": {
                 "ID": {
@@ -9494,14 +9449,23 @@ const docTemplate = `{
                 "children": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                     }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "endpoints": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.EndpointResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Endpoint"
                     }
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "is_allowed": {
                     "type": "boolean"
@@ -9510,39 +9474,42 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "parent": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 },
                 "parent_id": {
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                 },
                 "role_id": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.PermissionSet": {
             "type": "object",
             "properties": {
                 "configuration": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 },
                 "dashboard": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 },
                 "notification": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 },
                 "project_management": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 },
                 "security_policy": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 },
                 "stack": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                 }
             }
         },
@@ -9894,9 +9861,6 @@ const docTemplate = `{
                 },
                 "projectRoleName": {
                     "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
                 }
             }
         },
@@ -10018,7 +9982,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.RoleResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.Role": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -10026,6 +9990,9 @@ const docTemplate = `{
                 },
                 "creator": {
                     "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "description": {
                     "type": "string"
@@ -10037,7 +10004,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organization": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                 },
                 "organizationId": {
                     "type": "string"
@@ -10115,6 +10082,20 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -10158,6 +10139,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse"
                 }
             }
         },
@@ -10274,6 +10258,86 @@ const docTemplate = `{
                 },
                 "step": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.StackTemplate": {
+            "type": "object",
+            "properties": {
+                "cloudService": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                },
+                "creatorId": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kubeType": {
+                    "type": "string"
+                },
+                "kubeVersion": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "organizationIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                    }
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "serviceIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "template": {
+                    "type": "string"
+                },
+                "templateType": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.User"
+                },
+                "updatorId": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
                 }
             }
         },
@@ -10542,10 +10606,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         }
                     }
                 }
@@ -10613,7 +10677,7 @@ const docTemplate = `{
                 "permissions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Permission"
                     }
                 }
             }
@@ -10837,15 +10901,71 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "updatedAt": {
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.User": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organization": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "passwordExpired": {
+                    "type": "boolean"
+                },
+                "passwordUpdatedAt": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
+                },
+                "roleId": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -10938,10 +11058,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "updatedAt": {
                             "type": "string"
@@ -11009,10 +11129,10 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "organization": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Organization"
                         },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Role"
                         },
                         "updatedAt": {
                             "type": "string"
@@ -11035,6 +11155,18 @@ const docTemplate = `{
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         }

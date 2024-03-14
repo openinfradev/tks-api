@@ -2,17 +2,16 @@ package repository
 
 import (
 	"fmt"
-	"math"
-
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"gorm.io/gorm"
+	"math"
 )
 
 type IEndpointRepository interface {
-	Create(endpoint *model.Endpoint) error
-	List(pg *pagination.Pagination) ([]*model.Endpoint, error)
-	Get(id uint) (*model.Endpoint, error)
+	Create(endpoint *domain.Endpoint) error
+	List(pg *pagination.Pagination) ([]*domain.Endpoint, error)
+	Get(id uint) (*domain.Endpoint, error)
 }
 
 type EndpointRepository struct {
@@ -25,8 +24,8 @@ func NewEndpointRepository(db *gorm.DB) *EndpointRepository {
 	}
 }
 
-func (e *EndpointRepository) Create(endpoint *model.Endpoint) error {
-	obj := &model.Endpoint{
+func (e *EndpointRepository) Create(endpoint *domain.Endpoint) error {
+	obj := &domain.Endpoint{
 		Name:  endpoint.Name,
 		Group: endpoint.Group,
 	}
@@ -38,14 +37,14 @@ func (e *EndpointRepository) Create(endpoint *model.Endpoint) error {
 	return nil
 }
 
-func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*model.Endpoint, error) {
-	var endpoints []*model.Endpoint
+func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*domain.Endpoint, error) {
+	var endpoints []*domain.Endpoint
 
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("endpoints", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(e.db.Model(&model.Endpoint{}))
+	db := filterFunc(e.db.Model(&domain.Endpoint{}))
 
 	db.Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
@@ -59,14 +58,14 @@ func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*model.Endpoint,
 	return endpoints, nil
 }
 
-func (e *EndpointRepository) Get(id uint) (*model.Endpoint, error) {
-	var obj model.Endpoint
+func (e *EndpointRepository) Get(id uint) (*domain.Endpoint, error) {
+	var obj domain.Endpoint
 
 	if err := e.db.Preload("Permission").First(&obj, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
-	return &model.Endpoint{
+	return &domain.Endpoint{
 		Name:  obj.Name,
 		Group: obj.Group,
 	}, nil

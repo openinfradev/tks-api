@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
@@ -14,13 +14,13 @@ import (
 // Interface
 type IUserRepository interface {
 	CreateWithUuid(uuid uuid.UUID, accountId string, name string, email string,
-		department string, description string, organizationId string, roleId string) (model.User, error)
-	List(filters ...FilterFunc) (out *[]model.User, err error)
-	ListWithPagination(pg *pagination.Pagination, organizationId string) (out *[]model.User, err error)
-	Get(accountId string, organizationId string) (model.User, error)
-	GetByUuid(userId uuid.UUID) (model.User, error)
+		department string, description string, organizationId string, roleId string) (domain.User, error)
+	List(filters ...FilterFunc) (out *[]domain.User, err error)
+	ListWithPagination(pg *pagination.Pagination, organizationId string) (out *[]domain.User, err error)
+	Get(accountId string, organizationId string) (domain.User, error)
+	GetByUuid(userId uuid.UUID) (domain.User, error)
 	UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string, email string,
-		department string, description string) (model.User, error)
+		department string, description string) (domain.User, error)
 	UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error
 	DeleteWithUuid(uuid uuid.UUID) error
 	Flush(organizationId string) error
@@ -36,7 +36,7 @@ type UserRepository struct {
 }
 
 func (r *UserRepository) Flush(organizationId string) error {
-	res := r.db.Where("organization_id = ?", organizationId).Delete(&model.User{})
+	res := r.db.Where("organization_id = ?", organizationId).Delete(&domain.User{})
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -77,9 +77,9 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 //}
 
 func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name string, email string,
-	department string, description string, organizationId string, roleId string) (model.User, error) {
+	department string, description string, organizationId string, roleId string) (domain.User, error) {
 
-	newUser := model.User{
+	newUser := domain.User{
 		ID:             uuid,
 		AccountId:      accountId,
 		Name:           name,
@@ -92,11 +92,11 @@ func (r *UserRepository) CreateWithUuid(uuid uuid.UUID, accountId string, name s
 	res := r.db.Create(&newUser)
 	if res.Error != nil {
 		log.Error(res.Error.Error())
-		return model.User{}, res.Error
+		return domain.User{}, res.Error
 	}
 	user, err := r.getUserByAccountId(accountId, organizationId)
 	if err != nil {
-		return model.User{}, err
+		return domain.User{}, err
 	}
 
 	return user, nil
@@ -122,12 +122,12 @@ func (r *UserRepository) NameFilter(name string) FilterFunc {
 	}
 }
 
-func (r *UserRepository) List(filters ...FilterFunc) (*[]model.User, error) {
-	var users []model.User
+func (r *UserRepository) List(filters ...FilterFunc) (*[]domain.User, error) {
+	var users []domain.User
 	var res *gorm.DB
 
 	if filters == nil {
-		res = r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Find(&users)
+		res = r.db.Model(&domain.User{}).Preload("Organization").Preload("Role").Find(&users)
 	} else {
 		combinedFilter := func(filters ...FilterFunc) FilterFunc {
 			return func(user *gorm.DB) *gorm.DB {
@@ -138,7 +138,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]model.User, error) {
 			}
 		}
 		cFunc := combinedFilter(filters...)
-		res = cFunc(r.db.Model(&model.User{}).Preload("Organization").Preload("Role")).Find(&users)
+		res = cFunc(r.db.Model(&domain.User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 
 	if res.Error != nil {
@@ -149,7 +149,7 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]model.User, error) {
 		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
-	var out []model.User
+	var out []domain.User
 	for _, user := range users {
 		out = append(out, user)
 	}
@@ -157,20 +157,20 @@ func (r *UserRepository) List(filters ...FilterFunc) (*[]model.User, error) {
 	return &out, nil
 }
 
-func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizationId string) (*[]model.User, error) {
-	var users []model.User
+func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizationId string) (*[]domain.User, error) {
+	var users []domain.User
 
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Preload("Organization").Preload("Role").Model(&model.User{}).Where("organization_id = ?", organizationId), &users)
+	_, res := pg.Fetch(r.db.Preload("Organization").Preload("Role").Model(&domain.User{}).Where("organization_id = ?", organizationId), &users)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
 	}
 
-	var out []model.User
+	var out []domain.User
 	for _, user := range users {
 		out = append(out, user)
 	}
@@ -178,32 +178,32 @@ func (r *UserRepository) ListWithPagination(pg *pagination.Pagination, organizat
 	return &out, nil
 }
 
-func (r *UserRepository) Get(accountId string, organizationId string) (model.User, error) {
+func (r *UserRepository) Get(accountId string, organizationId string) (domain.User, error) {
 	user, err := r.getUserByAccountId(accountId, organizationId)
 	if err != nil {
-		return model.User{}, err
+		return domain.User{}, err
 	}
 
 	return user, nil
 }
-func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser model.User, err error) {
-	user := model.User{}
-	res := r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
+func (r *UserRepository) GetByUuid(userId uuid.UUID) (respUser domain.User, err error) {
+	user := domain.User{}
+	res := r.db.Model(&domain.User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
 
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return model.User{}, res.Error
+		return domain.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return model.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	return user, nil
 }
 func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name string, roleId string,
-	email string, department string, description string) (model.User, error) {
-	var user model.User
-	res := r.db.Model(&model.User{}).Where("id = ?", uuid).Updates(model.User{
+	email string, department string, description string) (domain.User, error) {
+	var user domain.User
+	res := r.db.Model(&domain.User{}).Where("id = ?", uuid).Updates(domain.User{
 		AccountId:   accountId,
 		Name:        name,
 		Email:       email,
@@ -212,26 +212,26 @@ func (r *UserRepository) UpdateWithUuid(uuid uuid.UUID, accountId string, name s
 		RoleId:      roleId,
 	})
 	if res.RowsAffected == 0 || res.Error != nil {
-		return model.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return model.User{}, res.Error
+		return domain.User{}, res.Error
 	}
-	res = r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
+	res = r.db.Model(&domain.User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
 	if res.Error != nil {
-		return model.User{}, res.Error
+		return domain.User{}, res.Error
 	}
 	return user, nil
 }
 func (r *UserRepository) UpdatePasswordAt(userId uuid.UUID, organizationId string, isTemporary bool) error {
-	var updateUser = model.User{}
+	var updateUser = domain.User{}
 	if isTemporary {
 		updateUser.PasswordUpdatedAt = time.Time{}
 	} else {
 		updateUser.PasswordUpdatedAt = time.Now()
 	}
-	res := r.db.Model(&model.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
+	res := r.db.Model(&domain.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
 		Select("password_updated_at").Updates(updateUser)
 
 	if res.RowsAffected == 0 || res.Error != nil {
@@ -245,7 +245,7 @@ func (r *UserRepository) UpdatePasswordAt(userId uuid.UUID, organizationId strin
 	return nil
 }
 func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
-	res := r.db.Unscoped().Delete(&model.User{}, "id = ?", uuid)
+	res := r.db.Unscoped().Delete(&domain.User{}, "id = ?", uuid)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
@@ -273,17 +273,17 @@ func (r *UserRepository) DeleteWithUuid(uuid uuid.UUID) error {
 //	Creator          uuid.UUID
 //}
 
-func (r *UserRepository) GetRoleByName(roleName string) (model.Role, error) {
+func (r *UserRepository) GetRoleByName(roleName string) (domain.Role, error) {
 	role, err := r.getRoleByName(roleName)
 	if err != nil {
-		return model.Role{}, err
+		return domain.Role{}, err
 	}
 
 	return role, nil
 }
 
-//func (r *UserRepository) FetchRoles() (*[]model.Role, error) {
-//	var roles []model.Role
+//func (r *UserRepository) FetchRoles() (*[]domain.Role, error) {
+//	var roles []domain.Role
 //	res := r.db.Find(&roles)
 //
 //	if res.Error != nil {
@@ -295,7 +295,7 @@ func (r *UserRepository) GetRoleByName(roleName string) (model.Role, error) {
 //		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 //	}
 //
-//	var out []model.Role
+//	var out []domain.Role
 //	for _, role := range roles {
 //		outRole := r.reflectRole(role)
 //		out = append(out, outRole)
@@ -305,30 +305,30 @@ func (r *UserRepository) GetRoleByName(roleName string) (model.Role, error) {
 //}
 
 // private members
-func (r *UserRepository) getUserByAccountId(accountId string, organizationId string) (model.User, error) {
-	user := model.User{}
-	res := r.db.Model(&model.User{}).Preload("Organization").Preload("Role").
+func (r *UserRepository) getUserByAccountId(accountId string, organizationId string) (domain.User, error) {
+	user := domain.User{}
+	res := r.db.Model(&domain.User{}).Preload("Organization").Preload("Role").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return model.User{}, res.Error
+		return domain.User{}, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return model.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
+		return domain.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	return user, nil
 }
 
-func (r *UserRepository) getRoleByName(roleName string) (model.Role, error) {
-	role := model.Role{}
+func (r *UserRepository) getRoleByName(roleName string) (domain.Role, error) {
+	role := domain.Role{}
 	res := r.db.First(&role, "name = ?", roleName)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return model.Role{}, res.Error
+		return domain.Role{}, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return model.Role{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
+		return domain.Role{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
 	}
 
 	//if res.RowsAffected == 0 {

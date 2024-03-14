@@ -13,13 +13,13 @@ type PingTokenRequest struct {
 
 type LoginResponse struct {
 	User struct {
-		AccountId       string               `json:"accountId"`
-		Name            string               `json:"name"`
-		Token           string               `json:"token"`
-		Role            RoleResponse         `json:"role"`
-		Department      string               `json:"department"`
-		Organization    OrganizationResponse `json:"organization"`
-		PasswordExpired bool                 `json:"passwordExpired"`
+		AccountId       string       `json:"accountId"`
+		Name            string       `json:"name"`
+		Token           string       `json:"token"`
+		Role            Role         `json:"role"`
+		Department      string       `json:"department"`
+		Organization    Organization `json:"organization"`
+		PasswordExpired bool         `json:"passwordExpired"`
 	} `json:"user"`
 }
 

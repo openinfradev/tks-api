@@ -1,10 +1,11 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
-type EndpointResponse struct {
-	Name      string    `json:"name"`
-	Group     string    `json:"group"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+type Endpoint struct {
+	Name      string `gorm:"primary_key;type:text;not null;unique" json:"name"`
+	Group     string `gorm:"type:text;" json:"group"`
+	CreatedAt time.Time
 }

@@ -37,6 +37,14 @@ func (m ChartType) FromString(s string) ChartType {
 	return ChartType_ERROR
 }
 
+// [TODO]
+func (m ChartType) All() (out []string) {
+	for _, v := range chartType {
+		out = append(out, v)
+	}
+	return
+}
+
 // 내부
 type DashboardChart struct {
 	ChartType      ChartType
@@ -62,14 +70,6 @@ type DashboardStack struct {
 	Storage     string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-}
-
-// [TODO]
-func (m ChartType) All() (out []string) {
-	for _, v := range chartType {
-		out = append(out, v)
-	}
-	return
 }
 
 type Unit struct {
