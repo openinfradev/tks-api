@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
@@ -18,12 +17,12 @@ import (
 )
 
 type IAppGroupUsecase interface {
-	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) ([]model.AppGroup, error)
-	Create(ctx context.Context, dto model.AppGroup) (id domain.AppGroupId, err error)
-	Get(ctx context.Context, id domain.AppGroupId) (out model.AppGroup, err error)
+	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) ([]domain.AppGroup, error)
+	Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error)
+	Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error)
 	Delete(ctx context.Context, id domain.AppGroupId) (err error)
-	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []model.Application, err error)
-	UpdateApplication(ctx context.Context, dto model.Application) (err error)
+	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error)
+	UpdateApplication(ctx context.Context, dto domain.Application) (err error)
 }
 
 type AppGroupUsecase struct {
@@ -42,7 +41,7 @@ func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) I
 	}
 }
 
-func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (out []model.AppGroup, err error) {
+func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (out []domain.AppGroup, err error) {
 	out, err = u.repo.Fetch(clusterId, pg)
 	if err != nil {
 		return nil, err
@@ -50,7 +49,7 @@ func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId,
 	return
 }
 
-func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id domain.AppGroupId, err error) {
+func (u *AppGroupUsecase) Create(ctx context.Context, dto domain.AppGroup) (id domain.AppGroupId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
@@ -159,10 +158,10 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 	return dto.ID, nil
 }
 
-func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out model.AppGroup, err error) {
+func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out domain.AppGroup, err error) {
 	appGroup, err := u.repo.Get(id)
 	if err != nil {
-		return model.AppGroup{}, err
+		return domain.AppGroup{}, err
 	}
 	return appGroup, nil
 }
@@ -256,7 +255,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 	return nil
 }
 
-func (u *AppGroupUsecase) GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []model.Application, err error) {
+func (u *AppGroupUsecase) GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error) {
 	out, err = u.repo.GetApplications(id, applicationType)
 	if err != nil {
 		return nil, err
@@ -264,7 +263,7 @@ func (u *AppGroupUsecase) GetApplications(ctx context.Context, id domain.AppGrou
 	return
 }
 
-func (u *AppGroupUsecase) UpdateApplication(ctx context.Context, dto model.Application) (err error) {
+func (u *AppGroupUsecase) UpdateApplication(ctx context.Context, dto domain.Application) (err error) {
 	err = u.repo.UpsertApplication(dto)
 	if err != nil {
 		return err

@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // enum
@@ -48,14 +50,18 @@ func (m OrganizationStatus) FromString(s string) OrganizationStatus {
 	return OrganizationStatus_ERROR
 }
 
-type OrganizationResponse struct {
-	ID               string             `json:"id"`
+type Organization struct {
+	gorm.Model
+
+	ID               string             `gorm:"primarykey;type:varchar(36);not null" json:"id"`
 	Name             string             `json:"name"`
 	Description      string             `json:"description"`
 	Phone            string             `json:"phone"`
 	PrimaryClusterId string             `json:"primaryClusterId"`
+	WorkflowId       string             `json:"-"`
 	Status           OrganizationStatus `json:"status"`
 	StatusDesc       string             `json:"statusDesc"`
+	Creator          string             `json:"creator"`
 	CreatedAt        time.Time          `json:"createdAt"`
 	UpdatedAt        time.Time          `json:"updatedAt"`
 }
@@ -122,8 +128,4 @@ type UpdateOrganizationResponse struct {
 
 type UpdatePrimaryClusterRequest struct {
 	PrimaryClusterId string `json:"primaryClusterId"`
-}
-
-type DeleteOrganizationResponse struct {
-	ID string `json:"id"`
 }

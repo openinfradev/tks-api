@@ -10,32 +10,32 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/mail"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 )
 
 type IUserUsecase interface {
-	CreateAdmin(organizationId string, email string) (*model.User, error)
+	CreateAdmin(organizationId string, email string) (*domain.User, error)
 	DeleteAdmin(organizationId string) error
 	DeleteAll(ctx context.Context, organizationId string) error
-	Create(ctx context.Context, user *model.User) (*model.User, error)
-	List(ctx context.Context, organizationId string) (*[]model.User, error)
-	ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]model.User, error)
-	Get(userId uuid.UUID) (*model.User, error)
-	Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error)
+	Create(ctx context.Context, user *domain.User) (*domain.User, error)
+	List(ctx context.Context, organizationId string) (*[]domain.User, error)
+	ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]domain.User, error)
+	Get(userId uuid.UUID) (*domain.User, error)
+	Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error)
 	ResetPassword(userId uuid.UUID) error
 	ResetPasswordByAccountId(accountId string, organizationId string) error
 	GenerateRandomPassword() string
 	Delete(userId uuid.UUID, organizationId string) error
-	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*model.User, error)
-	GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error)
+	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error)
+	GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error)
 	SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error
 
-	UpdateByAccountId(ctx context.Context, accountId string, user *model.User) (*model.User, error)
+	UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
 	RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error
 	RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error
@@ -43,7 +43,7 @@ type IUserUsecase interface {
 	ValidateAccount(userId uuid.UUID, password string, organizationId string) error
 	ValidateAccountByAccountId(accountId string, password string, organizationId string) error
 
-	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *model.User) (*model.User, error)
+	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *domain.User) (*domain.User, error)
 }
 
 type UserUsecase struct {
@@ -196,17 +196,17 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 	return nil
 }
 
-func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*model.User, error) {
+func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*domain.User, error) {
 	// Generate Admin user object
 	randomPassword := helper.GenerateRandomString(passwordLength)
-	user := model.User{
+	user := domain.User{
 		AccountId: "admin",
 		Password:  randomPassword,
 		Email:     email,
-		Role: model.Role{
+		Role: domain.Role{
 			Name: "admin",
 		},
-		Organization: model.Organization{
+		Organization: domain.Organization{
 			ID: orgainzationId,
 		},
 		Name: "admin",
@@ -295,7 +295,7 @@ func (u *UserUsecase) UpdatePasswordByAccountId(ctx context.Context, accountId s
 	return nil
 }
 
-func (u *UserUsecase) List(ctx context.Context, organizationId string) (users *[]model.User, err error) {
+func (u *UserUsecase) List(ctx context.Context, organizationId string) (users *[]domain.User, err error) {
 	users, err = u.userRepository.List(u.userRepository.OrganizationFilter(organizationId))
 	if err != nil {
 		return nil, err
@@ -304,7 +304,7 @@ func (u *UserUsecase) List(ctx context.Context, organizationId string) (users *[
 	return
 }
 
-func (u *UserUsecase) ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (users *[]model.User, err error) {
+func (u *UserUsecase) ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (users *[]domain.User, err error) {
 	users, err = u.userRepository.ListWithPagination(pg, organizationId)
 	if err != nil {
 		return nil, err
@@ -313,7 +313,7 @@ func (u *UserUsecase) ListWithPagination(ctx context.Context, organizationId str
 	return
 }
 
-func (u *UserUsecase) Get(userId uuid.UUID) (*model.User, error) {
+func (u *UserUsecase) Get(userId uuid.UUID) (*domain.User, error) {
 	user, err := u.userRepository.GetByUuid(userId)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -325,7 +325,7 @@ func (u *UserUsecase) Get(userId uuid.UUID) (*model.User, error) {
 	return &user, nil
 }
 
-func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*model.User, error) {
+func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, organizationId string) (*domain.User, error) {
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.AccountIdFilter(accountId))
 	if err != nil {
@@ -335,7 +335,7 @@ func (u *UserUsecase) GetByAccountId(ctx context.Context, accountId string, orga
 	return &(*users)[0], nil
 }
 
-func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error) {
+func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organizationId string) (*domain.User, error) {
 	users, err := u.userRepository.List(u.userRepository.OrganizationFilter(organizationId),
 		u.userRepository.EmailFilter(email))
 	if err != nil {
@@ -345,7 +345,7 @@ func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organization
 	return &(*users)[0], nil
 }
 
-func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error) {
+func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *domain.User) (*domain.User, error) {
 	storedUser, err := u.Get(userId)
 	if err != nil {
 		return nil, err
@@ -355,8 +355,8 @@ func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *model.
 	return u.UpdateByAccountId(ctx, storedUser.AccountId, user)
 }
 
-func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *model.User) (*model.User, error) {
-	var out model.User
+func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *domain.User) (*domain.User, error) {
+	var out domain.User
 
 	originUser, err := u.kc.GetUser(user.Organization.ID, accountId)
 	if err != nil {
@@ -438,7 +438,7 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 	return nil
 }
 
-func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User, error) {
+func (u *UserUsecase) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	// Create user in keycloak
 	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}
 	userUuidStr, err := u.kc.CreateUser(user.Organization.ID, &gocloak.User{
@@ -492,7 +492,7 @@ func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User
 	return &resUser, nil
 }
 
-func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId string, newUser *model.User) (*model.User, error) {
+func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId string, newUser *domain.User) (*domain.User, error) {
 	deepCopyUser := *newUser
 	user, err := u.UpdateByAccountId(ctx, accountId, &deepCopyUser)
 	if err != nil {

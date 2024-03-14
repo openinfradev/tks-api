@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -87,11 +86,11 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	var user model.User
+	var user domain.User
 	if err = serializer.Map(input, &user); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
-	user.Organization = model.Organization{
+	user.Organization = domain.Organization{
 		ID: organizationId,
 	}
 
@@ -232,7 +231,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			accountId		path		string	true	"accountId"
-//	@Success		200				{object}	nil
+//	@Success		200				{object}	domain.User
 //	@Router			/organizations/{organizationId}/users/{accountId} [delete]
 //	@Security		JWT
 func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -299,12 +298,12 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	var user model.User
+	var user domain.User
 	if err = serializer.Map(input, &user); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
-	user.Organization = model.Organization{
+	user.Organization = domain.Organization{
 		ID: organizationId,
 	}
 	user.AccountId = accountId
@@ -452,7 +451,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	var user model.User
+	var user domain.User
 	if err = serializer.Map(input, &user); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 		ErrorJSON(w, r, err)
@@ -711,7 +710,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	user := model.User{
+	user := domain.User{
 		Name:        input.Name,
 		AccountId:   input.AccountId,
 		Email:       input.Email,
@@ -733,7 +732,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	user.Organization = model.Organization{
+	user.Organization = domain.Organization{
 		ID: organizationId,
 	}
 
@@ -974,14 +973,14 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	user := model.User{
+	user := domain.User{
 		AccountId:   accountId,
 		Name:        input.Name,
 		Email:       input.Email,
 		Department:  input.Department,
 		Description: input.Description,
 	}
-	user.Organization = model.Organization{
+	user.Organization = domain.Organization{
 		ID: organizationId,
 	}
 

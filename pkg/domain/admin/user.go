@@ -1,9 +1,8 @@
 package admin
 
 import (
-	"time"
-
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"time"
 )
 
 type CreateUserRequest struct {
@@ -27,17 +26,17 @@ type ListUserResponse struct {
 
 type GetUserResponse struct {
 	User struct {
-		ID           string                      `json:"id"`
-		AccountId    string                      `json:"accountId"`
-		Name         string                      `json:"name"`
-		Role         domain.RoleResponse         `json:"role"`
-		Organization domain.OrganizationResponse `json:"organization"`
-		Email        string                      `json:"email"`
-		Department   string                      `json:"department"`
-		Description  string                      `json:"description"`
-		Creator      string                      `json:"creator"`
-		CreatedAt    time.Time                   `json:"createdAt"`
-		UpdatedAt    time.Time                   `json:"updatedAt"`
+		ID           string              `json:"id"`
+		AccountId    string              `json:"accountId"`
+		Name         string              `json:"name"`
+		Role         domain.Role         `json:"role"`
+		Organization domain.Organization `json:"organization"`
+		Email        string              `json:"email"`
+		Department   string              `json:"department"`
+		Description  string              `json:"description"`
+		Creator      string              `json:"creator"`
+		CreatedAt    time.Time           `json:"createdAt"`
+		UpdatedAt    time.Time           `json:"updatedAt"`
 	} `json:"user"`
 }
 
@@ -52,16 +51,16 @@ type UpdateUserRequest struct {
 
 type UpdateUserResponse struct {
 	User struct {
-		ID           string                      `json:"id"`
-		AccountId    string                      `json:"accountId"`
-		Name         string                      `json:"name"`
-		Role         domain.RoleResponse         `json:"role"`
-		Organization domain.OrganizationResponse `json:"organization"`
-		Email        string                      `json:"email"`
-		Department   string                      `json:"department"`
-		Description  string                      `json:"description"`
-		CreatedAt    time.Time                   `json:"createdAt"`
-		UpdatedAt    time.Time                   `json:"updatedAt"`
+		ID           string              `json:"id"`
+		AccountId    string              `json:"accountId"`
+		Name         string              `json:"name"`
+		Role         domain.Role         `json:"role"`
+		Organization domain.Organization `json:"organization"`
+		Email        string              `json:"email"`
+		Department   string              `json:"department"`
+		Description  string              `json:"description"`
+		CreatedAt    time.Time           `json:"createdAt"`
+		UpdatedAt    time.Time           `json:"updatedAt"`
 	} `json:"user"`
 }
 

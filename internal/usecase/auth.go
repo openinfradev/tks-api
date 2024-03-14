@@ -24,14 +24,13 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/mail"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 )
 
 type IAuthUsecase interface {
-	Login(accountId string, password string, organizationId string) (model.User, error)
+	Login(accountId string, password string, organizationId string) (domain.User, error)
 	Logout(accessToken string, organizationId string) error
 	PingToken(accessToken string, organizationId string) error
 	FindId(code string, email string, userName string, organizationId string) (string, error)
@@ -68,28 +67,28 @@ func NewAuthUsecase(r repository.Repository, kc keycloak.IKeycloak) IAuthUsecase
 	}
 }
 
-func (u *AuthUsecase) Login(accountId string, password string, organizationId string) (model.User, error) {
+func (u *AuthUsecase) Login(accountId string, password string, organizationId string) (domain.User, error) {
 	// Authentication with DB
 	user, err := u.userRepository.Get(accountId, organizationId)
 	if err != nil {
-		return model.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
+		return domain.User{}, httpErrors.NewBadRequestError(err, "A_INVALID_ID", "")
 	}
 
-	var accountToken *model.User
+	var accountToken *domain.User
 	accountToken, err = u.kc.Login(accountId, password, organizationId)
 	if err != nil {
 		apiErr, ok := err.(*gocloak.APIError)
 		if ok {
 			if apiErr.Code == 401 {
-				return model.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
+				return domain.User{}, httpErrors.NewBadRequestError(fmt.Errorf("Mismatch password"), "A_INVALID_PASSWORD", "")
 			}
 		}
-		return model.User{}, httpErrors.NewInternalServerError(err, "", "")
+		return domain.User{}, httpErrors.NewInternalServerError(err, "", "")
 	}
 	log.Errorf("err: %v", err)
 	if err != nil {
 		//TODO: implement not found handling
-		return model.User{}, err
+		return domain.User{}, err
 	}
 
 	// Insert token
@@ -255,7 +254,7 @@ func (u *AuthUsecase) FindPassword(code string, accountId string, email string, 
 }
 
 func (u *AuthUsecase) VerifyIdentity(accountId string, email string, userName string, organizationId string) error {
-	var users *[]model.User
+	var users *[]domain.User
 	var err error
 
 	if accountId == "" {

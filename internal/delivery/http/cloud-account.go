@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -54,7 +53,7 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var dto model.CloudAccount
+	var dto domain.CloudAccount
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -199,7 +198,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var dto model.CloudAccount
+	var dto domain.CloudAccount
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -249,7 +248,7 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 		return
 	}
 
-	var dto model.CloudAccount
+	var dto domain.CloudAccount
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -296,11 +295,7 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 		return
 	}
 
-	out := domain.DeleteCloudAccountResponse{
-		ID: cloudAccountId,
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // CheckCloudAccountName godoc

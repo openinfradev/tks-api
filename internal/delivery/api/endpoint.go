@@ -102,8 +102,6 @@ const (
 	Admin_UpdateStackTemplate
 	Admin_DeleteStackTemplate
 	Admin_UpdateStackTemplateOrganizations
-	GetOrganizationStackTemplates
-	GetOrganizationStackTemplate
 
 	// Dashboard
 	GetChartsDashboard    // 대시보드/대시보드/조회
@@ -121,7 +119,7 @@ const (
 
 	// Stack
 	GetStacks           // 스택관리/조회
-	CreateStack         // 스택관리/생성
+	CreateStack         // // 스택관리/생성
 	CheckStackName      // 스택관리/조회
 	GetStack            // 스택관리/조회
 	UpdateStack         // 스택관리/수정

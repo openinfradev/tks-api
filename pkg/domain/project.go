@@ -3,18 +3,17 @@ package domain
 import "time"
 
 type ProjectResponse struct {
-	ID              string     `json:"id"`
-	OrganizationId  string     `json:"organizationId"`
-	Name            string     `json:"name"`
-	Description     string     `json:"description"`
-	IsMyProject     string     `json:"isMyProject"`
-	ProjectRoleId   string     `json:"projectRoleId"`
-	ProjectRoleName string     `json:"projectRoleName"`
-	NamespaceCount  int        `json:"namespaceCount"`
-	AppCount        int        `json:"appCount"`
-	MemberCount     int        `json:"memberCount"`
-	CreatedAt       time.Time  `json:"createdAt"`
-	UpdatedAt       *time.Time `json:"updatedAt"`
+	ID              string    `json:"id"`
+	OrganizationId  string    `json:"organizationId"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description"`
+	IsMyProject     string    `json:"isMyProject"`
+	ProjectRoleId   string    `json:"projectRoleId"`
+	ProjectRoleName string    `json:"projectRoleName"`
+	NamespaceCount  int       `json:"namespaceCount"`
+	AppCount        int       `json:"appCount"`
+	MemberCount     int       `json:"memberCount"`
+	CreatedAt       time.Time `json:"createdAt"`
 }
 
 type GetProjectsResponse struct {

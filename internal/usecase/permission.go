@@ -2,21 +2,21 @@ package usecase
 
 import (
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type IPermissionUsecase interface {
-	CreatePermissionSet(permissionSet *model.PermissionSet) error
-	GetPermissionSetByRoleId(roleId string) (*model.PermissionSet, error)
-	ListPermissions(roleId string) ([]*model.Permission, error)
-	//GetPermission(id uuid.UUID) (*model.Permission, error)
+	CreatePermissionSet(permissionSet *domain.PermissionSet) error
+	GetPermissionSetByRoleId(roleId string) (*domain.PermissionSet, error)
+	ListPermissions(roleId string) ([]*domain.Permission, error)
+	//GetPermission(id uuid.UUID) (*domain.Permission, error)
 	//DeletePermission(id uuid.UUID) error
-	//UpdatePermission(permission *model.Permission) error
-	SetRoleIdToPermissionSet(roleId string, permissionSet *model.PermissionSet)
-	GetAllowedPermissionSet() *model.PermissionSet
-	GetUserPermissionSet() *model.PermissionSet
-	UpdatePermission(permission *model.Permission) error
+	//UpdatePermission(permission *domain.Permission) error
+	SetRoleIdToPermissionSet(roleId string, permissionSet *domain.PermissionSet)
+	GetAllowedPermissionSet() *domain.PermissionSet
+	GetUserPermissionSet() *domain.PermissionSet
+	UpdatePermission(permission *domain.Permission) error
 }
 
 type PermissionUsecase struct {
@@ -29,7 +29,7 @@ func NewPermissionUsecase(repo repository.Repository) *PermissionUsecase {
 	}
 }
 
-func (p PermissionUsecase) CreatePermissionSet(permissionSet *model.PermissionSet) error {
+func (p PermissionUsecase) CreatePermissionSet(permissionSet *domain.PermissionSet) error {
 	var err error
 	if err = p.repo.Create(permissionSet.Dashboard); err != nil {
 		return err
@@ -52,8 +52,8 @@ func (p PermissionUsecase) CreatePermissionSet(permissionSet *model.PermissionSe
 
 	return nil
 }
-func (p PermissionUsecase) GetPermissionSetByRoleId(roleId string) (*model.PermissionSet, error) {
-	permissionSet := &model.PermissionSet{
+func (p PermissionUsecase) GetPermissionSetByRoleId(roleId string) (*domain.PermissionSet, error) {
+	permissionSet := &domain.PermissionSet{
 		Dashboard:         nil,
 		Stack:             nil,
 		SecurityPolicy:    nil,
@@ -68,17 +68,17 @@ func (p PermissionUsecase) GetPermissionSetByRoleId(roleId string) (*model.Permi
 	}
 	for _, permission := range permissionList {
 		switch permission.Name {
-		case string(model.DashBoardPermission):
+		case string(domain.DashBoardPermission):
 			permissionSet.Dashboard = permission
-		case string(model.StackPermission):
+		case string(domain.StackPermission):
 			permissionSet.Stack = permission
-		case string(model.SecurityPolicyPermission):
+		case string(domain.SecurityPolicyPermission):
 			permissionSet.SecurityPolicy = permission
-		case string(model.ProjectManagementPermission):
+		case string(domain.ProjectManagementPermission):
 			permissionSet.ProjectManagement = permission
-		case string(model.NotificationPermission):
+		case string(domain.NotificationPermission):
 			permissionSet.Notification = permission
-		case string(model.ConfigurationPermission):
+		case string(domain.ConfigurationPermission):
 			permissionSet.Configuration = permission
 		}
 	}
@@ -86,11 +86,11 @@ func (p PermissionUsecase) GetPermissionSetByRoleId(roleId string) (*model.Permi
 	return permissionSet, nil
 }
 
-func (p PermissionUsecase) ListPermissions(roleId string) ([]*model.Permission, error) {
+func (p PermissionUsecase) ListPermissions(roleId string) ([]*domain.Permission, error) {
 	return p.repo.List(roleId)
 }
 
-func (p PermissionUsecase) GetPermission(id uuid.UUID) (*model.Permission, error) {
+func (p PermissionUsecase) GetPermission(id uuid.UUID) (*domain.Permission, error) {
 	return p.repo.Get(id)
 }
 
@@ -98,22 +98,22 @@ func (p PermissionUsecase) DeletePermission(id uuid.UUID) error {
 	return p.repo.Delete(id)
 }
 
-func (p PermissionUsecase) UpdatePermission(permission *model.Permission) error {
+func (p PermissionUsecase) UpdatePermission(permission *domain.Permission) error {
 	return p.repo.Update(permission)
 }
 
-func (p PermissionUsecase) SetRoleIdToPermissionSet(roleId string, permissionSet *model.PermissionSet) {
+func (p PermissionUsecase) SetRoleIdToPermissionSet(roleId string, permissionSet *domain.PermissionSet) {
 	permissionSet.SetRoleId(roleId)
 }
 
-func (p PermissionUsecase) GetAllowedPermissionSet() *model.PermissionSet {
-	permissionSet := model.NewDefaultPermissionSet()
+func (p PermissionUsecase) GetAllowedPermissionSet() *domain.PermissionSet {
+	permissionSet := domain.NewDefaultPermissionSet()
 	permissionSet.SetAllowedPermissionSet()
 	return permissionSet
 }
 
-func (p PermissionUsecase) GetUserPermissionSet() *model.PermissionSet {
-	permissionSet := model.NewDefaultPermissionSet()
+func (p PermissionUsecase) GetUserPermissionSet() *domain.PermissionSet {
+	permissionSet := domain.NewDefaultPermissionSet()
 	permissionSet.SetUserPermissionSet()
 	return permissionSet
 }

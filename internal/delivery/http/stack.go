@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -52,8 +51,11 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto model.Stack
+	var dto domain.Stack
 	if err = serializer.Map(input, &dto); err != nil {
+		log.InfoWithContext(r.Context(), err)
+	}
+	if err = serializer.Map(input, &dto.Conf); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
@@ -124,10 +126,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	for i, stack := range stacks {
 		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
 			log.InfoWithContext(r.Context(), err)
-		}
-
-		if err := serializer.Map(stack.CreatedAt, &out.Stacks[i].CreatedAt); err != nil {
-			log.InfoWithContext(r.Context(), err)
+			continue
 		}
 
 		err = json.Unmarshal(stack.StackTemplate.Services, &out.Stacks[i].StackTemplate.Services)
@@ -260,7 +259,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto model.Stack
+	var dto domain.Stack
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -303,7 +302,7 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto model.Stack
+	var dto domain.Stack
 	dto.ID = domain.StackId(strId)
 	dto.OrganizationId = organizationId
 

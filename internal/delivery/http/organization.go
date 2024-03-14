@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -53,7 +52,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	ctx := r.Context()
-	var organization model.Organization
+	var organization domain.Organization
 	if err = serializer.Map(input, &organization); err != nil {
 		log.ErrorWithContext(r.Context(), err)
 	}
@@ -67,7 +66,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	organization.ID = organizationId
 
 	// Role 생성
-	adminRole := model.Role{
+	adminRole := domain.Role{
 		OrganizationID: organizationId,
 		Name:           "admin",
 		Description:    "admin",
@@ -79,7 +78,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 		ErrorJSON(w, r, err)
 		return
 	}
-	userRole := model.Role{
+	userRole := domain.Role{
 		OrganizationID: organizationId,
 		Name:           "user",
 		Description:    "user",
@@ -217,7 +216,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
-//	@Success		200				{object}	domain.DeleteOrganizationResponse
+//	@Success		200				{object}	domain.Organization
 //	@Router			/organizations/{organizationId} [delete]
 //	@Security		JWT
 func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
@@ -254,10 +253,7 @@ func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	out := domain.DeleteOrganizationResponse{
-		ID: organizationId,
-	}
-	ResponseJSON(w, r, http.StatusOK, out)
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // UpdateOrganization godoc

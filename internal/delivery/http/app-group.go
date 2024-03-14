@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
-	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -44,7 +43,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var dto model.AppGroup
+	var dto domain.AppGroup
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}
@@ -265,7 +264,7 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var dto model.Application
+	var dto domain.Application
 	if err := serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}

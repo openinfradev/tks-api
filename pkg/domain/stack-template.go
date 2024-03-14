@@ -2,10 +2,37 @@ package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const STACK_TEMPLATE_TYPE_STANDARD = "STANDARD"
 const STACK_TEMPLATE_TYPE_MSA = "MSA"
+
+// 내부
+type StackTemplate struct {
+	ID              uuid.UUID
+	OrganizationId  string
+	Name            string
+	Description     string
+	Template        string
+	TemplateType    string
+	CloudService    string
+	Version         string
+	Platform        string
+	KubeVersion     string
+	KubeType        string
+	OrganizationIds []string
+	Organizations   []Organization
+	ServiceIds      []string
+	Services        []byte
+	CreatorId       uuid.UUID
+	Creator         User
+	UpdatorId       uuid.UUID
+	Updator         User
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
 
 type StackTemplateServiceApplicationResponse struct {
 	Name        string `json:"name"`

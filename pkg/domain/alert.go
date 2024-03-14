@@ -33,6 +33,50 @@ func (m AlertActionStatus) FromString(s string) AlertActionStatus {
 	return AlertActionStatus_ERROR
 }
 
+// 내부
+type Alert struct {
+	ID             uuid.UUID
+	OrganizationId string
+	Organization   Organization
+	Name           string
+	Description    string
+	Code           string
+	Grade          string
+	Message        string
+	ClusterId      ClusterId
+	Cluster        Cluster
+	Node           string
+	CheckPoint     string
+	Summary        string
+	GrafanaUrl     string
+	FiredAt        *time.Time
+	TakedAt        *time.Time
+	ClosedAt       *time.Time
+	TakedSec       int
+	ProcessingSec  int
+	Status         AlertActionStatus
+	AlertActions   []AlertAction
+	LastTaker      User
+	RawData        []byte
+	CreatorId      *uuid.UUID
+	Creator        User
+	UpdatorId      *uuid.UUID
+	Updator        User
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type AlertAction struct {
+	ID        uuid.UUID
+	AlertId   uuid.UUID
+	Content   string
+	Status    AlertActionStatus
+	TakerId   *uuid.UUID
+	Taker     User
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type CreateAlertRequestAlert struct {
 	Status       string    `json:"status"`
 	GeneratorURL string    `json:"generatorURL"`
