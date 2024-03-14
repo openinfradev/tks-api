@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -272,7 +273,7 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 
 	log.InfoWithContext(r.Context(), "alert : ", helper.ModelToJson(input))
 
-	var dto domain.AlertAction
+	var dto model.AlertAction
 	if err = serializer.Map(input, &dto); err != nil {
 		log.InfoWithContext(r.Context(), err)
 	}

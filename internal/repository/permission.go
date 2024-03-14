@@ -2,16 +2,16 @@ package repository
 
 import (
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/internal/model"
 	"gorm.io/gorm"
 )
 
 type IPermissionRepository interface {
-	Create(permission *domain.Permission) error
-	List(roleId string) ([]*domain.Permission, error)
-	Get(id uuid.UUID) (*domain.Permission, error)
+	Create(permission *model.Permission) error
+	List(roleId string) ([]*model.Permission, error)
+	Get(id uuid.UUID) (*model.Permission, error)
 	Delete(id uuid.UUID) error
-	Update(permission *domain.Permission) error
+	Update(permission *model.Permission) error
 }
 
 type PermissionRepository struct {
@@ -24,7 +24,7 @@ func NewPermissionRepository(db *gorm.DB) *PermissionRepository {
 	}
 }
 
-func (r PermissionRepository) Create(p *domain.Permission) error {
+func (r PermissionRepository) Create(p *model.Permission) error {
 	//var parent *Permission
 	//var children []*Permission
 	//
@@ -49,8 +49,8 @@ func (r PermissionRepository) Create(p *domain.Permission) error {
 	return r.db.Create(p).Error
 }
 
-func (r PermissionRepository) List(roleId string) ([]*domain.Permission, error) {
-	var permissions []*domain.Permission
+func (r PermissionRepository) List(roleId string) ([]*model.Permission, error) {
+	var permissions []*model.Permission
 
 	err := r.db.Preload("Children.Children.Children.Children").Where("parent_id IS NULL AND role_id = ?", roleId).Find(&permissions).Error
 	if err != nil {
@@ -60,8 +60,8 @@ func (r PermissionRepository) List(roleId string) ([]*domain.Permission, error) 
 	return permissions, nil
 }
 
-func (r PermissionRepository) Get(id uuid.UUID) (*domain.Permission, error) {
-	permission := &domain.Permission{}
+func (r PermissionRepository) Get(id uuid.UUID) (*model.Permission, error) {
+	permission := &model.Permission{}
 	result := r.db.Preload("Children.Children.Children").Preload("Parent").First(&permission, "id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
@@ -71,10 +71,10 @@ func (r PermissionRepository) Get(id uuid.UUID) (*domain.Permission, error) {
 }
 
 func (r PermissionRepository) Delete(id uuid.UUID) error {
-	return r.db.Delete(&domain.Permission{}, "id = ?", id).Error
+	return r.db.Delete(&model.Permission{}, "id = ?", id).Error
 }
 
-func (r PermissionRepository) Update(p *domain.Permission) error {
+func (r PermissionRepository) Update(p *model.Permission) error {
 	// update on is_allowed
-	return r.db.Model(&domain.Permission{}).Where("id = ?", p.ID).Updates(map[string]interface{}{"is_allowed": p.IsAllowed}).Error
+	return r.db.Model(&model.Permission{}).Where("id = ?", p.ID).Updates(map[string]interface{}{"is_allowed": p.IsAllowed}).Error
 }

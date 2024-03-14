@@ -73,6 +73,7 @@ type PolicyTemplateResponse struct {
 	PermittedOrganizations []PermittedOrganization `json:"permittedOrganizations"`
 }
 
+/*
 type PolicyTemplate struct {
 	ID        PolicyTemplateId
 	Type      string
@@ -97,6 +98,7 @@ type PolicyTemplate struct {
 	PermittedOrganizationIds []string // 생성 시에만 사용
 	PermittedOrganizations   []PermittedOrganization
 }
+*/
 
 type CreateCommonPolicyTemplateRequest struct {
 	TemplateName     string         `json:"templateName" example:"필수 Label 검사" validate:"name"`

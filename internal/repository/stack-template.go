@@ -2,24 +2,22 @@ package repository
 
 import (
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/internal/serializer"
-	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IStackTemplateRepository interface {
-	Get(stackTemplateId uuid.UUID) (domain.StackTemplate, error)
-	Fetch(pg *pagination.Pagination) ([]domain.StackTemplate, error)
-	Create(dto domain.StackTemplate) (stackTemplateId uuid.UUID, err error)
-	Update(dto domain.StackTemplate) (err error)
-	Delete(dto domain.StackTemplate) (err error)
-	UpdateOrganizations(stackTemplateId uuid.UUID, organizationIds []domain.Organization) (err error)
+	Get(stackTemplateId uuid.UUID) (model.StackTemplate, error)
+	Fetch(pg *pagination.Pagination) ([]model.StackTemplate, error)
+	FetchWithOrganization(organizationId string, pg *pagination.Pagination) (out []model.StackTemplate, err error)
+	Create(dto model.StackTemplate) (stackTemplateId uuid.UUID, err error)
+	Update(dto model.StackTemplate) (err error)
+	Delete(dto model.StackTemplate) (err error)
+	UpdateOrganizations(stackTemplateId uuid.UUID, organizationIds []model.Organization) (err error)
 }
 
 type StackTemplateRepository struct {
@@ -32,87 +30,52 @@ func NewStackTemplateRepository(db *gorm.DB) IStackTemplateRepository {
 	}
 }
 
-// Models
-type StackTemplate struct {
-	gorm.Model
-
-	ID            uuid.UUID `gorm:"primarykey"`
-	Name          string    `gorm:"index"`
-	Description   string    `gorm:"index"`
-	Template      string
-	TemplateType  string
-	Version       string
-	CloudService  string
-	Platform      string
-	KubeVersion   string
-	KubeType      string
-	Organizations []domain.Organization `gorm:"many2many:stack_template_organizations"`
-	Services      datatypes.JSON
-	CreatorId     *uuid.UUID  `gorm:"type:uuid"`
-	Creator       domain.User `gorm:"foreignKey:CreatorId"`
-	UpdatorId     *uuid.UUID  `gorm:"type:uuid"`
-	Updator       domain.User `gorm:"foreignKey:UpdatorId"`
-}
-
-func (c *StackTemplate) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
 // Logics
-func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out domain.StackTemplate, err error) {
-	var stackTemplate StackTemplate
-	res := r.db.Preload(clause.Associations).First(&stackTemplate, "id = ?", stackTemplateId)
+func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out model.StackTemplate, err error) {
+	res := r.db.Preload(clause.Associations).First(&out, "id = ?", stackTemplateId)
 	if res.Error != nil {
-		return domain.StackTemplate{}, res.Error
+		return model.StackTemplate{}, res.Error
 	}
-	out = reflectStackTemplate(stackTemplate)
 	return
 }
 
-// [TODO] organizationId 별로 생성하지 않고, 하나의 stackTemplate 을 모든 organization 에서 재사용한다. ( 5월 한정, 추후 rearchitecture 필요)
-func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []domain.StackTemplate, err error) {
-	var stackTemplates []StackTemplate
-
+func (r *StackTemplateRepository) Fetch(pg *pagination.Pagination) (out []model.StackTemplate, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Preload(clause.Associations), &stackTemplates)
+	_, res := pg.Fetch(r.db.Preload(clause.Associations), &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
-	for _, stackTemplate := range stackTemplates {
-		out = append(out, reflectStackTemplate(stackTemplate))
-	}
-
 	return
 }
 
-func (r *StackTemplateRepository) Create(dto domain.StackTemplate) (stackTemplateId uuid.UUID, err error) {
-	stackTemplate := StackTemplate{
-		Name:         dto.Name,
-		Description:  dto.Description,
-		Template:     dto.Template,
-		TemplateType: dto.TemplateType,
-		Version:      dto.Version,
-		CloudService: dto.CloudService,
-		Platform:     dto.Platform,
-		KubeVersion:  dto.KubeVersion,
-		KubeType:     dto.KubeType,
-		Services:     dto.Services,
-		CreatorId:    &dto.CreatorId,
-		UpdatorId:    &dto.CreatorId}
-	res := r.db.Create(&stackTemplate)
+func (r *StackTemplateRepository) FetchWithOrganization(organizationId string, pg *pagination.Pagination) (out []model.StackTemplate, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+
+	_, res := pg.Fetch(
+		r.db.Preload(clause.Associations).
+			Joins("JOIN stack_template_organizations ON stack_template_organizations.stack_template_id = stack_templates.id AND stack_template_organizations.organization_id = ?", organizationId),
+		&out)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return
+}
+
+func (r *StackTemplateRepository) Create(dto model.StackTemplate) (stackTemplateId uuid.UUID, err error) {
+	res := r.db.Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
-	return stackTemplate.ID, nil
+	return dto.ID, nil
 }
 
-func (r *StackTemplateRepository) Update(dto domain.StackTemplate) (err error) {
-	res := r.db.Model(&StackTemplate{}).
+func (r *StackTemplateRepository) Update(dto model.StackTemplate) (err error) {
+	res := r.db.Model(&model.StackTemplate{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{
 			"Template":     dto.Template,
@@ -131,16 +94,16 @@ func (r *StackTemplateRepository) Update(dto domain.StackTemplate) (err error) {
 	return nil
 }
 
-func (r *StackTemplateRepository) Delete(dto domain.StackTemplate) (err error) {
-	res := r.db.Delete(&StackTemplate{}, "id = ?", dto.ID)
+func (r *StackTemplateRepository) Delete(dto model.StackTemplate) (err error) {
+	res := r.db.Delete(&model.StackTemplate{}, "id = ?", dto.ID)
 	if res.Error != nil {
 		return res.Error
 	}
 	return nil
 }
 
-func (r *StackTemplateRepository) UpdateOrganizations(stackTemplateId uuid.UUID, organizations []domain.Organization) (err error) {
-	var stackTemplate = StackTemplate{}
+func (r *StackTemplateRepository) UpdateOrganizations(stackTemplateId uuid.UUID, organizations []model.Organization) (err error) {
+	var stackTemplate = model.StackTemplate{}
 	res := r.db.Preload("Organizations").First(&stackTemplate, "id = ?", stackTemplateId)
 	if res.Error != nil {
 		return res.Error
@@ -151,16 +114,4 @@ func (r *StackTemplateRepository) UpdateOrganizations(stackTemplateId uuid.UUID,
 	}
 
 	return nil
-}
-
-func reflectStackTemplate(stackTemplate StackTemplate) (out domain.StackTemplate) {
-	if err := serializer.Map(stackTemplate.Model, &out); err != nil {
-		log.Error(err)
-	}
-	if err := serializer.Map(stackTemplate, &out); err != nil {
-		log.Error(err)
-	}
-
-	out.Services = stackTemplate.Services
-	return
 }

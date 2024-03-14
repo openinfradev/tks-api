@@ -1,14 +1,16 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"net/http"
 )
 
 type IRoleHandler interface {
@@ -67,7 +69,7 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// input to dto
-	dto := domain.Role{
+	dto := model.Role{
 		OrganizationID: organizationId,
 		Name:           input.Name,
 		Description:    input.Description,
@@ -82,7 +84,7 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create permission
-	defaultPermissionSet := domain.NewDefaultPermissionSet()
+	defaultPermissionSet := model.NewDefaultPermissionSet()
 	h.permissionUsecase.SetRoleIdToPermissionSet(roleId, defaultPermissionSet)
 	err = h.permissionUsecase.CreatePermissionSet(defaultPermissionSet)
 	if err != nil {
@@ -256,7 +258,7 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// input to dto
-	dto := domain.Role{
+	dto := model.Role{
 		ID:          roleId,
 		Description: input.Description,
 	}

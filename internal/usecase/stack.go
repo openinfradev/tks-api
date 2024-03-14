@@ -11,6 +11,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
@@ -24,13 +25,13 @@ import (
 )
 
 type IStackUsecase interface {
-	Get(ctx context.Context, stackId domain.StackId) (domain.Stack, error)
-	GetByName(ctx context.Context, organizationId string, name string) (domain.Stack, error)
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]domain.Stack, error)
-	Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error)
+	Get(ctx context.Context, stackId domain.StackId) (model.Stack, error)
+	GetByName(ctx context.Context, organizationId string, name string) (model.Stack, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.Stack, error)
+	Create(ctx context.Context, dto model.Stack) (stackId domain.StackId, err error)
 	Install(ctx context.Context, stackId domain.StackId) (err error)
-	Update(ctx context.Context, dto domain.Stack) error
-	Delete(ctx context.Context, dto domain.Stack) error
+	Update(ctx context.Context, dto model.Stack) error
+	Delete(ctx context.Context, dto model.Stack) error
 	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
 	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
 	SetFavorite(ctx context.Context, stackId domain.StackId) error
@@ -61,7 +62,7 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient, dash
 	}
 }
 
-func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId domain.StackId, err error) {
+func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId domain.StackId, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
@@ -103,7 +104,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto domain.Stack) (stackId do
 
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
-	if err = domain.Map(dto.Conf, &stackConf); err != nil {
+	if err = serializer.Map(dto, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
 	if stackTemplate.CloudService == "AWS" && stackTemplate.KubeType == "AWS" {
@@ -196,7 +197,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
-	if err = domain.Map(cluster.Conf, &stackConf); err != nil {
+	if err = serializer.Map(cluster, &stackConf); err != nil {
 		log.InfoWithContext(ctx, err)
 	}
 
@@ -221,7 +222,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 	return nil
 }
 
-func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out domain.Stack, err error) {
+func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out model.Stack, err error) {
 	cluster, err := u.clusterRepo.Get(domain.ClusterId(stackId))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -275,7 +276,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out dom
 	return
 }
 
-func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, name string) (out domain.Stack, err error) {
+func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, name string) (out model.Stack, err error) {
 	cluster, err := u.clusterRepo.GetByName(organizationId, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -293,7 +294,7 @@ func (u *StackUsecase) GetByName(ctx context.Context, organizationId string, nam
 	return
 }
 
-func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []domain.Stack, err error) {
+func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.Stack, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return out, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
@@ -352,7 +353,7 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 	return
 }
 
-func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error) {
+func (u *StackUsecase) Update(ctx context.Context, dto model.Stack) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
@@ -364,7 +365,7 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 	}
 
 	updatorId := user.GetUserId()
-	dtoCluster := domain.Cluster{
+	dtoCluster := model.Cluster{
 		ID:          domain.ClusterId(dto.ID),
 		Description: dto.Description,
 		UpdatorId:   &updatorId,
@@ -378,7 +379,7 @@ func (u *StackUsecase) Update(ctx context.Context, dto domain.Stack) (err error)
 	return nil
 }
 
-func (u *StackUsecase) Delete(ctx context.Context, dto domain.Stack) (err error) {
+func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
@@ -617,7 +618,7 @@ func (u *StackUsecase) DeleteFavorite(ctx context.Context, stackId domain.StackI
 	return nil
 }
 
-func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) (out domain.Stack) {
+func reflectClusterToStack(cluster model.Cluster, appGroups []model.AppGroup) (out model.Stack) {
 	if err := serializer.Map(cluster, &out); err != nil {
 		log.Error(err)
 	}
@@ -629,7 +630,7 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 	out.StatusDesc = statusDesc
 
 	/*
-		return domain.Stack{
+		return model.Stack{
 			ID:              domain.StackId(cluster.ID),
 			OrganizationId:  cluster.OrganizationId,
 			Name:            cluster.Name,
@@ -663,7 +664,7 @@ func reflectClusterToStack(cluster domain.Cluster, appGroups []domain.AppGroup) 
 }
 
 // [TODO] more pretty
-func getStackStatus(cluster domain.Cluster, appGroups []domain.AppGroup) (domain.StackStatus, string) {
+func getStackStatus(cluster model.Cluster, appGroups []model.AppGroup) (domain.StackStatus, string) {
 	for _, appGroup := range appGroups {
 		if appGroup.Status == domain.AppGroupStatus_PENDING && cluster.Status == domain.ClusterStatus_RUNNING {
 			return domain.StackStatus_APPGROUP_INSTALLING, appGroup.StatusDesc
