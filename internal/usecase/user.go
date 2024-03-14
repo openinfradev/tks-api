@@ -19,7 +19,7 @@ import (
 )
 
 type IUserUsecase interface {
-	CreateAdmin(organizationId string, email string) (*model.User, error)
+	CreateAdmin(organizationId string, accountId string, accountName string, email string) (*model.User, error)
 	DeleteAdmin(organizationId string) error
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *model.User) (*model.User, error)
@@ -196,20 +196,20 @@ func (u *UserUsecase) DeleteAdmin(organizationId string) error {
 	return nil
 }
 
-func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*model.User, error) {
+func (u *UserUsecase) CreateAdmin(organizationId string, accountId string, accountName string, email string) (*model.User, error) {
 	// Generate Admin user object
 	randomPassword := helper.GenerateRandomString(passwordLength)
 	user := model.User{
-		AccountId: "admin",
+		AccountId: accountId,
 		Password:  randomPassword,
 		Email:     email,
 		Role: model.Role{
 			Name: "admin",
 		},
 		Organization: model.Organization{
-			ID: orgainzationId,
+			ID: organizationId,
 		},
-		Name: "admin",
+		Name: accountName,
 	}
 
 	// Create Admin user in keycloak & DB
@@ -219,11 +219,11 @@ func (u *UserUsecase) CreateAdmin(orgainzationId string, email string) (*model.U
 	}
 
 	// Send mail of temporary password
-	organizationInfo, err := u.organizationRepository.Get(orgainzationId)
+	organizationInfo, err := u.organizationRepository.Get(organizationId)
 	if err != nil {
 		return nil, err
 	}
-	message, err := mail.MakeGeneratingOrganizationMessage(orgainzationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
+	message, err := mail.MakeGeneratingOrganizationMessage(organizationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
 	if err != nil {
 		return nil, httpErrors.NewInternalServerError(err, "", "")
 	}

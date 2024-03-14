@@ -7,15 +7,17 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Interfaces
 type IOrganizationRepository interface {
-	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (model.Organization, error)
+	Create(dto *model.Organization) (model.Organization, error)
 	Fetch(pg *pagination.Pagination) (res *[]model.Organization, err error)
 	Get(organizationId string) (res model.Organization, err error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
 	UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error
+	UpdateAdminId(organizationId string, adminId uuid.UUID) error
 	Delete(organizationId string) (err error)
 	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
@@ -51,15 +53,14 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 //	return nil
 //}
 
-func (r *OrganizationRepository) Create(organizationId string, name string, creator uuid.UUID, phone string,
-	description string) (model.Organization, error) {
+func (r *OrganizationRepository) Create(dto *model.Organization) (model.Organization, error) {
 	organization := model.Organization{
-		ID:          organizationId,
-		Name:        name,
-		Creator:     creator.String(),
-		Phone:       phone,
-		Description: description,
+		ID:          dto.ID,
+		Name:        dto.Name,
+		CreatorId:   dto.CreatorId,
+		Description: dto.Description,
 		Status:      domain.OrganizationStatus_PENDING,
+		Phone:       dto.Phone,
 	}
 	res := r.db.Create(&organization)
 	if res.Error != nil {
@@ -75,7 +76,7 @@ func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (out *[]model.
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db, &out)
+	_, res := pg.Fetch(r.db.Preload(clause.Associations), &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -83,12 +84,12 @@ func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (out *[]model.
 }
 
 func (r *OrganizationRepository) Get(id string) (out model.Organization, err error) {
-	res := r.db.First(&out, "id = ?", id)
+	res := r.db.Preload(clause.Associations).
+		First(&out, "id = ?", id)
 	if res.Error != nil {
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
 	}
-
 	return
 }
 
@@ -110,7 +111,6 @@ func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateO
 		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.Organization{}, res.Error
 	}
-
 	return
 }
 
@@ -119,6 +119,20 @@ func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, p
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"primary_cluster_id": primaryClusterId,
+		})
+
+	if res.Error != nil {
+		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+	return nil
+}
+
+func (r *OrganizationRepository) UpdateAdminId(organizationId string, adminId uuid.UUID) (err error) {
+	res := r.db.Model(&model.Organization{}).
+		Where("id = ?", organizationId).
+		Updates(map[string]interface{}{
+			"admin_id": adminId,
 		})
 
 	if res.Error != nil {

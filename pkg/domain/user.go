@@ -55,9 +55,11 @@ type CreateUserRequest struct {
 }
 
 type SimpleUserResponse struct {
-	ID        string `json:"id"`
-	AccountId string `json:"accountId"`
-	Name      string `json:"name"`
+	ID         string `json:"id"`
+	AccountId  string `json:"accountId"`
+	Name       string `json:"name"`
+	Department string `json:"department"`
+	Email      string `json:"email"`
 }
 
 type CreateUserResponse struct {

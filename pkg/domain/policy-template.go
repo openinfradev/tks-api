@@ -73,6 +73,14 @@ type PolicyTemplateResponse struct {
 	PermittedOrganizations []PermittedOrganization `json:"permittedOrganizations"`
 }
 
+type SimplePolicyTemplateResponse struct {
+	ID          string `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	Type        string `json:"type" enums:"tks,organization" example:"tks"`
+	Name        string `json:"templateName" example:"필수 Label 검사"`
+	Version     string `json:"version,omitempty" example:"v1.0.1"`
+	Description string `json:"description,omitempty"  example:"이 정책은 ..."`
+}
+
 /*
 type PolicyTemplate struct {
 	ID        PolicyTemplateId

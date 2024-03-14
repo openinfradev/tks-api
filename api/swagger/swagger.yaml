@@ -842,7 +842,11 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest:
     properties:
-      Email:
+      adminAccountId:
+        type: string
+      adminEmail:
+        type: string
+      adminName:
         type: string
       description:
         maxLength: 100
@@ -850,10 +854,9 @@ definitions:
         type: string
       name:
         type: string
-      phone:
-        type: string
     required:
-    - Email
+    - adminAccountId
+    - adminEmail
     - name
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateReponse:
@@ -1441,28 +1444,7 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.GetOrganizationResponse:
     properties:
       organization:
-        properties:
-          createdAt:
-            type: string
-          creator:
-            type: string
-          description:
-            type: string
-          id:
-            type: string
-          name:
-            type: string
-          phone:
-            type: string
-          primaryClusterId:
-            type: string
-          status:
-            type: string
-          statusDesc:
-            type: string
-          updatedAt:
-            type: string
-        type: object
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateDeployResponse:
     properties:
@@ -1681,24 +1663,14 @@ definitions:
       id:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.ListOrganizationBody:
+  github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse:
     properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      phone:
-        type: string
-      primaryClusterId:
-        type: string
-      status:
-        type: string
-      updatedAt:
-        type: string
+      organizations:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateResponse:
     properties:
@@ -1805,6 +1777,8 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse:
     properties:
+      admin:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       createdAt:
         type: string
       description:
@@ -1815,35 +1789,25 @@ definitions:
         type: string
       phone:
         type: string
+      policyTemplates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimplePolicyTemplateResponse'
+        type: array
       primaryClusterId:
         type: string
+      stackCount:
+        type: integer
+      stackTemplates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse'
+        type: array
       status:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus'
+        type: string
       statusDesc:
         type: string
       updatedAt:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    type: integer
-    x-enum-varnames:
-    - OrganizationStatus_PENDING
-    - OrganizationStatus_CREATE
-    - OrganizationStatus_CREATING
-    - OrganizationStatus_CREATED
-    - OrganizationStatus_DELETE
-    - OrganizationStatus_DELETING
-    - OrganizationStatus_DELETED
-    - OrganizationStatus_ERROR
   github_com_openinfradev_tks-api_pkg_domain.PaginationResponse:
     properties:
       filters:
@@ -2299,6 +2263,27 @@ definitions:
       name:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SimplePolicyTemplateResponse:
+    properties:
+      description:
+        example: 이 정책은 ...
+        type: string
+      id:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
+      type:
+        enum:
+        - tks
+        - organization
+        example: tks
+        type: string
+      version:
+        example: v1.0.1
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse:
     properties:
       cloudService:
@@ -2323,6 +2308,10 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse:
     properties:
       accountId:
+        type: string
+      department:
+        type: string
+      email:
         type: string
       id:
         type: string
@@ -4262,7 +4251,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListOrganizationBody'
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse'
             type: array
       security:
       - JWT: []

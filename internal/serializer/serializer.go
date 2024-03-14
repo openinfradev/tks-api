@@ -41,7 +41,15 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 				continue
 			} else if srcField.Type().Kind() == reflect.Struct && dstField.Type().Kind() == reflect.Struct {
 				if err := recursiveMap(srcField.Interface(), dstField.Addr().Interface(), converterMap); err != nil {
-					return err
+					log.Error(err)
+					continue
+				}
+			} else if srcField.Kind() == reflect.Pointer && dstField.Type().Kind() == reflect.Struct {
+				if !reflect.Value.IsNil(srcField) {
+					if err := recursiveMap(srcField.Elem().Interface(), dstField.Addr().Interface(), converterMap); err != nil {
+						log.Error(err)
+						continue
+					}
 				}
 			} else {
 				if functionExists(srcField.Interface(), "String") &&
@@ -66,7 +74,8 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
 				if converter, ok := converterMap[converterKey]; ok {
 					if converted, err := converter(srcField.Interface()); err != nil {
-						return err
+						log.Error(err)
+						continue
 					} else {
 						dstField.Set(reflect.ValueOf(converted))
 					}

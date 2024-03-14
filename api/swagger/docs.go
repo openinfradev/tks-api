@@ -2128,7 +2128,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListOrganizationBody"
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse"
                             }
                         }
                     }
@@ -7925,11 +7925,18 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest": {
             "type": "object",
             "required": [
-                "Email",
+                "adminAccountId",
+                "adminEmail",
                 "name"
             ],
             "properties": {
-                "Email": {
+                "adminAccountId": {
+                    "type": "string"
+                },
+                "adminEmail": {
+                    "type": "string"
+                },
+                "adminName": {
                     "type": "string"
                 },
                 "description": {
@@ -7938,9 +7945,6 @@ const docTemplate = `{
                     "minLength": 0
                 },
                 "name": {
-                    "type": "string"
-                },
-                "phone": {
                     "type": "string"
                 }
             }
@@ -8818,39 +8822,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "organization": {
-                    "type": "object",
-                    "properties": {
-                        "createdAt": {
-                            "type": "string"
-                        },
-                        "creator": {
-                            "type": "string"
-                        },
-                        "description": {
-                            "type": "string"
-                        },
-                        "id": {
-                            "type": "string"
-                        },
-                        "name": {
-                            "type": "string"
-                        },
-                        "phone": {
-                            "type": "string"
-                        },
-                        "primaryClusterId": {
-                            "type": "string"
-                        },
-                        "status": {
-                            "type": "string"
-                        },
-                        "statusDesc": {
-                            "type": "string"
-                        },
-                        "updatedAt": {
-                            "type": "string"
-                        }
-                    }
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
                 }
             }
         },
@@ -9192,32 +9164,17 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.ListOrganizationBody": {
+        "github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                    }
                 },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "primaryClusterId": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
                 }
             }
         },
@@ -9381,6 +9338,9 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -9396,11 +9356,26 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "policyTemplates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimplePolicyTemplateResponse"
+                    }
+                },
                 "primaryClusterId": {
                     "type": "string"
                 },
+                "stackCount": {
+                    "type": "integer"
+                },
+                "stackTemplates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse"
+                    }
+                },
                 "status": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus"
+                    "type": "string"
                 },
                 "statusDesc": {
                     "type": "string"
@@ -9409,29 +9384,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.OrganizationStatus": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "x-enum-varnames": [
-                "OrganizationStatus_PENDING",
-                "OrganizationStatus_CREATE",
-                "OrganizationStatus_CREATING",
-                "OrganizationStatus_CREATED",
-                "OrganizationStatus_DELETE",
-                "OrganizationStatus_DELETING",
-                "OrganizationStatus_DELETED",
-                "OrganizationStatus_ERROR"
-            ]
         },
         "github_com_openinfradev_tks-api_pkg_domain.PaginationResponse": {
             "type": "object",
@@ -10115,6 +10067,35 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.SimplePolicyTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "이 정책은 ..."
+                },
+                "id": {
+                    "type": "string",
+                    "example": "d98ef5f1-4a68-4047-a446-2207787ce3ff"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "필수 Label 검사"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "tks",
+                        "organization"
+                    ],
+                    "example": "tks"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "v1.0.1"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse": {
             "type": "object",
             "properties": {
@@ -10151,6 +10132,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "accountId": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "email": {
                     "type": "string"
                 },
                 "id": {
