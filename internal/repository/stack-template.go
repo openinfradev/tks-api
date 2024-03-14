@@ -12,6 +12,7 @@ import (
 // Interfaces
 type IStackTemplateRepository interface {
 	Get(stackTemplateId uuid.UUID) (model.StackTemplate, error)
+	GetByName(name string) (model.StackTemplate, error)
 	Fetch(pg *pagination.Pagination) ([]model.StackTemplate, error)
 	FetchWithOrganization(organizationId string, pg *pagination.Pagination) (out []model.StackTemplate, err error)
 	Create(dto model.StackTemplate) (stackTemplateId uuid.UUID, err error)
@@ -35,6 +36,14 @@ func (r *StackTemplateRepository) Get(stackTemplateId uuid.UUID) (out model.Stac
 	res := r.db.Preload(clause.Associations).First(&out, "id = ?", stackTemplateId)
 	if res.Error != nil {
 		return model.StackTemplate{}, res.Error
+	}
+	return
+}
+
+func (r *StackTemplateRepository) GetByName(name string) (out model.StackTemplate, err error) {
+	res := r.db.First(&out, "name = ?", name)
+	if res.Error != nil {
+		return out, res.Error
 	}
 	return
 }

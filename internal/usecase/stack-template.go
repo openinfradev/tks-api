@@ -12,6 +12,8 @@ import (
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 type IStackTemplateUsecase interface {
@@ -22,6 +24,7 @@ type IStackTemplateUsecase interface {
 	Update(ctx context.Context, dto model.StackTemplate) error
 	Delete(ctx context.Context, dto model.StackTemplate) error
 	UpdateOrganizations(ctx context.Context, dto model.StackTemplate) error
+	GetByName(ctx context.Context, name string) (model.StackTemplate, error)
 }
 
 type StackTemplateUsecase struct {
@@ -94,8 +97,20 @@ func (u *StackTemplateUsecase) Update(ctx context.Context, dto model.StackTempla
 func (u *StackTemplateUsecase) Get(ctx context.Context, stackTemplateId uuid.UUID) (res model.StackTemplate, err error) {
 	res, err = u.repo.Get(stackTemplateId)
 	if err != nil {
-		return model.StackTemplate{}, err
+		return res, err
 	}
+	return
+}
+
+func (u *StackTemplateUsecase) GetByName(ctx context.Context, name string) (out model.StackTemplate, err error) {
+	out, err = u.repo.GetByName(name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return out, httpErrors.NewNotFoundError(err, "ST_FAILED_FETCH_STACK_TEMPLATE", "")
+		}
+		return out, err
+	}
+
 	return
 }
 

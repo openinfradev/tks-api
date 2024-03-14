@@ -497,6 +497,11 @@ definitions:
       existed:
         type: boolean
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CheckStackTemplateNameResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse:
     properties:
       awsAccountId:
@@ -3642,6 +3647,29 @@ paths:
       security:
       - JWT: []
       summary: Update StackTemplate organizations
+      tags:
+      - StackTemplates
+  /admin/stack-templates/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for stackTemplate
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckStackTemplateNameResponse'
+      security:
+      - JWT: []
+      summary: Check name for stackTemplate
       tags:
       - StackTemplates
   /admin/stack-templates/services:

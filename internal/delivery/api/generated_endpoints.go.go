@@ -303,6 +303,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_UpdateStackTemplateOrganizations", 
 		Group: "StackTemplate",
 	},
+    Admin_CheckStackTemplateName: {
+		Name: "Admin_CheckStackTemplateName", 
+		Group: "StackTemplate",
+	},
     GetOrganizationStackTemplates: {
 		Name: "GetOrganizationStackTemplates", 
 		Group: "StackTemplate",
@@ -888,6 +892,8 @@ func (e Endpoint) String() string {
 		return "Admin_DeleteStackTemplate"
 	case Admin_UpdateStackTemplateOrganizations:
 		return "Admin_UpdateStackTemplateOrganizations"
+	case Admin_CheckStackTemplateName:
+		return "Admin_CheckStackTemplateName"
 	case GetOrganizationStackTemplates:
 		return "GetOrganizationStackTemplates"
 	case GetOrganizationStackTemplate:
@@ -1260,6 +1266,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_DeleteStackTemplate
 	case "Admin_UpdateStackTemplateOrganizations":
 		return Admin_UpdateStackTemplateOrganizations
+	case "Admin_CheckStackTemplateName":
+		return Admin_CheckStackTemplateName
 	case "GetOrganizationStackTemplates":
 		return GetOrganizationStackTemplates
 	case "GetOrganizationStackTemplate":
