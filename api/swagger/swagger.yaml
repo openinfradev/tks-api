@@ -2820,6 +2820,54 @@ definitions:
       validityPeriod:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.AlertTemplateResponse:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      metricParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse'
+        type: array
+      metricQuery:
+        type: string
+      name:
+        type: string
+      organizations:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse'
+        type: array
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+    required:
+    - metricQuery
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.CreateAlertTemplateResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplateResponse:
+    properties:
+      alertTemplate:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.AlertTemplateResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplatesResponse:
+    properties:
+      alertTemplates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.AlertTemplateResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse:
     properties:
       user:
@@ -2847,6 +2895,40 @@ definitions:
           updatedAt:
             type: string
         type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse:
+    properties:
+      key:
+        type: string
+      order:
+        type: integer
+      value:
+        type: string
+    required:
+    - key
+    - order
+    - value
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.UpdateAlertTemplateRequest:
+    properties:
+      description:
+        type: string
+      metricParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse'
+        type: array
+      metricQuery:
+        type: string
+      name:
+        type: string
+      organizationIds:
+        items:
+          type: string
+        type: array
+    required:
+    - metricQuery
+    - name
+    - organizationIds
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest:
     properties:
@@ -2919,6 +3001,107 @@ info:
   title: tks-api service
   version: "1.0"
 paths:
+  /admin/alert-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get AlertTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get AlertTemplates
+      tags:
+      - AlertTemplates
+    post:
+      consumes:
+      - application/json
+      description: Create alert template. ADMIN ONLY
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreateAlertTemplateResponse'
+      security:
+      - JWT: []
+      summary: Create alert template. ADMIN ONLY
+      tags:
+      - AlertTemplates
+  /admin/alert-templates/{alertTemplateId}:
+    get:
+      consumes:
+      - application/json
+      description: Get AlertTemplate
+      parameters:
+      - description: alertTemplateId
+        in: path
+        name: alertTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get AlertTemplate
+      tags:
+      - AlertTemplates
+    put:
+      consumes:
+      - application/json
+      description: Update AlertTemplate
+      parameters:
+      - description: Update alert template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateAlertTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update AlertTemplate
+      tags:
+      - AlertTemplates
   /admin/audits:
     get:
       consumes:

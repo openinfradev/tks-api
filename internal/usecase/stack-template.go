@@ -48,9 +48,7 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 	dto.CreatorId = &userId
 	dto.UpdatorId = &userId
 
-	pg := pagination.NewPaginationWithFilter("name", "", "$eq", []string{dto.Name})
-	stackTemplates, _ := u.Fetch(ctx, pg)
-	if len(stackTemplates) > 0 {
+	if _, err = u.GetByName(ctx, dto.Name); err == nil {
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("duplicate stackTemplate name"), "ST_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 

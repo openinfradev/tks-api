@@ -27,6 +27,7 @@ type Repository struct {
 	Project        IProjectRepository
 	Audit          IAuditRepository
 	PolicyTemplate IPolicyTemplateRepository
+	AlertTemplate  IAlertTemplateRepository
 }
 
 func CombinedGormFilter(table string, filters []pagination.Filter, combinedFilter pagination.CombinedFilter) FilterFunc {

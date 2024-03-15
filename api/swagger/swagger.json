@@ -16,6 +16,167 @@
     "host": "tks-api-dev.taco-cat.xyz",
     "basePath": "/api/1.0/",
     "paths": {
+        "/admin/alert-templates": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get AlertTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AlertTemplates"
+                ],
+                "summary": "Get AlertTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplatesResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create alert template. ADMIN ONLY",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AlertTemplates"
+                ],
+                "summary": "Create alert template. ADMIN ONLY",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreateAlertTemplateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/alert-templates/{alertTemplateId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get AlertTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AlertTemplates"
+                ],
+                "summary": "Get AlertTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "alertTemplateId",
+                        "name": "alertTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplateResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update AlertTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AlertTemplates"
+                ],
+                "summary": "Update AlertTemplate",
+                "parameters": [
+                    {
+                        "description": "Update alert template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateAlertTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/admin/audits": {
             "get": {
                 "security": [
@@ -10933,6 +11094,80 @@
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.AlertTemplateResponse": {
+            "type": "object",
+            "required": [
+                "metricQuery"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metricParameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse"
+                    }
+                },
+                "metricQuery": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.CreateAlertTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "alertTemplate": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.AlertTemplateResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.GetAlertTemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "alertTemplates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.AlertTemplateResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse": {
             "type": "object",
             "properties": {
@@ -10972,6 +11207,56 @@
                         "updatedAt": {
                             "type": "string"
                         }
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse": {
+            "type": "object",
+            "required": [
+                "key",
+                "order",
+                "value"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.UpdateAlertTemplateRequest": {
+            "type": "object",
+            "required": [
+                "metricQuery",
+                "name",
+                "organizationIds"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metricParameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse"
+                    }
+                },
+                "metricQuery": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

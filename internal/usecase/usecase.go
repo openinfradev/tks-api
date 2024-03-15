@@ -11,6 +11,7 @@ type Usecase struct {
 	StackTemplate  IStackTemplateUsecase
 	Dashboard      IDashboardUsecase
 	Alert          IAlertUsecase
+	AlertTemplate  IAlertTemplateUsecase
 	Stack          IStackUsecase
 	Project        IProjectUsecase
 	Role           IRoleUsecase

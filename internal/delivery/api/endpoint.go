@@ -112,6 +112,19 @@ const (
 	GetStacksDashboard    // 대시보드/대시보드/조회
 	GetResourcesDashboard // 대시보드/대시보드/조회
 
+	// AlertTemplate
+	Admin_CreateAlertTemplate
+	Admin_UpdateAlertTemplate
+	Admin_GetAlertTemplates
+	Admin_GetAlertTemplate
+
+	// AlertSetting
+	CreateAlertSetting
+	GetAlertSettings
+	GetAlertSetting
+	DeleteAlertSetting
+	UpdateAlertSetting
+
 	// Alert
 	CreateAlert
 	GetAlerts

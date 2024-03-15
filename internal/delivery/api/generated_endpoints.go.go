@@ -331,6 +331,22 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetResourcesDashboard", 
 		Group: "Dashboard",
 	},
+    Admin_CreateAlertTemplate: {
+		Name: "Admin_CreateAlertTemplate", 
+		Group: "AlertTemplate",
+	},
+    Admin_UpdateAlertTemplate: {
+		Name: "Admin_UpdateAlertTemplate", 
+		Group: "AlertTemplate",
+	},
+    Admin_GetAlertTemplates: {
+		Name: "Admin_GetAlertTemplates", 
+		Group: "AlertTemplate",
+	},
+    Admin_GetAlertTemplate: {
+		Name: "Admin_GetAlertTemplate", 
+		Group: "AlertTemplate",
+	},
     CreateAlert: {
 		Name: "CreateAlert", 
 		Group: "Alert",
@@ -906,6 +922,14 @@ func (e Endpoint) String() string {
 		return "GetStacksDashboard"
 	case GetResourcesDashboard:
 		return "GetResourcesDashboard"
+	case Admin_CreateAlertTemplate:
+		return "Admin_CreateAlertTemplate"
+	case Admin_UpdateAlertTemplate:
+		return "Admin_UpdateAlertTemplate"
+	case Admin_GetAlertTemplates:
+		return "Admin_GetAlertTemplates"
+	case Admin_GetAlertTemplate:
+		return "Admin_GetAlertTemplate"
 	case CreateAlert:
 		return "CreateAlert"
 	case GetAlerts:
@@ -1280,6 +1304,14 @@ func GetEndpoint(name string) Endpoint {
 		return GetStacksDashboard
 	case "GetResourcesDashboard":
 		return GetResourcesDashboard
+	case "Admin_CreateAlertTemplate":
+		return Admin_CreateAlertTemplate
+	case "Admin_UpdateAlertTemplate":
+		return Admin_UpdateAlertTemplate
+	case "Admin_GetAlertTemplates":
+		return Admin_GetAlertTemplates
+	case "Admin_GetAlertTemplate":
+		return Admin_GetAlertTemplate
 	case "CreateAlert":
 		return CreateAlert
 	case "GetAlerts":

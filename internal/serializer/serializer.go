@@ -31,6 +31,7 @@ func recursiveMap(ctx context.Context, src interface{}, dst interface{}, convert
 	}
 	dstElem := dstVal.Elem()
 
+	log.Info(srcType)
 	for i := 0; i < srcVal.NumField(); i++ {
 		fieldName := srcType.Field(i).Name
 		srcField := srcVal.Field(i)

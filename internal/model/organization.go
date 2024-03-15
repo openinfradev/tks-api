@@ -20,6 +20,7 @@ type Organization struct {
 	StatusDesc       string
 	CreatorId        *uuid.UUID       `gorm:"type:uuid"`
 	StackTemplates   []StackTemplate  `gorm:"many2many:stack_template_organizations"`
+	AlertTemplates   []AlertTemplate  `gorm:"many2many:alert_template_organizations"`
 	PolicyTemplates  []PolicyTemplate `gorm:"many2many:policy_template_permitted_organiations;"`
 	ClusterCount     int              `gorm:"-:all"`
 	AdminId          *uuid.UUID

@@ -109,6 +109,14 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	// AlertTemplate
+	if err := db.AutoMigrate(&model.MetricParameter{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&model.AlertTemplate{}); err != nil {
+		return err
+	}
+
 	// Alert
 	if err := db.AutoMigrate(&model.Alert{}); err != nil {
 		return err

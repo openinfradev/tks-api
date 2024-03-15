@@ -50,6 +50,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		CloudAccount:   repository.NewCloudAccountRepository(db),
 		StackTemplate:  repository.NewStackTemplateRepository(db),
 		Alert:          repository.NewAlertRepository(db),
+		AlertTemplate:  repository.NewAlertTemplateRepository(db),
 		Role:           repository.NewRoleRepository(db),
 		Project:        repository.NewProjectRepository(db),
 		Permission:     repository.NewPermissionRepository(db),
@@ -69,6 +70,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		StackTemplate:  usecase.NewStackTemplateUsecase(repoFactory),
 		Dashboard:      usecase.NewDashboardUsecase(repoFactory, cache),
 		Alert:          usecase.NewAlertUsecase(repoFactory),
+		AlertTemplate:  usecase.NewAlertTemplateUsecase(repoFactory),
 		Stack:          usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
 		Project:        usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 		Audit:          usecase.NewAuditUsecase(repoFactory),
@@ -204,6 +206,12 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}", customMiddleware.Handle(internalApi.UpdateAlert, http.HandlerFunc(alertHandler.UpdateAlert))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions", customMiddleware.Handle(internalApi.CreateAlertAction, http.HandlerFunc(alertHandler.CreateAlertAction))).Methods(http.MethodPost)
 	//r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions/status", customMiddleware.Handle(http.HandlerFunc(alertHandler.UpdateAlertActionStatus))).Methods(http.MethodPatch)
+
+	alertTemplateHandler := delivery.NewAlertTemplateHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates", customMiddleware.Handle(internalApi.Admin_CreateAlertTemplate, http.HandlerFunc(alertTemplateHandler.CreateAlertTemplate))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates", customMiddleware.Handle(internalApi.Admin_GetAlertTemplates, http.HandlerFunc(alertTemplateHandler.GetAlertTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates/{alertTemplateId}", customMiddleware.Handle(internalApi.Admin_GetAlertTemplate, http.HandlerFunc(alertTemplateHandler.GetAlertTemplate))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates/{alertTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdateAlertTemplate, http.HandlerFunc(alertTemplateHandler.UpdateAlertTemplate))).Methods(http.MethodPut)
 
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)
