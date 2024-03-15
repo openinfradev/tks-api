@@ -415,3 +415,39 @@ func (h *StackTemplateHandler) GetOrganizationStackTemplate(w http.ResponseWrite
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
+
+// CheckStackTemplateName godoc
+//
+//	@Tags			StackTemplates
+//	@Summary		Check name for stackTemplate
+//	@Description	Check name for stackTemplate
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	path		string	true	"name"
+//	@Success		200		{object}	domain.CheckStackTemplateNameResponse
+//	@Router			/admin/stack-templates/name/{name}/existence [GET]
+//	@Security		JWT
+func (h *StackTemplateHandler) CheckStackTemplateName(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name, ok := vars["name"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "ST_INVALID_STACK_TEMAPLTE_NAME", ""))
+		return
+	}
+
+	exist := true
+	_, err := h.usecase.GetByName(r.Context(), name)
+	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			exist = false
+		} else {
+			ErrorJSON(w, r, err)
+			return
+		}
+	}
+
+	var out domain.CheckStackTemplateNameResponse
+	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}

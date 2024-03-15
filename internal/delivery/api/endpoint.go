@@ -102,6 +102,7 @@ const (
 	Admin_UpdateStackTemplate
 	Admin_DeleteStackTemplate
 	Admin_UpdateStackTemplateOrganizations
+	Admin_CheckStackTemplateName
 	GetOrganizationStackTemplates
 	GetOrganizationStackTemplate
 

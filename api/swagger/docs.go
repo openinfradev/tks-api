@@ -1018,6 +1018,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/stack-templates/name/{name}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check name for stackTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Check name for stackTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckStackTemplateNameResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/stack-templates/services": {
             "get": {
                 "security": [
@@ -7405,6 +7442,14 @@ const docTemplate = `{
             }
         },
         "github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CheckStackTemplateNameResponse": {
             "type": "object",
             "properties": {
                 "existed": {

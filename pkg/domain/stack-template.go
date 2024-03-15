@@ -96,3 +96,7 @@ type GetStackTemplateServicesResponse struct {
 type UpdateStackTemplateOrganizationsRequest struct {
 	OrganizationIds []string `json:"organizationIds" validate:"required"`
 }
+
+type CheckStackTemplateNameResponse struct {
+	Existed bool `json:"existed"`
+}
