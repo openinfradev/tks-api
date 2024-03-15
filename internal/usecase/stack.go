@@ -104,7 +104,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
-	if err = serializer.Map(dto, &stackConf); err != nil {
+	if err = serializer.Map(ctx, dto, &stackConf); err != nil {
 		log.Info(ctx, err)
 	}
 	if stackTemplate.CloudService == "AWS" && stackTemplate.KubeType == "AWS" {
@@ -197,7 +197,7 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 
 	// Make stack nodes
 	var stackConf domain.StackConfResponse
-	if err = serializer.Map(cluster, &stackConf); err != nil {
+	if err = serializer.Map(ctx, cluster, &stackConf); err != nil {
 		log.Info(ctx, err)
 	}
 
@@ -250,7 +250,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 
 	for _, resource := range stackResources {
 		if resource.ID == domain.StackId(cluster.ID) {
-			if err := serializer.Map(resource, &out.Resource); err != nil {
+			if err := serializer.Map(ctx, resource, &out.Resource); err != nil {
 				log.Error(ctx, err)
 			}
 		}
@@ -337,7 +337,7 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 
 		for _, resource := range stackResources {
 			if resource.ID == domain.StackId(cluster.ID) {
-				if err := serializer.Map(resource, &outStack.Resource); err != nil {
+				if err := serializer.Map(ctx, resource, &outStack.Resource); err != nil {
 					log.Error(ctx, err)
 				}
 			}
@@ -619,7 +619,7 @@ func (u *StackUsecase) DeleteFavorite(ctx context.Context, stackId domain.StackI
 }
 
 func reflectClusterToStack(ctx context.Context, cluster model.Cluster, appGroups []model.AppGroup) (out model.Stack) {
-	if err := serializer.Map(cluster, &out); err != nil {
+	if err := serializer.Map(ctx, cluster, &out); err != nil {
 		log.Error(ctx, err)
 	}
 

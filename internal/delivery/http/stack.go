@@ -53,7 +53,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto model.Stack
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
@@ -122,11 +122,11 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStacksResponse
 	out.Stacks = make([]domain.StackResponse, len(stacks))
 	for i, stack := range stacks {
-		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
+		if err := serializer.Map(r.Context(), stack, &out.Stacks[i]); err != nil {
 			log.Info(r.Context(), err)
 		}
 
-		if err := serializer.Map(stack.CreatedAt, &out.Stacks[i].CreatedAt); err != nil {
+		if err := serializer.Map(r.Context(), stack.CreatedAt, &out.Stacks[i].CreatedAt); err != nil {
 			log.Info(r.Context(), err)
 		}
 
@@ -136,7 +136,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -170,7 +170,7 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetStackResponse
-	if err := serializer.Map(stack, &out.Stack); err != nil {
+	if err := serializer.Map(r.Context(), stack, &out.Stack); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -212,7 +212,7 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStackStatusResponse
 	out.StepStatus = make([]domain.StackStepStatus, len(steps))
 	for i, step := range steps {
-		if err := serializer.Map(step, &out.StepStatus[i]); err != nil {
+		if err := serializer.Map(r.Context(), step, &out.StepStatus[i]); err != nil {
 			log.Info(r.Context(), err)
 		}
 	}
@@ -261,7 +261,7 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto model.Stack
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.ID = stackId

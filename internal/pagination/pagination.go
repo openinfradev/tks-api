@@ -1,6 +1,7 @@
 package pagination
 
 import (
+	"context"
 	"net/url"
 	"strconv"
 	"strings"
@@ -144,13 +145,13 @@ func (p *Pagination) Fetch(db *gorm.DB, dest interface{}) (*database.Paginator, 
 	return paginator, db
 }
 
-func (p *Pagination) Response() (out domain.PaginationResponse, err error) {
-	if err := serializer.Map(*p, &out); err != nil {
+func (p *Pagination) Response(ctx context.Context) (out domain.PaginationResponse, err error) {
+	if err := serializer.Map(ctx, *p, &out); err != nil {
 		return out, err
 	}
 	out.Filters = make([]domain.FilterResponse, len(p.Filters))
 	for i, f := range p.Filters {
-		if err := serializer.Map(f, &out.Filters[i]); err != nil {
+		if err := serializer.Map(ctx, f, &out.Filters[i]); err != nil {
 			continue
 		}
 	}

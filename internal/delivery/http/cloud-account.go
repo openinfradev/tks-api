@@ -55,7 +55,7 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 	}
 
 	var dto model.CloudAccount
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.OrganizationId = organizationId
@@ -107,13 +107,13 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 	var out domain.GetCloudAccountsResponse
 	out.CloudAccounts = make([]domain.CloudAccountResponse, len(cloudAccounts))
 	for i, cloudAccount := range cloudAccounts {
-		if err := serializer.Map(cloudAccount, &out.CloudAccounts[i]); err != nil {
+		if err := serializer.Map(r.Context(), cloudAccount, &out.CloudAccounts[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -153,7 +153,7 @@ func (h *CloudAccountHandler) GetCloudAccount(w http.ResponseWriter, r *http.Req
 	}
 
 	var out domain.GetCloudAccountResponse
-	if err := serializer.Map(cloudAccount, &out.CloudAccount); err != nil {
+	if err := serializer.Map(r.Context(), cloudAccount, &out.CloudAccount); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -200,7 +200,7 @@ func (h *CloudAccountHandler) UpdateCloudAccount(w http.ResponseWriter, r *http.
 	}
 
 	var dto model.CloudAccount
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.ID = cloudAccountId
@@ -250,7 +250,7 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	}
 
 	var dto model.CloudAccount
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.ID = parsedId
@@ -416,7 +416,7 @@ func (h *CloudAccountHandler) GetResourceQuota(w http.ResponseWriter, r *http.Re
 	}
 
 	var out domain.GetCloudAccountResourceQuotaResponse
-	if err := serializer.Map(resourceQuota, &out.ResourceQuota); err != nil {
+	if err := serializer.Map(r.Context(), resourceQuota, &out.ResourceQuota); err != nil {
 		log.Info(r.Context(), err)
 	}
 	out.Available = available

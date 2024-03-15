@@ -69,7 +69,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 	}
 
 	var dto model.PolicyTemplate
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -229,7 +229,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 	}
 
 	var out domain.GetPolicyTemplateResponse
-	if err = serializer.Map(*policyTemplate, &out.PolicyTemplate); err != nil {
+	if err = serializer.Map(r.Context(), *policyTemplate, &out.PolicyTemplate); err != nil {
 		log.Error(r.Context(), err)
 	}
 
@@ -265,13 +265,13 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 	var out domain.ListPolicyTemplateResponse
 	out.PolicyTemplates = make([]domain.PolicyTemplateResponse, len(policyTemplates))
 	for i, policyTemplate := range policyTemplates {
-		if err := serializer.Map(policyTemplate, &out.PolicyTemplates[i]); err != nil {
+		if err := serializer.Map(r.Context(), policyTemplate, &out.PolicyTemplates[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -319,7 +319,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 	}
 
 	var out domain.ListPolicyTemplateVersionsResponse
-	if err = serializer.Map(*policyTemplateVersions, &out); err != nil {
+	if err = serializer.Map(r.Context(), *policyTemplateVersions, &out); err != nil {
 		log.Error(r.Context(), err)
 	}
 
@@ -426,7 +426,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 	}
 
 	var out domain.GetPolicyTemplateVersionResponse
-	if err = serializer.Map(*policyTemplate, &out.PolicyTemplate); err != nil {
+	if err = serializer.Map(r.Context(), *policyTemplate, &out.PolicyTemplate); err != nil {
 		log.Error(r.Context(), err)
 	}
 

@@ -105,7 +105,7 @@ func (u *DashboardUsecase) GetStacks(ctx context.Context, organizationId string)
 		}
 		stack := reflectClusterToStack(ctx, cluster, appGroups)
 		dashboardStack := domain.DashboardStack{}
-		if err := serializer.Map(stack, &dashboardStack); err != nil {
+		if err := serializer.Map(ctx, stack, &dashboardStack); err != nil {
 			log.Info(ctx, err)
 		}
 

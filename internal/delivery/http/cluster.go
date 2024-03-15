@@ -54,7 +54,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetClustersResponse
 	out.Clusters = make([]domain.ClusterResponse, len(clusters))
 	for i, cluster := range clusters {
-		if err := serializer.Map(cluster, &out.Clusters[i]); err != nil {
+		if err := serializer.Map(r.Context(), cluster, &out.Clusters[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
@@ -67,7 +67,7 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -100,7 +100,7 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetClusterResponse
-	if err := serializer.Map(cluster, &out.Cluster); err != nil {
+	if err := serializer.Map(r.Context(), cluster, &out.Cluster); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -158,7 +158,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto model.Cluster
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -212,7 +212,7 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dto model.Cluster
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.SetDefaultConf()

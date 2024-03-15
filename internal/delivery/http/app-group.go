@@ -45,7 +45,7 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 	}
 
 	var dto model.AppGroup
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -96,13 +96,13 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetAppGroupsResponse
 	out.AppGroups = make([]domain.AppGroupResponse, len(appGroups))
 	for i, appGroup := range appGroups {
-		if err := serializer.Map(appGroup, &out.AppGroups[i]); err != nil {
+		if err := serializer.Map(r.Context(), appGroup, &out.AppGroups[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -139,7 +139,7 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetAppGroupResponse
-	if err := serializer.Map(appGroup, &out.AppGroup); err != nil {
+	if err := serializer.Map(r.Context(), appGroup, &out.AppGroup); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -225,7 +225,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 	var out domain.GetApplicationsResponse
 	out.Applications = make([]domain.ApplicationResponse, len(applications))
 	for i, application := range applications {
-		if err := serializer.Map(application, &out.Applications[i]); err != nil {
+		if err := serializer.Map(r.Context(), application, &out.Applications[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
@@ -266,7 +266,7 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 	}
 
 	var dto model.Application
-	if err := serializer.Map(input, &dto); err != nil {
+	if err := serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.AppGroupId = appGroupId

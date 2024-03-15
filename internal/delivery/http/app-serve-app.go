@@ -118,7 +118,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	(appReq).SetDefaultValue()
 
 	var app model.AppServeApp
-	if err = serializer.Map(appReq, &app); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &app); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -134,7 +134,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	app.CreatedAt = now
 
 	var task model.AppServeAppTask
-	if err = serializer.Map(appReq, &task); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &task); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -209,7 +209,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	}
 
 	var out domain.CreateAppServeAppResponse
-	if err = serializer.Map(app, &out); err != nil {
+	if err = serializer.Map(r.Context(), app, &out); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -268,13 +268,13 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = make([]domain.AppServeAppResponse, len(apps))
 	for i, app := range apps {
-		if err := serializer.Map(app, &out.AppServeApps[i]); err != nil {
+		if err := serializer.Map(r.Context(), app, &out.AppServeApps[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -338,7 +338,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	app.AppServeAppTasks = newTasks
 
 	var out domain.GetAppServeAppResponse
-	if err := serializer.Map(app, &out.AppServeApp); err != nil {
+	if err := serializer.Map(r.Context(), app, &out.AppServeApp); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -388,7 +388,7 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
+	if err := serializer.Map(r.Context(), task, &out.AppServeAppTask); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -478,13 +478,13 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	var out domain.GetAppServeAppTasksResponse
 	out.AppServeAppTasks = make([]domain.AppServeAppTaskResponse, len(tasks))
 	for i, task := range tasks {
-		if err := serializer.Map(task, &out.AppServeAppTasks[i]); err != nil {
+		if err := serializer.Map(r.Context(), task, &out.AppServeAppTasks[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -552,10 +552,10 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(app, &out.AppServeApp); err != nil {
+	if err := serializer.Map(r.Context(), app, &out.AppServeApp); err != nil {
 		log.Info(r.Context(), err)
 	}
-	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
+	if err := serializer.Map(r.Context(), task, &out.AppServeAppTask); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -809,18 +809,18 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//		break
 	//	}
 	//}
-	//if err = serializer.Map(latestTask, &task); err != nil {
+	//if err = serializer.Map(r.Context(), latestTask, &task); err != nil {
 	//	ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 	//	return
 	//}
 
 	var latestTask = app.AppServeAppTasks[0]
-	if err = serializer.Map(latestTask, &task); err != nil {
+	if err = serializer.Map(r.Context(), latestTask, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	if err = serializer.Map(appReq, &task); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}

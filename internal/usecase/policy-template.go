@@ -91,9 +91,9 @@ func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagina
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err == nil {
 		for i, policyTemplate := range policyTemplates {
-			permittedOrgIdSet := u.getPermittedOrganiationIdSet(&policyTemplate)
+			permittedOrgIdSet := u.getPermittedOrganiationIdSet(ctx, &policyTemplate)
 
-			u.updatePermittedOrganizations(organizations, permittedOrgIdSet, &policyTemplates[i])
+			u.updatePermittedOrganizations(ctx, organizations, permittedOrgIdSet, &policyTemplates[i])
 		}
 	}
 
@@ -108,11 +108,11 @@ func (u *PolicyTemplateUsecase) Get(ctx context.Context, policyTemplateID uuid.U
 		return nil, err
 	}
 
-	permittedOrgIdSet := u.getPermittedOrganiationIdSet(policyTemplate)
+	permittedOrgIdSet := u.getPermittedOrganiationIdSet(ctx, policyTemplate)
 
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err == nil {
-		u.updatePermittedOrganizations(organizations, permittedOrgIdSet, policyTemplate)
+		u.updatePermittedOrganizations(ctx, organizations, permittedOrgIdSet, policyTemplate)
 	}
 
 	return policyTemplate, nil
@@ -182,21 +182,21 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, po
 		return nil, err
 	}
 
-	permittedOrgIdSet := u.getPermittedOrganiationIdSet(policyTemplate)
+	permittedOrgIdSet := u.getPermittedOrganiationIdSet(ctx, policyTemplate)
 
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err == nil {
-		u.updatePermittedOrganizations(organizations, permittedOrgIdSet, policyTemplate)
+		u.updatePermittedOrganizations(ctx, organizations, permittedOrgIdSet, policyTemplate)
 	}
 
 	return policyTemplate, nil
 }
 
-func (*PolicyTemplateUsecase) updatePermittedOrganizations(organizations *[]model.Organization, permittedOrgIdSet map[string]string, policyTemplate *model.PolicyTemplate) {
+func (*PolicyTemplateUsecase) updatePermittedOrganizations(ctx context.Context, organizations *[]model.Organization, permittedOrgIdSet map[string]string, policyTemplate *model.PolicyTemplate) {
 	// 허용리스트가 비어있으면 모든 Org에 대해서 허용
 	permitted := len(permittedOrgIdSet) == 0
 
-	log.Info("CHECK HERE ", permitted)
+	log.Info(ctx, "CHECK HERE ", permitted)
 
 	for _, organization := range *organizations {
 
@@ -219,7 +219,7 @@ func (*PolicyTemplateUsecase) updatePermittedOrganizations(organizations *[]mode
 	}
 }
 
-func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(policyTemplate *model.PolicyTemplate) map[string]string {
+func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(ctx context.Context, policyTemplate *model.PolicyTemplate) map[string]string {
 	permittedOrgIdSet := make(map[string]string)
 
 	for _, permittedOrg := range policyTemplate.PermittedOrganizations {
@@ -228,7 +228,7 @@ func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(policyTemplate *model
 		// ktkfree : 이부분 확인 부탁 드립니다.
 		//
 		//permittedOrgIdSet[permittedOrg.OrganizationId] = "1"
-		log.Info("CHECK HERE ", permittedOrg)
+		log.Info(ctx, "CHECK HERE ", permittedOrg)
 	}
 	return permittedOrgIdSet
 }

@@ -48,7 +48,7 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 	}
 
 	var dto model.StackTemplate
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -91,13 +91,13 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 	var out domain.GetStackTemplatesResponse
 	out.StackTemplates = make([]domain.StackTemplateResponse, len(stackTemplates))
 	for i, stackTemplate := range stackTemplates {
-		if err := serializer.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
+		if err := serializer.Map(r.Context(), stackTemplate, &out.StackTemplates[i]); err != nil {
 			log.Info(r.Context(), err)
 		}
 
 		out.StackTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
 		for j, organization := range stackTemplate.Organizations {
-			if err := serializer.Map(organization, &out.StackTemplates[i].Organizations[j]); err != nil {
+			if err := serializer.Map(r.Context(), organization, &out.StackTemplates[i].Organizations[j]); err != nil {
 				log.Info(r.Context(), err)
 				continue
 			}
@@ -109,7 +109,7 @@ func (h *StackTemplateHandler) GetStackTemplates(w http.ResponseWriter, r *http.
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -148,13 +148,13 @@ func (h *StackTemplateHandler) GetStackTemplate(w http.ResponseWriter, r *http.R
 	}
 
 	var out domain.GetStackTemplateResponse
-	if err := serializer.Map(stackTemplate, &out.StackTemplate); err != nil {
+	if err := serializer.Map(r.Context(), stackTemplate, &out.StackTemplate); err != nil {
 		log.Info(r.Context(), err)
 	}
 
 	out.StackTemplate.Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
 	for i, organization := range stackTemplate.Organizations {
-		if err := serializer.Map(organization, &out.StackTemplate.Organizations[i]); err != nil {
+		if err := serializer.Map(r.Context(), organization, &out.StackTemplate.Organizations[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
@@ -194,7 +194,7 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 	}
 
 	var dto model.StackTemplate
-	if err := serializer.Map(r, &dto); err != nil {
+	if err := serializer.Map(r.Context(), r, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.ID = stackTemplateId
@@ -289,7 +289,7 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 	}
 
 	var dto model.StackTemplate
-	if err := serializer.Map(input, &dto); err != nil {
+	if err := serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.ID = stackTemplateId
@@ -336,25 +336,25 @@ func (h *StackTemplateHandler) GetOrganizationStackTemplates(w http.ResponseWrit
 	var out domain.GetStackTemplatesResponse
 	out.StackTemplates = make([]domain.StackTemplateResponse, len(stackTemplates))
 	for i, stackTemplate := range stackTemplates {
-		if err := serializer.Map(stackTemplate, &out.StackTemplates[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), stackTemplate, &out.StackTemplates[i]); err != nil {
+			log.Info(r.Context(), err)
 		}
 
 		out.StackTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
 		for j, organization := range stackTemplate.Organizations {
-			if err := serializer.Map(organization, &out.StackTemplates[i].Organizations[j]); err != nil {
-				log.InfoWithContext(r.Context(), err)
+			if err := serializer.Map(r.Context(), organization, &out.StackTemplates[i].Organizations[j]); err != nil {
+				log.Info(r.Context(), err)
 			}
 		}
 
 		err := json.Unmarshal(stackTemplate.Services, &out.StackTemplates[i].Services)
 		if err != nil {
-			log.ErrorWithContext(r.Context(), err)
+			log.Error(r.Context(), err)
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -397,20 +397,20 @@ func (h *StackTemplateHandler) GetOrganizationStackTemplate(w http.ResponseWrite
 	}
 
 	var out domain.GetStackTemplateResponse
-	if err := serializer.Map(stackTemplate, &out.StackTemplate); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), stackTemplate, &out.StackTemplate); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	out.StackTemplate.Organizations = make([]domain.SimpleOrganizationResponse, len(stackTemplate.Organizations))
 	for i, organization := range stackTemplate.Organizations {
-		if err := serializer.Map(organization, &out.StackTemplate.Organizations[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), organization, &out.StackTemplate.Organizations[i]); err != nil {
+			log.Info(r.Context(), err)
 		}
 	}
 
 	err = json.Unmarshal(stackTemplate.Services, &out.StackTemplate.Services)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

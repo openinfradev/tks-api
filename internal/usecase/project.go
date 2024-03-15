@@ -274,7 +274,7 @@ func (u *ProjectUsecase) GetProjectUser(ctx context.Context, projectUserId strin
 		return nil, errors.Wrap(err, "Failed to retrieve user by id")
 	}
 	var pu model.ProjectUser
-	if err = serializer.Map(user, &pu); err != nil {
+	if err = serializer.Map(ctx, user, &pu); err != nil {
 		log.Error(ctx, err)
 		return nil, err
 	}

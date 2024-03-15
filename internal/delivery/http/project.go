@@ -189,7 +189,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetProjectsResponse
 	out.Projects = pr
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -231,7 +231,7 @@ func (p ProjectHandler) Admin_GetProjects(w http.ResponseWriter, r *http.Request
 
 	var out domain.GetProjectsResponse
 	out.Projects = pr
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -301,7 +301,7 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var pdr domain.ProjectDetailResponse
-	if err = serializer.Map(*project, &pdr); err != nil {
+	if err = serializer.Map(r.Context(), *project, &pdr); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -764,7 +764,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	}
 
 	out = domain.GetProjectMembersResponse{ProjectMembers: pmrs}
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -1298,7 +1298,7 @@ func (p ProjectHandler) GetProjectNamespaces(w http.ResponseWriter, r *http.Requ
 	pnrs := make([]domain.ProjectNamespaceResponse, 0)
 	for _, pn := range pns {
 		var pnr domain.ProjectNamespaceResponse
-		if err = serializer.Map(pn, &pnr); err != nil {
+		if err = serializer.Map(r.Context(), pn, &pnr); err != nil {
 			log.Error(r.Context(), err)
 			ErrorJSON(w, r, err)
 			return
@@ -1382,7 +1382,7 @@ func (p ProjectHandler) GetProjectNamespace(w http.ResponseWriter, r *http.Reque
 	}
 
 	var pnr domain.ProjectNamespaceResponse
-	if err = serializer.Map(*pn, &pnr); err != nil {
+	if err = serializer.Map(r.Context(), *pn, &pnr); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -1631,7 +1631,7 @@ func (p ProjectHandler) GetProjectNamespaceK8sResources(w http.ResponseWriter, r
 	}
 
 	var out domain.GetProjectNamespaceK8sResourcesResponse
-	if err = serializer.Map(k8sResources, &out.K8sResources); err != nil {
+	if err = serializer.Map(r.Context(), k8sResources, &out.K8sResources); err != nil {
 		log.Error(r.Context(), err)
 	}
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -1684,7 +1684,7 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 	}
 
 	var out domain.GetProjectNamespaceResourcesUsageResponse
-	if err = serializer.Map(resourcesUsage, &out.ResourcesUsage); err != nil {
+	if err = serializer.Map(r.Context(), resourcesUsage, &out.ResourcesUsage); err != nil {
 		log.Error(r.Context(), err)
 	}
 	ResponseJSON(w, r, http.StatusOK, out)

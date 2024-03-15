@@ -126,13 +126,13 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetAlertsResponse
 	out.Alerts = make([]domain.AlertResponse, len(alerts))
 	for i, alert := range alerts {
-		if err := serializer.Map(alert, &out.Alerts[i]); err != nil {
+		if err := serializer.Map(r.Context(), alert, &out.Alerts[i]); err != nil {
 			log.Info(r.Context(), err)
 		}
 
 		outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 		for j, alertAction := range alert.AlertActions {
-			if err := serializer.Map(alertAction, &outAlertActions[j]); err != nil {
+			if err := serializer.Map(r.Context(), alertAction, &outAlertActions[j]); err != nil {
 				log.Info(r.Context(), err)
 			}
 		}
@@ -142,7 +142,7 @@ func (h *AlertHandler) GetAlerts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -182,12 +182,12 @@ func (h *AlertHandler) GetAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetAlertResponse
-	if err := serializer.Map(alert, &out.Alert); err != nil {
+	if err := serializer.Map(r.Context(), alert, &out.Alert); err != nil {
 		log.Info(r.Context(), err)
 	}
 	outAlertActions := make([]domain.AlertActionResponse, len(alert.AlertActions))
 	for j, alertAction := range alert.AlertActions {
-		if err := serializer.Map(alertAction, &outAlertActions[j]); err != nil {
+		if err := serializer.Map(r.Context(), alertAction, &outAlertActions[j]); err != nil {
 			log.Info(r.Context(), err)
 			continue
 		}
@@ -274,7 +274,7 @@ func (h *AlertHandler) CreateAlertAction(w http.ResponseWriter, r *http.Request)
 	log.Info(r.Context(), "alert : ", helper.ModelToJson(input))
 
 	var dto model.AlertAction
-	if err = serializer.Map(input, &dto); err != nil {
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.AlertId = alertId

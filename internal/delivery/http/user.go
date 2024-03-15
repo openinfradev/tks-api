@@ -88,7 +88,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(input, &user); err != nil {
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
 		log.Error(r.Context(), err)
 	}
 	user.Organization = model.Organization{
@@ -121,7 +121,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.CreateUserResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
 
@@ -168,7 +168,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetUserResponse
-	if err = serializer.Map(*user, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
 
@@ -211,12 +211,12 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	var out domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		if err = serializer.Map(user, &out.Users[i]); err != nil {
+		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
 			log.Error(r.Context(), err)
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -300,7 +300,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(input, &user); err != nil {
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -334,7 +334,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateUserResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -401,7 +401,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetMyProfileResponse
-	if err = serializer.Map(*user, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -453,7 +453,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(input, &user); err != nil {
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -471,7 +471,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateMyProfileResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
@@ -801,12 +801,12 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 	var out admin_domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		if err = serializer.Map(user, &out.Users[i]); err != nil {
+		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
 			log.Error(r.Context(), err)
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -851,7 +851,7 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out admin_domain.GetUserResponse
-	if err = serializer.Map(*user, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
 
@@ -1010,7 +1010,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out admin_domain.UpdateUserResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return

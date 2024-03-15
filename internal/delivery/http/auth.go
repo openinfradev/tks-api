@@ -97,7 +97,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.LoginResponse
-	if err = serializer.Map(user, &out.User); err != nil {
+	if err = serializer.Map(r.Context(), user, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
 

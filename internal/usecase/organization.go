@@ -105,7 +105,7 @@ func (u *OrganizationUsecase) Get(ctx context.Context, organizationId string) (o
 
 	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
 	if err != nil {
-		log.Info(err)
+		log.Info(ctx, err)
 		out.ClusterCount = 0
 	}
 	out.ClusterCount = len(clusters)

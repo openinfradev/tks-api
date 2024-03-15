@@ -188,10 +188,10 @@ func (r *PolicyTemplateRepository) Fetch(ctx context.Context, pg *pagination.Pag
 }
 
 func (r *PolicyTemplateRepository) reflectPolicyTemplate(ctx context.Context, policyTemplate model.PolicyTemplate, policyTemplateVersion model.PolicyTemplateSupportedVersion) (out model.PolicyTemplate) {
-	if err := serializer.Map(policyTemplate.Model, &out); err != nil {
+	if err := serializer.Map(ctx, policyTemplate.Model, &out); err != nil {
 		log.Error(ctx, err)
 	}
-	if err := serializer.Map(policyTemplate, &out); err != nil {
+	if err := serializer.Map(ctx, policyTemplate, &out); err != nil {
 		log.Error(ctx, err)
 	}
 	out.TemplateName = policyTemplate.Name

@@ -42,7 +42,7 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 	permissionSet := model.NewDefaultPermissionSet()
 
 	var premissionSetResponse domain.PermissionSetResponse
-	if err := serializer.Map(permissionSet, &premissionSetResponse); err != nil {
+	if err := serializer.Map(r.Context(), permissionSet, &premissionSetResponse); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -86,7 +86,7 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 	}
 
 	var premissionSetResponse domain.PermissionSetResponse
-	if err := serializer.Map(permissionSet, &premissionSetResponse); err != nil {
+	if err := serializer.Map(r.Context(), permissionSet, &premissionSetResponse); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -135,7 +135,7 @@ func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *h
 
 	for _, permissionResponse := range input.Permissions {
 		var permission model.Permission
-		if err := serializer.Map(permissionResponse, &permission); err != nil {
+		if err := serializer.Map(r.Context(), permissionResponse, &permission); err != nil {
 			log.Info(r.Context(), err)
 		}
 

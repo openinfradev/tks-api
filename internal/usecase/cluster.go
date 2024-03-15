@@ -457,7 +457,7 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	out.SshKeyName = "tks-seoul"
 	out.ClusterRegion = "ap-northeast-2"
 
-	if err := serializer.Map(cluster, &out); err != nil {
+	if err := serializer.Map(ctx, cluster, &out); err != nil {
 		log.Error(ctx, err)
 	}
 
@@ -466,7 +466,7 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 		out.TksUserNodeMax = cluster.TksUserNodeMax / domain.MAX_AZ_NUM
 	}
 
-	if err := serializer.Map(cluster, &out); err != nil {
+	if err := serializer.Map(ctx, cluster, &out); err != nil {
 		log.Error(ctx, err)
 	}
 
