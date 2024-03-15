@@ -2160,6 +2160,10 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.RegoCompileRequest:
     properties:
+      libs:
+        items:
+          type: string
+        type: array
       rego:
         example: Rego 코드
         type: string

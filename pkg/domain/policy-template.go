@@ -291,11 +291,12 @@ type ParameterDef struct {
 	Type         string          `json:"type"`
 	DefaultValue string          `json:"defaultValue"`
 	Children     []*ParameterDef `json:"children"`
-	IsArray      bool
+	IsArray      bool            `json:"isArray"`
 }
 
 type RegoCompileRequest struct {
-	Rego string `json:"rego" example:"Rego 코드" validate:"required"`
+	Rego string   `json:"rego" example:"Rego 코드" validate:"required"`
+	Libs []string `json:"libs,omitempty"`
 }
 
 type RegoCompieError struct {
