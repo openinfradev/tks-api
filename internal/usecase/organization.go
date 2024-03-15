@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/keycloak"
+	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -25,41 +26,44 @@ type IOrganizationUsecase interface {
 	Get(organizationId string) (model.Organization, error)
 	Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
 	UpdatePrimaryClusterId(organizationId string, clusterId string) (err error)
+	ChangeAdminId(organizationId string, adminId uuid.UUID) error
 	Delete(organizationId string, accessToken string) error
 }
 
 type OrganizationUsecase struct {
-	repo     repository.IOrganizationRepository
-	roleRepo repository.IRoleRepository
-	argo     argowf.ArgoClient
-	kc       keycloak.IKeycloak
+	repo        repository.IOrganizationRepository
+	roleRepo    repository.IRoleRepository
+	clusterRepo repository.IClusterRepository
+	argo        argowf.ArgoClient
+	kc          keycloak.IKeycloak
 }
 
 func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo:     r.Organization,
-		roleRepo: r.Role,
-		argo:     argoClient,
-		kc:       kc,
+		repo:        r.Organization,
+		roleRepo:    r.Role,
+		clusterRepo: r.Cluster,
+		argo:        argoClient,
+		kc:          kc,
 	}
 }
 
 func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization) (organizationId string, err error) {
-	creator := uuid.Nil
-	if in.Creator != "" {
-		creator, err = uuid.Parse(in.Creator)
-		if err != nil {
-			return "", err
-		}
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
+	userId := user.GetUserId()
+	in.CreatorId = &userId
 
 	// Create realm in keycloak
 	if organizationId, err = u.kc.CreateRealm(helper.GenerateOrganizationId()); err != nil {
 		return "", err
 	}
+	in.ID = organizationId
 
 	// Create organization in DB
-	_, err = u.repo.Create(organizationId, in.Name, creator, in.Phone, in.Description)
+	_, err = u.repo.Create(in)
 	if err != nil {
 		return "", err
 	}
@@ -92,12 +96,20 @@ func (u *OrganizationUsecase) Fetch(pg *pagination.Pagination) (out *[]model.Org
 	}
 	return organizations, nil
 }
-func (u *OrganizationUsecase) Get(organizationId string) (res model.Organization, err error) {
-	res, err = u.repo.Get(organizationId)
+func (u *OrganizationUsecase) Get(organizationId string) (out model.Organization, err error) {
+	out, err = u.repo.Get(organizationId)
 	if err != nil {
 		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
-	return res, nil
+
+	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
+	if err != nil {
+		log.Info(err)
+		out.ClusterCount = 0
+	}
+	out.ClusterCount = len(clusters)
+	return out, nil
+
 }
 
 func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) (err error) {
@@ -159,5 +171,19 @@ func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clus
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *OrganizationUsecase) ChangeAdminId(organizationId string, adminId uuid.UUID) error {
+	_, err := u.Get(organizationId)
+	if err != nil {
+		return httpErrors.NewNotFoundError(err, "", "")
+	}
+
+	err = u.repo.UpdateAdminId(organizationId, adminId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

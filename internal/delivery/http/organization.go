@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -112,12 +113,20 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 	}
 
 	// Admin user 생성
-	_, err = h.userUsecase.CreateAdmin(organizationId, input.Email)
+	admin, err := h.userUsecase.CreateAdmin(organizationId, input.AdminAccountId, input.AdminName, input.AdminEmail)
 	if err != nil {
 		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
+
+	err = h.usecase.ChangeAdminId(organizationId, admin.ID)
+	if err != nil {
+		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+	organization.AdminId = &admin.ID
 
 	var out domain.CreateOrganizationResponse
 	if err = serializer.Map(organization, &out); err != nil {
@@ -139,7 +148,7 @@ func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.
 //	@Param			soertColumn	query		string		false	"sortColumn"
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
-//	@Success		200			{object}	[]domain.ListOrganizationBody
+//	@Success		200			{object}	[]domain.ListOrganizationResponse
 //	@Router			/organizations [get]
 //	@Security		JWT
 func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +163,7 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 	}
 
 	var out domain.ListOrganizationResponse
-	out.Organizations = make([]domain.ListOrganizationBody, len(*organizations))
+	out.Organizations = make([]domain.OrganizationResponse, len(*organizations))
 
 	for i, organization := range *organizations {
 		if err = serializer.Map(organization, &out.Organizations[i]); err != nil {
@@ -204,6 +213,23 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 	var out domain.GetOrganizationResponse
 	if err = serializer.Map(organization, &out.Organization); err != nil {
 		log.ErrorWithContext(r.Context(), err)
+	}
+
+	out.Organization.StackTemplates = make([]domain.SimpleStackTemplateResponse, len(organization.StackTemplates))
+	for i, stackTemplate := range organization.StackTemplates {
+		if err = serializer.Map(stackTemplate, &out.Organization.StackTemplates[i]); err != nil {
+			log.ErrorWithContext(r.Context(), err)
+		}
+		err := json.Unmarshal(stackTemplate.Services, &out.Organization.StackTemplates[i].Services)
+		if err != nil {
+			log.ErrorWithContext(r.Context(), err)
+		}
+	}
+	out.Organization.PolicyTemplates = make([]domain.SimplePolicyTemplateResponse, len(organization.PolicyTemplates))
+	for i, policyTemplate := range organization.PolicyTemplates {
+		if err = serializer.Map(policyTemplate, &out.Organization.PolicyTemplates[i]); err != nil {
+			log.ErrorWithContext(r.Context(), err)
+		}
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

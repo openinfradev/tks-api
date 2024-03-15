@@ -3,6 +3,7 @@ package model
 import (
 	"gorm.io/gorm"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
@@ -17,5 +18,10 @@ type Organization struct {
 	WorkflowId       string
 	Status           domain.OrganizationStatus
 	StatusDesc       string
-	Creator          string
+	CreatorId        *uuid.UUID       `gorm:"type:uuid"`
+	StackTemplates   []StackTemplate  `gorm:"many2many:stack_template_organizations"`
+	PolicyTemplates  []PolicyTemplate `gorm:"many2many:policy_template_permitted_organiations;"`
+	ClusterCount     int              `gorm:"-:all"`
+	AdminId          *uuid.UUID
+	Admin            *User `gorm:"foreignKey:AdminId"`
 }
