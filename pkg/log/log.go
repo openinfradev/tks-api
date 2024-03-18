@@ -259,10 +259,7 @@ func getRelativeFilePath(absolutePath string) string {
 	}
 
 	relativePath := strings.TrimPrefix(absolutePath, wd)
-
-	if strings.HasPrefix(relativePath, "/") {
-		relativePath = relativePath[1:]
-	}
+	relativePath = strings.TrimPrefix(relativePath, "/")
 
 	return relativePath
 }

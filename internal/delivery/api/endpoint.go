@@ -12,7 +12,6 @@ type EndpointInfo struct {
 const (
 	// Auth
 	Login Endpoint = iota
-	PingToken
 	Logout
 	RefreshToken
 	FindId

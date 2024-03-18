@@ -49,7 +49,7 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 // Logics
 func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 	if trxHandle == nil {
-		log.Info(nil, "Transaction Database not found")
+		log.Info(context.TODO(), "Transaction Database not found")
 		return r
 	}
 	r.tx = trxHandle

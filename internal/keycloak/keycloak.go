@@ -754,16 +754,6 @@ func (k *Keycloak) getClientByClientId(ctx context.Context, accessToken string, 
 	return *clients[0].ID, nil
 }
 
-func (k *Keycloak) createClientRole(ctx context.Context, accessToken string, realm string, clientUuid string,
-	roleName string) (string, error) {
-	id, err := k.client.CreateClientRole(context.Background(), accessToken, realm, clientUuid, gocloak.Role{Name: gocloak.StringP(roleName)})
-	if err != nil {
-		log.Error(ctx, "Creating Client Role is failed", err)
-		return "", err
-	}
-	return id, nil
-}
-
 func (k *Keycloak) getClientRole(ctx context.Context, accessToken string, realm string, clientUuid string,
 	roleName string) (*gocloak.Role, error) {
 	role, err := k.client.GetClientRole(context.Background(), accessToken, realm, clientUuid, roleName)

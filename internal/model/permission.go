@@ -570,8 +570,6 @@ func (p *PermissionSet) SetAllowedPermissionSet() {
 	for _, permission := range edgePermissions {
 		permission.IsAllowed = helper.BoolP(true)
 	}
-
-	return
 }
 
 func (p *PermissionSet) SetUserPermissionSet() {
@@ -589,8 +587,6 @@ func (p *PermissionSet) SetUserPermissionSet() {
 	for _, permission := range edgePermissions {
 		permission.IsAllowed = helper.BoolP(true)
 	}
-
-	return
 }
 
 func (p *PermissionSet) SetRoleId(roleId string) {

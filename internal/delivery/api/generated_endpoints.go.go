@@ -7,10 +7,6 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Login", 
 		Group: "Auth",
 	},
-    PingToken: {
-		Name: "PingToken", 
-		Group: "Auth",
-	},
     Logout: {
 		Name: "Logout", 
 		Group: "Auth",
@@ -744,8 +740,6 @@ func (e Endpoint) String() string {
 	switch e {
 	case Login:
 		return "Login"
-	case PingToken:
-		return "PingToken"
 	case Logout:
 		return "Logout"
 	case RefreshToken:
@@ -1118,8 +1112,6 @@ func GetEndpoint(name string) Endpoint {
 	switch name {
 	case "Login":
 		return Login
-	case "PingToken":
-		return PingToken
 	case "Logout":
 		return Logout
 	case "RefreshToken":
