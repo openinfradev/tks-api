@@ -9,6 +9,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	policytemplate "github.com/openinfradev/tks-api/internal/policy-template"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -272,7 +273,7 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 	}
 
 	if parseParameter {
-		response.ParametersSchema = extractParameter(modules)
+		response.ParametersSchema = policytemplate.ExtractParameter(modules)
 	}
 
 	return response, nil

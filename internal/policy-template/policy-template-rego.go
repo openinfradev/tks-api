@@ -1,4 +1,4 @@
-package usecase
+package policytemplate
 
 import (
 	"regexp"
@@ -241,7 +241,7 @@ func isSubstitutionRequired(expr string) bool {
 		strings.HasPrefix(trimmed, "input.parameters.")
 }
 
-func extractParameter(modules map[string]*ast.Module) []*domain.ParameterDef {
+func ExtractParameter(modules map[string]*ast.Module) []*domain.ParameterDef {
 	defStore := NewParamDefStore()
 
 	for _, module := range modules {
