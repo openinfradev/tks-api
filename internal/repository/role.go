@@ -1,9 +1,9 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"math"
-	"context"
 
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -50,9 +50,9 @@ func (r RoleRepository) ListTksRoles(ctx context.Context, organizationId string,
 		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&model.Role{}))
+	db := filterFunc(r.db.WithContext(ctx).Model(&model.Role{}))
 
-	db.Count(&pg.TotalRows)
+	db.WithContext(ctx).Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
@@ -68,7 +68,6 @@ func (r RoleRepository) ListTksRoles(ctx context.Context, organizationId string,
 
 	return roles, nil
 }
-
 
 func (r RoleRepository) GetTksRole(ctx context.Context, id string) (*model.Role, error) {
 	var role model.Role

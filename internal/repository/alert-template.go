@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,13 +14,13 @@ import (
 
 // Interfaces
 type IAlertTemplateRepository interface {
-	Get(alertTemplateId uuid.UUID) (model.AlertTemplate, error)
-	GetByName(name string) (model.AlertTemplate, error)
-	Fetch(pg *pagination.Pagination) ([]model.AlertTemplate, error)
-	Create(dto model.AlertTemplate) (alertTemplateId uuid.UUID, err error)
-	Update(dto model.AlertTemplate) (err error)
-	Delete(dto model.AlertTemplate) (err error)
-	UpdateOrganizations(alertTemplateId uuid.UUID, organizations []model.Organization) (err error)
+	Get(ctx context.Context, alertTemplateId uuid.UUID) (model.AlertTemplate, error)
+	GetByName(ctx context.Context, name string) (model.AlertTemplate, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.AlertTemplate, error)
+	Create(ctx context.Context, dto model.AlertTemplate) (alertTemplateId uuid.UUID, err error)
+	Update(ctx context.Context, dto model.AlertTemplate) (err error)
+	Delete(ctx context.Context, dto model.AlertTemplate) (err error)
+	UpdateOrganizations(ctx context.Context, alertTemplateId uuid.UUID, organizations []model.Organization) (err error)
 }
 
 type AlertTemplateRepository struct {
@@ -32,50 +34,50 @@ func NewAlertTemplateRepository(db *gorm.DB) IAlertTemplateRepository {
 }
 
 // Logics
-func (r *AlertTemplateRepository) Get(alertTemplateId uuid.UUID) (out model.AlertTemplate, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "id = ?", alertTemplateId)
+func (r *AlertTemplateRepository) Get(ctx context.Context, alertTemplateId uuid.UUID) (out model.AlertTemplate, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "id = ?", alertTemplateId)
 	if res.Error != nil {
 		return out, res.Error
 	}
 	return
 }
 
-func (r *AlertTemplateRepository) GetByName(name string) (out model.AlertTemplate, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "name = ?", name)
+func (r *AlertTemplateRepository) GetByName(ctx context.Context, name string) (out model.AlertTemplate, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "name = ?", name)
 	if res.Error != nil {
 		return out, res.Error
 	}
 	return
 }
 
-func (r *AlertTemplateRepository) Fetch(pg *pagination.Pagination) (out []model.AlertTemplate, err error) {
+func (r *AlertTemplateRepository) Fetch(ctx context.Context, pg *pagination.Pagination) (out []model.AlertTemplate, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Preload(clause.Associations), &out)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations), &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	return
 }
 
-func (r *AlertTemplateRepository) Create(dto model.AlertTemplate) (alertTemplateId uuid.UUID, err error) {
-	res := r.db.Create(&dto)
+func (r *AlertTemplateRepository) Create(ctx context.Context, dto model.AlertTemplate) (alertTemplateId uuid.UUID, err error) {
+	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
 
-	err = r.db.Model(&dto).Association("MetricParameters").Replace(dto.MetricParameters)
+	err = r.db.WithContext(ctx).Model(&dto).Association("MetricParameters").Replace(dto.MetricParameters)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 	}
 
 	return dto.ID, nil
 }
 
-func (r *AlertTemplateRepository) Update(dto model.AlertTemplate) (err error) {
-	res := r.db.Model(&model.AlertTemplate{}).
+func (r *AlertTemplateRepository) Update(ctx context.Context, dto model.AlertTemplate) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.AlertTemplate{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{
 			"Name":        dto.Name,
@@ -86,30 +88,27 @@ func (r *AlertTemplateRepository) Update(dto model.AlertTemplate) (err error) {
 		return res.Error
 	}
 
-	if err = r.db.Model(&dto).Association("MetricParameters").Unscoped().Replace(dto.MetricParameters); err != nil {
+	if err = r.db.WithContext(ctx).Model(&dto).Association("MetricParameters").Unscoped().Replace(dto.MetricParameters); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *AlertTemplateRepository) Delete(dto model.AlertTemplate) (err error) {
-	res := r.db.Delete(&model.AlertTemplate{}, "id = ?", dto.ID)
+func (r *AlertTemplateRepository) Delete(ctx context.Context, dto model.AlertTemplate) (err error) {
+	res := r.db.WithContext(ctx).Delete(&model.AlertTemplate{}, "id = ?", dto.ID)
 	if res.Error != nil {
 		return res.Error
 	}
 	return nil
 }
 
-func (r *AlertTemplateRepository) UpdateOrganizations(alertTemplateId uuid.UUID, organizations []model.Organization) (err error) {
-	log.Info("AAA")
-	log.Info(organizations)
-
+func (r *AlertTemplateRepository) UpdateOrganizations(ctx context.Context, alertTemplateId uuid.UUID, organizations []model.Organization) (err error) {
 	var alertTemplate = model.AlertTemplate{}
-	res := r.db.Preload("Organizations").First(&alertTemplate, "id = ?", alertTemplateId)
+	res := r.db.WithContext(ctx).Preload("Organizations").First(&alertTemplate, "id = ?", alertTemplateId)
 	if res.Error != nil {
 		return res.Error
 	}
-	err = r.db.Model(&alertTemplate).Association("Organizations").Unscoped().Replace(organizations)
+	err = r.db.WithContext(ctx).Model(&alertTemplate).Association("Organizations").Unscoped().Replace(organizations)
 	if err != nil {
 		return err
 	}

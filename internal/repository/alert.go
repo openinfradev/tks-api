@@ -60,7 +60,7 @@ func (r *AlertRepository) Fetch(ctx context.Context, organizationId string, pg *
 
 	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.Alert{}).
 		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC")
+			return db.WithContext(ctx).Order("created_at ASC")
 		}).Preload("AlertActions.Taker").
 		Preload("Cluster", "status = 2").
 		Preload("Organization").

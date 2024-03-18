@@ -53,11 +53,11 @@ func (u *AlertTemplateUsecase) Create(ctx context.Context, dto model.AlertTempla
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("duplicate alertTemplate name"), "AT_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
-	alertTemplateId, err = u.repo.Create(dto)
+	alertTemplateId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
-	log.InfoWithContext(ctx, "newly created AlertTemplate ID:", alertTemplateId)
+	log.Info(ctx, "newly created AlertTemplate ID:", alertTemplateId)
 
 	dto.ID = alertTemplateId
 	err = u.UpdateOrganizations(ctx, dto)
@@ -69,12 +69,12 @@ func (u *AlertTemplateUsecase) Create(ctx context.Context, dto model.AlertTempla
 }
 
 func (u *AlertTemplateUsecase) Update(ctx context.Context, dto model.AlertTemplate) error {
-	_, err := u.repo.Get(dto.ID)
+	_, err := u.repo.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "AT_NOT_EXISTED_ALERT_TEMPLATE", "")
 	}
 
-	err = u.repo.Update(dto)
+	err = u.repo.Update(ctx, dto)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (u *AlertTemplateUsecase) Update(ctx context.Context, dto model.AlertTempla
 }
 
 func (u *AlertTemplateUsecase) Get(ctx context.Context, alertTemplateId uuid.UUID) (alert model.AlertTemplate, err error) {
-	alert, err = u.repo.Get(alertTemplateId)
+	alert, err = u.repo.Get(ctx, alertTemplateId)
 	if err != nil {
 		return alert, err
 	}
@@ -95,7 +95,7 @@ func (u *AlertTemplateUsecase) Get(ctx context.Context, alertTemplateId uuid.UUI
 }
 
 func (u *AlertTemplateUsecase) GetByName(ctx context.Context, name string) (out model.AlertTemplate, err error) {
-	out, err = u.repo.GetByName(name)
+	out, err = u.repo.GetByName(ctx, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return out, httpErrors.NewNotFoundError(err, "AT_FAILED_FETCH_ALERT_TEMPLATE", "")
@@ -107,7 +107,7 @@ func (u *AlertTemplateUsecase) GetByName(ctx context.Context, name string) (out 
 }
 
 func (u *AlertTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (alerts []model.AlertTemplate, err error) {
-	alerts, err = u.repo.Fetch(pg)
+	alerts, err = u.repo.Fetch(ctx, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -119,20 +119,20 @@ func (u *AlertTemplateUsecase) Delete(ctx context.Context, dto model.AlertTempla
 }
 
 func (u *AlertTemplateUsecase) UpdateOrganizations(ctx context.Context, dto model.AlertTemplate) error {
-	_, err := u.repo.Get(dto.ID)
+	_, err := u.repo.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "AT_NOT_EXISTED_ALERT_TEMPLATE", "")
 	}
 
 	organizations := make([]model.Organization, 0)
 	for _, organizationId := range dto.OrganizationIds {
-		organization, err := u.organizationRepo.Get(organizationId)
+		organization, err := u.organizationRepo.Get(ctx, organizationId)
 		if err == nil {
 			organizations = append(organizations, organization)
 		}
 	}
 
-	err = u.repo.UpdateOrganizations(dto.ID, organizations)
+	err = u.repo.UpdateOrganizations(ctx, dto.ID, organizations)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "AT_FAILED_UPDATE_ORGANIZATION", "")
 	}

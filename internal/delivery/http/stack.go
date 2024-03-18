@@ -99,7 +99,6 @@ func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 //	@Param			page			query		string	false	"pageNumber"
 //	@Param			soertColumn		query		string	false	"sortColumn"
 //	@Param			sortOrder		query		string	false	"sortOrder"
-//	@Param			combinedFilter	query		string	false	"combinedFilter"
 //	@Success		200				{object}	domain.GetStacksResponse
 //	@Router			/organizations/{organizationId}/stacks [get]
 //	@Security		JWT

@@ -46,9 +46,9 @@ func (e *EndpointRepository) List(ctx context.Context, pg *pagination.Pagination
 		pg = pagination.NewPagination(nil)
 	}
 	filterFunc := CombinedGormFilter("endpoints", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(e.db.Model(&model.Endpoint{}))
+	db := filterFunc(e.db.WithContext(ctx).Model(&model.Endpoint{}))
 
-	db.Count(&pg.TotalRows)
+	db.WithContext(ctx).Count(&pg.TotalRows)
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)

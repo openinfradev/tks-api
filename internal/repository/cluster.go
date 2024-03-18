@@ -215,7 +215,7 @@ func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.Cl
 		ClusterId: clusterId,
 		UserId:    userId,
 	}
-	resCreate := r.db.Create(&clusterFavorite)
+	resCreate := r.db.WithContext(ctx).Create(&clusterFavorite)
 	if resCreate.Error != nil {
 		log.Error(ctx, resCreate.Error)
 		return fmt.Errorf("could not create cluster favorite for clusterId %s, userId %s", clusterId, userId)

@@ -408,8 +408,8 @@ func (r *ProjectRepository) GetProjectMembersByProjectIdAndRoleName(ctx context.
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
-	_, res := pg.Fetch(r.db.WithContext(ctx).Joins("ProjectUser").
-		InnerJoins("ProjectRole", r.db.Where(&model.ProjectRole{Name: memberRole})).
+	_, res := pg.Fetch(r.db.WithContext(ctx).WithContext(ctx).Joins("ProjectUser").
+		InnerJoins("ProjectRole", r.db.WithContext(ctx).Where(&model.ProjectRole{Name: memberRole})).
 		Order("project_members.created_at ASC").
 		Where("project_members.project_id = ?", projectId), &pms)
 

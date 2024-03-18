@@ -46,13 +46,13 @@ func (h *AlertTemplateHandler) CreateAlertTemplate(w http.ResponseWriter, r *htt
 	}
 
 	var dto model.AlertTemplate
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 	dto.MetricParameters = make([]model.MetricParameter, len(input.MetricParameters))
 	for i, metricParameter := range input.MetricParameters {
-		if err := serializer.Map(metricParameter, &dto.MetricParameters[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), metricParameter, &dto.MetricParameters[i]); err != nil {
+			log.Info(r.Context(), err)
 		}
 	}
 
@@ -95,20 +95,20 @@ func (h *AlertTemplateHandler) GetAlertTemplates(w http.ResponseWriter, r *http.
 	var out domain_admin.GetAlertTemplatesResponse
 	out.AlertTemplates = make([]domain_admin.AlertTemplateResponse, len(alertTemplates))
 	for i, alertTemplate := range alertTemplates {
-		if err := serializer.Map(alertTemplate, &out.AlertTemplates[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), alertTemplate, &out.AlertTemplates[i]); err != nil {
+			log.Info(r.Context(), err)
 		}
 
 		out.AlertTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(alertTemplate.Organizations))
 		for j, organization := range alertTemplate.Organizations {
-			if err := serializer.Map(organization, &out.AlertTemplates[i].Organizations[j]); err != nil {
-				log.InfoWithContext(r.Context(), err)
+			if err := serializer.Map(r.Context(), organization, &out.AlertTemplates[i].Organizations[j]); err != nil {
+				log.Info(r.Context(), err)
 			}
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -146,22 +146,22 @@ func (h *AlertTemplateHandler) GetAlertTemplate(w http.ResponseWriter, r *http.R
 	}
 
 	var out domain_admin.GetAlertTemplateResponse
-	if err := serializer.Map(alertTemplate, &out.AlertTemplate); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), alertTemplate, &out.AlertTemplate); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	out.AlertTemplate.Organizations = make([]domain.SimpleOrganizationResponse, len(alertTemplate.Organizations))
 	for i, organization := range alertTemplate.Organizations {
-		if err := serializer.Map(organization, &out.AlertTemplate.Organizations[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), organization, &out.AlertTemplate.Organizations[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
 	out.AlertTemplate.MetricParameters = make([]domain_admin.MetricParameterResponse, len(alertTemplate.MetricParameters))
 	for i, metricParameters := range alertTemplate.MetricParameters {
-		if err := serializer.Map(metricParameters, &out.AlertTemplate.MetricParameters[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), metricParameters, &out.AlertTemplate.MetricParameters[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -200,14 +200,14 @@ func (h *AlertTemplateHandler) UpdateAlertTemplate(w http.ResponseWriter, r *htt
 		return
 	}
 	var dto model.AlertTemplate
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 	dto.ID = alertTemplateId
 	dto.MetricParameters = make([]model.MetricParameter, len(input.MetricParameters))
 	for i, metricParameter := range input.MetricParameters {
-		if err := serializer.Map(metricParameter, &dto.MetricParameters[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), metricParameter, &dto.MetricParameters[i]); err != nil {
+			log.Info(r.Context(), err)
 		}
 		dto.MetricParameters[i].AlertTemplateId = alertTemplateId
 	}
