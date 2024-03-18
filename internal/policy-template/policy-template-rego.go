@@ -90,7 +90,7 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 		updateLocalAssignMap(expr, localAssignMap)
 
 		if expr.IsCall() {
-			call := expr.Terms.([]*ast.Term)
+			call, _ := expr.Terms.([]*ast.Term)
 			if len(call) > 2 {
 				ruleName := call[0].String()
 
@@ -313,7 +313,7 @@ func findKey(defs []*domain.ParameterDef, key string) *domain.ParameterDef {
 }
 
 func createKey(key string, isLast bool) *domain.ParameterDef {
-	finalType := "any"
+	var finalType string
 
 	pKey := key
 	isArray := false
