@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/pagination"
 	"os"
 	"strings"
+
+	"github.com/openinfradev/tks-api/internal/pagination"
 
 	"github.com/openinfradev/tks-api/internal/delivery/api"
 
@@ -109,11 +110,11 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
-	// Alert
-	if err := db.AutoMigrate(&model.Alert{}); err != nil {
+	// Event
+	if err := db.AutoMigrate(&model.SystemNotification{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&model.AlertAction{}); err != nil {
+	if err := db.AutoMigrate(&model.SystemNotificationAction{}); err != nil {
 		return err
 	}
 
@@ -162,19 +163,19 @@ func migrateSchema(db *gorm.DB) error {
 func EnsureDefaultRows(db *gorm.DB) error {
 	// Create default rows
 	repoFactory := repository.Repository{
-		Auth:          repository.NewAuthRepository(db),
-		User:          repository.NewUserRepository(db),
-		Cluster:       repository.NewClusterRepository(db),
-		Organization:  repository.NewOrganizationRepository(db),
-		AppGroup:      repository.NewAppGroupRepository(db),
-		AppServeApp:   repository.NewAppServeAppRepository(db),
-		CloudAccount:  repository.NewCloudAccountRepository(db),
-		StackTemplate: repository.NewStackTemplateRepository(db),
-		Alert:         repository.NewAlertRepository(db),
-		Role:          repository.NewRoleRepository(db),
-		Permission:    repository.NewPermissionRepository(db),
-		Endpoint:      repository.NewEndpointRepository(db),
-		Project:       repository.NewProjectRepository(db),
+		Auth:               repository.NewAuthRepository(db),
+		User:               repository.NewUserRepository(db),
+		Cluster:            repository.NewClusterRepository(db),
+		Organization:       repository.NewOrganizationRepository(db),
+		AppGroup:           repository.NewAppGroupRepository(db),
+		AppServeApp:        repository.NewAppServeAppRepository(db),
+		CloudAccount:       repository.NewCloudAccountRepository(db),
+		StackTemplate:      repository.NewStackTemplateRepository(db),
+		SystemNotification: repository.NewSystemNotificationRepository(db),
+		Role:               repository.NewRoleRepository(db),
+		Permission:         repository.NewPermissionRepository(db),
+		Endpoint:           repository.NewEndpointRepository(db),
+		Project:            repository.NewProjectRepository(db),
 	}
 
 	//

@@ -1697,37 +1697,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/ping": {
-            "post": {
-                "description": "ping with token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "ping with token",
-                "parameters": [
-                    {
-                        "description": "token info",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
         "/clusters": {
             "get": {
                 "security": [
@@ -2321,235 +2290,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/alerts": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get Alerts",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Alerts"
-                ],
-                "summary": "Get Alerts",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "pageSize",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "pageNumber",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortColumn",
-                        "name": "soertColumn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "sortOrder",
-                        "name": "sortOrder",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "filters",
-                        "name": "filters",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAlertsResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/alerts/{alertId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get Alert",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Alerts"
-                ],
-                "summary": "Get Alert",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "alertId",
-                        "name": "alertId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAlertResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update Alert",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Alerts"
-                ],
-                "summary": "Update Alert",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Update cloud setting request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateAlertRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Delete Alert",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Alerts"
-                ],
-                "summary": "Delete Alert",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "alertId",
-                        "name": "alertId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    }
-                }
-            }
-        },
-        "/organizations/{organizationId}/alerts/{alertId}/actions": {
-            "post": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Create alert action",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Alerts"
-                ],
-                "summary": "Create alert action",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
                     }
                 }
             }
@@ -6258,6 +5998,235 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/system-notifications": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get SystemNotifications",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotifications"
+                ],
+                "summary": "Get SystemNotifications",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/system-notifications/{systemNotificationId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get SystemNotification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotifications"
+                ],
+                "summary": "Get SystemNotification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "systemNotificationId",
+                        "name": "systemNotificationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update SystemNotification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotifications"
+                ],
+                "summary": "Update SystemNotification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update cloud setting request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete SystemNotification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotifications"
+                ],
+                "summary": "Delete SystemNotification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "systemNotificationId",
+                        "name": "systemNotificationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/system-notifications/{systemNotificationId}/actions": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create systemNotification action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotifications"
+                ],
+                "summary": "Create systemNotification action",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/users": {
             "get": {
                 "security": [
@@ -6707,14 +6676,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/system-api/organizations/{organizationId}/alerts": {
+        "/system-api/organizations/{organizationId}/system-notifications": {
             "post": {
                 "security": [
                     {
                         "JWT": []
                     }
                 ],
-                "description": "Create alert. ADMIN ONLY",
+                "description": "Create systemNotification. ADMIN ONLY",
                 "consumes": [
                     "application/json"
                 ],
@@ -6722,9 +6691,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Alerts"
+                    "SystemNotifications"
                 ],
-                "summary": "Create alert. ADMIN ONLY",
+                "summary": "Create systemNotification. ADMIN ONLY",
                 "parameters": [
                     {
                         "type": "string",
@@ -6947,103 +6916,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest"
                     }
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.AlertActionResponse": {
-            "type": "object",
-            "properties": {
-                "alertId": {
-                    "type": "string"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "taker": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.AlertResponse": {
-            "type": "object",
-            "properties": {
-                "alertActions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertActionResponse"
-                    }
-                },
-                "closedAt": {
-                    "type": "string"
-                },
-                "cluster": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "firedAt": {
-                    "type": "string"
-                },
-                "grade": {
-                    "type": "string"
-                },
-                "grafanaUrl": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "lastTaker": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "node": {
-                    "type": "string"
-                },
-                "organizationId": {
-                    "type": "string"
-                },
-                "processingSec": {
-                    "type": "integer"
-                },
-                "rawData": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "takedAt": {
-                    "type": "string"
-                },
-                "takedSec": {
-                    "type": "integer"
-                },
-                "updatedAt": {
-                    "type": "string"
                 }
             }
         },
@@ -8612,28 +8484,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetAlertResponse": {
-            "type": "object",
-            "properties": {
-                "alert": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertResponse"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.GetAlertsResponse": {
-            "type": "object",
-            "properties": {
-                "alerts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertResponse"
-                    }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.GetAppGroupResponse": {
             "type": "object",
             "properties": {
@@ -9098,6 +8948,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationResponse": {
+            "type": "object",
+            "properties": {
+                "systemNotification": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationsResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                },
+                "systemNotifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse": {
             "type": "object",
             "properties": {
@@ -9554,21 +9426,6 @@ const docTemplate = `{
                 },
                 "permitted": {
                     "type": "boolean"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest": {
-            "type": "object",
-            "required": [
-                "organizationId",
-                "token"
-            ],
-            "properties": {
-                "organizationId": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
                 }
             }
         },
@@ -10423,6 +10280,103 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationActionResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "systemNotificationId": {
+                    "type": "string"
+                },
+                "taker": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse": {
+            "type": "object",
+            "properties": {
+                "closedAt": {
+                    "type": "string"
+                },
+                "cluster": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "firedAt": {
+                    "type": "string"
+                },
+                "grade": {
+                    "type": "string"
+                },
+                "grafanaUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastTaker": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "node": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "processingSec": {
+                    "type": "integer"
+                },
+                "rawData": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "systemNotificationActions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationActionResponse"
+                    }
+                },
+                "takedAt": {
+                    "type": "string"
+                },
+                "takedSec": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.Unit": {
             "type": "object",
             "properties": {
@@ -10433,14 +10387,6 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.UpdateAlertRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
                     "type": "string"
                 }
             }
@@ -10803,6 +10749,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
                     "type": "string"
                 }
             }
