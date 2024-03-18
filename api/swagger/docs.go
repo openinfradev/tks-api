@@ -9948,6 +9948,12 @@ const docTemplate = `{
                 "rego"
             ],
             "properties": {
+                "libs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "rego": {
                     "type": "string",
                     "example": "Rego 코드"

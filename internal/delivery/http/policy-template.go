@@ -635,11 +635,12 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, 
 //	@Router			/policytemplates/rego-compile [post]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) RegoCompile(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	parseParameter := false
 
-	parse, ok := vars["parseParameter"]
-	if ok {
+	urlParams := r.URL.Query()
+
+	parse := urlParams.Get("parseParameter")
+	if len(parse) > 0 {
 		parsedBool, err := strconv.ParseBool(parse)
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid parseParameter: '%s'", parse), "PT_INVALID_REGO_PARSEPARAMETER", ""))

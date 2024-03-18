@@ -3,14 +3,13 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	policytemplate "github.com/openinfradev/tks-api/internal/policy-template"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
@@ -274,112 +273,8 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 	}
 
 	if parseParameter {
-		response.ParametersSchema = extractParameter(request.Rego)
+		response.ParametersSchema = policytemplate.ExtractParameter(modules)
 	}
 
 	return response, nil
-}
-
-func extractParameter(rego string) []*domain.ParameterDef {
-	pattern := `input\.parameters\.[\w\.\[\]]+`
-
-	prefix := "input.parameters."
-
-	// Compile the regex pattern
-	regex := regexp.MustCompile(pattern)
-
-	matches := regex.FindAllString(rego, -1)
-
-	defStore := NewParamDefStore()
-
-	for _, match := range matches {
-		remainder := match[len(prefix):]
-
-		// 문법 변환: aa["a"]["B"][_]->aa.a.B[_]
-		regex := regexp.MustCompile(`\[\"(\w+)\"\]`)
-		remainder = regex.ReplaceAllString(remainder, ".$1")
-
-		params := strings.Split(remainder, ".")
-
-		if len(params) == 0 {
-			continue
-		}
-
-		defStore.AddDefinition(params)
-	}
-
-	return defStore.store
-}
-
-type ParamDefStore struct {
-	store []*domain.ParameterDef
-}
-
-func NewParamDefStore() *ParamDefStore {
-	return &ParamDefStore{store: []*domain.ParameterDef{}}
-}
-
-func (s *ParamDefStore) GetStore() []*domain.ParameterDef {
-	return s.store
-}
-
-func (s *ParamDefStore) AddDefinition(params []string) {
-	init := &s.store
-
-	for i, param := range params {
-		isLast := i == len(params)-1
-
-		key := findKey(s.store, param)
-
-		if key == nil {
-			key = createKey(param, isLast)
-			*init = append(*init, key)
-		}
-
-		init = &key.Children
-	}
-}
-
-func findKey(defs []*domain.ParameterDef, key string) *domain.ParameterDef {
-	for _, def := range defs {
-		if def.Key == key || def.Key+"[_]" == key {
-			return def
-		}
-	}
-
-	return nil
-}
-
-func createKey(key string, isLast bool) *domain.ParameterDef {
-	finalType := "any"
-
-	pKey := key
-	isArray := false
-
-	if strings.HasSuffix(pKey, "[_]") {
-		pKey, _ = strings.CutSuffix(pKey, "[_]")
-		isArray = true
-	}
-
-	if isLast {
-		if isArray {
-			finalType = "any[]"
-		} else {
-			finalType = "any"
-		}
-	} else {
-		if isArray {
-			finalType = "object[]"
-		} else {
-			finalType = "object"
-		}
-	}
-
-	newDef := &domain.ParameterDef{
-		Key:      pKey,
-		Type:     finalType,
-		Children: []*domain.ParameterDef{},
-	}
-
-	return newDef
 }
