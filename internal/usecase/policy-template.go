@@ -205,7 +205,6 @@ func (*PolicyTemplateUsecase) updatePermittedOrganizations(ctx context.Context, 
 		if !ok {
 			policyTemplate.PermittedOrganizations = append(
 				policyTemplate.PermittedOrganizations,
-
 				// ktkfree : 역시 이부분 확인 부탁 드립니다.
 				/*
 					domain.PermittedOrganization{
@@ -214,6 +213,7 @@ func (*PolicyTemplateUsecase) updatePermittedOrganizations(ctx context.Context, 
 						Permitted:        permitted,
 					}
 				*/
+				model.Organization{},
 			)
 		}
 	}

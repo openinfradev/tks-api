@@ -102,7 +102,6 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return []byte(logMessage), nil
 }
 
-// [TODO] more pretty
 func Info(ctx context.Context, v ...interface{}) {
 	fields := logrus.Fields{}
 
