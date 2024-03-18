@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"math"
 
@@ -10,9 +11,9 @@ import (
 )
 
 type IEndpointRepository interface {
-	Create(endpoint *model.Endpoint) error
-	List(pg *pagination.Pagination) ([]*model.Endpoint, error)
-	Get(id uint) (*model.Endpoint, error)
+	Create(ctx context.Context, endpoint *model.Endpoint) error
+	List(ctx context.Context, pg *pagination.Pagination) ([]*model.Endpoint, error)
+	Get(ctx context.Context, id uint) (*model.Endpoint, error)
 }
 
 type EndpointRepository struct {
@@ -25,20 +26,20 @@ func NewEndpointRepository(db *gorm.DB) *EndpointRepository {
 	}
 }
 
-func (e *EndpointRepository) Create(endpoint *model.Endpoint) error {
+func (e *EndpointRepository) Create(ctx context.Context, endpoint *model.Endpoint) error {
 	obj := &model.Endpoint{
 		Name:  endpoint.Name,
 		Group: endpoint.Group,
 	}
 
-	if err := e.db.Create(obj).Error; err != nil {
+	if err := e.db.WithContext(ctx).Create(obj).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*model.Endpoint, error) {
+func (e *EndpointRepository) List(ctx context.Context, pg *pagination.Pagination) ([]*model.Endpoint, error) {
 	var endpoints []*model.Endpoint
 
 	if pg == nil {
@@ -51,7 +52,7 @@ func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*model.Endpoint,
 	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
 
 	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&endpoints)
+	res := db.WithContext(ctx).Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&endpoints)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -59,10 +60,10 @@ func (e *EndpointRepository) List(pg *pagination.Pagination) ([]*model.Endpoint,
 	return endpoints, nil
 }
 
-func (e *EndpointRepository) Get(id uint) (*model.Endpoint, error) {
+func (e *EndpointRepository) Get(ctx context.Context, id uint) (*model.Endpoint, error) {
 	var obj model.Endpoint
 
-	if err := e.db.Preload("Permission").First(&obj, "id = ?", id).Error; err != nil {
+	if err := e.db.WithContext(ctx).Preload("Permission").First(&obj, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 

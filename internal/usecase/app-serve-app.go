@@ -24,23 +24,23 @@ import (
 )
 
 type IAppServeAppUsecase interface {
-	CreateAppServeApp(app *model.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
-	GetAppServeAppById(appId string) (*model.AppServeApp, error)
-	GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
-	GetAppServeAppTaskById(taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
-	GetAppServeAppLatestTask(appId string) (*model.AppServeAppTask, error)
-	GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error)
-	IsAppServeAppExist(appId string) (bool, error)
-	IsAppServeAppNameExist(orgId string, appName string) (bool, error)
-	IsAppServeAppNamespaceExist(clusterId string, namespace string) (bool, error)
-	UpdateAppServeAppStatus(appId string, taskId string, status string, output string) (ret string, err error)
-	DeleteAppServeApp(appId string) (res string, err error)
-	UpdateAppServeApp(app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error)
-	UpdateAppServeAppEndpoint(appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
-	PromoteAppServeApp(appId string) (ret string, err error)
-	AbortAppServeApp(appId string) (ret string, err error)
-	RollbackAppServeApp(appId string, taskId string) (ret string, err error)
+	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error)
+	GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
+	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
+	GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
+	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
+	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
+	GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error)
+	IsAppServeAppExist(ctx context.Context, appId string) (bool, error)
+	IsAppServeAppNameExist(ctx context.Context, orgId string, appName string) (bool, error)
+	IsAppServeAppNamespaceExist(ctx context.Context, clusterId string, namespace string) (bool, error)
+	UpdateAppServeAppStatus(ctx context.Context, appId string, taskId string, status string, output string) (ret string, err error)
+	DeleteAppServeApp(ctx context.Context, appId string) (res string, err error)
+	UpdateAppServeApp(ctx context.Context, app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error)
+	UpdateAppServeAppEndpoint(ctx context.Context, appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
+	PromoteAppServeApp(ctx context.Context, appId string) (ret string, err error)
+	AbortAppServeApp(ctx context.Context, appId string) (ret string, err error)
+	RollbackAppServeApp(ctx context.Context, appId string, taskId string) (ret string, err error)
 }
 
 type AppServeAppUsecase struct {
@@ -59,7 +59,7 @@ func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient
 	}
 }
 
-func (u *AppServeAppUsecase) CreateAppServeApp(app *model.AppServeApp) (string, string, error) {
+func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (string, string, error) {
 	if app == nil {
 		return "", "", fmt.Errorf("invalid app obj")
 	}
@@ -103,15 +103,15 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *model.AppServeApp) (string, 
 	extEnv := app.AppServeAppTasks[0].ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
-		log.Debug("extraEnv received: ", extEnv)
+		log.Debug(ctx, "extraEnv received: ", extEnv)
 
 		tempMap := map[string]string{}
 		err := json.Unmarshal([]byte(extEnv), &tempMap)
 		if err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return "", "", errors.Wrap(err, "Failed to process extraEnv param.")
 		}
-		log.Debugf("extraEnv marshalled: %v", tempMap)
+		log.Debugf(ctx, "extraEnv marshalled: %v", tempMap)
 
 		newExtEnv := map[string]string{}
 		for key, val := range tempMap {
@@ -122,12 +122,12 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *model.AppServeApp) (string, 
 
 		mJson, _ := json.Marshal(newExtEnv)
 		extEnv = string(mJson)
-		log.Debug("After transform, extraEnv: ", extEnv)
+		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
-	appId, taskId, err := u.repo.CreateAppServeApp(app)
+	appId, taskId, err := u.repo.CreateAppServeApp(ctx, app)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", "", errors.Wrap(err, "Failed to create app.")
 	}
 
@@ -168,20 +168,20 @@ func (u *AppServeAppUsecase) CreateAppServeApp(app *model.AppServeApp) (string, 
 		"tks_api_url=" + viper.GetString("external-address"),
 	}
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, opts)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, opts)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return "", "", errors.Wrap(err, fmt.Sprintf("failed to submit workflow. %s", workflow))
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return appId, app.Name, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
-	apps, err := u.repo.GetAppServeApps(organizationId, showAll, pg)
+func (u *AppServeAppUsecase) GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
+	apps, err := u.repo.GetAppServeApps(ctx, organizationId, showAll, pg)
 	if err != nil {
 		fmt.Println(apps)
 	}
@@ -189,8 +189,8 @@ func (u *AppServeAppUsecase) GetAppServeApps(organizationId string, showAll bool
 	return apps, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*model.AppServeApp, error) {
-	asa, err := u.repo.GetAppServeAppById(appId)
+func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error) {
+	asa, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
 		return nil, err
 	}
@@ -198,19 +198,19 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*model.AppServeAp
 	/************************
 	* Construct grafana URL *
 	************************/
-	organization, err := u.organizationRepo.Get(asa.OrganizationId)
+	organization, err := u.organizationRepo.Get(ctx, asa.OrganizationId)
 	if err != nil {
 		return asa, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for app %s", asa.Name)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
-	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(domain.ClusterId(organization.PrimaryClusterId), nil)
+	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(ctx, domain.ClusterId(organization.PrimaryClusterId), nil)
 	if err != nil {
 		return asa, err
 	}
 
 	for _, appGroup := range appGroupsInPrimaryCluster {
 		if appGroup.AppGroupType == domain.AppGroupType_LMA {
-			applications, err := u.appGroupRepo.GetApplications(appGroup.ID, domain.ApplicationType_GRAFANA)
+			applications, err := u.appGroupRepo.GetApplications(ctx, appGroup.ID, domain.ApplicationType_GRAFANA)
 			if err != nil {
 				return asa, err
 			}
@@ -223,17 +223,17 @@ func (u *AppServeAppUsecase) GetAppServeAppById(appId string) (*model.AppServeAp
 	return asa, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppTasks(appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error) {
-	tasks, err := u.repo.GetAppServeAppTasksByAppId(appId, pg)
+func (u *AppServeAppUsecase) GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error) {
+	tasks, err := u.repo.GetAppServeAppTasksByAppId(ctx, appId, pg)
 	if err != nil {
-		log.Debugf("Tasks: %v", tasks)
+		log.Debugf(ctx, "Tasks: %v", tasks)
 	}
 
 	return tasks, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppTaskById(taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
-	task, app, err := u.repo.GetAppServeAppTaskById(taskId)
+func (u *AppServeAppUsecase) GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
+	task, app, err := u.repo.GetAppServeAppTaskById(ctx, taskId)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -241,8 +241,8 @@ func (u *AppServeAppUsecase) GetAppServeAppTaskById(taskId string) (*model.AppSe
 	return task, app, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*model.AppServeAppTask, error) {
-	task, err := u.repo.GetAppServeAppLatestTask(appId)
+func (u *AppServeAppUsecase) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error) {
+	task, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
 	if err != nil {
 		return nil, err
 	}
@@ -250,8 +250,8 @@ func (u *AppServeAppUsecase) GetAppServeAppLatestTask(appId string) (*model.AppS
 	return task, nil
 }
 
-func (u *AppServeAppUsecase) GetNumOfAppsOnStack(organizationId string, clusterId string) (int64, error) {
-	numApps, err := u.repo.GetNumOfAppsOnStack(organizationId, clusterId)
+func (u *AppServeAppUsecase) GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error) {
+	numApps, err := u.repo.GetNumOfAppsOnStack(ctx, organizationId, clusterId)
 	if err != nil {
 		return -1, err
 	}
@@ -259,8 +259,8 @@ func (u *AppServeAppUsecase) GetNumOfAppsOnStack(organizationId string, clusterI
 	return numApps, nil
 }
 
-func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
-	count, err := u.repo.IsAppServeAppExist(appId)
+func (u *AppServeAppUsecase) IsAppServeAppExist(ctx context.Context, appId string) (bool, error) {
+	count, err := u.repo.IsAppServeAppExist(ctx, appId)
 	if err != nil {
 		return false, err
 	}
@@ -272,8 +272,8 @@ func (u *AppServeAppUsecase) IsAppServeAppExist(appId string) (bool, error) {
 	return false, nil
 }
 
-func (u *AppServeAppUsecase) IsAppServeAppNameExist(orgId string, appName string) (bool, error) {
-	count, err := u.repo.IsAppServeAppNameExist(orgId, appName)
+func (u *AppServeAppUsecase) IsAppServeAppNameExist(ctx context.Context, orgId string, appName string) (bool, error) {
+	count, err := u.repo.IsAppServeAppNameExist(ctx, orgId, appName)
 	if err != nil {
 		return false, err
 	}
@@ -285,65 +285,63 @@ func (u *AppServeAppUsecase) IsAppServeAppNameExist(orgId string, appName string
 	return false, nil
 }
 
-func (u *AppServeAppUsecase) IsAppServeAppNamespaceExist(clusterId string, new_ns string) (bool, error) {
-	clientset, err := kubernetes.GetClientFromClusterId(clusterId)
+func (u *AppServeAppUsecase) IsAppServeAppNamespaceExist(ctx context.Context, clusterId string, new_ns string) (bool, error) {
+	clientset, err := kubernetes.GetClientFromClusterId(ctx, clusterId)
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return false, err
 	}
 
 	namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		log.Error(err)
+		log.Error(ctx, err)
 		return false, err
 	}
 	for _, ns := range namespaces.Items {
 		if new_ns == ns.ObjectMeta.Name {
-			log.Debugf("Namespace %s already exists.", new_ns)
+			log.Debugf(ctx, "Namespace %s already exists.", new_ns)
 			return true, nil
 		}
 	}
-	log.Debugf("Namespace %s is available", new_ns)
+	log.Debugf(ctx, "Namespace %s is available", new_ns)
 	return false, nil
 }
 
-func (u *AppServeAppUsecase) UpdateAppServeAppStatus(
-	appId string,
-	taskId string,
-	status string,
+func (u *AppServeAppUsecase) UpdateAppServeAppStatus(ctx context.Context, appId string, taskId string, status string,
 	output string) (string, error) {
 
-	log.Info("Starting status update process..")
+	log.Info(ctx, "Starting status update process..")
 
-	err := u.repo.UpdateStatus(appId, taskId, status, output)
+	err := u.repo.UpdateStatus(ctx, appId, taskId, status, output)
 	if err != nil {
-		log.Info("appId = ", appId)
-		log.Info("taskId = ", taskId)
+		log.Info(ctx, "appId = ", appId)
+		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app status. Err: %s", err)
 	}
 	return fmt.Sprintf("The appId '%s' status is being updated.", appId), nil
 }
 
 func (u *AppServeAppUsecase) UpdateAppServeAppEndpoint(
+	ctx context.Context,
 	appId string,
 	taskId string,
 	endpoint string,
 	previewEndpoint string,
 	helmRevision int32) (string, error) {
 
-	log.Info("Starting endpoint update process..")
+	log.Info(ctx, "Starting endpoint update process..")
 
-	err := u.repo.UpdateEndpoint(appId, taskId, endpoint, previewEndpoint, helmRevision)
+	err := u.repo.UpdateEndpoint(ctx, appId, taskId, endpoint, previewEndpoint, helmRevision)
 	if err != nil {
-		log.Info("appId = ", appId)
-		log.Info("taskId = ", taskId)
+		log.Info(ctx, "appId = ", appId)
+		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update endpoint. Err: %s", err)
 	}
 	return fmt.Sprintf("The appId '%s' endpoint is being updated.", appId), nil
 }
 
-func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err error) {
-	app, err := u.repo.GetAppServeAppById(appId)
+func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string) (res string, err error) {
+	app, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
@@ -373,26 +371,26 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		CreatedAt:     time.Now(),
 	}
 
-	taskId, err := u.repo.CreateTask(appTask)
+	taskId, err := u.repo.CreateTask(ctx, appTask)
 	if err != nil {
-		log.Error("taskId = ", taskId)
-		log.Error("Failed to create delete task. Err:", err)
+		log.Error(ctx, "taskId = ", taskId)
+		log.Error(ctx, "Failed to create delete task. Err:", err)
 		return "", errors.Wrap(err, "Failed to create delete task.")
 	}
 
-	log.Info("Updating app status to 'DELETING'..")
+	log.Info(ctx, "Updating app status to 'DELETING'..")
 
-	err = u.repo.UpdateStatus(appId, taskId, "DELETING", "")
+	err = u.repo.UpdateStatus(ctx, appId, taskId, "DELETING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", taskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app status on DeleteAppServeApp. Err: %s", err)
 	}
 
 	workflow := "delete-java-app"
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
@@ -404,21 +402,21 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(appId string) (res string, err er
 		},
 	})
 	if err != nil {
-		log.Error("Failed to submit workflow. Err:", err)
+		log.Error(ctx, "Failed to submit workflow. Err:", err)
 		return "", errors.Wrap(err, "Failed to submit workflow.")
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("The app %s is being deleted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error) {
+func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error) {
 	if appTask == nil {
 		return "", errors.New("invalid parameters. appTask is nil")
 	}
 
-	app_, err := u.repo.GetAppServeAppById(app.ID)
+	app_, err := u.repo.GetAppServeAppById(ctx, app.ID)
 	if err != nil {
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
@@ -428,7 +426,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *
 		return "승인대기 또는 프로모트 작업 중에는 업그레이드를 수행할 수 없습니다", fmt.Errorf("Update not possible. The app is waiting for promote or in the middle of promote process.")
 	}
 
-	log.Info("Starting normal update process..")
+	log.Info(ctx, "Starting normal update process..")
 
 	// TODO: for more strict validation, check if immutable fields are provided by user
 	// and those values are changed or not. (name, type, app_type, target_cluster)
@@ -458,15 +456,15 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *
 	extEnv := appTask.ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
-		log.Debug("extraEnv received: ", extEnv)
+		log.Debug(ctx, "extraEnv received: ", extEnv)
 
 		tempMap := map[string]string{}
 		err = json.Unmarshal([]byte(extEnv), &tempMap)
 		if err != nil {
-			log.Error(err)
+			log.Error(ctx, err)
 			return "", errors.Wrap(err, "Failed to process extraEnv param.")
 		}
-		log.Debugf("extraEnv marshalled: %v", tempMap)
+		log.Debugf(ctx, "extraEnv marshalled: %v", tempMap)
 
 		newExtEnv := map[string]string{}
 		for key, val := range tempMap {
@@ -477,31 +475,31 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *
 
 		mJson, _ := json.Marshal(newExtEnv)
 		extEnv = string(mJson)
-		log.Debug("After transform, extraEnv: ", extEnv)
+		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
-	taskId, err := u.repo.CreateTask(appTask)
+	taskId, err := u.repo.CreateTask(ctx, appTask)
 	if err != nil {
-		log.Info("taskId = ", taskId)
+		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
 	}
 
 	// Sync new task status to the parent app
-	log.Info("Updating app status to 'PREPARING'..")
+	log.Info(ctx, "Updating app status to 'PREPARING'..")
 
-	err = u.repo.UpdateStatus(app.ID, taskId, "PREPARING", "")
+	err = u.repo.UpdateStatus(ctx, app.ID, taskId, "PREPARING", "")
 	if err != nil {
-		log.Debug("appId = ", app.ID)
-		log.Debug("taskId = ", taskId)
+		log.Debug(ctx, "appId = ", app.ID)
+		log.Debug(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app status on UpdateAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "serve-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"type=" + app.Type,
 			"strategy=" + appTask.Strategy,
@@ -532,10 +530,10 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *
 		},
 	})
 	if err != nil {
-		log.Error("Failed to submit workflow. Err:", err)
+		log.Error(ctx, "Failed to submit workflow. Err:", err)
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	var message string
 	if appTask.Strategy == "rolling-update" {
@@ -547,8 +545,8 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(app *model.AppServeApp, appTask *
 	return message, nil
 }
 
-func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err error) {
-	app, err := u.repo.GetAppServeAppById(appId)
+func (u *AppServeAppUsecase) PromoteAppServeApp(ctx context.Context, appId string) (ret string, err error) {
+	app, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
@@ -560,24 +558,24 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
 	strategy := app.AppServeAppTasks[0].Strategy
-	log.Info("latestTaskId = ", latestTaskId)
-	log.Info("strategy = ", strategy)
+	log.Info(ctx, "latestTaskId = ", latestTaskId)
+	log.Info(ctx, "strategy = ", strategy)
 
-	log.Info("Updating app status to 'PROMOTING'..")
+	log.Info(ctx, "Updating app status to 'PROMOTING'..")
 
-	err = u.repo.UpdateStatus(appId, latestTaskId, "PROMOTING", "")
+	err = u.repo.UpdateStatus(ctx, appId, latestTaskId, "PROMOTING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", latestTaskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", latestTaskId)
 		return "", fmt.Errorf("failed to update app status on PromoteAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "promote-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
@@ -590,17 +588,17 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(appId string) (ret string, err e
 		},
 	})
 	if err != nil {
-		log.Error("failed to submit workflow. Err:", err)
+		log.Error(ctx, "failed to submit workflow. Err:", err)
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err error) {
-	app, err := u.repo.GetAppServeAppById(appId)
+func (u *AppServeAppUsecase) AbortAppServeApp(ctx context.Context, appId string) (ret string, err error) {
+	app, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
@@ -612,25 +610,25 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 	// Get the latest task ID so that the task status can be modified inside workflow once the abort process is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
 	strategy := app.AppServeAppTasks[0].Strategy
-	log.Info("latestTaskId = ", latestTaskId)
-	log.Info("strategy = ", strategy)
+	log.Info(ctx, "latestTaskId = ", latestTaskId)
+	log.Info(ctx, "strategy = ", strategy)
 
-	log.Info("Updating app status to 'ABORTING'..")
+	log.Info(ctx, "Updating app status to 'ABORTING'..")
 
-	err = u.repo.UpdateStatus(appId, latestTaskId, "ABORTING", "")
+	err = u.repo.UpdateStatus(ctx, appId, latestTaskId, "ABORTING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", latestTaskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", latestTaskId)
 		return "", fmt.Errorf("failed to update app status on AbortAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "abort-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
 	// Call argo workflow
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
@@ -645,16 +643,16 @@ func (u *AppServeAppUsecase) AbortAppServeApp(appId string) (ret string, err err
 	if err != nil {
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("The app '%s' is being promoted. "+
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (ret string, err error) {
-	log.Info("Starting rollback process..")
+func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId string, taskId string) (ret string, err error) {
+	log.Info(ctx, "Starting rollback process..")
 
-	app, err := u.repo.GetAppServeAppById(appId)
+	app, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
 		return "", err
 	}
@@ -683,27 +681,27 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 	task.RollbackVersion = targetVer
 
 	// Creates new task record from the target task
-	newTaskId, err := u.repo.CreateTask(&task)
+	newTaskId, err := u.repo.CreateTask(ctx, &task)
 	if err != nil {
-		log.Info("taskId = ", newTaskId)
+		log.Info(ctx, "taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)
 	}
 
-	log.Info("Updating app status to 'ROLLBACKING'..")
+	log.Info(ctx, "Updating app status to 'ROLLBACKING'..")
 
-	err = u.repo.UpdateStatus(appId, newTaskId, "ROLLBACKING", "")
+	err = u.repo.UpdateStatus(ctx, appId, newTaskId, "ROLLBACKING", "")
 	if err != nil {
-		log.Debug("appId = ", appId)
-		log.Debug("taskId = ", newTaskId)
+		log.Debug(ctx, "appId = ", appId)
+		log.Debug(ctx, "taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to update app status on RollbackAppServeApp. Err: %s", err)
 	}
 
 	// Call argo workflow
 	workflow := "rollback-java-app"
 
-	log.Info("Submitting workflow: ", workflow)
+	log.Info(ctx, "Submitting workflow: ", workflow)
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
 			"target_cluster_id=" + app.TargetClusterId,
@@ -716,10 +714,10 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(appId string, taskId string) (r
 		},
 	})
 	if err != nil {
-		log.Error("Failed to submit workflow. Err:", err)
+		log.Error(ctx, "Failed to submit workflow. Err:", err)
 		return "", fmt.Errorf("failed to submit workflow. Err: %s", err)
 	}
-	log.Info("Successfully submitted workflow: ", workflowId)
+	log.Info(ctx, "Successfully submitted workflow: ", workflowId)
 
 	return fmt.Sprintf("Rollback app Request '%v' is successfully submitted", taskId), nil
 }

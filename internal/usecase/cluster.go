@@ -109,9 +109,9 @@ func (u *ClusterUsecase) Fetch(ctx context.Context, organizationId string, pg *p
 
 	if organizationId == "" {
 		// [TODO] 사용자가 속한 organization 리스트
-		out, err = u.repo.Fetch(pg)
+		out, err = u.repo.Fetch(ctx, pg)
 	} else {
-		out, err = u.repo.FetchByOrganizationId(organizationId, user.GetUserId(), pg)
+		out, err = u.repo.FetchByOrganizationId(ctx, organizationId, user.GetUserId(), pg)
 	}
 
 	if err != nil {
@@ -125,7 +125,7 @@ func (u *ClusterUsecase) FetchByCloudAccountId(ctx context.Context, cloudAccount
 		return nil, fmt.Errorf("Invalid cloudAccountId")
 	}
 
-	out, err = u.repo.Fetch(pg)
+	out, err = u.repo.Fetch(ctx, pg)
 
 	if err != nil {
 		return nil, err
@@ -139,13 +139,13 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.repo.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
 	// check cloudAccount
-	cloudAccounts, err := u.cloudAccountRepo.Fetch(dto.OrganizationId, nil)
+	cloudAccounts, err := u.cloudAccountRepo.Fetch(ctx, dto.OrganizationId, nil)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 	}
@@ -168,7 +168,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 	}
 
 	// check stackTemplate
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -178,12 +178,13 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
-	clusterId, err = u.repo.Create(dto)
+	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -201,12 +202,12 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -219,18 +220,18 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.repo.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
-	_, err = u.organizationRepo.Get(dto.OrganizationId)
+	_, err = u.organizationRepo.Get(ctx, dto.OrganizationId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "", "")
 	}
 
 	// check stackTemplate
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -241,7 +242,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		dto.ID = "tks-admin"
 		dto.Name = "tks-admin"
 	}
-	clusterId, err = u.repo.Create(dto)
+	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
@@ -249,6 +250,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 	kubeconfigBase64 := base64.StdEncoding.EncodeToString([]byte(dto.Kubeconfig))
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"import-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -263,12 +265,12 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -281,41 +283,41 @@ func (u *ClusterUsecase) Bootstrap(ctx context.Context, dto model.Cluster) (clus
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	_, err = u.repo.GetByName(dto.OrganizationId, dto.Name)
+	_, err = u.repo.GetByName(ctx, dto.OrganizationId, dto.Name)
 	if err == nil {
 		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "", "")
 	}
 
-	stackTemplate, err := u.stackTemplateRepo.Get(dto.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
-	log.InfofWithContext(ctx, "%s %s", stackTemplate.CloudService, dto.CloudService)
+	log.Infof(ctx, "%s %s", stackTemplate.CloudService, dto.CloudService)
 	if stackTemplate.CloudService != dto.CloudService {
 		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService for stackTemplate "), "", "")
 	}
 
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
-	clusterId, err = u.repo.Create(dto)
+	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
 	workflow := "create-byoh-bootstrapkubeconfig"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"cluster_id=" + clusterId.String(),
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_BOOTSTRAPPING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_BOOTSTRAPPING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -328,7 +330,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", "")
 	}
@@ -336,7 +338,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloudService"), "C_INVALID_CLOUD_SERVICE", "")
 	}
 
-	stackTemplate, err := u.stackTemplateRepo.Get(cluster.StackTemplateId)
+	stackTemplate, err := u.stackTemplateRepo.Get(ctx, cluster.StackTemplateId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(errors.Wrap(err, "Invalid stackTemplateId"), "", "")
 	}
@@ -345,6 +347,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"create-tks-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -362,12 +365,12 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return err
 	}
-	log.InfoWithContext(ctx, "Successfully submited workflow: ", workflowId)
+	log.Info(ctx, "Successfully submited workflow: ", workflowId)
 
-	if err := u.repo.InitWorkflow(cluster.ID, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, cluster.ID, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -375,7 +378,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 }
 
 func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (out model.Cluster, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return model.Cluster{}, err
 	}
@@ -384,7 +387,7 @@ func (u *ClusterUsecase) Get(ctx context.Context, clusterId domain.ClusterId) (o
 }
 
 func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId) (err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
@@ -393,7 +396,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 		return fmt.Errorf("The cluster can not be deleted. cluster status : %s", cluster.Status)
 	}
 
-	resAppGroups, err := u.appGroupRepo.Fetch(clusterId, nil)
+	resAppGroups, err := u.appGroupRepo.Fetch(ctx, clusterId, nil)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get appgroup")
 	}
@@ -408,7 +411,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	// check cloudAccount
 	tksCloudAccountId := "NULL"
 	if cluster.CloudService != domain.CloudService_BYOH {
-		cloudAccount, err := u.cloudAccountRepo.Get(cluster.CloudAccount.ID)
+		cloudAccount, err := u.cloudAccountRepo.Get(ctx, cluster.CloudAccount.ID)
 		if err != nil {
 			return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
 		}
@@ -419,6 +422,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"tks-remove-usercluster",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -431,13 +435,13 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return errors.Wrap(err, "Failed to call argo workflow")
 	}
 
-	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
+	log.Debug(ctx, "submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_DELETING); err != nil {
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
@@ -445,7 +449,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 }
 
 func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return domain.ClusterSiteValuesResponse{}, errors.Wrap(err, "Failed to get cluster")
 	}
@@ -453,8 +457,8 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	out.SshKeyName = "tks-seoul"
 	out.ClusterRegion = "ap-northeast-2"
 
-	if err := serializer.Map(cluster, &out); err != nil {
-		log.ErrorWithContext(ctx, err)
+	if err := serializer.Map(ctx, cluster, &out); err != nil {
+		log.Error(ctx, err)
 	}
 
 	if cluster.StackTemplate.CloudService == "AWS" && cluster.StackTemplate.KubeType == "AWS" {
@@ -462,8 +466,8 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 		out.TksUserNodeMax = cluster.TksUserNodeMax / domain.MAX_AZ_NUM
 	}
 
-	if err := serializer.Map(cluster, &out); err != nil {
-		log.ErrorWithContext(ctx, err)
+	if err := serializer.Map(ctx, cluster, &out); err != nil {
+		log.Error(ctx, err)
 	}
 
 	/*
@@ -483,33 +487,33 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 }
 
 func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterId domain.ClusterId) (out domain.BootstrapKubeconfig, err error) {
-	_, err = u.repo.Get(clusterId)
+	_, err = u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return out, httpErrors.NewNotFoundError(err, "", "")
 	}
 
 	workflow := "create-byoh-bootstrapkubeconfig"
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflow, argowf.SubmitOptions{
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 			"cluster_id=" + clusterId.String(),
 		},
 	})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return out, httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
 	}
-	log.DebugWithContext(ctx, "Submitted workflow: ", workflowId)
+	log.Debug(ctx, "Submitted workflow: ", workflowId)
 
 	// wait & get clusterId ( max 1min 	)
 	for i := 0; i < 60; i++ {
 		time.Sleep(time.Second * 3)
-		workflow, err := u.argo.GetWorkflow("argo", workflowId)
+		workflow, err := u.argo.GetWorkflow(ctx, "argo", workflowId)
 		if err != nil {
 			return out, err
 		}
 
-		log.DebugWithContext(ctx, "workflow ", workflow)
+		log.Debug(ctx, "workflow ", workflow)
 
 		if workflow.Status.Phase == "Succeeded" {
 			break
@@ -528,11 +532,11 @@ func (u *ClusterUsecase) CreateBootstrapKubeconfig(ctx context.Context, clusterI
 }
 
 func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId domain.ClusterId) (out domain.BootstrapKubeconfig, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		return out, httpErrors.NewNotFoundError(err, "", "")
 	}
-	client, err := kubernetes.GetClientAdminCluster()
+	client, err := kubernetes.GetClientAdminCluster(ctx)
 	if err != nil {
 		return out, err
 	}
@@ -553,7 +557,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 		return out, err
 	}
 
-	log.DebugWithContext(ctx, helper.ModelToJson(kubeconfig.Status.BootstrapKubeconfigData))
+	log.Debug(ctx, helper.ModelToJson(kubeconfig.Status.BootstrapKubeconfigData))
 
 	type BootstrapKubeconfigUser struct {
 		Users []struct {
@@ -572,15 +576,15 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 	}
 
 	token := kubeconfigData.Users[0].User.Token[:6]
-	log.InfoWithContext(ctx, "token : ", token)
+	log.Info(ctx, "token : ", token)
 
 	secrets, err := client.CoreV1().Secrets("kube-system").Get(context.TODO(), "bootstrap-token-"+token, metav1.GetOptions{})
 	if err != nil {
-		log.ErrorWithContext(ctx, err)
+		log.Error(ctx, err)
 		return out, err
 	}
 
-	log.Info(secrets.Data["expiration"][:])
+	log.Info(ctx, secrets.Data["expiration"][:])
 
 	// 2023-10-17T11:05:33Z
 	now := time.Now()
@@ -599,7 +603,7 @@ func (u *ClusterUsecase) GetBootstrapKubeconfig(ctx context.Context, clusterId d
 }
 
 func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterId) (out []domain.ClusterNode, err error) {
-	cluster, err := u.repo.Get(clusterId)
+	cluster, err := u.repo.Get(ctx, clusterId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return out, httpErrors.NewNotFoundError(err, "S_FAILED_FETCH_CLUSTER", "")
@@ -610,7 +614,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "", "")
 	}
 
-	client, err := kubernetes.GetClientAdminCluster()
+	client, err := kubernetes.GetClientAdminCluster(ctx)
 	if err != nil {
 		return out, err
 	}
@@ -651,7 +655,7 @@ func (u *ClusterUsecase) GetNodes(ctx context.Context, clusterId domain.ClusterI
 	tksUserNodeRegistered, tksUserNodeRegistering, tksUserHosts := 0, 0, make([]domain.ClusterHost, 0)
 	for _, host := range hosts.Items {
 		label := host.Labels["role"]
-		log.InfoWithContext(ctx, "label : ", label)
+		log.Info(ctx, "label : ", label)
 		if len(label) < 12 {
 			continue
 		}
@@ -790,7 +794,7 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 		numOfAz = int(rawConf.NumOfAz)
 
 		if numOfAz > 3 {
-			log.ErrorWithContext(ctx,"Error: numOfAz cannot exceed 3.")
+			log.Error(ctx,"Error: numOfAz cannot exceed 3.")
 			temp_err := fmt.Errorf("Error: numOfAz cannot exceed 3.")
 			return nil, temp_err
 		}
@@ -815,19 +819,19 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 	var found bool = false
 	for key, val := range azPerRegion {
 		if strings.Contains(key, region) {
-			log.DebugWithContext(ctx,"Found region : ", key)
+			log.Debug(ctx,"Found region : ", key)
 			maxAzForSelectedRegion = val
-			log.DebugWithContext(ctx,"Trimmed azNum var: ", maxAzForSelectedRegion)
+			log.Debug(ctx,"Trimmed azNum var: ", maxAzForSelectedRegion)
 			found = true
 		}
 	}
 
 	if !found {
-		log.ErrorWithContext(ctx,"Couldn't find entry for region ", region)
+		log.Error(ctx,"Couldn't find entry for region ", region)
 	}
 
 	if numOfAz > maxAzForSelectedRegion {
-		log.ErrorWithContext(ctx,"Invalid numOfAz: exceeded the number of Az in region ", region)
+		log.Error(ctx,"Invalid numOfAz: exceeded the number of Az in region ", region)
 		temp_err := fmt.Errorf("Invalid numOfAz: exceeded the number of Az in region %s", region)
 		return nil, temp_err
 	}
@@ -835,14 +839,14 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 	// Validate if machineReplicas is multiple of number of AZ
 	replicas := int(rawConf.MachineReplicas)
 	if replicas == 0 {
-		log.DebugWithContext(ctx,"No machineReplicas param. Using default values..")
+		log.Debug(ctx,"No machineReplicas param. Using default values..")
 	} else {
 		if remainder := replicas % numOfAz; remainder != 0 {
-			log.ErrorWithContext(ctx,"Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
+			log.Error(ctx,"Invalid machineReplicas: it should be multiple of numOfAz ", numOfAz)
 			temp_err := fmt.Errorf("Invalid machineReplicas: it should be multiple of numOfAz %d", numOfAz)
 			return nil, temp_err
 		} else {
-			log.DebugWithContext(ctx,"Valid replicas and numOfAz. Caculating minSize & maxSize..")
+			log.Debug(ctx,"Valid replicas and numOfAz. Caculating minSize & maxSize..")
 			minSizePerAz = int(replicas / numOfAz)
 			maxSizePerAz = minSizePerAz * 5
 
@@ -851,8 +855,8 @@ func (u *ClusterUsecase) constructClusterConf(rawConf *model.ClusterConf) (clust
 				fmt.Printf("maxSizePerAz exceeded maximum value %d, so adjusted to %d", MAX_SIZE_PER_AZ, MAX_SIZE_PER_AZ)
 				maxSizePerAz = MAX_SIZE_PER_AZ
 			}
-			log.DebugWithContext(ctx,"Derived minSizePerAz: ", minSizePerAz)
-			log.DebugWithContext(ctx,"Derived maxSizePerAz: ", maxSizePerAz)
+			log.Debug(ctx,"Derived minSizePerAz: ", minSizePerAz)
+			log.Debug(ctx,"Derived maxSizePerAz: ", maxSizePerAz)
 		}
 	}
 

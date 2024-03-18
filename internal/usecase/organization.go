@@ -22,12 +22,12 @@ import (
 
 type IOrganizationUsecase interface {
 	Create(context.Context, *model.Organization) (organizationId string, err error)
-	Fetch(pg *pagination.Pagination) (*[]model.Organization, error)
-	Get(organizationId string) (model.Organization, error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
-	UpdatePrimaryClusterId(organizationId string, clusterId string) (err error)
-	ChangeAdminId(organizationId string, adminId uuid.UUID) error
-	Delete(organizationId string, accessToken string) error
+	Fetch(ctx context.Context, pg *pagination.Pagination) (*[]model.Organization, error)
+	Get(ctx context.Context, organizationId string) (model.Organization, error)
+	Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
+	UpdatePrimaryClusterId(ctx context.Context, organizationId string, clusterId string) (err error)
+	ChangeAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
+	Delete(ctx context.Context, organizationId string, accessToken string) error
 }
 
 type OrganizationUsecase struct {
@@ -57,18 +57,19 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization
 	in.CreatorId = &userId
 
 	// Create realm in keycloak
-	if organizationId, err = u.kc.CreateRealm(helper.GenerateOrganizationId()); err != nil {
+	if organizationId, err = u.kc.CreateRealm(ctx, helper.GenerateOrganizationId()); err != nil {
 		return "", err
 	}
 	in.ID = organizationId
 
 	// Create organization in DB
-	_, err = u.repo.Create(in)
+	_, err = u.repo.Create(ctx, in)
 	if err != nil {
 		return "", err
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
+		ctx,
 		"tks-create-contract-repo",
 		argowf.SubmitOptions{
 			Parameters: []string{
@@ -78,33 +79,33 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization
 			},
 		})
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", errors.Wrap(err, "Failed to call argo workflow")
 	}
-	log.InfoWithContext(ctx, "submited workflow :", workflowId)
+	log.Info(ctx, "submited workflow :", workflowId)
 
-	if err := u.repo.InitWorkflow(organizationId, workflowId, domain.OrganizationStatus_CREATING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, organizationId, workflowId, domain.OrganizationStatus_CREATING); err != nil {
 		return "", errors.Wrap(err, "Failed to init workflow")
 	}
 
 	return organizationId, nil
 }
-func (u *OrganizationUsecase) Fetch(pg *pagination.Pagination) (out *[]model.Organization, err error) {
-	organizations, err := u.repo.Fetch(pg)
+func (u *OrganizationUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (out *[]model.Organization, err error) {
+	organizations, err := u.repo.Fetch(ctx, pg)
 	if err != nil {
 		return nil, err
 	}
 	return organizations, nil
 }
-func (u *OrganizationUsecase) Get(organizationId string) (out model.Organization, err error) {
-	out, err = u.repo.Get(organizationId)
+func (u *OrganizationUsecase) Get(ctx context.Context, organizationId string) (out model.Organization, err error) {
+	out, err = u.repo.Get(ctx, organizationId)
 	if err != nil {
 		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
 
-	clusters, err := u.clusterRepo.FetchByOrganizationId(organizationId, uuid.Nil, nil)
+	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
 	if err != nil {
-		log.Info(err)
+		log.Info(ctx, err)
 		out.ClusterCount = 0
 	}
 	out.ClusterCount = len(clusters)
@@ -112,30 +113,30 @@ func (u *OrganizationUsecase) Get(organizationId string) (out model.Organization
 
 }
 
-func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) (err error) {
-	_, err = u.Get(organizationId)
+func (u *OrganizationUsecase) Delete(ctx context.Context, organizationId string, accessToken string) (err error) {
+	_, err = u.Get(ctx, organizationId)
 	if err != nil {
 		return err
 	}
 
 	// Delete realm in keycloak
-	if err := u.kc.DeleteRealm(organizationId); err != nil {
+	if err := u.kc.DeleteRealm(ctx, organizationId); err != nil {
 		return err
 	}
 
 	// delete roles in DB
-	roles, err := u.roleRepo.ListTksRoles(organizationId, nil)
+	roles, err := u.roleRepo.ListTksRoles(ctx, organizationId, nil)
 	if err != nil {
 		return err
 	}
 	for _, role := range roles {
-		if err := u.roleRepo.Delete(role.ID); err != nil {
+		if err := u.roleRepo.Delete(ctx, role.ID); err != nil {
 			return err
 		}
 	}
 
 	// delete organization in DB
-	err = u.repo.Delete(organizationId)
+	err = u.repo.Delete(ctx, organizationId)
 	if err != nil {
 		return err
 	}
@@ -143,13 +144,13 @@ func (u *OrganizationUsecase) Delete(organizationId string, accessToken string) 
 	return nil
 }
 
-func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error) {
-	_, err := u.Get(organizationId)
+func (u *OrganizationUsecase) Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error) {
+	_, err := u.Get(ctx, organizationId)
 	if err != nil {
 		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
 	}
 
-	res, err := u.repo.Update(organizationId, in)
+	res, err := u.repo.Update(ctx, organizationId, in)
 	if err != nil {
 		return model.Organization{}, err
 	}
@@ -157,30 +158,30 @@ func (u *OrganizationUsecase) Update(organizationId string, in domain.UpdateOrga
 	return res, nil
 }
 
-func (u *OrganizationUsecase) UpdatePrimaryClusterId(organizationId string, clusterId string) (err error) {
+func (u *OrganizationUsecase) UpdatePrimaryClusterId(ctx context.Context, organizationId string, clusterId string) (err error) {
 	if clusterId != "" && !helper.ValidateClusterId(clusterId) {
 		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "", "")
 	}
 
-	_, err = u.Get(organizationId)
+	_, err = u.Get(ctx, organizationId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
 
-	err = u.repo.UpdatePrimaryClusterId(organizationId, clusterId)
+	err = u.repo.UpdatePrimaryClusterId(ctx, organizationId, clusterId)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u *OrganizationUsecase) ChangeAdminId(organizationId string, adminId uuid.UUID) error {
-	_, err := u.Get(organizationId)
+func (u *OrganizationUsecase) ChangeAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error {
+	_, err := u.Get(ctx, organizationId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}
 
-	err = u.repo.UpdateAdminId(organizationId, adminId)
+	err = u.repo.UpdateAdminId(ctx, organizationId, adminId)
 	if err != nil {
 		return err
 	}

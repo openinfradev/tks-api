@@ -78,15 +78,15 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 
 	// create role
 	var roleId string
-	if roleId, err = h.roleUsecase.CreateTksRole(&dto); err != nil {
+	if roleId, err = h.roleUsecase.CreateTksRole(r.Context(), &dto); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	// create permission
 	defaultPermissionSet := model.NewDefaultPermissionSet()
-	h.permissionUsecase.SetRoleIdToPermissionSet(roleId, defaultPermissionSet)
-	err = h.permissionUsecase.CreatePermissionSet(defaultPermissionSet)
+	h.permissionUsecase.SetRoleIdToPermissionSet(r.Context(), roleId, defaultPermissionSet)
+	err = h.permissionUsecase.CreatePermissionSet(r.Context(), defaultPermissionSet)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -123,7 +123,7 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	pg := pagination.NewPagination(&urlParams)
 
 	// list roles
-	roles, err := h.roleUsecase.ListTksRoles(organizationId, pg)
+	roles, err := h.roleUsecase.ListTksRoles(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -143,8 +143,8 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), *pg, &out.Pagination); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	// response
@@ -173,7 +173,7 @@ func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get role
-	role, err := h.roleUsecase.GetTksRole(roleId)
+	role, err := h.roleUsecase.GetTksRole(r.Context(), roleId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -216,7 +216,7 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// delete role
-	if err := h.roleUsecase.DeleteTksRole(roleId); err != nil {
+	if err := h.roleUsecase.DeleteTksRole(r.Context(), roleId); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -264,7 +264,7 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// update role
-	if err := h.roleUsecase.UpdateTksRole(&dto); err != nil {
+	if err := h.roleUsecase.UpdateTksRole(r.Context(), &dto); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -300,7 +300,7 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 	pg := pagination.NewPagination(&urlParams)
 
 	// list roles
-	roles, err := h.roleUsecase.ListTksRoles(organizationId, pg)
+	roles, err := h.roleUsecase.ListTksRoles(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -320,8 +320,8 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), *pg, &out.Pagination); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	// response
@@ -350,7 +350,7 @@ func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get role
-	role, err := h.roleUsecase.GetTksRole(roleId)
+	role, err := h.roleUsecase.GetTksRole(r.Context(), roleId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return

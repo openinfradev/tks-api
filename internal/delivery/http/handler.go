@@ -27,7 +27,7 @@ func init() {
 }
 
 func ErrorJSON(w http.ResponseWriter, r *http.Request, err error) {
-	log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+	log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 	errorResponse, status := httpErrors.ErrorResponse(err)
 	ResponseJSON(w, r, status, errorResponse)
 }
@@ -41,7 +41,7 @@ func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data i
 	w.WriteHeader(httpStatus)
 
 	if err := json.NewEncoder(w).Encode(out); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 }
 
@@ -110,7 +110,7 @@ func (h *APIHandler) AddHistory(r *http.Request, projectId string, historyType s
 
 		err := h.Repository.AddHistory(userId, projectId, historyType, description)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 			return err
 		}
 

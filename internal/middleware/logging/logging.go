@@ -17,11 +17,11 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		r = r.WithContext(context.WithValue(ctx, internal.ContextKeyRequestID, uuid.New().String()))
 
-		log.InfoWithContext(r.Context(), fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
+		log.Infof(r.Context(), fmt.Sprintf("***** START [%s %s] ***** ", r.Method, r.RequestURI))
 
 		body, err := io.ReadAll(r.Body)
 		if err == nil {
-			log.InfoWithContext(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
+			log.Infof(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
 		}
 		r.Body = io.NopCloser(bytes.NewBuffer(body))
 		lrw := NewLoggingResponseWriter(w)
@@ -29,7 +29,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(lrw, r)
 
 		statusCode := lrw.GetStatusCode()
-		log.InfofWithContext(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String())
-		log.InfofWithContext(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
+		log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String())
+		log.Infof(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,15 +15,15 @@ import (
 
 // Interfaces
 type IAlertRepository interface {
-	Get(alertId uuid.UUID) (model.Alert, error)
-	GetByName(organizationId string, name string) (model.Alert, error)
-	Fetch(organizationId string, pg *pagination.Pagination) ([]model.Alert, error)
-	FetchPodRestart(organizationId string, start time.Time, end time.Time) ([]model.Alert, error)
-	Create(dto model.Alert) (alertId uuid.UUID, err error)
-	Update(dto model.Alert) (err error)
-	Delete(dto model.Alert) (err error)
+	Get(ctx context.Context, alertId uuid.UUID) (model.Alert, error)
+	GetByName(ctx context.Context, organizationId string, name string) (model.Alert, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.Alert, error)
+	FetchPodRestart(ctx context.Context, organizationId string, start time.Time, end time.Time) ([]model.Alert, error)
+	Create(ctx context.Context, dto model.Alert) (alertId uuid.UUID, err error)
+	Update(ctx context.Context, dto model.Alert) (err error)
+	Delete(ctx context.Context, dto model.Alert) (err error)
 
-	CreateAlertAction(dto model.AlertAction) (alertActionId uuid.UUID, err error)
+	CreateAlertAction(ctx context.Context, dto model.AlertAction) (alertActionId uuid.UUID, err error)
 }
 
 type AlertRepository struct {
@@ -36,28 +37,28 @@ func NewAlertRepository(db *gorm.DB) IAlertRepository {
 }
 
 // Logics
-func (r *AlertRepository) Get(alertId uuid.UUID) (out model.Alert, err error) {
-	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&out, "id = ?", alertId)
+func (r *AlertRepository) Get(ctx context.Context, alertId uuid.UUID) (out model.Alert, err error) {
+	res := r.db.WithContext(ctx).Preload("AlertActions.Taker").Preload(clause.Associations).First(&out, "id = ?", alertId)
 	if res.Error != nil {
 		return model.Alert{}, res.Error
 	}
 	return
 }
 
-func (r *AlertRepository) GetByName(organizationId string, name string) (out model.Alert, err error) {
-	res := r.db.Preload("AlertActions.Taker").Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
+func (r *AlertRepository) GetByName(ctx context.Context, organizationId string, name string) (out model.Alert, err error) {
+	res := r.db.WithContext(ctx).Preload("AlertActions.Taker").Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
 	if res.Error != nil {
 		return model.Alert{}, res.Error
 	}
 	return
 }
 
-func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []model.Alert, err error) {
+func (r *AlertRepository) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.Alert, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Model(&model.Alert{}).
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.Alert{}).
 		Preload("AlertActions", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at ASC")
 		}).Preload("AlertActions.Taker").
@@ -72,8 +73,8 @@ func (r *AlertRepository) Fetch(organizationId string, pg *pagination.Pagination
 	return
 }
 
-func (r *AlertRepository) FetchPodRestart(organizationId string, start time.Time, end time.Time) (out []model.Alert, err error) {
-	res := r.db.Preload(clause.Associations).Order("created_at DESC").
+func (r *AlertRepository) FetchPodRestart(ctx context.Context, organizationId string, start time.Time, end time.Time) (out []model.Alert, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).Order("created_at DESC").
 		Where("organization_id = ? AND name = 'pod-restart-frequently' AND created_at BETWEEN ? AND ?", organizationId, start, end).
 		Find(&out)
 	if res.Error != nil {
@@ -82,7 +83,7 @@ func (r *AlertRepository) FetchPodRestart(organizationId string, start time.Time
 	return
 }
 
-func (r *AlertRepository) Create(dto model.Alert) (alertId uuid.UUID, err error) {
+func (r *AlertRepository) Create(ctx context.Context, dto model.Alert) (alertId uuid.UUID, err error) {
 	alert := model.Alert{
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
@@ -98,15 +99,15 @@ func (r *AlertRepository) Create(dto model.Alert) (alertId uuid.UUID, err error)
 		RawData:        dto.RawData,
 		Status:         domain.AlertActionStatus_CREATED,
 	}
-	res := r.db.Create(&alert)
+	res := r.db.WithContext(ctx).Create(&alert)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
 	return alert.ID, nil
 }
 
-func (r *AlertRepository) Update(dto model.Alert) (err error) {
-	res := r.db.Model(&model.Alert{}).
+func (r *AlertRepository) Update(ctx context.Context, dto model.Alert) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.Alert{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{"Description": dto.Description})
 	if res.Error != nil {
@@ -115,26 +116,26 @@ func (r *AlertRepository) Update(dto model.Alert) (err error) {
 	return nil
 }
 
-func (r *AlertRepository) Delete(dto model.Alert) (err error) {
-	res := r.db.Delete(&model.Alert{}, "id = ?", dto.ID)
+func (r *AlertRepository) Delete(ctx context.Context, dto model.Alert) (err error) {
+	res := r.db.WithContext(ctx).Delete(&model.Alert{}, "id = ?", dto.ID)
 	if res.Error != nil {
 		return res.Error
 	}
 	return nil
 }
 
-func (r *AlertRepository) CreateAlertAction(dto model.AlertAction) (alertActionId uuid.UUID, err error) {
+func (r *AlertRepository) CreateAlertAction(ctx context.Context, dto model.AlertAction) (alertActionId uuid.UUID, err error) {
 	alert := model.AlertAction{
 		AlertId: dto.AlertId,
 		Content: dto.Content,
 		Status:  dto.Status,
 		TakerId: dto.TakerId,
 	}
-	res := r.db.Create(&alert)
+	res := r.db.WithContext(ctx).Create(&alert)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
-	res = r.db.Model(&model.Alert{}).
+	res = r.db.WithContext(ctx).Model(&model.Alert{}).
 		Where("id = ?", dto.AlertId).
 		Update("status", dto.Status)
 	if res.Error != nil {

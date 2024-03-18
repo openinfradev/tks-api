@@ -90,7 +90,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	authHandler := delivery.NewAuthHandler(usecaseFactory)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/login", authHandler.Login).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/ping", authHandler.PingToken).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/logout", customMiddleware.Handle(internalApi.Logout, http.HandlerFunc(authHandler.Logout))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/auth/refresh", customMiddleware.Handle(internalApi.RefreshToken, http.HandlerFunc(authHandler.RefreshToken))).Methods(http.MethodPost)
 	r.HandleFunc(API_PREFIX+API_VERSION+"/auth/find-id/verification", authHandler.FindId).Methods(http.MethodPost)
@@ -306,7 +305,7 @@ func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			txHandle := db.Begin()
-			log.DebugWithContext(r.Context(),"beginning database transaction")
+			log.Debug(r.Context(),"beginning database transaction")
 
 			defer func() {
 				if r := recover(); r != nil {
@@ -323,12 +322,12 @@ func transactionMiddleware(db *gorm.DB) mux.MiddlewareFunc {
 			next.ServeHTTP(recorder, r)
 
 			if StatusInList(recorder.Status, []int{http.StatusOK}) {
-				log.DebugWithContext(r.Context(),"committing transactions")
+				log.Debug(r.Context(),"committing transactions")
 				if err := txHandle.Commit().Error; err != nil {
-					log.DebugWithContext(r.Context(),"trx commit error: ", err)
+					log.Debug(r.Context(),"trx commit error: ", err)
 				}
 			} else {
-				log.DebugWithContext(r.Context(),"rolling back transaction due to status code: ", recorder.Status)
+				log.Debug(r.Context(),"rolling back transaction due to status code: ", recorder.Status)
 				txHandle.Rollback()
 			}
 		})

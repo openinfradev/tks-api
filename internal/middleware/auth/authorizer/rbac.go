@@ -38,7 +38,7 @@ func RBACFilter(handler http.Handler, repo repository.Repository) http.Handler {
 					return
 				}
 			} else {
-				log.Warn("RBACFilter: organizationId not found. Passing through unsafely.")
+				log.Warn(r.Context(), "RBACFilter: organizationId not found. Passing through unsafely.")
 			}
 		}
 
@@ -111,6 +111,30 @@ func AdminApiFilter(handler http.Handler, repo repository.Repository) http.Handl
 				internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
 				return
 			}
+		}
+
+		handler.ServeHTTP(w, r)
+	})
+}
+
+func RequestOrganizationValidationFilter(handler http.Handler, repo repository.Repository) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestUserInfo, ok := request.UserFrom(r.Context())
+		if !ok {
+			internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found"), "", ""))
+			return
+		}
+
+		vars := mux.Vars(r)
+		organizationId, ok := vars["organizationId"]
+		if !ok {
+			//internalHttp.ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("organizationId not found"), "", ""))
+			//return
+			log.Warn(r.Context(), "RequestOrganizationValidationFilter: organizationId not found. Passing through unsafely.")
+		}
+		if organizationId != requestUserInfo.GetOrganizationId() {
+			internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+			return
 		}
 
 		handler.ServeHTTP(w, r)

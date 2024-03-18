@@ -42,8 +42,8 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 	permissionSet := model.NewDefaultPermissionSet()
 
 	var premissionSetResponse domain.PermissionSetResponse
-	if err := serializer.Map(permissionSet, &premissionSetResponse); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), permissionSet, &premissionSetResponse); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	var out domain.GetPermissionTemplatesResponse
@@ -79,15 +79,15 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 		roleId = v
 	}
 
-	permissionSet, err := h.permissionUsecase.GetPermissionSetByRoleId(roleId)
+	permissionSet, err := h.permissionUsecase.GetPermissionSetByRoleId(r.Context(), roleId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 
 	var premissionSetResponse domain.PermissionSetResponse
-	if err := serializer.Map(permissionSet, &premissionSetResponse); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), permissionSet, &premissionSetResponse); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	var out domain.GetPermissionsByRoleIdResponse
@@ -115,7 +115,6 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 //	@Security		JWT
 func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
 	// path parameter
-	log.Debug("UpdatePermissionsByRoleId Called")
 	var roleId string
 	_ = roleId
 	vars := mux.Vars(r)
@@ -133,34 +132,18 @@ func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *h
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
-	log.Debugf("input: %+v", input)
 
 	for _, permissionResponse := range input.Permissions {
-		log.Debugf("permissionResponse: %+v", permissionResponse)
-
 		var permission model.Permission
-		if err := serializer.Map(permissionResponse, &permission); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), permissionResponse, &permission); err != nil {
+			log.Info(r.Context(), err)
 		}
 
-		if err := h.permissionUsecase.UpdatePermission(&permission); err != nil {
+		if err := h.permissionUsecase.UpdatePermission(r.Context(), &permission); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
 	}
-
-	//var edgePermissions []*domain.Permission
-	//for _, permission := range input.Permissions {
-	//	domain.GetEdgePermission(permission, edgePermissions, nil)
-	//}
-	//log.Debugf("edgePermissions: %+v", edgePermissions)
-	//for _, permission := range edgePermissions {
-	//	err := h.permissionUsecase.UpdatePermission(permission)
-	//	if err != nil {
-	//		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-	//		return
-	//	}
-	//}
 
 	ResponseJSON(w, r, http.StatusOK, nil)
 }

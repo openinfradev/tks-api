@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 type ConverterMap map[compositeKey]func(interface{}) (interface{}, error)
@@ -47,7 +46,7 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 						dstField.Set(reflect.ValueOf(converted))
 					}
 				} else {
-					log.Errorf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					//log.Errorf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
 					continue
 				}
 			}

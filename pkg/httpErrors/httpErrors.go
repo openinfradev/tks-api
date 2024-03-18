@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 )
 
@@ -71,7 +70,6 @@ func NewRestError(status int, err error, code ErrorCode, text string) IRestError
 	if text != "" {
 		t = text
 	}
-	log.Info(t)
 
 	return RestError{
 		ErrStatus:  status,

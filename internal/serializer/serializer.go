@@ -1,6 +1,7 @@
 package serializer
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 
@@ -16,7 +17,7 @@ type compositeKey struct {
 	dstType reflect.Type
 }
 
-func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) error {
+func recursiveMap(ctx context.Context, src interface{}, dst interface{}, converterMap ConverterMap) error {
 	srcVal := reflect.ValueOf(src)
 	srcType := srcVal.Type()
 
@@ -40,14 +41,14 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 				dstField.Set(srcField)
 				continue
 			} else if srcField.Type().Kind() == reflect.Struct && dstField.Type().Kind() == reflect.Struct {
-				if err := recursiveMap(srcField.Interface(), dstField.Addr().Interface(), converterMap); err != nil {
-					log.Error(err)
+				if err := recursiveMap(ctx, srcField.Interface(), dstField.Addr().Interface(), converterMap); err != nil {
+					log.Error(ctx, err)
 					continue
 				}
 			} else if srcField.Kind() == reflect.Pointer && dstField.Type().Kind() == reflect.Struct {
 				if !reflect.Value.IsNil(srcField) {
-					if err := recursiveMap(srcField.Elem().Interface(), dstField.Addr().Interface(), converterMap); err != nil {
-						log.Error(err)
+					if err := recursiveMap(ctx, srcField.Elem().Interface(), dstField.Addr().Interface(), converterMap); err != nil {
+						log.Error(ctx, err)
 						continue
 					}
 				}
@@ -74,13 +75,13 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 				converterKey := compositeKey{srcType: srcField.Type(), dstType: dstField.Type()}
 				if converter, ok := converterMap[converterKey]; ok {
 					if converted, err := converter(srcField.Interface()); err != nil {
-						log.Error(err)
+						log.Error(ctx, err)
 						continue
 					} else {
 						dstField.Set(reflect.ValueOf(converted))
 					}
 				} else {
-					log.Debugf("no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					log.Debugf(ctx, "no converter found for %s -> %s", srcField.Type(), dstField.Type())
 					continue
 				}
 			}
@@ -96,7 +97,7 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 			*/
 		} else {
 			if fieldName == "Model" {
-				if err := recursiveMap(srcField.Interface(), dst, converterMap); err != nil {
+				if err := recursiveMap(ctx, srcField.Interface(), dst, converterMap); err != nil {
 					return err
 				}
 			}
@@ -106,8 +107,8 @@ func recursiveMap(src interface{}, dst interface{}, converterMap ConverterMap) e
 
 	return nil
 }
-func Map(src interface{}, dst interface{}) error {
-	return recursiveMap(src, dst, ConverterMap{
+func Map(ctx context.Context, src interface{}, dst interface{}) error {
+	return recursiveMap(ctx, src, dst, ConverterMap{
 		{srcType: reflect.TypeOf((*uuid.UUID)(nil)).Elem(), dstType: reflect.TypeOf("")}: func(i interface{}) (interface{}, error) {
 			return i.(uuid.UUID).String(), nil
 		},

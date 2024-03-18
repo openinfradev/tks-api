@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -14,14 +15,14 @@ import (
 
 // Interfaces
 type ICloudAccountRepository interface {
-	Get(cloudAccountId uuid.UUID) (model.CloudAccount, error)
-	GetByName(organizationId string, name string) (model.CloudAccount, error)
-	GetByAwsAccountId(awsAccountId string) (model.CloudAccount, error)
-	Fetch(organizationId string, pg *pagination.Pagination) ([]model.CloudAccount, error)
-	Create(dto model.CloudAccount) (cloudAccountId uuid.UUID, err error)
-	Update(dto model.CloudAccount) (err error)
-	Delete(cloudAccountId uuid.UUID) (err error)
-	InitWorkflow(cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) (err error)
+	Get(ctx context.Context, cloudAccountId uuid.UUID) (model.CloudAccount, error)
+	GetByName(ctx context.Context, organizationId string, name string) (model.CloudAccount, error)
+	GetByAwsAccountId(ctx context.Context, awsAccountId string) (model.CloudAccount, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.CloudAccount, error)
+	Create(ctx context.Context, dto model.CloudAccount) (cloudAccountId uuid.UUID, err error)
+	Update(ctx context.Context, dto model.CloudAccount) (err error)
+	Delete(ctx context.Context, cloudAccountId uuid.UUID) (err error)
+	InitWorkflow(ctx context.Context, cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) (err error)
 }
 
 type CloudAccountRepository struct {
@@ -35,35 +36,35 @@ func NewCloudAccountRepository(db *gorm.DB) ICloudAccountRepository {
 }
 
 // Logics
-func (r *CloudAccountRepository) Get(cloudAccountId uuid.UUID) (out model.CloudAccount, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "id = ?", cloudAccountId)
+func (r *CloudAccountRepository) Get(ctx context.Context, cloudAccountId uuid.UUID) (out model.CloudAccount, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "id = ?", cloudAccountId)
 	if res.Error != nil {
 		return model.CloudAccount{}, res.Error
 	}
 	return
 }
 
-func (r *CloudAccountRepository) GetByName(organizationId string, name string) (out model.CloudAccount, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
+func (r *CloudAccountRepository) GetByName(ctx context.Context, organizationId string, name string) (out model.CloudAccount, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
 	if res.Error != nil {
 		return model.CloudAccount{}, res.Error
 	}
 	return
 }
 
-func (r *CloudAccountRepository) GetByAwsAccountId(awsAccountId string) (out model.CloudAccount, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "aws_account_id = ? AND status != ?", awsAccountId, domain.CloudAccountStatus_DELETED)
+func (r *CloudAccountRepository) GetByAwsAccountId(ctx context.Context, awsAccountId string) (out model.CloudAccount, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "aws_account_id = ? AND status != ?", awsAccountId, domain.CloudAccountStatus_DELETED)
 	if res.Error != nil {
 		return model.CloudAccount{}, res.Error
 	}
 	return
 }
 
-func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pagination) (out []model.CloudAccount, err error) {
+func (r *CloudAccountRepository) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.CloudAccount, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
-	_, res := pg.Fetch(r.db.Model(&model.CloudAccount{}).
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.CloudAccount{}).
 		Preload(clause.Associations).
 		Where("organization_id = ? AND status != ?", organizationId, domain.CloudAccountStatus_DELETED), &out)
 	if res.Error != nil {
@@ -72,7 +73,7 @@ func (r *CloudAccountRepository) Fetch(organizationId string, pg *pagination.Pag
 	return
 }
 
-func (r *CloudAccountRepository) Create(dto model.CloudAccount) (cloudAccountId uuid.UUID, err error) {
+func (r *CloudAccountRepository) Create(ctx context.Context, dto model.CloudAccount) (cloudAccountId uuid.UUID, err error) {
 	cloudAccount := model.CloudAccount{
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
@@ -83,15 +84,15 @@ func (r *CloudAccountRepository) Create(dto model.CloudAccount) (cloudAccountId 
 		CreatedIAM:     false,
 		Status:         domain.CloudAccountStatus_PENDING,
 		CreatorId:      dto.CreatorId}
-	res := r.db.Create(&cloudAccount)
+	res := r.db.WithContext(ctx).Create(&cloudAccount)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
 	return cloudAccount.ID, nil
 }
 
-func (r *CloudAccountRepository) Update(dto model.CloudAccount) (err error) {
-	res := r.db.Model(&model.CloudAccount{}).
+func (r *CloudAccountRepository) Update(ctx context.Context, dto model.CloudAccount) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.CloudAccount{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{"Description": dto.Description, "Resource": dto.Resource, "UpdatorId": dto.UpdatorId})
 	if res.Error != nil {
@@ -100,16 +101,16 @@ func (r *CloudAccountRepository) Update(dto model.CloudAccount) (err error) {
 	return nil
 }
 
-func (r *CloudAccountRepository) Delete(cloudAccountId uuid.UUID) (err error) {
-	res := r.db.Delete(&model.CloudAccount{}, "id = ?", cloudAccountId)
+func (r *CloudAccountRepository) Delete(ctx context.Context, cloudAccountId uuid.UUID) (err error) {
+	res := r.db.WithContext(ctx).Delete(&model.CloudAccount{}, "id = ?", cloudAccountId)
 	if res.Error != nil {
 		return res.Error
 	}
 	return nil
 }
 
-func (r *CloudAccountRepository) InitWorkflow(cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) error {
-	res := r.db.Model(&model.CloudAccount{}).
+func (r *CloudAccountRepository) InitWorkflow(ctx context.Context, cloudAccountId uuid.UUID, workflowId string, status domain.CloudAccountStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.CloudAccount{}).
 		Where("ID = ?", cloudAccountId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 

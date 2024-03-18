@@ -36,7 +36,7 @@ func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uui
 			dto.UserId = &userId
 		}
 	}
-	auditId, err = u.repo.Create(dto)
+	auditId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -44,7 +44,7 @@ func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uui
 }
 
 func (u *AuditUsecase) Get(ctx context.Context, auditId uuid.UUID) (res model.Audit, err error) {
-	res, err = u.repo.Get(auditId)
+	res, err = u.repo.Get(ctx, auditId)
 	if err != nil {
 		return model.Audit{}, err
 	}
@@ -52,7 +52,7 @@ func (u *AuditUsecase) Get(ctx context.Context, auditId uuid.UUID) (res model.Au
 }
 
 func (u *AuditUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (audits []model.Audit, err error) {
-	audits, err = u.repo.Fetch(pg)
+	audits, err = u.repo.Fetch(ctx, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (u *AuditUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (au
 }
 
 func (u *AuditUsecase) Delete(ctx context.Context, dto model.Audit) (err error) {
-	err = u.repo.Delete(dto.ID)
+	err = u.repo.Delete(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "", "")
 	}

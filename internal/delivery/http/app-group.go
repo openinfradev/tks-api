@@ -45,8 +45,8 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 	}
 
 	var dto model.AppGroup
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	appGroupId, err := h.usecase.Create(r.Context(), dto)
@@ -96,14 +96,14 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetAppGroupsResponse
 	out.AppGroups = make([]domain.AppGroupResponse, len(appGroups))
 	for i, appGroup := range appGroups {
-		if err := serializer.Map(appGroup, &out.AppGroups[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), appGroup, &out.AppGroups[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -139,8 +139,8 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetAppGroupResponse
-	if err := serializer.Map(appGroup, &out.AppGroup); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), appGroup, &out.AppGroup); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -173,7 +173,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 
 	err := h.usecase.Delete(r.Context(), appGroupId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to delete appGroup err : ", err)
+		log.Error(r.Context(), "Failed to delete appGroup err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -217,7 +217,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 
 	applications, err := h.usecase.GetApplications(r.Context(), appGroupId, applicationType)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get applications err : ", err)
+		log.Error(r.Context(), "Failed to get applications err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -225,8 +225,8 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 	var out domain.GetApplicationsResponse
 	out.Applications = make([]domain.ApplicationResponse, len(applications))
 	for i, application := range applications {
-		if err := serializer.Map(application, &out.Applications[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), application, &out.Applications[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -266,14 +266,14 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 	}
 
 	var dto model.Application
-	if err := serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 	dto.AppGroupId = appGroupId
 
 	err = h.usecase.UpdateApplication(r.Context(), dto)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to update application err : ", err)
+		log.Error(r.Context(), "Failed to update application err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}

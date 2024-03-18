@@ -1,12 +1,15 @@
 package database
 
 import (
+	"context"
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	"os"
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal/delivery/api"
 
+	internal_gorm "github.com/openinfradev/tks-api/internal/gorm"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -37,9 +40,10 @@ func InitDB() (*gorm.DB, error) {
 	default:
 		level = logger.Silent
 	}
+	newLogger := internal_gorm.NewGormLogger().LogMode(level)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(level),
+		Logger: newLogger,
 	})
 	if err != nil {
 		return nil, err
@@ -174,7 +178,11 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	}
 
 	//
-	eps, err := repoFactory.Endpoint.List(nil)
+
+	ctx := context.Background()
+	pg := pagination.NewPagination(nil)
+	pg.Limit = 1000
+	eps, err := repoFactory.Endpoint.List(ctx, pg)
 	if err != nil {
 		return err
 	}
@@ -185,7 +193,7 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	}
 	for _, ep := range api.ApiMap {
 		if _, ok := storedEps[ep.Name]; !ok {
-			if err := repoFactory.Endpoint.Create(&model.Endpoint{
+			if err := repoFactory.Endpoint.Create(ctx, &model.Endpoint{
 				Name:  ep.Name,
 				Group: ep.Group,
 			}); err != nil {

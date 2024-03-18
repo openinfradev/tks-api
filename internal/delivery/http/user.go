@@ -80,7 +80,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -88,16 +88,16 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(input, &user); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
+		log.Error(r.Context(), err)
 	}
 	user.Organization = model.Organization{
 		ID: organizationId,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -110,7 +110,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	resUser, err := u.usecase.Create(ctx, &user)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusConflict {
 			ErrorJSON(w, r, httpErrors.NewConflictError(err, "", ""))
 			return
@@ -121,8 +121,8 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.CreateUserResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusCreated, out)
@@ -156,7 +156,7 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -168,8 +168,8 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetUserResponse
-	if err = serializer.Map(*user, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -203,7 +203,7 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	pg := pagination.NewPagination(&urlParams)
 	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -211,13 +211,13 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	var out domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		if err = serializer.Map(user, &out.Users[i]); err != nil {
-			log.ErrorWithContext(r.Context(), err)
+		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
+			log.Error(r.Context(), err)
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -254,7 +254,7 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -292,7 +292,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	input := domain.UpdateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -300,7 +300,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(input, &user); err != nil {
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -309,9 +309,9 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	user.AccountId = accountId
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -334,8 +334,8 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateUserResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -368,7 +368,7 @@ func (u UserHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := u.usecase.ResetPasswordByAccountId(accountId, organizationId)
+	err := u.usecase.ResetPasswordByAccountId(r.Context(), accountId, organizationId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -395,14 +395,14 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.usecase.Get(requestUserInfo.GetUserId())
+	user, err := u.usecase.Get(r.Context(), requestUserInfo.GetUserId())
 	if err != nil {
 		ErrorJSON(w, r, err)
 	}
 
 	var out domain.GetMyProfileResponse
-	if err = serializer.Map(*user, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -438,23 +438,23 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	input := domain.UpdateMyProfileRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
+	err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.Password, requestUserInfo.GetOrganizationId())
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(input, &user); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -471,8 +471,8 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.UpdateMyProfileResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -506,7 +506,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.usecase.Get(requestUserInfo.GetUserId())
+	user, err := u.usecase.Get(r.Context(), requestUserInfo.GetUserId())
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -522,7 +522,7 @@ func (u UserHandler) UpdateMyPassword(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -577,7 +577,7 @@ func (u UserHandler) DeleteMyProfile(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request context"), "A_INVALID_TOKEN", ""))
 		return
 	}
-	if err := u.usecase.Delete(requestUserInfo.GetUserId(), requestUserInfo.GetOrganizationId()); err != nil {
+	if err := u.usecase.Delete(r.Context(), requestUserInfo.GetUserId(), requestUserInfo.GetOrganizationId()); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -690,7 +690,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 	input := admin_domain.CreateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -704,7 +704,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 			return
 		}
-		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -719,9 +719,9 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		Description: input.Description,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -737,11 +737,11 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 
-	user.Password = u.usecase.GenerateRandomPassword()
+	user.Password = u.usecase.GenerateRandomPassword(r.Context())
 
 	resUser, err := u.usecase.Create(r.Context(), &user)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusConflict {
 			ErrorJSON(w, r, httpErrors.NewConflictError(err, "", ""))
 			return
@@ -753,7 +753,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 
 	err = u.usecase.SendEmailForTemporaryPassword(r.Context(), user.AccountId, organizationId, user.Password)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -793,7 +793,7 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 	pg := pagination.NewPagination(&urlParams)
 	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -801,13 +801,13 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 	var out admin_domain.ListUserResponse
 	out.Users = make([]domain.ListUserBody, len(*users))
 	for i, user := range *users {
-		if err = serializer.Map(user, &out.Users[i]); err != nil {
-			log.ErrorWithContext(r.Context(), err)
+		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
+			log.Error(r.Context(), err)
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -839,7 +839,7 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -851,8 +851,8 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out admin_domain.GetUserResponse
-	if err = serializer.Map(*user, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -889,7 +889,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 	if organizationId != "master" {
 		err := UnmarshalRequestInput(r, &input)
 		if err != nil {
-			log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+			log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 			ErrorJSON(w, r, err)
 			return
@@ -901,7 +901,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 			return
 		}
-		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -914,7 +914,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 			return
 		}
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -952,7 +952,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 	input := admin_domain.UpdateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 
 		ErrorJSON(w, r, err)
 		return
@@ -966,7 +966,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("user not found in request"), "A_INVALID_TOKEN", ""))
 			return
 		}
-		err = u.usecase.ValidateAccount(requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
+		err = u.usecase.ValidateAccount(r.Context(), requestUserInfo.GetUserId(), input.AdminPassword, requestUserInfo.GetOrganizationId())
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -985,9 +985,9 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(organizationId, nil)
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
 	if err != nil {
-		log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1010,8 +1010,8 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out admin_domain.UpdateUserResponse
-	if err = serializer.Map(*resUser, &out.User); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
 		return
 	}

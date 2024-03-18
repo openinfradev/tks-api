@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 
 	"gorm.io/datatypes"
@@ -14,15 +15,15 @@ import (
 
 // Interfaces
 type IAppGroupRepository interface {
-	Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (res []model.AppGroup, err error)
-	Get(id domain.AppGroupId) (model.AppGroup, error)
-	Create(dto model.AppGroup) (id domain.AppGroupId, err error)
-	Update(dto model.AppGroup) (err error)
-	Delete(id domain.AppGroupId) error
-	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (applications []model.Application, err error)
-	UpsertApplication(dto model.Application) error
-	InitWorkflow(appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error
-	InitWorkflowDescription(clusterId domain.ClusterId) error
+	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (res []model.AppGroup, err error)
+	Get(ctx context.Context, id domain.AppGroupId) (model.AppGroup, error)
+	Create(ctx context.Context, dto model.AppGroup) (id domain.AppGroupId, err error)
+	Update(ctx context.Context, dto model.AppGroup) (err error)
+	Delete(ctx context.Context, id domain.AppGroupId) error
+	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (applications []model.Application, err error)
+	UpsertApplication(ctx context.Context, dto model.Application) error
+	InitWorkflow(ctx context.Context, appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error
+	InitWorkflowDescription(ctx context.Context, clusterId domain.ClusterId) error
 }
 
 type AppGroupRepository struct {
@@ -36,12 +37,12 @@ func NewAppGroupRepository(db *gorm.DB) IAppGroupRepository {
 }
 
 // Logics
-func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (out []model.AppGroup, err error) {
+func (r *AppGroupRepository) Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (out []model.AppGroup, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Model(&model.AppGroup{}).
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("cluster_id = ?", clusterId), &out)
 	if res.Error != nil {
 		return nil, res.Error
@@ -50,15 +51,15 @@ func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pa
 	return out, nil
 }
 
-func (r *AppGroupRepository) Get(id domain.AppGroupId) (out model.AppGroup, err error) {
-	res := r.db.First(&out, "id = ?", id)
+func (r *AppGroupRepository) Get(ctx context.Context, id domain.AppGroupId) (out model.AppGroup, err error) {
+	res := r.db.WithContext(ctx).First(&out, "id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
 		return model.AppGroup{}, fmt.Errorf("Not found appGroup for %s", id)
 	}
 	return out, nil
 }
 
-func (r *AppGroupRepository) Create(dto model.AppGroup) (appGroupId domain.AppGroupId, err error) {
+func (r *AppGroupRepository) Create(ctx context.Context, dto model.AppGroup) (appGroupId domain.AppGroupId, err error) {
 	appGroup := model.AppGroup{
 		ClusterId:    dto.ClusterId,
 		AppGroupType: dto.AppGroupType,
@@ -68,17 +69,17 @@ func (r *AppGroupRepository) Create(dto model.AppGroup) (appGroupId domain.AppGr
 		CreatorId:    dto.CreatorId,
 		UpdatorId:    nil,
 	}
-	res := r.db.Create(&appGroup)
+	res := r.db.WithContext(ctx).Create(&appGroup)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 
 	return appGroup.ID, nil
 }
 
-func (r *AppGroupRepository) Update(dto model.AppGroup) (err error) {
-	res := r.db.Model(&model.AppGroup{}).
+func (r *AppGroupRepository) Update(ctx context.Context, dto model.AppGroup) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{
 			"ClusterId":    dto.ClusterId,
@@ -93,24 +94,24 @@ func (r *AppGroupRepository) Update(dto model.AppGroup) (err error) {
 	return nil
 }
 
-func (r *AppGroupRepository) Delete(id domain.AppGroupId) error {
-	res := r.db.Unscoped().Delete(&model.AppGroup{}, "id = ?", id)
+func (r *AppGroupRepository) Delete(ctx context.Context, id domain.AppGroupId) error {
+	res := r.db.WithContext(ctx).Unscoped().Delete(&model.AppGroup{}, "id = ?", id)
 	if res.Error != nil {
 		return fmt.Errorf("could not delete appGroup %s", id)
 	}
 	return nil
 }
 
-func (r *AppGroupRepository) GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []model.Application, err error) {
-	res := r.db.Where("app_group_id = ? AND type = ?", id, applicationType).Find(&out)
+func (r *AppGroupRepository) GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []model.Application, err error) {
+	res := r.db.WithContext(ctx).Where("app_group_id = ? AND type = ?", id, applicationType).Find(&out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	return out, nil
 }
 
-func (r *AppGroupRepository) UpsertApplication(dto model.Application) error {
-	res := r.db.Where(model.Application{
+func (r *AppGroupRepository) UpsertApplication(ctx context.Context, dto model.Application) error {
+	res := r.db.WithContext(ctx).Where(model.Application{
 		AppGroupId: dto.AppGroupId,
 		Type:       dto.Type,
 	}).
@@ -125,8 +126,8 @@ func (r *AppGroupRepository) UpsertApplication(dto model.Application) error {
 	return nil
 }
 
-func (r *AppGroupRepository) InitWorkflow(appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error {
-	res := r.db.Model(&model.AppGroup{}).
+func (r *AppGroupRepository) InitWorkflow(ctx context.Context, appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("ID = ?", appGroupId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId, "StatusDesc": ""})
 
@@ -137,8 +138,8 @@ func (r *AppGroupRepository) InitWorkflow(appGroupId domain.AppGroupId, workflow
 	return nil
 }
 
-func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId) error {
-	res := r.db.Model(&model.AppGroup{}).
+func (r *AppGroupRepository) InitWorkflowDescription(ctx context.Context, clusterId domain.ClusterId) error {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("cluster_id = ?", clusterId).
 		Updates(map[string]interface{}{"WorkflowId": "", "StatusDesc": ""})
 

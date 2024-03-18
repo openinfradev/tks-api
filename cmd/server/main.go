@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -72,7 +73,7 @@ func init() {
 	flag.Parse()
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		log.Error(err)
+		log.Error(context.Background(), err)
 	}
 
 	address := viper.GetString("external-address")
@@ -102,11 +103,12 @@ func init() {
 // @host		tks-api-dev.taco-cat.xyz
 // @BasePath	/api/1.0/
 func main() {
-	log.Info("*** Arguments *** ")
+	ctx := context.Background()
+	log.Info(ctx, "*** Arguments *** ")
 	for i, s := range viper.AllSettings() {
-		log.Info(fmt.Sprintf("%s : %v", i, s))
+		log.Info(ctx, fmt.Sprintf("%s : %v", i, s))
 	}
-	log.Info("****************** ")
+	log.Info(ctx, "****************** ")
 
 	// For web service
 	asset := route.NewAssetHandler(viper.GetString("web-root"))
@@ -114,7 +116,7 @@ func main() {
 	// Initialize database
 	db, err := database.InitDB()
 	if err != nil {
-		log.Fatal("cannot connect gormDB")
+		log.Fatal(ctx, "cannot connect gormDB")
 	}
 
 	// Ensure default rows in database
@@ -125,12 +127,12 @@ func main() {
 	if viper.GetString("argo-address") == "" || viper.GetInt("argo-port") == 0 {
 		argoClient, err = argowf.NewMock()
 		if err != nil {
-			log.Fatal("failed to create argowf client : ", err)
+			log.Fatal(ctx, "failed to create argowf client : ", err)
 		}
 	} else {
 		argoClient, err = argowf.New(viper.GetString("argo-address"), viper.GetInt("argo-port"), false, "")
 		if err != nil {
-			log.Fatal("failed to create argowf client : ", err)
+			log.Fatal(ctx, "failed to create argowf client : ", err)
 		}
 	}
 
@@ -141,20 +143,20 @@ func main() {
 		ClientSecret:  viper.GetString("keycloak-client-secret"),
 	})
 
-	err = keycloak.InitializeKeycloak()
+	err = keycloak.InitializeKeycloak(ctx)
 	if err != nil {
-		log.Fatal("failed to initialize keycloak : ", err)
+		log.Fatal(ctx, "failed to initialize keycloak : ", err)
 	}
-	err = mail.Initialize()
+	err = mail.Initialize(ctx)
 	if err != nil {
-		log.Fatal("failed to initialize ses : ", err)
+		log.Fatal(ctx, "failed to initialize ses : ", err)
 	}
 
 	route := route.SetupRouter(db, argoClient, keycloak, asset)
 
-	log.Info("Starting server on ", viper.GetInt("port"))
+	log.Info(ctx, "Starting server on ", viper.GetInt("port"))
 	err = http.ListenAndServe("0.0.0.0:"+strconv.Itoa(viper.GetInt("port")), route)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(ctx, err)
 	}
 }

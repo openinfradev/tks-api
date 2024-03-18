@@ -20,7 +20,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 			return
 		}
 
-		storedUser, err := repo.User.GetByUuid(requestUserInfo.GetUserId())
+		storedUser, err := repo.User.GetByUuid(r.Context(), requestUserInfo.GetUserId())
 		if err != nil {
 			internalHttp.ErrorJSON(w, r, err)
 			return

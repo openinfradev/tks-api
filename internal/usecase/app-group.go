@@ -43,7 +43,7 @@ func NewAppGroupUsecase(r repository.Repository, argoClient argowf.ArgoClient) I
 }
 
 func (u *AppGroupUsecase) Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (out []model.AppGroup, err error) {
-	out, err = u.repo.Fetch(clusterId, pg)
+	out, err = u.repo.Fetch(ctx, clusterId, pg)
 	if err != nil {
 		return nil, err
 	}
@@ -58,12 +58,12 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 
-	cluster, err := u.clusterRepo.Get(dto.ClusterId)
+	cluster, err := u.clusterRepo.Get(ctx, dto.ClusterId)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
 	}
 
-	resAppGroups, err := u.repo.Fetch(dto.ClusterId, nil)
+	resAppGroups, err := u.repo.Fetch(ctx, dto.ClusterId, nil)
 	if err != nil {
 		return "", httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_APPGROUP", "")
 	}
@@ -83,7 +83,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 	tksObjectStore := "minio"
 	if cluster.CloudService != domain.CloudService_BYOH {
 		tksObjectStore = "s3"
-		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+		cloudAccounts, err := u.cloudAccountRepo.Fetch(ctx, cluster.OrganizationId, nil)
 		if err != nil {
 			return "", httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 		}
@@ -107,9 +107,9 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 	}
 
 	if dto.ID == "" {
-		dto.ID, err = u.repo.Create(dto)
+		dto.ID, err = u.repo.Create(ctx, dto)
 	} else {
-		err = u.repo.Update(dto)
+		err = u.repo.Update(ctx, dto)
 	}
 	if err != nil {
 		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CREATE_APPGROUP", "")
@@ -142,17 +142,17 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 		workflowTemplate = "tks-service-mesh"
 
 	default:
-		log.ErrorWithContext(ctx, "invalid appGroup type ", dto.AppGroupType.String())
+		log.Error(ctx, "invalid appGroup type ", dto.AppGroupType.String())
 		return "", errors.Wrap(err, fmt.Sprintf("Invalid appGroup type. %s", dto.AppGroupType.String()))
 	}
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflowTemplate, opts)
 	if err != nil {
-		log.ErrorWithContext(ctx, "failed to submit argo workflow template. err : ", err)
+		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
 		return "", httpErrors.NewInternalServerError(err, "AG_FAILED_TO_CALL_WORKFLOW", "")
 	}
 
-	if err := u.repo.InitWorkflow(dto.ID, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, dto.ID, workflowId, domain.AppGroupStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize appGroup status")
 	}
 
@@ -160,7 +160,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 }
 
 func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out model.AppGroup, err error) {
-	appGroup, err := u.repo.Get(id)
+	appGroup, err := u.repo.Get(ctx, id)
 	if err != nil {
 		return model.AppGroup{}, err
 	}
@@ -168,11 +168,11 @@ func (u *AppGroupUsecase) Get(ctx context.Context, id domain.AppGroupId) (out mo
 }
 
 func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err error) {
-	appGroup, err := u.repo.Get(id)
+	appGroup, err := u.repo.Get(ctx, id)
 	if err != nil {
 		return fmt.Errorf("No appGroup for deletiing : %s", id)
 	}
-	cluster, err := u.clusterRepo.Get(appGroup.ClusterId)
+	cluster, err := u.clusterRepo.Get(ctx, appGroup.ClusterId)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "AG_NOT_FOUND_CLUSTER", "")
 	}
@@ -183,7 +183,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 	tksObjectStore := "minio"
 	if cluster.CloudService != domain.CloudService_BYOH {
 		tksObjectStore = "s3"
-		cloudAccounts, err := u.cloudAccountRepo.Fetch(cluster.OrganizationId, nil)
+		cloudAccounts, err := u.cloudAccountRepo.Fetch(ctx, cluster.OrganizationId, nil)
 		if err != nil {
 			return httpErrors.NewBadRequestError(fmt.Errorf("Failed to get cloudAccounts"), "", "")
 		}
@@ -235,14 +235,14 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 		"object_store=" + tksObjectStore,
 	}
 
-	workflowId, err := u.argo.SumbitWorkflowFromWftpl(workflowTemplate, opts)
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflowTemplate, opts)
 	if err != nil {
 		return fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 
-	log.DebugWithContext(ctx, "submited workflow name : ", workflowId)
+	log.Debug(ctx, "submited workflow name : ", workflowId)
 
-	if err := u.repo.InitWorkflow(id, workflowId, domain.AppGroupStatus_DELETING); err != nil {
+	if err := u.repo.InitWorkflow(ctx, id, workflowId, domain.AppGroupStatus_DELETING); err != nil {
 		return fmt.Errorf("Failed to initialize appGroup status. err : %s", err)
 	}
 
@@ -257,7 +257,7 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 }
 
 func (u *AppGroupUsecase) GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []model.Application, err error) {
-	out, err = u.repo.GetApplications(id, applicationType)
+	out, err = u.repo.GetApplications(ctx, id, applicationType)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +265,7 @@ func (u *AppGroupUsecase) GetApplications(ctx context.Context, id domain.AppGrou
 }
 
 func (u *AppGroupUsecase) UpdateApplication(ctx context.Context, dto model.Application) (err error) {
-	err = u.repo.UpsertApplication(dto)
+	err = u.repo.UpsertApplication(ctx, dto)
 	if err != nil {
 		return err
 	}

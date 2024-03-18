@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -17,20 +18,20 @@ import (
 // Interfaces
 type IClusterRepository interface {
 	WithTrx(*gorm.DB) IClusterRepository
-	Fetch(pg *pagination.Pagination) (res []model.Cluster, err error)
-	FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *pagination.Pagination) (res []model.Cluster, err error)
-	FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (res []model.Cluster, err error)
-	Get(id domain.ClusterId) (model.Cluster, error)
-	GetByName(organizationId string, name string) (model.Cluster, error)
-	Create(dto model.Cluster) (clusterId domain.ClusterId, err error)
-	Update(dto model.Cluster) (err error)
-	Delete(id domain.ClusterId) error
+	Fetch(ctx context.Context, pg *pagination.Pagination) (res []model.Cluster, err error)
+	FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (res []model.Cluster, err error)
+	FetchByOrganizationId(ctx context.Context, organizationId string, userId uuid.UUID, pg *pagination.Pagination) (res []model.Cluster, err error)
+	Get(ctx context.Context, id domain.ClusterId) (model.Cluster, error)
+	GetByName(ctx context.Context, organizationId string, name string) (model.Cluster, error)
+	Create(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
+	Update(ctx context.Context, dto model.Cluster) (err error)
+	Delete(ctx context.Context, id domain.ClusterId) error
 
-	InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
-	InitWorkflowDescription(clusterId domain.ClusterId) error
+	InitWorkflow(ctx context.Context, clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error
+	InitWorkflowDescription(ctx context.Context, clusterId domain.ClusterId) error
 
-	SetFavorite(clusterId domain.ClusterId, userId uuid.UUID) error
-	DeleteFavorite(clusterId domain.ClusterId, userId uuid.UUID) error
+	SetFavorite(ctx context.Context, clusterId domain.ClusterId, userId uuid.UUID) error
+	DeleteFavorite(ctx context.Context, clusterId domain.ClusterId, userId uuid.UUID) error
 }
 
 type ClusterRepository struct {
@@ -48,19 +49,19 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 // Logics
 func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 	if trxHandle == nil {
-		log.Info("Transaction Database not found")
+		log.Info(nil, "Transaction Database not found")
 		return r
 	}
 	r.tx = trxHandle
 	return r
 }
 
-func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []model.Cluster, err error) {
+func (r *ClusterRepository) Fetch(ctx context.Context, pg *pagination.Pagination) (out []model.Cluster, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Model(&model.Cluster{}).Preload(clause.Associations), &out)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.Cluster{}).Preload(clause.Associations), &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -68,12 +69,12 @@ func (r *ClusterRepository) Fetch(pg *pagination.Pagination) (out []model.Cluste
 	return
 }
 
-func (r *ClusterRepository) FetchByOrganizationId(organizationId string, userId uuid.UUID, pg *pagination.Pagination) (out []model.Cluster, err error) {
+func (r *ClusterRepository) FetchByOrganizationId(ctx context.Context, organizationId string, userId uuid.UUID, pg *pagination.Pagination) (out []model.Cluster, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.Model(&model.Cluster{}).
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.Cluster{}).
 		Preload(clause.Associations).
 		Joins("left outer join cluster_favorites on clusters.id = cluster_favorites.cluster_id AND cluster_favorites.user_id = ?", userId).
 		Where("organization_id = ? AND status != ?", organizationId, domain.ClusterStatus_DELETED).
@@ -84,11 +85,11 @@ func (r *ClusterRepository) FetchByOrganizationId(organizationId string, userId 
 	return
 }
 
-func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []model.Cluster, err error) {
+func (r *ClusterRepository) FetchByCloudAccountId(ctx context.Context, cloudAccountId uuid.UUID, pg *pagination.Pagination) (out []model.Cluster, err error) {
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
-	_, res := pg.Fetch(r.db.Model(&model.Cluster{}).Preload("CloudAccount").
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.Cluster{}).Preload("CloudAccount").
 		Where("cloud_account_id = ?", cloudAccountId), &out)
 	if res.Error != nil {
 		return nil, res.Error
@@ -96,23 +97,23 @@ func (r *ClusterRepository) FetchByCloudAccountId(cloudAccountId uuid.UUID, pg *
 	return
 }
 
-func (r *ClusterRepository) Get(id domain.ClusterId) (out model.Cluster, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "id = ?", id)
+func (r *ClusterRepository) Get(ctx context.Context, id domain.ClusterId) (out model.Cluster, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "id = ?", id)
 	if res.Error != nil {
 		return model.Cluster{}, res.Error
 	}
 	return
 }
 
-func (r *ClusterRepository) GetByName(organizationId string, name string) (out model.Cluster, err error) {
-	res := r.db.Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
+func (r *ClusterRepository) GetByName(ctx context.Context, organizationId string, name string) (out model.Cluster, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "organization_id = ? AND name = ?", organizationId, name)
 	if res.Error != nil {
 		return model.Cluster{}, res.Error
 	}
 	return
 }
 
-func (r *ClusterRepository) Create(dto model.Cluster) (clusterId domain.ClusterId, err error) {
+func (r *ClusterRepository) Create(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error) {
 	var cloudAccountId *uuid.UUID
 	cloudAccountId = dto.CloudAccountId
 	if dto.CloudService == domain.CloudService_BYOH || *dto.CloudAccountId == uuid.Nil {
@@ -147,25 +148,25 @@ func (r *ClusterRepository) Create(dto model.Cluster) (clusterId domain.ClusterI
 		cluster.ID = dto.ID
 	}
 
-	res := r.db.Create(&cluster)
+	res := r.db.WithContext(ctx).Create(&cluster)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 
 	return cluster.ID, nil
 }
 
-func (r *ClusterRepository) Delete(clusterId domain.ClusterId) error {
-	res := r.db.Unscoped().Delete(&model.Cluster{}, "id = ?", clusterId)
+func (r *ClusterRepository) Delete(ctx context.Context, clusterId domain.ClusterId) error {
+	res := r.db.WithContext(ctx).Unscoped().Delete(&model.Cluster{}, "id = ?", clusterId)
 	if res.Error != nil {
 		return fmt.Errorf("could not delete cluster for clusterId %s", clusterId)
 	}
 	return nil
 }
 
-func (r *ClusterRepository) Update(dto model.Cluster) error {
-	res := r.db.Model(&model.Cluster{}).
+func (r *ClusterRepository) Update(ctx context.Context, dto model.Cluster) error {
+	res := r.db.WithContext(ctx).Model(&model.Cluster{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{"Description": dto.Description, "UpdatorId": dto.UpdatorId})
 	if res.Error != nil {
@@ -174,8 +175,8 @@ func (r *ClusterRepository) Update(dto model.Cluster) error {
 	return nil
 }
 
-func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error {
-	res := r.db.Model(&model.Cluster{}).
+func (r *ClusterRepository) InitWorkflow(ctx context.Context, clusterId domain.ClusterId, workflowId string, status domain.ClusterStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.Cluster{}).
 		Where("ID = ?", clusterId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId, "StatusDesc": ""})
 
@@ -186,8 +187,8 @@ func (r *ClusterRepository) InitWorkflow(clusterId domain.ClusterId, workflowId 
 	return nil
 }
 
-func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) error {
-	res := r.db.Model(&model.AppGroup{}).
+func (r *ClusterRepository) InitWorkflowDescription(ctx context.Context, clusterId domain.ClusterId) error {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("id = ?", clusterId).
 		Updates(map[string]interface{}{"WorkflowId": "", "StatusDesc": ""})
 
@@ -198,11 +199,11 @@ func (r *ClusterRepository) InitWorkflowDescription(clusterId domain.ClusterId) 
 	return nil
 }
 
-func (r *ClusterRepository) SetFavorite(clusterId domain.ClusterId, userId uuid.UUID) error {
+func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.ClusterId, userId uuid.UUID) error {
 	var clusterFavorites []model.ClusterFavorite
-	res := r.db.Where("cluster_id = ? AND user_id = ?", clusterId, userId).Find(&clusterFavorites)
+	res := r.db.WithContext(ctx).Where("cluster_id = ? AND user_id = ?", clusterId, userId).Find(&clusterFavorites)
 	if res.Error != nil {
-		log.Info(res.Error)
+		log.Info(ctx, res.Error)
 		return res.Error
 	}
 
@@ -216,17 +217,17 @@ func (r *ClusterRepository) SetFavorite(clusterId domain.ClusterId, userId uuid.
 	}
 	resCreate := r.db.Create(&clusterFavorite)
 	if resCreate.Error != nil {
-		log.Error(resCreate.Error)
+		log.Error(ctx, resCreate.Error)
 		return fmt.Errorf("could not create cluster favorite for clusterId %s, userId %s", clusterId, userId)
 	}
 
 	return nil
 }
 
-func (r *ClusterRepository) DeleteFavorite(clusterId domain.ClusterId, userId uuid.UUID) error {
-	res := r.db.Unscoped().Delete(&model.ClusterFavorite{}, "cluster_id = ? AND user_id = ?", clusterId, userId)
+func (r *ClusterRepository) DeleteFavorite(ctx context.Context, clusterId domain.ClusterId, userId uuid.UUID) error {
+	res := r.db.WithContext(ctx).Unscoped().Delete(&model.ClusterFavorite{}, "cluster_id = ? AND user_id = ?", clusterId, userId)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return fmt.Errorf("could not delete cluster favorite for clusterId %s, userId %s", clusterId, userId)
 	}
 	return nil

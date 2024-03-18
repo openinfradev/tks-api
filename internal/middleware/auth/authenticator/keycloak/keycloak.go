@@ -40,7 +40,7 @@ func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authentic
 	if len(token) == 0 {
 		// The space before the token case
 		if len(parts) == 3 {
-			log.Warn("the provided Authorization header contains extra space before the bearer token, and is ignored")
+			log.Warn(r.Context(), "the provided Authorization header contains extra space before the bearer token, and is ignored")
 		}
 		return nil, false, fmt.Errorf("token is empty")
 	}
@@ -59,9 +59,9 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("organization is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	isActive, err := a.kc.VerifyAccessToken(token, organizationId)
+	isActive, err := a.kc.VerifyAccessToken(r.Context(), token, organizationId)
 	if err != nil {
-		log.Errorf("failed to verify access token: %v", err)
+		log.Errorf(r.Context(), "failed to verify access token: %v", err)
 		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
 	}
 	if !isActive {
@@ -71,14 +71,14 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	// tks role extraction
 	roleOrganizationMapping := make(map[string]string)
 	if roles, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["tks-role"]; !ok {
-		log.Errorf("tks-role is not found in token")
+		log.Errorf(r.Context(), "tks-role is not found in token")
 
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("tks-role is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	} else {
 		for _, role := range roles.([]interface{}) {
 			slice := strings.Split(role.(string), "@")
 			if len(slice) != 2 {
-				log.Errorf("invalid tks-role format: %v", role)
+				log.Errorf(r.Context(), "invalid tks-role format: %v", role)
 
 				return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid tks-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 			}
@@ -94,7 +94,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		for _, role := range roles.([]interface{}) {
 			slice := strings.Split(role.(string), "@")
 			if len(slice) != 2 {
-				log.Errorf("invalid project-role format: %v", role)
+				log.Errorf(r.Context(), "invalid project-role format: %v", role)
 
 				return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid project-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 			}
@@ -106,7 +106,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 
 	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
 	if err != nil {
-		log.Errorf("failed to verify access token: %v", err)
+		log.Errorf(r.Context(), "failed to verify access token: %v", err)
 
 		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
 	}

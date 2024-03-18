@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -94,14 +95,14 @@ func NewAppServeAppHandler(h usecase.Usecase) *AppServeAppHandler {
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId"), "C_INVALID_PROJECT_ID", ""))
 		return
@@ -117,12 +118,12 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	(appReq).SetDefaultValue()
 
 	var app model.AppServeApp
-	if err = serializer.Map(appReq, &app); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &app); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	log.Infof("Processing CREATE request for app '%s'...", app.Name)
+	log.Infof(r.Context(), "Processing CREATE request for app '%s'...", app.Name)
 
 	now := time.Now()
 	app.OrganizationId = organizationId
@@ -133,7 +134,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	app.CreatedAt = now
 
 	var task model.AppServeAppTask
-	if err = serializer.Map(appReq, &task); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &task); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -152,7 +153,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	exist, err := h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, app.Name)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -173,17 +174,17 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 			r1 := rand.New(src)
 			ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
 
-			nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
+			nsExist, err = h.usecase.IsAppServeAppNamespaceExist(r.Context(), app.TargetClusterId, ns)
 			if err != nil {
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
 		}
 
-		log.Infof("Created new namespace: %s", ns)
+		log.Infof(r.Context(), "Created new namespace: %s", ns)
 		app.Namespace = ns
 	} else {
-		log.Infof("Using existing namespace: %s", app.Namespace)
+		log.Infof(r.Context(), "Using existing namespace: %s", app.Namespace)
 	}
 
 	// Validate port param for springboot app
@@ -201,14 +202,14 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	_, _, err = h.usecase.CreateAppServeApp(&app)
+	_, _, err = h.usecase.CreateAppServeApp(r.Context(), &app)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.CreateAppServeAppResponse
-	if err = serializer.Map(app, &out); err != nil {
+	if err = serializer.Map(r.Context(), app, &out); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -252,14 +253,14 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	showAll, err := strconv.ParseBool(showAllParam)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to convert showAll params. Err: ", err)
+		log.Error(r.Context(), "Failed to convert showAll params. Err: ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 	pg := pagination.NewPagination(&urlParams)
-	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
+	apps, err := h.usecase.GetAppServeApps(r.Context(), organizationId, showAll, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
+		log.Error(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -267,14 +268,14 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 	var out domain.GetAppServeAppsResponse
 	out.AppServeApps = make([]domain.AppServeAppResponse, len(apps))
 	for i, app := range apps {
-		if err := serializer.Map(app, &out.AppServeApps[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), app, &out.AppServeApps[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -314,7 +315,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
 		return
 	}
-	app, err := h.usecase.GetAppServeAppById(appId)
+	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -337,8 +338,8 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	app.AppServeAppTasks = newTasks
 
 	var out domain.GetAppServeAppResponse
-	if err := serializer.Map(app, &out.AppServeApp); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), app, &out.AppServeApp); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	// NOTE: makeStages function's been changed to use task instead of app
@@ -376,7 +377,7 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
 		return
 	}
-	task, err := h.usecase.GetAppServeAppLatestTask(appId)
+	task, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -387,8 +388,8 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), task, &out.AppServeAppTask); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -411,7 +412,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%s]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%s]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
 		return
@@ -424,7 +425,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	}
 	fmt.Printf("stackId = [%s]\n", stackId)
 
-	numApps, err := h.usecase.GetNumOfAppsOnStack(organizationId, stackId)
+	numApps, err := h.usecase.GetNumOfAppsOnStack(r.Context(), organizationId, stackId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -467,9 +468,9 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
 
-	tasks, err := h.usecase.GetAppServeAppTasks(appId, pg)
+	tasks, err := h.usecase.GetAppServeAppTasks(r.Context(), appId, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get app-serve-app-tasks ", err)
+		log.Error(r.Context(), "Failed to get app-serve-app-tasks ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -477,14 +478,14 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	var out domain.GetAppServeAppTasksResponse
 	out.AppServeAppTasks = make([]domain.AppServeAppTaskResponse, len(tasks))
 	for i, task := range tasks {
-		if err := serializer.Map(task, &out.AppServeAppTasks[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), task, &out.AppServeAppTasks[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if out.Pagination, err = pg.Response(); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -508,34 +509,34 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId: [%s]", organizationId), "C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
 
 	projectId, ok := vars["projectId"]
-	log.Debugf("projectId = [%v]\n", projectId)
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
 		return
 	}
 
 	appId, ok := vars["appId"]
-	log.Debugf("appId = [%s]\n", appId)
+	log.Debugf(r.Context(), "appId = [%s]\n", appId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: [%s]", appId), "C_INVALID_ASA_ID", ""))
 		return
 	}
 
 	taskId, ok := vars["taskId"]
-	log.Debugf("taskId = [%s]\n", taskId)
+	log.Debugf(r.Context(), "taskId = [%s]\n", taskId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid taskId: [%s]", taskId), "C_INVALID_ASA_TASK_ID", ""))
 		return
 	}
 
-	task, app, err := h.usecase.GetAppServeAppTaskById(taskId)
+	task, app, err := h.usecase.GetAppServeAppTaskById(r.Context(), taskId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -551,19 +552,19 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(app, &out.AppServeApp); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), app, &out.AppServeApp); err != nil {
+		log.Info(r.Context(), err)
 	}
-	if err := serializer.Map(task, &out.AppServeAppTask); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), task, &out.AppServeAppTask); err != nil {
+		log.Info(r.Context(), err)
 	}
 
-	out.Stages = makeStages(task, app)
+	out.Stages = makeStages(r.Context(), task, app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-func makeStages(task *model.AppServeAppTask, app *model.AppServeApp) []domain.StageResponse {
+func makeStages(ctx context.Context, task *model.AppServeAppTask, app *model.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
 	var stage domain.StageResponse
@@ -592,20 +593,20 @@ func makeStages(task *model.AppServeAppTask, app *model.AppServeApp) []domain.St
 			pipelines = []string{"deploy", "promote"}
 		}
 	} else {
-		log.Error("Unexpected case happened while making stages!")
+		log.Error(ctx, "Unexpected case happened while making stages!")
 	}
 
 	fmt.Printf("Pipeline stages: %v\n", pipelines)
 
 	for _, pl := range pipelines {
-		stage = makeStage(task, app, pl)
+		stage = makeStage(ctx, task, app, pl)
 		stages = append(stages, stage)
 	}
 
 	return stages
 }
 
-func makeStage(task *model.AppServeAppTask, app *model.AppServeApp, pl string) domain.StageResponse {
+func makeStage(ctx context.Context, task *model.AppServeAppTask, app *model.AppServeApp, pl string) domain.StageResponse {
 	taskStatus := task.Status
 	strategy := task.Strategy
 
@@ -634,7 +635,7 @@ func makeStage(task *model.AppServeAppTask, app *model.AppServeApp, pl string) d
 				actions = append(actions, action)
 			}
 		} else {
-			log.Error("Not supported strategy!")
+			log.Error(ctx, "Not supported strategy!")
 		}
 
 	} else if stage.Status == "PROMOTE_WAIT" && strategy == "blue-green" {
@@ -693,7 +694,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppExist(appId)
+	exist, err := h.usecase.IsAppServeAppExist(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -734,7 +735,7 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 		return
 	}
 
-	existed, err := h.usecase.IsAppServeAppNameExist(organizationId, appName)
+	existed, err := h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, appName)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -776,7 +777,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	app, err := h.usecase.GetAppServeAppById(appId)
+	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -808,18 +809,18 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	//		break
 	//	}
 	//}
-	//if err = serializer.Map(latestTask, &task); err != nil {
+	//if err = serializer.Map(r.Context(), latestTask, &task); err != nil {
 	//	ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 	//	return
 	//}
 
 	var latestTask = app.AppServeAppTasks[0]
-	if err = serializer.Map(latestTask, &task); err != nil {
+	if err = serializer.Map(r.Context(), latestTask, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	if err = serializer.Map(appReq, &task); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -843,11 +844,11 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	var res string
 	if appReq.Promote {
-		res, err = h.usecase.PromoteAppServeApp(appId)
+		res, err = h.usecase.PromoteAppServeApp(r.Context(), appId)
 	} else if appReq.Abort {
-		res, err = h.usecase.AbortAppServeApp(appId)
+		res, err = h.usecase.AbortAppServeApp(r.Context(), appId)
 	} else {
-		res, err = h.usecase.UpdateAppServeApp(app, &task)
+		res, err = h.usecase.UpdateAppServeApp(r.Context(), app, &task)
 	}
 
 	if err != nil {
@@ -894,7 +895,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 		return
 	}
 
-	res, err := h.usecase.UpdateAppServeAppStatus(appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
+	res, err := h.usecase.UpdateAppServeAppStatus(r.Context(), appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
@@ -940,6 +941,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 	}
 
 	res, err := h.usecase.UpdateAppServeAppEndpoint(
+		r.Context(),
 		appId,
 		appReq.TaskID,
 		appReq.EndpointUrl,
@@ -981,9 +983,9 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	res, err := h.usecase.DeleteAppServeApp(appId)
+	res, err := h.usecase.DeleteAppServeApp(r.Context(), appId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to delete appId err : ", err)
+		log.Error(r.Context(), "Failed to delete appId err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -1031,7 +1033,7 @@ func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.
 		return
 	}
 
-	res, err := h.usecase.RollbackAppServeApp(appId, appReq.TaskId)
+	res, err := h.usecase.RollbackAppServeApp(r.Context(), appId, appReq.TaskId)
 
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
