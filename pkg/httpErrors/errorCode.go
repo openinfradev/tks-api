@@ -70,8 +70,8 @@ var errorMap = map[ErrorCode]string{
 	"S_INVALID_CLUSTER_ID":          "BYOH 타입의 클러스터 생성은 반드시 clusterId 값이 필요합니다.",
 	"S_INVALID_CLOUD_SERVICE":       "클라우드 서비스 타입이 잘못되었습니다.",
 
-	// Alert
-	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",
+	// Event
+	"EV_NOT_FOUND_EVENT": "지정한 앨럿이 존재하지 않습니다.",
 
 	// AppGroup
 	"AG_NOT_FOUND_CLUSTER":         "지장한 클러스터가 존재하지 않습니다.",

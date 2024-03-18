@@ -111,13 +111,26 @@ const (
 	GetStacksDashboard    // 대시보드/대시보드/조회
 	GetResourcesDashboard // 대시보드/대시보드/조회
 
-	// Alert
-	CreateAlert
-	GetAlerts
-	GetAlert
-	DeleteAlert
-	UpdateAlert
-	CreateAlertAction
+	// AlertTemplate
+	Admin_CreateAlertTemplate
+	Admin_UpdateAlertTemplate
+	Admin_GetAlertTemplates
+	Admin_GetAlertTemplate
+
+	// SystemAlert
+	//	CreateSystemAlert
+	//	GetSystemAlerts
+	//	GetSystemAlert
+	//	DeleteSystemAlert
+	//	UpdateSystemAlert
+
+	// SystemNotification
+	CreateSystemNotification
+	GetSystemNotifications
+	GetSystemNotification
+	DeleteSystemNotification
+	UpdateSystemNotification
+	CreateSystemNotificationAction
 
 	// Stack
 	GetStacks           // 스택관리/조회

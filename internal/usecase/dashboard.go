@@ -33,20 +33,20 @@ type IDashboardUsecase interface {
 }
 
 type DashboardUsecase struct {
-	organizationRepo repository.IOrganizationRepository
-	clusterRepo      repository.IClusterRepository
-	appGroupRepo     repository.IAppGroupRepository
-	alertRepo        repository.IAlertRepository
-	cache            *gcache.Cache
+	organizationRepo       repository.IOrganizationRepository
+	clusterRepo            repository.IClusterRepository
+	appGroupRepo           repository.IAppGroupRepository
+	systemNotificationRepo repository.ISystemNotificationRepository
+	cache                  *gcache.Cache
 }
 
 func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboardUsecase {
 	return &DashboardUsecase{
-		organizationRepo: r.Organization,
-		clusterRepo:      r.Cluster,
-		appGroupRepo:     r.AppGroup,
-		alertRepo:        r.Alert,
-		cache:            cache,
+		organizationRepo:       r.Organization,
+		clusterRepo:            r.Cluster,
+		appGroupRepo:           r.AppGroup,
+		systemNotificationRepo: r.SystemNotification,
+		cache:                  cache,
 	}
 }
 
@@ -286,7 +286,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizat
 			return res, fmt.Errorf("Invalid month")
 		}
 
-		alerts, err := u.alertRepo.FetchPodRestart(ctx, organizationId, startDate, endDate)
+		events, err := u.systemNotificationRepo.FetchPodRestart(ctx, organizationId, startDate, endDate)
 		if err != nil {
 			return res, err
 		}
@@ -309,8 +309,8 @@ func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizat
 			cntPodRestart := 0
 
 			if baseDate <= now.Format("2006-01-02") && baseDate >= organization.CreatedAt.Format("2006-01-02") {
-				for _, alert := range alerts {
-					strDate := alert.CreatedAt.Format("2006-01-02")
+				for _, event := range events {
+					strDate := event.CreatedAt.Format("2006-01-02")
 
 					if strDate == baseDate {
 						cntPodRestart += 1

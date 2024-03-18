@@ -147,70 +147,6 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest'
         type: array
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.AlertActionResponse:
-    properties:
-      alertId:
-        type: string
-      content:
-        type: string
-      createdAt:
-        type: string
-      id:
-        type: string
-      status:
-        type: string
-      taker:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
-      updatedAt:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.AlertResponse:
-    properties:
-      alertActions:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertActionResponse'
-        type: array
-      closedAt:
-        type: string
-      cluster:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse'
-      code:
-        type: string
-      createdAt:
-        type: string
-      description:
-        type: string
-      firedAt:
-        type: string
-      grade:
-        type: string
-      grafanaUrl:
-        type: string
-      id:
-        type: string
-      lastTaker:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
-      message:
-        type: string
-      name:
-        type: string
-      node:
-        type: string
-      organizationId:
-        type: string
-      processingSec:
-        type: integer
-      rawData:
-        type: string
-      status:
-        type: string
-      takedAt:
-        type: string
-      takedSec:
-        type: integer
-      updatedAt:
-        type: string
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse:
     properties:
       appGroupType:
@@ -1286,20 +1222,6 @@ definitions:
     - organizationId
     - userName
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetAlertResponse:
-    properties:
-      alert:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertResponse'
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetAlertsResponse:
-    properties:
-      alerts:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AlertResponse'
-        type: array
-      pagination:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetAppGroupResponse:
     properties:
       appGroup:
@@ -1593,6 +1515,20 @@ definitions:
       stacks:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackResponse'
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationResponse:
+    properties:
+      systemNotification:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationsResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      systemNotifications:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse:
@@ -1895,16 +1831,6 @@ definitions:
         type: string
       permitted:
         type: boolean
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest:
-    properties:
-      organizationId:
-        type: string
-      token:
-        type: string
-    required:
-    - organizationId
-    - token
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PodCount:
     properties:
@@ -2476,6 +2402,70 @@ definitions:
       status:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationActionResponse:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      systemNotificationId:
+        type: string
+      taker:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      updatedAt:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse:
+    properties:
+      closedAt:
+        type: string
+      cluster:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse'
+      code:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      firedAt:
+        type: string
+      grade:
+        type: string
+      grafanaUrl:
+        type: string
+      id:
+        type: string
+      lastTaker:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      message:
+        type: string
+      name:
+        type: string
+      node:
+        type: string
+      organizationId:
+        type: string
+      processingSec:
+        type: integer
+      rawData:
+        type: string
+      status:
+        type: string
+      systemNotificationActions:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationActionResponse'
+        type: array
+      takedAt:
+        type: string
+      takedSec:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.Unit:
     properties:
       data:
@@ -2483,11 +2473,6 @@ definitions:
           type: string
         type: array
       name:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.UpdateAlertRequest:
-    properties:
-      description:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateAppServeAppEndpointRequest:
@@ -2729,6 +2714,11 @@ definitions:
         type: string
     required:
     - serviceIds
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRequest:
+    properties:
+      description:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateTksRoleRequest:
     properties:
@@ -3992,26 +3982,6 @@ paths:
       summary: logout
       tags:
       - Auth
-  /auth/ping:
-    post:
-      consumes:
-      - application/json
-      description: ping with token
-      parameters:
-      - description: token info
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PingTokenRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      summary: ping with token
-      tags:
-      - Auth
   /clusters:
     get:
       consumes:
@@ -4386,152 +4356,6 @@ paths:
       summary: Update organization detail
       tags:
       - Organizations
-  /organizations/{organizationId}/alerts:
-    get:
-      consumes:
-      - application/json
-      description: Get Alerts
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: pageSize
-        in: query
-        name: limit
-        type: string
-      - description: pageNumber
-        in: query
-        name: page
-        type: string
-      - description: sortColumn
-        in: query
-        name: soertColumn
-        type: string
-      - description: sortOrder
-        in: query
-        name: sortOrder
-        type: string
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: filters
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAlertsResponse'
-      security:
-      - JWT: []
-      summary: Get Alerts
-      tags:
-      - Alerts
-  /organizations/{organizationId}/alerts/{alertId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete Alert
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: alertId
-        in: path
-        name: alertId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Delete Alert
-      tags:
-      - Alerts
-    get:
-      consumes:
-      - application/json
-      description: Get Alert
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: alertId
-        in: path
-        name: alertId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAlertResponse'
-      security:
-      - JWT: []
-      summary: Get Alert
-      tags:
-      - Alerts
-    put:
-      consumes:
-      - application/json
-      description: Update Alert
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: Update cloud setting request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateAlertRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Update Alert
-      tags:
-      - Alerts
-  /organizations/{organizationId}/alerts/{alertId}/actions:
-    post:
-      consumes:
-      - application/json
-      description: Create alert action
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: Create alert action
-      tags:
-      - Alerts
   /organizations/{organizationId}/cloud-accounts:
     get:
       consumes:
@@ -6914,6 +6738,152 @@ paths:
       summary: Check name for stack
       tags:
       - Stacks
+  /organizations/{organizationId}/system-notifications:
+    get:
+      consumes:
+      - application/json
+      description: Get SystemNotifications
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationsResponse'
+      security:
+      - JWT: []
+      summary: Get SystemNotifications
+      tags:
+      - SystemNotifications
+  /organizations/{organizationId}/system-notifications/{systemNotificationId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete SystemNotification
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: systemNotificationId
+        in: path
+        name: systemNotificationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete SystemNotification
+      tags:
+      - SystemNotifications
+    get:
+      consumes:
+      - application/json
+      description: Get SystemNotification
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: systemNotificationId
+        in: path
+        name: systemNotificationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationResponse'
+      security:
+      - JWT: []
+      summary: Get SystemNotification
+      tags:
+      - SystemNotifications
+    put:
+      consumes:
+      - application/json
+      description: Update SystemNotification
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Update cloud setting request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update SystemNotification
+      tags:
+      - SystemNotifications
+  /organizations/{organizationId}/system-notifications/{systemNotificationId}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Create systemNotification action
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Create systemNotification action
+      tags:
+      - SystemNotifications
   /organizations/{organizationId}/users:
     get:
       consumes:
@@ -7202,11 +7172,11 @@ paths:
       summary: '[CompileRego] Rego 코드 컴파일 및 파라미터 파싱'
       tags:
       - PolicyTemplate
-  /system-api/organizations/{organizationId}/alerts:
+  /system-api/organizations/{organizationId}/system-notifications:
     post:
       consumes:
       - application/json
-      description: Create alert. ADMIN ONLY
+      description: Create systemNotification. ADMIN ONLY
       parameters:
       - description: organizationId
         in: path
@@ -7220,9 +7190,9 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Create alert. ADMIN ONLY
+      summary: Create systemNotification. ADMIN ONLY
       tags:
-      - Alerts
+      - SystemNotifications
 securityDefinitions:
   JWT:
     in: header

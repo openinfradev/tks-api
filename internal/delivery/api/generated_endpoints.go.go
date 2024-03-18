@@ -327,29 +327,45 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetResourcesDashboard", 
 		Group: "Dashboard",
 	},
-    CreateAlert: {
-		Name: "CreateAlert", 
-		Group: "Alert",
+    Admin_CreateAlertTemplate: {
+		Name: "Admin_CreateAlertTemplate", 
+		Group: "AlertTemplate",
 	},
-    GetAlerts: {
-		Name: "GetAlerts", 
-		Group: "Alert",
+    Admin_UpdateAlertTemplate: {
+		Name: "Admin_UpdateAlertTemplate", 
+		Group: "AlertTemplate",
 	},
-    GetAlert: {
-		Name: "GetAlert", 
-		Group: "Alert",
+    Admin_GetAlertTemplates: {
+		Name: "Admin_GetAlertTemplates", 
+		Group: "AlertTemplate",
 	},
-    DeleteAlert: {
-		Name: "DeleteAlert", 
-		Group: "Alert",
+    Admin_GetAlertTemplate: {
+		Name: "Admin_GetAlertTemplate", 
+		Group: "AlertTemplate",
 	},
-    UpdateAlert: {
-		Name: "UpdateAlert", 
-		Group: "Alert",
+    CreateSystemNotification: {
+		Name: "CreateSystemNotification", 
+		Group: "SystemNotification",
 	},
-    CreateAlertAction: {
-		Name: "CreateAlertAction", 
-		Group: "Alert",
+    GetSystemNotifications: {
+		Name: "GetSystemNotifications", 
+		Group: "SystemNotification",
+	},
+    GetSystemNotification: {
+		Name: "GetSystemNotification", 
+		Group: "SystemNotification",
+	},
+    DeleteSystemNotification: {
+		Name: "DeleteSystemNotification", 
+		Group: "SystemNotification",
+	},
+    UpdateSystemNotification: {
+		Name: "UpdateSystemNotification", 
+		Group: "SystemNotification",
+	},
+    CreateSystemNotificationAction: {
+		Name: "CreateSystemNotificationAction", 
+		Group: "SystemNotification",
 	},
     GetStacks: {
 		Name: "GetStacks", 
@@ -900,18 +916,26 @@ func (e Endpoint) String() string {
 		return "GetStacksDashboard"
 	case GetResourcesDashboard:
 		return "GetResourcesDashboard"
-	case CreateAlert:
-		return "CreateAlert"
-	case GetAlerts:
-		return "GetAlerts"
-	case GetAlert:
-		return "GetAlert"
-	case DeleteAlert:
-		return "DeleteAlert"
-	case UpdateAlert:
-		return "UpdateAlert"
-	case CreateAlertAction:
-		return "CreateAlertAction"
+	case Admin_CreateAlertTemplate:
+		return "Admin_CreateAlertTemplate"
+	case Admin_UpdateAlertTemplate:
+		return "Admin_UpdateAlertTemplate"
+	case Admin_GetAlertTemplates:
+		return "Admin_GetAlertTemplates"
+	case Admin_GetAlertTemplate:
+		return "Admin_GetAlertTemplate"
+	case CreateSystemNotification:
+		return "CreateSystemNotification"
+	case GetSystemNotifications:
+		return "GetSystemNotifications"
+	case GetSystemNotification:
+		return "GetSystemNotification"
+	case DeleteSystemNotification:
+		return "DeleteSystemNotification"
+	case UpdateSystemNotification:
+		return "UpdateSystemNotification"
+	case CreateSystemNotificationAction:
+		return "CreateSystemNotificationAction"
 	case GetStacks:
 		return "GetStacks"
 	case CreateStack:
@@ -1272,18 +1296,26 @@ func GetEndpoint(name string) Endpoint {
 		return GetStacksDashboard
 	case "GetResourcesDashboard":
 		return GetResourcesDashboard
-	case "CreateAlert":
-		return CreateAlert
-	case "GetAlerts":
-		return GetAlerts
-	case "GetAlert":
-		return GetAlert
-	case "DeleteAlert":
-		return DeleteAlert
-	case "UpdateAlert":
-		return UpdateAlert
-	case "CreateAlertAction":
-		return CreateAlertAction
+	case "Admin_CreateAlertTemplate":
+		return Admin_CreateAlertTemplate
+	case "Admin_UpdateAlertTemplate":
+		return Admin_UpdateAlertTemplate
+	case "Admin_GetAlertTemplates":
+		return Admin_GetAlertTemplates
+	case "Admin_GetAlertTemplate":
+		return Admin_GetAlertTemplate
+	case "CreateSystemNotification":
+		return CreateSystemNotification
+	case "GetSystemNotifications":
+		return GetSystemNotifications
+	case "GetSystemNotification":
+		return GetSystemNotification
+	case "DeleteSystemNotification":
+		return DeleteSystemNotification
+	case "UpdateSystemNotification":
+		return UpdateSystemNotification
+	case "CreateSystemNotificationAction":
+		return CreateSystemNotificationAction
 	case "GetStacks":
 		return GetStacks
 	case "CreateStack":
