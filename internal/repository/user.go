@@ -69,7 +69,7 @@ func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, acc
 		log.Error(ctx, res.Error.Error())
 		return model.User{}, res.Error
 	}
-	user, err := r.getUserByAccountId(nil, accountId, organizationId)
+	user, err := r.getUserByAccountId(ctx, accountId, organizationId)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -105,9 +105,7 @@ func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]mo
 	}
 
 	var out []model.User
-	for _, user := range users {
-		out = append(out, user)
-	}
+	out = append(out, users...)
 
 	return &out, nil
 }
@@ -126,9 +124,7 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 	}
 
 	var out []model.User
-	for _, user := range users {
-		out = append(out, user)
-	}
+	out = append(out, users...)
 
 	return &out, nil
 }

@@ -197,25 +197,25 @@ func (*PolicyTemplateUsecase) updatePermittedOrganizations(ctx context.Context, 
 
 	log.Info(ctx, "CHECK HERE ", permitted)
 
-	for _, organization := range *organizations {
-
-		_, ok := permittedOrgIdSet[organization.ID]
-
-		if !ok {
-			policyTemplate.PermittedOrganizations = append(
-				policyTemplate.PermittedOrganizations,
-
-				// ktkfree : 역시 이부분 확인 부탁 드립니다.
-				/*
-					domain.PermittedOrganization{
-						OrganizationId:   organization.ID,
-						OrganizationName: organization.Name,
-						Permitted:        permitted,
-					}
-				*/
-			)
-		}
-	}
+	// TODO: 이부분 확인 부탁 드립니다.
+	//for _, organization := range *organizations {
+	//	_, ok := permittedOrgIdSet[organization.ID]
+	//
+	//	if !ok {
+	//		policyTemplate.PermittedOrganizations = append(
+	//			policyTemplate.PermittedOrganizations,
+	//
+	//			// ktkfree : 역시 이부분 확인 부탁 드립니다.
+	//			/*
+	//				domain.PermittedOrganization{
+	//					OrganizationId:   organization.ID,
+	//					OrganizationName: organization.Name,
+	//					Permitted:        permitted,
+	//				}
+	//			*/
+	//		)
+	//	}
+	//}
 }
 
 func (*PolicyTemplateUsecase) getPermittedOrganiationIdSet(ctx context.Context, policyTemplate *model.PolicyTemplate) map[string]string {

@@ -114,17 +114,6 @@ func (h PermissionHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http
 //	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [put]
 //	@Security		JWT
 func (h PermissionHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
-	// path parameter
-	var roleId string
-	_ = roleId
-	vars := mux.Vars(r)
-	if v, ok := vars["roleId"]; !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
-		return
-	} else {
-		roleId = v
-	}
-
 	// request
 	input := domain.UpdatePermissionsByRoleIdRequest{}
 	err := UnmarshalRequestInput(r, &input)

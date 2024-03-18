@@ -609,6 +609,9 @@ func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
 	}
 
 	err := encoder.Encode(combindConfig)
+	if err != nil {
+		return "", err
+	}
 	//modContents, err := yaml.Marshal(combindConfig)
 
 	// write the kubeconfig to a file

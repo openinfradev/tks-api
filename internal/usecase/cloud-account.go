@@ -389,8 +389,8 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				Quota:    quotaValue,
 				Required: 5,
 			})
-			if quotaValue < currentUsage.NLB+5 {
-				available = false
+			if quotaValue >= currentUsage.NLB+5 {
+				available = true
 			}
 		case "L-E9E9831D": // Classic
 			log.Infof(ctx, "CLB : usage %d, quota %d", currentUsage.CLB, quotaValue)
@@ -400,8 +400,8 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				Quota:    quotaValue,
 				Required: 1,
 			})
-			if quotaValue < currentUsage.CLB+1 {
-				available = false
+			if quotaValue >= currentUsage.CLB+1 {
+				available = true
 			}
 		case "L-A4707A72": // IGW
 			log.Infof(ctx, "IGW : usage %d, quota %d", currentUsage.IGW, quotaValue)
@@ -411,8 +411,8 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				Quota:    quotaValue,
 				Required: 1,
 			})
-			if quotaValue < currentUsage.IGW+1 {
-				available = false
+			if quotaValue >= currentUsage.IGW+1 {
+				available = true
 			}
 		case "L-1194D53C": // Cluster
 			log.Infof(ctx, "Cluster : usage %d, quota %d", currentUsage.Cluster, quotaValue)
@@ -422,8 +422,8 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				Quota:    quotaValue,
 				Required: 1,
 			})
-			if quotaValue < currentUsage.Cluster+1 {
-				available = false
+			if quotaValue >= currentUsage.Cluster+1 {
+				available = true
 			}
 		case "L-0263D0A3": // Elastic IP
 			log.Infof(ctx, "Elastic IP : usage %d, quota %d", currentUsage.EIP, quotaValue)
@@ -433,15 +433,15 @@ func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccount
 				Quota:    quotaValue,
 				Required: 3,
 			})
-			if quotaValue < currentUsage.EIP+3 {
-				available = false
+			if quotaValue >= currentUsage.EIP+3 {
+				available = true
 			}
 		}
 
 	}
 
 	//return fmt.Errorf("Always return err")
-	return true, out, nil
+	return available, out, nil
 }
 
 func (u *CloudAccountUsecase) getClusterCnt(ctx context.Context, cloudAccountId uuid.UUID) (cnt int) {
