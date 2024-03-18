@@ -41,42 +41,42 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	cache := gcache.New(5*time.Minute, 10*time.Minute)
 
 	repoFactory := repository.Repository{
-		Auth:           repository.NewAuthRepository(db),
-		User:           repository.NewUserRepository(db),
-		Cluster:        repository.NewClusterRepository(db),
-		Organization:   repository.NewOrganizationRepository(db),
-		AppGroup:       repository.NewAppGroupRepository(db),
-		AppServeApp:    repository.NewAppServeAppRepository(db),
-		CloudAccount:   repository.NewCloudAccountRepository(db),
-		StackTemplate:  repository.NewStackTemplateRepository(db),
-		Alert:          repository.NewAlertRepository(db),
-		AlertTemplate:  repository.NewAlertTemplateRepository(db),
-		Role:           repository.NewRoleRepository(db),
-		Project:        repository.NewProjectRepository(db),
-		Permission:     repository.NewPermissionRepository(db),
-		Endpoint:       repository.NewEndpointRepository(db),
-		Audit:          repository.NewAuditRepository(db),
-		PolicyTemplate: repository.NewPolicyTemplateRepository(db),
+		Auth:                       repository.NewAuthRepository(db),
+		User:                       repository.NewUserRepository(db),
+		Cluster:                    repository.NewClusterRepository(db),
+		Organization:               repository.NewOrganizationRepository(db),
+		AppGroup:                   repository.NewAppGroupRepository(db),
+		AppServeApp:                repository.NewAppServeAppRepository(db),
+		CloudAccount:               repository.NewCloudAccountRepository(db),
+		StackTemplate:              repository.NewStackTemplateRepository(db),
+		Alert:                      repository.NewAlertRepository(db),
+		SystemNotificationTemplate: repository.NewSystemNotificationTemplateRepository(db),
+		Role:                       repository.NewRoleRepository(db),
+		Project:                    repository.NewProjectRepository(db),
+		Permission:                 repository.NewPermissionRepository(db),
+		Endpoint:                   repository.NewEndpointRepository(db),
+		Audit:                      repository.NewAuditRepository(db),
+		PolicyTemplate:             repository.NewPolicyTemplateRepository(db),
 	}
 
 	usecaseFactory := usecase.Usecase{
-		Auth:           usecase.NewAuthUsecase(repoFactory, kc),
-		User:           usecase.NewUserUsecase(repoFactory, kc),
-		Cluster:        usecase.NewClusterUsecase(repoFactory, argoClient, cache),
-		Organization:   usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
-		AppGroup:       usecase.NewAppGroupUsecase(repoFactory, argoClient),
-		AppServeApp:    usecase.NewAppServeAppUsecase(repoFactory, argoClient),
-		CloudAccount:   usecase.NewCloudAccountUsecase(repoFactory, argoClient),
-		StackTemplate:  usecase.NewStackTemplateUsecase(repoFactory),
-		Dashboard:      usecase.NewDashboardUsecase(repoFactory, cache),
-		Alert:          usecase.NewAlertUsecase(repoFactory),
-		AlertTemplate:  usecase.NewAlertTemplateUsecase(repoFactory),
-		Stack:          usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
-		Project:        usecase.NewProjectUsecase(repoFactory, kc, argoClient),
-		Audit:          usecase.NewAuditUsecase(repoFactory),
-		Role:           usecase.NewRoleUsecase(repoFactory),
-		Permission:     usecase.NewPermissionUsecase(repoFactory),
-		PolicyTemplate: usecase.NewPolicyTemplateUsecase(repoFactory),
+		Auth:                       usecase.NewAuthUsecase(repoFactory, kc),
+		User:                       usecase.NewUserUsecase(repoFactory, kc),
+		Cluster:                    usecase.NewClusterUsecase(repoFactory, argoClient, cache),
+		Organization:               usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
+		AppGroup:                   usecase.NewAppGroupUsecase(repoFactory, argoClient),
+		AppServeApp:                usecase.NewAppServeAppUsecase(repoFactory, argoClient),
+		CloudAccount:               usecase.NewCloudAccountUsecase(repoFactory, argoClient),
+		StackTemplate:              usecase.NewStackTemplateUsecase(repoFactory),
+		Dashboard:                  usecase.NewDashboardUsecase(repoFactory, cache),
+		Alert:                      usecase.NewAlertUsecase(repoFactory),
+		SystemNotificationTemplate: usecase.NewSystemNotificationTemplateUsecase(repoFactory),
+		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
+		Project:                    usecase.NewProjectUsecase(repoFactory, kc, argoClient),
+		Audit:                      usecase.NewAuditUsecase(repoFactory),
+		Role:                       usecase.NewRoleUsecase(repoFactory),
+		Permission:                 usecase.NewPermissionUsecase(repoFactory),
+		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -207,11 +207,11 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions", customMiddleware.Handle(internalApi.CreateAlertAction, http.HandlerFunc(alertHandler.CreateAlertAction))).Methods(http.MethodPost)
 	//r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/alerts/{alertId}/actions/status", customMiddleware.Handle(http.HandlerFunc(alertHandler.UpdateAlertActionStatus))).Methods(http.MethodPatch)
 
-	alertTemplateHandler := delivery.NewAlertTemplateHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates", customMiddleware.Handle(internalApi.Admin_CreateAlertTemplate, http.HandlerFunc(alertTemplateHandler.CreateAlertTemplate))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates", customMiddleware.Handle(internalApi.Admin_GetAlertTemplates, http.HandlerFunc(alertTemplateHandler.GetAlertTemplates))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates/{alertTemplateId}", customMiddleware.Handle(internalApi.Admin_GetAlertTemplate, http.HandlerFunc(alertTemplateHandler.GetAlertTemplate))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/alert-templates/{alertTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdateAlertTemplate, http.HandlerFunc(alertTemplateHandler.UpdateAlertTemplate))).Methods(http.MethodPut)
+	systemNotificationTemplateHandler := delivery.NewSystemNotificationTemplateHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/system-notification-templates", customMiddleware.Handle(internalApi.Admin_CreateSystemNotificationTemplate, http.HandlerFunc(systemNotificationTemplateHandler.CreateSystemNotificationTemplate))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/system-notification-templates", customMiddleware.Handle(internalApi.Admin_GetSystemNotificationTemplates, http.HandlerFunc(systemNotificationTemplateHandler.GetSystemNotificationTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/system-notification-templates/{systemNotificationTemplateId}", customMiddleware.Handle(internalApi.Admin_GetSystemNotificationTemplate, http.HandlerFunc(systemNotificationTemplateHandler.GetSystemNotificationTemplate))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/system-notification-templates/{systemNotificationTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdateSystemNotificationTemplate, http.HandlerFunc(systemNotificationTemplateHandler.UpdateSystemNotificationTemplate))).Methods(http.MethodPut)
 
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)

@@ -6,7 +6,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
-type AlertTemplateResponse struct {
+type SystemNotificationTemplateResponse struct {
 	ID               string                              `json:"id"`
 	Name             string                              `json:"name"`
 	Description      string                              `json:"description"`
@@ -25,7 +25,7 @@ type MetricParameterResponse struct {
 	Value string `json:"value" validate:"required"`
 }
 
-type CreateAlertTemplateRequest struct {
+type CreateSystemNotificationTemplateRequest struct {
 	Name             string                    `json:"name" validate:"required,name"`
 	Description      string                    `json:"description"`
 	OrganizationIds  []string                  `json:"organizationIds" validate:"required"`
@@ -33,11 +33,11 @@ type CreateAlertTemplateRequest struct {
 	MetricParameters []MetricParameterResponse `json:"metricParameters"`
 }
 
-type CreateAlertTemplateResponse struct {
+type CreateSystemNotificationTemplateResponse struct {
 	ID string `json:"id"`
 }
 
-type UpdateAlertTemplateRequest struct {
+type UpdateSystemNotificationTemplateRequest struct {
 	Name             string                    `json:"name" validate:"required,name"`
 	Description      string                    `json:"description"`
 	OrganizationIds  []string                  `json:"organizationIds" validate:"required"`
@@ -45,11 +45,11 @@ type UpdateAlertTemplateRequest struct {
 	MetricParameters []MetricParameterResponse `json:"metricParameters"`
 }
 
-type GetAlertTemplatesResponse struct {
-	AlertTemplates []AlertTemplateResponse   `json:"alertTemplates"`
-	Pagination     domain.PaginationResponse `json:"pagination"`
+type GetSystemNotificationTemplatesResponse struct {
+	SystemNotificationTemplates []SystemNotificationTemplateResponse `json:"systemNotificationTemplates"`
+	Pagination                  domain.PaginationResponse            `json:"pagination"`
 }
 
-type GetAlertTemplateResponse struct {
-	AlertTemplate AlertTemplateResponse `json:"alertTemplate"`
+type GetSystemNotificationTemplateResponse struct {
+	SystemNotificationTemplate SystemNotificationTemplateResponse `json:"systemNotificationTemplate"`
 }

@@ -7,13 +7,13 @@ import (
 
 // Models
 type MetricParameter struct {
-	AlertTemplateId uuid.UUID `gorm:"primarykey"`
-	Order           int       `gorm:"primarykey"`
-	Key             string
-	Value           string
+	SystemNotificationTemplateId uuid.UUID `gorm:"primarykey"`
+	Order                        int       `gorm:"primarykey"`
+	Key                          string
+	Value                        string
 }
 
-type AlertTemplate struct {
+type SystemNotificationTemplate struct {
 	gorm.Model
 
 	ID               uuid.UUID      `gorm:"primarykey"`
@@ -22,14 +22,14 @@ type AlertTemplate struct {
 	OrganizationIds  []string       `gorm:"-:all"`
 	Description      string
 	MetricQuery      string
-	MetricParameters []MetricParameter `gorm:"foreignKey:AlertTemplateId;references:ID"`
+	MetricParameters []MetricParameter `gorm:"foreignKey:SystemNotificationTemplateId;references:ID"`
 	CreatorId        *uuid.UUID
 	Creator          User `gorm:"foreignKey:CreatorId"`
 	UpdatorId        *uuid.UUID
 	Updator          User `gorm:"foreignKey:UpdatorId"`
 }
 
-func (c *AlertTemplate) BeforeCreate(tx *gorm.DB) (err error) {
+func (c *SystemNotificationTemplate) BeforeCreate(tx *gorm.DB) (err error) {
 	c.ID = uuid.New()
 	return nil
 }

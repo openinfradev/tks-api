@@ -74,11 +74,11 @@ var errorMap = map[ErrorCode]string{
 	// Alert
 	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",
 
-	// AlertTemplate
-	"AT_CREATE_ALREADY_EXISTED_NAME": "알림템플릿에 이미 존재하는 이름입니다.",
-	"AT_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿을 가져오는데 실패했습니다.",
-	"AT_FAILED_UPDATE_ORGANIZATION":  "알림템플릿에 조직을 설정하는데 실패했습니다.",
-	"AT_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿이 존재하지 않습니다.",
+	// SystemNotificationTemplate
+	"SNT_CREATE_ALREADY_EXISTED_NAME": "알림템플릿에 이미 존재하는 이름입니다.",
+	"SNT_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿을 가져오는데 실패했습니다.",
+	"SNT_FAILED_UPDATE_ORGANIZATION":  "알림템플릿에 조직을 설정하는데 실패했습니다.",
+	"SNT_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿이 존재하지 않습니다.",
 
 	// AppGroup
 	"AG_NOT_FOUND_CLUSTER":         "지장한 클러스터가 존재하지 않습니다.",

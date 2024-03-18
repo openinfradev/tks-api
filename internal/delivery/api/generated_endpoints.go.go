@@ -331,21 +331,41 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetResourcesDashboard", 
 		Group: "Dashboard",
 	},
-    Admin_CreateAlertTemplate: {
-		Name: "Admin_CreateAlertTemplate", 
-		Group: "AlertTemplate",
+    Admin_CreateSystemNotificationTemplate: {
+		Name: "Admin_CreateSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
 	},
-    Admin_UpdateAlertTemplate: {
-		Name: "Admin_UpdateAlertTemplate", 
-		Group: "AlertTemplate",
+    Admin_UpdateSystemNotificationTemplate: {
+		Name: "Admin_UpdateSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
 	},
-    Admin_GetAlertTemplates: {
-		Name: "Admin_GetAlertTemplates", 
-		Group: "AlertTemplate",
+    Admin_GetSystemNotificationTemplates: {
+		Name: "Admin_GetSystemNotificationTemplates", 
+		Group: "SystemNotificationTemplate",
 	},
-    Admin_GetAlertTemplate: {
-		Name: "Admin_GetAlertTemplate", 
-		Group: "AlertTemplate",
+    Admin_GetSystemNotificationTemplate: {
+		Name: "Admin_GetSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
+	},
+    CreateAlertSetting: {
+		Name: "CreateAlertSetting", 
+		Group: "AlertSetting",
+	},
+    GetAlertSettings: {
+		Name: "GetAlertSettings", 
+		Group: "AlertSetting",
+	},
+    GetAlertSetting: {
+		Name: "GetAlertSetting", 
+		Group: "AlertSetting",
+	},
+    DeleteAlertSetting: {
+		Name: "DeleteAlertSetting", 
+		Group: "AlertSetting",
+	},
+    UpdateAlertSetting: {
+		Name: "UpdateAlertSetting", 
+		Group: "AlertSetting",
 	},
     CreateAlert: {
 		Name: "CreateAlert", 
@@ -922,14 +942,24 @@ func (e Endpoint) String() string {
 		return "GetStacksDashboard"
 	case GetResourcesDashboard:
 		return "GetResourcesDashboard"
-	case Admin_CreateAlertTemplate:
-		return "Admin_CreateAlertTemplate"
-	case Admin_UpdateAlertTemplate:
-		return "Admin_UpdateAlertTemplate"
-	case Admin_GetAlertTemplates:
-		return "Admin_GetAlertTemplates"
-	case Admin_GetAlertTemplate:
-		return "Admin_GetAlertTemplate"
+	case Admin_CreateSystemNotificationTemplate:
+		return "Admin_CreateSystemNotificationTemplate"
+	case Admin_UpdateSystemNotificationTemplate:
+		return "Admin_UpdateSystemNotificationTemplate"
+	case Admin_GetSystemNotificationTemplates:
+		return "Admin_GetSystemNotificationTemplates"
+	case Admin_GetSystemNotificationTemplate:
+		return "Admin_GetSystemNotificationTemplate"
+	case CreateAlertSetting:
+		return "CreateAlertSetting"
+	case GetAlertSettings:
+		return "GetAlertSettings"
+	case GetAlertSetting:
+		return "GetAlertSetting"
+	case DeleteAlertSetting:
+		return "DeleteAlertSetting"
+	case UpdateAlertSetting:
+		return "UpdateAlertSetting"
 	case CreateAlert:
 		return "CreateAlert"
 	case GetAlerts:
@@ -1304,14 +1334,24 @@ func GetEndpoint(name string) Endpoint {
 		return GetStacksDashboard
 	case "GetResourcesDashboard":
 		return GetResourcesDashboard
-	case "Admin_CreateAlertTemplate":
-		return Admin_CreateAlertTemplate
-	case "Admin_UpdateAlertTemplate":
-		return Admin_UpdateAlertTemplate
-	case "Admin_GetAlertTemplates":
-		return Admin_GetAlertTemplates
-	case "Admin_GetAlertTemplate":
-		return Admin_GetAlertTemplate
+	case "Admin_CreateSystemNotificationTemplate":
+		return Admin_CreateSystemNotificationTemplate
+	case "Admin_UpdateSystemNotificationTemplate":
+		return Admin_UpdateSystemNotificationTemplate
+	case "Admin_GetSystemNotificationTemplates":
+		return Admin_GetSystemNotificationTemplates
+	case "Admin_GetSystemNotificationTemplate":
+		return Admin_GetSystemNotificationTemplate
+	case "CreateAlertSetting":
+		return CreateAlertSetting
+	case "GetAlertSettings":
+		return GetAlertSettings
+	case "GetAlertSetting":
+		return GetAlertSetting
+	case "DeleteAlertSetting":
+		return DeleteAlertSetting
+	case "UpdateAlertSetting":
+		return UpdateAlertSetting
 	case "CreateAlert":
 		return CreateAlert
 	case "GetAlerts":

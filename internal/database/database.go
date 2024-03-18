@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/pagination"
 	"os"
 	"strings"
+
+	"github.com/openinfradev/tks-api/internal/pagination"
 
 	"github.com/openinfradev/tks-api/internal/delivery/api"
 
@@ -109,11 +110,11 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
-	// AlertTemplate
+	// SystemNotificationTemplate
 	if err := db.AutoMigrate(&model.MetricParameter{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&model.AlertTemplate{}); err != nil {
+	if err := db.AutoMigrate(&model.SystemNotificationTemplate{}); err != nil {
 		return err
 	}
 
