@@ -2,8 +2,6 @@ package helper
 
 import (
 	"bytes"
-	"context"
-	"github.com/openinfradev/tks-api/pkg/log"
 	"io"
 	"sync"
 	"time"
@@ -98,12 +96,11 @@ func (sws *LogicSshWsSession) Close() {
 	}
 }
 func (sws *LogicSshWsSession) Start(quitChan chan bool) {
-	ctx := context.Background()
-	go sws.receiveWsMsg(ctx, quitChan)
-	go sws.sendComboOutput(ctx, quitChan)
+	go sws.receiveWsMsg(quitChan)
+	go sws.sendComboOutput(quitChan)
 }
 
-func (sws *LogicSshWsSession) receiveWsMsg(ctx context.Context, exitCh chan bool) {
+func (sws *LogicSshWsSession) receiveWsMsg(exitCh chan bool) {
 	wsConn := sws.wsConn
 	//tells other go routine quit
 	defer setQuit(exitCh)
@@ -134,19 +131,20 @@ func (sws *LogicSshWsSession) receiveWsMsg(ctx context.Context, exitCh chan bool
 				}
 			*/
 
-			sws.sendWebsocketInputCommandToSshSessionStdinPipe(ctx, wsData)
+			sws.sendWebsocketInputCommandToSshSessionStdinPipe(wsData)
 		}
 	}
 }
 
 // sendWebsocketInputCommandToSshSessionStdinPipe
-func (sws *LogicSshWsSession) sendWebsocketInputCommandToSshSessionStdinPipe(ctx context.Context, cmdBytes []byte) {
+func (sws *LogicSshWsSession) sendWebsocketInputCommandToSshSessionStdinPipe(cmdBytes []byte) {
 	if _, err := sws.stdinPipe.Write(cmdBytes); err != nil {
-		log.Error(ctx, "ws cmd bytes write to ssh.stdin pipe failed")
+
+		//log.Error("ws cmd bytes write to ssh.stdin pipe failed")
 	}
 }
 
-func (sws *LogicSshWsSession) sendComboOutput(ctx context.Context, exitCh chan bool) {
+func (sws *LogicSshWsSession) sendComboOutput(exitCh chan bool) {
 	wsConn := sws.wsConn
 	defer setQuit(exitCh)
 
@@ -164,11 +162,11 @@ func (sws *LogicSshWsSession) sendComboOutput(ctx context.Context, exitCh chan b
 			if len(bs) > 0 {
 				err := wsConn.WriteMessage(websocket.TextMessage, bs)
 				if err != nil {
-					log.Error(ctx, "ssh sending combo output to webSocket failed")
+					//log.Error("ssh sending combo output to webSocket failed")
 				}
 				_, err = sws.logBuff.Write(bs)
 				if err != nil {
-					log.Error(ctx, "combo output to log buffer failed")
+					//log.Error("combo output to log buffer failed")
 				}
 				sws.comboOutput.buffer.Reset()
 			}

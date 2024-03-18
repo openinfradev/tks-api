@@ -12,6 +12,7 @@ type EndpointInfo struct {
 const (
 	// Auth
 	Login Endpoint = iota
+	PingToken
 	Logout
 	RefreshToken
 	FindId
@@ -113,18 +114,18 @@ const (
 	GetStacksDashboard    // 대시보드/대시보드/조회
 	GetResourcesDashboard // 대시보드/대시보드/조회
 
-	// AlertTemplate
-	Admin_CreateAlertTemplate
-	Admin_UpdateAlertTemplate
-	Admin_GetAlertTemplates
-	Admin_GetAlertTemplate
+	// SystemNotificationTemplate
+	Admin_CreateSystemNotificationTemplate
+	Admin_UpdateSystemNotificationTemplate
+	Admin_GetSystemNotificationTemplates
+	Admin_GetSystemNotificationTemplate
 
-	// SystemAlert
-	//	CreateSystemAlert
-	//	GetSystemAlerts
-	//	GetSystemAlert
-	//	DeleteSystemAlert
-	//	UpdateSystemAlert
+	// SystemNotificationRule
+	CreateSystemNotificationRule
+	GetSystemNotificationRules
+	GetSystemNotificationRule
+	DeleteSystemNotificationRule
+	UpdateSystemNotificationRule
 
 	// SystemNotification
 	CreateSystemNotification
@@ -202,6 +203,7 @@ const (
 
 	// Admin Project
 	Admin_GetProjects
+
 	// PolicyTemplate
 	ListPolicyTemplate
 	CreatePolicyTemplate

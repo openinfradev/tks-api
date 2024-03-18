@@ -120,7 +120,7 @@ func (r *StackTemplateRepository) UpdateOrganizations(ctx context.Context, stack
 	if res.Error != nil {
 		return res.Error
 	}
-	err = r.db.WithContext(ctx).Model(&stackTemplate).Association("Organizations").Replace(organizations)
+	err = r.db.WithContext(ctx).Model(&stackTemplate).Association("Organizations").Unscoped().Replace(organizations)
 	if err != nil {
 		return err
 	}

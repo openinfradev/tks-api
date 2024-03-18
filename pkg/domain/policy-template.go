@@ -280,12 +280,11 @@ type ParameterDef struct {
 	Type         string          `json:"type"`
 	DefaultValue string          `json:"defaultValue"`
 	Children     []*ParameterDef `json:"children"`
-	IsArray      bool            `json:"isArray"`
+	IsArray      bool
 }
 
 type RegoCompileRequest struct {
-	Rego string   `json:"rego" example:"Rego 코드" validate:"required"`
-	Libs []string `json:"libs,omitempty"`
+	Rego string `json:"rego" example:"Rego 코드" validate:"required"`
 }
 
 type RegoCompieError struct {

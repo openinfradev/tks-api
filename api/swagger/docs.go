@@ -1268,6 +1268,167 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/system-notification-templates": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get SystemNotificationTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Get SystemNotificationTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetSystemNotificationTemplatesResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create alert template. ADMIN ONLY",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Create alert template. ADMIN ONLY",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreateSystemNotificationTemplateResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/system-notification-templates/{systemNotificationTemplateId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get SystemNotificationTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Get SystemNotificationTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "systemNotificationTemplateId",
+                        "name": "systemNotificationTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetSystemNotificationTemplateResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update SystemNotificationTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Update SystemNotificationTemplate",
+                "parameters": [
+                    {
+                        "description": "Update alert template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateSystemNotificationTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/app-groups": {
             "get": {
                 "security": [
@@ -5669,12 +5830,6 @@ const docTemplate = `{
                         "description": "sortOrder",
                         "name": "sortOrder",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "combinedFilter",
-                        "name": "combinedFilter",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -6074,6 +6229,247 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackStatusResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/system-notification-rules": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get SystemNotificationRules",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "Get SystemNotificationRules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRulesResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create SystemNotificationRule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "Create SystemNotificationRule",
+                "parameters": [
+                    {
+                        "description": "create stack template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/system-notification-rules/name/{name}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check name for systemNotificationRule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "Check name for systemNotificationRule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificationRuleNameResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get SystemNotificationRule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "Get SystemNotificationRule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "systemNotificationRuleId",
+                        "name": "systemNotificationRuleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRuleResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update SystemNotificationRule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "Update SystemNotificationRule",
+                "parameters": [
+                    {
+                        "description": "Update systemNotificationRule request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete SystemNotificationRule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "Delete SystemNotificationRule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "systemNotificationRuleId",
+                        "name": "systemNotificationRuleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -7456,6 +7852,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificationRuleNameResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse": {
             "type": "object",
             "properties": {
@@ -8297,6 +8701,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleRequest": {
             "type": "object",
             "required": [
@@ -9080,6 +9506,28 @@ const docTemplate = `{
             "properties": {
                 "systemNotification": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRuleResponse": {
+            "type": "object",
+            "properties": {
+                "systemNotificationRule": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationRuleResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRulesResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                },
+                "systemNotificationRules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationRuleResponse"
+                    }
                 }
             }
         },
@@ -9929,12 +10377,6 @@ const docTemplate = `{
                 "rego"
             ],
             "properties": {
-                "libs": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "rego": {
                     "type": "string",
                     "example": "Rego 코드"
@@ -10509,6 +10951,32 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationRuleResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.Unit": {
             "type": "object",
             "properties": {
@@ -10887,6 +11355,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.UpdateTksRoleRequest": {
             "type": "object",
             "properties": {
@@ -11025,6 +11501,36 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.CreateSystemNotificationTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.GetSystemNotificationTemplateResponse": {
+            "type": "object",
+            "properties": {
+                "systemNotificationTemplate": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.SystemNotificationTemplateResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.GetSystemNotificationTemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                },
+                "systemNotificationTemplates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.SystemNotificationTemplateResponse"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse": {
             "type": "object",
             "properties": {
@@ -11064,6 +11570,100 @@ const docTemplate = `{
                         "updatedAt": {
                             "type": "string"
                         }
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse": {
+            "type": "object",
+            "required": [
+                "key",
+                "order",
+                "value"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.SystemNotificationTemplateResponse": {
+            "type": "object",
+            "required": [
+                "metricQuery"
+            ],
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metricParameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse"
+                    }
+                },
+                "metricQuery": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.UpdateSystemNotificationTemplateRequest": {
+            "type": "object",
+            "required": [
+                "metricQuery",
+                "name",
+                "organizationIds"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "metricParameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.MetricParameterResponse"
+                    }
+                },
+                "metricQuery": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

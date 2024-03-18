@@ -13,6 +13,7 @@ var errorMap = map[ErrorCode]string{
 	"C_INVALID_PROJECT_ID":         "유효하지 않은 프로젝트 아이디입니다. 아이디를 확인하세요.",
 	"C_INVALID_CLOUD_ACCOUNT_ID":   "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
 	"C_INVALID_STACK_TEMPLATE_ID":  "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
+	"C_INVALID_ALERT_TEMPLATE_ID":  "유효하지 않은 알림템플릿 아이디입니다. 알림템플릿 아이디를 확인하세요.",
 	"C_INVALID_ASA_ID":             "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
 	"C_INVALID_ASA_TASK_ID":        "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
 	"C_INVALID_CLOUD_SERVICE":      "유효하지 않은 클라우드서비스입니다.",
@@ -76,8 +77,20 @@ var errorMap = map[ErrorCode]string{
 	"S_INVALID_CLUSTER_ID":          "BYOH 타입의 클러스터 생성은 반드시 clusterId 값이 필요합니다.",
 	"S_INVALID_CLOUD_SERVICE":       "클라우드 서비스 타입이 잘못되었습니다.",
 
-	// Event
-	"EV_NOT_FOUND_EVENT": "지정한 앨럿이 존재하지 않습니다.",
+	// Alert
+	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",
+
+	// SystemNotificationTemplate
+	"SNT_CREATE_ALREADY_EXISTED_NAME": "알림템플릿에 이미 존재하는 이름입니다.",
+	"SNT_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿을 가져오는데 실패했습니다.",
+	"SNT_FAILED_UPDATE_ORGANIZATION":  "알림템플릿에 조직을 설정하는데 실패했습니다.",
+	"SNT_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿이 존재하지 않습니다.",
+
+	// SystemNotificationRule
+	"SNR_CREATE_ALREADY_EXISTED_NAME": "알림템플릿 설정에 이미 존재하는 이름입니다.",
+	"SNR_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿 설정을 가져오는데 실패했습니다.",
+	"SNR_FAILED_UPDATE_ORGANIZATION":  "알림템플릿 설정에 조직을 설정하는데 실패했습니다.",
+	"SNR_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿 설정이 존재하지 않습니다.",
 
 	// AppGroup
 	"AG_NOT_FOUND_CLUSTER":         "지장한 클러스터가 존재하지 않습니다.",
@@ -86,8 +99,8 @@ var errorMap = map[ErrorCode]string{
 	"AG_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패하였습니다.",
 
 	// StackTemplate
-	"ST_CREATE_ALREADY_EXISTED_NAME": "스택 템플릿에 이미 존재하는 이름입니다.",
-	"ST_FAILED_UPDATE_ORGANIZATION":  "스택 템플릿에 조직을 설정하는데 실패했습니다.",
+	"ST_CREATE_ALREADY_EXISTED_NAME": "스택템플릿에 이미 존재하는 이름입니다.",
+	"ST_FAILED_UPDATE_ORGANIZATION":  "스택템플릿에 조직을 설정하는데 실패했습니다.",
 	"ST_NOT_EXISTED_STACK_TEMPLATE":  "업데이트할 스택템플릿이 존재하지 않습니다.",
 	"ST_INVALID_STACK_TEMAPLTE_NAME": "유효하지 않은 스택템플릿 이름입니다. 스택템플릿 이름을 확인하세요.",
 	"ST_FAILED_FETCH_STACK_TEMPLATE": "스택템플릿을 가져오는데 실패했습니다.",

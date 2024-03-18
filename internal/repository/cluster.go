@@ -49,7 +49,7 @@ func NewClusterRepository(db *gorm.DB) IClusterRepository {
 // Logics
 func (r *ClusterRepository) WithTrx(trxHandle *gorm.DB) IClusterRepository {
 	if trxHandle == nil {
-		log.Info(context.TODO(), "Transaction Database not found")
+		log.Info(nil, "Transaction Database not found")
 		return r
 	}
 	r.tx = trxHandle
@@ -216,7 +216,7 @@ func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.Cl
 		ClusterId: clusterId,
 		UserId:    userId,
 	}
-	resCreate := r.db.Create(&clusterFavorite)
+	resCreate := r.db.WithContext(ctx).Create(&clusterFavorite)
 	if resCreate.Error != nil {
 		log.Error(ctx, resCreate.Error)
 		return fmt.Errorf("could not create cluster favorite for clusterId %s, userId %s", clusterId, userId)

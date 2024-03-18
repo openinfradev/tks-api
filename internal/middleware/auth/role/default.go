@@ -116,6 +116,14 @@ var defaultPermissionOfAdmin = defaultPermission{
 		internalApi.GetStacksDashboard,
 		internalApi.GetResourcesDashboard,
 
+		// Alert
+		internalApi.CreateAlert,
+		internalApi.GetAlerts,
+		internalApi.GetAlert,
+		internalApi.DeleteAlert,
+		internalApi.UpdateAlert,
+		internalApi.CreateAlertAction,
+
 		// Stack
 		internalApi.GetStacks,
 		internalApi.CreateStack,
@@ -220,13 +228,9 @@ var defaultPermissionOfUser = defaultPermission{
 		internalApi.GetStacksDashboard,
 		internalApi.GetResourcesDashboard,
 
-		// SystemNotification
-		internalApi.CreateSystemNotification,
-		internalApi.GetSystemNotifications,
-		internalApi.GetSystemNotification,
-		internalApi.DeleteSystemNotification,
-		internalApi.UpdateSystemNotification,
-		internalApi.CreateSystemNotificationAction,
+		// Alert
+		internalApi.GetAlerts,
+		internalApi.GetAlert,
 
 		// Stack
 		internalApi.GetStacks,

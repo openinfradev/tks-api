@@ -70,7 +70,7 @@ func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, acc
 		log.Error(ctx, res.Error.Error())
 		return model.User{}, res.Error
 	}
-	user, err := r.getUserByAccountId(ctx, accountId, organizationId)
+	user, err := r.getUserByAccountId(nil, accountId, organizationId)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -94,7 +94,7 @@ func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]mo
 			}
 		}
 		cFunc := combinedFilter(filters...)
-		res = cFunc(r.db.Model(&model.User{}).Preload("Organization").Preload("Role")).Find(&users)
+		res = cFunc(r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role")).Find(&users)
 	}
 
 	if res.Error != nil {
@@ -106,7 +106,9 @@ func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]mo
 	}
 
 	var out []model.User
-	out = append(out, users...)
+	for _, user := range users {
+		out = append(out, user)
+	}
 
 	return &out, nil
 }
@@ -125,7 +127,9 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 	}
 
 	var out []model.User
-	out = append(out, users...)
+	for _, user := range users {
+		out = append(out, user)
+	}
 
 	return &out, nil
 }
@@ -171,7 +175,7 @@ func (r *UserRepository) UpdateWithUuid(ctx context.Context, uuid uuid.UUID, acc
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return model.User{}, res.Error
 	}
-	res = r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
+	res = r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
 	if res.Error != nil {
 		return model.User{}, res.Error
 	}
@@ -185,7 +189,7 @@ func (r *UserRepository) UpdatePasswordAt(ctx context.Context, userId uuid.UUID,
 	} else {
 		updateUser.PasswordUpdatedAt = time.Now()
 	}
-	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
+	res := r.db.WithContext(ctx).WithContext(ctx).Model(&model.User{}).Where("id = ? AND organization_id = ?", userId, organizationId).
 		Select("password_updated_at").Updates(updateUser)
 
 	if res.RowsAffected == 0 || res.Error != nil {

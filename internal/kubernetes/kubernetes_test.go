@@ -1,7 +1,6 @@
 package kubernetes_test
 
 import (
-	"context"
 	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -18,7 +17,7 @@ func TestGetResourceApiVersionByClusterId(t *testing.T) {
 		return
 	}
 
-	res, err := kubernetes.GetResourceApiVersion(context.Background(), dat, "ClusterRole")
+	res, err := kubernetes.GetResourceApiVersion(dat, "ClusterRole")
 	if err != nil {
 		t.Errorf("GetResourceApiVersion() error = %v", err)
 		return
@@ -35,7 +34,7 @@ func TestEnsureClusterRole(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.EnsureClusterRole(context.Background(), dat, "p123")
+	err = kubernetes.EnsureClusterRole(dat, "p123")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return
@@ -49,7 +48,7 @@ func TestEnsureCommonClusterRole(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.EnsureCommonClusterRole(context.Background(), dat, "p123")
+	err = kubernetes.EnsureCommonClusterRole(dat, "p123")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return
@@ -63,7 +62,7 @@ func TestEnsureCommonClusterRoleBinding(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.EnsureCommonClusterRoleBinding(context.Background(), dat, "p123")
+	err = kubernetes.EnsureCommonClusterRoleBinding(dat, "p123")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return
@@ -77,7 +76,7 @@ func TestEnsureClusterRoleBinding(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.EnsureClusterRoleBinding(context.Background(), dat, "p123")
+	err = kubernetes.EnsureClusterRoleBinding(dat, "p123")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return
@@ -91,7 +90,7 @@ func TestEnsureRoleBinding(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.EnsureRoleBinding(context.Background(), dat, "p123", "test")
+	err = kubernetes.EnsureRoleBinding(dat, "p123", "test")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return
@@ -105,7 +104,7 @@ func TestRemoveClusterRoleBinding(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.RemoveClusterRoleBinding(context.Background(), dat, "p123")
+	err = kubernetes.RemoveClusterRoleBinding(dat, "p123")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return
@@ -119,7 +118,7 @@ func TestRemoveRoleBinding(t *testing.T) {
 		return
 	}
 
-	err = kubernetes.RemoveRoleBinding(context.Background(), dat, "p123", "test")
+	err = kubernetes.RemoveRoleBinding(dat, "p123", "test")
 	if err != nil {
 		t.Errorf("EnsureClusterRole() error = %v", err)
 		return

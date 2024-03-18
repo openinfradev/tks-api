@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
-	"math"
 
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -45,14 +43,8 @@ func (e *EndpointRepository) List(ctx context.Context, pg *pagination.Pagination
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
-	filterFunc := CombinedGormFilter("endpoints", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(e.db.Model(&model.Endpoint{}))
 
-	db.Count(&pg.TotalRows)
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.WithContext(ctx).Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&endpoints)
+	_, res := pg.Fetch(e.db.WithContext(ctx).Model(&model.Endpoint{}), &endpoints)
 	if res.Error != nil {
 		return nil, res.Error
 	}

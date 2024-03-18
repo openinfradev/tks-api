@@ -116,11 +116,11 @@ func New(m *MessageInfo) Mailer {
 	switch mailProvider {
 	case "aws":
 		mailer = NewAwsMailer(m)
-		log.Infof(context.TODO(), "aws ses mailer, %v", mailer)
+		log.Infof(nil, "aws ses mailer, %v", mailer)
 
 	case "smtp":
 		mailer = NewSmtpMailer(m)
-		log.Infof(context.TODO(), "smtp mailer, %v", mailer)
+		log.Infof(nil, "smtp mailer, %v", mailer)
 	}
 
 	return mailer

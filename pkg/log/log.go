@@ -102,7 +102,6 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	return []byte(logMessage), nil
 }
 
-// [TODO] more pretty
 func Info(ctx context.Context, v ...interface{}) {
 	fields := logrus.Fields{}
 
@@ -259,7 +258,10 @@ func getRelativeFilePath(absolutePath string) string {
 	}
 
 	relativePath := strings.TrimPrefix(absolutePath, wd)
-	relativePath = strings.TrimPrefix(relativePath, "/")
+
+	if strings.HasPrefix(relativePath, "/") {
+		relativePath = relativePath[1:]
+	}
 
 	return relativePath
 }

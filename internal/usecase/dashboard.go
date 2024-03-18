@@ -286,7 +286,7 @@ func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizat
 			return res, fmt.Errorf("Invalid month")
 		}
 
-		events, err := u.systemNotificationRepo.FetchPodRestart(ctx, organizationId, startDate, endDate)
+		systemNotifications, err := u.systemNotificationRepo.FetchPodRestart(ctx, organizationId, startDate, endDate)
 		if err != nil {
 			return res, err
 		}
@@ -309,8 +309,8 @@ func (u *DashboardUsecase) getChartFromPrometheus(ctx context.Context, organizat
 			cntPodRestart := 0
 
 			if baseDate <= now.Format("2006-01-02") && baseDate >= organization.CreatedAt.Format("2006-01-02") {
-				for _, event := range events {
-					strDate := event.CreatedAt.Format("2006-01-02")
+				for _, systemNotification := range systemNotifications {
+					strDate := systemNotification.CreatedAt.Format("2006-01-02")
 
 					if strDate == baseDate {
 						cntPodRestart += 1

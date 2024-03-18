@@ -6,6 +6,11 @@ type LoginRequest struct {
 	OrganizationId string `json:"organizationId" validate:"required"`
 }
 
+type PingTokenRequest struct {
+	Token          string `json:"token" validate:"required"`
+	OrganizationId string `json:"organizationId" validate:"required"`
+}
+
 type LoginResponse struct {
 	User struct {
 		AccountId       string               `json:"accountId"`

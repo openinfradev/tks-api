@@ -51,7 +51,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 		message, description := "", ""
 		if fn, ok := auditMap[endpoint]; ok {
 			// workarround pingtoken
-			if endpoint != internalApi.VerifyToken {
+			if endpoint != internalApi.PingToken {
 				body, err := io.ReadAll(r.Body)
 				if err != nil {
 					log.Error(r.Context(), err)

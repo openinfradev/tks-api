@@ -57,7 +57,8 @@ type IProjectHandler interface {
 }
 
 type ProjectHandler struct {
-	usecase usecase.IProjectUsecase
+	usecase     usecase.IProjectUsecase
+	roleUsecase usecase.IRoleUsecase
 }
 
 func NewProjectHandler(u usecase.Usecase) IProjectHandler {
@@ -178,10 +179,6 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 	// get myUserId from login component
 	requestUserInfo, ok := request.UserFrom(r.Context())
-	if !ok {
-		log.Error(r.Context(), "Failed to retrieve user info from request")
-		ErrorJSON(w, r, fmt.Errorf("failed to retrieve user info from request"))
-	}
 	myUserId := requestUserInfo.GetUserId().String()
 	pr, err := p.usecase.GetProjects(r.Context(), organizationId, myUserId, onlyMyProject, pg)
 	if err != nil {
@@ -485,7 +482,7 @@ func (p ProjectHandler) GetProjectRoles(w http.ResponseWriter, r *http.Request) 
 	urlParams := r.URL.Query()
 
 	queryParam := urlParams.Get("query")
-	var query int
+	query := usecase.ProjectAll
 	if queryParam == "" || strings.EqualFold(queryParam, "all") {
 		query = usecase.ProjectAll
 	} else if strings.EqualFold(queryParam, "leader") {
@@ -718,7 +715,7 @@ func (p ProjectHandler) GetProjectMembers(w http.ResponseWriter, r *http.Request
 	urlParams := r.URL.Query()
 
 	queryParam := urlParams.Get("query")
-	var query int
+	query := usecase.ProjectAll
 	if queryParam == "" || strings.EqualFold(queryParam, "all") {
 		query = usecase.ProjectAll
 	} else if strings.EqualFold(queryParam, "leader") {

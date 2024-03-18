@@ -98,25 +98,22 @@ func (u *ProjectUsecase) CreateProject(ctx context.Context, p *model.Project) (s
 
 func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	if userId == "" {
-		if pr, err = u.projectRepo.GetAllProjects(ctx, organizationId, pg); err != nil {
-			log.Error(ctx, err)
-			return nil, errors.Wrap(err, "Failed to get projects.")
-		}
+		pr, err = u.projectRepo.GetAllProjects(ctx, organizationId, pg)
 	} else {
 		userUuid, err := uuid.Parse(userId)
 		if err != nil {
 			log.Error(ctx, err)
 			return nil, errors.Wrap(err, "Failed to parse uuid to string")
 		}
-		if !onlyMyProject {
+		if onlyMyProject == false {
 			pr, err = u.projectRepo.GetProjects(ctx, organizationId, userUuid, pg)
 		} else {
 			pr, err = u.projectRepo.GetProjectsByUserId(ctx, organizationId, userUuid, pg)
 		}
-		if err != nil {
-			log.Error(ctx, err)
-			return nil, errors.Wrap(err, "Failed to get projects.")
-		}
+	}
+	if err != nil {
+		log.Error(ctx, err)
+		return nil, errors.Wrap(err, "Failed to get projects.")
 	}
 
 	return pr, err
@@ -574,11 +571,6 @@ func (u *ProjectUsecase) createKeycloakClientRoles(ctx context.Context, organiza
 			log.Error(ctx, err)
 			return errors.Wrap(err, "Failed to create project namespace.")
 		}
-		err = u.kc.EnsureClientRoleWithClientName(ctx, organizationId, keycloak.DefaultClientID, role+"@"+projectId)
-		if err != nil {
-			log.Error(ctx, err)
-			return errors.Wrap(err, "Failed to create project namespace.")
-		}
 	}
 	return nil
 }
@@ -628,10 +620,6 @@ func (u *ProjectUsecase) AssignKeycloakClientRoleToMember(ctx context.Context, o
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	err = u.assignEachKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
-	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
-	}
 	return nil
 }
 
@@ -651,10 +639,6 @@ func (u *ProjectUsecase) UnassignKeycloakClientRoleToMember(ctx context.Context,
 		return errors.Wrap(err, "Failed to create project namespace.")
 	}
 	err = u.unassignKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
-	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
-	}
 	return nil
 }
 

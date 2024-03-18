@@ -121,9 +121,6 @@ func main() {
 
 	// Ensure default rows in database
 	err = database.EnsureDefaultRows(db)
-	if err != nil {
-		log.Fatal(ctx, "cannot Initializing Default Rows in Database: ", err)
-	}
 
 	// Initialize external client
 	var argoClient argowf.ArgoClient
