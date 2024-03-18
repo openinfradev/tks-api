@@ -118,12 +118,12 @@ const (
 	Admin_GetSystemNotificationTemplates
 	Admin_GetSystemNotificationTemplate
 
-	// AlertSetting
-	CreateAlertSetting
-	GetAlertSettings
-	GetAlertSetting
-	DeleteAlertSetting
-	UpdateAlertSetting
+	// SystemNotificationRule
+	CreateSystemNotificationRule
+	GetSystemNotificationRules
+	GetSystemNotificationRule
+	DeleteSystemNotificationRule
+	UpdateSystemNotificationRule
 
 	// Alert
 	CreateAlert

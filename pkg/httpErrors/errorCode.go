@@ -80,6 +80,12 @@ var errorMap = map[ErrorCode]string{
 	"SNT_FAILED_UPDATE_ORGANIZATION":  "알림템플릿에 조직을 설정하는데 실패했습니다.",
 	"SNT_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿이 존재하지 않습니다.",
 
+	// SystemNotificationRule
+	"SNR_CREATE_ALREADY_EXISTED_NAME": "알림템플릿 설정에 이미 존재하는 이름입니다.",
+	"SNR_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿 설정을 가져오는데 실패했습니다.",
+	"SNR_FAILED_UPDATE_ORGANIZATION":  "알림템플릿 설정에 조직을 설정하는데 실패했습니다.",
+	"SNR_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿 설정이 존재하지 않습니다.",
+
 	// AppGroup
 	"AG_NOT_FOUND_CLUSTER":         "지장한 클러스터가 존재하지 않습니다.",
 	"AG_NOT_FOUND_APPGROUP":        "지장한 앱그룹이 존재하지 않습니다.",

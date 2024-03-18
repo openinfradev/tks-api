@@ -18,7 +18,7 @@ type SystemNotificationTemplate struct {
 
 	ID               uuid.UUID      `gorm:"primarykey"`
 	Name             string         `gorm:"index:idx_name,unique"`
-	Organizations    []Organization `gorm:"many2many:alert_template_organizations"`
+	Organizations    []Organization `gorm:"many2many:system_notification_template_organizations"`
 	OrganizationIds  []string       `gorm:"-:all"`
 	Description      string
 	MetricQuery      string

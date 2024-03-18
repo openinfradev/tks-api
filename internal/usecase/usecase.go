@@ -12,6 +12,7 @@ type Usecase struct {
 	Dashboard                  IDashboardUsecase
 	Alert                      IAlertUsecase
 	SystemNotificationTemplate ISystemNotificationTemplateUsecase
+	SystemNotificationRule     ISystemNotificationRuleUsecase
 	Stack                      IStackUsecase
 	Project                    IProjectUsecase
 	Role                       IRoleUsecase

@@ -347,25 +347,25 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_GetSystemNotificationTemplate", 
 		Group: "SystemNotificationTemplate",
 	},
-    CreateAlertSetting: {
-		Name: "CreateAlertSetting", 
-		Group: "AlertSetting",
+    CreateSystemNotificationRule: {
+		Name: "CreateSystemNotificationRule", 
+		Group: "SystemNotificationRule",
 	},
-    GetAlertSettings: {
-		Name: "GetAlertSettings", 
-		Group: "AlertSetting",
+    GetSystemNotificationRules: {
+		Name: "GetSystemNotificationRules", 
+		Group: "SystemNotificationRule",
 	},
-    GetAlertSetting: {
-		Name: "GetAlertSetting", 
-		Group: "AlertSetting",
+    GetSystemNotificationRule: {
+		Name: "GetSystemNotificationRule", 
+		Group: "SystemNotificationRule",
 	},
-    DeleteAlertSetting: {
-		Name: "DeleteAlertSetting", 
-		Group: "AlertSetting",
+    DeleteSystemNotificationRule: {
+		Name: "DeleteSystemNotificationRule", 
+		Group: "SystemNotificationRule",
 	},
-    UpdateAlertSetting: {
-		Name: "UpdateAlertSetting", 
-		Group: "AlertSetting",
+    UpdateSystemNotificationRule: {
+		Name: "UpdateSystemNotificationRule", 
+		Group: "SystemNotificationRule",
 	},
     CreateAlert: {
 		Name: "CreateAlert", 
@@ -950,16 +950,16 @@ func (e Endpoint) String() string {
 		return "Admin_GetSystemNotificationTemplates"
 	case Admin_GetSystemNotificationTemplate:
 		return "Admin_GetSystemNotificationTemplate"
-	case CreateAlertSetting:
-		return "CreateAlertSetting"
-	case GetAlertSettings:
-		return "GetAlertSettings"
-	case GetAlertSetting:
-		return "GetAlertSetting"
-	case DeleteAlertSetting:
-		return "DeleteAlertSetting"
-	case UpdateAlertSetting:
-		return "UpdateAlertSetting"
+	case CreateSystemNotificationRule:
+		return "CreateSystemNotificationRule"
+	case GetSystemNotificationRules:
+		return "GetSystemNotificationRules"
+	case GetSystemNotificationRule:
+		return "GetSystemNotificationRule"
+	case DeleteSystemNotificationRule:
+		return "DeleteSystemNotificationRule"
+	case UpdateSystemNotificationRule:
+		return "UpdateSystemNotificationRule"
 	case CreateAlert:
 		return "CreateAlert"
 	case GetAlerts:
@@ -1342,16 +1342,16 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_GetSystemNotificationTemplates
 	case "Admin_GetSystemNotificationTemplate":
 		return Admin_GetSystemNotificationTemplate
-	case "CreateAlertSetting":
-		return CreateAlertSetting
-	case "GetAlertSettings":
-		return GetAlertSettings
-	case "GetAlertSetting":
-		return GetAlertSetting
-	case "DeleteAlertSetting":
-		return DeleteAlertSetting
-	case "UpdateAlertSetting":
-		return UpdateAlertSetting
+	case "CreateSystemNotificationRule":
+		return CreateSystemNotificationRule
+	case "GetSystemNotificationRules":
+		return GetSystemNotificationRules
+	case "GetSystemNotificationRule":
+		return GetSystemNotificationRule
+	case "DeleteSystemNotificationRule":
+		return DeleteSystemNotificationRule
+	case "UpdateSystemNotificationRule":
+		return UpdateSystemNotificationRule
 	case "CreateAlert":
 		return CreateAlert
 	case "GetAlerts":
