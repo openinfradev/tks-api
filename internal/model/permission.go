@@ -70,10 +70,6 @@ func GetEdgePermission(root *Permission, edgePermissions []*Permission, f *func(
 	return edgePermissions
 }
 
-func SetRoleIDToPermission(roleID string, permission *Permission) {
-	permission.RoleID = helper.StringP(roleID)
-}
-
 func endpointObjects(eps ...api.Endpoint) []*Endpoint {
 	var result []*Endpoint
 	for _, ep := range eps {
@@ -87,12 +83,15 @@ func endpointObjects(eps ...api.Endpoint) []*Endpoint {
 
 func newDashboard() *Permission {
 	dashboard := &Permission{
+		ID:   uuid.New(),
 		Name: string(DashBoardPermission),
 		Children: []*Permission{
 			{
+				ID:   uuid.New(),
 				Name: "대시보드",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -105,21 +104,26 @@ func newDashboard() *Permission {
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "대시보드 설정",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
@@ -133,9 +137,11 @@ func newDashboard() *Permission {
 
 func newStack() *Permission {
 	stack := &Permission{
+		ID:   uuid.New(),
 		Name: string(StackPermission),
 		Children: []*Permission{
 			{
+				ID:        uuid.New(),
 				Name:      "조회",
 				IsAllowed: helper.BoolP(false),
 				Endpoints: endpointObjects(
@@ -150,6 +156,7 @@ func newStack() *Permission {
 				),
 			},
 			{
+				ID:        uuid.New(),
 				Name:      "생성",
 				IsAllowed: helper.BoolP(false),
 				Endpoints: endpointObjects(
@@ -158,6 +165,7 @@ func newStack() *Permission {
 				),
 			},
 			{
+				ID:        uuid.New(),
 				Name:      "수정",
 				IsAllowed: helper.BoolP(false),
 				Endpoints: endpointObjects(
@@ -165,6 +173,7 @@ func newStack() *Permission {
 				),
 			},
 			{
+				ID:        uuid.New(),
 				Name:      "삭제",
 				IsAllowed: helper.BoolP(false),
 				Endpoints: endpointObjects(
@@ -179,24 +188,30 @@ func newStack() *Permission {
 
 func newSecurityPolicy() *Permission {
 	security_policy := &Permission{
+		ID:   uuid.New(),
 		Name: string(SecurityPolicyPermission),
 		Children: []*Permission{
 			{
+				ID:   uuid.New(),
 				Name: "보안/정책",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
@@ -210,12 +225,15 @@ func newSecurityPolicy() *Permission {
 
 func newProjectManagement() *Permission {
 	projectManagement := &Permission{
+		ID:   uuid.New(),
 		Name: string(ProjectManagementPermission),
 		Children: []*Permission{
 			{
+				ID:   uuid.New(),
 				Name: "프로젝트",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -224,6 +242,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -233,9 +252,11 @@ func newProjectManagement() *Permission {
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "앱 서빙",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -248,6 +269,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "빌드",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -261,6 +283,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "배포",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -274,6 +297,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -283,9 +307,11 @@ func newProjectManagement() *Permission {
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "설정-일반",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -297,6 +323,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -304,6 +331,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -313,9 +341,11 @@ func newProjectManagement() *Permission {
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "설정-멤버",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -326,6 +356,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -333,6 +364,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -340,6 +372,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -349,9 +382,11 @@ func newProjectManagement() *Permission {
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "설정-네임스페이스",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -360,6 +395,7 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -367,11 +403,13 @@ func newProjectManagement() *Permission {
 						),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
@@ -388,21 +426,26 @@ func newProjectManagement() *Permission {
 
 func newNotification() *Permission {
 	notification := &Permission{
+		ID:   uuid.New(),
 		Name: string(NotificationPermission),
 		Children: []*Permission{
 			{
+				ID:   uuid.New(),
 				Name: "시스템 경고",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "보안/정책 감사로그",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
@@ -416,130 +459,161 @@ func newNotification() *Permission {
 
 func newConfiguration() *Permission {
 	configuration := &Permission{
+		ID:   uuid.New(),
 		Name: string(ConfigurationPermission),
 		Children: []*Permission{
 			{
+				ID:   uuid.New(),
 				Name: "일반",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "클라우드 계정",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "스택 템플릿",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "프로젝트 관리",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "사용자",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "사용자 권한 관리",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
 			{
+				ID:   uuid.New(),
 				Name: "알림 설정",
 				Children: []*Permission{
 					{
+						ID:        uuid.New(),
 						Name:      "조회",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "생성",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "수정",
 						IsAllowed: helper.BoolP(false),
 					},
 					{
+						ID:        uuid.New(),
 						Name:      "삭제",
 						IsAllowed: helper.BoolP(false),
 					},
