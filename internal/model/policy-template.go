@@ -82,7 +82,7 @@ func (pt *PolicyTemplate) AfterFind(tx *gorm.DB) (err error) {
 		pt.Libs = strings.Split(supportedVersion.ParameterSchema, FILE_DELIMETER)
 
 		// 마찬가지로 에러 무시
-		json.Unmarshal([]byte(supportedVersion.ParameterSchema), &pt.ParametersSchema)
+		_ = json.Unmarshal([]byte(supportedVersion.ParameterSchema), &pt.ParametersSchema)
 	}
 
 	pt.PermittedOrganizationIds = make([]string, len(pt.PermittedOrganizations))
