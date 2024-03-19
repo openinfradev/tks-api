@@ -15,6 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/ses v1.21.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.27.0
+	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
@@ -37,8 +38,10 @@ require (
 	github.com/thoas/go-funk v0.9.3
 	github.com/vmware-tanzu/cluster-api-provider-bringyourownhost v0.5.0
 	golang.org/x/crypto v0.21.0
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/net v0.22.0
 	golang.org/x/oauth2 v0.17.0
+	golang.org/x/text v0.14.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/datatypes v1.2.0
@@ -124,10 +127,8 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.15.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect

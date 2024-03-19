@@ -63,7 +63,6 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 	err := UnmarshalRequestInput(r, &input)
 
 	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -80,7 +79,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 	}
 
 	var out domain.CreatePolicyTemplateReponse
-	out.ID = domain.PolicyTemplateId(policyTemplateId)
+	out.ID = policyTemplateId.String()
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -122,7 +121,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = h.usecase.Update(r.Context(), id, input)
+	err = h.usecase.Update(r.Context(), id, input.TemplateName, input.Description, input.Severity, input.Deprecated, input.PermittedOrganizationIds)
 
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
@@ -135,7 +134,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, "")
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // DeletePolicyTemplate godoc
@@ -228,8 +227,17 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 		return
 	}
 
+	if policyTemplate == nil {
+		ResponseJSON(w, r, http.StatusNotFound, nil)
+		return
+	}
+
 	var out domain.GetPolicyTemplateResponse
 	if err = serializer.Map(r.Context(), *policyTemplate, &out.PolicyTemplate); err != nil {
+		log.Error(r.Context(), err)
+	}
+
+	if err = h.usecase.UpdatePermittedOrganizations(r.Context(), policyTemplate, &out.PolicyTemplate); err != nil {
 		log.Error(r.Context(), err)
 	}
 
@@ -269,6 +277,10 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 			log.Info(r.Context(), err)
 			continue
 		}
+	}
+
+	if err = h.usecase.UpdatePermittedOrganizationsForList(r.Context(), &policyTemplates, &out.PolicyTemplates); err != nil {
+		log.Error(r.Context(), err)
 	}
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
@@ -415,18 +427,23 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 
 	policyTemplate, err := h.usecase.GetPolicyTemplateVersion(r.Context(), id, version)
 	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
 			return
 		}
+	}
 
-		ErrorJSON(w, r, err)
+	if policyTemplate == nil {
+		ResponseJSON(w, r, http.StatusNotFound, nil)
 		return
 	}
 
 	var out domain.GetPolicyTemplateVersionResponse
 	if err = serializer.Map(r.Context(), *policyTemplate, &out.PolicyTemplate); err != nil {
+		log.Error(r.Context(), err)
+	}
+
+	if err = h.usecase.UpdatePermittedOrganizations(r.Context(), policyTemplate, &out.PolicyTemplate); err != nil {
 		log.Error(r.Context(), err)
 	}
 

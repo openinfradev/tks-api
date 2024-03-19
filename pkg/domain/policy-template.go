@@ -6,19 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-type PolicyTemplateId string
-
-func (pp PolicyTemplateId) String() string {
-	return string(pp)
-}
-
-func (pp PolicyTemplateId) Validate() bool {
-	// return helper.ValidatePolicyTemplateId(pp.String())
-	return true
-}
-
 type CommonPolicyTemplate struct {
-	ID        PolicyTemplateId   `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	ID        string             `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	Type      string             `json:"type" enums:"tks,organization" example:"tks"`
 	Creator   SimpleUserResponse `json:"creator,omitempty"`
 	Updator   SimpleUserResponse `json:"updator,omitempty"`
@@ -53,7 +42,7 @@ type PermittedOrganization struct {
 }
 
 type PolicyTemplateResponse struct {
-	ID        PolicyTemplateId   `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	ID        string             `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	Type      string             `json:"type" enums:"tks,organization" example:"tks"`
 	Creator   SimpleUserResponse `json:"creator"`
 	Updator   SimpleUserResponse `json:"updator"`
@@ -144,11 +133,11 @@ type CreateOrganizationPolicyTemplateRequest struct {
 }
 
 type CreatePolicyTemplateReponse struct {
-	ID PolicyTemplateId `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	ID string `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 }
 
 type CreateOrganizationPolicyTemplateReponse struct {
-	ID PolicyTemplateId `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	ID string `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 }
 
 type UpdateCommmonPolicyTemplateRequest struct {
