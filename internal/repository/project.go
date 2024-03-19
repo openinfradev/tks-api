@@ -61,7 +61,6 @@ func (r *ProjectRepository) CreateProject(ctx context.Context, p *model.Project)
 		return "", res.Error
 	}
 
-	log.Debugf(ctx, "CreateProject: %+v", p)
 	return p.ID, nil
 }
 
@@ -368,7 +367,6 @@ func (r *ProjectRepository) GetProjectRoleByName(ctx context.Context, name strin
 }
 
 func (r *ProjectRepository) AddProjectMember(ctx context.Context, pm *model.ProjectMember) (string, error) {
-	log.Debugf(ctx, "AddProjectMember: %+v", pm)
 	pm.ID = uuid.New().String()
 	res := r.db.WithContext(ctx).Create(&pm)
 	if res.Error != nil {
