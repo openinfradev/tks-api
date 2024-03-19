@@ -39,12 +39,14 @@ const (
 	DeleteMyProfile
 
 	// Organization
-	CreateOrganization
+	Admin_CreateOrganization
+	Admin_DeleteOrganization
+	Admin_UpdateOrganization
 	GetOrganizations
 	GetOrganization
-	DeleteOrganization
 	UpdateOrganization
 	UpdatePrimaryCluster
+	CheckOrganizationName
 
 	// Cluster
 	CreateCluster

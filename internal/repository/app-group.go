@@ -7,6 +7,8 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
+	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -61,6 +63,7 @@ func (r *AppGroupRepository) Get(ctx context.Context, id domain.AppGroupId) (out
 
 func (r *AppGroupRepository) Create(ctx context.Context, dto model.AppGroup) (appGroupId domain.AppGroupId, err error) {
 	appGroup := model.AppGroup{
+		ID:           domain.AppGroupId(helper.GenerateApplicaionGroupId()),
 		ClusterId:    dto.ClusterId,
 		AppGroupType: dto.AppGroupType,
 		Name:         dto.Name,
@@ -116,6 +119,7 @@ func (r *AppGroupRepository) UpsertApplication(ctx context.Context, dto model.Ap
 		Type:       dto.Type,
 	}).
 		Assign(model.Application{
+			ID:       uuid.New(),
 			Endpoint: dto.Endpoint,
 			Metadata: datatypes.JSON([]byte(dto.Metadata))}).
 		FirstOrCreate(&model.Application{})

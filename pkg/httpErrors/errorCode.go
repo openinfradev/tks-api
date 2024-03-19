@@ -33,6 +33,12 @@ var errorMap = map[ErrorCode]string{
 	"A_EXPIRED_CODE":            "인증번호가 만료되었습니다.",
 	"A_UNUSABLE_TOKEN":          "사용할 수 없는 토큰입니다.",
 
+	// Organization
+	"O_INVALID_ORGANIZATION_NAME":                   "조직에 이미 존재하는 이름입니다.",
+	"O_FAILED_UPDATE_STACK_TEMPLATES":               "조직에 스택템플릿을 설정하는데 실패했습니다",
+	"O_FAILED_UPDATE_POLICY_TEMPLATES":              "조직에 정책템플릿을 설정하는데 실패했습니다",
+	"O_FAILED_UPDATE_SYSTEM_NOTIFICATION_TEMPLATES": "조직에 알림템플릿을 설정하는데 실패했습니다",
+
 	// User
 	"U_NO_USER": "해당 사용자 정보를 찾을 수 없습니다.",
 

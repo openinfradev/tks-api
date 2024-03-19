@@ -55,6 +55,7 @@ func NewProjectRepository(db *gorm.DB) IProjectRepository {
 }
 
 func (r *ProjectRepository) CreateProject(ctx context.Context, p *model.Project) (string, error) {
+	p.ID = uuid.New().String()
 	res := r.db.WithContext(ctx).Create(&p)
 	if res.Error != nil {
 		return "", res.Error
@@ -366,6 +367,7 @@ func (r *ProjectRepository) GetProjectRoleByName(ctx context.Context, name strin
 }
 
 func (r *ProjectRepository) AddProjectMember(ctx context.Context, pm *model.ProjectMember) (string, error) {
+	pm.ID = uuid.New().String()
 	res := r.db.WithContext(ctx).Create(&pm)
 	if res.Error != nil {
 		return "", res.Error

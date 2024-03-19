@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -43,7 +44,7 @@ func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 //	@Success		200		{object}	object
 //	@Router			/organizations [post]
 //	@Security		JWT
-func (h *OrganizationHandler) CreateOrganization(w http.ResponseWriter, r *http.Request) {
+func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateOrganizationRequest{}
 
 	err := UnmarshalRequestInput(r, &input)
@@ -246,7 +247,7 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 //	@Success		200				{object}	domain.DeleteOrganizationResponse
 //	@Router			/organizations/{organizationId} [delete]
 //	@Security		JWT
-func (h *OrganizationHandler) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
+func (h *OrganizationHandler) Admin_DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
 	if !ok {
@@ -313,7 +314,12 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
-	organization, err := h.usecase.Update(r.Context(), organizationId, input)
+	var dto model.Organization
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	organization, err := h.usecase.Update(r.Context(), organizationId, dto)
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
@@ -328,6 +334,67 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 	if err = serializer.Map(r.Context(), organization, &out); err != nil {
 		log.Error(r.Context(), err)
 	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_UpdateOrganization godoc
+//
+//	@Tags			Organizations
+//	@Summary		Update organization detail ( for admin )
+//	@Description	Update organization detail ( for admin )
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string									true	"organizationId"
+//	@Param			body			body		domain.Admin_UpdateOrganizationRequest	true	"update organization request"
+//	@Success		200				{object}	domain.Admin_UpdateOrganizationResponse
+//	@Router			/admin/organizations/{organizationId} [put]
+//	@Security		JWT
+func (h *OrganizationHandler) Admin_UpdateOrganization(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.Admin_UpdateOrganizationRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var dto model.Organization
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	for _, strId := range input.StackTemplateIds {
+		stackTemplateId, err := uuid.Parse(strId)
+		if err != nil || stackTemplateId == uuid.Nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+			return
+		}
+		dto.StackTemplateIds = append(dto.StackTemplateIds, stackTemplateId)
+	}
+	for _, strId := range input.PolicyTemplateIds {
+		policyTemplateId, err := uuid.Parse(strId)
+		if err != nil || policyTemplateId == uuid.Nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+			return
+		}
+		dto.PolicyTemplateIds = append(dto.PolicyTemplateIds, policyTemplateId)
+	}
+
+	err = h.usecase.UpdateWithTemplates(r.Context(), organizationId, dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.Admin_UpdateOrganizationResponse
+	out.ID = organizationId
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -370,4 +437,42 @@ func (h *OrganizationHandler) UpdatePrimaryCluster(w http.ResponseWriter, r *htt
 	}
 
 	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// CheckOrganizationName godoc
+//
+//	@Tags			Organizations
+//	@Summary		Check name for organization
+//	@Description	Check name for organization
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	path		string	true	"name"
+//	@Success		200		{object}	nil
+//	@Router			/organizations/name/{name}/existence [GET]
+//	@Security		JWT
+func (h *OrganizationHandler) CheckOrganizationName(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name, ok := vars["name"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "O_INVALID_ORGANIZATION_NAME", ""))
+		return
+	}
+
+	exist := false
+	pg := pagination.NewPaginationWithFilter("name", "", "$eq", []string{name})
+	organizations, err := h.usecase.Fetch(r.Context(), pg)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	if organizations != nil && len(*organizations) > 0 {
+		exist = true
+	}
+
+	var out domain.CheckStackNameResponse
+	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }

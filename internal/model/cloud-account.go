@@ -31,8 +31,3 @@ type CloudAccount struct {
 	UpdatorId       *uuid.UUID `gorm:"type:uuid"`
 	Updator         User       `gorm:"foreignKey:UpdatorId"`
 }
-
-func (c *CloudAccount) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}

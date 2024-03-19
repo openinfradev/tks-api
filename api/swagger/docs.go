@@ -202,6 +202,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/organizations/{organizationId}": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update organization detail ( for admin )",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Update organization detail ( for admin )",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update organization request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/organizations/{organizationId}/projects": {
             "get": {
                 "security": [
@@ -2174,6 +2220,40 @@ const docTemplate = `{
                         "schema": {
                             "type": "object"
                         }
+                    }
+                }
+            }
+        },
+        "/organizations/name/{name}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check name for organization",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Check name for organization",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -6919,6 +6999,53 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 0
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 1
+                },
+                "policyTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "primaryClusterId": {
+                    "type": "string"
+                },
+                "stackTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "systemNotificationTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse": {
             "type": "object",
             "properties": {
@@ -9270,9 +9397,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "phone": {
-                    "type": "string"
-                },
                 "policyTemplates": {
                     "type": "array",
                     "items": {
@@ -10028,10 +10152,18 @@ const docTemplate = `{
                 "services": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateServiceResponse"
                     }
                 },
                 "template": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateServiceResponse": {
+            "type": "object",
+            "properties": {
+                "type": {
                     "type": "string"
                 }
             }
@@ -10551,9 +10683,6 @@ const docTemplate = `{
                     "maxLength": 30,
                     "minLength": 1
                 },
-                "phone": {
-                    "type": "string"
-                },
                 "primaryClusterId": {
                     "type": "string"
                 }
@@ -10569,9 +10698,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "phone": {
                     "type": "string"
                 }
             }

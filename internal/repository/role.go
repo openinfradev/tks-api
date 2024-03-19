@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"math"
-	"context"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"gorm.io/gorm"
@@ -36,6 +37,7 @@ func (r RoleRepository) Create(ctx context.Context, roleObj *model.Role) (string
 	if roleObj == nil {
 		return "", fmt.Errorf("roleObj is nil")
 	}
+	roleObj.ID = uuid.New().String()
 	if err := r.db.WithContext(ctx).Create(roleObj).Error; err != nil {
 		return "", err
 	}
@@ -68,7 +70,6 @@ func (r RoleRepository) ListTksRoles(ctx context.Context, organizationId string,
 
 	return roles, nil
 }
-
 
 func (r RoleRepository) GetTksRole(ctx context.Context, id string) (*model.Role, error) {
 	var role model.Role

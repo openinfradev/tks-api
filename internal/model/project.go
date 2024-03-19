@@ -7,27 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (a *Project) BeforeCreate(*gorm.DB) (err error) {
-	a.ID = uuid.New().String()
-	return nil
-}
-
 func (t *ProjectRole) BeforeCreate(*gorm.DB) (err error) {
 	t.ID = uuid.New().String()
-	return nil
-}
-
-func (t *ProjectMember) BeforeCreate(*gorm.DB) (err error) {
-	t.ID = uuid.New().String()
-	return nil
-}
-
-//func (t *ProjectNamespace) BeforeCreate(*gorm.DB) (err error) {
-//	t.ID = uuid.New().String()
-//	return nil
-//}
-
-func (t *ProjectNamespace) BeforeCreate(*gorm.DB) (err error) {
 	return nil
 }
 

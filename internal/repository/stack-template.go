@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -77,6 +78,7 @@ func (r *StackTemplateRepository) FetchWithOrganization(ctx context.Context, org
 }
 
 func (r *StackTemplateRepository) Create(ctx context.Context, dto model.StackTemplate) (stackTemplateId uuid.UUID, err error) {
+	dto.ID = uuid.New()
 	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error

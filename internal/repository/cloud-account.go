@@ -75,6 +75,7 @@ func (r *CloudAccountRepository) Fetch(ctx context.Context, organizationId strin
 
 func (r *CloudAccountRepository) Create(ctx context.Context, dto model.CloudAccount) (cloudAccountId uuid.UUID, err error) {
 	cloudAccount := model.CloudAccount{
+		ID:             uuid.New(),
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
 		Description:    dto.Description,

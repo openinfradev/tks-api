@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -16,9 +17,11 @@ type IOrganizationRepository interface {
 	Create(ctx context.Context, dto *model.Organization) (model.Organization, error)
 	Fetch(ctx context.Context, pg *pagination.Pagination) (res *[]model.Organization, err error)
 	Get(ctx context.Context, organizationId string) (res model.Organization, err error)
-	Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
+	Update(ctx context.Context, organizationId string, in model.Organization) (model.Organization, error)
 	UpdatePrimaryClusterId(ctx context.Context, organizationId string, primaryClusterId string) error
 	UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
+	UpdateStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
+	UpdatePolicyTemplates(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
 	Delete(ctx context.Context, organizationId string) (err error)
 	InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
@@ -94,13 +97,12 @@ func (r *OrganizationRepository) Get(ctx context.Context, id string) (out model.
 	return
 }
 
-func (r *OrganizationRepository) Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (out model.Organization, err error) {
+func (r *OrganizationRepository) Update(ctx context.Context, organizationId string, in model.Organization) (out model.Organization, err error) {
 	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"name":        in.Name,
 			"description": in.Description,
-			"phone":       in.Phone,
 		})
 
 	if res.Error != nil {
@@ -161,5 +163,26 @@ func (r *OrganizationRepository) InitWorkflow(ctx context.Context, organizationI
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
+	return nil
+}
+
+func (r *OrganizationRepository) UpdateStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("StackTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("StackTemplates").Replace(stackTemplates)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrganizationRepository) UpdatePolicyTemplates(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
+	// [TODO]
+
 	return nil
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"gorm.io/gorm"
@@ -47,6 +48,7 @@ func (r PermissionRepository) Create(ctx context.Context, p *model.Permission) e
 	//	}
 	//}
 
+	p.ID = uuid.New()
 	return r.db.WithContext(ctx).Create(p).Error
 }
 

@@ -212,6 +212,7 @@ func (r *ClusterRepository) SetFavorite(ctx context.Context, clusterId domain.Cl
 	}
 
 	clusterFavorite := model.ClusterFavorite{
+		ID:        uuid.New(),
 		ClusterId: clusterId,
 		UserId:    userId,
 	}

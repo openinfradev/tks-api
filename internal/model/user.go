@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type User struct {
@@ -26,9 +25,4 @@ type User struct {
 	Email       string `json:"email"`
 	Department  string `json:"department"`
 	Description string `json:"description"`
-}
-
-func (g *User) BeforeCreate(tx *gorm.DB) (err error) {
-	g.PasswordUpdatedAt = time.Now()
-	return nil
 }

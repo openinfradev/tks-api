@@ -52,6 +52,7 @@ func (r *PolicyTemplateRepository) Create(ctx context.Context, dto model.PolicyT
 	}
 
 	policyTemplate := model.PolicyTemplate{
+		ID:      uuid.New(),
 		Type:    "tks",
 		Name:    dto.TemplateName,
 		Version: "v1.0.0",
