@@ -22,6 +22,7 @@ type IOrganizationRepository interface {
 	UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
 	UpdateStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
 	UpdatePolicyTemplates(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
+	UpdateSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
 	Delete(ctx context.Context, organizationId string) (err error)
 	InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
@@ -184,5 +185,19 @@ func (r *OrganizationRepository) UpdateStackTemplates(ctx context.Context, organ
 func (r *OrganizationRepository) UpdatePolicyTemplates(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
 	// [TODO]
 
+	return nil
+}
+
+func (r *OrganizationRepository) UpdateSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("SystemNotificationTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("SystemNotificationTemplates").Replace(systemNotificationTemplates)
+	if err != nil {
+		return err
+	}
 	return nil
 }

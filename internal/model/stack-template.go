@@ -10,7 +10,7 @@ type StackTemplate struct {
 	gorm.Model
 
 	ID              uuid.UUID `gorm:"primarykey"`
-	Name            string    `gorm:"index"`
+	Name            string    `gorm:"index,unique"`
 	Description     string    `gorm:"index"`
 	Template        string
 	TemplateType    string

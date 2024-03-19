@@ -110,11 +110,30 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
-	// Event
+	// SystemNotification
 	if err := db.AutoMigrate(&model.SystemNotification{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&model.SystemNotificationAction{}); err != nil {
+		return err
+	}
+
+	// SystemNotificationTemplate
+	if err := db.AutoMigrate(&model.MetricParameter{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&model.SystemNotificationTemplate{}); err != nil {
+		return err
+	}
+
+	// SystemNotificationRule
+	if err := db.AutoMigrate(&model.SystemNotificationRule{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&model.SystemNotificationCondition{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&model.SystemNotificationMessage{}); err != nil {
 		return err
 	}
 
@@ -163,19 +182,21 @@ func migrateSchema(db *gorm.DB) error {
 func EnsureDefaultRows(db *gorm.DB) error {
 	// Create default rows
 	repoFactory := repository.Repository{
-		Auth:               repository.NewAuthRepository(db),
-		User:               repository.NewUserRepository(db),
-		Cluster:            repository.NewClusterRepository(db),
-		Organization:       repository.NewOrganizationRepository(db),
-		AppGroup:           repository.NewAppGroupRepository(db),
-		AppServeApp:        repository.NewAppServeAppRepository(db),
-		CloudAccount:       repository.NewCloudAccountRepository(db),
-		StackTemplate:      repository.NewStackTemplateRepository(db),
-		SystemNotification: repository.NewSystemNotificationRepository(db),
-		Role:               repository.NewRoleRepository(db),
-		Permission:         repository.NewPermissionRepository(db),
-		Endpoint:           repository.NewEndpointRepository(db),
-		Project:            repository.NewProjectRepository(db),
+		Auth:                       repository.NewAuthRepository(db),
+		User:                       repository.NewUserRepository(db),
+		Cluster:                    repository.NewClusterRepository(db),
+		Organization:               repository.NewOrganizationRepository(db),
+		AppGroup:                   repository.NewAppGroupRepository(db),
+		AppServeApp:                repository.NewAppServeAppRepository(db),
+		CloudAccount:               repository.NewCloudAccountRepository(db),
+		StackTemplate:              repository.NewStackTemplateRepository(db),
+		SystemNotification:         repository.NewSystemNotificationRepository(db),
+		SystemNotificationRule:     repository.NewSystemNotificationRuleRepository(db),
+		SystemNotificationTemplate: repository.NewSystemNotificationTemplateRepository(db),
+		Role:                       repository.NewRoleRepository(db),
+		Permission:                 repository.NewPermissionRepository(db),
+		Endpoint:                   repository.NewEndpointRepository(db),
+		Project:                    repository.NewProjectRepository(db),
 	}
 
 	//

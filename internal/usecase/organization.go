@@ -32,23 +32,25 @@ type IOrganizationUsecase interface {
 }
 
 type OrganizationUsecase struct {
-	repo               repository.IOrganizationRepository
-	roleRepo           repository.IRoleRepository
-	clusterRepo        repository.IClusterRepository
-	stackTemplateRepo  repository.IStackTemplateRepository
-	policyTemplateRepo repository.IPolicyTemplateRepository
-	argo               argowf.ArgoClient
-	kc                 keycloak.IKeycloak
+	repo                           repository.IOrganizationRepository
+	roleRepo                       repository.IRoleRepository
+	clusterRepo                    repository.IClusterRepository
+	stackTemplateRepo              repository.IStackTemplateRepository
+	policyTemplateRepo             repository.IPolicyTemplateRepository
+	systemNotificationTemplateRepo repository.ISystemNotificationTemplateRepository
+	argo                           argowf.ArgoClient
+	kc                             keycloak.IKeycloak
 }
 
 func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo:              r.Organization,
-		roleRepo:          r.Role,
-		clusterRepo:       r.Cluster,
-		stackTemplateRepo: r.StackTemplate,
-		argo:              argoClient,
-		kc:                kc,
+		repo:                           r.Organization,
+		roleRepo:                       r.Role,
+		clusterRepo:                    r.Cluster,
+		stackTemplateRepo:              r.StackTemplate,
+		systemNotificationTemplateRepo: r.SystemNotificationTemplate,
+		argo:                           argoClient,
+		kc:                             kc,
 	}
 }
 
@@ -223,6 +225,19 @@ func (u *OrganizationUsecase) UpdateWithTemplates(ctx context.Context, organizat
 	err = u.repo.UpdatePolicyTemplates(ctx, organizationId, policyTemplates)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "O_FAILED_UPDATE_POLICY_TEMPLATES", "")
+	}
+
+	systemNotificationTemplates := make([]model.SystemNotificationTemplate, 0)
+	for _, systemNotificationTemplateId := range dto.SystemNotificationTemplateIds {
+		systemNotificationTemplate, err := u.systemNotificationTemplateRepo.Get(ctx, systemNotificationTemplateId)
+		if err != nil {
+			return fmt.Errorf("Invalid systemNotificationTemplateId")
+		}
+		systemNotificationTemplates = append(systemNotificationTemplates, systemNotificationTemplate)
+	}
+	err = u.repo.UpdateSystemNotificationTemplates(ctx, organizationId, systemNotificationTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_FAILED_UPDATE_SYSTEM_NOTIFICATION_TEMPLATES", "")
 	}
 
 	return nil

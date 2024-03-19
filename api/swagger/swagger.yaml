@@ -470,6 +470,11 @@ definitions:
       existed:
         type: boolean
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificationRuleNameResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CloudAccountResponse:
     properties:
       awsAccountId:
@@ -1042,6 +1047,25 @@ definitions:
       id:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateResponse:
+    properties:
+      id:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleRequest:
     properties:
       description:
@@ -1554,6 +1578,34 @@ definitions:
       systemNotification:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRuleResponse:
+    properties:
+      systemNotificationRule:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationRuleResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRulesResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      systemNotificationRules:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationRuleResponse'
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplateResponse:
+    properties:
+      systemNotificationTemplate:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationTemplateResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplatesResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      systemNotificationTemplates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationTemplateResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationsResponse:
     properties:
       pagination:
@@ -1748,6 +1800,19 @@ definitions:
           type: array
         type: object
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse:
+    properties:
+      key:
+        type: string
+      order:
+        type: integer
+      value:
+        type: string
+    required:
+    - key
+    - order
+    - value
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse:
     properties:
       admin:
@@ -1776,6 +1841,10 @@ definitions:
         type: string
       statusDesc:
         type: string
+      systemNotificationTemplates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse'
+        type: array
       updatedAt:
         type: string
     type: object
@@ -2275,6 +2344,19 @@ definitions:
       type:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse:
     properties:
       accountId:
@@ -2500,6 +2582,52 @@ definitions:
         type: integer
       updatedAt:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationRuleResponse:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationTemplateResponse:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      description:
+        type: string
+      id:
+        type: string
+      metricParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse'
+        type: array
+      metricQuery:
+        type: string
+      name:
+        type: string
+      organizations:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse'
+        type: array
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+    required:
+    - metricQuery
     type: object
   github_com_openinfradev_tks-api_pkg_domain.Unit:
     properties:
@@ -2750,6 +2878,32 @@ definitions:
     properties:
       description:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest:
+    properties:
+      description:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationTemplateRequest:
+    properties:
+      description:
+        type: string
+      metricParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse'
+        type: array
+      metricQuery:
+        type: string
+      name:
+        type: string
+      organizationIds:
+        items:
+          type: string
+        type: array
+    required:
+    - metricQuery
+    - name
+    - organizationIds
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateTksRoleRequest:
     properties:
@@ -3732,6 +3886,107 @@ paths:
       summary: Get GetStackTemplateServices
       tags:
       - StackTemplates
+  /admin/system-notification-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get SystemNotificationTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get SystemNotificationTemplates
+      tags:
+      - SystemNotificationTemplates
+    post:
+      consumes:
+      - application/json
+      description: Create alert template. ADMIN ONLY
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateResponse'
+      security:
+      - JWT: []
+      summary: Create alert template. ADMIN ONLY
+      tags:
+      - SystemNotificationTemplates
+  /admin/system-notification-templates/{systemNotificationTemplateId}:
+    get:
+      consumes:
+      - application/json
+      description: Get SystemNotificationTemplate
+      parameters:
+      - description: systemNotificationTemplateId
+        in: path
+        name: systemNotificationTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get SystemNotificationTemplate
+      tags:
+      - SystemNotificationTemplates
+    put:
+      consumes:
+      - application/json
+      description: Update SystemNotificationTemplate
+      parameters:
+      - description: Update alert template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update SystemNotificationTemplate
+      tags:
+      - SystemNotificationTemplates
   /app-groups:
     delete:
       consumes:
@@ -6532,10 +6787,6 @@ paths:
         in: query
         name: sortOrder
         type: string
-      - description: combinedFilter
-        in: query
-        name: combinedFilter
-        type: string
       produces:
       - application/json
       responses:
@@ -6798,6 +7049,157 @@ paths:
       summary: Check name for stack
       tags:
       - Stacks
+  /organizations/{organizationId}/system-notification-rules:
+    get:
+      consumes:
+      - application/json
+      description: Get SystemNotificationRules
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRulesResponse'
+      security:
+      - JWT: []
+      summary: Get SystemNotificationRules
+      tags:
+      - SystemNotificationRules
+    post:
+      consumes:
+      - application/json
+      description: Create SystemNotificationRule
+      parameters:
+      - description: create stack template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleResponse'
+      security:
+      - JWT: []
+      summary: Create SystemNotificationRule
+      tags:
+      - SystemNotificationRules
+  /organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete SystemNotificationRule
+      parameters:
+      - description: systemNotificationRuleId
+        in: path
+        name: systemNotificationRuleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete SystemNotificationRule
+      tags:
+      - SystemNotificationRules
+    get:
+      consumes:
+      - application/json
+      description: Get SystemNotificationRule
+      parameters:
+      - description: systemNotificationRuleId
+        in: path
+        name: systemNotificationRuleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationRuleResponse'
+      security:
+      - JWT: []
+      summary: Get SystemNotificationRule
+      tags:
+      - SystemNotificationRules
+    put:
+      consumes:
+      - application/json
+      description: Update SystemNotificationRule
+      parameters:
+      - description: Update systemNotificationRule request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update SystemNotificationRule
+      tags:
+      - SystemNotificationRules
+  /organizations/{organizationId}/system-notification-rules/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for systemNotificationRule
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificationRuleNameResponse'
+      security:
+      - JWT: []
+      summary: Check name for systemNotificationRule
+      tags:
+      - SystemNotificationRules
   /organizations/{organizationId}/system-notifications:
     get:
       consumes:

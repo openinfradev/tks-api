@@ -335,21 +335,41 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetResourcesDashboard", 
 		Group: "Dashboard",
 	},
-    Admin_CreateAlertTemplate: {
-		Name: "Admin_CreateAlertTemplate", 
-		Group: "AlertTemplate",
+    Admin_CreateSystemNotificationTemplate: {
+		Name: "Admin_CreateSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
 	},
-    Admin_UpdateAlertTemplate: {
-		Name: "Admin_UpdateAlertTemplate", 
-		Group: "AlertTemplate",
+    Admin_UpdateSystemNotificationTemplate: {
+		Name: "Admin_UpdateSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
 	},
-    Admin_GetAlertTemplates: {
-		Name: "Admin_GetAlertTemplates", 
-		Group: "AlertTemplate",
+    Admin_GetSystemNotificationTemplates: {
+		Name: "Admin_GetSystemNotificationTemplates", 
+		Group: "SystemNotificationTemplate",
 	},
-    Admin_GetAlertTemplate: {
-		Name: "Admin_GetAlertTemplate", 
-		Group: "AlertTemplate",
+    Admin_GetSystemNotificationTemplate: {
+		Name: "Admin_GetSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
+	},
+    CreateSystemNotificationRule: {
+		Name: "CreateSystemNotificationRule", 
+		Group: "SystemNotificationRule",
+	},
+    GetSystemNotificationRules: {
+		Name: "GetSystemNotificationRules", 
+		Group: "SystemNotificationRule",
+	},
+    GetSystemNotificationRule: {
+		Name: "GetSystemNotificationRule", 
+		Group: "SystemNotificationRule",
+	},
+    DeleteSystemNotificationRule: {
+		Name: "DeleteSystemNotificationRule", 
+		Group: "SystemNotificationRule",
+	},
+    UpdateSystemNotificationRule: {
+		Name: "UpdateSystemNotificationRule", 
+		Group: "SystemNotificationRule",
 	},
     CreateSystemNotification: {
 		Name: "CreateSystemNotification", 
@@ -928,14 +948,24 @@ func (e Endpoint) String() string {
 		return "GetStacksDashboard"
 	case GetResourcesDashboard:
 		return "GetResourcesDashboard"
-	case Admin_CreateAlertTemplate:
-		return "Admin_CreateAlertTemplate"
-	case Admin_UpdateAlertTemplate:
-		return "Admin_UpdateAlertTemplate"
-	case Admin_GetAlertTemplates:
-		return "Admin_GetAlertTemplates"
-	case Admin_GetAlertTemplate:
-		return "Admin_GetAlertTemplate"
+	case Admin_CreateSystemNotificationTemplate:
+		return "Admin_CreateSystemNotificationTemplate"
+	case Admin_UpdateSystemNotificationTemplate:
+		return "Admin_UpdateSystemNotificationTemplate"
+	case Admin_GetSystemNotificationTemplates:
+		return "Admin_GetSystemNotificationTemplates"
+	case Admin_GetSystemNotificationTemplate:
+		return "Admin_GetSystemNotificationTemplate"
+	case CreateSystemNotificationRule:
+		return "CreateSystemNotificationRule"
+	case GetSystemNotificationRules:
+		return "GetSystemNotificationRules"
+	case GetSystemNotificationRule:
+		return "GetSystemNotificationRule"
+	case DeleteSystemNotificationRule:
+		return "DeleteSystemNotificationRule"
+	case UpdateSystemNotificationRule:
+		return "UpdateSystemNotificationRule"
 	case CreateSystemNotification:
 		return "CreateSystemNotification"
 	case GetSystemNotifications:
@@ -1312,14 +1342,24 @@ func GetEndpoint(name string) Endpoint {
 		return GetStacksDashboard
 	case "GetResourcesDashboard":
 		return GetResourcesDashboard
-	case "Admin_CreateAlertTemplate":
-		return Admin_CreateAlertTemplate
-	case "Admin_UpdateAlertTemplate":
-		return Admin_UpdateAlertTemplate
-	case "Admin_GetAlertTemplates":
-		return Admin_GetAlertTemplates
-	case "Admin_GetAlertTemplate":
-		return Admin_GetAlertTemplate
+	case "Admin_CreateSystemNotificationTemplate":
+		return Admin_CreateSystemNotificationTemplate
+	case "Admin_UpdateSystemNotificationTemplate":
+		return Admin_UpdateSystemNotificationTemplate
+	case "Admin_GetSystemNotificationTemplates":
+		return Admin_GetSystemNotificationTemplates
+	case "Admin_GetSystemNotificationTemplate":
+		return Admin_GetSystemNotificationTemplate
+	case "CreateSystemNotificationRule":
+		return CreateSystemNotificationRule
+	case "GetSystemNotificationRules":
+		return GetSystemNotificationRules
+	case "GetSystemNotificationRule":
+		return GetSystemNotificationRule
+	case "DeleteSystemNotificationRule":
+		return DeleteSystemNotificationRule
+	case "UpdateSystemNotificationRule":
+		return UpdateSystemNotificationRule
 	case "CreateSystemNotification":
 		return CreateSystemNotification
 	case "GetSystemNotifications":
