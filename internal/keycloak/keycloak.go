@@ -44,6 +44,7 @@ type IKeycloak interface {
 
 	VerifyAccessToken(ctx context.Context, token string, organizationId string) (bool, error)
 	GetSessions(ctx context.Context, userId string, organizationId string) (*[]string, error)
+	SetClientScopeRolesToOptionalToTksClient(ctx context.Context, organizationId string) error
 }
 type Keycloak struct {
 	config        *Config
@@ -75,6 +76,34 @@ func New(config *Config) IKeycloak {
 		config: config,
 	}
 }
+
+func (k *Keycloak) SetClientScopeRolesToOptionalToTksClient(ctx context.Context, organizationId string) error {
+	token := k.adminCliToken
+	c, err := k.client.GetClients(context.TODO(), token.AccessToken, organizationId, gocloak.GetClientsParams{
+		ClientID: gocloak.StringP(DefaultClientID),
+	})
+	if err != nil {
+		return err
+	}
+
+	defaultClientScopes, err := k.client.GetClientsDefaultScopes(context.TODO(), token.AccessToken, organizationId, *c[0].ID)
+	if err != nil {
+		return err
+	}
+	for _, defaultClientScope := range defaultClientScopes {
+		if *defaultClientScope.Name == "roles" {
+			if err := k.client.RemoveDefaultScopeFromClient(context.TODO(), token.AccessToken, organizationId, *c[0].ID, *defaultClientScope.ID); err != nil {
+				return err
+			}
+			if err := k.client.AddOptionalScopeToClient(context.TODO(), token.AccessToken, organizationId, *c[0].ID, *defaultClientScope.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (k *Keycloak) InitializeKeycloak(ctx context.Context) error {
 	k.client = gocloak.NewClient(k.config.Address)
 	restyClient := k.client.RestyClient()
@@ -132,6 +161,8 @@ func (k *Keycloak) InitializeKeycloak(ctx context.Context) error {
 		return err
 	}
 
+	err = k.SetClientScopeRolesToOptionalToTksClient(ctx, DefaultMasterRealm)
+
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if err := k.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *adminCliClient.ClientID, "openid", defaultMapper); err != nil {
 			log.Fatal(ctx, err)
@@ -176,6 +207,8 @@ func (k *Keycloak) CreateRealm(ctx context.Context, organizationId string) (stri
 		log.Error(ctx, err, "createDefaultClient")
 		return "", err
 	}
+
+	err = k.SetClientScopeRolesToOptionalToTksClient(ctx, organizationId)
 
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if *defaultMapper.Name == "org" {
@@ -527,7 +560,7 @@ func (k *Keycloak) AssignClientRoleToUser(ctx context.Context, organizationId st
 		return nil
 	}
 
-	err = k.client.AddClientRolesToUser(context.Background(), token.AccessToken, organizationId, userId, *targetClient.ID, []gocloak.Role{*roles[0]})
+	err = k.client.AddClientRolesToUser(context.Background(), token.AccessToken, organizationId, *targetClient.ID, userId, []gocloak.Role{*roles[0]})
 
 	if err != nil {
 		log.Error(ctx, "Assigning Client Role to User is failed", err)
