@@ -91,8 +91,16 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "DeleteMyProfile", 
 		Group: "MyProfile",
 	},
-    CreateOrganization: {
-		Name: "CreateOrganization", 
+    Admin_CreateOrganization: {
+		Name: "Admin_CreateOrganization", 
+		Group: "Organization",
+	},
+    Admin_DeleteOrganization: {
+		Name: "Admin_DeleteOrganization", 
+		Group: "Organization",
+	},
+    Admin_UpdateOrganization: {
+		Name: "Admin_UpdateOrganization", 
 		Group: "Organization",
 	},
     GetOrganizations: {
@@ -103,16 +111,16 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetOrganization", 
 		Group: "Organization",
 	},
-    DeleteOrganization: {
-		Name: "DeleteOrganization", 
-		Group: "Organization",
-	},
     UpdateOrganization: {
 		Name: "UpdateOrganization", 
 		Group: "Organization",
 	},
     UpdatePrimaryCluster: {
 		Name: "UpdatePrimaryCluster", 
+		Group: "Organization",
+	},
+    CheckOrganizationName: {
+		Name: "CheckOrganizationName", 
 		Group: "Organization",
 	},
     CreateCluster: {
@@ -798,18 +806,22 @@ func (e Endpoint) String() string {
 		return "RenewPasswordExpiredDate"
 	case DeleteMyProfile:
 		return "DeleteMyProfile"
-	case CreateOrganization:
-		return "CreateOrganization"
+	case Admin_CreateOrganization:
+		return "Admin_CreateOrganization"
+	case Admin_DeleteOrganization:
+		return "Admin_DeleteOrganization"
+	case Admin_UpdateOrganization:
+		return "Admin_UpdateOrganization"
 	case GetOrganizations:
 		return "GetOrganizations"
 	case GetOrganization:
 		return "GetOrganization"
-	case DeleteOrganization:
-		return "DeleteOrganization"
 	case UpdateOrganization:
 		return "UpdateOrganization"
 	case UpdatePrimaryCluster:
 		return "UpdatePrimaryCluster"
+	case CheckOrganizationName:
+		return "CheckOrganizationName"
 	case CreateCluster:
 		return "CreateCluster"
 	case GetClusters:
@@ -1178,18 +1190,22 @@ func GetEndpoint(name string) Endpoint {
 		return RenewPasswordExpiredDate
 	case "DeleteMyProfile":
 		return DeleteMyProfile
-	case "CreateOrganization":
-		return CreateOrganization
+	case "Admin_CreateOrganization":
+		return Admin_CreateOrganization
+	case "Admin_DeleteOrganization":
+		return Admin_DeleteOrganization
+	case "Admin_UpdateOrganization":
+		return Admin_UpdateOrganization
 	case "GetOrganizations":
 		return GetOrganizations
 	case "GetOrganization":
 		return GetOrganization
-	case "DeleteOrganization":
-		return DeleteOrganization
 	case "UpdateOrganization":
 		return UpdateOrganization
 	case "UpdatePrimaryCluster":
 		return UpdatePrimaryCluster
+	case "CheckOrganizationName":
+		return CheckOrganizationName
 	case "CreateCluster":
 		return CreateCluster
 	case "GetClusters":

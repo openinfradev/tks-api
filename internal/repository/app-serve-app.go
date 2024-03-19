@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -42,7 +43,7 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 }
 
 func (r *AppServeAppRepository) CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error) {
-
+	app.ID = uuid.New().String()
 	res := r.db.WithContext(ctx).Create(&app)
 	if res.Error != nil {
 		return "", "", res.Error
@@ -53,6 +54,7 @@ func (r *AppServeAppRepository) CreateAppServeApp(ctx context.Context, app *mode
 
 // Update creates new appServeApp task for existing appServeApp.
 func (r *AppServeAppRepository) CreateTask(ctx context.Context, task *model.AppServeAppTask) (string, error) {
+	task.ID = uuid.New().String()
 	res := r.db.WithContext(ctx).Create(task)
 	if res.Error != nil {
 		return "", res.Error

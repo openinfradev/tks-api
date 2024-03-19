@@ -77,8 +77,3 @@ type ClusterFavorite struct {
 	UserId    uuid.UUID `gorm:"type:uuid"`
 	User      User      `gorm:"foreignKey:UserId"`
 }
-
-func (c *ClusterFavorite) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}

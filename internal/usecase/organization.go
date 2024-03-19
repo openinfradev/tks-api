@@ -24,27 +24,31 @@ type IOrganizationUsecase interface {
 	Create(context.Context, *model.Organization) (organizationId string, err error)
 	Fetch(ctx context.Context, pg *pagination.Pagination) (*[]model.Organization, error)
 	Get(ctx context.Context, organizationId string) (model.Organization, error)
-	Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error)
+	Update(ctx context.Context, organizationId string, dto model.Organization) (model.Organization, error)
 	UpdatePrimaryClusterId(ctx context.Context, organizationId string, clusterId string) (err error)
+	UpdateWithTemplates(ctx context.Context, organizationId string, dto model.Organization) (err error)
 	ChangeAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
 	Delete(ctx context.Context, organizationId string, accessToken string) error
 }
 
 type OrganizationUsecase struct {
-	repo        repository.IOrganizationRepository
-	roleRepo    repository.IRoleRepository
-	clusterRepo repository.IClusterRepository
-	argo        argowf.ArgoClient
-	kc          keycloak.IKeycloak
+	repo               repository.IOrganizationRepository
+	roleRepo           repository.IRoleRepository
+	clusterRepo        repository.IClusterRepository
+	stackTemplateRepo  repository.IStackTemplateRepository
+	policyTemplateRepo repository.IPolicyTemplateRepository
+	argo               argowf.ArgoClient
+	kc                 keycloak.IKeycloak
 }
 
 func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo:        r.Organization,
-		roleRepo:    r.Role,
-		clusterRepo: r.Cluster,
-		argo:        argoClient,
-		kc:          kc,
+		repo:              r.Organization,
+		roleRepo:          r.Role,
+		clusterRepo:       r.Cluster,
+		stackTemplateRepo: r.StackTemplate,
+		argo:              argoClient,
+		kc:                kc,
 	}
 }
 
@@ -144,7 +148,7 @@ func (u *OrganizationUsecase) Delete(ctx context.Context, organizationId string,
 	return nil
 }
 
-func (u *OrganizationUsecase) Update(ctx context.Context, organizationId string, in domain.UpdateOrganizationRequest) (model.Organization, error) {
+func (u *OrganizationUsecase) Update(ctx context.Context, organizationId string, in model.Organization) (model.Organization, error) {
 	_, err := u.Get(ctx, organizationId)
 	if err != nil {
 		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
@@ -184,6 +188,41 @@ func (u *OrganizationUsecase) ChangeAdminId(ctx context.Context, organizationId 
 	err = u.repo.UpdateAdminId(ctx, organizationId, adminId)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (u *OrganizationUsecase) UpdateWithTemplates(ctx context.Context, organizationId string, dto model.Organization) (err error) {
+	_, err = u.Update(ctx, organizationId, dto)
+	if err != nil {
+		return err
+	}
+
+	stackTemplates := make([]model.StackTemplate, 0)
+	for _, stackTemplateId := range dto.StackTemplateIds {
+		stackTemplate, err := u.stackTemplateRepo.Get(ctx, stackTemplateId)
+		if err != nil {
+			return fmt.Errorf("Invalid stackTemplateId")
+		}
+		stackTemplates = append(stackTemplates, stackTemplate)
+	}
+	err = u.repo.UpdateStackTemplates(ctx, organizationId, stackTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_FAILED_UPDATE_STACK_TEMPLATES", "")
+	}
+
+	policyTemplates := make([]model.PolicyTemplate, 0)
+	for _, policyTemplateId := range dto.PolicyTemplateIds {
+		policyTemplate, err := u.policyTemplateRepo.GetByID(ctx, policyTemplateId)
+		if err != nil {
+			return fmt.Errorf("Invalid policyTemplateId")
+		}
+		policyTemplates = append(policyTemplates, *policyTemplate)
+	}
+	err = u.repo.UpdatePolicyTemplates(ctx, organizationId, policyTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_FAILED_UPDATE_POLICY_TEMPLATES", "")
 	}
 
 	return nil

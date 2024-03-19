@@ -35,13 +35,6 @@ type Permission struct {
 	Children []*Permission `gorm:"foreignKey:ParentID;references:ID;" json:"children,omitempty"`
 }
 
-func (p *Permission) BeforeCreate(tx *gorm.DB) (err error) {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
-	}
-	return nil
-}
-
 type PermissionSet struct {
 	Dashboard         *Permission `gorm:"-:all" json:"dashboard,omitempty"`
 	Stack             *Permission `gorm:"-:all" json:"stack,omitempty"`

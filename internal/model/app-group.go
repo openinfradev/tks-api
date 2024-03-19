@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -26,11 +25,6 @@ type AppGroup struct {
 	Updator      User       `gorm:"foreignKey:UpdatorId"`
 }
 
-func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = domain.AppGroupId(helper.GenerateApplicaionGroupId())
-	return nil
-}
-
 type Application struct {
 	gorm.Model
 
@@ -39,9 +33,4 @@ type Application struct {
 	Endpoint   string
 	Metadata   datatypes.JSON
 	Type       domain.ApplicationType
-}
-
-func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
 }

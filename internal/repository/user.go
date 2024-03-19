@@ -55,14 +55,15 @@ func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, acc
 	department string, description string, organizationId string, roleId string) (model.User, error) {
 
 	newUser := model.User{
-		ID:             uuid,
-		AccountId:      accountId,
-		Name:           name,
-		Email:          email,
-		Department:     department,
-		Description:    description,
-		OrganizationId: organizationId,
-		RoleId:         roleId,
+		ID:                uuid,
+		AccountId:         accountId,
+		Name:              name,
+		Email:             email,
+		Department:        department,
+		Description:       description,
+		OrganizationId:    organizationId,
+		RoleId:            roleId,
+		PasswordUpdatedAt: time.Now(),
 	}
 	res := r.db.WithContext(ctx).Create(&newUser)
 	if res.Error != nil {

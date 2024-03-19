@@ -85,6 +85,7 @@ func (r *SystemNotificationRepository) FetchPodRestart(ctx context.Context, orga
 
 func (r *SystemNotificationRepository) Create(ctx context.Context, dto model.SystemNotification) (systemNotificationId uuid.UUID, err error) {
 	systemNotification := model.SystemNotification{
+		ID:             uuid.New(),
 		OrganizationId: dto.OrganizationId,
 		Name:           dto.Name,
 		Code:           dto.Code,
@@ -126,6 +127,7 @@ func (r *SystemNotificationRepository) Delete(ctx context.Context, dto model.Sys
 
 func (r *SystemNotificationRepository) CreateSystemNotificationAction(ctx context.Context, dto model.SystemNotificationAction) (systemNotificationActionId uuid.UUID, err error) {
 	systemNotification := model.SystemNotificationAction{
+		ID:                   uuid.New(),
 		SystemNotificationId: dto.SystemNotificationId,
 		Content:              dto.Content,
 		Status:               dto.Status,

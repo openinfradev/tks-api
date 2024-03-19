@@ -7,11 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *Role) BeforeCreate(tx *gorm.DB) (err error) {
-	r.ID = uuid.New().String()
-	return nil
-}
-
 type Role struct {
 	gorm.Model
 

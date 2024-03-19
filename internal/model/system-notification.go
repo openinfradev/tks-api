@@ -38,11 +38,6 @@ type SystemNotification struct {
 	Status                    domain.SystemNotificationActionStatus `gorm:"index"`
 }
 
-func (c *SystemNotification) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
 type SystemNotificationAction struct {
 	gorm.Model
 
@@ -52,9 +47,4 @@ type SystemNotificationAction struct {
 	Status               domain.SystemNotificationActionStatus
 	TakerId              *uuid.UUID `gorm:"type:uuid"`
 	Taker                User       `gorm:"foreignKey:TakerId"`
-}
-
-func (c *SystemNotificationAction) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
 }

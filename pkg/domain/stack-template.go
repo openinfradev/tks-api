@@ -37,15 +37,19 @@ type StackTemplateResponse struct {
 	UpdatedAt     time.Time                      `json:"updatedAt"`
 }
 
+type SimpleStackTemplateServiceResponse struct {
+	Type string `json:"type"`
+}
+
 type SimpleStackTemplateResponse struct {
-	ID           string                         `json:"id"`
-	Name         string                         `json:"name"`
-	Description  string                         `json:"description"`
-	Template     string                         `json:"template"`
-	CloudService string                         `json:"cloudService"`
-	KubeVersion  string                         `json:"kubeVersion"`
-	KubeType     string                         `json:"kubeType"`
-	Services     []StackTemplateServiceResponse `json:"services"`
+	ID           string                               `json:"id"`
+	Name         string                               `json:"name"`
+	Description  string                               `json:"description"`
+	Template     string                               `json:"template"`
+	CloudService string                               `json:"cloudService"`
+	KubeVersion  string                               `json:"kubeVersion"`
+	KubeType     string                               `json:"kubeType"`
+	Services     []SimpleStackTemplateServiceResponse `json:"services"`
 }
 
 type GetStackTemplatesResponse struct {

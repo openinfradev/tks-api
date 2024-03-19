@@ -57,10 +57,11 @@ var defaultPermissionOfAdmin = defaultPermission{
 		internalApi.DeleteMyProfile,
 
 		// Organization
-		internalApi.CreateOrganization,
+		internalApi.Admin_CreateOrganization,
+		internalApi.Admin_UpdateOrganization,
+		internalApi.Admin_DeleteOrganization,
 		internalApi.GetOrganizations,
 		internalApi.GetOrganization,
-		internalApi.DeleteOrganization,
 		internalApi.UpdateOrganization,
 
 		// Cluster

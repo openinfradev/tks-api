@@ -54,6 +54,7 @@ func (r *AuditRepository) Fetch(ctx context.Context, pg *pagination.Pagination) 
 
 func (r *AuditRepository) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
 	audit := model.Audit{
+		ID:             uuid.New(),
 		OrganizationId: dto.OrganizationId,
 		Group:          dto.Group,
 		Message:        dto.Message,

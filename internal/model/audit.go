@@ -19,8 +19,3 @@ type Audit struct {
 	UserId         *uuid.UUID `gorm:"type:uuid"`
 	User           User       `gorm:"foreignKey:UserId"`
 }
-
-func (c *Audit) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}

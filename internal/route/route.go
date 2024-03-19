@@ -116,7 +116,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile/next-password-change", customMiddleware.Handle(internalApi.RenewPasswordExpiredDate, http.HandlerFunc(userHandler.RenewPasswordExpiredDate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", customMiddleware.Handle(internalApi.DeleteMyProfile, http.HandlerFunc(userHandler.DeleteMyProfile))).Methods(http.MethodDelete)
 
-	// Admin
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.Admin_CreateUser, http.HandlerFunc(userHandler.Admin_Create))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.Admin_ListUser, http.HandlerFunc(userHandler.Admin_List))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.Admin_GetUser, http.HandlerFunc(userHandler.Admin_Get))).Methods(http.MethodGet)
@@ -124,12 +123,14 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.Admin_DeleteUser, http.HandlerFunc(userHandler.Admin_Delete))).Methods(http.MethodDelete)
 
 	organizationHandler := delivery.NewOrganizationHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations", customMiddleware.Handle(internalApi.CreateOrganization, http.HandlerFunc(organizationHandler.CreateOrganization))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations", customMiddleware.Handle(internalApi.Admin_CreateOrganization, http.HandlerFunc(organizationHandler.Admin_CreateOrganization))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.Admin_DeleteOrganization, http.HandlerFunc(organizationHandler.Admin_DeleteOrganization))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.Admin_UpdateOrganization, http.HandlerFunc(organizationHandler.Admin_UpdateOrganization))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", customMiddleware.Handle(internalApi.GetOrganizations, http.HandlerFunc(organizationHandler.GetOrganizations))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.GetOrganization, http.HandlerFunc(organizationHandler.GetOrganization))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.DeleteOrganization, http.HandlerFunc(organizationHandler.DeleteOrganization))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.UpdateOrganization, http.HandlerFunc(organizationHandler.UpdateOrganization))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/primary-cluster", customMiddleware.Handle(internalApi.UpdatePrimaryCluster, http.HandlerFunc(organizationHandler.UpdatePrimaryCluster))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/name/{name}/existence", customMiddleware.Handle(internalApi.CheckOrganizationName, http.HandlerFunc(organizationHandler.CheckOrganizationName))).Methods(http.MethodGet)
 
 	clusterHandler := delivery.NewClusterHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters", customMiddleware.Handle(internalApi.CreateCluster, http.HandlerFunc(clusterHandler.CreateCluster))).Methods(http.MethodPost)
