@@ -608,7 +608,7 @@ func (k *Keycloak) UnassignClientRoleToUser(ctx context.Context, organizationId 
 		return nil
 	}
 
-	err = k.client.DeleteClientRolesFromUser(context.Background(), token.AccessToken, organizationId, userId, *targetClient.ID, []gocloak.Role{*roles[0]})
+	err = k.client.DeleteClientRolesFromUser(context.Background(), token.AccessToken, organizationId, *targetClient.ID, userId, []gocloak.Role{*roles[0]})
 	if err != nil {
 		log.Error(ctx, "Unassigning Client Role to User is failed", err)
 		return err
