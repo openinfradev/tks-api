@@ -162,6 +162,10 @@ func (k *Keycloak) InitializeKeycloak(ctx context.Context) error {
 	}
 
 	err = k.SetClientScopeRolesToOptionalToTksClient(ctx, DefaultMasterRealm)
+	if err != nil {
+		log.Fatal(ctx, err)
+		return err
+	}
 
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if err := k.ensureClientProtocolMappers(ctx, token, DefaultMasterRealm, *adminCliClient.ClientID, "openid", defaultMapper); err != nil {
@@ -209,6 +213,10 @@ func (k *Keycloak) CreateRealm(ctx context.Context, organizationId string) (stri
 	}
 
 	err = k.SetClientScopeRolesToOptionalToTksClient(ctx, organizationId)
+	if err != nil {
+		log.Error(ctx, err, "SetClientScopeRolesToOptionalToTksClient")
+		return "", err
+	}
 
 	for _, defaultMapper := range defaultProtocolTksMapper {
 		if *defaultMapper.Name == "org" {

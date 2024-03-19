@@ -108,7 +108,6 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debugf(r.Context(), "projectId = [%s]\n", projectId)
 	project.ID = projectId
 	ProjectLeaderId, err := uuid.Parse(projectReq.ProjectLeaderId)
 	if err != nil {
@@ -134,8 +133,6 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		IsProjectLeader: true,
 		CreatedAt:       now,
 	}
-
-	log.Debugf(r.Context(), "pm = [%+v]\n", pm)
 
 	projectMemberId, err := p.usecase.AddProjectMember(r.Context(), organizationId, pm)
 	if err != nil {
