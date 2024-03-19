@@ -63,6 +63,7 @@ func (r *SystemNotificationTemplateRepository) Fetch(ctx context.Context, pg *pa
 }
 
 func (r *SystemNotificationTemplateRepository) Create(ctx context.Context, dto model.SystemNotificationTemplate) (systemNotificationTemplateId uuid.UUID, err error) {
+	dto.ID = uuid.New()
 	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
@@ -108,7 +109,7 @@ func (r *SystemNotificationTemplateRepository) UpdateOrganizations(ctx context.C
 	if res.Error != nil {
 		return res.Error
 	}
-	err = r.db.WithContext(ctx).Model(&systemNotificationTemplate).Association("Organizations").Unscoped().Replace(organizations)
+	err = r.db.WithContext(ctx).Model(&systemNotificationTemplate).Association("Organizations").Replace(organizations)
 	if err != nil {
 		return err
 	}

@@ -1,22 +1,28 @@
-package admin
+package domain
 
 import (
 	"time"
-
-	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 type SystemNotificationTemplateResponse struct {
-	ID               string                              `json:"id"`
-	Name             string                              `json:"name"`
-	Description      string                              `json:"description"`
-	MetricQuery      string                              `json:"metricQuery" validate:"required"`
-	MetricParameters []MetricParameterResponse           `json:"metricParameters,omitempty"`
-	Organizations    []domain.SimpleOrganizationResponse `json:"organizations,omitempty"`
-	Creator          domain.SimpleUserResponse           `json:"creator"`
-	Updator          domain.SimpleUserResponse           `json:"updator"`
-	CreatedAt        time.Time                           `json:"createdAt"`
-	UpdatedAt        time.Time                           `json:"updatedAt"`
+	ID               string                       `json:"id"`
+	Name             string                       `json:"name"`
+	Description      string                       `json:"description"`
+	MetricQuery      string                       `json:"metricQuery" validate:"required"`
+	MetricParameters []MetricParameterResponse    `json:"metricParameters,omitempty"`
+	Organizations    []SimpleOrganizationResponse `json:"organizations,omitempty"`
+	Creator          SimpleUserResponse           `json:"creator"`
+	Updator          SimpleUserResponse           `json:"updator"`
+	CreatedAt        time.Time                    `json:"createdAt"`
+	UpdatedAt        time.Time                    `json:"updatedAt"`
+}
+
+type SimpleSystemNotificationTemplateResponse struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type MetricParameterResponse struct {
@@ -47,7 +53,7 @@ type UpdateSystemNotificationTemplateRequest struct {
 
 type GetSystemNotificationTemplatesResponse struct {
 	SystemNotificationTemplates []SystemNotificationTemplateResponse `json:"systemNotificationTemplates"`
-	Pagination                  domain.PaginationResponse            `json:"pagination"`
+	Pagination                  PaginationResponse                   `json:"pagination"`
 }
 
 type GetSystemNotificationTemplateResponse struct {

@@ -78,6 +78,7 @@ func (r *SystemNotificationRuleRepository) FetchWithOrganization(ctx context.Con
 }
 
 func (r *SystemNotificationRuleRepository) Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRuleId uuid.UUID, err error) {
+	dto.ID = uuid.New()
 	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error

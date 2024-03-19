@@ -10,8 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
-	domain "github.com/openinfradev/tks-api/pkg/domain"
-	domain_admin "github.com/openinfradev/tks-api/pkg/domain/admin"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
@@ -34,11 +33,11 @@ func NewSystemNotificationTemplateHandler(h usecase.Usecase) *SystemNotification
 //	@Description	Create alert template. ADMIN ONLY
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain_admin.CreateSystemNotificationTemplateResponse
+//	@Success		200	{object}	domain.CreateSystemNotificationTemplateResponse
 //	@Router			/admin/system-notification-templates [post]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) CreateSystemNotificationTemplate(w http.ResponseWriter, r *http.Request) {
-	input := domain_admin.CreateSystemNotificationTemplateRequest{}
+	input := domain.CreateSystemNotificationTemplateRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -62,7 +61,7 @@ func (h *SystemNotificationTemplateHandler) CreateSystemNotificationTemplate(w h
 		return
 	}
 
-	out := domain_admin.CreateSystemNotificationTemplateResponse{
+	out := domain.CreateSystemNotificationTemplateResponse{
 		ID: id.String(),
 	}
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -80,7 +79,7 @@ func (h *SystemNotificationTemplateHandler) CreateSystemNotificationTemplate(w h
 //	@Param			soertColumn	query		string		false	"sortColumn"
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
-//	@Success		200			{object}	domain_admin.GetSystemNotificationTemplatesResponse
+//	@Success		200			{object}	domain.GetSystemNotificationTemplatesResponse
 //	@Router			/admin/system-notification-templates [get]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplates(w http.ResponseWriter, r *http.Request) {
@@ -92,8 +91,8 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplates(w htt
 		return
 	}
 
-	var out domain_admin.GetSystemNotificationTemplatesResponse
-	out.SystemNotificationTemplates = make([]domain_admin.SystemNotificationTemplateResponse, len(systemNotificationTemplates))
+	var out domain.GetSystemNotificationTemplatesResponse
+	out.SystemNotificationTemplates = make([]domain.SystemNotificationTemplateResponse, len(systemNotificationTemplates))
 	for i, systemNotificationTemplate := range systemNotificationTemplates {
 		if err := serializer.Map(r.Context(), systemNotificationTemplate, &out.SystemNotificationTemplates[i]); err != nil {
 			log.Info(r.Context(), err)
@@ -122,20 +121,20 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplates(w htt
 //	@Accept			json
 //	@Produce		json
 //	@Param			systemNotificationTemplateId	path		string	true	"systemNotificationTemplateId"
-//	@Success		200								{object}	domain_admin.GetSystemNotificationTemplateResponse
+//	@Success		200								{object}	domain.GetSystemNotificationTemplateResponse
 //	@Router			/admin/system-notification-templates/{systemNotificationTemplateId} [get]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["systemNotificationTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_ALERT_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
 		return
 	}
 
 	systemNotificationTemplateId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_ALERT_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
 		return
 	}
 
@@ -145,7 +144,7 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplate(w http
 		return
 	}
 
-	var out domain_admin.GetSystemNotificationTemplateResponse
+	var out domain.GetSystemNotificationTemplateResponse
 	if err := serializer.Map(r.Context(), systemNotificationTemplate, &out.SystemNotificationTemplate); err != nil {
 		log.Info(r.Context(), err)
 	}
@@ -158,7 +157,7 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplate(w http
 		}
 	}
 
-	out.SystemNotificationTemplate.MetricParameters = make([]domain_admin.MetricParameterResponse, len(systemNotificationTemplate.MetricParameters))
+	out.SystemNotificationTemplate.MetricParameters = make([]domain.MetricParameterResponse, len(systemNotificationTemplate.MetricParameters))
 	for i, metricParameters := range systemNotificationTemplate.MetricParameters {
 		if err := serializer.Map(r.Context(), metricParameters, &out.SystemNotificationTemplate.MetricParameters[i]); err != nil {
 			log.Info(r.Context(), err)
@@ -176,7 +175,7 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplate(w http
 //	@Description	Update SystemNotificationTemplate
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain_admin.UpdateSystemNotificationTemplateRequest	true	"Update alert template request"
+//	@Param			body	body		domain.UpdateSystemNotificationTemplateRequest	true	"Update alert template request"
 //	@Success		200		{object}	nil
 //	@Router			/admin/system-notification-templates/{systemNotificationTemplateId} [put]
 //	@Security		JWT
@@ -184,16 +183,16 @@ func (h *SystemNotificationTemplateHandler) UpdateSystemNotificationTemplate(w h
 	vars := mux.Vars(r)
 	strId, ok := vars["systemNotificationTemplateId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_ALERT_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
 		return
 	}
 	systemNotificationTemplateId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_ALERT_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
 		return
 	}
 
-	input := domain_admin.UpdateSystemNotificationTemplateRequest{}
+	input := domain.UpdateSystemNotificationTemplateRequest{}
 	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, r, err)

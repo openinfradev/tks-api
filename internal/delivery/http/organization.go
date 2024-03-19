@@ -232,6 +232,12 @@ func (h *OrganizationHandler) GetOrganization(w http.ResponseWriter, r *http.Req
 			log.Error(r.Context(), err)
 		}
 	}
+	out.Organization.SystemNotificationTemplates = make([]domain.SimpleSystemNotificationTemplateResponse, len(organization.SystemNotificationTemplates))
+	for i, notificationTemplate := range organization.SystemNotificationTemplates {
+		if err = serializer.Map(r.Context(), notificationTemplate, &out.Organization.SystemNotificationTemplates[i]); err != nil {
+			log.Error(r.Context(), err)
+		}
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -385,6 +391,14 @@ func (h *OrganizationHandler) Admin_UpdateOrganization(w http.ResponseWriter, r 
 			return
 		}
 		dto.PolicyTemplateIds = append(dto.PolicyTemplateIds, policyTemplateId)
+	}
+	for _, strId := range input.SystemNotificationTemplateIds {
+		systemNotificationTemplateId, err := uuid.Parse(strId)
+		if err != nil || systemNotificationTemplateId == uuid.Nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
+			return
+		}
+		dto.SystemNotificationTemplateIds = append(dto.SystemNotificationTemplateIds, systemNotificationTemplateId)
 	}
 
 	err = h.usecase.UpdateWithTemplates(r.Context(), organizationId, dto)

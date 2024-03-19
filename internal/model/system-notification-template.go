@@ -28,8 +28,3 @@ type SystemNotificationTemplate struct {
 	UpdatorId        *uuid.UUID
 	Updator          User `gorm:"foreignKey:UpdatorId"`
 }
-
-func (c *SystemNotificationTemplate) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
