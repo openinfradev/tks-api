@@ -29,7 +29,7 @@ const OR = "or"
 const OR_ARRAY = "or[]"
 const COMBINED_FILTER = "combinedFilter" // deprecated
 
-var DEFAULT_LIMIT = 10
+var DEFAULT_LIMIT = 10000
 
 type Pagination struct {
 	Limit          int

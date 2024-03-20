@@ -113,7 +113,7 @@ func (r *SystemNotificationRuleRepository) UpdateOrganizations(ctx context.Conte
 	if res.Error != nil {
 		return res.Error
 	}
-	err = r.db.WithContext(ctx).Model(&systemNotificationRule).Association("Organizations").Unscoped().Replace(organizations)
+	err = r.db.WithContext(ctx).Model(&systemNotificationRule).Association("Organizations").Replace(organizations)
 	if err != nil {
 		return err
 	}

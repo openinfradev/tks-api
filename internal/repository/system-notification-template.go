@@ -89,7 +89,7 @@ func (r *SystemNotificationTemplateRepository) Update(ctx context.Context, dto m
 		return res.Error
 	}
 
-	if err = r.db.WithContext(ctx).Model(&dto).Association("MetricParameters").Unscoped().Replace(dto.MetricParameters); err != nil {
+	if err = r.db.WithContext(ctx).Model(&dto).Association("MetricParameters").Replace(dto.MetricParameters); err != nil {
 		return err
 	}
 	return nil
