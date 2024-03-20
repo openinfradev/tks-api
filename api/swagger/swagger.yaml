@@ -627,6 +627,11 @@ definitions:
       tksUserNodeType:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CommonDashboardResponse:
+    properties:
+      result:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse:
     properties:
       result:
@@ -816,6 +821,24 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.CreateClusterResponse:
     properties:
       id:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateDashboardRequest:
+    properties:
+      groupName:
+        type: string
+      sizeX:
+        type: integer
+      sizeY:
+        type: integer
+      widgets:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse'
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreateDashboardResponse:
+    properties:
+      dashboardId:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest:
@@ -1396,6 +1419,19 @@ definitions:
     properties:
       resources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardResource'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse:
+    properties:
+      groupName:
+        type: string
+      sizeX:
+        type: integer
+      sizeY:
+        type: integer
+      widgets:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardStacksResponse:
     properties:
@@ -2697,6 +2733,19 @@ definitions:
       description:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest:
+    properties:
+      groupName:
+        type: string
+      sizeX:
+        type: integer
+      sizeY:
+        type: integer
+      widgets:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileRequest:
     properties:
       department:
@@ -2998,6 +3047,19 @@ definitions:
     properties:
       validityPeriod:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.WidgetResponse:
+    properties:
+      key:
+        type: string
+      sizeX:
+        type: integer
+      sizeY:
+        type: integer
+      startX:
+        type: integer
+      startY:
+        type: integer
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse:
     properties:
@@ -5059,6 +5121,85 @@ paths:
       security:
       - JWT: []
       summary: Get stacks
+      tags:
+      - Dashboards
+  /organizations/{organizationId}/dashboards:
+    get:
+      consumes:
+      - application/json
+      description: Get dashboard
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse'
+      security:
+      - JWT: []
+      summary: Get dashboard
+      tags:
+      - Dashboards
+    post:
+      consumes:
+      - application/json
+      description: Create new dashboard
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Request body to create dashboard
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateDashboardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateDashboardResponse'
+      security:
+      - JWT: []
+      summary: Create new dashboard
+      tags:
+      - Dashboards
+    put:
+      consumes:
+      - application/json
+      description: Update dashboard
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Request body to update dashboard
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonDashboardResponse'
+      security:
+      - JWT: []
+      summary: Update dashboard
       tags:
       - Dashboards
   /organizations/{organizationId}/my-profile:

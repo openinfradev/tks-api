@@ -105,7 +105,7 @@ func (h *DashboardHandler) CreateDashboard(w http.ResponseWriter, r *http.Reques
 //	@Description	Get dashboard
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string						true	"Organization ID"
+//	@Param			organizationId	path		string	true	"Organization ID"
 //	@Success		200				{object}	domain.GetDashboardResponse
 //	@Router			/organizations/{organizationId}/dashboards [get]
 //	@Security		JWT
