@@ -325,57 +325,6 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		log.Info(r.Context(), err)
 	}
 
-	organization, err := h.usecase.Update(r.Context(), organizationId, dto)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var out domain.UpdateOrganizationResponse
-	if err = serializer.Map(r.Context(), organization, &out); err != nil {
-		log.Error(r.Context(), err)
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
-}
-
-// Admin_UpdateOrganization godoc
-//
-//	@Tags			Organizations
-//	@Summary		Update organization detail ( for admin )
-//	@Description	Update organization detail ( for admin )
-//	@Accept			json
-//	@Produce		json
-//	@Param			organizationId	path		string									true	"organizationId"
-//	@Param			body			body		domain.Admin_UpdateOrganizationRequest	true	"update organization request"
-//	@Success		200				{object}	domain.Admin_UpdateOrganizationResponse
-//	@Router			/admin/organizations/{organizationId} [put]
-//	@Security		JWT
-func (h *OrganizationHandler) Admin_UpdateOrganization(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-
-	input := domain.Admin_UpdateOrganizationRequest{}
-	err := UnmarshalRequestInput(r, &input)
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var dto model.Organization
-	if err = serializer.Map(r.Context(), input, &dto); err != nil {
-		log.Info(r.Context(), err)
-	}
-
 	for _, strId := range input.StackTemplateIds {
 		stackTemplateId, err := uuid.Parse(strId)
 		if err != nil || stackTemplateId == uuid.Nil {
@@ -407,7 +356,7 @@ func (h *OrganizationHandler) Admin_UpdateOrganization(w http.ResponseWriter, r 
 		return
 	}
 
-	var out domain.Admin_UpdateOrganizationResponse
+	var out domain.UpdateOrganizationResponse
 	out.ID = organizationId
 
 	ResponseJSON(w, r, http.StatusOK, out)

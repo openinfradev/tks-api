@@ -196,52 +196,6 @@
                 }
             }
         },
-        "/admin/organizations/{organizationId}": {
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update organization detail ( for admin )",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Update organization detail ( for admin )",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "organizationId",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "update organization request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/organizations/{organizationId}/projects": {
             "get": {
                 "security": [
@@ -7389,53 +7343,6 @@
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 0
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
-                },
-                "policyTemplateIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "primaryClusterId": {
-                    "type": "string"
-                },
-                "stackTemplateIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "systemNotificationTemplateIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse": {
             "type": "object",
             "properties": {
@@ -11270,21 +11177,30 @@
                     "maxLength": 30,
                     "minLength": 1
                 },
-                "primaryClusterId": {
-                    "type": "string"
+                "policyTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "stackTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "systemNotificationTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
         "github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationResponse": {
             "type": "object",
             "properties": {
-                "description": {
-                    "type": "string"
-                },
                 "id": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }

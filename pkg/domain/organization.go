@@ -91,19 +91,6 @@ type ListOrganizationResponse struct {
 }
 
 type UpdateOrganizationRequest struct {
-	PrimaryClusterId string `json:"primaryClusterId"`
-	Name             string `json:"name" validate:"required,min=1,max=30"`
-	Description      string `json:"description" validate:"omitempty,min=0,max=100"`
-}
-
-type UpdateOrganizationResponse struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-type Admin_UpdateOrganizationRequest struct {
-	PrimaryClusterId              string   `json:"primaryClusterId"`
 	Name                          string   `json:"name" validate:"required,min=1,max=30"`
 	Description                   string   `json:"description" validate:"omitempty,min=0,max=100"`
 	StackTemplateIds              []string `json:"stackTemplateIds"`
@@ -111,7 +98,7 @@ type Admin_UpdateOrganizationRequest struct {
 	SystemNotificationTemplateIds []string `json:"systemNotificationTemplateIds"`
 }
 
-type Admin_UpdateOrganizationResponse struct {
+type UpdateOrganizationResponse struct {
 	ID string `json:"id"`
 }
 

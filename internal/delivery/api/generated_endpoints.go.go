@@ -99,8 +99,8 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_DeleteOrganization", 
 		Group: "Organization",
 	},
-    Admin_UpdateOrganization: {
-		Name: "Admin_UpdateOrganization", 
+    UpdateOrganization: {
+		Name: "UpdateOrganization", 
 		Group: "Organization",
 	},
     GetOrganizations: {
@@ -109,10 +109,6 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     GetOrganization: {
 		Name: "GetOrganization", 
-		Group: "Organization",
-	},
-    UpdateOrganization: {
-		Name: "UpdateOrganization", 
 		Group: "Organization",
 	},
     UpdatePrimaryCluster: {
@@ -830,14 +826,12 @@ func (e Endpoint) String() string {
 		return "Admin_CreateOrganization"
 	case Admin_DeleteOrganization:
 		return "Admin_DeleteOrganization"
-	case Admin_UpdateOrganization:
-		return "Admin_UpdateOrganization"
+	case UpdateOrganization:
+		return "UpdateOrganization"
 	case GetOrganizations:
 		return "GetOrganizations"
 	case GetOrganization:
 		return "GetOrganization"
-	case UpdateOrganization:
-		return "UpdateOrganization"
 	case UpdatePrimaryCluster:
 		return "UpdatePrimaryCluster"
 	case CheckOrganizationName:
@@ -1224,14 +1218,12 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_CreateOrganization
 	case "Admin_DeleteOrganization":
 		return Admin_DeleteOrganization
-	case "Admin_UpdateOrganization":
-		return Admin_UpdateOrganization
+	case "UpdateOrganization":
+		return UpdateOrganization
 	case "GetOrganizations":
 		return GetOrganizations
 	case "GetOrganization":
 		return GetOrganization
-	case "UpdateOrganization":
-		return UpdateOrganization
 	case "UpdatePrimaryCluster":
 		return UpdatePrimaryCluster
 	case "CheckOrganizationName":

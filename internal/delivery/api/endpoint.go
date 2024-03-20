@@ -41,10 +41,9 @@ const (
 	// Organization
 	Admin_CreateOrganization
 	Admin_DeleteOrganization
-	Admin_UpdateOrganization
+	UpdateOrganization
 	GetOrganizations
 	GetOrganization
-	UpdateOrganization
 	UpdatePrimaryCluster
 	CheckOrganizationName
 

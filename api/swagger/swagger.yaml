@@ -147,38 +147,6 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest'
         type: array
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationRequest:
-    properties:
-      description:
-        maxLength: 100
-        minLength: 0
-        type: string
-      name:
-        maxLength: 30
-        minLength: 1
-        type: string
-      policyTemplateIds:
-        items:
-          type: string
-        type: array
-      primaryClusterId:
-        type: string
-      stackTemplateIds:
-        items:
-          type: string
-        type: array
-      systemNotificationTemplateIds:
-        items:
-          type: string
-        type: array
-    required:
-    - name
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationResponse:
-    properties:
-      id:
-        type: string
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse:
     properties:
       appGroupType:
@@ -2744,18 +2712,24 @@ definitions:
         maxLength: 30
         minLength: 1
         type: string
-      primaryClusterId:
-        type: string
+      policyTemplateIds:
+        items:
+          type: string
+        type: array
+      stackTemplateIds:
+        items:
+          type: string
+        type: array
+      systemNotificationTemplateIds:
+        items:
+          type: string
+        type: array
     required:
     - name
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationResponse:
     properties:
-      description:
-        type: string
       id:
-        type: string
-      name:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePasswordRequest:
@@ -3212,35 +3186,6 @@ paths:
       summary: Get Audit
       tags:
       - Audits
-  /admin/organizations/{organizationId}:
-    put:
-      consumes:
-      - application/json
-      description: Update organization detail ( for admin )
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: update organization request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateOrganizationResponse'
-      security:
-      - JWT: []
-      summary: Update organization detail ( for admin )
-      tags:
-      - Organizations
   /admin/organizations/{organizationId}/projects:
     get:
       consumes:

@@ -129,7 +129,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	organizationHandler := delivery.NewOrganizationHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations", customMiddleware.Handle(internalApi.Admin_CreateOrganization, http.HandlerFunc(organizationHandler.Admin_CreateOrganization))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.Admin_DeleteOrganization, http.HandlerFunc(organizationHandler.Admin_DeleteOrganization))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.Admin_UpdateOrganization, http.HandlerFunc(organizationHandler.Admin_UpdateOrganization))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations", customMiddleware.Handle(internalApi.GetOrganizations, http.HandlerFunc(organizationHandler.GetOrganizations))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.GetOrganization, http.HandlerFunc(organizationHandler.GetOrganization))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}", customMiddleware.Handle(internalApi.UpdateOrganization, http.HandlerFunc(organizationHandler.UpdateOrganization))).Methods(http.MethodPut)
