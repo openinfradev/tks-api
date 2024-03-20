@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -135,5 +134,5 @@ func MarshalToString(ctx context.Context, in any) (string, error) {
 		log.Fatalf(ctx, "Unable to marshal JSON due to %s", err)
 		return "", nil
 	}
-	return fmt.Sprintf("%s", string(b)), nil
+	return string(b), nil
 }
