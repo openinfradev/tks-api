@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 	"net/http"
 	"strings"
 	"time"
@@ -134,9 +135,16 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:       now,
 	}
 
-	projectMemberId, err := p.usecase.AddProjectMember(r.Context(), pm)
+	projectMemberId, err := p.usecase.AddProjectMember(r.Context(), organizationId, pm)
 	if err != nil {
 		log.Errorf(r.Context(), "projectMemberId: %v", projectMemberId)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	err = p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, projectMemberId)
+	if err != nil {
+		log.Error(r.Context(), err)
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
@@ -594,16 +602,23 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 			ProjectRole:   nil,
 			CreatedAt:     now,
 		}
-		pmId, err := p.usecase.AddProjectMember(r.Context(), pm)
+		pmId, err := p.usecase.AddProjectMember(r.Context(), organizationId, pm)
 		if err != nil {
 			log.Errorf(r.Context(), "projectMemberId: %s", pmId)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
 
+		err = p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, pmId)
+		if err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
-			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pmId); err != nil {
+			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", pmId); err != nil {
 				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
@@ -867,15 +882,23 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 	for _, pn := range pns {
 		stackIds[pn.StackId] = struct{}{}
 	}
+
+	err = p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, projectMemberId)
+	if err != nil {
+		log.Error(r.Context(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
 	for stackId := range stackIds {
-		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
+		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", projectMemberId); err != nil {
 			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
 	}
 
-	if err := p.usecase.RemoveProjectMember(r.Context(), projectMemberId); err != nil {
+	if err := p.usecase.RemoveProjectMember(r.Context(), organizationId, projectMemberId); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 
@@ -934,16 +957,22 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 
 	// TODO: change multi row delete
 	for _, pm := range projectMemberReq.ProjectMember {
+		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, pm.ProjectMemberId); err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
-			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ProjectMemberId); err != nil {
+			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", pm.ProjectMemberId); err != nil {
 				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
 		}
 
-		if err := p.usecase.RemoveProjectMember(r.Context(), pm.ProjectMemberId); err != nil {
+		if err := p.usecase.RemoveProjectMember(r.Context(), organizationId, pm.ProjectMemberId); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -1009,6 +1038,12 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if err = p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, projectMemberId); err != nil {
+		log.Error(r.Context(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
 	pns, err := p.usecase.GetProjectNamespaces(r.Context(), organizationId, projectId, nil)
 	if err != nil {
 		log.Error(r.Context(), err)
@@ -1021,7 +1056,7 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 	}
 	// tasks for keycloak & k8s. Unassign old role
 	for stackId := range stackIds {
-		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
+		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", projectMemberId); err != nil {
 			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
@@ -1037,9 +1072,16 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		ErrorJSON(w, r, err)
 		return
 	}
+
+	if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, projectMemberId); err != nil {
+		log.Error(r.Context(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
 	// tasks for keycloak & k8s. Assign new role
 	for stackId := range stackIds {
-		if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, projectMemberId); err != nil {
+		if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", projectMemberId); err != nil {
 			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
@@ -1111,8 +1153,14 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 			return
 		}
 
+		if err = p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, pm.ID); err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+
 		for stackId := range stackIds {
-			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ID); err != nil {
+			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", pm.ID); err != nil {
 				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
@@ -1129,8 +1177,14 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 			return
 		}
 
+		if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, pm.ID); err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+
 		for stackId := range stackIds {
-			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId, pm.ID); err != nil {
+			if err := p.usecase.AssignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", pm.ID); err != nil {
 				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
