@@ -27,12 +27,16 @@ import (
 )
 
 type IDashboardUsecase interface {
+	CreateDashboard(ctx context.Context, dashboard *model.Dashboard) (string, error)
+	GetDashboard(ctx context.Context, organizationId string, userId string) (*model.Dashboard, error)
+	UpdateDashboard(ctx context.Context, dashboard *model.Dashboard) error
 	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
 	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
 	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
 }
 
 type DashboardUsecase struct {
+	dashboardRepo          repository.IDashboardRepository
 	organizationRepo       repository.IOrganizationRepository
 	clusterRepo            repository.IClusterRepository
 	appGroupRepo           repository.IAppGroupRepository
@@ -42,12 +46,37 @@ type DashboardUsecase struct {
 
 func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboardUsecase {
 	return &DashboardUsecase{
+		dashboardRepo:          r.Dashboard,
 		organizationRepo:       r.Organization,
 		clusterRepo:            r.Cluster,
 		appGroupRepo:           r.AppGroup,
 		systemNotificationRepo: r.SystemNotification,
 		cache:                  cache,
 	}
+}
+
+func (u *DashboardUsecase) CreateDashboard(ctx context.Context, dashboard *model.Dashboard) (string, error) {
+	dashboardId, err := u.dashboardRepo.CreateDashboard(ctx, dashboard)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to create dashboard.")
+	}
+
+	return dashboardId, nil
+}
+
+func (u *DashboardUsecase) GetDashboard(ctx context.Context, organizationId string, userId string) (*model.Dashboard, error) {
+	dashboard, err := u.dashboardRepo.GetDashboardByUserId(ctx, organizationId, userId)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to get dashboard.")
+	}
+	return dashboard, err
+}
+
+func (u *DashboardUsecase) UpdateDashboard(ctx context.Context, dashboard *model.Dashboard) error {
+	if err := u.dashboardRepo.UpdateDashboard(ctx, dashboard); err != nil {
+		return errors.Wrap(err, "Failed to update dashboard")
+	}
+	return nil
 }
 
 func (u *DashboardUsecase) GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (out []domain.DashboardChart, err error) {

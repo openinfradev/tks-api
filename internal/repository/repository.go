@@ -24,4 +24,5 @@ type Repository struct {
 	SystemNotification         ISystemNotificationRepository
 	SystemNotificationTemplate ISystemNotificationTemplateRepository
 	SystemNotificationRule     ISystemNotificationRuleRepository
+	Dashboard                  IDashboardRepository
 }

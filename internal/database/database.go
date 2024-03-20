@@ -176,6 +176,10 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	if err := db.AutoMigrate(&model.Dashboard{}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -197,6 +201,7 @@ func EnsureDefaultRows(db *gorm.DB) error {
 		Permission:                 repository.NewPermissionRepository(db),
 		Endpoint:                   repository.NewEndpointRepository(db),
 		Project:                    repository.NewProjectRepository(db),
+		Dashboard:                  repository.NewDashboardRepository(db),
 	}
 
 	//
