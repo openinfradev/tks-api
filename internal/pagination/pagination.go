@@ -10,6 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"gorm.io/gorm"
@@ -26,9 +27,9 @@ const FILTER = "filter"
 const FILTER_ARRAY = "filter[]"
 const OR = "or"
 const OR_ARRAY = "or[]"
-const COMBINED_FILTER = "combinedFilter"
+const COMBINED_FILTER = "combinedFilter" // deprecated
 
-var DEFAULT_LIMIT = 10
+var DEFAULT_LIMIT = 10000
 
 type Pagination struct {
 	Limit          int
@@ -198,20 +199,8 @@ func NewPagination(urlParams *url.Values) *Pagination {
 						pg.Limit = limitNum
 					}
 				}
-			case COMBINED_FILTER:
-				if len(value[0]) > 0 {
-					//"combinedFilter=key1,key2:value"
-					filterArray := strings.Split(value[0], ":")
-					if len(filterArray) == 2 {
-						keys := strings.Split(helper.ToSnakeCase(strings.Replace(filterArray[0], "[]", "", -1)), ",")
-						value := filterArray[1]
-
-						pg.CombinedFilter = CombinedFilter{
-							Columns: keys,
-							Value:   value,
-						}
-					}
-				}
+			case COMBINED_FILTER: // deprecated
+				log.Error(context.TODO(), "DEPRECATED filter scheme. COMBINEND_FILTER")
 			case FILTER, FILTER_ARRAY, OR, OR_ARRAY:
 				for _, filterValue := range value {
 					arr := strings.Split(filterValue, "|")

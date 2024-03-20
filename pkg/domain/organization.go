@@ -49,18 +49,19 @@ func (m OrganizationStatus) FromString(s string) OrganizationStatus {
 }
 
 type OrganizationResponse struct {
-	ID               string                         `json:"id"`
-	Name             string                         `json:"name"`
-	Description      string                         `json:"description"`
-	PrimaryClusterId string                         `json:"primaryClusterId"`
-	Status           string                         `json:"status"`
-	StatusDesc       string                         `json:"statusDesc"`
-	StackTemplates   []SimpleStackTemplateResponse  `json:"stackTemplates"`
-	PolicyTemplates  []SimplePolicyTemplateResponse `json:"policyTemplates"`
-	Admin            SimpleUserResponse             `json:"admin"`
-	ClusterCount     int                            `json:"stackCount"`
-	CreatedAt        time.Time                      `json:"createdAt"`
-	UpdatedAt        time.Time                      `json:"updatedAt"`
+	ID                          string                                     `json:"id"`
+	Name                        string                                     `json:"name"`
+	Description                 string                                     `json:"description"`
+	PrimaryClusterId            string                                     `json:"primaryClusterId"`
+	Status                      string                                     `json:"status"`
+	StatusDesc                  string                                     `json:"statusDesc"`
+	StackTemplates              []SimpleStackTemplateResponse              `json:"stackTemplates"`
+	PolicyTemplates             []SimplePolicyTemplateResponse             `json:"policyTemplates"`
+	SystemNotificationTemplates []SimpleSystemNotificationTemplateResponse `json:"systemNotificationTemplates"`
+	Admin                       SimpleUserResponse                         `json:"admin"`
+	ClusterCount                int                                        `json:"stackCount"`
+	CreatedAt                   time.Time                                  `json:"createdAt"`
+	UpdatedAt                   time.Time                                  `json:"updatedAt"`
 }
 
 type SimpleOrganizationResponse = struct {

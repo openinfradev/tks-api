@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type IRoleRepository interface {
@@ -51,23 +51,11 @@ func (r RoleRepository) ListTksRoles(ctx context.Context, organizationId string,
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
 	}
-	filterFunc := CombinedGormFilter("roles", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&model.Role{}))
 
-	db.Count(&pg.TotalRows)
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.WithContext(ctx).
-		Offset(pg.GetOffset()).
-		Limit(pg.GetLimit()).
-		Order(orderQuery).
-		Find(&roles, "organization_id = ?", organizationId)
-	//res := db.Preload("Role").Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&objs)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations).Model(&model.Role{}).Where("organization_id = ?", organizationId), &roles)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
 	return roles, nil
 }
 
