@@ -58,6 +58,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Endpoint:                   repository.NewEndpointRepository(db),
 		Audit:                      repository.NewAuditRepository(db),
 		PolicyTemplate:             repository.NewPolicyTemplateRepository(db),
+		Dashboard:                  repository.NewDashboardRepository(db),
 	}
 
 	usecaseFactory := usecase.Usecase{
@@ -199,6 +200,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/charts/{chartType}", customMiddleware.Handle(internalApi.GetChartDashboard, http.HandlerFunc(dashboardHandler.GetChart))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/stacks", customMiddleware.Handle(internalApi.GetStacksDashboard, http.HandlerFunc(dashboardHandler.GetStacks))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboard/resources", customMiddleware.Handle(internalApi.GetResourcesDashboard, http.HandlerFunc(dashboardHandler.GetResources))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboards", customMiddleware.Handle(internalApi.CreateDashboard, http.HandlerFunc(dashboardHandler.CreateDashboard))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboards", customMiddleware.Handle(internalApi.GetDashboard, http.HandlerFunc(dashboardHandler.GetDashboard))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboards", customMiddleware.Handle(internalApi.UpdateDashboard, http.HandlerFunc(dashboardHandler.UpdateDashboard))).Methods(http.MethodPut)
 
 	systemNotificationHandler := delivery.NewSystemNotificationHandler(usecaseFactory)
 	r.HandleFunc(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/system-notifications", systemNotificationHandler.CreateSystemNotification).Methods(http.MethodPost)

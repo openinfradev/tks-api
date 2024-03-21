@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -117,3 +118,21 @@ func (h *APIHandler) AddHistory(r *http.Request, projectId string, historyType s
 	return nil
 }
 */
+
+func UnmarshalFromString(ctx context.Context, content string, in any) error {
+	err := json.Unmarshal([]byte(content), &in)
+	if err != nil {
+		log.Fatalf(ctx, "Unable to unmarshal JSON due to %s", err)
+		return err
+	}
+	return nil
+}
+
+func MarshalToString(ctx context.Context, in any) (string, error) {
+	b, err := json.Marshal(in)
+	if err != nil {
+		log.Fatalf(ctx, "Unable to marshal JSON due to %s", err)
+		return "", nil
+	}
+	return string(b), nil
+}

@@ -3099,6 +3099,131 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/dashboards": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Update dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to update dashboard",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonDashboardResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create new dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Create new dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to create dashboard",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateDashboardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateDashboardResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/my-profile": {
             "get": {
                 "security": [
@@ -7998,6 +8123,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.CommonDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.CommonProjectResponse": {
             "type": "object",
             "properties": {
@@ -8273,6 +8406,34 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CreateDashboardRequest": {
+            "type": "object",
+            "properties": {
+                "groupName": {
+                    "type": "string"
+                },
+                "sizeX": {
+                    "type": "integer"
+                },
+                "sizeY": {
+                    "type": "integer"
+                },
+                "widgets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CreateDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "dashboardId": {
                     "type": "string"
                 }
             }
@@ -9136,6 +9297,26 @@ const docTemplate = `{
             "properties": {
                 "resources": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardResource"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "groupName": {
+                    "type": "string"
+                },
+                "sizeX": {
+                    "type": "integer"
+                },
+                "sizeY": {
+                    "type": "integer"
+                },
+                "widgets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse"
+                    }
                 }
             }
         },
@@ -11112,6 +11293,26 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest": {
+            "type": "object",
+            "properties": {
+                "groupName": {
+                    "type": "string"
+                },
+                "sizeX": {
+                    "type": "integer"
+                },
+                "sizeY": {
+                    "type": "integer"
+                },
+                "widgets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileRequest": {
             "type": "object",
             "required": [
@@ -11570,6 +11771,26 @@ const docTemplate = `{
             "properties": {
                 "validityPeriod": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.WidgetResponse": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "sizeX": {
+                    "type": "integer"
+                },
+                "sizeY": {
+                    "type": "integer"
+                },
+                "startX": {
+                    "type": "integer"
+                },
+                "startY": {
+                    "type": "integer"
                 }
             }
         },

@@ -141,3 +141,37 @@ type DashboardStackResponse struct {
 type GetDashboardStacksResponse struct {
 	Stacks []DashboardStackResponse `json:"stacks"`
 }
+
+type WidgetResponse struct {
+	Key    string `json:"key"`
+	StartX int    `json:"startX"`
+	StartY int    `json:"startY"`
+	SizeX  int    `json:"sizeX"`
+	SizeY  int    `json:"sizeY"`
+}
+
+type CreateDashboardRequest struct {
+	GroupName string           `json:"groupName"`
+	SizeX     int              `json:"sizeX"`
+	SizeY     int              `json:"sizeY"`
+	Widgets   []WidgetResponse `json:"widgets"`
+}
+
+type CreateDashboardResponse struct {
+	DashboardId string `json:"dashboardId"`
+}
+
+type GetDashboardResponse struct {
+	GroupName string           `json:"groupName"`
+	SizeX     int              `json:"sizeX"`
+	SizeY     int              `json:"sizeY"`
+	Widgets   []WidgetResponse `json:"widgets"`
+}
+
+type UpdateDashboardRequest struct {
+	CreateDashboardRequest
+}
+
+type CommonDashboardResponse struct {
+	Result string `json:"result"`
+}

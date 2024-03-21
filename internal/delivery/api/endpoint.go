@@ -107,6 +107,9 @@ const (
 	GetOrganizationStackTemplate
 
 	// Dashboard
+	CreateDashboard
+	GetDashboard
+	UpdateDashboard
 	GetChartsDashboard    // 대시보드/대시보드/조회
 	GetChartDashboard     // 대시보드/대시보드/조회
 	GetStacksDashboard    // 대시보드/대시보드/조회
