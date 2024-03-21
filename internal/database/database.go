@@ -176,6 +176,10 @@ func migrateSchema(db *gorm.DB) error {
 		return err
 	}
 
+	if err := db.AutoMigrate(&model.Policy{}); err != nil {
+		return err
+	}
+
 	if err := db.AutoMigrate(&model.Dashboard{}); err != nil {
 		return err
 	}
