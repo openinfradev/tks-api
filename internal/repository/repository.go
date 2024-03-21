@@ -21,6 +21,7 @@ type Repository struct {
 	Project                    IProjectRepository
 	Audit                      IAuditRepository
 	PolicyTemplate             IPolicyTemplateRepository
+	Policy                     IPolicyRepository
 	SystemNotification         ISystemNotificationRepository
 	SystemNotificationTemplate ISystemNotificationTemplateRepository
 	SystemNotificationRule     ISystemNotificationRuleRepository

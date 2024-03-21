@@ -19,6 +19,7 @@ var errorMap = map[ErrorCode]string{
 	"C_INVALID_CLOUD_SERVICE":                   "유효하지 않은 클라우드서비스입니다.",
 	"C_INVALID_AUDIT_ID":                        "유효하지 않은 로그 아이디입니다. 로그 아이디를 확인하세요.",
 	"C_INVALID_POLICY_TEMPLATE_ID":              "유효하지 않은 정책 템플릿 아이디입니다. 정책 템플릿 아이디를 확인하세요.",
+	"C_INVALID_POLICY_ID":                       "유효하지 않은 정책 아이디입니다. 정책 아이디를 확인하세요.",
 	"C_FAILED_TO_CALL_WORKFLOW":                 "워크플로우 호출에 실패했습니다.",
 
 	// Auth
@@ -122,6 +123,11 @@ var errorMap = map[ErrorCode]string{
 	"PT_INVALID_POLICY_TEMPLATE_NAME":      "유효하지 않은 정책 템플릿 이름입니다. 정책 템플릿 이름을 확인하세요.",
 	"PT_INVALID_POLICY_TEMPLATE_KIND":      "유효하지 않은 정책 템플릿 유형입니다. 정책 템플릿 유형을 확인하세요.",
 	"PT_INVALID_REGO_PARSEPARAMETER":       "유효하지 않은 Rego 파싱 설정입니다. Rego 파싱 설정을 확인하세요.",
+
+	// Policy
+	"P_CREATE_ALREADY_EXISTED_NAME": "정첵에 이미 존재하는 이름입니다.",
+	"P_NOT_FOUND_POLICY":            "정책이 존재하지 않습니다.",
+	"P_INVALID_POLICY_NAME":         "유효하지 않은 정책 이름입니다. 정책 이름을 확인하세요.",
 }
 
 func (m ErrorCode) GetText() string {

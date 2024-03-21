@@ -58,6 +58,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Endpoint:                   repository.NewEndpointRepository(db),
 		Audit:                      repository.NewAuditRepository(db),
 		PolicyTemplate:             repository.NewPolicyTemplateRepository(db),
+		Policy:                     repository.NewPolicyRepository(db),
 		Dashboard:                  repository.NewDashboardRepository(db),
 	}
 
@@ -80,6 +81,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Role:                       usecase.NewRoleUsecase(repoFactory),
 		Permission:                 usecase.NewPermissionUsecase(repoFactory),
 		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
+		Policy:                     usecase.NewPolicyUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -307,6 +309,17 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/kind/{policyTemplateKind}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateKind, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateKind))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/name/{policyTemplateName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateName, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateName))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/policy-templates/rego-compile", customMiddleware.Handle(internalApi.CompileRego, http.HandlerFunc(policyTemplateHandler.RegoCompile))).Methods(http.MethodPost)
+
+	policyHandler := delivery.NewPolicyHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/mandatory-policies", customMiddleware.Handle(internalApi.GetMandatoryPolicies, http.HandlerFunc(policyHandler.GetMandatoryPolicies))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/mandatory-policies", customMiddleware.Handle(internalApi.SetMandatoryPolicies, http.HandlerFunc(policyHandler.SetMandatoryPolicies))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies", customMiddleware.Handle(internalApi.ListPolicy, http.HandlerFunc(policyHandler.ListPolicy))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies", customMiddleware.Handle(internalApi.CreatePolicy, http.HandlerFunc(policyHandler.CreatePolicy))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}", customMiddleware.Handle(internalApi.GetPolicy, http.HandlerFunc(policyHandler.GetPolicy))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}", customMiddleware.Handle(internalApi.DeletePolicy, http.HandlerFunc(policyHandler.DeletePolicy))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}", customMiddleware.Handle(internalApi.UpdatePolicy, http.HandlerFunc(policyHandler.UpdatePolicy))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}/clusters", customMiddleware.Handle(internalApi.UpdatePolicyTargetClusters, http.HandlerFunc(policyHandler.UpdatePolicyTargetClusters))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyName, http.HandlerFunc(policyHandler.ExistsPolicyName))).Methods(http.MethodGet)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
