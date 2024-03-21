@@ -225,10 +225,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-templates", customMiddleware.Handle(internalApi.RemoveOrganizationSystemNotificationTemplates, http.HandlerFunc(systemNotificationTemplateHandler.RemoveOrganizationSystemNotificationTemplates))).Methods(http.MethodPut)
 
 	systemNotificationRuleHandler := delivery.NewSystemNotificationRuleHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+"/system-notification-rules", customMiddleware.Handle(internalApi.CreateSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.CreateSystemNotificationRule))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/system-notification-rules", customMiddleware.Handle(internalApi.GetSystemNotificationRules, http.HandlerFunc(systemNotificationRuleHandler.GetSystemNotificationRules))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.GetSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.GetSystemNotificationRule))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.UpdateSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.UpdateSystemNotificationRule))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules", customMiddleware.Handle(internalApi.CreateSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.CreateSystemNotificationRule))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules", customMiddleware.Handle(internalApi.GetSystemNotificationRules, http.HandlerFunc(systemNotificationRuleHandler.GetSystemNotificationRules))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.GetSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.GetSystemNotificationRule))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.UpdateSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.UpdateSystemNotificationRule))).Methods(http.MethodPut)
 
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)

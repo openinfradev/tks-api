@@ -20,7 +20,6 @@ type ISystemNotificationRuleRepository interface {
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRuleId uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) (err error)
 	Delete(ctx context.Context, dto model.SystemNotificationRule) (err error)
-	UpdateOrganizations(ctx context.Context, systemNotificationRuleId uuid.UUID, organizationIds []model.Organization) (err error)
 }
 
 type SystemNotificationRuleRepository struct {
@@ -79,10 +78,11 @@ func (r *SystemNotificationRuleRepository) FetchWithOrganization(ctx context.Con
 
 func (r *SystemNotificationRuleRepository) Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRuleId uuid.UUID, err error) {
 	dto.ID = uuid.New()
-	res := r.db.WithContext(ctx).Create(&dto)
+	res := r.db.WithContext(ctx).Omit("Users.*").Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
+
 	return dto.ID, nil
 }
 
@@ -104,19 +104,5 @@ func (r *SystemNotificationRuleRepository) Delete(ctx context.Context, dto model
 	if res.Error != nil {
 		return res.Error
 	}
-	return nil
-}
-
-func (r *SystemNotificationRuleRepository) UpdateOrganizations(ctx context.Context, systemNotificationRuleId uuid.UUID, organizations []model.Organization) (err error) {
-	var systemNotificationRule = model.SystemNotificationRule{}
-	res := r.db.WithContext(ctx).Preload("Organizations").First(&systemNotificationRule, "id = ?", systemNotificationRuleId)
-	if res.Error != nil {
-		return res.Error
-	}
-	err = r.db.WithContext(ctx).Model(&systemNotificationRule).Association("Organizations").Replace(organizations)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

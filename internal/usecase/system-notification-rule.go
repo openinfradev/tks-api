@@ -20,19 +20,22 @@ type ISystemNotificationRuleUsecase interface {
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRule uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) error
 	Delete(ctx context.Context, dto model.SystemNotificationRule) error
-	UpdateOrganizations(ctx context.Context, dto model.SystemNotificationRule) error
 	GetByName(ctx context.Context, name string) (model.SystemNotificationRule, error)
 }
 
 type SystemNotificationRuleUsecase struct {
-	repo             repository.ISystemNotificationRuleRepository
-	organizationRepo repository.IOrganizationRepository
+	repo                           repository.ISystemNotificationRuleRepository
+	organizationRepo               repository.IOrganizationRepository
+	userRepo                       repository.IUserRepository
+	systemNotificationTemplateRepo repository.ISystemNotificationTemplateRepository
 }
 
 func NewSystemNotificationRuleUsecase(r repository.Repository) ISystemNotificationRuleUsecase {
 	return &SystemNotificationRuleUsecase{
-		repo:             r.SystemNotificationRule,
-		organizationRepo: r.Organization,
+		repo:                           r.SystemNotificationRule,
+		organizationRepo:               r.Organization,
+		userRepo:                       r.User,
+		systemNotificationTemplateRepo: r.SystemNotificationTemplate,
 	}
 }
 
@@ -46,10 +49,27 @@ func (u *SystemNotificationRuleUsecase) Create(ctx context.Context, dto model.Sy
 	dto.UpdatorId = &userId
 
 	if _, err = u.GetByName(ctx, dto.Name); err == nil {
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("duplicate systemNotificationRule name"), "ST_CREATE_ALREADY_EXISTED_NAME", "")
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("duplicate systemNotificationRule name"), "SNR_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
-	return systemNotificationRuleId, nil
+	// Users
+	dto.TargetUsers = make([]model.User, 0)
+	for _, strId := range dto.TargetUserIds {
+		userId, err := uuid.Parse(strId)
+		if err == nil {
+			user, err := u.userRepo.GetByUuid(ctx, userId)
+			if err == nil {
+				dto.TargetUsers = append(dto.TargetUsers, user)
+			}
+		}
+	}
+
+	systemNotificationRuleId, err = u.repo.Create(ctx, dto)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return
 }
 
 func (u *SystemNotificationRuleUsecase) Update(ctx context.Context, dto model.SystemNotificationRule) error {
@@ -77,7 +97,7 @@ func (u *SystemNotificationRuleUsecase) GetByName(ctx context.Context, name stri
 	out, err = u.repo.GetByName(ctx, name)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return out, httpErrors.NewNotFoundError(err, "SNR_FAILED_FETCH_STACK_TEMPLATE", "")
+			return out, httpErrors.NewNotFoundError(err, "SNR_FAILED_FETCH_SYSTEM_NOTIFICATION_RULE", "")
 		}
 		return out, err
 	}
@@ -94,14 +114,5 @@ func (u *SystemNotificationRuleUsecase) Fetch(ctx context.Context, organizationI
 }
 
 func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, dto model.SystemNotificationRule) (err error) {
-	return nil
-}
-
-func (u *SystemNotificationRuleUsecase) UpdateOrganizations(ctx context.Context, dto model.SystemNotificationRule) error {
-	_, err := u.repo.Get(ctx, dto.ID)
-	if err != nil {
-		return httpErrors.NewBadRequestError(err, "SNR_NOT_EXISTED_STACK_TEMPLATE", "")
-	}
-
 	return nil
 }

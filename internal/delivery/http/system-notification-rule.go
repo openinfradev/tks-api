@@ -38,6 +38,13 @@ func NewSystemNotificationRuleHandler(h usecase.Usecase) *SystemNotificationRule
 //	@Router			/organizations/{organizationId}/system-notification-rules [post]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) CreateSystemNotificationRule(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
 	input := domain.CreateSystemNotificationRuleRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
@@ -48,6 +55,14 @@ func (h *SystemNotificationRuleHandler) CreateSystemNotificationRule(w http.Resp
 	var dto model.SystemNotificationRule
 	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
+	}
+	dto.OrganizationId = organizationId
+
+	dto.SystemNotificationConditions = make([]model.SystemNotificationCondition, len(input.SystemNotificationConditions))
+	for i, systemNotificationCondition := range input.SystemNotificationConditions {
+		if err := serializer.Map(r.Context(), systemNotificationCondition, &dto.SystemNotificationConditions[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
 	}
 
 	id, err := h.usecase.Create(r.Context(), dto)
@@ -98,6 +113,13 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRules(w http.Respon
 	for i, systemNotificationRule := range systemNotificationRules {
 		if err := serializer.Map(r.Context(), systemNotificationRule, &out.SystemNotificationRules[i]); err != nil {
 			log.Info(r.Context(), err)
+		}
+
+		out.SystemNotificationRules[i].TargetUsers = make([]domain.SimpleUserResponse, len(systemNotificationRule.TargetUsers))
+		for j, targetUser := range systemNotificationRule.TargetUsers {
+			if err := serializer.Map(r.Context(), targetUser, &out.SystemNotificationRules[i].TargetUsers[j]); err != nil {
+				log.Info(r.Context(), err)
+			}
 		}
 	}
 

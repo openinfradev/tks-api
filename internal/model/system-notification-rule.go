@@ -12,30 +12,30 @@ type SystemNotificationCondition struct {
 	Severity                 string
 	Duration                 int
 	Condition                datatypes.JSON
-	EnableEmail              bool `gorm:"default:false"`
-	EnablePortal             bool `gorm:"default:true"`
-}
-
-type SystemNotificationMessage struct {
-	SystemNotificationRuleId uuid.UUID `gorm:"primarykey"`
-	Title                    string
-	Content                  int
-	Condition                datatypes.JSON
-	ActionProposal           string
-	TargetUsers              []User `gorm:"many2many:system_notification_message_users"`
+	Conditions               []string `gorm:"-:all"`
+	EnableEmail              bool     `gorm:"default:false"`
+	EnablePortal             bool     `gorm:"default:true"`
 }
 
 type SystemNotificationRule struct {
 	gorm.Model
 
-	ID          uuid.UUID `gorm:"primarykey"`
-	Name        string    `gorm:"index,unique"`
-	Description string
-	Templates   []SystemNotificationTemplate `gorm:"many2many:system_notification_rule_system_notification_templates"`
-	Messages    []SystemNotificationMessage  `gorm:"many2many:system_notification_rule_system_notification_messages"`
-
-	CreatorId *uuid.UUID `gorm:"type:uuid"`
-	Creator   *User      `gorm:"foreignKey:CreatorId"`
-	UpdatorId *uuid.UUID `gorm:"type:uuid"`
-	Updator   *User      `gorm:"foreignKey:UpdatorId"`
+	ID                           uuid.UUID `gorm:"primarykey"`
+	Name                         string    `gorm:"index,unique"`
+	Description                  string
+	OrganizationId               string
+	Organization                 Organization               `gorm:"foreignKey:OrganizationId"`
+	SystemNotificationTemplate   SystemNotificationTemplate `gorm:"foreignKey:SystemNotificationTemplateId"`
+	SystemNotificationTemplateId string
+	SystemNotificationConditions []SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId;references:ID"`
+	TargetUsers                  []User                        `gorm:"many2many:system_notification_rule_users"`
+	TargetUserIds                []string                      `gorm:"-:all"`
+	MessageTitle                 string
+	MessageContent               string
+	MessageCondition             datatypes.JSON
+	MessageActionProposal        string
+	CreatorId                    *uuid.UUID `gorm:"type:uuid"`
+	Creator                      *User      `gorm:"foreignKey:CreatorId"`
+	UpdatorId                    *uuid.UUID `gorm:"type:uuid"`
+	Updator                      *User      `gorm:"foreignKey:UpdatorId"`
 }
