@@ -615,7 +615,7 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, 
 //	@Accept			json
 //	@Produce		json
 //	@Param			policyTemplateKind	path		string	true	"정책 템플릿 이름"
-//	@Success		200					{object}	domain.ExistsPolicyTemplateKindResponse
+//	@Success		200					{object}	domain.CheckExistedResponse
 //	@Router			/admin/policy-templates/kind/{policyTemplateKind}/existence [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, r *http.Request) {

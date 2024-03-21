@@ -502,7 +502,7 @@ func (h *PolicyHandler) SetMandatoryPolicies(w http.ResponseWriter, r *http.Requ
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"조직 식별자(o로 시작)"
 //	@Param			policyName		path		string	true	"정책 이름"
-//	@Success		200				{object}	domain.ExistenceResponse
+//	@Success		200				{object}	domain.CheckExistedResponse
 //	@Router			/organizations/{organizationId}/policies/name/{policyName}/existence [get]
 //	@Security		JWT
 func (h *PolicyHandler) ExistsPolicyName(w http.ResponseWriter, r *http.Request) {
