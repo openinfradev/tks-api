@@ -35,10 +35,6 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "VerifyToken", 
 		Group: "Auth",
 	},
-    DeleteToken: {
-		Name: "DeleteToken", 
-		Group: "Auth",
-	},
     CreateUser: {
 		Name: "CreateUser", 
 		Group: "User",
@@ -830,8 +826,6 @@ func (e Endpoint) String() string {
 		return "VerifyIdentityForLostPassword"
 	case VerifyToken:
 		return "VerifyToken"
-	case DeleteToken:
-		return "DeleteToken"
 	case CreateUser:
 		return "CreateUser"
 	case ListUser:
@@ -1240,8 +1234,6 @@ func GetEndpoint(name string) Endpoint {
 		return VerifyIdentityForLostPassword
 	case "VerifyToken":
 		return VerifyToken
-	case "DeleteToken":
-		return DeleteToken
 	case "CreateUser":
 		return CreateUser
 	case "ListUser":

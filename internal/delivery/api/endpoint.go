@@ -19,7 +19,6 @@ const (
 	VerifyIdentityForLostId
 	VerifyIdentityForLostPassword
 	VerifyToken
-	DeleteToken
 
 	// User
 	CreateUser
