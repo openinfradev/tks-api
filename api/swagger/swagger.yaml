@@ -1099,10 +1099,47 @@ definitions:
     properties:
       description:
         type: string
+      messageActionProposal:
+        type: string
+      messageCondition:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
       name:
         type: string
+      systemNotificationConditions:
+        items:
+          properties:
+            duration:
+              type: integer
+            enableEmail:
+              type: boolean
+            enablePortal:
+              type: boolean
+            order:
+              type: integer
+            parameters:
+              items:
+                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+              type: array
+            severity:
+              type: string
+          type: object
+        type: array
+      systemNotificationTemplateId:
+        type: string
+      targetUserIds:
+        items:
+          type: string
+        type: array
     required:
+    - messageCondition
+    - messageContent
+    - messageTitle
     - name
+    - systemNotificationTemplateId
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleResponse:
     properties:
@@ -2728,6 +2765,32 @@ definitions:
       updatedAt:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse:
+    properties:
+      duration:
+        type: integer
+      enableEmail:
+        type: boolean
+      enablePortal:
+        type: boolean
+      order:
+        type: integer
+      parameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+        type: array
+      severity:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter:
+    properties:
+      operator:
+        type: string
+      order:
+        type: integer
+      value:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse:
     properties:
       closedAt:
@@ -2785,8 +2848,26 @@ definitions:
         type: string
       id:
         type: string
+      messageActionProposal:
+        type: string
+      messageCondition:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
       name:
         type: string
+      systemNotificationConditions:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse'
+        type: array
+      systemNotificationTemplate:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse'
+      targetUsers:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+        type: array
       updatedAt:
         type: string
       updator:
@@ -3129,6 +3210,47 @@ definitions:
     properties:
       description:
         type: string
+      messageActionProposal:
+        type: string
+      messageCondition:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
+      name:
+        type: string
+      systemNotificationConditions:
+        items:
+          properties:
+            duration:
+              type: integer
+            enableEmail:
+              type: boolean
+            enablePortal:
+              type: boolean
+            order:
+              type: integer
+            parameters:
+              items:
+                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+              type: array
+            severity:
+              type: string
+          type: object
+        type: array
+      systemNotificationTemplateId:
+        type: string
+      targetUserIds:
+        items:
+          type: string
+        type: array
+    required:
+    - messageCondition
+    - messageContent
+    - messageTitle
+    - name
+    - systemNotificationTemplateId
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationTemplateRequest:
     properties:
