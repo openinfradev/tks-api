@@ -36,6 +36,7 @@ var errorMap = map[ErrorCode]string{
 
 	// Organization
 	"O_INVALID_ORGANIZATION_NAME":                   "조직에 이미 존재하는 이름입니다.",
+	"O_NOT_EXISTED_NAME":                            "조직이 존재하지 않습니다.",
 	"O_FAILED_UPDATE_STACK_TEMPLATES":               "조직에 스택템플릿을 설정하는데 실패했습니다",
 	"O_FAILED_UPDATE_POLICY_TEMPLATES":              "조직에 정책템플릿을 설정하는데 실패했습니다",
 	"O_FAILED_UPDATE_SYSTEM_NOTIFICATION_TEMPLATES": "조직에 알림템플릿을 설정하는데 실패했습니다",
@@ -99,11 +100,15 @@ var errorMap = map[ErrorCode]string{
 	"AG_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패하였습니다.",
 
 	// StackTemplate
-	"ST_CREATE_ALREADY_EXISTED_NAME": "스택템플릿에 이미 존재하는 이름입니다.",
-	"ST_FAILED_UPDATE_ORGANIZATION":  "스택템플릿에 조직을 설정하는데 실패했습니다.",
-	"ST_NOT_EXISTED_STACK_TEMPLATE":  "업데이트할 스택템플릿이 존재하지 않습니다.",
-	"ST_INVALID_STACK_TEMAPLTE_NAME": "유효하지 않은 스택템플릿 이름입니다. 스택템플릿 이름을 확인하세요.",
-	"ST_FAILED_FETCH_STACK_TEMPLATE": "스택템플릿을 가져오는데 실패했습니다.",
+	"ST_CREATE_ALREADY_EXISTED_NAME":                             "스택템플릿에 이미 존재하는 이름입니다.",
+	"ST_FAILED_UPDATE_ORGANIZATION":                              "스택템플릿에 조직을 설정하는데 실패했습니다.",
+	"ST_NOT_EXISTED_STACK_TEMPLATE":                              "업데이트할 스택템플릿이 존재하지 않습니다.",
+	"ST_INVALID_STACK_TEMAPLTE_NAME":                             "유효하지 않은 스택템플릿 이름입니다. 스택템플릿 이름을 확인하세요.",
+	"ST_FAILED_FETCH_STACK_TEMPLATE":                             "스택템플릿을 가져오는데 실패했습니다.",
+	"ST_FAILED_ADD_ORGANIZATION_STACK_TEMPLATE":                  "조직에 스택템플릿을 추가하는데 실패하였습니다.",
+	"ST_FAILED_REMOVE_ORGANIZATION_STACK_TEMPLATE":               "조직에서 스택템플릿을 삭제하는데 실패하였습니다.",
+	"ST_FAILED_ADD_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE":    "조직에 시스템알람템플릿을 추가하는데 실패하였습니다.",
+	"ST_FAILED_REMOVE_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE": "조직에서 시스템알람템플릿을 삭제하는데 실패하였습니다.",
 
 	// PolicyTemplate
 	"PT_CREATE_ALREADY_EXISTED_NAME":       "정첵 템플릿에 이미 존재하는 이름입니다.",

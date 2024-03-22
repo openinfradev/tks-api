@@ -140,6 +140,24 @@ definitions:
       uri:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.AddOrganizationStackTemplatesRequest:
+    properties:
+      stackTemplateIds:
+        items:
+          type: string
+        type: array
+    required:
+    - stackTemplateIds
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.AddOrganizationSystemNotificationTemplatesRequest:
+    properties:
+      systemNotificationTemplateIds:
+        items:
+          type: string
+        type: array
+    required:
+    - systemNotificationTemplateIds
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.AddProjectMemberRequest:
     properties:
       projectMembers:
@@ -2210,6 +2228,24 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationStackTemplatesRequest:
+    properties:
+      stackTemplateIds:
+        items:
+          type: string
+        type: array
+    required:
+    - stackTemplateIds
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationSystemNotificationTemplatesRequest:
+    properties:
+      systemNotificationTemplateIds:
+        items:
+          type: string
+        type: array
+    required:
+    - systemNotificationTemplateIds
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.RemoveProjectMemberRequest:
     properties:
       projectMembers:
@@ -2761,18 +2797,6 @@ definitions:
         maxLength: 30
         minLength: 1
         type: string
-      policyTemplateIds:
-        items:
-          type: string
-        type: array
-      stackTemplateIds:
-        items:
-          type: string
-        type: array
-      systemNotificationTemplateIds:
-        items:
-          type: string
-        type: array
     required:
     - name
     type: object
@@ -6829,6 +6853,48 @@ paths:
       summary: Get Organization StackTemplates
       tags:
       - StackTemplates
+    post:
+      consumes:
+      - application/json
+      description: Add organization stackTemplates
+      parameters:
+      - description: Add organization stack templates request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AddOrganizationStackTemplatesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Add organization stackTemplates
+      tags:
+      - StackTemplates
+    put:
+      consumes:
+      - application/json
+      description: Remove organization stackTemplates
+      parameters:
+      - description: Remove organization stack templates request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationStackTemplatesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Remove organization stackTemplates
+      tags:
+      - StackTemplates
   /organizations/{organizationId}/stack-templates/{stackTemplateId}:
     get:
       consumes:
@@ -7286,6 +7352,89 @@ paths:
       summary: Check name for systemNotificationRule
       tags:
       - SystemNotificationRules
+  /organizations/{organizationId}/system-notification-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization SystemNotificationTemplates
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get Organization SystemNotificationTemplates
+      tags:
+      - SystemNotificationTemplates
+    post:
+      consumes:
+      - application/json
+      description: Add organization systemNotificationTemplates
+      parameters:
+      - description: Add organization systemNotification templates request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AddOrganizationSystemNotificationTemplatesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Add organization systemNotificationTemplates
+      tags:
+      - SystemNotificationTemplates
+    put:
+      consumes:
+      - application/json
+      description: Remove organization systemNotificationTemplates
+      parameters:
+      - description: Remove organization systemNotification templates request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationSystemNotificationTemplatesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Remove organization systemNotificationTemplates
+      tags:
+      - SystemNotificationTemplates
   /organizations/{organizationId}/system-notifications:
     get:
       consumes:

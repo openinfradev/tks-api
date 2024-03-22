@@ -17,6 +17,7 @@ type ISystemNotificationTemplateRepository interface {
 	Get(ctx context.Context, systemNotificationTemplateId uuid.UUID) (model.SystemNotificationTemplate, error)
 	GetByName(ctx context.Context, name string) (model.SystemNotificationTemplate, error)
 	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.SystemNotificationTemplate, error)
+	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.SystemNotificationTemplate, err error)
 	Create(ctx context.Context, dto model.SystemNotificationTemplate) (systemNotificationTemplateId uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationTemplate) (err error)
 	Delete(ctx context.Context, dto model.SystemNotificationTemplate) (err error)
@@ -56,6 +57,21 @@ func (r *SystemNotificationTemplateRepository) Fetch(ctx context.Context, pg *pa
 	}
 
 	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations), &out)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return
+}
+
+func (r *SystemNotificationTemplateRepository) FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.SystemNotificationTemplate, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+
+	_, res := pg.Fetch(
+		r.db.WithContext(ctx).Preload(clause.Associations).
+			Joins("JOIN system_notification_template_organizations ON system_notification_template_organizations.system_notification_template_id = system_notification_templates.id AND system_notification_template_organizations.organization_id = ?", organizationId),
+		&out)
 	if res.Error != nil {
 		return nil, res.Error
 	}

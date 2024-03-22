@@ -58,7 +58,6 @@ var defaultPermissionOfAdmin = defaultPermission{
 
 		// Organization
 		internalApi.Admin_CreateOrganization,
-		internalApi.Admin_UpdateOrganization,
 		internalApi.Admin_DeleteOrganization,
 		internalApi.GetOrganizations,
 		internalApi.GetOrganization,

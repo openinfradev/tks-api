@@ -19,9 +19,12 @@ type ISystemNotificationTemplateUsecase interface {
 	Get(ctx context.Context, alertId uuid.UUID) (model.SystemNotificationTemplate, error)
 	GetByName(ctx context.Context, name string) (model.SystemNotificationTemplate, error)
 	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.SystemNotificationTemplate, error)
+	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotificationTemplate, error)
 	Create(ctx context.Context, dto model.SystemNotificationTemplate) (systemNotificationTemplate uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationTemplate) error
 	Delete(ctx context.Context, dto model.SystemNotificationTemplate) error
+	AddOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error
+	RemoveOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error
 }
 
 type SystemNotificationTemplateUsecase struct {
@@ -114,6 +117,14 @@ func (u *SystemNotificationTemplateUsecase) Fetch(ctx context.Context, pg *pagin
 	return
 }
 
+func (u *SystemNotificationTemplateUsecase) FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (res []model.SystemNotificationTemplate, err error) {
+	res, err = u.repo.FetchWithOrganization(ctx, organizationId, pg)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (u *SystemNotificationTemplateUsecase) Delete(ctx context.Context, dto model.SystemNotificationTemplate) (err error) {
 	return nil
 }
@@ -135,6 +146,52 @@ func (u *SystemNotificationTemplateUsecase) UpdateOrganizations(ctx context.Cont
 	err = u.repo.UpdateOrganizations(ctx, dto.ID, organizations)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "SNT_FAILED_UPDATE_ORGANIZATION", "")
+	}
+
+	return nil
+}
+
+func (u *SystemNotificationTemplateUsecase) AddOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error {
+	_, err := u.organizationRepo.Get(ctx, organizationId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_NOT_EXISTED_NAME", "")
+	}
+
+	systemNotificationTemplates := make([]model.SystemNotificationTemplate, 0)
+	for _, strId := range systemNotificationTemplateIds {
+		systemNotificationTemplateId, _ := uuid.Parse(strId)
+		systemNotificationTemplate, err := u.repo.Get(ctx, systemNotificationTemplateId)
+		if err == nil {
+			systemNotificationTemplates = append(systemNotificationTemplates, systemNotificationTemplate)
+		}
+	}
+
+	err = u.organizationRepo.AddSystemNotificationTemplates(ctx, organizationId, systemNotificationTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "ST_FAILED_ADD_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE", "")
+	}
+
+	return nil
+}
+
+func (u *SystemNotificationTemplateUsecase) RemoveOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error {
+	_, err := u.organizationRepo.Get(ctx, organizationId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_NOT_EXISTED_NAME", "")
+	}
+
+	systemNotificationTemplates := make([]model.SystemNotificationTemplate, 0)
+	for _, strId := range systemNotificationTemplateIds {
+		systemNotificationTemplateId, _ := uuid.Parse(strId)
+		systemNotificationTemplate, err := u.repo.Get(ctx, systemNotificationTemplateId)
+		if err == nil {
+			systemNotificationTemplates = append(systemNotificationTemplates, systemNotificationTemplate)
+		}
+	}
+
+	err = u.organizationRepo.RemoveSystemNotificationTemplates(ctx, organizationId, systemNotificationTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "ST_FAILED_REMOVE_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE", "")
 	}
 
 	return nil

@@ -5830,6 +5830,74 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Remove organization stackTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Remove organization stackTemplates",
+                "parameters": [
+                    {
+                        "description": "Remove organization stack templates request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationStackTemplatesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Add organization stackTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Add organization stackTemplates",
+                "parameters": [
+                    {
+                        "description": "Add organization stack templates request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AddOrganizationStackTemplatesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
             }
         },
         "/organizations/{organizationId}/stack-templates/{stackTemplateId}": {
@@ -6544,6 +6612,138 @@ const docTemplate = `{
                         "name": "systemNotificationRuleId",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/system-notification-templates": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Organization SystemNotificationTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Get Organization SystemNotificationTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplatesResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Remove organization systemNotificationTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Remove organization systemNotificationTemplates",
+                "parameters": [
+                    {
+                        "description": "Remove organization systemNotification templates request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationSystemNotificationTemplatesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Add organization systemNotificationTemplates",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Add organization systemNotificationTemplates",
+                "parameters": [
+                    {
+                        "description": "Add organization systemNotification templates request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AddOrganizationSystemNotificationTemplatesRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -7460,6 +7660,34 @@ const docTemplate = `{
                 },
                 "uri": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.AddOrganizationStackTemplatesRequest": {
+            "type": "object",
+            "required": [
+                "stackTemplateIds"
+            ],
+            "properties": {
+                "stackTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.AddOrganizationSystemNotificationTemplatesRequest": {
+            "type": "object",
+            "required": [
+                "systemNotificationTemplateIds"
+            ],
+            "properties": {
+                "systemNotificationTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -10549,6 +10777,34 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationStackTemplatesRequest": {
+            "type": "object",
+            "required": [
+                "stackTemplateIds"
+            ],
+            "properties": {
+                "stackTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.RemoveOrganizationSystemNotificationTemplatesRequest": {
+            "type": "object",
+            "required": [
+                "systemNotificationTemplateIds"
+            ],
+            "properties": {
+                "systemNotificationTemplateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.RemoveProjectMemberRequest": {
             "type": "object",
             "properties": {
@@ -11383,24 +11639,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 30,
                     "minLength": 1
-                },
-                "policyTemplateIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "stackTemplateIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "systemNotificationTemplateIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },

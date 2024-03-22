@@ -219,3 +219,124 @@ func (h *SystemNotificationTemplateHandler) UpdateSystemNotificationTemplate(w h
 
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
+
+// GetOrganizationSystemNotificationTemplates godoc
+//
+//	@Tags			SystemNotificationTemplates
+//	@Summary		Get Organization SystemNotificationTemplates
+//	@Description	Get Organization SystemNotificationTemplates
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit		query		string		false	"pageSize"
+//	@Param			page		query		string		false	"pageNumber"
+//	@Param			soertColumn	query		string		false	"sortColumn"
+//	@Param			sortOrder	query		string		false	"sortOrder"
+//	@Param			filters		query		[]string	false	"filters"
+//	@Success		200			{object}	domain.GetSystemNotificationTemplatesResponse
+//	@Router			/organizations/{organizationId}/system-notification-templates [get]
+//	@Security		JWT
+func (h *SystemNotificationTemplateHandler) GetOrganizationSystemNotificationTemplates(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+	systemNotificationTemplates, err := h.usecase.FetchWithOrganization(r.Context(), organizationId, pg)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetSystemNotificationTemplatesResponse
+	out.SystemNotificationTemplates = make([]domain.SystemNotificationTemplateResponse, len(systemNotificationTemplates))
+	for i, systemNotificationTemplate := range systemNotificationTemplates {
+		if err := serializer.Map(r.Context(), systemNotificationTemplate, &out.SystemNotificationTemplates[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+
+		out.SystemNotificationTemplates[i].Organizations = make([]domain.SimpleOrganizationResponse, len(systemNotificationTemplate.Organizations))
+		for j, organization := range systemNotificationTemplate.Organizations {
+			if err := serializer.Map(r.Context(), organization, &out.SystemNotificationTemplates[i].Organizations[j]); err != nil {
+				log.Info(r.Context(), err)
+			}
+		}
+	}
+
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// AddOrganizationSystemNotificationTemplates godoc
+//
+//	@Tags			SystemNotificationTemplates
+//	@Summary		Add organization systemNotificationTemplates
+//	@Description	Add organization systemNotificationTemplates
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.AddOrganizationSystemNotificationTemplatesRequest	true	"Add organization systemNotification templates request"
+//	@Success		200		{object}	nil
+//	@Router			/organizations/{organizationId}/system-notification-templates [post]
+//	@Security		JWT
+func (h *SystemNotificationTemplateHandler) AddOrganizationSystemNotificationTemplates(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.AddOrganizationSystemNotificationTemplatesRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = h.usecase.AddOrganizationSystemNotificationTemplates(r.Context(), organizationId, input.SystemNotificationTemplateIds)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// RemoveOrganizationSystemNotificationTemplates godoc
+//
+//	@Tags			SystemNotificationTemplates
+//	@Summary		Remove organization systemNotificationTemplates
+//	@Description	Remove organization systemNotificationTemplates
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.RemoveOrganizationSystemNotificationTemplatesRequest	true	"Remove organization systemNotification templates request"
+//	@Success		200		{object}	nil
+//	@Router			/organizations/{organizationId}/system-notification-templates [put]
+//	@Security		JWT
+func (h *SystemNotificationTemplateHandler) RemoveOrganizationSystemNotificationTemplates(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.RemoveOrganizationSystemNotificationTemplatesRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = h.usecase.RemoveOrganizationSystemNotificationTemplates(r.Context(), organizationId, input.SystemNotificationTemplateIds)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}

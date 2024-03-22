@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -325,39 +324,14 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		log.Info(r.Context(), err)
 	}
 
-	for _, strId := range input.StackTemplateIds {
-		stackTemplateId, err := uuid.Parse(strId)
-		if err != nil || stackTemplateId == uuid.Nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
-			return
-		}
-		dto.StackTemplateIds = append(dto.StackTemplateIds, stackTemplateId)
-	}
-	for _, strId := range input.PolicyTemplateIds {
-		policyTemplateId, err := uuid.Parse(strId)
-		if err != nil || policyTemplateId == uuid.Nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
-			return
-		}
-		dto.PolicyTemplateIds = append(dto.PolicyTemplateIds, policyTemplateId)
-	}
-	for _, strId := range input.SystemNotificationTemplateIds {
-		systemNotificationTemplateId, err := uuid.Parse(strId)
-		if err != nil || systemNotificationTemplateId == uuid.Nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
-			return
-		}
-		dto.SystemNotificationTemplateIds = append(dto.SystemNotificationTemplateIds, systemNotificationTemplateId)
-	}
-
-	err = h.usecase.UpdateWithTemplates(r.Context(), organizationId, dto)
+	res, err := h.usecase.Update(r.Context(), organizationId, dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.UpdateOrganizationResponse
-	out.ID = organizationId
+	out.ID = res.ID
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
