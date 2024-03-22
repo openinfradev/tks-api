@@ -32,9 +32,9 @@ type IPolicyTemplateUsecase interface {
 
 	RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error)
 
-	UpdatePermittedOrganizations(ctx context.Context,
+	FillPermittedOrganizations(ctx context.Context,
 		policyTemplate *model.PolicyTemplate, out *domain.PolicyTemplateResponse) error
-	UpdatePermittedOrganizationsForList(ctx context.Context,
+	FillPermittedOrganizationsForList(ctx context.Context,
 		policyTemplates *[]model.PolicyTemplate, outs *[]domain.PolicyTemplateResponse) error
 }
 
@@ -104,7 +104,7 @@ func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, pg *pagination.Pagina
 	return policyTemplates, nil
 }
 
-func (u *PolicyTemplateUsecase) UpdatePermittedOrganizations(ctx context.Context,
+func (u *PolicyTemplateUsecase) FillPermittedOrganizations(ctx context.Context,
 	policyTemplate *model.PolicyTemplate, out *domain.PolicyTemplateResponse) error {
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 
@@ -117,7 +117,7 @@ func (u *PolicyTemplateUsecase) UpdatePermittedOrganizations(ctx context.Context
 	return nil
 }
 
-func (u *PolicyTemplateUsecase) UpdatePermittedOrganizationsForList(ctx context.Context,
+func (u *PolicyTemplateUsecase) FillPermittedOrganizationsForList(ctx context.Context,
 	policyTemplates *[]model.PolicyTemplate, outs *[]domain.PolicyTemplateResponse) error {
 
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
