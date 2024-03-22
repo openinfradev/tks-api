@@ -41,11 +41,11 @@ const (
 	// Organization
 	Admin_CreateOrganization
 	Admin_DeleteOrganization
-	UpdateOrganization
 	GetOrganizations
 	GetOrganization
-	UpdatePrimaryCluster
 	CheckOrganizationName
+	UpdateOrganization
+	UpdatePrimaryCluster
 
 	// Cluster
 	CreateCluster
@@ -105,6 +105,8 @@ const (
 	Admin_CheckStackTemplateName
 	GetOrganizationStackTemplates
 	GetOrganizationStackTemplate
+	AddOrganizationStackTemplates
+	RemoveOrganizationStackTemplates
 
 	// Dashboard
 	CreateDashboard
@@ -120,6 +122,9 @@ const (
 	Admin_UpdateSystemNotificationTemplate
 	Admin_GetSystemNotificationTemplates
 	Admin_GetSystemNotificationTemplate
+	GetOrganizationSystemNotificationTemplates
+	AddOrganizationSystemNotificationTemplates
+	RemoveOrganizationSystemNotificationTemplates
 
 	// SystemNotificationRule
 	CreateSystemNotificationRule

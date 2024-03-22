@@ -59,3 +59,11 @@ type GetSystemNotificationTemplatesResponse struct {
 type GetSystemNotificationTemplateResponse struct {
 	SystemNotificationTemplate SystemNotificationTemplateResponse `json:"systemNotificationTemplate"`
 }
+
+type AddOrganizationSystemNotificationTemplatesRequest struct {
+	SystemNotificationTemplateIds []string `json:"systemNotificationTemplateIds" validate:"required"`
+}
+
+type RemoveOrganizationSystemNotificationTemplatesRequest struct {
+	SystemNotificationTemplateIds []string `json:"systemNotificationTemplateIds" validate:"required"`
+}

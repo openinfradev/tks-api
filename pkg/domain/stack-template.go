@@ -104,3 +104,11 @@ type UpdateStackTemplateOrganizationsRequest struct {
 type CheckStackTemplateNameResponse struct {
 	Existed bool `json:"existed"`
 }
+
+type AddOrganizationStackTemplatesRequest struct {
+	StackTemplateIds []string `json:"stackTemplateIds" validate:"required"`
+}
+
+type RemoveOrganizationStackTemplatesRequest struct {
+	StackTemplateIds []string `json:"stackTemplateIds" validate:"required"`
+}

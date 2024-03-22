@@ -99,10 +99,6 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_DeleteOrganization", 
 		Group: "Organization",
 	},
-    UpdateOrganization: {
-		Name: "UpdateOrganization", 
-		Group: "Organization",
-	},
     GetOrganizations: {
 		Name: "GetOrganizations", 
 		Group: "Organization",
@@ -111,12 +107,16 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetOrganization", 
 		Group: "Organization",
 	},
-    UpdatePrimaryCluster: {
-		Name: "UpdatePrimaryCluster", 
-		Group: "Organization",
-	},
     CheckOrganizationName: {
 		Name: "CheckOrganizationName", 
+		Group: "Organization",
+	},
+    UpdateOrganization: {
+		Name: "UpdateOrganization", 
+		Group: "Organization",
+	},
+    UpdatePrimaryCluster: {
+		Name: "UpdatePrimaryCluster", 
 		Group: "Organization",
 	},
     CreateCluster: {
@@ -315,6 +315,14 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetOrganizationStackTemplate", 
 		Group: "StackTemplate",
 	},
+    AddOrganizationStackTemplates: {
+		Name: "AddOrganizationStackTemplates", 
+		Group: "StackTemplate",
+	},
+    RemoveOrganizationStackTemplates: {
+		Name: "RemoveOrganizationStackTemplates", 
+		Group: "StackTemplate",
+	},
     CreateDashboard: {
 		Name: "CreateDashboard", 
 		Group: "Dashboard",
@@ -357,6 +365,18 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     Admin_GetSystemNotificationTemplate: {
 		Name: "Admin_GetSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
+	},
+    GetOrganizationSystemNotificationTemplates: {
+		Name: "GetOrganizationSystemNotificationTemplates", 
+		Group: "SystemNotificationTemplate",
+	},
+    AddOrganizationSystemNotificationTemplates: {
+		Name: "AddOrganizationSystemNotificationTemplates", 
+		Group: "SystemNotificationTemplate",
+	},
+    RemoveOrganizationSystemNotificationTemplates: {
+		Name: "RemoveOrganizationSystemNotificationTemplates", 
 		Group: "SystemNotificationTemplate",
 	},
     CreateSystemNotificationRule: {
@@ -838,16 +858,16 @@ func (e Endpoint) String() string {
 		return "Admin_CreateOrganization"
 	case Admin_DeleteOrganization:
 		return "Admin_DeleteOrganization"
-	case UpdateOrganization:
-		return "UpdateOrganization"
 	case GetOrganizations:
 		return "GetOrganizations"
 	case GetOrganization:
 		return "GetOrganization"
-	case UpdatePrimaryCluster:
-		return "UpdatePrimaryCluster"
 	case CheckOrganizationName:
 		return "CheckOrganizationName"
+	case UpdateOrganization:
+		return "UpdateOrganization"
+	case UpdatePrimaryCluster:
+		return "UpdatePrimaryCluster"
 	case CreateCluster:
 		return "CreateCluster"
 	case GetClusters:
@@ -946,6 +966,10 @@ func (e Endpoint) String() string {
 		return "GetOrganizationStackTemplates"
 	case GetOrganizationStackTemplate:
 		return "GetOrganizationStackTemplate"
+	case AddOrganizationStackTemplates:
+		return "AddOrganizationStackTemplates"
+	case RemoveOrganizationStackTemplates:
+		return "RemoveOrganizationStackTemplates"
 	case CreateDashboard:
 		return "CreateDashboard"
 	case GetDashboard:
@@ -968,6 +992,12 @@ func (e Endpoint) String() string {
 		return "Admin_GetSystemNotificationTemplates"
 	case Admin_GetSystemNotificationTemplate:
 		return "Admin_GetSystemNotificationTemplate"
+	case GetOrganizationSystemNotificationTemplates:
+		return "GetOrganizationSystemNotificationTemplates"
+	case AddOrganizationSystemNotificationTemplates:
+		return "AddOrganizationSystemNotificationTemplates"
+	case RemoveOrganizationSystemNotificationTemplates:
+		return "RemoveOrganizationSystemNotificationTemplates"
 	case CreateSystemNotificationRule:
 		return "CreateSystemNotificationRule"
 	case GetSystemNotificationRules:
@@ -1236,16 +1266,16 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_CreateOrganization
 	case "Admin_DeleteOrganization":
 		return Admin_DeleteOrganization
-	case "UpdateOrganization":
-		return UpdateOrganization
 	case "GetOrganizations":
 		return GetOrganizations
 	case "GetOrganization":
 		return GetOrganization
-	case "UpdatePrimaryCluster":
-		return UpdatePrimaryCluster
 	case "CheckOrganizationName":
 		return CheckOrganizationName
+	case "UpdateOrganization":
+		return UpdateOrganization
+	case "UpdatePrimaryCluster":
+		return UpdatePrimaryCluster
 	case "CreateCluster":
 		return CreateCluster
 	case "GetClusters":
@@ -1344,6 +1374,10 @@ func GetEndpoint(name string) Endpoint {
 		return GetOrganizationStackTemplates
 	case "GetOrganizationStackTemplate":
 		return GetOrganizationStackTemplate
+	case "AddOrganizationStackTemplates":
+		return AddOrganizationStackTemplates
+	case "RemoveOrganizationStackTemplates":
+		return RemoveOrganizationStackTemplates
 	case "CreateDashboard":
 		return CreateDashboard
 	case "GetDashboard":
@@ -1366,6 +1400,12 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_GetSystemNotificationTemplates
 	case "Admin_GetSystemNotificationTemplate":
 		return Admin_GetSystemNotificationTemplate
+	case "GetOrganizationSystemNotificationTemplates":
+		return GetOrganizationSystemNotificationTemplates
+	case "AddOrganizationSystemNotificationTemplates":
+		return AddOrganizationSystemNotificationTemplates
+	case "RemoveOrganizationSystemNotificationTemplates":
+		return RemoveOrganizationSystemNotificationTemplates
 	case "CreateSystemNotificationRule":
 		return CreateSystemNotificationRule
 	case "GetSystemNotificationRules":

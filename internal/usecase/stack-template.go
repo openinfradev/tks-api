@@ -25,6 +25,8 @@ type IStackTemplateUsecase interface {
 	Delete(ctx context.Context, dto model.StackTemplate) error
 	UpdateOrganizations(ctx context.Context, dto model.StackTemplate) error
 	GetByName(ctx context.Context, name string) (model.StackTemplate, error)
+	AddOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
+	RemoveOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
 }
 
 type StackTemplateUsecase struct {
@@ -149,6 +151,52 @@ func (u *StackTemplateUsecase) UpdateOrganizations(ctx context.Context, dto mode
 	err = u.repo.UpdateOrganizations(ctx, dto.ID, organizations)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "ST_FAILED_UPDATE_ORGANIZATION", "")
+	}
+
+	return nil
+}
+
+func (u *StackTemplateUsecase) AddOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error {
+	_, err := u.organizationRepo.Get(ctx, organizationId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_NOT_EXISTED_NAME", "")
+	}
+
+	stackTemplates := make([]model.StackTemplate, 0)
+	for _, strId := range stackTemplateIds {
+		stackTemplateId, _ := uuid.Parse(strId)
+		stackTemplate, err := u.repo.Get(ctx, stackTemplateId)
+		if err == nil {
+			stackTemplates = append(stackTemplates, stackTemplate)
+		}
+	}
+
+	err = u.organizationRepo.AddStackTemplates(ctx, organizationId, stackTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "ST_FAILED_ADD_ORGANIZATION_STACK_TEMPLATE", "")
+	}
+
+	return nil
+}
+
+func (u *StackTemplateUsecase) RemoveOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error {
+	_, err := u.organizationRepo.Get(ctx, organizationId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "O_NOT_EXISTED_NAME", "")
+	}
+
+	stackTemplates := make([]model.StackTemplate, 0)
+	for _, strId := range stackTemplateIds {
+		stackTemplateId, _ := uuid.Parse(strId)
+		stackTemplate, err := u.repo.Get(ctx, stackTemplateId)
+		if err == nil {
+			stackTemplates = append(stackTemplates, stackTemplate)
+		}
+	}
+
+	err = u.organizationRepo.RemoveStackTemplates(ctx, organizationId, stackTemplates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "ST_FAILED_REMOVE_ORGANIZATION_STACK_TEMPLATE", "")
 	}
 
 	return nil

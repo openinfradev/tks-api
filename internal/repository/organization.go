@@ -20,9 +20,10 @@ type IOrganizationRepository interface {
 	Update(ctx context.Context, organizationId string, in model.Organization) (model.Organization, error)
 	UpdatePrimaryClusterId(ctx context.Context, organizationId string, primaryClusterId string) error
 	UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
-	UpdateStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
-	UpdatePolicyTemplates(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
-	UpdateSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
+	AddStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
+	RemoveStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
+	AddSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
+	RemoveSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
 	Delete(ctx context.Context, organizationId string) (err error)
 	InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error
 }
@@ -167,14 +168,14 @@ func (r *OrganizationRepository) InitWorkflow(ctx context.Context, organizationI
 	return nil
 }
 
-func (r *OrganizationRepository) UpdateStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error) {
+func (r *OrganizationRepository) AddStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error) {
 	var organization = model.Organization{}
 	res := r.db.WithContext(ctx).Preload("StackTemplates").First(&organization, "id = ?", organizationId)
 	if res.Error != nil {
 		return res.Error
 	}
 
-	err = r.db.WithContext(ctx).Model(&organization).Association("StackTemplates").Replace(stackTemplates)
+	err = r.db.WithContext(ctx).Model(&organization).Association("StackTemplates").Append(stackTemplates)
 	if err != nil {
 		return err
 	}
@@ -182,22 +183,47 @@ func (r *OrganizationRepository) UpdateStackTemplates(ctx context.Context, organ
 	return nil
 }
 
-func (r *OrganizationRepository) UpdatePolicyTemplates(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
-	// [TODO]
+func (r *OrganizationRepository) RemoveStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("StackTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("StackTemplates").Delete(stackTemplates)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (r *OrganizationRepository) UpdateSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error) {
+func (r *OrganizationRepository) AddSystemNotificationTemplates(ctx context.Context, organizationId string, templates []model.SystemNotificationTemplate) (err error) {
 	var organization = model.Organization{}
 	res := r.db.WithContext(ctx).Preload("SystemNotificationTemplates").First(&organization, "id = ?", organizationId)
 	if res.Error != nil {
 		return res.Error
 	}
 
-	err = r.db.WithContext(ctx).Model(&organization).Association("SystemNotificationTemplates").Replace(systemNotificationTemplates)
+	err = r.db.WithContext(ctx).Model(&organization).Association("SystemNotificationTemplates").Append(templates)
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (r *OrganizationRepository) RemoveSystemNotificationTemplates(ctx context.Context, organizationId string, templates []model.SystemNotificationTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("SystemNotificationTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("SystemNotificationTemplates").Delete(templates)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

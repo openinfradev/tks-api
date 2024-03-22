@@ -451,3 +451,71 @@ func (h *StackTemplateHandler) CheckStackTemplateName(w http.ResponseWriter, r *
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
+
+// AddOrganizationStackTemplates godoc
+//
+//	@Tags			StackTemplates
+//	@Summary		Add organization stackTemplates
+//	@Description	Add organization stackTemplates
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.AddOrganizationStackTemplatesRequest	true	"Add organization stack templates request"
+//	@Success		200		{object}	nil
+//	@Router			/organizations/{organizationId}/stack-templates [post]
+//	@Security		JWT
+func (h *StackTemplateHandler) AddOrganizationStackTemplates(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.AddOrganizationStackTemplatesRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = h.usecase.AddOrganizationStackTemplates(r.Context(), organizationId, input.StackTemplateIds)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// RemoveOrganizationStackTemplates godoc
+//
+//	@Tags			StackTemplates
+//	@Summary		Remove organization stackTemplates
+//	@Description	Remove organization stackTemplates
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.RemoveOrganizationStackTemplatesRequest	true	"Remove organization stack templates request"
+//	@Success		200		{object}	nil
+//	@Router			/organizations/{organizationId}/stack-templates [put]
+//	@Security		JWT
+func (h *StackTemplateHandler) RemoveOrganizationStackTemplates(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.RemoveOrganizationStackTemplatesRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = h.usecase.RemoveOrganizationStackTemplates(r.Context(), organizationId, input.StackTemplateIds)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
