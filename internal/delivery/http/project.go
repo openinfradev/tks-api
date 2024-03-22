@@ -1002,6 +1002,11 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		err = p.authUsecase.UpdateExpiredTimeOnToken(r.Context(), organizationId, pm.ProjectUserId.String())
+		if err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
 
 		if err := p.usecase.RemoveProjectMember(r.Context(), organizationId, pmId.ProjectMemberId); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
