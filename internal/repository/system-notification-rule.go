@@ -20,7 +20,6 @@ type ISystemNotificationRuleRepository interface {
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRuleId uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) (err error)
 	Delete(ctx context.Context, dto model.SystemNotificationRule) (err error)
-	UpdateOrganizations(ctx context.Context, systemNotificationRuleId uuid.UUID, organizationIds []model.Organization) (err error)
 }
 
 type SystemNotificationRuleRepository struct {
@@ -83,19 +82,41 @@ func (r *SystemNotificationRuleRepository) Create(ctx context.Context, dto model
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
+
 	return dto.ID, nil
 }
 
 func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model.SystemNotificationRule) (err error) {
-	res := r.db.WithContext(ctx).Model(&model.SystemNotificationRule{}).
-		Where("id = ?", dto.ID).
-		Updates(map[string]interface{}{
-			"Name":        dto.Name,
-			"Description": dto.Description,
-			"UpdatorId":   dto.UpdatorId})
+	var m model.SystemNotificationRule
+	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&m, "id = ?", dto.ID)
 	if res.Error != nil {
 		return res.Error
 	}
+
+	m.Name = dto.Name
+	m.Description = dto.Description
+	m.SystemNotificationTemplateId = dto.SystemNotificationTemplateId
+	//m.SystemNotificationConditions = dto.SystemNotificationConditions
+	m.MessageTitle = dto.MessageTitle
+	m.MessageContent = dto.MessageContent
+	m.MessageCondition = dto.MessageCondition
+	m.MessageActionProposal = dto.MessageActionProposal
+	m.UpdatorId = dto.UpdatorId
+
+	res = r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(&m)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&m).Association("TargetUsers").Replace(dto.TargetUsers)
+	if err != nil {
+		return err
+	}
+	err = r.db.WithContext(ctx).Model(&m).Association("SystemNotificationConditions").Replace(dto.SystemNotificationConditions)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -104,19 +125,5 @@ func (r *SystemNotificationRuleRepository) Delete(ctx context.Context, dto model
 	if res.Error != nil {
 		return res.Error
 	}
-	return nil
-}
-
-func (r *SystemNotificationRuleRepository) UpdateOrganizations(ctx context.Context, systemNotificationRuleId uuid.UUID, organizations []model.Organization) (err error) {
-	var systemNotificationRule = model.SystemNotificationRule{}
-	res := r.db.WithContext(ctx).Preload("Organizations").First(&systemNotificationRule, "id = ?", systemNotificationRuleId)
-	if res.Error != nil {
-		return res.Error
-	}
-	err = r.db.WithContext(ctx).Model(&systemNotificationRule).Association("Organizations").Replace(organizations)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
