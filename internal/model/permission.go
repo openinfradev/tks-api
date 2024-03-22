@@ -10,12 +10,42 @@ import (
 type PermissionKind string
 
 const (
-	DashBoardPermission         PermissionKind = "대시보드"
-	StackPermission             PermissionKind = "스택"
-	SecurityPolicyPermission    PermissionKind = "정책"
-	ProjectManagementPermission PermissionKind = "프로젝트"
-	NotificationPermission      PermissionKind = "알림"
-	ConfigurationPermission     PermissionKind = "설정"
+	DashBoardPermission     PermissionKind = "대시보드"
+	StackPermission         PermissionKind = "스택"
+	PolicyPermission        PermissionKind = "정책"
+	ProjectPermission       PermissionKind = "프로젝트"
+	NotificationPermission  PermissionKind = "알림"
+	ConfigurationPermission PermissionKind = "설정"
+
+	OperationRead     = "READ"
+	OperationCreate   = "CREATE"
+	OperationUpdate   = "UPDATE"
+	OperationDelete   = "DELETE"
+	OperationDownload = "DOWNLOAD"
+
+	// Key
+	TopDashboardKey                          = "DASHBOARD"
+	MiddleDashboardKey                       = "DASHBOARD-DASHBOARD"
+	TopStackKey                              = "STACK"
+	MiddleStackKey                           = "STACK-STACK"
+	TopPolicyKey                             = "POLICY"
+	MiddlePolicyKey                          = "POLICY-POLICY"
+	TopNotificationKey                       = "NOTIFICATION"
+	MiddleNotificationKey                    = "NOTIFICATION-SYSTEM_NOTIFICATION"
+	MiddlePolicyNotificationKey              = "NOTIFICATION-POLICY_NOTIFICATION"
+	TopProjectKey                            = "PROJECT"
+	MiddleProjectKey                         = "PROJECT-PROJECT_LIST"
+	MiddleProjectCommonConfigurationKey      = "PROJECT-PROJECT_COMMON_CONFIGURATION"
+	MiddleProjectMemberConfigurationKey      = "PROJECT-PROJECT_MEMBER_CONFIGURATION"
+	MiddleProjectNamespaceKey                = "PROJECT-PROJECT_NAMESPACE"
+	MiddleProjectAppServeKey                 = "PROJECT-PROJECT_APP_SERVE"
+	TopConfigurationKey                      = "CONFIGURATION"
+	MiddleConfigurationKey                   = "CONFIGURATION-CONFIGURATION"
+	MiddleConfigurationCloudAccountKey       = "CONFIGURATION-CLOUD_ACCOUNT"
+	MiddleConfigurationProjectKey            = "CONFIGURATION-PROJECT"
+	MiddleConfigurationUserKey               = "CONFIGURATION-USER"
+	MiddleConfigurationRoleKey               = "CONFIGURATION-ROLE"
+	MiddleConfigurationSystemNotificationKey = "CONFIGURATION-SYSTEM_NOTIFICATION"
 )
 
 type Permission struct {
@@ -23,6 +53,7 @@ type Permission struct {
 
 	ID   uuid.UUID `gorm:"primarykey;type:uuid;" json:"ID"`
 	Name string    `json:"name"`
+	Key  string    `gorm:"type:text;" json:"key,omitempty"`
 
 	IsAllowed *bool       `gorm:"type:boolean;" json:"is_allowed,omitempty"`
 	RoleID    *string     `json:"role_id,omitempty"`
@@ -38,7 +69,7 @@ type Permission struct {
 type PermissionSet struct {
 	Dashboard         *Permission `gorm:"-:all" json:"dashboard,omitempty"`
 	Stack             *Permission `gorm:"-:all" json:"stack,omitempty"`
-	SecurityPolicy    *Permission `gorm:"-:all" json:"security_policy,omitempty"`
+	Policy            *Permission `gorm:"-:all" json:"policy,omitempty"`
 	ProjectManagement *Permission `gorm:"-:all" json:"project_management,omitempty"`
 	Notification      *Permission `gorm:"-:all" json:"notification,omitempty"`
 	Configuration     *Permission `gorm:"-:all" json:"configuration,omitempty"`
@@ -50,11 +81,12 @@ func NewDefaultPermissionSet() *PermissionSet {
 	return &PermissionSet{
 		Dashboard:         newDashboard(),
 		Stack:             newStack(),
-		SecurityPolicy:    newSecurityPolicy(),
-		ProjectManagement: newProjectManagement(),
+		Policy:            newPolicy(),
+		ProjectManagement: newProject(),
 		Notification:      newNotification(),
 		Configuration:     newConfiguration(),
 		Common:            newCommon(),
+		Admin:             nil,
 	}
 }
 
@@ -63,8 +95,8 @@ func NewAdminPermissionSet() *PermissionSet {
 		Admin:             newAdmin(),
 		Dashboard:         newDashboard(),
 		Stack:             newStack(),
-		SecurityPolicy:    newSecurityPolicy(),
-		ProjectManagement: newProjectManagement(),
+		Policy:            newPolicy(),
+		ProjectManagement: newProject(),
 		Notification:      newNotification(),
 		Configuration:     newConfiguration(),
 		Common:            newCommon(),
@@ -101,14 +133,17 @@ func newDashboard() *Permission {
 	dashboard := &Permission{
 		ID:   uuid.New(),
 		Name: string(DashBoardPermission),
+		Key:  TopDashboardKey,
 		Children: []*Permission{
 			{
 				ID:   uuid.New(),
 				Name: "대시보드",
+				Key:  MiddleDashboardKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetChartsDashboard,
@@ -120,6 +155,7 @@ func newDashboard() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 					},
 				},
@@ -134,14 +170,17 @@ func newStack() *Permission {
 	stack := &Permission{
 		ID:   uuid.New(),
 		Name: string(StackPermission),
+		Key:  TopStackKey,
 		Children: []*Permission{
 			{
 				ID:   uuid.New(),
 				Name: "스택",
+				Key:  MiddleStackKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetStacks,
@@ -169,6 +208,7 @@ func newStack() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateStack,
@@ -189,6 +229,7 @@ func newStack() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateStack,
@@ -197,6 +238,7 @@ func newStack() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteStack,
@@ -216,18 +258,21 @@ func newStack() *Permission {
 	return stack
 }
 
-func newSecurityPolicy() *Permission {
-	security_policy := &Permission{
+func newPolicy() *Permission {
+	policy := &Permission{
 		ID:   uuid.New(),
-		Name: string(SecurityPolicyPermission),
+		Name: string(PolicyPermission),
+		Key:  TopPolicyKey,
 		Children: []*Permission{
 			{
 				ID:   uuid.New(),
 				Name: "정책",
+				Key:  MiddlePolicyKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
@@ -268,6 +313,7 @@ func newSecurityPolicy() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
@@ -286,6 +332,7 @@ func newSecurityPolicy() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
@@ -308,6 +355,7 @@ func newSecurityPolicy() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
@@ -330,21 +378,24 @@ func newSecurityPolicy() *Permission {
 		},
 	}
 
-	return security_policy
+	return policy
 }
 
 func newNotification() *Permission {
 	notification := &Permission{
 		ID:   uuid.New(),
 		Name: string(NotificationPermission),
+		Key:  TopNotificationKey,
 		Children: []*Permission{
 			{
 				ID:   uuid.New(),
 				Name: "시스템 알림",
+				Key:  MiddleNotificationKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetSystemNotification,
@@ -354,6 +405,7 @@ func newNotification() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateSystemNotification,
@@ -363,6 +415,7 @@ func newNotification() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "다운로드",
+						Key:       OperationDownload,
 						IsAllowed: helper.BoolP(false),
 						Children:  []*Permission{},
 					},
@@ -371,16 +424,19 @@ func newNotification() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "정책 알림",
+				Key:  MiddlePolicyNotificationKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Children:  []*Permission{},
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "다운로드",
+						Key:       OperationDownload,
 						IsAllowed: helper.BoolP(false),
 						Children:  []*Permission{},
 					},
@@ -392,18 +448,21 @@ func newNotification() *Permission {
 	return notification
 }
 
-func newProjectManagement() *Permission {
-	projectManagement := &Permission{
+func newProject() *Permission {
+	project := &Permission{
 		ID:   uuid.New(),
-		Name: string(ProjectManagementPermission),
+		Name: string(ProjectPermission),
+		Key:  TopProjectKey,
 		Children: []*Permission{
 			{
 				ID:   uuid.New(),
-				Name: "프로젝트",
+				Name: "프로젝트 목록",
+				Key:  MiddleProjectKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetProjects,
@@ -414,6 +473,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateProject,
@@ -422,6 +482,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateProject,
@@ -430,6 +491,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteProject,
@@ -440,10 +502,12 @@ func newProjectManagement() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "일반 설정",
+				Key:  MiddleProjectCommonConfigurationKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetProjects,
@@ -456,6 +520,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateProject,
@@ -466,10 +531,12 @@ func newProjectManagement() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "구성원 설정",
+				Key:  MiddleProjectMemberConfigurationKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetProjectMembers,
@@ -481,6 +548,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.AddProjectMember,
@@ -489,6 +557,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateProjectMemberRole,
@@ -497,6 +566,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.RemoveProjectMember,
@@ -507,10 +577,12 @@ func newProjectManagement() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "네임스페이스",
+				Key:  MiddleProjectNamespaceKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetProjectNamespaces,
@@ -521,6 +593,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateProjectNamespace,
@@ -529,6 +602,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateProjectNamespace,
@@ -537,6 +611,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteProjectNamespace,
@@ -547,10 +622,12 @@ func newProjectManagement() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "앱 서빙",
+				Key:  MiddleProjectAppServeKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetAppServeApps,
@@ -566,6 +643,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateAppServeApp,
@@ -580,6 +658,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateAppServeApp,
@@ -594,6 +673,7 @@ func newProjectManagement() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteAppServeApp,
@@ -604,26 +684,30 @@ func newProjectManagement() *Permission {
 		},
 	}
 
-	return projectManagement
+	return project
 }
 
 func newConfiguration() *Permission {
 	configuration := &Permission{
 		ID:   uuid.New(),
 		Name: string(ConfigurationPermission),
+		Key:  TopConfigurationKey,
 		Children: []*Permission{
 			{
 				ID:   uuid.New(),
 				Name: "일반",
+				Key:  MiddleConfigurationKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 					},
 				},
@@ -631,10 +715,12 @@ func newConfiguration() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "클라우드 계정",
+				Key:  MiddleConfigurationCloudAccountKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetCloudAccounts,
@@ -647,6 +733,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateCloudAccount,
@@ -655,6 +742,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateCloudAccount,
@@ -663,6 +751,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteCloudAccount,
@@ -674,15 +763,18 @@ func newConfiguration() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "프로젝트",
+				Key:  MiddleConfigurationProjectKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 					},
 				},
@@ -690,10 +782,12 @@ func newConfiguration() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "사용자",
+				Key:  MiddleConfigurationUserKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.ListUser,
@@ -705,6 +799,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateUser,
@@ -715,6 +810,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateUser,
@@ -724,6 +820,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteUser,
@@ -734,10 +831,12 @@ func newConfiguration() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "역할 및 권한",
+				Key:  MiddleConfigurationRoleKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.ListTksRoles,
@@ -749,6 +848,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateTksRole,
@@ -757,6 +857,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateTksRole,
@@ -766,6 +867,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteTksRole,
@@ -776,10 +878,12 @@ func newConfiguration() *Permission {
 			{
 				ID:   uuid.New(),
 				Name: "시스템 알림",
+				Key:  MiddleConfigurationSystemNotificationKey,
 				Children: []*Permission{
 					{
 						ID:        uuid.New(),
 						Name:      "조회",
+						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.GetSystemNotificationRules,
@@ -789,6 +893,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
+						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateSystemNotificationRule,
@@ -797,6 +902,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
+						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.UpdateSystemNotificationRule,
@@ -805,6 +911,7 @@ func newConfiguration() *Permission {
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
+						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.DeleteSystemNotificationRule,
@@ -926,7 +1033,7 @@ func (p *PermissionSet) SetAllowedPermissionSet() {
 	edgePermissions := make([]*Permission, 0)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Dashboard, edgePermissions, nil)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, nil)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.SecurityPolicy, edgePermissions, nil)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Policy, edgePermissions, nil)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, nil)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, nil)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Configuration, edgePermissions, nil)...)
@@ -943,7 +1050,7 @@ func (p *PermissionSet) SetUserPermissionSet() {
 	edgePermissions := make([]*Permission, 0)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Dashboard, edgePermissions, nil)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.SecurityPolicy, edgePermissions, &f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Policy, edgePermissions, &f)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, &f)...)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, &f)...)
 	//edgePermissions = append(edgePermissions, GetEdgePermission(p.Configuration, edgePermissions, &f)...)
@@ -956,7 +1063,7 @@ func (p *PermissionSet) SetUserPermissionSet() {
 func (p *PermissionSet) SetRoleId(roleId string) {
 	setRoleIdToPermission(p.Dashboard, roleId)
 	setRoleIdToPermission(p.Stack, roleId)
-	setRoleIdToPermission(p.SecurityPolicy, roleId)
+	setRoleIdToPermission(p.Policy, roleId)
 	setRoleIdToPermission(p.ProjectManagement, roleId)
 	setRoleIdToPermission(p.Notification, roleId)
 	setRoleIdToPermission(p.Configuration, roleId)
