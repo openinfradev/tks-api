@@ -12,7 +12,7 @@ const (
 	DefaultClientID       = "tks"
 	DefaultClientSecret   = "secret"
 	AdminCliClientID      = "admin-cli"
-	accessTokenLifespan   = 60 * 60 * 24 // 1 day
-	ssoSessionIdleTimeout = 60 * 60 * 24 // 1 day
-	ssoSessionMaxLifespan = 60 * 60 * 24 // 1 day
+	AccessTokenLifespan   = 60 * 60 * 24 // 1 day
+	SsoSessionIdleTimeout = 60 * 60 * 24 // 1 day
+	SsoSessionMaxLifespan = 60 * 60 * 24 // 1 day
 )
