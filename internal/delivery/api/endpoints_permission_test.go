@@ -24,7 +24,7 @@ func TestEndpointsUsage(t *testing.T) {
 		ps.Configuration,
 		ps.ProjectManagement,
 		ps.Stack,
-		ps.SecurityPolicy,
+		ps.Policy,
 		ps.Common,
 		ps.Admin,
 	}

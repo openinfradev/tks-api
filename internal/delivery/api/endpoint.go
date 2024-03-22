@@ -195,6 +195,7 @@ const (
 	GetPermissionTemplates
 	GetPermissionsByRoleId
 	UpdatePermissionsByRoleId
+	GetPermissionsByAccountId
 
 	// Admin_User
 	Admin_CreateUser
