@@ -16,7 +16,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ses v1.21.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.27.0
 	github.com/deckarep/golang-set/v2 v2.6.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.18.0

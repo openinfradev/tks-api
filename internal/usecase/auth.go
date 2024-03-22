@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	jwtWithouKey "github.com/dgrijalva/jwt-go"
-
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/spf13/viper"
 	"golang.org/x/net/html"
@@ -32,13 +30,14 @@ import (
 
 type IAuthUsecase interface {
 	Login(ctx context.Context, accountId string, password string, organizationId string) (model.User, error)
-	Logout(ctx context.Context, accessToken string, organizationId string) error
+	Logout(ctx context.Context, sessionId string, organizationId string) error
 	FindId(ctx context.Context, code string, email string, userName string, organizationId string) (string, error)
 	FindPassword(ctx context.Context, code string, accountId string, email string, userName string, organizationId string) error
 	VerifyIdentity(ctx context.Context, accountId string, email string, userName string, organizationId string) error
 	SingleSignIn(ctx context.Context, organizationId, accountId, password string) ([]*http.Cookie, error)
 	SingleSignOut(ctx context.Context, organizationId string) (string, []*http.Cookie, error)
 	VerifyToken(ctx context.Context, token string) (bool, error)
+	UpdateExpiredTimeOnToken(ctx context.Context, organizationId string, userId string) error
 }
 
 const (
@@ -96,9 +95,9 @@ func (u *AuthUsecase) Login(ctx context.Context, accountId string, password stri
 	return user, nil
 }
 
-func (u *AuthUsecase) Logout(ctx context.Context, accessToken string, organizationName string) error {
+func (u *AuthUsecase) Logout(ctx context.Context, sessionId string, organizationName string) error {
 	// [TODO] refresh token 을 추가하고, session timeout 을 줄이는 방향으로 고려할 것
-	err := u.kc.Logout(ctx, accessToken, organizationName)
+	err := u.kc.Logout(ctx, sessionId, organizationName)
 	if err != nil {
 		return err
 	}
@@ -305,11 +304,16 @@ func (u *AuthUsecase) SingleSignOut(ctx context.Context, organizationId string) 
 }
 
 func (u *AuthUsecase) VerifyToken(ctx context.Context, token string) (bool, error) {
-	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
+	parsedToken, err := helper.StringToTokenWithoutVerification(token)
 	if err != nil {
 		return false, err
 	}
-	org, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+	claims, err := helper.RetrieveClaims(parsedToken)
+	if err != nil {
+		return false, err
+	}
+
+	org, ok := claims["organization"].(string)
 	if !ok {
 		return false, fmt.Errorf("organization is not found in token")
 	}
@@ -325,7 +329,11 @@ func (u *AuthUsecase) VerifyToken(ctx context.Context, token string) (bool, erro
 	return true, nil
 }
 
-func (u *AuthUsecase) isExpiredEmailCode(code repository.CacheEmailCode) bool {
+func (u *AuthUsecase) UpdateExpiredTimeOnToken(ctx context.Context, organizationId string, userId string) error {
+	return u.authRepository.UpdateExpiredTimeOnToken(ctx, organizationId, userId)
+}
+
+func (u *AuthUsecase) isExpiredEmailCode(code model.CacheEmailCode) bool {
 	return !helper.IsDurationExpired(code.UpdatedAt, internal.EmailCodeExpireTime)
 }
 

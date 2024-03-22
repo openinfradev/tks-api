@@ -927,9 +927,9 @@ func defaultRealmSetting(realmId string) gocloak.RealmRepresentation {
 	return gocloak.RealmRepresentation{
 		Realm:                 gocloak.StringP(realmId),
 		Enabled:               gocloak.BoolP(true),
-		AccessTokenLifespan:   gocloak.IntP(accessTokenLifespan),
-		SsoSessionIdleTimeout: gocloak.IntP(ssoSessionIdleTimeout),
-		SsoSessionMaxLifespan: gocloak.IntP(ssoSessionMaxLifespan),
+		AccessTokenLifespan:   gocloak.IntP(AccessTokenLifespan),
+		SsoSessionIdleTimeout: gocloak.IntP(SsoSessionIdleTimeout),
+		SsoSessionMaxLifespan: gocloak.IntP(SsoSessionMaxLifespan),
 	}
 }
 

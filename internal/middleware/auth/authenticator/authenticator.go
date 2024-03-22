@@ -2,6 +2,7 @@ package authenticator
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/repository"
 	"net/http"
 
 	internalHttp "github.com/openinfradev/tks-api/internal/delivery/http"
@@ -19,23 +20,38 @@ type Request interface {
 }
 
 type defaultAuthenticator struct {
-	auth Request
+	kcAuth     Request
+	customAuth Request
+	repo       repository.Repository
 }
 
-func NewAuthenticator(kc Request) *defaultAuthenticator {
+func NewAuthenticator(kc Request, repo repository.Repository, c Request) *defaultAuthenticator {
 	return &defaultAuthenticator{
-		auth: kc,
+		kcAuth:     kc,
+		repo:       repo,
+		customAuth: c,
 	}
 }
 
 func (a *defaultAuthenticator) WithAuthentication(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		resp, ok, err := a.auth.AuthenticateRequest(r)
+		resp, ok, err := a.kcAuth.AuthenticateRequest(r)
 		if !ok {
 			log.Error(r.Context(), err)
 			internalHttp.ErrorJSON(w, r, err)
 			return
 		}
+		if err != nil {
+			internalHttp.ErrorJSON(w, r, err)
+			return
+		}
+
+		_, ok, err = a.customAuth.AuthenticateRequest(r)
+		if !ok {
+			internalHttp.ErrorJSON(w, r, err)
+			return
+		}
+
 		r = r.WithContext(request.WithUser(r.Context(), resp.User))
 
 		_, ok = request.UserFrom(r.Context())
