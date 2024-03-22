@@ -94,7 +94,7 @@ func (r *PolicyRepository) Fetch(ctx context.Context, organizationId string, pg 
 }
 
 func (r *PolicyRepository) ExistBy(ctx context.Context, organizationId string, key string, value interface{}) (exists bool, err error) {
-	query := fmt.Sprintf("organization_id = ? and %s = ?", value)
+	query := fmt.Sprintf("organization_id = ? and %s = ?", key)
 
 	var policy model.Policy
 	res := r.db.WithContext(ctx).Where(query, organizationId, value).
@@ -114,15 +114,15 @@ func (r *PolicyRepository) ExistBy(ctx context.Context, organizationId string, k
 }
 
 func (r *PolicyRepository) ExistByName(ctx context.Context, organizationId string, policyName string) (exist bool, err error) {
-	return r.ExistBy(ctx, "policy_name", organizationId, policyName)
+	return r.ExistBy(ctx, organizationId, "policy_name", policyName)
 }
 
 func (r *PolicyRepository) ExistByID(ctx context.Context, organizationId string, policyId uuid.UUID) (exist bool, err error) {
-	return r.ExistBy(ctx, "id", organizationId, policyId)
+	return r.ExistBy(ctx, organizationId, "id", policyId)
 }
 
 func (r *PolicyRepository) GetBy(ctx context.Context, organizationId string, key string, value interface{}) (out *model.Policy, err error) {
-	query := fmt.Sprintf("organization_id = ? and %s = ?", value)
+	query := fmt.Sprintf("organization_id = ? and %s = ?", key)
 
 	var policy model.Policy
 	res := r.db.WithContext(ctx).Preload(clause.Associations).

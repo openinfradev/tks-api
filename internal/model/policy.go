@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -58,7 +59,10 @@ func (p *Policy) AfterFind(tx *gorm.DB) (err error) {
 
 	if len(p.PolicyMatch) > 0 {
 		// 목록 조회 시 에러가 발생해서 전체 조회가 실패하는 것을 방지하기 위해서 에러는 무시
-		_ = json.Unmarshal([]byte(p.PolicyMatch), p.Match)
+		var match domain.Match
+		err = json.Unmarshal([]byte(p.PolicyMatch), &match)
+		p.Match = &match
+		fmt.Printf("!!!!!!!!!!!! err=%+v, p.Match=%+v p.PolicyMatch=%+v\n", err, p.Match, p.PolicyMatch)
 	}
 
 	p.TargetClusterIds = make([]string, len(p.TargetClusters))
