@@ -15,6 +15,7 @@ type IPermissionHandler interface {
 	GetPermissionTemplates(w http.ResponseWriter, r *http.Request)
 	GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request)
 	UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request)
+	GetPermissionsByAccountId(w http.ResponseWriter, r *http.Request)
 }
 
 type PermissionHandler struct {
@@ -22,7 +23,7 @@ type PermissionHandler struct {
 	userUsecase       usecase.IUserUsecase
 }
 
-func NewPermissionHandler(usecase usecase.Usecase) *PermissionHandler {
+func NewPermissionHandler(usecase usecase.Usecase) IPermissionHandler {
 	return &PermissionHandler{
 		permissionUsecase: usecase.Permission,
 		userUsecase:       usecase.User,
