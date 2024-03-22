@@ -35,7 +35,6 @@ type OrganizationUsecase struct {
 	roleRepo                       repository.IRoleRepository
 	clusterRepo                    repository.IClusterRepository
 	stackTemplateRepo              repository.IStackTemplateRepository
-	policyTemplateRepo             repository.IPolicyTemplateRepository
 	systemNotificationTemplateRepo repository.ISystemNotificationTemplateRepository
 	argo                           argowf.ArgoClient
 	kc                             keycloak.IKeycloak
