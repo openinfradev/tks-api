@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -62,7 +61,6 @@ func (p *Policy) AfterFind(tx *gorm.DB) (err error) {
 		var match domain.Match
 		err = json.Unmarshal([]byte(p.PolicyMatch), &match)
 		p.Match = &match
-		fmt.Printf("!!!!!!!!!!!! err=%+v, p.Match=%+v p.PolicyMatch=%+v\n", err, p.Match, p.PolicyMatch)
 	}
 
 	p.TargetClusterIds = make([]string, len(p.TargetClusters))
