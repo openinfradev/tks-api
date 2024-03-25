@@ -283,9 +283,9 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 //	@Summary		Get Permissions By Role ID
 //	@Description	Get Permissions By Role ID
 //	@Produce		json
-//	@Param			organizationId	path	string							true	"Organization ID"
-//	@Param			roleId	path	string									true	"Role ID"
-//	@Success		200	{object}	domain.PermissionSetResponse
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			roleId			path		string	true	"Role ID"
+//	@Success		200				{object}	domain.PermissionSetResponse
 //	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [get]
 //	@Security		JWT
 func (h RoleHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
@@ -357,9 +357,9 @@ func convertModelToEndpointResponse(ctx context.Context, endpoint *model.Endpoin
 //	@Description	Update Permissions By Role ID
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path	string							true	"Organization ID"
-//	@Param			roleId	path	string									true	"Role ID"
-//	@Param			body	body	domain.UpdatePermissionsByRoleIdRequest	true	"Update Permissions By Role ID Request"
+//	@Param			organizationId	path	string									true	"Organization ID"
+//	@Param			roleId			path	string									true	"Role ID"
+//	@Param			body			body	domain.UpdatePermissionsByRoleIdRequest	true	"Update Permissions By Role ID Request"
 //	@Success		200
 //	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [put]
 //	@Security		JWT
