@@ -635,56 +635,56 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_GetProjects", 
 		Group: "Admin Project",
 	},
-    ListPolicyTemplate: {
-		Name: "ListPolicyTemplate", 
+    Admin_ListPolicyTemplate: {
+		Name: "Admin_ListPolicyTemplate", 
 		Group: "PolicyTemplate",
 	},
-    CreatePolicyTemplate: {
-		Name: "CreatePolicyTemplate", 
+    Admin_CreatePolicyTemplate: {
+		Name: "Admin_CreatePolicyTemplate", 
 		Group: "PolicyTemplate",
 	},
-    DeletePolicyTemplate: {
-		Name: "DeletePolicyTemplate", 
+    Admin_DeletePolicyTemplate: {
+		Name: "Admin_DeletePolicyTemplate", 
 		Group: "PolicyTemplate",
 	},
-    GetPolicyTemplate: {
-		Name: "GetPolicyTemplate", 
+    Admin_GetPolicyTemplate: {
+		Name: "Admin_GetPolicyTemplate", 
 		Group: "PolicyTemplate",
 	},
-    UpdatePolicyTemplate: {
-		Name: "UpdatePolicyTemplate", 
+    Admin_UpdatePolicyTemplate: {
+		Name: "Admin_UpdatePolicyTemplate", 
 		Group: "PolicyTemplate",
 	},
-    GetPolicyTemplateDeploy: {
-		Name: "GetPolicyTemplateDeploy", 
+    Admin_GetPolicyTemplateDeploy: {
+		Name: "Admin_GetPolicyTemplateDeploy", 
 		Group: "PolicyTemplate",
 	},
-    ListPolicyTemplateStatistics: {
-		Name: "ListPolicyTemplateStatistics", 
+    Admin_ListPolicyTemplateStatistics: {
+		Name: "Admin_ListPolicyTemplateStatistics", 
 		Group: "PolicyTemplate",
 	},
-    ListPolicyTemplateVersions: {
-		Name: "ListPolicyTemplateVersions", 
+    Admin_ListPolicyTemplateVersions: {
+		Name: "Admin_ListPolicyTemplateVersions", 
 		Group: "PolicyTemplate",
 	},
-    CreatePolicyTemplateVersion: {
-		Name: "CreatePolicyTemplateVersion", 
+    Admin_CreatePolicyTemplateVersion: {
+		Name: "Admin_CreatePolicyTemplateVersion", 
 		Group: "PolicyTemplate",
 	},
-    DeletePolicyTemplateVersion: {
-		Name: "DeletePolicyTemplateVersion", 
+    Admin_DeletePolicyTemplateVersion: {
+		Name: "Admin_DeletePolicyTemplateVersion", 
 		Group: "PolicyTemplate",
 	},
-    GetPolicyTemplateVersion: {
-		Name: "GetPolicyTemplateVersion", 
+    Admin_GetPolicyTemplateVersion: {
+		Name: "Admin_GetPolicyTemplateVersion", 
 		Group: "PolicyTemplate",
 	},
-    ExistsPolicyTemplateKind: {
-		Name: "ExistsPolicyTemplateKind", 
+    Admin_ExistsPolicyTemplateKind: {
+		Name: "Admin_ExistsPolicyTemplateKind", 
 		Group: "PolicyTemplate",
 	},
-    ExistsPolicyTemplateName: {
-		Name: "ExistsPolicyTemplateName", 
+    Admin_ExistsPolicyTemplateName: {
+		Name: "Admin_ExistsPolicyTemplateName", 
 		Group: "PolicyTemplate",
 	},
     ListClusterPolicyStatus: {
@@ -1126,32 +1126,32 @@ func (e Endpoint) String() string {
 		return "Admin_GetTksRole"
 	case Admin_GetProjects:
 		return "Admin_GetProjects"
-	case ListPolicyTemplate:
-		return "ListPolicyTemplate"
-	case CreatePolicyTemplate:
-		return "CreatePolicyTemplate"
-	case DeletePolicyTemplate:
-		return "DeletePolicyTemplate"
-	case GetPolicyTemplate:
-		return "GetPolicyTemplate"
-	case UpdatePolicyTemplate:
-		return "UpdatePolicyTemplate"
-	case GetPolicyTemplateDeploy:
-		return "GetPolicyTemplateDeploy"
-	case ListPolicyTemplateStatistics:
-		return "ListPolicyTemplateStatistics"
-	case ListPolicyTemplateVersions:
-		return "ListPolicyTemplateVersions"
-	case CreatePolicyTemplateVersion:
-		return "CreatePolicyTemplateVersion"
-	case DeletePolicyTemplateVersion:
-		return "DeletePolicyTemplateVersion"
-	case GetPolicyTemplateVersion:
-		return "GetPolicyTemplateVersion"
-	case ExistsPolicyTemplateKind:
-		return "ExistsPolicyTemplateKind"
-	case ExistsPolicyTemplateName:
-		return "ExistsPolicyTemplateName"
+	case Admin_ListPolicyTemplate:
+		return "Admin_ListPolicyTemplate"
+	case Admin_CreatePolicyTemplate:
+		return "Admin_CreatePolicyTemplate"
+	case Admin_DeletePolicyTemplate:
+		return "Admin_DeletePolicyTemplate"
+	case Admin_GetPolicyTemplate:
+		return "Admin_GetPolicyTemplate"
+	case Admin_UpdatePolicyTemplate:
+		return "Admin_UpdatePolicyTemplate"
+	case Admin_GetPolicyTemplateDeploy:
+		return "Admin_GetPolicyTemplateDeploy"
+	case Admin_ListPolicyTemplateStatistics:
+		return "Admin_ListPolicyTemplateStatistics"
+	case Admin_ListPolicyTemplateVersions:
+		return "Admin_ListPolicyTemplateVersions"
+	case Admin_CreatePolicyTemplateVersion:
+		return "Admin_CreatePolicyTemplateVersion"
+	case Admin_DeletePolicyTemplateVersion:
+		return "Admin_DeletePolicyTemplateVersion"
+	case Admin_GetPolicyTemplateVersion:
+		return "Admin_GetPolicyTemplateVersion"
+	case Admin_ExistsPolicyTemplateKind:
+		return "Admin_ExistsPolicyTemplateKind"
+	case Admin_ExistsPolicyTemplateName:
+		return "Admin_ExistsPolicyTemplateName"
 	case ListClusterPolicyStatus:
 		return "ListClusterPolicyStatus"
 	case GetClusterPolicyTemplateStatus:
@@ -1534,32 +1534,32 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_GetTksRole
 	case "Admin_GetProjects":
 		return Admin_GetProjects
-	case "ListPolicyTemplate":
-		return ListPolicyTemplate
-	case "CreatePolicyTemplate":
-		return CreatePolicyTemplate
-	case "DeletePolicyTemplate":
-		return DeletePolicyTemplate
-	case "GetPolicyTemplate":
-		return GetPolicyTemplate
-	case "UpdatePolicyTemplate":
-		return UpdatePolicyTemplate
-	case "GetPolicyTemplateDeploy":
-		return GetPolicyTemplateDeploy
-	case "ListPolicyTemplateStatistics":
-		return ListPolicyTemplateStatistics
-	case "ListPolicyTemplateVersions":
-		return ListPolicyTemplateVersions
-	case "CreatePolicyTemplateVersion":
-		return CreatePolicyTemplateVersion
-	case "DeletePolicyTemplateVersion":
-		return DeletePolicyTemplateVersion
-	case "GetPolicyTemplateVersion":
-		return GetPolicyTemplateVersion
-	case "ExistsPolicyTemplateKind":
-		return ExistsPolicyTemplateKind
-	case "ExistsPolicyTemplateName":
-		return ExistsPolicyTemplateName
+	case "Admin_ListPolicyTemplate":
+		return Admin_ListPolicyTemplate
+	case "Admin_CreatePolicyTemplate":
+		return Admin_CreatePolicyTemplate
+	case "Admin_DeletePolicyTemplate":
+		return Admin_DeletePolicyTemplate
+	case "Admin_GetPolicyTemplate":
+		return Admin_GetPolicyTemplate
+	case "Admin_UpdatePolicyTemplate":
+		return Admin_UpdatePolicyTemplate
+	case "Admin_GetPolicyTemplateDeploy":
+		return Admin_GetPolicyTemplateDeploy
+	case "Admin_ListPolicyTemplateStatistics":
+		return Admin_ListPolicyTemplateStatistics
+	case "Admin_ListPolicyTemplateVersions":
+		return Admin_ListPolicyTemplateVersions
+	case "Admin_CreatePolicyTemplateVersion":
+		return Admin_CreatePolicyTemplateVersion
+	case "Admin_DeletePolicyTemplateVersion":
+		return Admin_DeletePolicyTemplateVersion
+	case "Admin_GetPolicyTemplateVersion":
+		return Admin_GetPolicyTemplateVersion
+	case "Admin_ExistsPolicyTemplateKind":
+		return Admin_ExistsPolicyTemplateKind
+	case "Admin_ExistsPolicyTemplateName":
+		return Admin_ExistsPolicyTemplateName
 	case "ListClusterPolicyStatus":
 		return ListClusterPolicyStatus
 	case "GetClusterPolicyTemplateStatus":

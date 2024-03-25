@@ -24,19 +24,19 @@ type PolicyTemplateHandler struct {
 }
 
 type IPolicyTemplateHandler interface {
-	CreatePolicyTemplate(w http.ResponseWriter, r *http.Request)
-	UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request)
-	DeletePolicyTemplate(w http.ResponseWriter, r *http.Request)
-	GetPolicyTemplate(w http.ResponseWriter, r *http.Request)
-	ListPolicyTemplate(w http.ResponseWriter, r *http.Request)
-	ExistsPolicyTemplateName(w http.ResponseWriter, r *http.Request)
-	ExistsPolicyTemplateKind(w http.ResponseWriter, r *http.Request)
-	ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request)
-	GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request)
-	CreatePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
-	GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
-	DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
-	ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request)
+	Admin_CreatePolicyTemplate(w http.ResponseWriter, r *http.Request)
+	Admin_UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request)
+	Admin_DeletePolicyTemplate(w http.ResponseWriter, r *http.Request)
+	Admin_GetPolicyTemplate(w http.ResponseWriter, r *http.Request)
+	Admin_ListPolicyTemplate(w http.ResponseWriter, r *http.Request)
+	Admin_ExistsPolicyTemplateName(w http.ResponseWriter, r *http.Request)
+	Admin_ExistsPolicyTemplateKind(w http.ResponseWriter, r *http.Request)
+	Admin_ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request)
+	Admin_GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request)
+	Admin_CreatePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
+	Admin_GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
+	Admin_DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
+	Admin_ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request)
 	RegoCompile(w http.ResponseWriter, r *http.Request)
 }
 
@@ -46,7 +46,7 @@ func NewPolicyTemplateHandler(u usecase.Usecase) IPolicyTemplateHandler {
 	}
 }
 
-// CreatePolicyTemplate godoc
+// Admin_CreatePolicyTemplate godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[CreatePolicyTemplate] 정책 템플릿 신규 생성
@@ -57,7 +57,7 @@ func NewPolicyTemplateHandler(u usecase.Usecase) IPolicyTemplateHandler {
 //	@Success		200		{object}	domain.CreatePolicyTemplateReponse
 //	@Router			/admin/policy-templates [post]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_CreatePolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreatePolicyTemplateRequest{}
 
 	err := UnmarshalRequestInput(r, &input)
@@ -84,7 +84,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// UpdatePolicyTemplate godoc
+// Admin_UpdatePolicyTemplate godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[UpdatePolicyTemplate] 정책 템플릿 업데이트
@@ -96,7 +96,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 //	@Success		200					{object}	nil
 //	@Router			/admin/policy-templates/{policyTemplateId} [patch]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -137,7 +137,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
-// DeletePolicyTemplate godoc
+// Admin_DeletePolicyTemplate godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[DeletePolicyTemplate] 정책 템플릿 삭제
@@ -148,7 +148,7 @@ func (h *PolicyTemplateHandler) UpdatePolicyTemplate(w http.ResponseWriter, r *h
 //	@Success		200					{object}	nil
 //	@Router			/admin/policy-templates/{policyTemplateId} [delete]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_DeletePolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -184,7 +184,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *h
 	ResponseJSON(w, r, http.StatusOK, "")
 }
 
-// GetPolicyTemplate godoc
+// Admin_GetPolicyTemplate godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[GetPolicyTemplate] 정책 템플릿 조회(최신 버전)
@@ -195,7 +195,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplate(w http.ResponseWriter, r *h
 //	@Success		200					{object}	domain.GetPolicyTemplateResponse
 //	@Router			/admin/policy-templates/{policyTemplateId} [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_GetPolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -244,7 +244,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// ListPolicyTemplate godoc
+// Admin_ListPolicyTemplate godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[ListPolicyTemplate] 정책 템플릿 목록 조회
@@ -259,7 +259,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplate(w http.ResponseWriter, r *http
 //	@Success		200			{object}	domain.ListPolicyTemplateResponse
 //	@Router			/admin/policy-templates [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_ListPolicyTemplate(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
 	pg := pagination.NewPagination(&urlParams)
@@ -290,7 +290,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// ListPolicyTemplateVersions godoc
+// Admin_ListPolicyTemplateVersions godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[ListPolicyTemplateVersions] 정책 템플릿 버전목록 조회
@@ -301,7 +301,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 //	@Success		200					{object}	domain.ListPolicyTemplateVersionsResponse
 //	@Router			/admin/policy-templates/{policyTemplateId}/versions [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	policyTemplateId, ok := vars["policyTemplateId"]
@@ -338,7 +338,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// ListPolicyTemplateStatistics godoc
+// Admin_ListPolicyTemplateStatistics godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[ListPolicyTemplateStatistics] 정책 템플릿 사용 카운트 조회
@@ -349,7 +349,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 //	@Success		200					{object}	domain.ListPolicyTemplateStatisticsResponse
 //	@Router			/admin/policy-templates/{policyTemplateId}/statistics [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request) {
 	// result := domain.ListPolicyTemplateStatisticsResponse{
 	// 	PolicyTemplateStatistics: []domain.PolicyTemplateStatistics{
 	// 		{
@@ -367,7 +367,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWrit
 	// util.JsonResponse(w, result)
 }
 
-// GetPolicyTemplateDeploy godoc
+// Admin_GetPolicyTemplateDeploy godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[GetPolicyTemplateDeploy] 정책 템플릿 클러스터 별 설치 버전 조회
@@ -378,7 +378,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWrit
 //	@Success		200					{object}	domain.GetPolicyTemplateDeployResponse
 //	@Router			/admin/policy-templates/{policyTemplateId}/deploy [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request) {
 	// c1 := util.UUIDGen()
 	// c2 := util.UUIDGen()
 	// c3 := util.UUIDGen()
@@ -393,7 +393,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateDeploy(w http.ResponseWriter, r
 	// util.JsonResponse(w, result)
 }
 
-// GetPolicyTemplateVersion godoc
+// Admin_GetPolicyTemplateVersion godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회
@@ -405,7 +405,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateDeploy(w http.ResponseWriter, r
 //	@Success		200					{object}	domain.GetPolicyTemplateVersionResponse
 //	@Router			/admin/policy-templates/{policyTemplateId}/versions/{version} [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -450,7 +450,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// CreatePolicyTemplateVersion godoc
+// Admin_CreatePolicyTemplateVersion godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[CreatePolicyTemplateVersion] 정책 템플릿 특정 버전 저장
@@ -462,7 +462,7 @@ func (h *PolicyTemplateHandler) GetPolicyTemplateVersion(w http.ResponseWriter, 
 //	@Success		200					{object}	domain.CreatePolicyTemplateVersionResponse
 //	@Router			/admin/policy-templates/{policyTemplateId}/versions [post]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_CreatePolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -526,7 +526,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// DeletePolicyTemplateVersion godoc
+// Admin_DeletePolicyTemplateVersion godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[DeletePolicyTemplateVersion] 정책 템플릿 특정 버전 삭제
@@ -538,7 +538,7 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 //	@Success		200					{object}	nil
 //	@Router			/admin/policy-templates/{policyTemplateId}/versions/{version} [delete]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -575,7 +575,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 	ResponseJSON(w, r, http.StatusOK, "")
 }
 
-// ExistsPolicyTemplateName godoc
+// Admin_ExistsPolicyTemplateName godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인
@@ -586,7 +586,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 //	@Success		200					{object}	domain.CheckExistedResponse
 //	@Router			/admin/policy-templates/name/{policyTemplateName}/existence [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_ExistsPolicyTemplateName(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateName, ok := vars["policyTemplateName"]
 	if !ok {
@@ -607,7 +607,7 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// ExistsPolicyTemplateKind godoc
+// Admin_ExistsPolicyTemplateKind godoc
 //
 //	@Tags			PolicyTemplate
 //	@Summary		[ExistsPolicyTemplateKind] 정책 템플릿 유형 존재 여부 확인
@@ -618,7 +618,7 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateName(w http.ResponseWriter, 
 //	@Success		200					{object}	domain.CheckExistedResponse
 //	@Router			/admin/policy-templates/kind/{policyTemplateKind}/existence [get]
 //	@Security		JWT
-func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyTemplateHandler) Admin_ExistsPolicyTemplateKind(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	policyTemplateKind, ok := vars["policyTemplateKind"]
 	if !ok {

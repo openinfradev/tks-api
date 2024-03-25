@@ -846,6 +846,45 @@ definitions:
     - adminEmail
     - name
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreatePolicyRequest:
+    properties:
+      description:
+        type: string
+      enforcementAction:
+        type: string
+      mandatory:
+        type: boolean
+      match:
+        additionalProperties:
+          type: string
+        example:
+          refer: match.Match
+        type: object
+      parameters:
+        example: '"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"'
+        type: string
+      policyName:
+        example: label 정책
+        type: string
+      targetClusterIds:
+        example:
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        items:
+          type: string
+        type: array
+      templateId:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CreatePolicyResponse:
+    properties:
+      id:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateReponse:
     properties:
       id:
@@ -1232,8 +1271,6 @@ definitions:
       updatedAt:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse:
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
     properties:
       column:
@@ -1426,6 +1463,13 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardStackResponse'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetMandatoryPoliciesResponse:
+    properties:
+      templates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MandatoryTemplateInfo'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetMyProfileResponse:
     properties:
       user:
@@ -1450,6 +1494,11 @@ definitions:
     properties:
       organization:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse:
+    properties:
+      policy:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateDeployResponse:
     properties:
@@ -1719,6 +1768,15 @@ definitions:
       pagination:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ListPolicyResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      policies:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateResponse:
     properties:
       pagination:
@@ -1821,6 +1879,46 @@ definitions:
             type: string
           type: array
         type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyInfo:
+    properties:
+      description:
+        example: org 레이블 설정 여부 검사
+        type: string
+      mandatory:
+        type: boolean
+      policyId:
+        example: 0091fe9b-e44b-423d-9562-ac2b73089593
+        type: string
+      policyName:
+        example: org 레이블 요구
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyPatchInfo:
+    properties:
+      mandatory:
+        type: boolean
+      policyId:
+        example: 0091fe9b-e44b-423d-9562-ac2b73089593
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.MandatoryTemplateInfo:
+    properties:
+      description:
+        example: 파라미터로 설정된 레이블 검사
+        type: string
+      mandatory:
+        type: boolean
+      policies:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyInfo'
+        type: array
+      templateId:
+        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
+        type: string
+      templateName:
+        example: 레이블 요구
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse:
     properties:
@@ -1959,6 +2057,53 @@ definitions:
         type: integer
       value:
         type: integer
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyResponse:
+    properties:
+      createdAt:
+        format: date-time
+        type: string
+      creator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      description:
+        type: string
+      enforcementAction:
+        type: string
+      id:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+      mandatory:
+        type: boolean
+      match:
+        additionalProperties:
+          type: string
+        example:
+          refer: match.Match
+        type: object
+      parameters:
+        example: '"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"'
+        type: string
+      policyName:
+        example: label 정책
+        type: string
+      targetClusterIds:
+        example:
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        items:
+          type: string
+        type: array
+      templateId:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
+      updatedAt:
+        format: date-time
+        type: string
+      updator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse:
     properties:
@@ -2299,6 +2444,13 @@ definitions:
     properties:
       taskId:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SetMandatoryPoliciesRequest:
+    properties:
+      policies:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyPatchInfo'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.SimpleCloudAccountResponse:
     properties:
@@ -2821,6 +2973,53 @@ definitions:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
         type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyClustersRequest:
+    properties:
+      currentTargetClusterIds:
+        example:
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        items:
+          type: string
+        type: array
+      newTargetClusterIds:
+        example:
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyRequest:
+    properties:
+      description:
+        type: string
+      enforcementAction:
+        type: string
+      mandatory:
+        type: boolean
+      match:
+        additionalProperties:
+          type: string
+        example:
+          refer: match.Match
+        type: object
+      parameters:
+        example: '"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"'
+        type: string
+      policyName:
+        example: label 정책
+        type: string
+      targetClusterIds:
+        example:
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+        items:
+          type: string
+        type: array
+      templateId:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest:
     properties:
@@ -3397,7 +3596,7 @@ paths:
       summary: Update user by admin
       tags:
       - Admin
-  /admin/policytemplates:
+  /admin/policy-templates:
     get:
       consumes:
       - application/json
@@ -3461,7 +3660,7 @@ paths:
       summary: '[CreatePolicyTemplate] 정책 템플릿 신규 생성'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}:
+  /admin/policy-templates/{policyTemplateId}:
     delete:
       consumes:
       - application/json
@@ -3530,7 +3729,7 @@ paths:
       summary: '[UpdatePolicyTemplate] 정책 템플릿 업데이트'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/deploy:
+  /admin/policy-templates/{policyTemplateId}/deploy:
     get:
       consumes:
       - application/json
@@ -3553,7 +3752,7 @@ paths:
       summary: '[GetPolicyTemplateDeploy] 정책 템플릿 클러스터 별 설치 버전 조회'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/statistics:
+  /admin/policy-templates/{policyTemplateId}/statistics:
     get:
       consumes:
       - application/json
@@ -3577,7 +3776,7 @@ paths:
       summary: '[ListPolicyTemplateStatistics] 정책 템플릿 사용 카운트 조회'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/versions:
+  /admin/policy-templates/{policyTemplateId}/versions:
     get:
       consumes:
       - application/json
@@ -3628,7 +3827,7 @@ paths:
       summary: '[CreatePolicyTemplateVersion] 정책 템플릿 특정 버전 저장'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/versions/{version}:
+  /admin/policy-templates/{policyTemplateId}/versions/{version}:
     delete:
       consumes:
       - application/json
@@ -3681,7 +3880,7 @@ paths:
       summary: '[GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/kind/{policyTemplateKind}/existence:
+  /admin/policy-templates/kind/{policyTemplateKind}/existence:
     get:
       consumes:
       - application/json
@@ -3698,13 +3897,13 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse'
       security:
       - JWT: []
       summary: '[ExistsPolicyTemplateKind] 정책 템플릿 유형 존재 여부 확인'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/name/{policyTemplateName}/existence:
+  /admin/policy-templates/name/{policyTemplateName}/existence:
     get:
       consumes:
       - application/json
@@ -5171,6 +5370,55 @@ paths:
       summary: Update dashboard
       tags:
       - Dashboards
+  /organizations/{organizationId}/mandatory-policies:
+    get:
+      consumes:
+      - application/json
+      description: 템플릿, 정책이 필수 인지 여부를 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetMandatoryPoliciesResponse'
+      security:
+      - JWT: []
+      summary: '[GetMandatoryPolicies] 필수 정책 템플릿, 정책을 조회'
+      tags:
+      - Policy
+    patch:
+      consumes:
+      - application/json
+      description: 템플릿, 정책이 필수 인지 여부를 설정한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: update mandatory policy/policy template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SetMandatoryPoliciesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[SetMandatoryPolicies] 필수 정책 템플릿, 정책을 설정'
+      tags:
+      - Policy
   /organizations/{organizationId}/my-profile:
     delete:
       consumes:
@@ -5296,6 +5544,226 @@ paths:
       summary: Update user password detail
       tags:
       - My-profile
+  /organizations/{organizationId}/policies:
+    get:
+      consumes:
+      - application/json
+      description: 정책 목록을 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyResponse'
+      security:
+      - JWT: []
+      summary: '[ListPolicy] 정책 목록 조회'
+      tags:
+      - Policy
+    post:
+      consumes:
+      - application/json
+      description: 새로운 정책을 생성한다. targetClusterIds가 명시되지 않으면 정책은 활성화되지 않은 상태로 생성된다.
+        다른 클러스터에 동일한 정책이 존재한다면 정책 생성이 아닌 정책 업데이트를 통해 targetClusterIds를 수정해야 한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create  policy request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyResponse'
+      security:
+      - JWT: []
+      summary: '[CreatePolicy] 정책 생성'
+      tags:
+      - Policy
+  /organizations/{organizationId}/policies/{policyId}:
+    delete:
+      consumes:
+      - application/json
+      description: 정첵을 삭제한다. 정책이 적용된 클러스터가 있으면 삭제되지 않으므로 삭제 전 적용된 클러스터가 비어있어야 한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 식별자(uuid)
+        in: path
+        name: policyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[DeletePolicy] 정책 삭제'
+      tags:
+      - Policy
+    get:
+      consumes:
+      - application/json
+      description: 정책 정보를 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 식별자(uuid)
+        in: path
+        name: policyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse'
+      security:
+      - JWT: []
+      summary: '[GetPolicy] 정책 조회'
+      tags:
+      - Policy
+    patch:
+      consumes:
+      - application/json
+      description: 정책의 내용을 업데이트 한다. 업데이트할 필드만 명시하면 된다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 식별자(uuid)
+        in: path
+        name: policyId
+        required: true
+        type: string
+      - description: update policy set request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[UpdatePolicy] 정책을 업데이트'
+      tags:
+      - Policy
+  /organizations/{organizationId}/policies/{policyId}/clusters:
+    patch:
+      consumes:
+      - application/json
+      description: 정책 적용 대상 클러스터를 수정한다. 추가할 클러스터 목록과 제거할 클러스터 목록 중 하나만 명시되어야 한다. 현재
+        정책이 배포된 클러스터를 확인하지 않고도 특정 클러스터를 추가하거나 제거할 수 있는 편의 API이다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 식별자(uuid)
+        in: path
+        name: policyId
+        required: true
+        type: string
+      - description: update policy set request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyClustersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[UpdatePolicyTargetClusters] 정책 적용 대상 클러스터 수정'
+      tags:
+      - Policy
+  /organizations/{organizationId}/policies/name/{policyName}/existence:
+    get:
+      consumes:
+      - application/json
+      description: 해당 이름을 가진 정책이 이미 존재하는지 확인한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 이름
+        in: path
+        name: policyName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse'
+      security:
+      - JWT: []
+      summary: '[ExistsPolicyName] 정책 아름 존재 여부 확인'
+      tags:
+      - Policy
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:
@@ -7860,7 +8328,7 @@ paths:
       summary: Get Permission Templates
       tags:
       - Permission
-  /policytemplates/rego-compile:
+  /policy-templates/rego-compile:
     post:
       consumes:
       - application/json

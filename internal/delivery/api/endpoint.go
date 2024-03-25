@@ -211,19 +211,19 @@ const (
 	Admin_GetProjects
 
 	// PolicyTemplate
-	ListPolicyTemplate
-	CreatePolicyTemplate
-	DeletePolicyTemplate
-	GetPolicyTemplate
-	UpdatePolicyTemplate
-	GetPolicyTemplateDeploy
-	ListPolicyTemplateStatistics
-	ListPolicyTemplateVersions
-	CreatePolicyTemplateVersion
-	DeletePolicyTemplateVersion
-	GetPolicyTemplateVersion
-	ExistsPolicyTemplateKind
-	ExistsPolicyTemplateName
+	Admin_ListPolicyTemplate
+	Admin_CreatePolicyTemplate
+	Admin_DeletePolicyTemplate
+	Admin_GetPolicyTemplate
+	Admin_UpdatePolicyTemplate
+	Admin_GetPolicyTemplateDeploy
+	Admin_ListPolicyTemplateStatistics
+	Admin_ListPolicyTemplateVersions
+	Admin_CreatePolicyTemplateVersion
+	Admin_DeletePolicyTemplateVersion
+	Admin_GetPolicyTemplateVersion
+	Admin_ExistsPolicyTemplateKind
+	Admin_ExistsPolicyTemplateName
 
 	// ClusterPolicyStatus
 	ListClusterPolicyStatus

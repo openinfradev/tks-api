@@ -116,7 +116,7 @@ var auditMap = map[internalApi.Endpoint]fnAudit{
 		} else {
 			return fmt.Sprintf("어드민 [%s]을 생성하는데 실패하였습니다.", input.Name), errorText(ctx, out)
 		}
-	}, internalApi.CreatePolicyTemplate: func(ctx context.Context, out *bytes.Buffer, in []byte, statusCode int) (message string, description string) {
+	}, internalApi.Admin_CreatePolicyTemplate: func(ctx context.Context, out *bytes.Buffer, in []byte, statusCode int) (message string, description string) {
 		input := domain.CreatePolicyTemplateRequest{}
 		if err := json.Unmarshal(in, &input); err != nil {
 			log.Error(ctx, err)
