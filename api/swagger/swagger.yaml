@@ -1299,13 +1299,9 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.EndpointResponse:
     properties:
-      createdAt:
-        type: string
       group:
         type: string
       name:
-        type: string
-      updatedAt:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
@@ -1768,6 +1764,11 @@ definitions:
             type: string
         type: object
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetUsersPermissionsResponse:
+    properties:
+      permissions:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest:
     properties:
       cloudService:
@@ -1902,8 +1903,12 @@ definitions:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           passwordExpired:
             type: boolean
+          projects:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse'
+            type: array
           role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse'
           token:
             type: string
         type: object
@@ -1956,6 +1961,32 @@ definitions:
       templateName:
         example: 레이블 요구
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+        type: array
+      is_allowed:
+        type: boolean
+      key:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse:
+    properties:
+      configuration:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+      dashboard:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+      notification:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+      policy:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+      project_management:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+      stack:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse:
     properties:
@@ -2053,15 +2084,9 @@ definitions:
         type: array
       is_allowed:
         type: boolean
+      key:
+        type: string
       name:
-        type: string
-      parent:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      parent_id:
-        type: string
-      role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
-      role_id:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse:
@@ -2072,9 +2097,9 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       notification:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      project_management:
+      policy:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      security_policy:
+      project_management:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
       stack:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
@@ -2239,6 +2264,15 @@ definitions:
       projectRoleName:
         type: string
       updatedAt:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse:
+    properties:
+      projectId:
+        type: string
+      projectRoleId:
+        type: string
+      projectRoleName:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest:
@@ -2455,6 +2489,13 @@ definitions:
         type: string
       usage:
         type: integer
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse:
+    properties:
+      roleId:
+        type: string
+      roleName:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.RoleResponse:
     properties:
@@ -3634,7 +3675,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse'
       summary: Admin List Tks Roles
       tags:
-      - Role
+      - Roles
   /admin/organizations/{organizationId}/roles/{roleId}:
     get:
       description: Admin Get Tks Role
@@ -3658,7 +3699,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse'
       summary: Admin Get Tks Role
       tags:
-      - Role
+      - Roles
   /admin/organizations/{organizationId}/users/{accountId}:
     get:
       consumes:
@@ -3684,7 +3725,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse'
       summary: Get user detail by admin
       tags:
-      - Admin
+      - Users
     put:
       consumes:
       - application/json
@@ -3717,7 +3758,7 @@ paths:
       - JWT: []
       summary: Update user by admin
       tags:
-      - Admin
+      - Users
   /admin/policy-templates:
     get:
       consumes:
@@ -7250,7 +7291,7 @@ paths:
       - JWT: []
       summary: List Tks Roles
       tags:
-      - Role
+      - Roles
     post:
       consumes:
       - application/json
@@ -7278,7 +7319,7 @@ paths:
       - JWT: []
       summary: Create Tks Role
       tags:
-      - Role
+      - Roles
   /organizations/{organizationId}/roles/{roleId}:
     delete:
       description: Delete Tks Role
@@ -7302,7 +7343,7 @@ paths:
       - JWT: []
       summary: Delete Tks Role
       tags:
-      - Role
+      - Roles
     get:
       description: Get Tks Role
       parameters:
@@ -7327,7 +7368,7 @@ paths:
       - JWT: []
       summary: Get Tks Role
       tags:
-      - Role
+      - Roles
     put:
       consumes:
       - application/json
@@ -7358,12 +7399,21 @@ paths:
       - JWT: []
       summary: Update Tks Role
       tags:
-      - Role
+      - Roles
   /organizations/{organizationId}/roles/{roleId}/permissions:
     get:
-      consumes:
-      - application/json
       description: Get Permissions By Role ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -7375,12 +7425,17 @@ paths:
       - JWT: []
       summary: Get Permissions By Role ID
       tags:
-      - Permission
+      - Roles
     put:
       consumes:
       - application/json
       description: Update Permissions By Role ID
       parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Role ID
         in: path
         name: roleId
@@ -7401,7 +7456,7 @@ paths:
       - JWT: []
       summary: Update Permissions By Role ID
       tags:
-      - Permission
+      - Roles
   /organizations/{organizationId}/stack-templates:
     get:
       consumes:
@@ -8331,6 +8386,32 @@ paths:
       security:
       - JWT: []
       summary: Update user
+      tags:
+      - Users
+  /organizations/{organizationId}/users/{accountId}/permissions:
+    get:
+      description: Get Permissions By Account ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Account ID
+        in: path
+        name: accountId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetUsersPermissionsResponse'
+      security:
+      - JWT: []
+      summary: Get Permissions By Account ID
       tags:
       - Users
   /organizations/{organizationId}/users/{accountId}/reset-password:

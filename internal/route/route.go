@@ -123,6 +123,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile/password", customMiddleware.Handle(internalApi.UpdateMyPassword, http.HandlerFunc(userHandler.UpdateMyPassword))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile/next-password-change", customMiddleware.Handle(internalApi.RenewPasswordExpiredDate, http.HandlerFunc(userHandler.RenewPasswordExpiredDate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/my-profile", customMiddleware.Handle(internalApi.DeleteMyProfile, http.HandlerFunc(userHandler.DeleteMyProfile))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByAccountId, http.HandlerFunc(userHandler.GetPermissionsByAccountId))).Methods(http.MethodGet)
 
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.Admin_CreateUser, http.HandlerFunc(userHandler.Admin_Create))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.Admin_ListUser, http.HandlerFunc(userHandler.Admin_List))).Methods(http.MethodGet)
@@ -284,6 +285,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.GetTksRole, http.HandlerFunc(roleHandler.GetTksRole))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.DeleteTksRole, http.HandlerFunc(roleHandler.DeleteTksRole))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.UpdateTksRole, http.HandlerFunc(roleHandler.UpdateTksRole))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByRoleId, http.HandlerFunc(roleHandler.GetPermissionsByRoleId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.UpdatePermissionsByRoleId, http.HandlerFunc(roleHandler.UpdatePermissionsByRoleId))).Methods(http.MethodPut)
 
 	// Admin
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.Admin_ListTksRoles, http.HandlerFunc(roleHandler.Admin_ListTksRoles))).Methods(http.MethodGet)
@@ -292,9 +295,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	permissionHandler := delivery.NewPermissionHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/permissions/templates", customMiddleware.Handle(internalApi.GetPermissionTemplates, http.HandlerFunc(permissionHandler.GetPermissionTemplates))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByRoleId, http.HandlerFunc(permissionHandler.GetPermissionsByRoleId))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.UpdatePermissionsByRoleId, http.HandlerFunc(permissionHandler.UpdatePermissionsByRoleId))).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByAccountId, http.HandlerFunc(permissionHandler.GetPermissionsByAccountId))).Methods(http.MethodGet)
 
 	policyTemplateHandler := delivery.NewPolicyTemplateHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates", customMiddleware.Handle(internalApi.Admin_ListPolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_ListPolicyTemplate))).Methods(http.MethodGet)

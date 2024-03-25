@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -34,6 +35,7 @@ type IUserHandler interface {
 
 	CheckId(w http.ResponseWriter, r *http.Request)
 	CheckEmail(w http.ResponseWriter, r *http.Request)
+	GetPermissionsByAccountId(w http.ResponseWriter, r *http.Request)
 
 	// Admin
 	Admin_Create(w http.ResponseWriter, r *http.Request)
@@ -44,16 +46,18 @@ type IUserHandler interface {
 }
 
 type UserHandler struct {
-	usecase     usecase.IUserUsecase
-	authUsecase usecase.IAuthUsecase
-	roleUsecase usecase.IRoleUsecase
+	usecase           usecase.IUserUsecase
+	authUsecase       usecase.IAuthUsecase
+	roleUsecase       usecase.IRoleUsecase
+	permissionUsecase usecase.IPermissionUsecase
 }
 
 func NewUserHandler(h usecase.Usecase) IUserHandler {
 	return &UserHandler{
-		usecase:     h.User,
-		authUsecase: h.Auth,
-		roleUsecase: h.Role,
+		usecase:           h.User,
+		authUsecase:       h.Auth,
+		roleUsecase:       h.Role,
+		permissionUsecase: h.Permission,
 	}
 }
 
@@ -667,8 +671,86 @@ func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
+// GetPermissionsByAccountId godoc
+//
+//	@Tags			Users
+//	@Summary		Get Permissions By Account ID
+//	@Description	Get Permissions By Account ID
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			accountId		path		string	true	"Account ID"
+//	@Success		200				{object}	domain.GetUsersPermissionsResponse
+//	@Router			/organizations/{organizationId}/users/{accountId}/permissions [get]
+//	@Security		JWT
+func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Request) {
+	var organizationId, accountId string
+
+	vars := mux.Vars(r)
+	if v, ok := vars["accountId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		accountId = v
+	}
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+
+	user, err := u.usecase.GetByAccountId(r.Context(), accountId, organizationId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	var roles []*model.Role
+	roles = append(roles, &user.Role)
+
+	var permissionSets []*model.PermissionSet
+	for _, role := range roles {
+		permissionSet, err := u.permissionUsecase.GetPermissionSetByRoleId(r.Context(), role.ID)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+		permissionSets = append(permissionSets, permissionSet)
+	}
+
+	mergedPermissionSet := u.permissionUsecase.MergePermissionWithOrOperator(r.Context(), permissionSets...)
+
+	var permissions domain.MergedPermissionSetResponse
+	permissions.Dashboard = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Dashboard)
+	permissions.Stack = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Stack)
+	permissions.Policy = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Policy)
+	permissions.ProjectManagement = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.ProjectManagement)
+	permissions.Notification = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Notification)
+	permissions.Configuration = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Configuration)
+
+	var out domain.GetUsersPermissionsResponse
+	out.Permissions = &permissions
+	ResponseJSON(w, r, http.StatusOK, out)
+
+}
+
+func convertModelToMergedPermissionSetResponse(ctx context.Context, permission *model.Permission) *domain.MergePermissionResponse {
+	var permissionResponse domain.MergePermissionResponse
+
+	permissionResponse.Key = permission.Key
+	if permission.IsAllowed != nil {
+		permissionResponse.IsAllowed = permission.IsAllowed
+	}
+
+	for _, child := range permission.Children {
+		permissionResponse.Children = append(permissionResponse.Children, convertModelToMergedPermissionSetResponse(ctx, child))
+	}
+
+	return &permissionResponse
+}
+
 // Admin_Create godoc
-//	@Tags			Admin
+//	@Tags			Users
 //	@Summary		Create user by admin
 //	@Description	Create user by admin
 //	@Accept			json
@@ -766,7 +848,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin_List godoc
-//	@Tags			Admin
+//	@Tags			Users
 //	@Summary		Get user list by admin
 //	@Description	Get user list by admin
 //	@Accept			json
@@ -815,7 +897,7 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 
 // Admin_Get godoc
 //
-//	@Tags			Admin
+//	@Tags			Users
 //	@Summary		Get user detail by admin
 //	@Description	Get user detail by admin
 //	@Accept			json
@@ -859,7 +941,7 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin_Delete godoc
-//	@Tags			Admin
+//	@Tags			Users
 //	@Summary		Delete user by admin
 //	@Description	Delete user by admin
 //	@Accept			json
@@ -925,7 +1007,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 
 // Admin_Update godoc
 //
-//	@Tags			Admin
+//	@Tags			Users
 //	@Summary		Update user by admin
 //	@Description	Update user by admin
 //	@Accept			json

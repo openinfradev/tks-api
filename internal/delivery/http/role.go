@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -20,6 +21,9 @@ type IRoleHandler interface {
 	DeleteTksRole(w http.ResponseWriter, r *http.Request)
 	UpdateTksRole(w http.ResponseWriter, r *http.Request)
 
+	GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request)
+	UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request)
+
 	Admin_ListTksRoles(w http.ResponseWriter, r *http.Request)
 	Admin_GetTksRole(w http.ResponseWriter, r *http.Request)
 }
@@ -38,7 +42,7 @@ func NewRoleHandler(usecase usecase.Usecase) *RoleHandler {
 
 // CreateTksRole godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		Create Tks Role
 //	@Description	Create Tks Role
 //	@Accept			json
@@ -98,7 +102,7 @@ func (h RoleHandler) CreateTksRole(w http.ResponseWriter, r *http.Request) {
 
 // ListTksRoles godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		List Tks Roles
 //	@Description	List Tks Roles
 //	@Produce		json
@@ -153,7 +157,7 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 
 // GetTksRole godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		Get Tks Role
 //	@Description	Get Tks Role
 //	@Produce		json
@@ -195,7 +199,7 @@ func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 
 // DeleteTksRole godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		Delete Tks Role
 //	@Description	Delete Tks Role
 //	@Produce		json
@@ -227,7 +231,7 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 
 // UpdateTksRole godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		Update Tks Role
 //	@Description	Update Tks Role
 //	@Accept			json
@@ -273,9 +277,118 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
+// GetPermissionsByRoleId godoc
+//
+//	@Tags			Roles
+//	@Summary		Get Permissions By Role ID
+//	@Description	Get Permissions By Role ID
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			roleId			path		string	true	"Role ID"
+//	@Success		200				{object}	domain.PermissionSetResponse
+//	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [get]
+//	@Security		JWT
+func (h RoleHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
+	// path parameter
+	var roleId string
+
+	vars := mux.Vars(r)
+	if v, ok := vars["roleId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		roleId = v
+	}
+
+	permissionSet, err := h.permissionUsecase.GetPermissionSetByRoleId(r.Context(), roleId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	var permissionSetResponse domain.PermissionSetResponse
+	permissionSetResponse.Dashboard = convertModelToPermissionResponse(r.Context(), permissionSet.Dashboard)
+	permissionSetResponse.Stack = convertModelToPermissionResponse(r.Context(), permissionSet.Stack)
+	permissionSetResponse.Policy = convertModelToPermissionResponse(r.Context(), permissionSet.Policy)
+	permissionSetResponse.ProjectManagement = convertModelToPermissionResponse(r.Context(), permissionSet.ProjectManagement)
+	permissionSetResponse.Notification = convertModelToPermissionResponse(r.Context(), permissionSet.Notification)
+	permissionSetResponse.Configuration = convertModelToPermissionResponse(r.Context(), permissionSet.Configuration)
+
+	var out domain.GetPermissionsByRoleIdResponse
+	out.Permissions = &permissionSetResponse
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+func convertModelToPermissionResponse(ctx context.Context, permission *model.Permission) *domain.PermissionResponse {
+	var permissionResponse domain.PermissionResponse
+
+	permissionResponse.ID = permission.ID
+	permissionResponse.Key = permission.Key
+	permissionResponse.Name = permission.Name
+	if permission.IsAllowed != nil {
+		permissionResponse.IsAllowed = permission.IsAllowed
+	}
+
+	for _, endpoint := range permission.Endpoints {
+		permissionResponse.Endpoints = append(permissionResponse.Endpoints, convertModelToEndpointResponse(ctx, endpoint))
+	}
+
+	for _, child := range permission.Children {
+		permissionResponse.Children = append(permissionResponse.Children, convertModelToPermissionResponse(ctx, child))
+	}
+
+	return &permissionResponse
+}
+
+func convertModelToEndpointResponse(ctx context.Context, endpoint *model.Endpoint) *domain.EndpointResponse {
+	var endpointResponse domain.EndpointResponse
+
+	endpointResponse.Name = endpoint.Name
+	endpointResponse.Group = endpoint.Group
+
+	return &endpointResponse
+}
+
+// UpdatePermissionsByRoleId godoc
+//
+//	@Tags			Roles
+//	@Summary		Update Permissions By Role ID
+//	@Description	Update Permissions By Role ID
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path	string									true	"Organization ID"
+//	@Param			roleId			path	string									true	"Role ID"
+//	@Param			body			body	domain.UpdatePermissionsByRoleIdRequest	true	"Update Permissions By Role ID Request"
+//	@Success		200
+//	@Router			/organizations/{organizationId}/roles/{roleId}/permissions [put]
+//	@Security		JWT
+func (h RoleHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request) {
+	// request
+	input := domain.UpdatePermissionsByRoleIdRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+		return
+	}
+
+	for _, permissionResponse := range input.Permissions {
+		var permission model.Permission
+		permission.ID = permissionResponse.ID
+		permission.IsAllowed = permissionResponse.IsAllowed
+
+		if err := h.permissionUsecase.UpdatePermission(r.Context(), &permission); err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
 // Admin_ListTksRoles godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		Admin List Tks Roles
 //	@Description	Admin List Tks Roles
 //	@Produce		json
@@ -330,7 +443,7 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 
 // Admin_GetTksRole godoc
 //
-//	@Tags			Role
+//	@Tags			Roles
 //	@Summary		Admin Get Tks Role
 //	@Description	Admin Get Tks Role
 //	@Produce		json
