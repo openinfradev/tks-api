@@ -2,11 +2,11 @@ package keycloak
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"net/http"
 	"strings"
 
-	jwtWithouKey "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
@@ -49,12 +49,17 @@ func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authentic
 }
 
 func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string) (*authenticator.Response, bool, error) {
-	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
+	parsedToken, err := helper.StringToTokenWithoutVerification(token)
 	if err != nil {
 		return nil, false, httpErrors.NewUnauthorizedError(err, "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	organizationId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+	claims, err := helper.RetrieveClaims(parsedToken)
+	if err != nil {
+		return nil, false, httpErrors.NewUnauthorizedError(err, "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+	}
+
+	organizationId, ok := claims["organization"].(string)
 	if !ok {
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("organization is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
@@ -70,7 +75,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 
 	// tks role extraction
 	roleOrganizationMapping := make(map[string]string)
-	if roles, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["tks-role"]; !ok {
+	if roles, ok := claims["tks-role"]; !ok {
 		log.Errorf(r.Context(), "tks-role is not found in token")
 
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("tks-role is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
@@ -90,7 +95,7 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 	// project role extraction
 	projectIds := make([]string, 0)
 	roleProjectMapping := make(map[string]string)
-	if roles, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["project-role"]; ok {
+	if roles, ok := claims["project-role"]; ok {
 		for _, role := range roles.([]interface{}) {
 			slice := strings.Split(role.(string), "@")
 			if len(slice) != 2 {
@@ -104,18 +109,18 @@ func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string)
 		}
 	}
 
-	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
+	userId, err := uuid.Parse(claims["sub"].(string))
 	if err != nil {
 		log.Errorf(r.Context(), "failed to verify access token: %v", err)
 
 		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
 	}
-	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
+	requestSessionId, ok := claims["sid"].(string)
 	if !ok {
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("session id is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	userAccountId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["preferred_username"].(string)
+	userAccountId, ok := claims["preferred_username"].(string)
 	if !ok {
 		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("preferred_username is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}

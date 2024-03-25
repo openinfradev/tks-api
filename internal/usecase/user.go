@@ -29,7 +29,7 @@ type IUserUsecase interface {
 	Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error)
 	ResetPassword(ctx context.Context, userId uuid.UUID) error
 	ResetPasswordByAccountId(ctx context.Context, accountId string, organizationId string) error
-	GenerateRandomPassword(ctx context.Context, ) string
+	GenerateRandomPassword(ctx context.Context) string
 	Delete(ctx context.Context, userId uuid.UUID, organizationId string) error
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*model.User, error)
 	GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error)
@@ -47,6 +47,7 @@ type IUserUsecase interface {
 }
 
 type UserUsecase struct {
+	authRepository         repository.IAuthRepository
 	userRepository         repository.IUserRepository
 	roleRepository         repository.IRoleRepository
 	organizationRepository repository.IOrganizationRepository
@@ -510,6 +511,15 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 			log.Errorf(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
+
+		targetUser, err := u.userRepository.Get(ctx, newUser.AccountId, newUser.Organization.ID)
+		if err != nil {
+			return nil, err
+		}
+		err = u.authRepository.UpdateExpiredTimeOnToken(ctx, newUser.Organization.ID, targetUser.ID.String())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	*user, err = u.userRepository.UpdateWithUuid(ctx, user.ID, user.AccountId, user.Name, newUser.Role.ID, user.Email,
@@ -523,6 +533,7 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId st
 
 func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {
 	return &UserUsecase{
+		authRepository:         r.Auth,
 		userRepository:         r.User,
 		roleRepository:         r.Role,
 		kc:                     kc,

@@ -61,7 +61,10 @@ func InitDB() (*gorm.DB, error) {
 
 func migrateSchema(db *gorm.DB) error {
 	// Auth
-	if err := db.AutoMigrate(&repository.CacheEmailCode{}); err != nil {
+	if err := db.AutoMigrate(&model.CacheEmailCode{}); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(&model.ExpiredTokenTime{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&model.User{}); err != nil {

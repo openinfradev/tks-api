@@ -327,7 +327,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isActive {
-		ErrorJSON(w, r, httpErrors.NewUnauthorizedError(fmt.Errorf("token is not active"), "A_UNUSABLE_TOKEN", ""))
+		ErrorJSON(w, r, httpErrors.NewUnauthorizedError(fmt.Errorf("token is not active"), "A_EXPIRED_TOKEN", ""))
 		return
 	}
 

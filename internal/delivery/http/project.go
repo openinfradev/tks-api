@@ -58,12 +58,14 @@ type IProjectHandler interface {
 }
 
 type ProjectHandler struct {
-	usecase usecase.IProjectUsecase
+	usecase     usecase.IProjectUsecase
+	authUsecase usecase.IAuthUsecase
 }
 
 func NewProjectHandler(u usecase.Usecase) IProjectHandler {
 	return &ProjectHandler{
-		usecase: u.Project,
+		usecase:     u.Project,
+		authUsecase: u.Auth,
 	}
 }
 
@@ -624,6 +626,13 @@ func (p ProjectHandler) AddProjectMember(w http.ResponseWriter, r *http.Request)
 				return
 			}
 		}
+
+		err = p.authUsecase.UpdateExpiredTimeOnToken(r.Context(), organizationId, pmr.ProjectUserId)
+		if err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
 	}
 
 	out := domain.CommonProjectResponse{Result: "OK"}
@@ -898,6 +907,20 @@ func (p ProjectHandler) RemoveProjectMember(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	pm, err := p.usecase.GetProjectMember(r.Context(), projectMemberId)
+	if err != nil {
+		log.Error(r.Context(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	err = p.authUsecase.UpdateExpiredTimeOnToken(r.Context(), organizationId, pm.ProjectUserId.String())
+	if err != nil {
+		log.Error(r.Context(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
 	if err := p.usecase.RemoveProjectMember(r.Context(), organizationId, projectMemberId); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -956,8 +979,8 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 	}
 
 	// TODO: change multi row delete
-	for _, pm := range projectMemberReq.ProjectMember {
-		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, pm.ProjectMemberId); err != nil {
+	for _, pmId := range projectMemberReq.ProjectMember {
+		if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, keycloak.DefaultClientID, pmId.ProjectMemberId); err != nil {
 			log.Error(r.Context(), err)
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
@@ -965,14 +988,27 @@ func (p ProjectHandler) RemoveProjectMembers(w http.ResponseWriter, r *http.Requ
 
 		// tasks for keycloak & k8s
 		for stackId := range stackIds {
-			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", pm.ProjectMemberId); err != nil {
+			if err := p.usecase.UnassignKeycloakClientRoleToMember(r.Context(), organizationId, projectId, stackId+"-k8s-api", pmId.ProjectMemberId); err != nil {
 				log.Error(r.Context(), err)
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
 		}
 
-		if err := p.usecase.RemoveProjectMember(r.Context(), organizationId, pm.ProjectMemberId); err != nil {
+		pm, err := p.usecase.GetProjectMember(r.Context(), pmId.ProjectMemberId)
+		if err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+		err = p.authUsecase.UpdateExpiredTimeOnToken(r.Context(), organizationId, pm.ProjectUserId.String())
+		if err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+
+		if err := p.usecase.RemoveProjectMember(r.Context(), organizationId, pmId.ProjectMemberId); err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 			return
 		}
@@ -1088,6 +1124,14 @@ func (p ProjectHandler) UpdateProjectMemberRole(w http.ResponseWriter, r *http.R
 		}
 	}
 
+	// update token expired time
+	err = p.authUsecase.UpdateExpiredTimeOnToken(r.Context(), organizationId, pm.ProjectUserId.String())
+	if err != nil {
+		log.Error(r.Context(), err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
 	ResponseJSON(w, r, http.StatusOK, domain.CommonProjectResponse{Result: "OK"})
 }
 
@@ -1189,6 +1233,14 @@ func (p ProjectHandler) UpdateProjectMembersRole(w http.ResponseWriter, r *http.
 				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 				return
 			}
+		}
+
+		// update token expired time
+		err = p.authUsecase.UpdateExpiredTimeOnToken(r.Context(), organizationId, pm.ProjectUserId.String())
+		if err != nil {
+			log.Error(r.Context(), err)
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
 		}
 	}
 
