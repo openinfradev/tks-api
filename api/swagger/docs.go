@@ -1306,7 +1306,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateRequest"
                         }
                     }
                 }
@@ -9609,11 +9609,34 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateRequest": {
             "type": "object",
+            "required": [
+                "metricQuery",
+                "name",
+                "organizationIds"
+            ],
             "properties": {
-                "id": {
+                "description": {
                     "type": "string"
+                },
+                "metricParameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse"
+                    }
+                },
+                "metricQuery": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

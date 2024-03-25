@@ -1146,10 +1146,26 @@ definitions:
       id:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateResponse:
+  github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateRequest:
     properties:
-      id:
+      description:
         type: string
+      metricParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse'
+        type: array
+      metricQuery:
+        type: string
+      name:
+        type: string
+      organizationIds:
+        items:
+          type: string
+        type: array
+    required:
+    - metricQuery
+    - name
+    - organizationIds
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateTksRoleRequest:
     properties:
@@ -4330,7 +4346,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationTemplateRequest'
       security:
       - JWT: []
       summary: Create alert template. ADMIN ONLY
