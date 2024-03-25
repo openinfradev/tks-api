@@ -246,7 +246,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "Admin List Tks Roles",
                 "parameters": [
@@ -275,7 +275,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "Admin Get Tks Role",
                 "parameters": [
@@ -314,7 +314,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "Users"
                 ],
                 "summary": "Get user detail by admin",
                 "parameters": [
@@ -356,7 +356,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Admin"
+                    "Users"
                 ],
                 "summary": "Update user by admin",
                 "parameters": [
@@ -5508,7 +5508,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "List Tks Roles",
                 "parameters": [
@@ -5543,7 +5543,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "Create Tks Role",
                 "parameters": [
@@ -5586,7 +5586,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "Get Tks Role",
                 "parameters": [
@@ -5628,7 +5628,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "Update Tks Role",
                 "parameters": [
@@ -5673,7 +5673,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Role"
+                    "Roles"
                 ],
                 "summary": "Delete Tks Role",
                 "parameters": [
@@ -5707,16 +5707,29 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Get Permissions By Role ID",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Permission"
+                    "Roles"
                 ],
                 "summary": "Get Permissions By Role ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role ID",
+                        "name": "roleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5740,10 +5753,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Permission"
+                    "Roles"
                 ],
                 "summary": "Update Permissions By Role ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Role ID",
@@ -7312,6 +7332,47 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/users/{accountId}/permissions": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Permissions By Account ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get Permissions By Account ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account ID",
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetUsersPermissionsResponse"
+                        }
                     }
                 }
             }
@@ -9300,16 +9361,10 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.EndpointResponse": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
                 "group": {
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "updatedAt": {
                     "type": "string"
                 }
             }
@@ -10014,6 +10069,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetUsersPermissionsResponse": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest": {
             "type": "object",
             "required": [
@@ -10203,8 +10266,14 @@ const docTemplate = `{
                         "passwordExpired": {
                             "type": "boolean"
                         },
+                        "projects": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse"
+                            }
+                        },
                         "role": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse"
                         },
                         "token": {
                             "type": "string"
@@ -10224,6 +10293,46 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                    }
+                },
+                "is_allowed": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse": {
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "dashboard": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "notification": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "policy": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "project_management": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "stack": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
                 }
             }
         },
@@ -10372,19 +10481,10 @@ const docTemplate = `{
                 "is_allowed": {
                     "type": "boolean"
                 },
+                "key": {
+                    "type": "string"
+                },
                 "name": {
-                    "type": "string"
-                },
-                "parent": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
-                },
-                "parent_id": {
-                    "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse"
-                },
-                "role_id": {
                     "type": "string"
                 }
             }
@@ -10401,10 +10501,10 @@ const docTemplate = `{
                 "notification": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
                 },
-                "project_management": {
+                "policy": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
                 },
-                "security_policy": {
+                "project_management": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
                 },
                 "stack": {
@@ -10572,6 +10672,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse": {
+            "type": "object",
+            "properties": {
+                "projectId": {
+                    "type": "string"
+                },
+                "projectRoleId": {
+                    "type": "string"
+                },
+                "projectRoleName": {
                     "type": "string"
                 }
             }
@@ -10900,6 +11014,17 @@ const docTemplate = `{
                 },
                 "usage": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse": {
+            "type": "object",
+            "properties": {
+                "roleId": {
+                    "type": "string"
+                },
+                "roleName": {
+                    "type": "string"
                 }
             }
         },

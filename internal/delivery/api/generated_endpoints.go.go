@@ -67,6 +67,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "CheckEmail", 
 		Group: "User",
 	},
+    GetPermissionsByAccountId: {
+		Name: "GetPermissionsByAccountId", 
+		Group: "User",
+	},
     GetMyProfile: {
 		Name: "GetMyProfile", 
 		Group: "MyProfile",
@@ -587,20 +591,16 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "UpdateTksRole", 
 		Group: "Role",
 	},
-    GetPermissionTemplates: {
-		Name: "GetPermissionTemplates", 
-		Group: "Permission",
-	},
     GetPermissionsByRoleId: {
 		Name: "GetPermissionsByRoleId", 
-		Group: "Permission",
+		Group: "Role",
 	},
     UpdatePermissionsByRoleId: {
 		Name: "UpdatePermissionsByRoleId", 
-		Group: "Permission",
+		Group: "Role",
 	},
-    GetPermissionsByAccountId: {
-		Name: "GetPermissionsByAccountId", 
+    GetPermissionTemplates: {
+		Name: "GetPermissionTemplates", 
 		Group: "Permission",
 	},
     Admin_CreateUser: {
@@ -842,6 +842,8 @@ func (e Endpoint) String() string {
 		return "CheckId"
 	case CheckEmail:
 		return "CheckEmail"
+	case GetPermissionsByAccountId:
+		return "GetPermissionsByAccountId"
 	case GetMyProfile:
 		return "GetMyProfile"
 	case UpdateMyProfile:
@@ -1102,14 +1104,12 @@ func (e Endpoint) String() string {
 		return "DeleteTksRole"
 	case UpdateTksRole:
 		return "UpdateTksRole"
-	case GetPermissionTemplates:
-		return "GetPermissionTemplates"
 	case GetPermissionsByRoleId:
 		return "GetPermissionsByRoleId"
 	case UpdatePermissionsByRoleId:
 		return "UpdatePermissionsByRoleId"
-	case GetPermissionsByAccountId:
-		return "GetPermissionsByAccountId"
+	case GetPermissionTemplates:
+		return "GetPermissionTemplates"
 	case Admin_CreateUser:
 		return "Admin_CreateUser"
 	case Admin_ListUser:
@@ -1250,6 +1250,8 @@ func GetEndpoint(name string) Endpoint {
 		return CheckId
 	case "CheckEmail":
 		return CheckEmail
+	case "GetPermissionsByAccountId":
+		return GetPermissionsByAccountId
 	case "GetMyProfile":
 		return GetMyProfile
 	case "UpdateMyProfile":
@@ -1510,14 +1512,12 @@ func GetEndpoint(name string) Endpoint {
 		return DeleteTksRole
 	case "UpdateTksRole":
 		return UpdateTksRole
-	case "GetPermissionTemplates":
-		return GetPermissionTemplates
 	case "GetPermissionsByRoleId":
 		return GetPermissionsByRoleId
 	case "UpdatePermissionsByRoleId":
 		return UpdatePermissionsByRoleId
-	case "GetPermissionsByAccountId":
-		return GetPermissionsByAccountId
+	case "GetPermissionTemplates":
+		return GetPermissionTemplates
 	case "Admin_CreateUser":
 		return Admin_CreateUser
 	case "Admin_ListUser":
