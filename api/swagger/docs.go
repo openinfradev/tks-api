@@ -394,7 +394,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates": {
+        "/admin/policy-templates": {
             "get": {
                 "security": [
                     {
@@ -495,7 +495,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/kind/{policyTemplateKind}/existence": {
+        "/admin/policy-templates/kind/{policyTemplateKind}/existence": {
             "get": {
                 "security": [
                     {
@@ -532,7 +532,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/name/{policyTemplateName}/existence": {
+        "/admin/policy-templates/name/{policyTemplateName}/existence": {
             "get": {
                 "security": [
                     {
@@ -569,7 +569,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/{policyTemplateId}": {
+        "/admin/policy-templates/{policyTemplateId}": {
             "get": {
                 "security": [
                     {
@@ -679,7 +679,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/{policyTemplateId}/deploy": {
+        "/admin/policy-templates/{policyTemplateId}/deploy": {
             "get": {
                 "security": [
                     {
@@ -716,7 +716,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/{policyTemplateId}/statistics": {
+        "/admin/policy-templates/{policyTemplateId}/statistics": {
             "get": {
                 "security": [
                     {
@@ -753,7 +753,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/{policyTemplateId}/versions": {
+        "/admin/policy-templates/{policyTemplateId}/versions": {
             "get": {
                 "security": [
                     {
@@ -834,7 +834,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/policytemplates/{policyTemplateId}/versions/{version}": {
+        "/admin/policy-templates/{policyTemplateId}/versions/{version}": {
             "get": {
                 "security": [
                     {
@@ -7385,7 +7385,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/policytemplates/rego-compile": {
+        "/policy-templates/rego-compile": {
             "post": {
                 "security": [
                     {
@@ -9000,14 +9000,68 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest": {
             "type": "object",
             "required": [
-                "name"
+                "messageCondition",
+                "messageContent",
+                "messageTitle",
+                "name",
+                "systemNotificationTemplateId"
             ],
             "properties": {
                 "description": {
                     "type": "string"
                 },
+                "messageActionProposal": {
+                    "type": "string"
+                },
+                "messageCondition": {
+                    "type": "string"
+                },
+                "messageContent": {
+                    "type": "string"
+                },
+                "messageTitle": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
+                },
+                "systemNotificationConditions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "duration": {
+                                "type": "integer"
+                            },
+                            "enableEmail": {
+                                "type": "boolean"
+                            },
+                            "enablePortal": {
+                                "type": "boolean"
+                            },
+                            "order": {
+                                "type": "integer"
+                            },
+                            "parameters": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
+                                }
+                            },
+                            "severity": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "systemNotificationTemplateId": {
+                    "type": "string"
+                },
+                "targetUserIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -11305,6 +11359,46 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "enableEmail": {
+                    "type": "boolean"
+                },
+                "enablePortal": {
+                    "type": "boolean"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "parameters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
+                    }
+                },
+                "severity": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter": {
+            "type": "object",
+            "properties": {
+                "operator": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse": {
             "type": "object",
             "properties": {
@@ -11391,8 +11485,35 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "messageActionProposal": {
+                    "type": "string"
+                },
+                "messageCondition": {
+                    "type": "string"
+                },
+                "messageContent": {
+                    "type": "string"
+                },
+                "messageTitle": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
+                },
+                "systemNotificationConditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse"
+                    }
+                },
+                "systemNotificationTemplate": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse"
+                },
+                "targetUsers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                    }
                 },
                 "updatedAt": {
                     "type": "string"
@@ -11837,9 +11958,69 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest": {
             "type": "object",
+            "required": [
+                "messageCondition",
+                "messageContent",
+                "messageTitle",
+                "name",
+                "systemNotificationTemplateId"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
+                },
+                "messageActionProposal": {
+                    "type": "string"
+                },
+                "messageCondition": {
+                    "type": "string"
+                },
+                "messageContent": {
+                    "type": "string"
+                },
+                "messageTitle": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "systemNotificationConditions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "duration": {
+                                "type": "integer"
+                            },
+                            "enableEmail": {
+                                "type": "boolean"
+                            },
+                            "enablePortal": {
+                                "type": "boolean"
+                            },
+                            "order": {
+                                "type": "integer"
+                            },
+                            "parameters": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
+                                }
+                            },
+                            "severity": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "systemNotificationTemplateId": {
+                    "type": "string"
+                },
+                "targetUserIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

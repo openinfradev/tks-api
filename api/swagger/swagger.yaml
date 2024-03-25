@@ -1060,10 +1060,47 @@ definitions:
     properties:
       description:
         type: string
+      messageActionProposal:
+        type: string
+      messageCondition:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
       name:
         type: string
+      systemNotificationConditions:
+        items:
+          properties:
+            duration:
+              type: integer
+            enableEmail:
+              type: boolean
+            enablePortal:
+              type: boolean
+            order:
+              type: integer
+            parameters:
+              items:
+                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+              type: array
+            severity:
+              type: string
+          type: object
+        type: array
+      systemNotificationTemplateId:
+        type: string
+      targetUserIds:
+        items:
+          type: string
+        type: array
     required:
+    - messageCondition
+    - messageContent
+    - messageTitle
     - name
+    - systemNotificationTemplateId
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleResponse:
     properties:
@@ -2576,6 +2613,32 @@ definitions:
       updatedAt:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse:
+    properties:
+      duration:
+        type: integer
+      enableEmail:
+        type: boolean
+      enablePortal:
+        type: boolean
+      order:
+        type: integer
+      parameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+        type: array
+      severity:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter:
+    properties:
+      operator:
+        type: string
+      order:
+        type: integer
+      value:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.SystemNotificationResponse:
     properties:
       closedAt:
@@ -2633,8 +2696,26 @@ definitions:
         type: string
       id:
         type: string
+      messageActionProposal:
+        type: string
+      messageCondition:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
       name:
         type: string
+      systemNotificationConditions:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse'
+        type: array
+      systemNotificationTemplate:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse'
+      targetUsers:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+        type: array
       updatedAt:
         type: string
       updator:
@@ -2930,6 +3011,47 @@ definitions:
     properties:
       description:
         type: string
+      messageActionProposal:
+        type: string
+      messageCondition:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
+      name:
+        type: string
+      systemNotificationConditions:
+        items:
+          properties:
+            duration:
+              type: integer
+            enableEmail:
+              type: boolean
+            enablePortal:
+              type: boolean
+            order:
+              type: integer
+            parameters:
+              items:
+                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+              type: array
+            severity:
+              type: string
+          type: object
+        type: array
+      systemNotificationTemplateId:
+        type: string
+      targetUserIds:
+        items:
+          type: string
+        type: array
+    required:
+    - messageCondition
+    - messageContent
+    - messageTitle
+    - name
+    - systemNotificationTemplateId
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationTemplateRequest:
     properties:
@@ -3397,7 +3519,7 @@ paths:
       summary: Update user by admin
       tags:
       - Admin
-  /admin/policytemplates:
+  /admin/policy-templates:
     get:
       consumes:
       - application/json
@@ -3461,7 +3583,7 @@ paths:
       summary: '[CreatePolicyTemplate] 정책 템플릿 신규 생성'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}:
+  /admin/policy-templates/{policyTemplateId}:
     delete:
       consumes:
       - application/json
@@ -3530,7 +3652,7 @@ paths:
       summary: '[UpdatePolicyTemplate] 정책 템플릿 업데이트'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/deploy:
+  /admin/policy-templates/{policyTemplateId}/deploy:
     get:
       consumes:
       - application/json
@@ -3553,7 +3675,7 @@ paths:
       summary: '[GetPolicyTemplateDeploy] 정책 템플릿 클러스터 별 설치 버전 조회'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/statistics:
+  /admin/policy-templates/{policyTemplateId}/statistics:
     get:
       consumes:
       - application/json
@@ -3577,7 +3699,7 @@ paths:
       summary: '[ListPolicyTemplateStatistics] 정책 템플릿 사용 카운트 조회'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/versions:
+  /admin/policy-templates/{policyTemplateId}/versions:
     get:
       consumes:
       - application/json
@@ -3628,7 +3750,7 @@ paths:
       summary: '[CreatePolicyTemplateVersion] 정책 템플릿 특정 버전 저장'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/{policyTemplateId}/versions/{version}:
+  /admin/policy-templates/{policyTemplateId}/versions/{version}:
     delete:
       consumes:
       - application/json
@@ -3681,7 +3803,7 @@ paths:
       summary: '[GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/kind/{policyTemplateKind}/existence:
+  /admin/policy-templates/kind/{policyTemplateKind}/existence:
     get:
       consumes:
       - application/json
@@ -3704,7 +3826,7 @@ paths:
       summary: '[ExistsPolicyTemplateKind] 정책 템플릿 유형 존재 여부 확인'
       tags:
       - PolicyTemplate
-  /admin/policytemplates/name/{policyTemplateName}/existence:
+  /admin/policy-templates/name/{policyTemplateName}/existence:
     get:
       consumes:
       - application/json
@@ -7860,7 +7982,7 @@ paths:
       summary: Get Permission Templates
       tags:
       - Permission
-  /policytemplates/rego-compile:
+  /policy-templates/rego-compile:
     post:
       consumes:
       - application/json

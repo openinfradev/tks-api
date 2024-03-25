@@ -130,13 +130,10 @@ func migrateSchema(db *gorm.DB) error {
 	}
 
 	// SystemNotificationRule
-	if err := db.AutoMigrate(&model.SystemNotificationRule{}); err != nil {
-		return err
-	}
 	if err := db.AutoMigrate(&model.SystemNotificationCondition{}); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&model.SystemNotificationMessage{}); err != nil {
+	if err := db.AutoMigrate(&model.SystemNotificationRule{}); err != nil {
 		return err
 	}
 
