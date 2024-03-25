@@ -29,6 +29,7 @@ const (
 	ResetPassword
 	CheckId
 	CheckEmail
+	GetPermissionsByAccountId
 
 	// MyProfile
 	GetMyProfile
@@ -189,12 +190,11 @@ const (
 	GetTksRole
 	DeleteTksRole
 	UpdateTksRole
+	GetPermissionsByRoleId
+	UpdatePermissionsByRoleId
 
 	// Permission
 	GetPermissionTemplates
-	GetPermissionsByRoleId
-	UpdatePermissionsByRoleId
-	GetPermissionsByAccountId
 
 	// Admin_User
 	Admin_CreateUser
