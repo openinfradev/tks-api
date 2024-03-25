@@ -28,14 +28,16 @@ type IAuthHandler interface {
 	//Authenticate(next http.Handler) http.Handler
 }
 type AuthHandler struct {
-	usecase      usecase.IAuthUsecase
-	auditUsecase usecase.IAuditUsecase
+	usecase        usecase.IAuthUsecase
+	auditUsecase   usecase.IAuditUsecase
+	projectUsecase usecase.IProjectUsecase
 }
 
 func NewAuthHandler(h usecase.Usecase) IAuthHandler {
 	return &AuthHandler{
-		usecase:      h.Auth,
-		auditUsecase: h.Audit,
+		usecase:        h.Auth,
+		auditUsecase:   h.Audit,
+		projectUsecase: h.Project,
 	}
 }
 
@@ -95,9 +97,24 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	projects, err := h.projectUsecase.GetProjects(r.Context(), input.OrganizationId, user.ID.String(), true, nil)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var out domain.LoginResponse
 	if err = serializer.Map(r.Context(), user, &out.User); err != nil {
 		log.Error(r.Context(), err)
+	}
+
+	for _, project := range projects {
+		var projectRole domain.ProjectIdProjectRoleResponse
+		projectRole.ID = project.ID
+		projectRole.ProjectRoleId = project.ProjectRoleId
+		projectRole.ProjectRoleName = project.ProjectRoleName
+		out.User.Projects = append(out.User.Projects, &projectRole)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
