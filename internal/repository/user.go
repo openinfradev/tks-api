@@ -118,7 +118,7 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Role").Model(&model.User{}).Where("organization_id = ?", organizationId), &users)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Role").Model(&model.User{}).Where("users.organization_id = ?", organizationId), &users)
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
