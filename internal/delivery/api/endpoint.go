@@ -19,7 +19,6 @@ const (
 	VerifyIdentityForLostId
 	VerifyIdentityForLostPassword
 	VerifyToken
-	DeleteToken
 
 	// User
 	CreateUser
@@ -195,6 +194,7 @@ const (
 	GetPermissionTemplates
 	GetPermissionsByRoleId
 	UpdatePermissionsByRoleId
+	GetPermissionsByAccountId
 
 	// Admin_User
 	Admin_CreateUser

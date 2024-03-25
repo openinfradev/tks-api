@@ -15,6 +15,7 @@ type IPermissionUsecase interface {
 	GetAllowedPermissionSet(ctx context.Context) *model.PermissionSet
 	GetUserPermissionSet(ctx context.Context) *model.PermissionSet
 	UpdatePermission(ctx context.Context, permission *model.Permission) error
+	MergePermissionWithOrOperator(ctx context.Context, permissionSet ...*model.PermissionSet) *model.PermissionSet
 }
 
 type PermissionUsecase struct {
@@ -35,7 +36,7 @@ func (p PermissionUsecase) CreatePermissionSet(ctx context.Context, permissionSe
 	if err = p.repo.Create(ctx, permissionSet.Stack); err != nil {
 		return err
 	}
-	if err = p.repo.Create(ctx, permissionSet.SecurityPolicy); err != nil {
+	if err = p.repo.Create(ctx, permissionSet.Policy); err != nil {
 		return err
 	}
 	if err = p.repo.Create(ctx, permissionSet.ProjectManagement); err != nil {
@@ -54,7 +55,7 @@ func (p PermissionUsecase) GetPermissionSetByRoleId(ctx context.Context, roleId 
 	permissionSet := &model.PermissionSet{
 		Dashboard:         nil,
 		Stack:             nil,
-		SecurityPolicy:    nil,
+		Policy:            nil,
 		ProjectManagement: nil,
 		Notification:      nil,
 		Configuration:     nil,
@@ -70,9 +71,9 @@ func (p PermissionUsecase) GetPermissionSetByRoleId(ctx context.Context, roleId 
 			permissionSet.Dashboard = permission
 		case string(model.StackPermission):
 			permissionSet.Stack = permission
-		case string(model.SecurityPolicyPermission):
-			permissionSet.SecurityPolicy = permission
-		case string(model.ProjectManagementPermission):
+		case string(model.PolicyPermission):
+			permissionSet.Policy = permission
+		case string(model.ProjectPermission):
 			permissionSet.ProjectManagement = permission
 		case string(model.NotificationPermission):
 			permissionSet.Notification = permission
@@ -114,4 +115,37 @@ func (p PermissionUsecase) GetUserPermissionSet(ctx context.Context) *model.Perm
 	permissionSet := model.NewDefaultPermissionSet()
 	permissionSet.SetUserPermissionSet()
 	return permissionSet
+}
+
+func (p PermissionUsecase) MergePermissionWithOrOperator(ctx context.Context, permissionSet ...*model.PermissionSet) *model.PermissionSet {
+	var out *model.PermissionSet
+	for i, ps := range permissionSet {
+		if i == 0 {
+			out = ps
+			continue
+		}
+
+		out.Dashboard = p.mergePermission(out.Dashboard, ps.Dashboard)
+		out.Stack = p.mergePermission(out.Stack, ps.Stack)
+		out.Policy = p.mergePermission(out.Policy, ps.Policy)
+		out.ProjectManagement = p.mergePermission(out.ProjectManagement, ps.ProjectManagement)
+		out.Notification = p.mergePermission(out.Notification, ps.Notification)
+		out.Configuration = p.mergePermission(out.Configuration, ps.Configuration)
+	}
+
+	return out
+}
+
+func (p PermissionUsecase) mergePermission(mergedPermission, permission *model.Permission) *model.Permission {
+	var mergedEdgePermissions []*model.Permission
+	mergedEdgePermissions = model.GetEdgePermission(mergedPermission, mergedEdgePermissions, nil)
+
+	var rightEdgePermissions []*model.Permission
+	rightEdgePermissions = model.GetEdgePermission(permission, rightEdgePermissions, nil)
+
+	for i, rightEdgePermission := range rightEdgePermissions {
+		*(mergedEdgePermissions[i].IsAllowed) = *(mergedEdgePermissions[i].IsAllowed) || *(rightEdgePermission.IsAllowed)
+	}
+
+	return mergedPermission
 }

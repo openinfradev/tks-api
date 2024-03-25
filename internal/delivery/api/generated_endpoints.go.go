@@ -35,10 +35,6 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "VerifyToken", 
 		Group: "Auth",
 	},
-    DeleteToken: {
-		Name: "DeleteToken", 
-		Group: "Auth",
-	},
     CreateUser: {
 		Name: "CreateUser", 
 		Group: "User",
@@ -603,6 +599,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "UpdatePermissionsByRoleId", 
 		Group: "Permission",
 	},
+    GetPermissionsByAccountId: {
+		Name: "GetPermissionsByAccountId", 
+		Group: "Permission",
+	},
     Admin_CreateUser: {
 		Name: "Admin_CreateUser", 
 		Group: "Admin_User",
@@ -826,8 +826,6 @@ func (e Endpoint) String() string {
 		return "VerifyIdentityForLostPassword"
 	case VerifyToken:
 		return "VerifyToken"
-	case DeleteToken:
-		return "DeleteToken"
 	case CreateUser:
 		return "CreateUser"
 	case ListUser:
@@ -1110,6 +1108,8 @@ func (e Endpoint) String() string {
 		return "GetPermissionsByRoleId"
 	case UpdatePermissionsByRoleId:
 		return "UpdatePermissionsByRoleId"
+	case GetPermissionsByAccountId:
+		return "GetPermissionsByAccountId"
 	case Admin_CreateUser:
 		return "Admin_CreateUser"
 	case Admin_ListUser:
@@ -1234,8 +1234,6 @@ func GetEndpoint(name string) Endpoint {
 		return VerifyIdentityForLostPassword
 	case "VerifyToken":
 		return VerifyToken
-	case "DeleteToken":
-		return DeleteToken
 	case "CreateUser":
 		return CreateUser
 	case "ListUser":
@@ -1518,6 +1516,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetPermissionsByRoleId
 	case "UpdatePermissionsByRoleId":
 		return UpdatePermissionsByRoleId
+	case "GetPermissionsByAccountId":
+		return GetPermissionsByAccountId
 	case "Admin_CreateUser":
 		return Admin_CreateUser
 	case "Admin_ListUser":

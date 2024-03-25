@@ -4,35 +4,67 @@ import (
 	"github.com/google/uuid"
 )
 
-type PermissionResponse struct {
-	ID        uuid.UUID             `json:"ID"`
-	Name      string                `json:"name"`
-	IsAllowed *bool                 `json:"is_allowed,omitempty"`
-	RoleID    *string               `json:"role_id,omitempty"`
-	Role      *RoleResponse         `json:"role,omitempty"`
-	Endpoints []*EndpointResponse   `json:"endpoints,omitempty"`
-	ParentID  *uuid.UUID            `json:"parent_id,omitempty"`
-	Parent    *PermissionResponse   `json:"parent,omitempty"`
-	Children  []*PermissionResponse `json:"children,omitempty"`
+type GetPermissionTemplatesResponse struct {
+	Permissions *PermissionTemplateResponse `json:"permissions"`
+}
+
+type PermissionTemplateResponse struct {
+	Dashboard         *TemplateResponse `json:"dashboard,omitempty"`
+	Stack             *TemplateResponse `json:"stack,omitempty"`
+	Policy            *TemplateResponse `json:"policy,omitempty"`
+	ProjectManagement *TemplateResponse `json:"project_management,omitempty"`
+	Notification      *TemplateResponse `json:"notification,omitempty"`
+	Configuration     *TemplateResponse `json:"configuration,omitempty"`
+}
+
+type TemplateResponse struct {
+	Name      string              `json:"name"`
+	Key       string              `json:"key"`
+	IsAllowed *bool               `json:"is_allowed,omitempty"`
+	Children  []*TemplateResponse `json:"children,omitempty"`
+}
+
+type GetPermissionsByRoleIdResponse struct {
+	Permissions *PermissionSetResponse `json:"permissions"`
 }
 
 type PermissionSetResponse struct {
 	Dashboard         *PermissionResponse `json:"dashboard,omitempty"`
 	Stack             *PermissionResponse `json:"stack,omitempty"`
-	SecurityPolicy    *PermissionResponse `json:"security_policy,omitempty"`
+	Policy            *PermissionResponse `json:"policy,omitempty"`
 	ProjectManagement *PermissionResponse `json:"project_management,omitempty"`
 	Notification      *PermissionResponse `json:"notification,omitempty"`
 	Configuration     *PermissionResponse `json:"configuration,omitempty"`
 }
 
-type GetPermissionTemplatesResponse struct {
-	Permissions []*PermissionResponse `json:"permissions"`
-}
-
-type GetPermissionsByRoleIdResponse struct {
-	Permissions []*PermissionResponse `json:"permissions"`
+type PermissionResponse struct {
+	ID        uuid.UUID             `json:"ID"`
+	Name      string                `json:"name"`
+	Key       string                `json:"key"`
+	IsAllowed *bool                 `json:"is_allowed,omitempty"`
+	Endpoints []*EndpointResponse   `json:"endpoints,omitempty"`
+	Children  []*PermissionResponse `json:"children,omitempty"`
 }
 
 type UpdatePermissionsByRoleIdRequest struct {
 	Permissions []*PermissionResponse `json:"permissions"`
+}
+
+type GetUsersPermissionsResponse struct {
+	Permissions *MergedPermissionSetResponse `json:"permissions"`
+}
+
+type MergedPermissionSetResponse struct {
+	Dashboard         *MergePermissionResponse `json:"dashboard,omitempty"`
+	Stack             *MergePermissionResponse `json:"stack,omitempty"`
+	Policy            *MergePermissionResponse `json:"policy,omitempty"`
+	ProjectManagement *MergePermissionResponse `json:"project_management,omitempty"`
+	Notification      *MergePermissionResponse `json:"notification,omitempty"`
+	Configuration     *MergePermissionResponse `json:"configuration,omitempty"`
+}
+
+type MergePermissionResponse struct {
+	Key       string                     `json:"key"`
+	IsAllowed *bool                      `json:"is_allowed,omitempty"`
+	Children  []*MergePermissionResponse `json:"children,omitempty"`
 }
