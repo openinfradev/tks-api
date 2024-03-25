@@ -677,9 +677,9 @@ func (u UserHandler) CheckEmail(w http.ResponseWriter, r *http.Request) {
 //	@Summary		Get Permissions By Account ID
 //	@Description	Get Permissions By Account ID
 //	@Produce		json
-//	@Param			organizationId	path	string	true	"Organization ID"
-//	@Param			accountId		path	string	true	"Account ID"
-//	@Success		200	{object}	domain.GetUsersPermissionsResponse
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			accountId		path		string	true	"Account ID"
+//	@Success		200				{object}	domain.GetUsersPermissionsResponse
 //	@Router			/organizations/{organizationId}/users/{accountId}/permissions [get]
 //	@Security		JWT
 func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Request) {

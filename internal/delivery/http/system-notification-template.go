@@ -33,7 +33,7 @@ func NewSystemNotificationTemplateHandler(h usecase.Usecase) *SystemNotification
 //	@Description	Create alert template. ADMIN ONLY
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain.CreateSystemNotificationTemplateResponse
+//	@Success		200	{object}	domain.CreateSystemNotificationTemplateRequest
 //	@Router			/admin/system-notification-templates [post]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) CreateSystemNotificationTemplate(w http.ResponseWriter, r *http.Request) {
