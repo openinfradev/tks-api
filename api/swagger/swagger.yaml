@@ -1320,6 +1320,8 @@ definitions:
       name:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse:
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
     properties:
       column:

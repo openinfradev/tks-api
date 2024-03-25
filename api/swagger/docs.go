@@ -9632,6 +9632,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+
                 "organizationIds": {
                     "type": "array",
                     "items": {
@@ -10879,6 +10880,46 @@ const docTemplate = `{
                 "templateName": {
                     "type": "string",
                     "example": "레이블 요구"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                    }
+                },
+                "is_allowed": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse": {
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "dashboard": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "notification": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "policy": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "project_management": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "stack": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
                 }
             }
         },
