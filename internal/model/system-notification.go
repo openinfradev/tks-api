@@ -26,13 +26,13 @@ type SystemNotification struct {
 	Node                      string
 	CheckPoint                string
 	GrafanaUrl                string
-	FiredAt                   *time.Time `gorm:"-:all"`
-	TakedAt                   *time.Time `gorm:"-:all"`
-	ClosedAt                  *time.Time `gorm:"-:all"`
-	TakedSec                  int        `gorm:"-:all"`
-	ProcessingSec             int        `gorm:"-:all"`
-	LastTaker                 User       `gorm:"-:all"`
-	SystemNotificationActions []SystemNotificationAction
+	FiredAt                   *time.Time                 `gorm:"-:all"`
+	TakedAt                   *time.Time                 `gorm:"-:all"`
+	ClosedAt                  *time.Time                 `gorm:"-:all"`
+	TakedSec                  int                        `gorm:"-:all"`
+	ProcessingSec             int                        `gorm:"-:all"`
+	LastTaker                 User                       `gorm:"-:all"`
+	SystemNotificationActions []SystemNotificationAction `gorm:"foreignKey:SystemNotificationId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	Summary                   string
 	RawData                   datatypes.JSON
 	Status                    domain.SystemNotificationActionStatus `gorm:"index"`

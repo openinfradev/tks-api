@@ -175,8 +175,9 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplate(w http
 //	@Description	Update SystemNotificationTemplate
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.UpdateSystemNotificationTemplateRequest	true	"Update alert template request"
-//	@Success		200		{object}	nil
+//	@Param			systemNotificationTemplateId	path		string											true	"systemNotificationTemplateId"
+//	@Param			body							body		domain.UpdateSystemNotificationTemplateRequest	true	"Update alert template request"
+//	@Success		200								{object}	nil
 //	@Router			/admin/system-notification-templates/{systemNotificationTemplateId} [put]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) UpdateSystemNotificationTemplate(w http.ResponseWriter, r *http.Request) {
@@ -212,6 +213,39 @@ func (h *SystemNotificationTemplateHandler) UpdateSystemNotificationTemplate(w h
 	}
 
 	err = h.usecase.Update(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// DeleteSystemNotificationTemplate godoc
+//
+//	@Tags			SystemNotificationTemplates
+//	@Summary		Delete SystemNotificationTemplate
+//	@Description	Delete SystemNotificationTemplate
+//	@Accept			json
+//	@Produce		json
+//	@Param			systemNotificationTemplateId	path		string	true	"systemNotificationTemplateId"
+//	@Success		200								{object}	nil
+//	@Router			/admin/system-notification-templates/{systemNotificationTemplateId} [delete]
+//	@Security		JWT
+func (h *SystemNotificationTemplateHandler) DeleteSystemNotificationTemplate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	strId, ok := vars["systemNotificationTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
+		return
+	}
+	systemNotificationTemplateId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
+		return
+	}
+
+	err = h.usecase.Delete(r.Context(), systemNotificationTemplateId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -280,8 +314,9 @@ func (h *SystemNotificationTemplateHandler) GetOrganizationSystemNotificationTem
 //	@Description	Add organization systemNotificationTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.AddOrganizationSystemNotificationTemplatesRequest	true	"Add organization systemNotification templates request"
-//	@Success		200		{object}	nil
+//	@Param			organizationId	path		string														true	"organizationId"
+//	@Param			body			body		domain.AddOrganizationSystemNotificationTemplatesRequest	true	"Add organization systemNotification templates request"
+//	@Success		200				{object}	nil
 //	@Router			/organizations/{organizationId}/system-notification-templates [post]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) AddOrganizationSystemNotificationTemplates(w http.ResponseWriter, r *http.Request) {
@@ -314,8 +349,9 @@ func (h *SystemNotificationTemplateHandler) AddOrganizationSystemNotificationTem
 //	@Description	Remove organization systemNotificationTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.RemoveOrganizationSystemNotificationTemplatesRequest	true	"Remove organization systemNotification templates request"
-//	@Success		200		{object}	nil
+//	@Param			organizationId	path		string														true	"organizationId"
+//	@Param			body			body		domain.RemoveOrganizationSystemNotificationTemplatesRequest	true	"Remove organization systemNotification templates request"
+//	@Success		200				{object}	nil
 //	@Router			/organizations/{organizationId}/system-notification-templates [put]
 //	@Security		JWT
 func (h *SystemNotificationTemplateHandler) RemoveOrganizationSystemNotificationTemplates(w http.ResponseWriter, r *http.Request) {

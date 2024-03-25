@@ -359,6 +359,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_UpdateSystemNotificationTemplate", 
 		Group: "SystemNotificationTemplate",
 	},
+    Admin_DeleteSystemNotificationTemplate: {
+		Name: "Admin_DeleteSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
+	},
     Admin_GetSystemNotificationTemplates: {
 		Name: "Admin_GetSystemNotificationTemplates", 
 		Group: "SystemNotificationTemplate",
@@ -988,6 +992,8 @@ func (e Endpoint) String() string {
 		return "Admin_CreateSystemNotificationTemplate"
 	case Admin_UpdateSystemNotificationTemplate:
 		return "Admin_UpdateSystemNotificationTemplate"
+	case Admin_DeleteSystemNotificationTemplate:
+		return "Admin_DeleteSystemNotificationTemplate"
 	case Admin_GetSystemNotificationTemplates:
 		return "Admin_GetSystemNotificationTemplates"
 	case Admin_GetSystemNotificationTemplate:
@@ -1396,6 +1402,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_CreateSystemNotificationTemplate
 	case "Admin_UpdateSystemNotificationTemplate":
 		return Admin_UpdateSystemNotificationTemplate
+	case "Admin_DeleteSystemNotificationTemplate":
+		return Admin_DeleteSystemNotificationTemplate
 	case "Admin_GetSystemNotificationTemplates":
 		return Admin_GetSystemNotificationTemplates
 	case "Admin_GetSystemNotificationTemplate":

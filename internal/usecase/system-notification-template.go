@@ -22,24 +22,26 @@ type ISystemNotificationTemplateUsecase interface {
 	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotificationTemplate, error)
 	Create(ctx context.Context, dto model.SystemNotificationTemplate) (systemNotificationTemplate uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationTemplate) error
-	Delete(ctx context.Context, dto model.SystemNotificationTemplate) error
+	Delete(ctx context.Context, systemNotificationTemplateId uuid.UUID) error
 	AddOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error
 	RemoveOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error
 }
 
 type SystemNotificationTemplateUsecase struct {
-	repo             repository.ISystemNotificationTemplateRepository
-	clusterRepo      repository.IClusterRepository
-	organizationRepo repository.IOrganizationRepository
-	appGroupRepo     repository.IAppGroupRepository
+	repo                       repository.ISystemNotificationTemplateRepository
+	clusterRepo                repository.IClusterRepository
+	organizationRepo           repository.IOrganizationRepository
+	appGroupRepo               repository.IAppGroupRepository
+	systemNotificationRuleRepo repository.ISystemNotificationRuleRepository
 }
 
 func NewSystemNotificationTemplateUsecase(r repository.Repository) ISystemNotificationTemplateUsecase {
 	return &SystemNotificationTemplateUsecase{
-		repo:             r.SystemNotificationTemplate,
-		clusterRepo:      r.Cluster,
-		appGroupRepo:     r.AppGroup,
-		organizationRepo: r.Organization,
+		repo:                       r.SystemNotificationTemplate,
+		clusterRepo:                r.Cluster,
+		appGroupRepo:               r.AppGroup,
+		organizationRepo:           r.Organization,
+		systemNotificationRuleRepo: r.SystemNotificationRule,
 	}
 }
 
@@ -89,10 +91,10 @@ func (u *SystemNotificationTemplateUsecase) Update(ctx context.Context, dto mode
 	return nil
 }
 
-func (u *SystemNotificationTemplateUsecase) Get(ctx context.Context, systemNotificationTemplate uuid.UUID) (alert model.SystemNotificationTemplate, err error) {
-	alert, err = u.repo.Get(ctx, systemNotificationTemplate)
+func (u *SystemNotificationTemplateUsecase) Get(ctx context.Context, systemNotificationTemplateId uuid.UUID) (systemNotificationTemplate model.SystemNotificationTemplate, err error) {
+	systemNotificationTemplate, err = u.repo.Get(ctx, systemNotificationTemplateId)
 	if err != nil {
-		return alert, err
+		return systemNotificationTemplate, err
 	}
 	return
 }
@@ -125,8 +127,36 @@ func (u *SystemNotificationTemplateUsecase) FetchWithOrganization(ctx context.Co
 	return res, nil
 }
 
-func (u *SystemNotificationTemplateUsecase) Delete(ctx context.Context, dto model.SystemNotificationTemplate) (err error) {
-	return nil
+func (u *SystemNotificationTemplateUsecase) Delete(ctx context.Context, systemNotificationTemplateId uuid.UUID) (err error) {
+	systemNotificationTemplate, err := u.repo.Get(ctx, systemNotificationTemplateId)
+	if err != nil {
+		return err
+	}
+
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+	userId := user.GetUserId()
+	systemNotificationTemplate.UpdatorId = &userId
+
+	// check if used
+	// system_notification_rules
+	pg := pagination.NewPaginationWithFilter("system_notification_template_id", "", "$eq", []string{systemNotificationTemplateId.String()})
+	res, err := u.systemNotificationRuleRepo.Fetch(ctx, pg)
+	if err != nil {
+		return err
+	}
+	if len(res) > 0 {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Failed to delete systemNotificationTemplate %s", systemNotificationTemplateId.String()), "SNT_FAILED_DELETE_EXIST_RULES", "")
+	}
+
+	err = u.repo.Delete(ctx, systemNotificationTemplate)
+	if err != nil {
+		return err
+	}
+
+	return
 }
 
 func (u *SystemNotificationTemplateUsecase) UpdateOrganizations(ctx context.Context, dto model.SystemNotificationTemplate) error {

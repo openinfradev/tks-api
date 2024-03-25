@@ -86,6 +86,7 @@ var errorMap = map[ErrorCode]string{
 	"SNT_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿을 가져오는데 실패했습니다.",
 	"SNT_FAILED_UPDATE_ORGANIZATION":  "알림템플릿에 조직을 설정하는데 실패했습니다.",
 	"SNT_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿이 존재하지 않습니다.",
+	"SNT_FAILED_DELETE_EXIST_RULES":   "알림템플릿을 사용하고 있는 알림 설정이 있습니다. 알림 설정을 삭제하세요.",
 
 	// SystemNotificationRule
 	"SNR_CREATE_ALREADY_EXISTED_NAME":           "알림 설정에 이미 존재하는 이름입니다.",

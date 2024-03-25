@@ -20,7 +20,7 @@ type ISystemNotificationRuleUsecase interface {
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotificationRule, error)
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRule uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) error
-	Delete(ctx context.Context, dto model.SystemNotificationRule) error
+	Delete(ctx context.Context, systemNotificationRuleId uuid.UUID) error
 	GetByName(ctx context.Context, name string) (model.SystemNotificationRule, error)
 }
 
@@ -141,6 +141,22 @@ func (u *SystemNotificationRuleUsecase) Fetch(ctx context.Context, organizationI
 	return res, nil
 }
 
-func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, dto model.SystemNotificationRule) (err error) {
-	return nil
+func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, systemNotificationRuleId uuid.UUID) (err error) {
+	systemNotificationRule, err := u.repo.Get(ctx, systemNotificationRuleId)
+	if err != nil {
+		return err
+	}
+
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+	userId := user.GetUserId()
+	systemNotificationRule.UpdatorId = &userId
+
+	err = u.repo.Delete(ctx, systemNotificationRule)
+	if err != nil {
+		return err
+	}
+	return
 }

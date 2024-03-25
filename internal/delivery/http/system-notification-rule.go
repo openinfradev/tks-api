@@ -34,8 +34,9 @@ func NewSystemNotificationRuleHandler(h usecase.Usecase) *SystemNotificationRule
 //	@Description	Create SystemNotificationRule
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.CreateSystemNotificationRuleRequest	true	"create stack template request"
-//	@Success		200		{object}	domain.CreateSystemNotificationRuleResponse
+//	@Param			organizationId	path		string										true	"organizationId"
+//	@Param			body			body		domain.CreateSystemNotificationRuleRequest	true	"create stack template request"
+//	@Success		200				{object}	domain.CreateSystemNotificationRuleResponse
 //	@Router			/organizations/{organizationId}/system-notification-rules [post]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) CreateSystemNotificationRule(w http.ResponseWriter, r *http.Request) {
@@ -85,12 +86,13 @@ func (h *SystemNotificationRuleHandler) CreateSystemNotificationRule(w http.Resp
 //	@Description	Get SystemNotificationRules
 //	@Accept			json
 //	@Produce		json
-//	@Param			limit		query		string		false	"pageSize"
-//	@Param			page		query		string		false	"pageNumber"
-//	@Param			soertColumn	query		string		false	"sortColumn"
-//	@Param			sortOrder	query		string		false	"sortOrder"
-//	@Param			filters		query		[]string	false	"filters"
-//	@Success		200			{object}	domain.GetSystemNotificationRulesResponse
+//	@Param			organizationId	path		string		true	"organizationId"
+//	@Param			limit			query		string		false	"pageSize"
+//	@Param			page			query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.GetSystemNotificationRulesResponse
 //	@Router			/organizations/{organizationId}/system-notification-rules [get]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) GetSystemNotificationRules(w http.ResponseWriter, r *http.Request) {
@@ -150,6 +152,7 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRules(w http.Respon
 //	@Description	Get SystemNotificationRule
 //	@Accept			json
 //	@Produce		json
+//	@Param			organizationId				path		string	true	"organizationId"
 //	@Param			systemNotificationRuleId	path		string	true	"systemNotificationRuleId"
 //	@Success		200							{object}	domain.GetSystemNotificationRuleResponse
 //	@Router			/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId} [get]
@@ -201,8 +204,10 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRule(w http.Respons
 //	@Description	Update SystemNotificationRule
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.UpdateSystemNotificationRuleRequest	true	"Update systemNotificationRule request"
-//	@Success		200		{object}	nil
+//	@Param			organizationId				path		string										true	"organizationId"
+//	@Param			systemNotificationRuleId	path		string										true	"systemNotificationRuleId"
+//	@Param			body						body		domain.UpdateSystemNotificationRuleRequest	true	"Update systemNotificationRule request"
+//	@Success		200							{object}	nil
 //	@Router			/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId} [put]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) UpdateSystemNotificationRule(w http.ResponseWriter, r *http.Request) {
@@ -260,19 +265,30 @@ func (h *SystemNotificationRuleHandler) UpdateSystemNotificationRule(w http.Resp
 //	@Description	Delete SystemNotificationRule
 //	@Accept			json
 //	@Produce		json
+//	@Param			organizationId				path		string	true	"organizationId"
 //	@Param			systemNotificationRuleId	path		string	true	"systemNotificationRuleId"
 //	@Success		200							{object}	nil
 //	@Router			/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId} [delete]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) DeleteSystemNotificationRule(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	_, ok := vars["systemNotificationRuleId"]
+	strId, ok := vars["systemNotificationRuleId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationRuleId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
 		return
 	}
+	systemNotificationRuleId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		return
+	}
 
-	ErrorJSON(w, r, fmt.Errorf("need implementation"))
+	err = h.usecase.Delete(r.Context(), systemNotificationRuleId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // CheckSystemNotificationRuleName godoc
@@ -282,8 +298,9 @@ func (h *SystemNotificationRuleHandler) DeleteSystemNotificationRule(w http.Resp
 //	@Description	Check name for systemNotificationRule
 //	@Accept			json
 //	@Produce		json
-//	@Param			name	path		string	true	"name"
-//	@Success		200		{object}	domain.CheckSystemNotificationRuleNameResponse
+//	@Param			name			path		string	true	"name"
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Success		200				{object}	domain.CheckSystemNotificationRuleNameResponse
 //	@Router			/organizations/{organizationId}/system-notification-rules/name/{name}/existence [GET]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) CheckSystemNotificationRuleName(w http.ResponseWriter, r *http.Request) {

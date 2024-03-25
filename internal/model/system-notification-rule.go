@@ -30,8 +30,8 @@ type SystemNotificationRule struct {
 	Organization                 Organization               `gorm:"foreignKey:OrganizationId"`
 	SystemNotificationTemplate   SystemNotificationTemplate `gorm:"foreignKey:SystemNotificationTemplateId"`
 	SystemNotificationTemplateId string
-	SystemNotificationConditions []SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId"`
-	TargetUsers                  []User                        `gorm:"many2many:system_notification_rule_users"`
+	SystemNotificationConditions []SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
+	TargetUsers                  []User                        `gorm:"many2many:system_notification_rule_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	TargetUserIds                []string                      `gorm:"-:all"`
 	MessageTitle                 string
 	MessageContent               string
