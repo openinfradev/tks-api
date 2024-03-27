@@ -520,7 +520,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
                         }
                     }
                 }
@@ -3218,6 +3218,84 @@
                 }
             }
         },
+        "/organizations/{organizationId}/mandatory-policies": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "템플릿, 정책이 필수 인지 여부를 조회한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[GetMandatoryPolicies] 필수 정책 템플릿, 정책을 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetMandatoryPoliciesResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "템플릿, 정책이 필수 인지 여부를 설정한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[SetMandatoryPolicies] 필수 정책 템플릿, 정책을 설정",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update mandatory policy/policy template request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SetMandatoryPoliciesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/my-profile": {
             "get": {
                 "security": [
@@ -3407,6 +3485,346 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/policies": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정책 목록을 조회한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[ListPolicy] 정책 목록 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "새로운 정책을 생성한다. targetClusterIds가 명시되지 않으면 정책은 활성화되지 않은 상태로 생성된다. 다른 클러스터에 동일한 정책이 존재한다면 정책 생성이 아닌 정책 업데이트를 통해 targetClusterIds를 수정해야 한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[CreatePolicy] 정책 생성",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "create  policy request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/policies/name/{policyName}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "해당 이름을 가진 정책이 이미 존재하는지 확인한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[ExistsPolicyName] 정책 아름 존재 여부 확인",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 이름",
+                        "name": "policyName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/policies/{policyId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정책 정보를 조회한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[GetPolicy] 정책 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 식별자(uuid)",
+                        "name": "policyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정첵을 삭제한다. 정책이 적용된 클러스터가 있으면 삭제되지 않으므로 삭제 전 적용된 클러스터가 비어있어야 한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[DeletePolicy] 정책 삭제",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 식별자(uuid)",
+                        "name": "policyId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정책의 내용을 업데이트 한다. 업데이트할 필드만 명시하면 된다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[UpdatePolicy] 정책을 업데이트",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 식별자(uuid)",
+                        "name": "policyId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update policy set request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/policies/{policyId}/clusters": {
+            "patch": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정책 적용 대상 클러스터를 수정한다. 추가할 클러스터 목록과 제거할 클러스터 목록 중 하나만 명시되어야 한다. 현재 정책이 배포된 클러스터를 확인하지 않고도 특정 클러스터를 추가하거나 제거할 수 있는 편의 API이다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[UpdatePolicyTargetClusters] 정책 적용 대상 클러스터 수정",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 식별자(uuid)",
+                        "name": "policyId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "update policy set request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyClustersRequest"
                         }
                     }
                 ],
@@ -8748,6 +9166,63 @@
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.CreatePolicyRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "enforcementAction": {
+                    "type": "string"
+                },
+                "mandatory": {
+                    "type": "boolean"
+                },
+                "match": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "refer": "match.Match"
+                    }
+                },
+                "parameters": {
+                    "type": "string",
+                    "example": "\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""
+                },
+                "policyName": {
+                    "type": "string",
+                    "example": "label 정책"
+                },
+                "targetClusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90",
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90"
+                    ]
+                },
+                "templateId": {
+                    "type": "string",
+                    "example": "d98ef5f1-4a68-4047-a446-2207787ce3ff"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "필수 Label 검사"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CreatePolicyResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateReponse": {
             "type": "object",
             "properties": {
@@ -9386,9 +9861,6 @@
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse": {
-            "type": "object"
-        },
         "github_com_openinfradev_tks-api_pkg_domain.FilterResponse": {
             "type": "object",
             "properties": {
@@ -9685,6 +10157,17 @@
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetMandatoryPoliciesResponse": {
+            "type": "object",
+            "properties": {
+                "templates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MandatoryTemplateInfo"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.GetMyProfileResponse": {
             "type": "object",
             "properties": {
@@ -9721,6 +10204,14 @@
             "properties": {
                 "organization": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse": {
+            "type": "object",
+            "properties": {
+                "policy": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyResponse"
                 }
             }
         },
@@ -10150,6 +10641,20 @@
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.ListPolicyResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                },
+                "policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyResponse"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateResponse": {
             "type": "object",
             "properties": {
@@ -10310,6 +10815,104 @@
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "org 레이블 설정 여부 검사"
+                },
+                "mandatory": {
+                    "type": "boolean"
+                },
+                "policyId": {
+                    "type": "string",
+                    "example": "0091fe9b-e44b-423d-9562-ac2b73089593"
+                },
+                "policyName": {
+                    "type": "string",
+                    "example": "org 레이블 요구"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyPatchInfo": {
+            "type": "object",
+            "properties": {
+                "mandatory": {
+                    "type": "boolean"
+                },
+                "policyId": {
+                    "type": "string",
+                    "example": "0091fe9b-e44b-423d-9562-ac2b73089593"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MandatoryTemplateInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "파라미터로 설정된 레이블 검사"
+                },
+                "mandatory": {
+                    "type": "boolean"
+                },
+                "policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyInfo"
+                    }
+                },
+                "templateId": {
+                    "type": "string",
+                    "example": "708d1e5b-4e6f-40e9-87a3-329e2fd051a5"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "레이블 요구"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                    }
+                },
+                "is_allowed": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse": {
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "dashboard": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "notification": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "policy": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "project_management": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                },
+                "stack": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
                 }
             }
         },
@@ -10551,6 +11154,73 @@
                 },
                 "value": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.PolicyResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enforcementAction": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "d98ef5f1-4a68-4047-a446-2207787ce3ff"
+                },
+                "mandatory": {
+                    "type": "boolean"
+                },
+                "match": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "refer": "match.Match"
+                    }
+                },
+                "parameters": {
+                    "type": "string",
+                    "example": "\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""
+                },
+                "policyName": {
+                    "type": "string",
+                    "example": "label 정책"
+                },
+                "targetClusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90",
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90"
+                    ]
+                },
+                "templateId": {
+                    "type": "string",
+                    "example": "d98ef5f1-4a68-4047-a446-2207787ce3ff"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "필수 Label 검사"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 }
             }
         },
@@ -11082,6 +11752,17 @@
             "properties": {
                 "taskId": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.SetMandatoryPoliciesRequest": {
+            "type": "object",
+            "properties": {
+                "policies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyPatchInfo"
+                    }
                 }
             }
         },
@@ -11936,6 +12617,75 @@
                     "items": {
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
                     }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyClustersRequest": {
+            "type": "object",
+            "properties": {
+                "currentTargetClusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90"
+                    ]
+                },
+                "newTargetClusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90",
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90"
+                    ]
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "enforcementAction": {
+                    "type": "string"
+                },
+                "mandatory": {
+                    "type": "boolean"
+                },
+                "match": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "refer": "match.Match"
+                    }
+                },
+                "parameters": {
+                    "type": "string",
+                    "example": "\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""
+                },
+                "policyName": {
+                    "type": "string",
+                    "example": "label 정책"
+                },
+                "targetClusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90",
+                        "83bf8081-f0c5-4b31-826d-23f6f366ec90"
+                    ]
+                },
+                "templateId": {
+                    "type": "string",
+                    "example": "d98ef5f1-4a68-4047-a446-2207787ce3ff"
                 }
             }
         },

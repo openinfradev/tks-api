@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/spf13/viper"
 
@@ -14,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -55,6 +57,22 @@ func GetClientAdminCluster(ctx context.Context) (*kubernetes.Clientset, error) {
 		return nil, err
 	}
 	return clientset, nil
+}
+
+// 쿠버네티스 기본 타입 이외의 타입(예: 정책 템플릿, 정책 등)을 처리하기 위한 dynamic client 생성
+func GetDynamicClientAdminCluster(ctx context.Context) (*dynamic.DynamicClient, error) {
+	config, err := getAdminConfig(ctx)
+	if err != nil {
+		log.Error(ctx, "Failed to load kubeconfig")
+		return nil, err
+	}
+
+	// create the dynamic client
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return dynamicClient, nil
 }
 
 func GetAwsSecret(ctx context.Context) (awsAccessKeyId string, awsSecretAccessKey string, err error) {

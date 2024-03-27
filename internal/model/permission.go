@@ -276,14 +276,14 @@ func newPolicy() *Permission {
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
-							api.ListPolicyTemplate,
-							api.GetPolicyTemplate,
-							api.GetPolicyTemplateDeploy,
-							api.ListPolicyTemplateStatistics,
-							api.ListPolicyTemplateVersions,
-							api.GetPolicyTemplateVersion,
-							api.ExistsPolicyTemplateName,
-							api.ExistsPolicyTemplateKind,
+							api.Admin_ListPolicyTemplate,
+							api.Admin_GetPolicyTemplate,
+							api.Admin_GetPolicyTemplateDeploy,
+							api.Admin_ListPolicyTemplateStatistics,
+							api.Admin_ListPolicyTemplateVersions,
+							api.Admin_GetPolicyTemplateVersion,
+							api.Admin_ExistsPolicyTemplateName,
+							api.Admin_ExistsPolicyTemplateKind,
 
 							// ClusterPolicyStatus
 							api.ListClusterPolicyStatus,
@@ -317,8 +317,8 @@ func newPolicy() *Permission {
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
-							api.CreatePolicyTemplate,
-							api.CreatePolicyTemplateVersion,
+							api.Admin_CreatePolicyTemplate,
+							api.Admin_CreatePolicyTemplateVersion,
 
 							// Policy
 							api.SetMandatoryPolicies,
@@ -336,7 +336,7 @@ func newPolicy() *Permission {
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
-							api.UpdatePolicyTemplate,
+							api.Admin_UpdatePolicyTemplate,
 
 							// ClusterPolicyStatus
 							api.UpdateClusterPolicyTemplateStatus,
@@ -359,8 +359,8 @@ func newPolicy() *Permission {
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							// PolicyTemplate
-							api.DeletePolicyTemplate,
-							api.DeletePolicyTemplateVersion,
+							api.Admin_DeletePolicyTemplate,
+							api.Admin_DeletePolicyTemplateVersion,
 
 							// Policy
 							api.DeletePolicy,

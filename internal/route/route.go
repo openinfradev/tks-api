@@ -59,6 +59,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Endpoint:                   repository.NewEndpointRepository(db),
 		Audit:                      repository.NewAuditRepository(db),
 		PolicyTemplate:             repository.NewPolicyTemplateRepository(db),
+		Policy:                     repository.NewPolicyRepository(db),
 		Dashboard:                  repository.NewDashboardRepository(db),
 	}
 
@@ -81,6 +82,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Role:                       usecase.NewRoleUsecase(repoFactory),
 		Permission:                 usecase.NewPermissionUsecase(repoFactory),
 		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
+		Policy:                     usecase.NewPolicyUsecase(repoFactory),
 	}
 
 	customMiddleware := internalMiddleware.NewMiddleware(
@@ -295,20 +297,31 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/permissions/templates", customMiddleware.Handle(internalApi.GetPermissionTemplates, http.HandlerFunc(permissionHandler.GetPermissionTemplates))).Methods(http.MethodGet)
 
 	policyTemplateHandler := delivery.NewPolicyTemplateHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates", customMiddleware.Handle(internalApi.ListPolicyTemplate, http.HandlerFunc(policyTemplateHandler.ListPolicyTemplate))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates", customMiddleware.Handle(internalApi.CreatePolicyTemplate, http.HandlerFunc(policyTemplateHandler.CreatePolicyTemplate))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.DeletePolicyTemplate, http.HandlerFunc(policyTemplateHandler.DeletePolicyTemplate))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.GetPolicyTemplate, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplate))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.UpdatePolicyTemplate, http.HandlerFunc(policyTemplateHandler.UpdatePolicyTemplate))).Methods(http.MethodPatch)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/deploy ", customMiddleware.Handle(internalApi.GetPolicyTemplateDeploy, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplateDeploy))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/statistics", customMiddleware.Handle(internalApi.ListPolicyTemplateStatistics, http.HandlerFunc(policyTemplateHandler.ListPolicyTemplateStatistics))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions", customMiddleware.Handle(internalApi.ListPolicyTemplateVersions, http.HandlerFunc(policyTemplateHandler.ListPolicyTemplateVersions))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions", customMiddleware.Handle(internalApi.CreatePolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.CreatePolicyTemplateVersion))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.DeletePolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.DeletePolicyTemplateVersion))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.GetPolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.GetPolicyTemplateVersion))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/kind/{policyTemplateKind}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateKind, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateKind))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/name/{policyTemplateName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyTemplateName, http.HandlerFunc(policyTemplateHandler.ExistsPolicyTemplateName))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates", customMiddleware.Handle(internalApi.Admin_ListPolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_ListPolicyTemplate))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates", customMiddleware.Handle(internalApi.Admin_CreatePolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_CreatePolicyTemplate))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.Admin_DeletePolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_DeletePolicyTemplate))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.Admin_GetPolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_GetPolicyTemplate))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdatePolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_UpdatePolicyTemplate))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/deploy ", customMiddleware.Handle(internalApi.Admin_GetPolicyTemplateDeploy, http.HandlerFunc(policyTemplateHandler.Admin_GetPolicyTemplateDeploy))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/statistics", customMiddleware.Handle(internalApi.Admin_ListPolicyTemplateStatistics, http.HandlerFunc(policyTemplateHandler.Admin_ListPolicyTemplateStatistics))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions", customMiddleware.Handle(internalApi.Admin_ListPolicyTemplateVersions, http.HandlerFunc(policyTemplateHandler.Admin_ListPolicyTemplateVersions))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions", customMiddleware.Handle(internalApi.Admin_CreatePolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.Admin_CreatePolicyTemplateVersion))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.Admin_DeletePolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.Admin_DeletePolicyTemplateVersion))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/{policyTemplateId}/versions/{version}", customMiddleware.Handle(internalApi.Admin_GetPolicyTemplateVersion, http.HandlerFunc(policyTemplateHandler.Admin_GetPolicyTemplateVersion))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/kind/{policyTemplateKind}/existence", customMiddleware.Handle(internalApi.Admin_ExistsPolicyTemplateKind, http.HandlerFunc(policyTemplateHandler.Admin_ExistsPolicyTemplateKind))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates/name/{policyTemplateName}/existence", customMiddleware.Handle(internalApi.Admin_ExistsPolicyTemplateName, http.HandlerFunc(policyTemplateHandler.Admin_ExistsPolicyTemplateName))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/policy-templates/rego-compile", customMiddleware.Handle(internalApi.CompileRego, http.HandlerFunc(policyTemplateHandler.RegoCompile))).Methods(http.MethodPost)
+
+	policyHandler := delivery.NewPolicyHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/mandatory-policies", customMiddleware.Handle(internalApi.GetMandatoryPolicies, http.HandlerFunc(policyHandler.GetMandatoryPolicies))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/mandatory-policies", customMiddleware.Handle(internalApi.SetMandatoryPolicies, http.HandlerFunc(policyHandler.SetMandatoryPolicies))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies", customMiddleware.Handle(internalApi.ListPolicy, http.HandlerFunc(policyHandler.ListPolicy))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies", customMiddleware.Handle(internalApi.CreatePolicy, http.HandlerFunc(policyHandler.CreatePolicy))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}", customMiddleware.Handle(internalApi.GetPolicy, http.HandlerFunc(policyHandler.GetPolicy))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}", customMiddleware.Handle(internalApi.DeletePolicy, http.HandlerFunc(policyHandler.DeletePolicy))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}", customMiddleware.Handle(internalApi.UpdatePolicy, http.HandlerFunc(policyHandler.UpdatePolicy))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}/clusters", customMiddleware.Handle(internalApi.UpdatePolicyTargetClusters, http.HandlerFunc(policyHandler.UpdatePolicyTargetClusters))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyName, http.HandlerFunc(policyHandler.ExistsPolicyName))).Methods(http.MethodGet)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
