@@ -122,7 +122,7 @@ func migrateSchema(db *gorm.DB) error {
 	}
 
 	// SystemNotificationTemplate
-	if err := db.AutoMigrate(&model.MetricParameter{}); err != nil {
+	if err := db.AutoMigrate(&model.SystemNotificationMetricParameter{}); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(&model.SystemNotificationTemplate{}); err != nil {

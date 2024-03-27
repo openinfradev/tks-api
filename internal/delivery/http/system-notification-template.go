@@ -48,7 +48,7 @@ func (h *SystemNotificationTemplateHandler) CreateSystemNotificationTemplate(w h
 	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
-	dto.MetricParameters = make([]model.MetricParameter, len(input.MetricParameters))
+	dto.MetricParameters = make([]model.SystemNotificationMetricParameter, len(input.MetricParameters))
 	for i, metricParameter := range input.MetricParameters {
 		if err := serializer.Map(r.Context(), metricParameter, &dto.MetricParameters[i]); err != nil {
 			log.Info(r.Context(), err)
@@ -157,7 +157,7 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplate(w http
 		}
 	}
 
-	out.SystemNotificationTemplate.MetricParameters = make([]domain.MetricParameterResponse, len(systemNotificationTemplate.MetricParameters))
+	out.SystemNotificationTemplate.MetricParameters = make([]domain.SystemNotificationMetricParameterResponse, len(systemNotificationTemplate.MetricParameters))
 	for i, metricParameters := range systemNotificationTemplate.MetricParameters {
 		if err := serializer.Map(r.Context(), metricParameters, &out.SystemNotificationTemplate.MetricParameters[i]); err != nil {
 			log.Info(r.Context(), err)
@@ -204,7 +204,7 @@ func (h *SystemNotificationTemplateHandler) UpdateSystemNotificationTemplate(w h
 		log.Info(r.Context(), err)
 	}
 	dto.ID = systemNotificationTemplateId
-	dto.MetricParameters = make([]model.MetricParameter, len(input.MetricParameters))
+	dto.MetricParameters = make([]model.SystemNotificationMetricParameter, len(input.MetricParameters))
 	for i, metricParameter := range input.MetricParameters {
 		if err := serializer.Map(r.Context(), metricParameter, &dto.MetricParameters[i]); err != nil {
 			log.Info(r.Context(), err)

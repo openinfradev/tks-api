@@ -1152,7 +1152,7 @@ definitions:
         type: string
       metricParameters:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse'
         type: array
       metricQuery:
         type: string
@@ -1319,8 +1319,6 @@ definitions:
         type: string
       name:
         type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
     properties:
@@ -2005,19 +2003,6 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
       stack:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse:
-    properties:
-      key:
-        type: string
-      order:
-        type: integer
-      value:
-        type: string
-    required:
-    - key
-    - order
-    - value
     type: object
   github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse:
     properties:
@@ -2841,6 +2826,19 @@ definitions:
       severity:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse:
+    properties:
+      key:
+        type: string
+      order:
+        type: integer
+      value:
+        type: string
+    required:
+    - key
+    - order
+    - value
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter:
     properties:
       operator:
@@ -2944,7 +2942,7 @@ definitions:
         type: string
       metricParameters:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse'
         type: array
       metricQuery:
         type: string
@@ -3317,7 +3315,7 @@ definitions:
         type: string
       metricParameters:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse'
         type: array
       metricQuery:
         type: string

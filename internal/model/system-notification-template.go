@@ -6,7 +6,7 @@ import (
 )
 
 // Models
-type MetricParameter struct {
+type SystemNotificationMetricParameter struct {
 	gorm.Model
 
 	SystemNotificationTemplateId uuid.UUID
@@ -24,7 +24,7 @@ type SystemNotificationTemplate struct {
 	OrganizationIds  []string       `gorm:"-:all"`
 	Description      string
 	MetricQuery      string
-	MetricParameters []MetricParameter `gorm:"foreignKey:SystemNotificationTemplateId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
+	MetricParameters []SystemNotificationMetricParameter `gorm:"foreignKey:SystemNotificationTemplateId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	CreatorId        *uuid.UUID
 	Creator          User `gorm:"foreignKey:CreatorId"`
 	UpdatorId        *uuid.UUID
