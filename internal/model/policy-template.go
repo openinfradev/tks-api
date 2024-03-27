@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/google/uuid"
@@ -32,12 +33,14 @@ type PolicyTemplate struct {
 	Type                     string                           // Org or Tks
 	Version                  string                           `gorm:"-:all"` // 삭제 예정
 	SupportedVersions        []PolicyTemplateSupportedVersion `gorm:"foreignKey:PolicyTemplateId"`
+	OrganizationId           *string                          // Org 인 경우에만 설정
+	Organization             Organization                     `gorm:"foreignKey:OrganizationId"`
 	Description              string
 	Kind                     string
 	Deprecated               bool
 	Mandatory                bool // Tks 인 경우에는 무시
 	Severity                 string
-	PermittedOrganizations   []Organization        `gorm:"many2many:policy_template_permitted_organiations"`
+	PermittedOrganizations   []Organization        `gorm:"many2many:policy_template_permitted_organizations"`
 	ParametersSchema         []domain.ParameterDef `gorm:"-:all"`
 	Rego                     string                `gorm:"-:all"`
 	Libs                     []string              `gorm:"-:all"`
@@ -46,6 +49,28 @@ type PolicyTemplate struct {
 	Creator                  User                  `gorm:"foreignKey:CreatorId"`
 	UpdatorId                *uuid.UUID            `gorm:"type:uuid"`
 	Updator                  User                  `gorm:"foreignKey:UpdatorId"`
+}
+
+func (pt *PolicyTemplate) IsTksTemplate() bool {
+	return strings.ToLower(pt.Type) == "tks"
+}
+
+func (pt *PolicyTemplate) IsOrganizationTemplate() bool {
+	return !pt.IsTksTemplate()
+}
+
+func (pt *PolicyTemplate) IsPermittedToOrganization(organizationId *string) bool {
+	// tks Admin은 organizationId가 nil
+	if organizationId == nil {
+		return true
+	}
+
+	if pt.IsTksTemplate() {
+		return len(pt.PermittedOrganizationIds) == 0 ||
+			slices.Contains(pt.PermittedOrganizationIds, *organizationId)
+	}
+
+	return pt.OrganizationId != nil && *organizationId == *pt.OrganizationId
 }
 
 func (pt *PolicyTemplate) BeforeCreate(tx *gorm.DB) (err error) {
@@ -79,7 +104,7 @@ func (pt *PolicyTemplate) AfterFind(tx *gorm.DB) (err error) {
 		supportedVersion := pt.SupportedVersions[0]
 		pt.Version = supportedVersion.Version
 		pt.Rego = supportedVersion.Rego
-		pt.Libs = strings.Split(supportedVersion.ParameterSchema, FILE_DELIMETER)
+		pt.Libs = strings.Split(supportedVersion.Libs, FILE_DELIMETER)
 
 		// 마찬가지로 에러 무시
 		_ = json.Unmarshal([]byte(supportedVersion.ParameterSchema), &pt.ParametersSchema)

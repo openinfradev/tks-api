@@ -19,12 +19,15 @@ type IPolicyTemplateRepository interface {
 	Create(ctx context.Context, policyTemplate model.PolicyTemplate) (policyTemplateId uuid.UUID, err error)
 	Update(ctx context.Context, policyTemplateId uuid.UUID, updateMap map[string]interface{}, permittedOrganizations *[]model.Organization) (err error)
 	Fetch(ctx context.Context, pg *pagination.Pagination) (out []model.PolicyTemplate, err error)
+	FetchForOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.PolicyTemplate, err error)
 	GetByName(ctx context.Context, policyTemplateName string) (out *model.PolicyTemplate, err error)
 	GetByKind(ctx context.Context, policyTemplateKind string) (out *model.PolicyTemplate, err error)
 	GetByID(ctx context.Context, policyTemplateId uuid.UUID) (out *model.PolicyTemplate, err error)
 	Delete(ctx context.Context, policyTemplateId uuid.UUID) (err error)
 	ExistByName(ctx context.Context, policyTemplateName string) (exist bool, err error)
 	ExistByKind(ctx context.Context, policyTemplateKind string) (exist bool, err error)
+	ExistByNameInOrganization(ctx context.Context, organizationId string, policyTemplateName string) (exist bool, err error)
+	ExistByKindInOrganization(ctx context.Context, organizationId string, policyTemplateKind string) (exist bool, err error)
 	ExistByID(ctx context.Context, policyTemplateId uuid.UUID) (exist bool, err error)
 	ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
 	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
@@ -70,7 +73,7 @@ func (r *PolicyTemplateRepository) Update(ctx context.Context, policyTemplateId 
 
 		if len(updateMap) > 0 {
 			err = r.db.WithContext(ctx).Model(&policyTemplate).Limit(1).
-				Where("id = ? and type = 'tks'", policyTemplateId).
+				Where("id = ?", policyTemplateId).Where("type = ?", "tks").
 				Updates(updateMap).Error
 
 			if err != nil {
@@ -104,6 +107,58 @@ func (r *PolicyTemplateRepository) Fetch(ctx context.Context, pg *pagination.Pag
 	return policyTemplates, nil
 }
 
+func (r *PolicyTemplateRepository) FetchForOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.PolicyTemplate, err error) {
+	var policyTemplates []model.PolicyTemplate
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+
+	// 다음과 같은 쿼리를 생성해서 tks 템플릿에 대해선 PermittedOrganizations가 비거나, PermittedOrganizations에 해당 organizations이 속하는 템플릿을 찾음
+	// organization 템플릿은 organizationId가 매칭되는 것을 찾음, 이를 통해 해당 사용자가 사용할 수 있는 모든 템플릿을 fetch
+	// select id from policy_templates where
+	// 	(
+	// 		type = 'tks'
+	// 		and (
+	// 			id not in (select policy_template_id from policy_template_permitted_organizations) -- PermitedOrganizations이 빈 경우, 모두에게 허용
+	// 			or id in (select policy_template_id from policy_template_permitted_organizations organization where organization_id = 'orgid') -- PermitedOrganizations 허용된 경우
+	// 		)
+	// 	)
+	// 	or (type = 'organization' and organization_id='orgid')
+	subQueryAloowedAll := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id")
+	subQueryMatchId := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id").
+		Where("organization_id = ?", organizationId)
+
+	_, res := pg.Fetch(r.db.WithContext(ctx).
+		Preload("SupportedVersions", func(db *gorm.DB) *gorm.DB {
+			// 최신 버전만
+			return db.Order("policy_template_supported_versions.version DESC")
+		}).
+		Preload("Creator").Preload("Updator"). // organization을 기준으로 조회할 때에는 PermittedOrganizations는 로딩하지 않아도 됨
+		Model(&model.PolicyTemplate{}).
+		Where(
+			// tks 템플릿인 경우
+			r.db.Where("type = ?", "tks").
+				Where(
+					// permitted_organizations이 비어있거나
+					r.db.Where("id not in (?)", subQueryAloowedAll).
+						Or("id in (?)", subQueryMatchId),
+					// permitted_organization에 매칭되는 템플릿 아이디가 있거나
+				),
+		).
+		Or(
+			// organization 타입 템플릿이면서 organization_id가 매칭
+			r.db.Where("type = ?", "organization").
+				Where("organization_id = ?", organizationId),
+		),
+		&policyTemplates)
+
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	return policyTemplates, nil
+}
+
 func (r *PolicyTemplateRepository) ExistsBy(ctx context.Context, key string, value interface{}) (exists bool, err error) {
 	query := fmt.Sprintf("%s = ?", key)
 
@@ -130,6 +185,39 @@ func (r *PolicyTemplateRepository) ExistByName(ctx context.Context, policyTempla
 
 func (r *PolicyTemplateRepository) ExistByKind(ctx context.Context, policyTemplateKind string) (exist bool, err error) {
 	return r.ExistsBy(ctx, "kind", policyTemplateKind)
+}
+
+func (r *PolicyTemplateRepository) ExistsByInOrganization(ctx context.Context, organizationId string, key string, value interface{}) (exists bool, err error) {
+
+	var policyTemplate model.PolicyTemplate
+	// query := fmt.Sprintf("%s = ? and (type = 'tks' or organization_id = ?)", key)
+	// res := r.db.WithContext(ctx).Where(query, value, organizationId).
+	// 	First(&policyTemplate)
+
+	res := r.db.WithContext(ctx).Where(fmt.Sprintf("%s = ?", key), value).
+		Where(
+			r.db.Where("type = ?", "tks").Or("organization_id = ?", organizationId),
+		).First(&policyTemplate)
+
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Infof(ctx, "Not found policyTemplate %s='%v'", key, value)
+			return false, nil
+		} else {
+			log.Error(ctx, res.Error)
+			return false, res.Error
+		}
+	}
+
+	return true, nil
+}
+
+func (r *PolicyTemplateRepository) ExistByNameInOrganization(ctx context.Context, organizationId string, policyTemplateName string) (exist bool, err error) {
+	return r.ExistsByInOrganization(ctx, organizationId, "template_name", policyTemplateName)
+}
+
+func (r *PolicyTemplateRepository) ExistByKindInOrganization(ctx context.Context, organizationId string, policyTemplateKind string) (exist bool, err error) {
+	return r.ExistsByInOrganization(ctx, organizationId, "kind", policyTemplateKind)
 }
 
 func (r *PolicyTemplateRepository) ExistByID(ctx context.Context, policyTemplateId uuid.UUID) (exist bool, err error) {
@@ -268,7 +356,7 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(ctx context.Conte
 		}
 
 		// relaton을 unscoped로 삭제하지 않으면 동일한 키로 다시 생성할 때 키가 같은 레코드가 deleted 상태로 존재하므로 unscoped delete
-		res = r.db.WithContext(ctx).Unscoped().Where("policy_template_id = ? and version = ?", policyTemplateId, version).
+		res = r.db.WithContext(ctx).Unscoped().Where("policy_template_id = ?", policyTemplateId).Where("version = ?", version).
 			Delete(&policyTemplateVersion)
 		if res.Error != nil {
 			if errors.Is(res.Error, gorm.ErrRecordNotFound) {
@@ -287,7 +375,7 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(ctx context.Conte
 func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
 	var policyTemplateVersion model.PolicyTemplateSupportedVersion
 	res := r.db.WithContext(ctx).Limit(1).
-		Where("policy_template_id = ? and version = ?", policyTemplateId, version).
+		Where("policy_template_id = ?", policyTemplateId).Where("version = ?", version).
 		First(&policyTemplateVersion)
 
 	if res.Error == nil {

@@ -59,7 +59,7 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 	}
 
 	if exists {
-		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_CREATE_ALREADY_EXISTED_NAME", "policy template name already exists")
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_CREATE_ALREADY_EXISTED_NAME", "policy name already exists")
 	}
 
 	dto.TargetClusters = make([]model.Cluster, len(dto.TargetClusterIds))
@@ -70,6 +70,18 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 			return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 		}
 		dto.TargetClusters[i] = cluster
+	}
+
+	policyTemplate, err := u.templateRepo.GetByID(ctx, dto.TemplateId)
+
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if !policyTemplate.IsPermittedToOrganization(&organizationId) {
+		return uuid.Nil, httpErrors.NewNotFoundError(fmt.Errorf(
+			"policy template not found"),
+			"PT_NOT_FOUND_POLICY_TEMPLATE", "")
 	}
 
 	userId := user.GetUserId()
@@ -117,6 +129,18 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 	}
 
 	if templateId != nil {
+		policyTemplate, err := u.templateRepo.GetByID(ctx, *templateId)
+
+		if err != nil {
+			return err
+		}
+
+		if !policyTemplate.IsPermittedToOrganization(&organizationId) {
+			return httpErrors.NewNotFoundError(fmt.Errorf(
+				"policy template not found"),
+				"PT_NOT_FOUND_POLICY_TEMPLATE", "")
+		}
+
 		updateMap["template_id"] = templateId
 	}
 

@@ -296,14 +296,14 @@ func newPolicy() *Permission {
 							api.ExistsPolicyName,
 
 							// OrganizationPolicyTemplate
-							api.ListOrganizationPolicyTemplate,
-							api.GetOrganizationPolicyTemplate,
-							api.GetOrganizationPolicyTemplateDeploy,
-							api.ListOrganizationPolicyTemplateStatistics,
-							api.ListOrganizationPolicyTemplateVersions,
-							api.GetOrganizationPolicyTemplateVersion,
-							api.ExistsOrganizationPolicyTemplateKind,
-							api.ExistsOrganizationPolicyTemplateName,
+							api.ListPolicyTemplate,
+							api.GetPolicyTemplate,
+							api.GetPolicyTemplateDeploy,
+							api.ListPolicyTemplateStatistics,
+							api.ListPolicyTemplateVersions,
+							api.GetPolicyTemplateVersion,
+							api.ExistsPolicyTemplateKind,
+							api.ExistsPolicyTemplateName,
 
 							// PolicyTemplateExample
 							api.ListPolicyTemplateExample,
@@ -325,8 +325,8 @@ func newPolicy() *Permission {
 							api.CreatePolicy,
 
 							// OrganizationPolicyTemplate
-							api.CreateOrganizationPolicyTemplate,
-							api.CreateOrganizationPolicyTemplateVersion,
+							api.CreatePolicyTemplate,
+							api.CreatePolicyTemplateVersion,
 						),
 					},
 					{
@@ -346,7 +346,7 @@ func newPolicy() *Permission {
 							api.UpdatePolicyTargetClusters,
 
 							// OrganizationPolicyTemplate
-							api.UpdateOrganizationPolicyTemplate,
+							api.UpdatePolicyTemplate,
 
 							// PolicyTemplateExample
 							api.UpdatePolicyTemplateExample,
@@ -366,8 +366,8 @@ func newPolicy() *Permission {
 							api.DeletePolicy,
 
 							// OrganizationPolicyTemplate
-							api.DeleteOrganizationPolicyTemplate,
-							api.DeleteOrganizationPolicyTemplateVersion,
+							api.DeletePolicyTemplate,
+							api.DeletePolicyTemplateVersion,
 
 							// PolicyTemplateExample
 							api.DeletePolicyTemplateExample,
