@@ -60,127 +60,37 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func migrateSchema(db *gorm.DB) error {
-	// Auth
-	if err := db.AutoMigrate(&model.CacheEmailCode{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.ExpiredTokenTime{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.User{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.Role{}); err != nil {
-		return err
-	}
-
-	// Organization
-	if err := db.AutoMigrate(&model.Organization{}); err != nil {
-		return err
-	}
-
-	// CloudAccount
-	if err := db.AutoMigrate(&model.CloudAccount{}); err != nil {
-		return err
-	}
-
-	// StackTemplate
-	if err := db.AutoMigrate(&model.StackTemplate{}); err != nil {
-		return err
-	}
-
-	// Cluster
-	if err := db.AutoMigrate(&model.Cluster{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.ClusterFavorite{}); err != nil {
-		return err
-	}
-
-	// Services
-	if err := db.AutoMigrate(&model.AppGroup{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.Application{}); err != nil {
-		return err
-	}
-
-	// AppServe
-	if err := db.AutoMigrate(&model.AppServeApp{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.AppServeAppTask{}); err != nil {
-		return err
-	}
-
-	// SystemNotification
-	if err := db.AutoMigrate(&model.SystemNotification{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.SystemNotificationAction{}); err != nil {
-		return err
-	}
-
-	// SystemNotificationTemplate
-	if err := db.AutoMigrate(&model.MetricParameter{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.SystemNotificationTemplate{}); err != nil {
-		return err
-	}
-
-	// SystemNotificationRule
-	if err := db.AutoMigrate(&model.SystemNotificationCondition{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.SystemNotificationRule{}); err != nil {
-		return err
-	}
-
-	// Role
-	if err := db.AutoMigrate(&model.Role{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.Permission{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.Endpoint{}); err != nil {
-		return err
-	}
-
-	// Project
-	if err := db.AutoMigrate(&model.Project{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.ProjectMember{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.ProjectNamespace{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.ProjectRole{}); err != nil {
-		return err
-	}
-
-	// Audit
-	if err := db.AutoMigrate(&model.Audit{}); err != nil {
-		return err
-	}
-
-	// PolicyTemplate
-	if err := db.AutoMigrate(&model.PolicyTemplateSupportedVersion{}); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&model.PolicyTemplate{}); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&model.Policy{}); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&model.Dashboard{}); err != nil {
+	if err := db.AutoMigrate(&model.CacheEmailCode{},
+		&model.ExpiredTokenTime{},
+		&model.User{},
+		&model.Role{},
+		&model.Organization{},
+		&model.CloudAccount{},
+		&model.StackTemplate{},
+		&model.Cluster{},
+		&model.ClusterFavorite{},
+		&model.AppGroup{},
+		&model.Application{},
+		&model.AppServeApp{},
+		&model.AppServeAppTask{},
+		&model.SystemNotification{},
+		&model.SystemNotificationAction{},
+		&model.SystemNotificationMetricParameter{},
+		&model.SystemNotificationTemplate{},
+		&model.SystemNotificationCondition{},
+		&model.SystemNotificationRule{},
+		&model.Permission{},
+		&model.Endpoint{},
+		&model.Project{},
+		&model.ProjectMember{},
+		&model.ProjectNamespace{},
+		&model.ProjectRole{},
+		&model.Audit{},
+		&model.PolicyTemplateSupportedVersion{},
+		&model.PolicyTemplate{},
+		&model.Policy{},
+		&model.Dashboard{},
+	); err != nil {
 		return err
 	}
 

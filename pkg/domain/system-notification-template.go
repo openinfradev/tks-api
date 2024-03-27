@@ -5,16 +5,16 @@ import (
 )
 
 type SystemNotificationTemplateResponse struct {
-	ID               string                       `json:"id"`
-	Name             string                       `json:"name"`
-	Description      string                       `json:"description"`
-	MetricQuery      string                       `json:"metricQuery" validate:"required"`
-	MetricParameters []MetricParameterResponse    `json:"metricParameters,omitempty"`
-	Organizations    []SimpleOrganizationResponse `json:"organizations,omitempty"`
-	Creator          SimpleUserResponse           `json:"creator"`
-	Updator          SimpleUserResponse           `json:"updator"`
-	CreatedAt        time.Time                    `json:"createdAt"`
-	UpdatedAt        time.Time                    `json:"updatedAt"`
+	ID               string                                      `json:"id"`
+	Name             string                                      `json:"name"`
+	Description      string                                      `json:"description"`
+	MetricQuery      string                                      `json:"metricQuery" validate:"required"`
+	MetricParameters []SystemNotificationMetricParameterResponse `json:"metricParameters,omitempty"`
+	Organizations    []SimpleOrganizationResponse                `json:"organizations,omitempty"`
+	Creator          SimpleUserResponse                          `json:"creator"`
+	Updator          SimpleUserResponse                          `json:"updator"`
+	CreatedAt        time.Time                                   `json:"createdAt"`
+	UpdatedAt        time.Time                                   `json:"updatedAt"`
 }
 
 type SimpleSystemNotificationTemplateResponse struct {
@@ -25,18 +25,18 @@ type SimpleSystemNotificationTemplateResponse struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
-type MetricParameterResponse struct {
+type SystemNotificationMetricParameterResponse struct {
 	Order int    `json:"order" validate:"required"`
 	Key   string `json:"key" validate:"required,name"`
 	Value string `json:"value" validate:"required"`
 }
 
 type CreateSystemNotificationTemplateRequest struct {
-	Name             string                    `json:"name" validate:"required,name"`
-	Description      string                    `json:"description"`
-	OrganizationIds  []string                  `json:"organizationIds" validate:"required"`
-	MetricQuery      string                    `json:"metricQuery" validate:"required"`
-	MetricParameters []MetricParameterResponse `json:"metricParameters"`
+	Name             string                                      `json:"name" validate:"required,name"`
+	Description      string                                      `json:"description"`
+	OrganizationIds  []string                                    `json:"organizationIds" validate:"required"`
+	MetricQuery      string                                      `json:"metricQuery" validate:"required"`
+	MetricParameters []SystemNotificationMetricParameterResponse `json:"metricParameters"`
 }
 
 type CreateSystemNotificationTemplateResponse struct {
@@ -44,11 +44,11 @@ type CreateSystemNotificationTemplateResponse struct {
 }
 
 type UpdateSystemNotificationTemplateRequest struct {
-	Name             string                    `json:"name" validate:"required,name"`
-	Description      string                    `json:"description"`
-	OrganizationIds  []string                  `json:"organizationIds" validate:"required"`
-	MetricQuery      string                    `json:"metricQuery" validate:"required"`
-	MetricParameters []MetricParameterResponse `json:"metricParameters"`
+	Name             string                                      `json:"name" validate:"required,name"`
+	Description      string                                      `json:"description"`
+	OrganizationIds  []string                                    `json:"organizationIds" validate:"required"`
+	MetricQuery      string                                      `json:"metricQuery" validate:"required"`
+	MetricParameters []SystemNotificationMetricParameterResponse `json:"metricParameters"`
 }
 
 type GetSystemNotificationTemplatesResponse struct {

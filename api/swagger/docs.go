@@ -9739,7 +9739,7 @@ const docTemplate = `{
                 "metricParameters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse"
                     }
                 },
                 "metricQuery": {
@@ -9748,7 +9748,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-
                 "organizationIds": {
                     "type": "array",
                     "items": {
@@ -11039,65 +11038,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                    }
-                },
-                "is_allowed": {
-                    "type": "boolean"
-                },
-                "key": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse": {
-            "type": "object",
-            "properties": {
-                "configuration": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "dashboard": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "notification": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "policy": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "project_management": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "stack": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse": {
-            "type": "object",
-            "required": [
-                "key",
-                "order",
-                "value"
-            ],
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "order": {
-                    "type": "integer"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse": {
             "type": "object",
             "properties": {
@@ -12331,6 +12271,25 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse": {
+            "type": "object",
+            "required": [
+                "key",
+                "order",
+                "value"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter": {
             "type": "object",
             "properties": {
@@ -12490,7 +12449,7 @@ const docTemplate = `{
                 "metricParameters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse"
                     }
                 },
                 "metricQuery": {
@@ -13053,7 +13012,7 @@ const docTemplate = `{
                 "metricParameters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MetricParameterResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse"
                     }
                 },
                 "metricQuery": {
