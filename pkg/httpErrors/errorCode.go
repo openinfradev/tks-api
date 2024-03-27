@@ -14,6 +14,7 @@ var errorMap = map[ErrorCode]string{
 	"C_INVALID_CLOUD_ACCOUNT_ID":                "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
 	"C_INVALID_STACK_TEMPLATE_ID":               "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
 	"C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID": "유효하지 않은 알림템플릿 아이디입니다. 알림템플릿 아이디를 확인하세요.",
+	"C_INVALID_SYSTEM_NOTIFICATION_RULE_ID":     "유효하지 않은 알림설정 아이디입니다. 알림설정 아이디를 확인하세요.",
 	"C_INVALID_ASA_ID":                          "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
 	"C_INVALID_ASA_TASK_ID":                     "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
 	"C_INVALID_CLOUD_SERVICE":                   "유효하지 않은 클라우드서비스입니다.",
@@ -110,6 +111,7 @@ var errorMap = map[ErrorCode]string{
 	"ST_FAILED_REMOVE_ORGANIZATION_STACK_TEMPLATE":               "조직에서 스택템플릿을 삭제하는데 실패하였습니다.",
 	"ST_FAILED_ADD_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE":    "조직에 시스템알람템플릿을 추가하는데 실패하였습니다.",
 	"ST_FAILED_REMOVE_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE": "조직에서 시스템알람템플릿을 삭제하는데 실패하였습니다.",
+	"ST_FAILED_DELETE_EXIST_CLUSTERS":                            "스택템플릿을 사용하고 있는 스택이 있습니다. 스택을 삭제하세요.",
 
 	// PolicyTemplate
 	"PT_CREATE_ALREADY_EXISTED_NAME":       "정첵 템플릿에 이미 존재하는 이름입니다.",

@@ -161,13 +161,13 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRule(w http.Respons
 	vars := mux.Vars(r)
 	strId, ok := vars["systemNotificationRuleId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationRuleId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationRuleId"), "C_INVALID_SYSTEM_NOTIFICATION_RULE_ID", ""))
 		return
 	}
 
 	systemNotificationRuleId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_SYSTEM_NOTIFICATION_RULE_ID", ""))
 		return
 	}
 
@@ -274,12 +274,12 @@ func (h *SystemNotificationRuleHandler) DeleteSystemNotificationRule(w http.Resp
 	vars := mux.Vars(r)
 	strId, ok := vars["systemNotificationRuleId"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationRuleId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationRuleId"), "C_INVALID_SYSTEM_NOTIFICATION_RULE_ID", ""))
 		return
 	}
 	systemNotificationRuleId, err := uuid.Parse(strId)
 	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_SYSTEM_NOTIFICATION_RULE_ID", ""))
 		return
 	}
 
