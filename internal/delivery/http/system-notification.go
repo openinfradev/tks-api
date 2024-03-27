@@ -204,9 +204,10 @@ func (h *SystemNotificationHandler) GetSystemNotification(w http.ResponseWriter,
 //	@Description	Update SystemNotification
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string									true	"organizationId"
-//	@Param			body			body		domain.UpdateSystemNotificationRequest	true	"Update cloud setting request"
-//	@Success		200				{object}	nil
+//	@Param			organizationId			path		string									true	"organizationId"
+//	@Param			systemNotificationId	path		string									true	"systemNotificationId"
+//	@Param			body					body		domain.UpdateSystemNotificationRequest	true	"Update cloud setting request"
+//	@Success		200						{object}	nil
 //	@Router			/organizations/{organizationId}/system-notifications/{systemNotificationId} [put]
 //	@Security		JWT
 func (h *SystemNotificationHandler) UpdateSystemNotification(w http.ResponseWriter, r *http.Request) {
@@ -246,8 +247,9 @@ func (h *SystemNotificationHandler) SystemNotificationTest(w http.ResponseWriter
 //	@Description	Create systemNotification action
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string	true	"organizationId"
-//	@Success		200				{object}	nil
+//	@Param			organizationId			path		string	true	"organizationId"
+//	@Param			systemNotificationId	path		string	true	"systemNotificationId"
+//	@Success		200						{object}	nil
 //	@Router			/organizations/{organizationId}/system-notifications/{systemNotificationId}/actions [post]
 //	@Security		JWT
 func (h *SystemNotificationHandler) CreateSystemNotificationAction(w http.ResponseWriter, r *http.Request) {

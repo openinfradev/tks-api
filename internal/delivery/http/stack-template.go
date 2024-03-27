@@ -220,13 +220,24 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 //	@Security		JWT
 func (h *StackTemplateHandler) DeleteStackTemplate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	_, ok := vars["stackTemplateId"]
+	strId, ok := vars["stackTemplateId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackTemplateId"), "C_INVALID_STACK_TEMPLATE_ID", ""))
 		return
 	}
 
-	ErrorJSON(w, r, fmt.Errorf("need implementation"))
+	stackTemplateId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_STACK_TEMPLATE_ID", ""))
+		return
+	}
+
+	err = h.usecase.Delete(r.Context(), stackTemplateId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // GetStackTemplateServices godoc

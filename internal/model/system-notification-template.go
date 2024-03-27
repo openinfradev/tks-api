@@ -7,8 +7,10 @@ import (
 
 // Models
 type MetricParameter struct {
-	SystemNotificationTemplateId uuid.UUID `gorm:"primarykey"`
-	Order                        int       `gorm:"primarykey"`
+	gorm.Model
+
+	SystemNotificationTemplateId uuid.UUID
+	Order                        int
 	Key                          string
 	Value                        string
 }
@@ -18,11 +20,11 @@ type SystemNotificationTemplate struct {
 
 	ID               uuid.UUID      `gorm:"primarykey"`
 	Name             string         `gorm:"index:idx_name,unique"`
-	Organizations    []Organization `gorm:"many2many:system_notification_template_organizations"`
+	Organizations    []Organization `gorm:"many2many:system_notification_template_organizations;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	OrganizationIds  []string       `gorm:"-:all"`
 	Description      string
 	MetricQuery      string
-	MetricParameters []MetricParameter `gorm:"foreignKey:SystemNotificationTemplateId;references:ID"`
+	MetricParameters []MetricParameter `gorm:"foreignKey:SystemNotificationTemplateId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	CreatorId        *uuid.UUID
 	Creator          User `gorm:"foreignKey:CreatorId"`
 	UpdatorId        *uuid.UUID

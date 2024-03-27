@@ -4355,6 +4355,26 @@ paths:
       tags:
       - SystemNotificationTemplates
   /admin/system-notification-templates/{systemNotificationTemplateId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete SystemNotificationTemplate
+      parameters:
+      - description: systemNotificationTemplateId
+        in: path
+        name: systemNotificationTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Delete SystemNotificationTemplate
+      tags:
+      - SystemNotificationTemplates
     get:
       consumes:
       - application/json
@@ -4382,6 +4402,11 @@ paths:
       - application/json
       description: Update SystemNotificationTemplate
       parameters:
+      - description: systemNotificationTemplateId
+        in: path
+        name: systemNotificationTemplateId
+        required: true
+        type: string
       - description: Update alert template request
         in: body
         name: body
@@ -7870,6 +7895,11 @@ paths:
       - application/json
       description: Get SystemNotificationRules
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: pageSize
         in: query
         name: limit
@@ -7910,6 +7940,11 @@ paths:
       - application/json
       description: Create SystemNotificationRule
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: create stack template request
         in: body
         name: body
@@ -7934,6 +7969,11 @@ paths:
       - application/json
       description: Delete SystemNotificationRule
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: systemNotificationRuleId
         in: path
         name: systemNotificationRuleId
@@ -7954,6 +7994,11 @@ paths:
       - application/json
       description: Get SystemNotificationRule
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: systemNotificationRuleId
         in: path
         name: systemNotificationRuleId
@@ -7976,6 +8021,16 @@ paths:
       - application/json
       description: Update SystemNotificationRule
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: systemNotificationRuleId
+        in: path
+        name: systemNotificationRuleId
+        required: true
+        type: string
       - description: Update systemNotificationRule request
         in: body
         name: body
@@ -8001,6 +8056,11 @@ paths:
       - description: name
         in: path
         name: name
+        required: true
+        type: string
+      - description: organizationId
+        in: path
+        name: organizationId
         required: true
         type: string
       produces:
@@ -8061,6 +8121,11 @@ paths:
       - application/json
       description: Add organization systemNotificationTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Add organization systemNotification templates request
         in: body
         name: body
@@ -8082,6 +8147,11 @@ paths:
       - application/json
       description: Remove organization systemNotificationTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Remove organization systemNotification templates request
         in: body
         name: body
@@ -8207,6 +8277,11 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: systemNotificationId
+        in: path
+        name: systemNotificationId
+        required: true
+        type: string
       - description: Update cloud setting request
         in: body
         name: body
@@ -8232,6 +8307,11 @@ paths:
       - description: organizationId
         in: path
         name: organizationId
+        required: true
+        type: string
+      - description: systemNotificationId
+        in: path
+        name: systemNotificationId
         required: true
         type: string
       produces:

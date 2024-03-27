@@ -120,6 +120,7 @@ const (
 	// SystemNotificationTemplate
 	Admin_CreateSystemNotificationTemplate
 	Admin_UpdateSystemNotificationTemplate
+	Admin_DeleteSystemNotificationTemplate
 	Admin_GetSystemNotificationTemplates
 	Admin_GetSystemNotificationTemplate
 	GetOrganizationSystemNotificationTemplates

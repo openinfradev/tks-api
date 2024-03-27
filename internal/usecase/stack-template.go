@@ -22,7 +22,7 @@ type IStackTemplateUsecase interface {
 	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.StackTemplate, error)
 	Create(ctx context.Context, dto model.StackTemplate) (stackTemplate uuid.UUID, err error)
 	Update(ctx context.Context, dto model.StackTemplate) error
-	Delete(ctx context.Context, dto model.StackTemplate) error
+	Delete(ctx context.Context, stackTemplateId uuid.UUID) error
 	UpdateOrganizations(ctx context.Context, dto model.StackTemplate) error
 	GetByName(ctx context.Context, name string) (model.StackTemplate, error)
 	AddOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
@@ -32,12 +32,14 @@ type IStackTemplateUsecase interface {
 type StackTemplateUsecase struct {
 	repo             repository.IStackTemplateRepository
 	organizationRepo repository.IOrganizationRepository
+	clusterRepo      repository.IClusterRepository
 }
 
 func NewStackTemplateUsecase(r repository.Repository) IStackTemplateUsecase {
 	return &StackTemplateUsecase{
 		repo:             r.StackTemplate,
 		organizationRepo: r.Organization,
+		clusterRepo:      r.Cluster,
 	}
 }
 
@@ -130,7 +132,34 @@ func (u *StackTemplateUsecase) FetchWithOrganization(ctx context.Context, organi
 	return res, nil
 }
 
-func (u *StackTemplateUsecase) Delete(ctx context.Context, dto model.StackTemplate) (err error) {
+func (u *StackTemplateUsecase) Delete(ctx context.Context, stackTemplateId uuid.UUID) (err error) {
+	stackTemplate, err := u.repo.Get(ctx, stackTemplateId)
+	if err != nil {
+		return err
+	}
+
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+	}
+	userId := user.GetUserId()
+	stackTemplate.UpdatorId = &userId
+
+	// check if used
+	pg := pagination.NewPaginationWithFilter("stack_template_id", "", "$eq", []string{stackTemplateId.String()})
+	res, err := u.clusterRepo.Fetch(ctx, pg)
+	if err != nil {
+		return err
+	}
+	if len(res) > 0 {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Failed to delete stackTemplate %s", stackTemplateId.String()), "ST_FAILED_DELETE_EXIST_CLUSTERS", "")
+	}
+
+	err = u.repo.Delete(ctx, stackTemplate)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

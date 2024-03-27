@@ -1367,6 +1367,13 @@ const docTemplate = `{
                 "summary": "Update SystemNotificationTemplate",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "systemNotificationTemplateId",
+                        "name": "systemNotificationTemplateId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Update alert template request",
                         "name": "body",
                         "in": "body",
@@ -1374,6 +1381,38 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationTemplateRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete SystemNotificationTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Delete SystemNotificationTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "systemNotificationTemplateId",
+                        "name": "systemNotificationTemplateId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -6839,6 +6878,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "pageSize",
                         "name": "limit",
                         "in": "query"
@@ -6900,6 +6946,13 @@ const docTemplate = `{
                 "summary": "Create SystemNotificationRule",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "create stack template request",
                         "name": "body",
                         "in": "body",
@@ -6944,6 +6997,13 @@ const docTemplate = `{
                         "name": "name",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -6975,6 +7035,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get SystemNotificationRule",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "systemNotificationRuleId",
@@ -7011,6 +7078,20 @@ const docTemplate = `{
                 "summary": "Update SystemNotificationRule",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "systemNotificationRuleId",
+                        "name": "systemNotificationRuleId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Update systemNotificationRule request",
                         "name": "body",
                         "in": "body",
@@ -7044,6 +7125,13 @@ const docTemplate = `{
                 ],
                 "summary": "Delete SystemNotificationRule",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "systemNotificationRuleId",
@@ -7141,6 +7229,13 @@ const docTemplate = `{
                 "summary": "Remove organization systemNotificationTemplates",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Remove organization systemNotification templates request",
                         "name": "body",
                         "in": "body",
@@ -7174,6 +7269,13 @@ const docTemplate = `{
                 ],
                 "summary": "Add organization systemNotificationTemplates",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "Add organization systemNotification templates request",
                         "name": "body",
@@ -7331,6 +7433,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "systemNotificationId",
+                        "name": "systemNotificationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Update cloud setting request",
                         "name": "body",
                         "in": "body",
@@ -7409,6 +7518,13 @@ const docTemplate = `{
                         "type": "string",
                         "description": "organizationId",
                         "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "systemNotificationId",
+                        "name": "systemNotificationId",
                         "in": "path",
                         "required": true
                     }
