@@ -720,18 +720,16 @@ func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Re
 
 	mergedPermissionSet := u.permissionUsecase.MergePermissionWithOrOperator(r.Context(), permissionSets...)
 
-	var permissions domain.MergedPermissionSetResponse
-	permissions.Dashboard = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Dashboard)
-	permissions.Stack = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Stack)
-	permissions.Policy = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Policy)
-	permissions.ProjectManagement = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.ProjectManagement)
-	permissions.Notification = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Notification)
-	permissions.Configuration = convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Configuration)
-
 	var out domain.GetUsersPermissionsResponse
-	out.Permissions = &permissions
-	ResponseJSON(w, r, http.StatusOK, out)
+	out.Permissions = make([]*domain.MergePermissionResponse, 0)
+	out.Permissions = append(out.Permissions, convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Dashboard))
+	out.Permissions = append(out.Permissions, convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Stack))
+	out.Permissions = append(out.Permissions, convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Policy))
+	out.Permissions = append(out.Permissions, convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.ProjectManagement))
+	out.Permissions = append(out.Permissions, convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Notification))
+	out.Permissions = append(out.Permissions, convertModelToMergedPermissionSetResponse(r.Context(), mergedPermissionSet.Configuration))
 
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 func convertModelToMergedPermissionSetResponse(ctx context.Context, permission *model.Permission) *domain.MergePermissionResponse {

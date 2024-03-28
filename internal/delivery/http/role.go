@@ -306,16 +306,15 @@ func (h RoleHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var permissionSetResponse domain.PermissionSetResponse
-	permissionSetResponse.Dashboard = convertModelToPermissionResponse(r.Context(), permissionSet.Dashboard)
-	permissionSetResponse.Stack = convertModelToPermissionResponse(r.Context(), permissionSet.Stack)
-	permissionSetResponse.Policy = convertModelToPermissionResponse(r.Context(), permissionSet.Policy)
-	permissionSetResponse.ProjectManagement = convertModelToPermissionResponse(r.Context(), permissionSet.ProjectManagement)
-	permissionSetResponse.Notification = convertModelToPermissionResponse(r.Context(), permissionSet.Notification)
-	permissionSetResponse.Configuration = convertModelToPermissionResponse(r.Context(), permissionSet.Configuration)
-
 	var out domain.GetPermissionsByRoleIdResponse
-	out.Permissions = &permissionSetResponse
+	out.Permissions = make([]*domain.PermissionResponse, 0)
+
+	out.Permissions = append(out.Permissions, convertModelToPermissionResponse(r.Context(), permissionSet.Dashboard))
+	out.Permissions = append(out.Permissions, convertModelToPermissionResponse(r.Context(), permissionSet.Stack))
+	out.Permissions = append(out.Permissions, convertModelToPermissionResponse(r.Context(), permissionSet.Policy))
+	out.Permissions = append(out.Permissions, convertModelToPermissionResponse(r.Context(), permissionSet.ProjectManagement))
+	out.Permissions = append(out.Permissions, convertModelToPermissionResponse(r.Context(), permissionSet.Notification))
+	out.Permissions = append(out.Permissions, convertModelToPermissionResponse(r.Context(), permissionSet.Configuration))
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -323,11 +322,11 @@ func (h RoleHandler) GetPermissionsByRoleId(w http.ResponseWriter, r *http.Reque
 func convertModelToPermissionResponse(ctx context.Context, permission *model.Permission) *domain.PermissionResponse {
 	var permissionResponse domain.PermissionResponse
 
-	permissionResponse.ID = permission.ID
 	permissionResponse.Key = permission.Key
 	permissionResponse.Name = permission.Name
 	if permission.IsAllowed != nil {
 		permissionResponse.IsAllowed = permission.IsAllowed
+		permissionResponse.ID = &permission.ID
 	}
 
 	for _, endpoint := range permission.Endpoints {

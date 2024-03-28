@@ -39,14 +39,14 @@ func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http
 	permissionSet := model.NewDefaultPermissionSet()
 
 	var out domain.GetPermissionTemplatesResponse
-	out.Permissions = new(domain.PermissionTemplateResponse)
+	out.Permissions = make([]*domain.TemplateResponse, 0)
 
-	out.Permissions.Dashboard = convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Dashboard)
-	out.Permissions.Stack = convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Stack)
-	out.Permissions.Policy = convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Policy)
-	out.Permissions.ProjectManagement = convertModelToPermissionTemplateResponse(r.Context(), permissionSet.ProjectManagement)
-	out.Permissions.Notification = convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Notification)
-	out.Permissions.Configuration = convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Configuration)
+	out.Permissions = append(out.Permissions, convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Dashboard))
+	out.Permissions = append(out.Permissions, convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Stack))
+	out.Permissions = append(out.Permissions, convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Policy))
+	out.Permissions = append(out.Permissions, convertModelToPermissionTemplateResponse(r.Context(), permissionSet.ProjectManagement))
+	out.Permissions = append(out.Permissions, convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Notification))
+	out.Permissions = append(out.Permissions, convertModelToPermissionTemplateResponse(r.Context(), permissionSet.Configuration))
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
