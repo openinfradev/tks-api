@@ -35,7 +35,6 @@ type SystemNotificationRule struct {
 	TargetUserIds                []string                      `gorm:"-:all"`
 	MessageTitle                 string
 	MessageContent               string
-	MessageCondition             datatypes.JSON
 	MessageActionProposal        string
 	CreatorId                    *uuid.UUID `gorm:"type:uuid"`
 	Creator                      *User      `gorm:"foreignKey:CreatorId"`
