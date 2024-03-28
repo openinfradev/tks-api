@@ -747,56 +747,56 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "ExistsPolicyName", 
 		Group: "Policy",
 	},
-    ListOrganizationPolicyTemplate: {
-		Name: "ListOrganizationPolicyTemplate", 
+    ListPolicyTemplate: {
+		Name: "ListPolicyTemplate", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    CreateOrganizationPolicyTemplate: {
-		Name: "CreateOrganizationPolicyTemplate", 
+    CreatePolicyTemplate: {
+		Name: "CreatePolicyTemplate", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    DeleteOrganizationPolicyTemplate: {
-		Name: "DeleteOrganizationPolicyTemplate", 
+    DeletePolicyTemplate: {
+		Name: "DeletePolicyTemplate", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    GetOrganizationPolicyTemplate: {
-		Name: "GetOrganizationPolicyTemplate", 
+    GetPolicyTemplate: {
+		Name: "GetPolicyTemplate", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    UpdateOrganizationPolicyTemplate: {
-		Name: "UpdateOrganizationPolicyTemplate", 
+    UpdatePolicyTemplate: {
+		Name: "UpdatePolicyTemplate", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    GetOrganizationPolicyTemplateDeploy: {
-		Name: "GetOrganizationPolicyTemplateDeploy", 
+    GetPolicyTemplateDeploy: {
+		Name: "GetPolicyTemplateDeploy", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    ListOrganizationPolicyTemplateStatistics: {
-		Name: "ListOrganizationPolicyTemplateStatistics", 
+    ListPolicyTemplateStatistics: {
+		Name: "ListPolicyTemplateStatistics", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    ListOrganizationPolicyTemplateVersions: {
-		Name: "ListOrganizationPolicyTemplateVersions", 
+    ListPolicyTemplateVersions: {
+		Name: "ListPolicyTemplateVersions", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    CreateOrganizationPolicyTemplateVersion: {
-		Name: "CreateOrganizationPolicyTemplateVersion", 
+    CreatePolicyTemplateVersion: {
+		Name: "CreatePolicyTemplateVersion", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    DeleteOrganizationPolicyTemplateVersion: {
-		Name: "DeleteOrganizationPolicyTemplateVersion", 
+    DeletePolicyTemplateVersion: {
+		Name: "DeletePolicyTemplateVersion", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    GetOrganizationPolicyTemplateVersion: {
-		Name: "GetOrganizationPolicyTemplateVersion", 
+    GetPolicyTemplateVersion: {
+		Name: "GetPolicyTemplateVersion", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    ExistsOrganizationPolicyTemplateKind: {
-		Name: "ExistsOrganizationPolicyTemplateKind", 
+    ExistsPolicyTemplateKind: {
+		Name: "ExistsPolicyTemplateKind", 
 		Group: "OrganizationPolicyTemplate",
 	},
-    ExistsOrganizationPolicyTemplateName: {
-		Name: "ExistsOrganizationPolicyTemplateName", 
+    ExistsPolicyTemplateName: {
+		Name: "ExistsPolicyTemplateName", 
 		Group: "OrganizationPolicyTemplate",
 	},
     ListPolicyTemplateExample: {
@@ -1194,32 +1194,32 @@ func (e Endpoint) String() string {
 		return "UpdatePolicyTargetClusters"
 	case ExistsPolicyName:
 		return "ExistsPolicyName"
-	case ListOrganizationPolicyTemplate:
-		return "ListOrganizationPolicyTemplate"
-	case CreateOrganizationPolicyTemplate:
-		return "CreateOrganizationPolicyTemplate"
-	case DeleteOrganizationPolicyTemplate:
-		return "DeleteOrganizationPolicyTemplate"
-	case GetOrganizationPolicyTemplate:
-		return "GetOrganizationPolicyTemplate"
-	case UpdateOrganizationPolicyTemplate:
-		return "UpdateOrganizationPolicyTemplate"
-	case GetOrganizationPolicyTemplateDeploy:
-		return "GetOrganizationPolicyTemplateDeploy"
-	case ListOrganizationPolicyTemplateStatistics:
-		return "ListOrganizationPolicyTemplateStatistics"
-	case ListOrganizationPolicyTemplateVersions:
-		return "ListOrganizationPolicyTemplateVersions"
-	case CreateOrganizationPolicyTemplateVersion:
-		return "CreateOrganizationPolicyTemplateVersion"
-	case DeleteOrganizationPolicyTemplateVersion:
-		return "DeleteOrganizationPolicyTemplateVersion"
-	case GetOrganizationPolicyTemplateVersion:
-		return "GetOrganizationPolicyTemplateVersion"
-	case ExistsOrganizationPolicyTemplateKind:
-		return "ExistsOrganizationPolicyTemplateKind"
-	case ExistsOrganizationPolicyTemplateName:
-		return "ExistsOrganizationPolicyTemplateName"
+	case ListPolicyTemplate:
+		return "ListPolicyTemplate"
+	case CreatePolicyTemplate:
+		return "CreatePolicyTemplate"
+	case DeletePolicyTemplate:
+		return "DeletePolicyTemplate"
+	case GetPolicyTemplate:
+		return "GetPolicyTemplate"
+	case UpdatePolicyTemplate:
+		return "UpdatePolicyTemplate"
+	case GetPolicyTemplateDeploy:
+		return "GetPolicyTemplateDeploy"
+	case ListPolicyTemplateStatistics:
+		return "ListPolicyTemplateStatistics"
+	case ListPolicyTemplateVersions:
+		return "ListPolicyTemplateVersions"
+	case CreatePolicyTemplateVersion:
+		return "CreatePolicyTemplateVersion"
+	case DeletePolicyTemplateVersion:
+		return "DeletePolicyTemplateVersion"
+	case GetPolicyTemplateVersion:
+		return "GetPolicyTemplateVersion"
+	case ExistsPolicyTemplateKind:
+		return "ExistsPolicyTemplateKind"
+	case ExistsPolicyTemplateName:
+		return "ExistsPolicyTemplateName"
 	case ListPolicyTemplateExample:
 		return "ListPolicyTemplateExample"
 	case GetPolicyTemplateExample:
@@ -1608,32 +1608,32 @@ func GetEndpoint(name string) Endpoint {
 		return UpdatePolicyTargetClusters
 	case "ExistsPolicyName":
 		return ExistsPolicyName
-	case "ListOrganizationPolicyTemplate":
-		return ListOrganizationPolicyTemplate
-	case "CreateOrganizationPolicyTemplate":
-		return CreateOrganizationPolicyTemplate
-	case "DeleteOrganizationPolicyTemplate":
-		return DeleteOrganizationPolicyTemplate
-	case "GetOrganizationPolicyTemplate":
-		return GetOrganizationPolicyTemplate
-	case "UpdateOrganizationPolicyTemplate":
-		return UpdateOrganizationPolicyTemplate
-	case "GetOrganizationPolicyTemplateDeploy":
-		return GetOrganizationPolicyTemplateDeploy
-	case "ListOrganizationPolicyTemplateStatistics":
-		return ListOrganizationPolicyTemplateStatistics
-	case "ListOrganizationPolicyTemplateVersions":
-		return ListOrganizationPolicyTemplateVersions
-	case "CreateOrganizationPolicyTemplateVersion":
-		return CreateOrganizationPolicyTemplateVersion
-	case "DeleteOrganizationPolicyTemplateVersion":
-		return DeleteOrganizationPolicyTemplateVersion
-	case "GetOrganizationPolicyTemplateVersion":
-		return GetOrganizationPolicyTemplateVersion
-	case "ExistsOrganizationPolicyTemplateKind":
-		return ExistsOrganizationPolicyTemplateKind
-	case "ExistsOrganizationPolicyTemplateName":
-		return ExistsOrganizationPolicyTemplateName
+	case "ListPolicyTemplate":
+		return ListPolicyTemplate
+	case "CreatePolicyTemplate":
+		return CreatePolicyTemplate
+	case "DeletePolicyTemplate":
+		return DeletePolicyTemplate
+	case "GetPolicyTemplate":
+		return GetPolicyTemplate
+	case "UpdatePolicyTemplate":
+		return UpdatePolicyTemplate
+	case "GetPolicyTemplateDeploy":
+		return GetPolicyTemplateDeploy
+	case "ListPolicyTemplateStatistics":
+		return ListPolicyTemplateStatistics
+	case "ListPolicyTemplateVersions":
+		return ListPolicyTemplateVersions
+	case "CreatePolicyTemplateVersion":
+		return CreatePolicyTemplateVersion
+	case "DeletePolicyTemplateVersion":
+		return DeletePolicyTemplateVersion
+	case "GetPolicyTemplateVersion":
+		return GetPolicyTemplateVersion
+	case "ExistsPolicyTemplateKind":
+		return ExistsPolicyTemplateKind
+	case "ExistsPolicyTemplateName":
+		return ExistsPolicyTemplateName
 	case "ListPolicyTemplateExample":
 		return ListPolicyTemplateExample
 	case "GetPolicyTemplateExample":

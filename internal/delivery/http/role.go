@@ -341,7 +341,7 @@ func convertModelToPermissionResponse(ctx context.Context, permission *model.Per
 	return &permissionResponse
 }
 
-func convertModelToEndpointResponse(ctx context.Context, endpoint *model.Endpoint) *domain.EndpointResponse {
+func convertModelToEndpointResponse(_ context.Context, endpoint *model.Endpoint) *domain.EndpointResponse {
 	var endpointResponse domain.EndpointResponse
 
 	endpointResponse.Name = endpoint.Name

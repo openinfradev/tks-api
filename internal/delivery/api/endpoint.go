@@ -245,19 +245,19 @@ const (
 	ExistsPolicyName
 
 	// OrganizationPolicyTemplate
-	ListOrganizationPolicyTemplate
-	CreateOrganizationPolicyTemplate
-	DeleteOrganizationPolicyTemplate
-	GetOrganizationPolicyTemplate
-	UpdateOrganizationPolicyTemplate
-	GetOrganizationPolicyTemplateDeploy
-	ListOrganizationPolicyTemplateStatistics
-	ListOrganizationPolicyTemplateVersions
-	CreateOrganizationPolicyTemplateVersion
-	DeleteOrganizationPolicyTemplateVersion
-	GetOrganizationPolicyTemplateVersion
-	ExistsOrganizationPolicyTemplateKind
-	ExistsOrganizationPolicyTemplateName
+	ListPolicyTemplate
+	CreatePolicyTemplate
+	DeletePolicyTemplate
+	GetPolicyTemplate
+	UpdatePolicyTemplate
+	GetPolicyTemplateDeploy
+	ListPolicyTemplateStatistics
+	ListPolicyTemplateVersions
+	CreatePolicyTemplateVersion
+	DeletePolicyTemplateVersion
+	GetPolicyTemplateVersion
+	ExistsPolicyTemplateKind
+	ExistsPolicyTemplateName
 
 	// PolicyTemplateExample
 	ListPolicyTemplateExample

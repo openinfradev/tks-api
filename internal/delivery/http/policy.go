@@ -139,7 +139,6 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		templateId = &tuuid
-
 	}
 
 	err = h.usecase.Update(r.Context(), organizationId, id,
@@ -284,7 +283,7 @@ func (h *PolicyHandler) GetPolicy(w http.ResponseWriter, r *http.Request) {
 //	@Param			organizationId	path		string		true	"조직 식별자(o로 시작)"
 //	@Param			pageSize		query		string		false	"pageSize"
 //	@Param			pageNumber		query		string		false	"pageNumber"
-//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
 //	@Success		200				{object}	domain.ListPolicyResponse

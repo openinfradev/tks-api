@@ -53,7 +53,6 @@ type CreatePolicyRequest struct {
 	PolicyName        string `json:"policyName" example:"label 정책"`
 	Description       string `json:"description"`
 	TemplateId        string `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	TemplateName      string `json:"templateName" example:"필수 Label 검사"`
 	EnforcementAction string `json:"enforcementAction" enum:"warn,deny,dryrun"`
 	Parameters        string `json:"parameters" example:"\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""`
 	Match             *Match `json:"match,omitempty" swaggertype:"object,string" example:"refer:match.Match"`
