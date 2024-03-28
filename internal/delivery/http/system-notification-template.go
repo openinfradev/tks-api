@@ -376,3 +376,39 @@ func (h *SystemNotificationTemplateHandler) RemoveOrganizationSystemNotification
 	}
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
+
+// CheckSystemNotificationTemplateName godoc
+//
+//	@Tags			SystemNotificationTemplates
+//	@Summary		Check name for systemNotificationTemplate
+//	@Description	Check name for systemNotificationTemplate
+//	@Accept			json
+//	@Produce		json
+//	@Param			name	path		string	true	"name"
+//	@Success		200		{object}	domain.CheckSystemNotificaionTemplateNameResponse
+//	@Router			/admin/system-notification-templates/name/{name}/existence [GET]
+//	@Security		JWT
+func (h *SystemNotificationTemplateHandler) CheckSystemNotificationTemplateName(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name, ok := vars["name"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid name"), "ST_INVALID_SYSTEM_NOTIFICATION_TEMAPLTE_NAME", ""))
+		return
+	}
+
+	exist := true
+	_, err := h.usecase.GetByName(r.Context(), name)
+	if err != nil {
+		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
+			exist = false
+		} else {
+			ErrorJSON(w, r, err)
+			return
+		}
+	}
+
+	var out domain.CheckSystemNotificaionTemplateNameResponse
+	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}

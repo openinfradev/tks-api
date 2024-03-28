@@ -371,6 +371,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_GetSystemNotificationTemplate", 
 		Group: "SystemNotificationTemplate",
 	},
+    Admin_CheckSystemNotificationTemplateName: {
+		Name: "Admin_CheckSystemNotificationTemplateName", 
+		Group: "SystemNotificationTemplate",
+	},
     GetOrganizationSystemNotificationTemplates: {
 		Name: "GetOrganizationSystemNotificationTemplates", 
 		Group: "SystemNotificationTemplate",
@@ -393,6 +397,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     GetSystemNotificationRule: {
 		Name: "GetSystemNotificationRule", 
+		Group: "SystemNotificationRule",
+	},
+    CheckSystemNotificationRuleName: {
+		Name: "CheckSystemNotificationRuleName", 
 		Group: "SystemNotificationRule",
 	},
     DeleteSystemNotificationRule: {
@@ -998,6 +1006,8 @@ func (e Endpoint) String() string {
 		return "Admin_GetSystemNotificationTemplates"
 	case Admin_GetSystemNotificationTemplate:
 		return "Admin_GetSystemNotificationTemplate"
+	case Admin_CheckSystemNotificationTemplateName:
+		return "Admin_CheckSystemNotificationTemplateName"
 	case GetOrganizationSystemNotificationTemplates:
 		return "GetOrganizationSystemNotificationTemplates"
 	case AddOrganizationSystemNotificationTemplates:
@@ -1010,6 +1020,8 @@ func (e Endpoint) String() string {
 		return "GetSystemNotificationRules"
 	case GetSystemNotificationRule:
 		return "GetSystemNotificationRule"
+	case CheckSystemNotificationRuleName:
+		return "CheckSystemNotificationRuleName"
 	case DeleteSystemNotificationRule:
 		return "DeleteSystemNotificationRule"
 	case UpdateSystemNotificationRule:
@@ -1408,6 +1420,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_GetSystemNotificationTemplates
 	case "Admin_GetSystemNotificationTemplate":
 		return Admin_GetSystemNotificationTemplate
+	case "Admin_CheckSystemNotificationTemplateName":
+		return Admin_CheckSystemNotificationTemplateName
 	case "GetOrganizationSystemNotificationTemplates":
 		return GetOrganizationSystemNotificationTemplates
 	case "AddOrganizationSystemNotificationTemplates":
@@ -1420,6 +1434,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetSystemNotificationRules
 	case "GetSystemNotificationRule":
 		return GetSystemNotificationRule
+	case "CheckSystemNotificationRuleName":
+		return CheckSystemNotificationRuleName
 	case "DeleteSystemNotificationRule":
 		return DeleteSystemNotificationRule
 	case "UpdateSystemNotificationRule":

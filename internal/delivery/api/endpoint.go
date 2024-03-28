@@ -123,6 +123,7 @@ const (
 	Admin_DeleteSystemNotificationTemplate
 	Admin_GetSystemNotificationTemplates
 	Admin_GetSystemNotificationTemplate
+	Admin_CheckSystemNotificationTemplateName
 	GetOrganizationSystemNotificationTemplates
 	AddOrganizationSystemNotificationTemplates
 	RemoveOrganizationSystemNotificationTemplates
@@ -131,6 +132,7 @@ const (
 	CreateSystemNotificationRule
 	GetSystemNotificationRules
 	GetSystemNotificationRule
+	CheckSystemNotificationRuleName
 	DeleteSystemNotificationRule
 	UpdateSystemNotificationRule
 

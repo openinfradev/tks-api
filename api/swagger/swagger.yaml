@@ -456,6 +456,11 @@ definitions:
       existed:
         type: boolean
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificaionTemplateNameResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificationRuleNameResponse:
     properties:
       existed:
@@ -4419,6 +4424,29 @@ paths:
       security:
       - JWT: []
       summary: Update SystemNotificationTemplate
+      tags:
+      - SystemNotificationTemplates
+  /admin/system-notification-templates/name/{name}/existence:
+    get:
+      consumes:
+      - application/json
+      description: Check name for systemNotificationTemplate
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificaionTemplateNameResponse'
+      security:
+      - JWT: []
+      summary: Check name for systemNotificationTemplate
       tags:
       - SystemNotificationTemplates
   /app-groups:

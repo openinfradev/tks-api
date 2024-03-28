@@ -67,3 +67,7 @@ type AddOrganizationSystemNotificationTemplatesRequest struct {
 type RemoveOrganizationSystemNotificationTemplatesRequest struct {
 	SystemNotificationTemplateIds []string `json:"systemNotificationTemplateIds" validate:"required"`
 }
+
+type CheckSystemNotificaionTemplateNameResponse struct {
+	Existed bool `json:"existed"`
+}
