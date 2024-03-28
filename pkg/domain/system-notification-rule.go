@@ -10,7 +10,6 @@ type SystemNotificationRuleResponse struct {
 	Description                  string                                   `json:"description"`
 	MessageTitle                 string                                   `json:"messageTitle"`
 	MessageContent               string                                   `json:"messageContent"`
-	MessageCondition             string                                   `json:"messageCondition"`
 	MessageActionProposal        string                                   `json:"messageActionProposal"`
 	TargetUsers                  []SimpleUserResponse                     `json:"targetUsers"`
 	SystemNotificationTemplate   SimpleSystemNotificationTemplateResponse `json:"systemNotificationTemplate"`
@@ -56,7 +55,6 @@ type CreateSystemNotificationRuleRequest struct {
 	Description                  string   `json:"description"`
 	MessageTitle                 string   `json:"messageTitle" validate:"required"`
 	MessageContent               string   `json:"messageContent" validate:"required"`
-	MessageCondition             string   `json:"messageCondition" validate:"required"`
 	MessageActionProposal        string   `json:"messageActionProposal"`
 	TargetUserIds                []string `json:"targetUserIds"`
 	SystemNotificationTemplateId string   `json:"systemNotificationTemplateId" validate:"required"`
@@ -79,7 +77,6 @@ type UpdateSystemNotificationRuleRequest struct {
 	Description                  string   `json:"description"`
 	MessageTitle                 string   `json:"messageTitle" validate:"required"`
 	MessageContent               string   `json:"messageContent" validate:"required"`
-	MessageCondition             string   `json:"messageCondition" validate:"required"`
 	MessageActionProposal        string   `json:"messageActionProposal"`
 	TargetUserIds                []string `json:"targetUserIds"`
 	SystemNotificationTemplateId string   `json:"systemNotificationTemplateId" validate:"required"`

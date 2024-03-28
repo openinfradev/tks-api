@@ -10301,7 +10301,6 @@
         "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest": {
             "type": "object",
             "required": [
-                "messageCondition",
                 "messageContent",
                 "messageTitle",
                 "name",
@@ -10312,9 +10311,6 @@
                     "type": "string"
                 },
                 "messageActionProposal": {
-                    "type": "string"
-                },
-                "messageCondition": {
                     "type": "string"
                 },
                 "messageContent": {
@@ -13020,9 +13016,6 @@
                 "messageActionProposal": {
                     "type": "string"
                 },
-                "messageCondition": {
-                    "type": "string"
-                },
                 "messageContent": {
                     "type": "string"
                 },
@@ -13599,7 +13592,6 @@
         "github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest": {
             "type": "object",
             "required": [
-                "messageCondition",
                 "messageContent",
                 "messageTitle",
                 "name",
@@ -13610,9 +13602,6 @@
                     "type": "string"
                 },
                 "messageActionProposal": {
-                    "type": "string"
-                },
-                "messageCondition": {
                     "type": "string"
                 },
                 "messageContent": {
