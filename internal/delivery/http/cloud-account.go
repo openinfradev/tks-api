@@ -80,8 +80,8 @@ func (h *CloudAccountHandler) CreateCloudAccount(w http.ResponseWriter, r *http.
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string		true	"organizationId"
-//	@Param			limit			query		string		false	"pageSize"
-//	@Param			page			query		string		false	"pageNumber"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
 //	@Param			soertColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"

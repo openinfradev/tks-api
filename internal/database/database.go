@@ -62,11 +62,11 @@ func InitDB() (*gorm.DB, error) {
 func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&model.CacheEmailCode{},
 		&model.ExpiredTokenTime{},
-		&model.User{},
 		&model.Role{},
-		&model.Organization{},
 		&model.CloudAccount{},
 		&model.StackTemplate{},
+		&model.Organization{},
+		&model.User{},
 		&model.Cluster{},
 		&model.ClusterFavorite{},
 		&model.AppGroup{},
@@ -93,7 +93,6 @@ func migrateSchema(db *gorm.DB) error {
 	); err != nil {
 		return err
 	}
-
 	return nil
 }
 
