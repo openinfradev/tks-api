@@ -32,7 +32,7 @@ func NewPermissionHandler(usecase usecase.Usecase) IPermissionHandler {
 //	@Description	Get Permission Templates
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain.PermissionSetResponse
+//	@Success		200	{object}	domain.GetPermissionTemplatesResponse
 //	@Router			/permissions/templates [get]
 //	@Security		JWT
 func (h PermissionHandler) GetPermissionTemplates(w http.ResponseWriter, r *http.Request) {

@@ -6228,7 +6228,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPermissionsByRoleIdResponse"
                         }
                     }
                 }
@@ -8011,7 +8011,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPermissionTemplatesResponse"
                         }
                     }
                 }
@@ -10374,6 +10374,30 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetPermissionTemplatesResponse": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "description": "Permissions *PermissionTemplateResponse ` + "`" + `json:\"permissions\"` + "`" + `",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateResponse"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetPermissionsByRoleIdResponse": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "description": "Permissions *PermissionSetResponse ` + "`" + `json:\"permissions\"` + "`" + `",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse": {
             "type": "object",
             "properties": {
@@ -10748,7 +10772,11 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "permissions": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse"
+                    "description": "Permissions *MergedPermissionSetResponse ` + "`" + `json:\"permissions\"` + "`" + `",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
+                    }
                 }
             }
         },
@@ -11052,34 +11080,11 @@ const docTemplate = `{
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
                     }
                 },
-                "is_allowed": {
+                "isAllowed": {
                     "type": "boolean"
                 },
                 "key": {
                     "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse": {
-            "type": "object",
-            "properties": {
-                "configuration": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "dashboard": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "notification": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "policy": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "project_management": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
-                },
-                "stack": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse"
                 }
             }
         },
@@ -11206,7 +11211,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.EndpointResponse"
                     }
                 },
-                "is_allowed": {
+                "isAllowed": {
                     "type": "boolean"
                 },
                 "key": {
@@ -11214,29 +11219,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse": {
-            "type": "object",
-            "properties": {
-                "configuration": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
-                },
-                "dashboard": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
-                },
-                "notification": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
-                },
-                "policy": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
-                },
-                "project_management": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
-                },
-                "stack": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
                 }
             }
         },
@@ -12517,6 +12499,26 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.TemplateResponse": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateResponse"
+                    }
+                },
+                "isAllowed": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.Unit": {
             "type": "object",
             "properties": {
@@ -12736,13 +12738,32 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionUpdateRequest": {
+            "type": "object",
+            "required": [
+                "ID",
+                "isAllowed"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "string"
+                },
+                "isAllowed": {
+                    "type": "boolean",
+                    "enum": [
+                        true,
+                        false
+                    ]
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest": {
             "type": "object",
             "properties": {
                 "permissions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionUpdateRequest"
                     }
                 }
             }

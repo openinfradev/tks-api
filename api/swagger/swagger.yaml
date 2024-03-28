@@ -1549,6 +1549,22 @@ definitions:
       organization:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetPermissionTemplatesResponse:
+    properties:
+      permissions:
+        description: Permissions *PermissionTemplateResponse `json:"permissions"`
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateResponse'
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetPermissionsByRoleIdResponse:
+    properties:
+      permissions:
+        description: Permissions *PermissionSetResponse `json:"permissions"`
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse:
     properties:
       policy:
@@ -1788,7 +1804,10 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.GetUsersPermissionsResponse:
     properties:
       permissions:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse'
+        description: Permissions *MergedPermissionSetResponse `json:"permissions"`
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest:
     properties:
@@ -1989,25 +2008,10 @@ definitions:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
         type: array
-      is_allowed:
+      isAllowed:
         type: boolean
       key:
         type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.MergedPermissionSetResponse:
-    properties:
-      configuration:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
-      dashboard:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
-      notification:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
-      policy:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
-      project_management:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
-      stack:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse:
     properties:
@@ -2090,27 +2094,12 @@ definitions:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.EndpointResponse'
         type: array
-      is_allowed:
+      isAllowed:
         type: boolean
       key:
         type: string
       name:
         type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse:
-    properties:
-      configuration:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      dashboard:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      notification:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      policy:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      project_management:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
-      stack:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PermittedOrganization:
     properties:
@@ -2964,6 +2953,19 @@ definitions:
     required:
     - metricQuery
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.TemplateResponse:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateResponse'
+        type: array
+      isAllowed:
+        type: boolean
+      key:
+        type: string
+      name:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.Unit:
     properties:
       data:
@@ -3110,11 +3112,24 @@ definitions:
     - newPassword
     - originPassword
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionUpdateRequest:
+    properties:
+      ID:
+        type: string
+      isAllowed:
+        enum:
+        - true
+        - false
+        type: boolean
+    required:
+    - ID
+    - isAllowed
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionsByRoleIdRequest:
     properties:
       permissions:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePermissionUpdateRequest'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyClustersRequest:
@@ -7489,7 +7504,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPermissionsByRoleIdResponse'
       security:
       - JWT: []
       summary: Get Permissions By Role ID
@@ -8649,7 +8664,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionSetResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPermissionTemplatesResponse'
       security:
       - JWT: []
       summary: Get Permission Templates
