@@ -881,9 +881,6 @@ definitions:
       templateId:
         example: d98ef5f1-4a68-4047-a446-2207787ce3ff
         type: string
-      templateName:
-        example: 필수 Label 검사
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyResponse:
     properties:
@@ -1324,6 +1321,16 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateNameResponse:
+    properties:
+      existed:
+        type: boolean
     type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
     properties:
@@ -2101,15 +2108,6 @@ definitions:
       name:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.PermittedOrganization:
-    properties:
-      organizationId:
-        type: string
-      organizationName:
-        type: string
-      permitted:
-        type: boolean
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.PodCount:
     properties:
       day:
@@ -2191,10 +2189,6 @@ definitions:
       parametersSchema:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
-        type: array
-      permittedOrganizations:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermittedOrganization'
         type: array
       rego:
         example: rego 코드
@@ -3457,6 +3451,121 @@ definitions:
       startY:
         type: integer
     type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateReponse:
+    properties:
+      id:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateRequest:
+    properties:
+      deprecated:
+        example: false
+        type: boolean
+      description:
+        example: 이 정책은 ...
+        type: string
+      kind:
+        example: K8sRequiredLabels
+        type: string
+      libs:
+        example:
+        - rego 코드
+        items:
+          type: string
+        type: array
+      parametersSchema:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
+      permittedOrganizationIds:
+        items:
+          type: string
+        type: array
+      rego:
+        example: rego 코드
+        type: string
+      severity:
+        enum:
+        - low
+        - medium
+        - high
+        example: medium
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
+    required:
+    - kind
+    - rego
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateVersionRequest:
+    properties:
+      currentVersion:
+        example: v1.0.0
+        type: string
+      expectedVersion:
+        example: v1.1.0
+        type: string
+      libs:
+        example:
+        - rego 코드
+        items:
+          type: string
+        type: array
+      parametersSchema:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
+      rego:
+        example: rego 코드
+        type: string
+      versionUpType:
+        enum:
+        - major
+        - minor
+        - patch
+        example: minor
+        type: string
+    required:
+    - currentVersion
+    - expectedVersion
+    - rego
+    - versionUpType
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateVersionResponse:
+    properties:
+      version:
+        example: v1.1.1
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ExistsPolicyTemplateKindResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ExistsPolicyTemplateNameResponse:
+    properties:
+      existed:
+        type: boolean
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateDeployResponse:
+    properties:
+      deployVersion:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateResponse:
+    properties:
+      policyTemplate:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateVersionResponse:
+    properties:
+      policyTemplate:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse:
     properties:
       user:
@@ -3484,6 +3593,132 @@ definitions:
           updatedAt:
             type: string
         type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      policyTemplates:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse'
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateStatisticsResponse:
+    properties:
+      policyTemplateStatistics:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateStatistics'
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateVersionsResponse:
+    properties:
+      versions:
+        example:
+        - v1.1.0
+        - v1.0.1
+        - v1.0.0
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.PermittedOrganization:
+    properties:
+      organizationId:
+        type: string
+      organizationName:
+        type: string
+      permitted:
+        type: boolean
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      deprecated:
+        example: false
+        type: boolean
+      description:
+        example: 이 정책은 ...
+        type: string
+      id:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+      kind:
+        example: K8sRequiredLabels
+        type: string
+      libs:
+        example:
+        - rego 코드
+        items:
+          type: string
+        type: array
+      parametersSchema:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
+      permittedOrganizations:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PermittedOrganization'
+        type: array
+      rego:
+        example: rego 코드
+        type: string
+      severity:
+        enum:
+        - low
+        - medium
+        - high
+        example: medium
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
+      type:
+        enum:
+        - tks
+        - organization
+        example: tks
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      version:
+        example: v1.0.1
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateStatistics:
+    properties:
+      organizationId:
+        type: string
+      organizationName:
+        type: string
+      usageCount:
+        type: integer
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.UpdatePolicyTemplateRequest:
+    properties:
+      deprecated:
+        example: false
+        type: boolean
+      description:
+        type: string
+      permittedOrganizationIds:
+        items:
+          type: string
+        type: array
+      severity:
+        enum:
+        - low
+        - medium
+        - high
+        example: medium
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest:
     properties:
@@ -3811,7 +4046,7 @@ paths:
         type: string
       - description: sortColumn
         in: query
-        name: soertColumn
+        name: sortColumn
         type: string
       - description: sortOrder
         in: query
@@ -3830,10 +4065,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateResponse'
       security:
       - JWT: []
-      summary: '[ListPolicyTemplate] 정책 템플릿 목록 조회'
+      summary: '[Admin_ListPolicyTemplate] 정책 템플릿 목록 조회'
       tags:
       - PolicyTemplate
     post:
@@ -3846,17 +4081,17 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateRequest'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateReponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateReponse'
       security:
       - JWT: []
-      summary: '[CreatePolicyTemplate] 정책 템플릿 신규 생성'
+      summary: '[Admin_CreatePolicyTemplate] 정책 템플릿 신규 생성'
       tags:
       - PolicyTemplate
   /admin/policy-templates/{policyTemplateId}:
@@ -3877,7 +4112,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: '[DeletePolicyTemplate] 정책 템플릿 삭제'
+      summary: '[Admin_DeletePolicyTemplate] 정책 템플릿 삭제'
       tags:
       - PolicyTemplate
     get:
@@ -3896,10 +4131,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateResponse'
       security:
       - JWT: []
-      summary: '[GetPolicyTemplate] 정책 템플릿 조회(최신 버전)'
+      summary: '[Admin_GetPolicyTemplate] 정책 템플릿 조회(최신 버전)'
       tags:
       - PolicyTemplate
     patch:
@@ -3917,7 +4152,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdatePolicyTemplateRequest'
       produces:
       - application/json
       responses:
@@ -3925,7 +4160,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: '[UpdatePolicyTemplate] 정책 템플릿 업데이트'
+      summary: '[Admin_UpdatePolicyTemplate] 정책 템플릿 업데이트'
       tags:
       - PolicyTemplate
   /admin/policy-templates/{policyTemplateId}/deploy:
@@ -3945,10 +4180,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateDeployResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateDeployResponse'
       security:
       - JWT: []
-      summary: '[GetPolicyTemplateDeploy] 정책 템플릿 클러스터 별 설치 버전 조회'
+      summary: '[Admin_GetPolicyTemplateDeploy] 정책 템플릿 클러스터 별 설치 버전 조회'
       tags:
       - PolicyTemplate
   /admin/policy-templates/{policyTemplateId}/statistics:
@@ -3969,10 +4204,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateStatisticsResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateStatisticsResponse'
       security:
       - JWT: []
-      summary: '[ListPolicyTemplateStatistics] 정책 템플릿 사용 카운트 조회'
+      summary: '[Admin_ListPolicyTemplateStatistics] 정책 템플릿 사용 카운트 조회'
       tags:
       - PolicyTemplate
   /admin/policy-templates/{policyTemplateId}/versions:
@@ -3992,10 +4227,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateVersionsResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateVersionsResponse'
       security:
       - JWT: []
-      summary: '[ListPolicyTemplateVersions] 정책 템플릿 버전목록 조회'
+      summary: '[Admin_ListPolicyTemplateVersions] 정책 템플릿 버전목록 조회'
       tags:
       - PolicyTemplate
     post:
@@ -4013,17 +4248,17 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionRequest'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateVersionRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateVersionResponse'
       security:
       - JWT: []
-      summary: '[CreatePolicyTemplateVersion] 정책 템플릿 특정 버전 저장'
+      summary: '[Admin_CreatePolicyTemplateVersion] 정책 템플릿 특정 버전 저장'
       tags:
       - PolicyTemplate
   /admin/policy-templates/{policyTemplateId}/versions/{version}:
@@ -4049,7 +4284,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: '[DeletePolicyTemplateVersion] 정책 템플릿 특정 버전 삭제'
+      summary: '[Admin_DeletePolicyTemplateVersion] 정책 템플릿 특정 버전 삭제'
       tags:
       - PolicyTemplate
     get:
@@ -4073,10 +4308,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateVersionResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateVersionResponse'
       security:
       - JWT: []
-      summary: '[GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
+      summary: '[Admin_GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
       tags:
       - PolicyTemplate
   /admin/policy-templates/kind/{policyTemplateKind}/existence:
@@ -4096,10 +4331,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExistsPolicyTemplateKindResponse'
       security:
       - JWT: []
-      summary: '[ExistsPolicyTemplateKind] 정책 템플릿 유형 존재 여부 확인'
+      summary: '[Admin_ExistsPolicyTemplateKind] 정책 템플릿 유형 존재 여부 확인'
       tags:
       - PolicyTemplate
   /admin/policy-templates/name/{policyTemplateName}/existence:
@@ -4119,10 +4354,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExistsPolicyTemplateNameResponse'
       security:
       - JWT: []
-      summary: '[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인'
+      summary: '[Admin_ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인'
       tags:
       - PolicyTemplate
   /admin/stack-templates:
@@ -5812,7 +6047,7 @@ paths:
         type: string
       - description: sortColumn
         in: query
-        name: soertColumn
+        name: sortColumn
         type: string
       - description: sortOrder
         in: query
@@ -6011,6 +6246,401 @@ paths:
       summary: '[ExistsPolicyName] 정책 아름 존재 여부 확인'
       tags:
       - Policy
+  /organizations/{organizationId}/policy-templates:
+    get:
+      consumes:
+      - application/json
+      description: 정책 템플릿 목록을 조회한다. 정책 템플릿 목록 조회 결과는 최신 템플릿 버전 목록만 조회된다.
+      parameters:
+      - description: pageSize
+        in: query
+        name: limit
+        type: string
+      - description: pageNumber
+        in: query
+        name: page
+        type: string
+      - description: sortColumn
+        in: query
+        name: sortColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateResponse'
+      security:
+      - JWT: []
+      summary: '[ListPolicyTemplate] 정책 템플릿 목록 조회'
+      tags:
+      - PolicyTemplate
+    post:
+      consumes:
+      - application/json
+      description: 정책 템플릿을 신규 생성(v1.0.0을 생성)한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create policy template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateReponse'
+      security:
+      - JWT: []
+      summary: '[CreatePolicyTemplate] 정책 템플릿 신규 생성'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}:
+    delete:
+      consumes:
+      - application/json
+      description: 정책 템플릿을 삭제한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[DeletePolicyTemplate] 정책 템플릿 삭제'
+      tags:
+      - PolicyTemplate
+    get:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 최신 버전을 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateResponse'
+      security:
+      - JWT: []
+      summary: '[GetPolicyTemplate] 정책 템플릿 조회(최신 버전)'
+      tags:
+      - PolicyTemplate
+    patch:
+      consumes:
+      - application/json
+      description: 정책 템플릿의 업데이트 가능한 필드들을 업데이트한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: update  policy template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[UpdatePolicyTemplate] 정책 템플릿 업데이트'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}/deploy:
+    get:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 정책 템플릿 클러스터 별 설치 버전을 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateDeployResponse'
+      security:
+      - JWT: []
+      summary: '[GetPolicyTemplateDeploy] 정책 템플릿 클러스터 별 설치 버전 조회'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}/statistics:
+    get:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 최신 버전을 조회한다. 전체 조직의 통계를 조회하려면 organizationId를
+        tks로 설정한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateStatisticsResponse'
+      security:
+      - JWT: []
+      summary: '[ListPolicyTemplateStatistics] 정책 템플릿 사용 카운트 조회'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}/versions:
+    get:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 최신 버전을 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateVersionsResponse'
+      security:
+      - JWT: []
+      summary: '[ListPolicyTemplateVersions] 정책 템플릿 버전목록 조회'
+      tags:
+      - PolicyTemplate
+    post:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 특정 버전을 저장한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: create policy template version request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionResponse'
+      security:
+      - JWT: []
+      summary: '[CreatePolicyTemplateVersion] 정책 템플릿 특정 버전 저장'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}/versions/{version}:
+    delete:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 특정 버전을 삭제한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: 삭제할 버전(v0.0.0 형식)
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[DeletePolicyTemplateVersion] 정책 템플릿 특정 버전 삭제'
+      tags:
+      - PolicyTemplate
+    get:
+      consumes:
+      - application/json
+      description: 해당 식별자를 가진 정책 템플릿의 특정 버전을 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: 조회할 버전(v0.0.0 형식)
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateVersionResponse'
+      security:
+      - JWT: []
+      summary: '[GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/kind/{policyTemplateKind}/existence:
+    get:
+      consumes:
+      - application/json
+      description: 해당 유형을 가진 정책 템플릿이 이미 존재하는지 확인한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 이름
+        in: path
+        name: policyTemplateKind
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateKindResponse'
+      security:
+      - JWT: []
+      summary: '[ExistsPolicyTemplateKind] 정책 템플릿 유형 존재 여부 확인'
+      tags:
+      - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/name/{policyTemplateName}/existence:
+    get:
+      consumes:
+      - application/json
+      description: 해당 이름을 가진 정책 템플릿이 이미 존재하는지 확인한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 이름
+        in: path
+        name: policyTemplateName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateNameResponse'
+      security:
+      - JWT: []
+      summary: '[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인'
+      tags:
+      - PolicyTemplate
   /organizations/{organizationId}/primary-cluster:
     patch:
       consumes:

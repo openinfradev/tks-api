@@ -104,6 +104,14 @@ func (h *SystemNotificationTemplateHandler) GetSystemNotificationTemplates(w htt
 				log.Info(r.Context(), err)
 			}
 		}
+
+		out.SystemNotificationTemplates[i].MetricParameters = make([]domain.SystemNotificationMetricParameterResponse, len(systemNotificationTemplate.MetricParameters))
+		for j, metricParameters := range systemNotificationTemplate.MetricParameters {
+			if err := serializer.Map(r.Context(), metricParameters, &out.SystemNotificationTemplates[i].MetricParameters[j]); err != nil {
+				log.Info(r.Context(), err)
+			}
+		}
+
 	}
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
