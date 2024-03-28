@@ -3544,11 +3544,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -3783,11 +3783,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -4113,11 +4113,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -4303,11 +4303,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -4454,11 +4454,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -4743,11 +4743,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -4974,11 +4974,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -5118,11 +5118,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -5761,11 +5761,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -6133,11 +6133,11 @@ paths:
         type: boolean
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -6500,11 +6500,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -7506,11 +7506,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -7900,11 +7900,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -8081,11 +8081,11 @@ paths:
       parameters:
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -8179,11 +8179,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query
@@ -8335,11 +8335,11 @@ paths:
         type: string
       - description: pageSize
         in: query
-        name: limit
+        name: pageSize
         type: string
       - description: pageNumber
         in: query
-        name: page
+        name: pageNumber
         type: string
       - description: sortColumn
         in: query

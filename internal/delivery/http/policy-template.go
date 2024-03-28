@@ -270,8 +270,8 @@ func (h *PolicyTemplateHandler) Admin_GetPolicyTemplate(w http.ResponseWriter, r
 //	@Description	정책 템플릿 목록을 조회한다. 정책 템플릿 목록 조회 결과는 최신 템플릿 버전 목록만 조회된다.
 //	@Accept			json
 //	@Produce		json
-//	@Param			limit		query		string		false	"pageSize"
-//	@Param			page		query		string		false	"pageNumber"
+//	@Param			pageSize	query		string		false	"pageSize"
+//	@Param			pageNumber	query		string		false	"pageNumber"
 //	@Param			sortColumn	query		string		false	"sortColumn"
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"

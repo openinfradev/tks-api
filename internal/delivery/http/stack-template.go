@@ -71,8 +71,8 @@ func (h *StackTemplateHandler) CreateStackTemplate(w http.ResponseWriter, r *htt
 //	@Description	Get StackTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			limit		query		string		false	"pageSize"
-//	@Param			page		query		string		false	"pageNumber"
+//	@Param			pageSize	query		string		false	"pageSize"
+//	@Param			pageNumber	query		string		false	"pageNumber"
 //	@Param			soertColumn	query		string		false	"sortColumn"
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"
@@ -320,8 +320,8 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 //	@Description	Get Organization StackTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			limit		query		string		false	"pageSize"
-//	@Param			page		query		string		false	"pageNumber"
+//	@Param			pageSize	query		string		false	"pageSize"
+//	@Param			pageNumber	query		string		false	"pageNumber"
 //	@Param			soertColumn	query		string		false	"sortColumn"
 //	@Param			sortOrder	query		string		false	"sortOrder"
 //	@Param			filters		query		[]string	false	"filters"

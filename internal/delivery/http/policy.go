@@ -281,8 +281,8 @@ func (h *PolicyHandler) GetPolicy(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string		true	"조직 식별자(o로 시작)"
-//	@Param			limit			query		string		false	"pageSize"
-//	@Param			page			query		string		false	"pageNumber"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
 //	@Param			sortColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
