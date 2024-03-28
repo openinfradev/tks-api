@@ -1312,6 +1312,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/system-notification-templates/name/{name}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Check name for systemNotificationTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Check name for systemNotificationTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificaionTemplateNameResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/system-notification-templates/{systemNotificationTemplateId}": {
             "get": {
                 "security": [
@@ -8700,6 +8737,14 @@ const docTemplate = `{
             }
         },
         "github_com_openinfradev_tks-api_pkg_domain.CheckStackTemplateNameResponse": {
+            "type": "object",
+            "properties": {
+                "existed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.CheckSystemNotificaionTemplateNameResponse": {
             "type": "object",
             "properties": {
                 "existed": {
