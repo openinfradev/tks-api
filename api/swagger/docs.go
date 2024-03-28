@@ -44,13 +44,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -416,13 +416,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -939,13 +939,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -1244,13 +1244,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -1450,13 +1450,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -1925,13 +1925,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -2296,13 +2296,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -2557,13 +2557,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -3569,13 +3569,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -4284,13 +4284,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -4951,13 +4951,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -6267,13 +6267,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -6886,13 +6886,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -7169,13 +7169,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -7322,13 +7322,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
@@ -7565,13 +7565,13 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "pageSize",
-                        "name": "limit",
+                        "name": "pageSize",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "pageNumber",
-                        "name": "page",
+                        "name": "pageNumber",
                         "in": "query"
                     },
                     {
