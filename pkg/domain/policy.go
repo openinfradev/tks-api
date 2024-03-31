@@ -36,13 +36,14 @@ type PolicyResponse struct {
 	TargetClusterIds []string `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        bool     `json:"mandatory"`
 
-	PolicyName        string `json:"policyName" example:"label 정책"`
-	Description       string `json:"description"`
-	TemplateId        string `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	TemplateName      string `json:"templateName" example:"필수 Label 검사"`
-	EnforcementAction string `json:"enforcementAction" enum:"warn,deny,dryrun"`
-	Parameters        string `json:"parameters" example:"\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""`
-	Match             *Match `json:"match,omitempty" swaggertype:"object,string" example:"refer:match.Match"`
+	PolicyName        string          `json:"policyName" example:"label 정책"`
+	Description       string          `json:"description"`
+	TemplateId        string          `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	TemplateName      string          `json:"templateName" example:"필수 Label 검사"`
+	EnforcementAction string          `json:"enforcementAction" enum:"warn,deny,dryrun"`
+	Parameters        string          `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\"}"`
+	FilledParameters  []*ParameterDef `json:"filledParameters"`
+	Match             *Match          `json:"match,omitempty" swaggertype:"object,string" example:"refer:match.Match"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
@@ -116,4 +117,67 @@ type MandatoryPolicyPatchInfo struct {
 
 type SetMandatoryPoliciesRequest struct {
 	Policies []MandatoryPolicyPatchInfo `json:"policies"`
+}
+
+type ClusterPolicyStatusResponse struct {
+	PolicyName             string `json:"policyName" example:"org 레이블 요구"`
+	PolicyId               string `json:"policyId" example:"0091fe9b-e44b-423d-9562-ac2b73089593"`
+	PolicyDescription      string `json:"policyDescription" example:"org 레이블 설정 여부 검사"`
+	PolicyMandatory        bool   `json:"policyMandatory"`
+	TemplateName           string `json:"templateName" example:"레이블 요구"`
+	TemplateId             string `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
+	TemplateDescription    string `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
+	TemplateCurrentVersion string `json:"templateCurrentVersion"  example:"v1.0.1"`
+	TemplateLatestVerson   string `json:"templateLatestVerson"  example:"v1.0.3"`
+}
+
+type ListClusterPolicyStatusResponse struct {
+	Polices []ClusterPolicyStatusResponse `json:"polices"`
+}
+
+type GetClusterPolicyTemplateStatusResponse struct {
+	TemplateName                    string                           `json:"templateName" example:"레이블 요구"`
+	TemplateId                      string                           `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
+	TemplateDescription             string                           `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
+	TemplateMandatory               bool                             `json:"templateMandatory"`
+	TemplateCurrentVersion          string                           `json:"templateCurrentVersion"  example:"v1.0.1"`
+	TemplateLatestVerson            string                           `json:"templateLatestVerson"  example:"v1.0.3"`
+	TemplateLatestVersonReleaseDate time.Time                        `json:"templateLatestVersonReleaseDate" format:"date-time"`
+	UpdatedPolicyParameters         []UpdatedPolicyTemplateParameter `json:"updatedPolicyParameters"`
+	AffectedPolicies                []PolicyStatus                   `json:"affectedPolicies"`
+}
+
+type PolicyStatus struct {
+	PolicyId         string            `json:"policyId" example:"0091fe9b-e44b-423d-9562-ac2b73089593"`
+	PolicyName       string            `json:"policyName"`
+	PolicyParameters []PolicyParameter `json:"policyPolicyParameters"`
+}
+
+type UpdatedPolicyTemplateParameter struct {
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type PolicyParameter struct {
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Value     string `json:"value"`
+	Updatable bool   `json:"updatable"`
+}
+
+type UpdatedPolicyParameters struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type PolicyUpdate struct {
+	PolicyId                string                    `json:"policyId" example:"0091fe9b-e44b-423d-9562-ac2b73089593"`
+	UpdatedPolicyParameters []UpdatedPolicyParameters `json:"updatedPolicyParameters"`
+}
+
+type UpdateClusterPolicyTemplateStatusRequest struct {
+	TemplateCurrentVersion string `json:"templateCurrentVersion"  example:"v1.0.1"`
+	TemplateTargetVerson   string `json:"templateTargetVerson"  example:"v1.0.3"`
+	// PolicyUpdate           []PolicyUpdate `json:"policyUpdate"`
 }

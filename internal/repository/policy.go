@@ -19,6 +19,8 @@ type IPolicyRepository interface {
 	Update(ctx context.Context, organizationId string, policyId uuid.UUID,
 		updateMap map[string]interface{}, TargetClusters *[]model.Cluster) (err error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (out *[]model.Policy, err error)
+	FetchByClusterId(ctx context.Context, clusterId string, pg *pagination.Pagination) (out *[]model.Policy, err error)
+	FetchByClusterIdAndTemplaeId(ctx context.Context, clusterId string, templateId uuid.UUID) (out *[]model.Policy, err error)
 	ExistByName(ctx context.Context, organizationId string, policyName string) (exist bool, err error)
 	ExistByID(ctx context.Context, organizationId string, policyId uuid.UUID) (exist bool, err error)
 	GetByName(ctx context.Context, organizationId string, policyName string) (out *model.Policy, err error)
@@ -26,6 +28,7 @@ type IPolicyRepository interface {
 	Delete(ctx context.Context, organizationId string, policyId uuid.UUID) (err error)
 	UpdatePolicyTargetClusters(ctx context.Context, organizationId string, policyId uuid.UUID, currentClusterIds []string, targetClusters []model.Cluster) (err error)
 	SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error)
+	GetUsageCountByTemplateId(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (usageCounts []model.UsageCount, err error)
 }
 
 type PolicyRepository struct {
@@ -86,6 +89,36 @@ func (r *PolicyRepository) Fetch(ctx context.Context, organizationId string, pg 
 
 	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations).
 		Where("organization_id = ?", organizationId), &out)
+
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return
+}
+
+func (r *PolicyRepository) FetchByClusterId(ctx context.Context, clusterId string, pg *pagination.Pagination) (out *[]model.Policy, err error) {
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+
+	subQueryClusterId := r.db.Table("policy_target_clusters").Select("policy_id").
+		Where("cluster_id = ?", clusterId)
+
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations).
+		Where("id in (?)", subQueryClusterId), &out)
+
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return
+}
+
+func (r *PolicyRepository) FetchByClusterIdAndTemplaeId(ctx context.Context, clusterId string, templateId uuid.UUID) (out *[]model.Policy, err error) {
+	subQueryClusterId := r.db.Table("policy_target_clusters").Select("policy_id").
+		Where("cluster_id = ?", clusterId)
+
+	res := r.db.WithContext(ctx).Preload(clause.Associations).
+		Where("template_id = ?").Where("id in (?)", subQueryClusterId).Find(&out)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -210,4 +243,30 @@ func (r *PolicyRepository) SetMandatoryPolicies(ctx context.Context, organizatio
 
 		return nil
 	})
+}
+
+func (r *PolicyRepository) GetUsageCountByTemplateId(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (usageCounts []model.UsageCount, err error) {
+	// 다음과 같은 쿼리, organization_id 가 nil인 경우는 and organization_id = '...'를 조합하지 않음
+	// select organizations.id, organizations.name, count(organizations.id) from policies join organizations
+	// 	on policies.organization_id = organizations.id
+	// 	where policies.template_id='7f8a9f78-1771-43d4-aa4a-c395b43ebdd6'
+	// 	and organization_id = 'ozvnzr3oz'
+	// 	group by  organizations.id
+
+	query := r.db.WithContext(ctx).Model(&model.Policy{}).
+		Select("organizations.id as organization_id", "organizations.name as organization_name", "count(organizations.id) as usage_count").
+		Joins("join organizations on policies.organization_id = organizations.id").
+		Where("template_id = ?", policyTemplateId)
+
+	if organizationId != nil {
+		query = query.Where("organization_id = ?", organizationId)
+	}
+
+	err = query.Group("organizations.id").Scan(&usageCounts).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return
 }

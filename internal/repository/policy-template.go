@@ -33,6 +33,7 @@ type IPolicyTemplateRepository interface {
 	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
 	DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error)
 	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
+	GetLatestTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID) (version string, err error)
 }
 
 type PolicyTemplateRepository struct {
@@ -419,4 +420,18 @@ func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Conte
 	}
 
 	return newVersion, nil
+}
+
+func (r *PolicyTemplateRepository) GetLatestTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID) (version string, err error) {
+	var policyTemplateVersion model.PolicyTemplateSupportedVersion
+
+	err = r.db.WithContext(ctx).
+		Where("policy_template_id = ?", policyTemplateId).
+		Order("created_at desc").First(&policyTemplateVersion).Error
+
+	if err != nil {
+		return
+	}
+
+	return policyTemplateVersion.Version, nil
 }

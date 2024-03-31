@@ -747,6 +747,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "ExistsPolicyName", 
 		Group: "Policy",
 	},
+    GetPolicyEdit: {
+		Name: "GetPolicyEdit", 
+		Group: "Policy",
+	},
     ListPolicyTemplate: {
 		Name: "ListPolicyTemplate", 
 		Group: "OrganizationPolicyTemplate",
@@ -1194,6 +1198,8 @@ func (e Endpoint) String() string {
 		return "UpdatePolicyTargetClusters"
 	case ExistsPolicyName:
 		return "ExistsPolicyName"
+	case GetPolicyEdit:
+		return "GetPolicyEdit"
 	case ListPolicyTemplate:
 		return "ListPolicyTemplate"
 	case CreatePolicyTemplate:
@@ -1608,6 +1614,8 @@ func GetEndpoint(name string) Endpoint {
 		return UpdatePolicyTargetClusters
 	case "ExistsPolicyName":
 		return ExistsPolicyName
+	case "GetPolicyEdit":
+		return GetPolicyEdit
 	case "ListPolicyTemplate":
 		return ListPolicyTemplate
 	case "CreatePolicyTemplate":

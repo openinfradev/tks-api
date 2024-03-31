@@ -75,3 +75,9 @@ type PolicyTargetCluster struct {
 	PolicyId  uuid.UUID        `gorm:"primarykey"`
 	ClusterId domain.ClusterId `gorm:"primarykey"`
 }
+
+type UsageCount struct {
+	OrganizationId   string
+	OrganizationName string
+	UsageCount       int
+}
