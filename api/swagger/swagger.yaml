@@ -1947,23 +1947,10 @@ definitions:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           passwordExpired:
             type: boolean
-          projects:
-            items:
-              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse'
-            type: array
           role:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse'
           token:
             type: string
-        type: object
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.LogoutResponse:
-    properties:
-      ssoUrls:
-        additionalProperties:
-          items:
-            type: string
-          type: array
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.MandatoryPolicyInfo:
@@ -2252,15 +2239,6 @@ definitions:
       projectRoleName:
         type: string
       updatedAt:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse:
-    properties:
-      projectId:
-        type: string
-      projectRoleId:
-        type: string
-      projectRoleName:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest:
@@ -4991,11 +4969,7 @@ paths:
       description: logout
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.LogoutResponse'
+      responses: {}
       security:
       - JWT: []
       summary: logout
