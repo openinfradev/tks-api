@@ -10307,7 +10307,6 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.CreateSystemNotificationRuleRequest": {
             "type": "object",
             "required": [
-                "messageCondition",
                 "messageContent",
                 "messageTitle",
                 "name",
@@ -10318,9 +10317,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "messageActionProposal": {
-                    "type": "string"
-                },
-                "messageCondition": {
                     "type": "string"
                 },
                 "messageContent": {
@@ -13026,9 +13022,6 @@ const docTemplate = `{
                 "messageActionProposal": {
                     "type": "string"
                 },
-                "messageCondition": {
-                    "type": "string"
-                },
                 "messageContent": {
                     "type": "string"
                 },
@@ -13605,7 +13598,6 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.UpdateSystemNotificationRuleRequest": {
             "type": "object",
             "required": [
-                "messageCondition",
                 "messageContent",
                 "messageTitle",
                 "name",
@@ -13616,9 +13608,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "messageActionProposal": {
-                    "type": "string"
-                },
-                "messageCondition": {
                     "type": "string"
                 },
                 "messageContent": {

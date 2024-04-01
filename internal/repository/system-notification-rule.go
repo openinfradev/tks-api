@@ -99,7 +99,6 @@ func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model
 	//m.SystemNotificationConditions = dto.SystemNotificationConditions
 	m.MessageTitle = dto.MessageTitle
 	m.MessageContent = dto.MessageContent
-	m.MessageCondition = dto.MessageCondition
 	m.MessageActionProposal = dto.MessageActionProposal
 	m.UpdatorId = dto.UpdatorId
 
