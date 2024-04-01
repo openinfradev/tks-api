@@ -1924,14 +1924,7 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "logout",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.LogoutResponse"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/clusters": {
@@ -11605,30 +11598,10 @@ const docTemplate = `{
                         "passwordExpired": {
                             "type": "boolean"
                         },
-                        "projects": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse"
-                            }
-                        },
                         "role": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse"
                         },
                         "token": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.LogoutResponse": {
-            "type": "object",
-            "properties": {
-                "ssoUrls": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
                             "type": "string"
                         }
                     }
@@ -12051,20 +12024,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.ProjectIdProjectRoleResponse": {
-            "type": "object",
-            "properties": {
-                "projectId": {
-                    "type": "string"
-                },
-                "projectRoleId": {
-                    "type": "string"
-                },
-                "projectRoleName": {
                     "type": "string"
                 }
             }

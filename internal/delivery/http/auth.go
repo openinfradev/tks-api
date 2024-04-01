@@ -112,7 +112,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 //	@Description	logout
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain.LogoutResponse
 //	@Router			/auth/logout [post]
 //	@Security		JWT
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
