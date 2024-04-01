@@ -130,7 +130,6 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRules(w http.Respon
 			if err := serializer.Map(r.Context(), condition, &out.SystemNotificationRules[i].SystemNotificationConditions[j]); err != nil {
 				log.Info(r.Context(), err)
 			}
-			log.Info(r.Context(), condition.Parameter)
 			err = json.Unmarshal(condition.Parameter, &out.SystemNotificationRules[i].SystemNotificationConditions[j].Parameters)
 			if err != nil {
 				log.Error(r.Context(), err)
