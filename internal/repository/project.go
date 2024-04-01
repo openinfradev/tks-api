@@ -84,7 +84,6 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"          left join projects as p on pn.project_id = p.id "+
 		"          left join project_members as pm on pn.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId "+
 		"         group by p.id) as pn on p.id = pn.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(asa.id) as count "+
@@ -92,14 +91,12 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"          left join projects as p on asa.project_id = p.id "+
 		"          left join project_members as pm on asa.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId "+
 		"         group by p.id) as asa on p.id = asa.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pm.id) as count "+
 		"          from project_members as pm "+
 		"          left join projects as p on pm.project_id = p.id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId "+
@@ -122,7 +119,6 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"          left join projects as p on pn.project_id = p.id "+
 		"          left join project_members as pm on pn.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id <> @userId "+
 		"         group by p.id) as pn on p.id = pn.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(asa.id) as count "+
@@ -130,14 +126,12 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"          left join projects as p on asa.project_id = p.id "+
 		"          left join project_members as pm on asa.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id <> @userId "+
 		"         group by p.id) as asa on p.id = asa.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pm.id) as count "+
 		"          from project_members as pm "+
 		"          left join projects as p on pm.project_id = p.id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id <> @userId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id"+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId "+
@@ -175,7 +169,6 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 		"          left join projects as p on pn.project_id = p.id "+
 		"          left join project_members as pm on pn.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId "+
 		"         group by p.id) as pn on p.id = pn.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(asa.id) as count "+
@@ -183,14 +176,12 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 		"          left join projects as p on asa.project_id = p.id "+
 		"          left join project_members as pm on asa.project_id = pm.project_id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId "+
 		"         group by p.id) as asa on p.id = asa.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pm.id) as count "+
 		"          from project_members as pm "+
 		"          left join projects as p on pm.project_id = p.id "+
 		"         where p.organization_id = @organizationId "+
-		"           and pm.project_user_id = @userId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId", sql.Named("organizationId", organizationId), sql.Named("userId", userId)).

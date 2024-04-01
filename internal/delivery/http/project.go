@@ -289,6 +289,26 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var projectRoleId, projectRoleName string
+	requestUserInfo, ok := request.UserFrom(r.Context())
+	if !ok {
+		ErrorJSON(w, r, fmt.Errorf("failed to retrieve user info from request"))
+	}
+	userProjectRole := requestUserInfo.GetRoleProjectMapping()
+	if userProjectRole != nil {
+		projectRoleName = userProjectRole[project.ID]
+	}
+	projectRoles, err := p.usecase.GetProjectRoles(r.Context(), usecase.ProjectAll)
+	if err != nil {
+		ErrorJSON(w, r, fmt.Errorf("failed to retrieve project role"))
+	}
+	for _, projectRole := range projectRoles {
+		if projectRoleName == projectRole.Name {
+			projectRoleId = projectRole.ID
+			break
+		}
+	}
+
 	//appCount, err := p.usecase.GetAppCount(organizationId, projectId)
 	//if err != nil {
 	//	log.Error(r.Context(), "Failed to retrieve app count", err)
@@ -303,14 +323,11 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var projectLeaderId, projectLeaderName, projectLeaderAccountId, projectLeaderDepartment string
-	var projectRoleId, projectRoleName string
 	for _, pu := range project.ProjectMembers {
 		projectLeaderId = pu.ProjectUser.ID.String()
 		projectLeaderName = pu.ProjectUser.Name
 		projectLeaderAccountId = pu.ProjectUser.AccountId
 		projectLeaderDepartment = pu.ProjectUser.Department
-		projectRoleId = pu.ProjectRole.ID
-		projectRoleName = pu.ProjectRole.Name
 	}
 
 	var pdr domain.ProjectDetailResponse
