@@ -8,30 +8,19 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	User struct {
-		AccountId       string                          `json:"accountId"`
-		Name            string                          `json:"name"`
-		Token           string                          `json:"token"`
-		Role            RoleIdRoleNameResponse          `json:"role"`
-		Projects        []*ProjectIdProjectRoleResponse `json:"projects"`
-		Department      string                          `json:"department"`
-		Organization    OrganizationResponse            `json:"organization"`
-		PasswordExpired bool                            `json:"passwordExpired"`
+		AccountId       string                 `json:"accountId"`
+		Name            string                 `json:"name"`
+		Token           string                 `json:"token"`
+		Role            RoleIdRoleNameResponse `json:"role"`
+		Department      string                 `json:"department"`
+		Organization    OrganizationResponse   `json:"organization"`
+		PasswordExpired bool                   `json:"passwordExpired"`
 	} `json:"user"`
 }
 
 type RoleIdRoleNameResponse struct {
 	ID   string `json:"roleId"`
 	Name string `json:"roleName"`
-}
-
-type ProjectIdProjectRoleResponse struct {
-	ID              string `json:"projectId"`
-	ProjectRoleId   string `json:"projectRoleId"`
-	ProjectRoleName string `json:"projectRoleName"`
-}
-
-type LogoutResponse struct {
-	SsoUrls map[string][]string `json:"ssoUrls"`
 }
 
 type VerifyIdentityForLostIdRequest struct {
