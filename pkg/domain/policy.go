@@ -44,7 +44,7 @@ type PolicyResponse struct {
 	Parameters        string          `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
 	FilledParameters  []*ParameterDef `json:"filledParameters"`
 	Match             *Match          `json:"match,omitempty"`
-	MatchYaml         *string         `json:"matchYaml,omitempty" "namespaces:\r\n- testns1"`
+	MatchYaml         *string         `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
