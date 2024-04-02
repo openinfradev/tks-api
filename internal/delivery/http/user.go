@@ -25,6 +25,7 @@ type IUserHandler interface {
 	Get(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
+	UpdateUsers(w http.ResponseWriter, r *http.Request)
 	ResetPassword(w http.ResponseWriter, r *http.Request)
 
 	GetMyProfile(w http.ResponseWriter, r *http.Request)
@@ -345,6 +346,77 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// UpdateUsers godoc
+//
+//	@Tags			Users
+//	@Summary		Update multiple users
+//	@Description	Update multiple users
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string						true	"organizationId"
+//	@Param			body			body		[]domain.UpdateUsersRequest	true	"input"
+//	@Success		200
+//	@Router			/organizations/{organizationId}/users [put]
+//	@Security		JWT
+func (u UserHandler) UpdateUsers(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.UpdateUsersRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	users := make([]model.User, len(input.Users))
+	for i, user := range input.Users {
+		if err = serializer.Map(r.Context(), user, &users[i]); err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+		users[i].Organization = model.Organization{
+			ID: organizationId,
+		}
+
+		users[i].AccountId = user.AccountId
+
+		for _, role := range roles {
+			if role.Name == user.Role {
+				users[i].Role = *role
+				break
+			}
+		}
+
+		//ToDo: Implement transaction
+		_, err := u.usecase.UpdateByAccountIdByAdmin(r.Context(), user.AccountId, &users[i])
+		if err != nil {
+			if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+				ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+				return
+			}
+
+			ErrorJSON(w, r, err)
+			return
+		}
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // ResetPassword godoc

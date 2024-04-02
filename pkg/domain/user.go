@@ -117,6 +117,17 @@ type UpdateUserRequest struct {
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
 }
 
+type UpdateUsersRequest struct {
+	Users []struct {
+		AccountId   string `json:"accountId" validate:"required"`
+		Name        string `json:"name" validate:"omitempty,min=1,max=30"`
+		Role        string `json:"role" validate:"oneof=admin user"`
+		Email       string `json:"email" validate:"omitempty,email"`
+		Department  string `json:"department" validate:"omitempty,min=0,max=50"`
+		Description string `json:"description" validate:"omitempty,min=0,max=100"`
+	} `json:"users"`
+}
+
 type UpdateUserResponse struct {
 	User struct {
 		ID           string               `json:"id"`

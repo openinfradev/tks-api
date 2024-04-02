@@ -25,6 +25,7 @@ const (
 	ListUser
 	GetUser
 	DeleteUser
+	UpdateUsers
 	UpdateUser
 	ResetPassword
 	CheckId

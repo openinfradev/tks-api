@@ -112,6 +112,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.CreateUser, http.HandlerFunc(userHandler.Create))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.ListUser, http.HandlerFunc(userHandler.List))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.GetUser, http.HandlerFunc(userHandler.Get))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.UpdateUsers, http.HandlerFunc(userHandler.UpdateUsers))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.UpdateUser, http.HandlerFunc(userHandler.Update))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/reset-password", customMiddleware.Handle(internalApi.ResetPassword, http.HandlerFunc(userHandler.ResetPassword))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.DeleteUser, http.HandlerFunc(userHandler.Delete))).Methods(http.MethodDelete)
