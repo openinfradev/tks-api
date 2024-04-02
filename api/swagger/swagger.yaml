@@ -546,6 +546,35 @@ definitions:
       validity:
         type: integer
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ClusterPolicyStatusResponse:
+    properties:
+      policyDescription:
+        example: org 레이블 설정 여부 검사
+        type: string
+      policyId:
+        example: 0091fe9b-e44b-423d-9562-ac2b73089593
+        type: string
+      policyMandatory:
+        type: boolean
+      policyName:
+        example: org 레이블 요구
+        type: string
+      templateCurrentVersion:
+        example: v1.0.1
+        type: string
+      templateDescription:
+        example: 파라미터로 설정된 레이블 검사
+        type: string
+      templateId:
+        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
+        type: string
+      templateLatestVerson:
+        example: v1.0.3
+        type: string
+      templateName:
+        example: 레이블 요구
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ClusterResponse:
     properties:
       byoClusterEndpointHost:
@@ -1470,6 +1499,37 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterNode'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetClusterPolicyTemplateStatusResponse:
+    properties:
+      affectedPolicies:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyStatus'
+        type: array
+      templateCurrentVersion:
+        example: v1.0.1
+        type: string
+      templateDescription:
+        example: 파라미터로 설정된 레이블 검사
+        type: string
+      templateId:
+        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
+        type: string
+      templateLatestVerson:
+        example: v1.0.3
+        type: string
+      templateLatestVersonReleaseDate:
+        format: date-time
+        type: string
+      templateMandatory:
+        type: boolean
+      templateName:
+        example: 레이블 요구
+        type: string
+      updatedPolicyParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatedPolicyTemplateParameter'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetClusterResponse:
     properties:
       cluster:
@@ -1841,6 +1901,13 @@ definitions:
       id:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ListClusterPolicyStatusResponse:
+    properties:
+      polices:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterPolicyStatusResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse:
     properties:
       organizations:
@@ -2099,6 +2166,17 @@ definitions:
       value:
         type: integer
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyParameter:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      updatable:
+        type: boolean
+      value:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.PolicyResponse:
     properties:
       createdAt:
@@ -2110,6 +2188,10 @@ definitions:
         type: string
       enforcementAction:
         type: string
+      filledParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
       id:
         example: d98ef5f1-4a68-4047-a446-2207787ce3ff
         type: string
@@ -2122,7 +2204,7 @@ definitions:
           refer: match.Match
         type: object
       parameters:
-        example: '"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"'
+        example: '{"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"}'
         type: string
       policyName:
         example: label 정책
@@ -2145,6 +2227,18 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyStatus:
+    properties:
+      policyId:
+        example: 0091fe9b-e44b-423d-9562-ac2b73089593
+        type: string
+      policyName:
+        type: string
+      policyPolicyParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyParameter'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse:
     properties:
@@ -3001,6 +3095,15 @@ definitions:
       description:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateClusterPolicyTemplateStatusRequest:
+    properties:
+      templateCurrentVersion:
+        example: v1.0.1
+        type: string
+      templateTargetVerson:
+        example: v1.0.3
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest:
     properties:
       groupName:
@@ -3368,6 +3471,15 @@ definitions:
           updatedAt:
             type: string
         type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdatedPolicyTemplateParameter:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdRequest:
     properties:
@@ -5163,6 +5275,111 @@ paths:
       summary: Get nodes information for BYOH
       tags:
       - Clusters
+  /clusters/{clusterId}/policy-status:
+    get:
+      consumes:
+      - application/json
+      description: 클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.
+      parameters:
+      - description: 클러스터 식별자(uuid)
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: pageSize
+        type: string
+      - description: pageNumber
+        in: query
+        name: pageNumber
+        type: string
+      - description: sortColumn
+        in: query
+        name: sortColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListClusterPolicyStatusResponse'
+      security:
+      - JWT: []
+      summary: '[ListClusterPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회'
+      tags:
+      - ClusterPolicyStatus
+  /clusters/{clusterId}/policy-templates/{templateId}:
+    get:
+      consumes:
+      - application/json
+      description: 템플릿의 클러스터 버전 등 상태를 조회한다.
+      parameters:
+      - description: 클러스터 식별자(uuid)
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: templateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterPolicyTemplateStatusResponse'
+      security:
+      - JWT: []
+      summary: '[GetClusterPolicyTemplateStatus] 클러스터 템플릿 상태 상세 조회'
+      tags:
+      - ClusterPolicyStatus
+    patch:
+      consumes:
+      - application/json
+      description: 해당 템플릿의 버전 업데이트 및 연관된 정책의 새 기본값을 설정한다.
+      parameters:
+      - description: 클러스터 식별자(uuid)
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: templateId
+        required: true
+        type: string
+      - description: update cluster policy template status request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateClusterPolicyTemplateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[UpdateClusterPolicyTemplateStatus] 템플릿 버전 업데이트'
+      tags:
+      - ClusterPolicyStatus
   /clusters/{clusterId}/site-values:
     get:
       consumes:
@@ -6182,6 +6399,34 @@ paths:
       security:
       - JWT: []
       summary: '[UpdatePolicyTargetClusters] 정책 적용 대상 클러스터 수정'
+      tags:
+      - Policy
+  /organizations/{organizationId}/policies/{policyId}/edit:
+    get:
+      consumes:
+      - application/json
+      description: 정책 정보를 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 식별자(uuid)
+        in: path
+        name: policyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse'
+      security:
+      - JWT: []
+      summary: '[GetPolicy] 정책 조회'
       tags:
       - Policy
   /organizations/{organizationId}/policies/name/{policyName}/existence:

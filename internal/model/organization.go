@@ -27,5 +27,5 @@ type Organization struct {
 	SystemNotificationTemplateIds []uuid.UUID                  `gorm:"-:all"`
 	ClusterCount                  int                          `gorm:"-:all"`
 	AdminId                       *uuid.UUID
-	Admin                         *User `gorm:"foreignKey:AdminId"`
+	Admin                         *User `gorm:"-:all"`
 }

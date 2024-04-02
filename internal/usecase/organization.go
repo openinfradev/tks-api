@@ -32,6 +32,7 @@ type IOrganizationUsecase interface {
 
 type OrganizationUsecase struct {
 	repo                           repository.IOrganizationRepository
+	userRepo                       repository.IUserRepository
 	roleRepo                       repository.IRoleRepository
 	clusterRepo                    repository.IClusterRepository
 	stackTemplateRepo              repository.IStackTemplateRepository
@@ -43,6 +44,7 @@ type OrganizationUsecase struct {
 func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
 		repo:                           r.Organization,
+		userRepo:                       r.User,
 		roleRepo:                       r.Role,
 		clusterRepo:                    r.Cluster,
 		stackTemplateRepo:              r.StackTemplate,
@@ -99,12 +101,36 @@ func (u *OrganizationUsecase) Fetch(ctx context.Context, pg *pagination.Paginati
 	if err != nil {
 		return nil, err
 	}
+
+	// Make Admin object
+	users, err := u.userRepo.List(ctx)
+	if err == nil {
+		for i, organization := range *organizations {
+			if organization.AdminId == nil {
+				continue
+			}
+			for _, user := range *users {
+				if user.ID == *organization.AdminId {
+					(*organizations)[i].Admin = &user
+				}
+			}
+		}
+	}
+
 	return organizations, nil
 }
 func (u *OrganizationUsecase) Get(ctx context.Context, organizationId string) (out model.Organization, err error) {
 	out, err = u.repo.Get(ctx, organizationId)
 	if err != nil {
 		return model.Organization{}, httpErrors.NewNotFoundError(err, "", "")
+	}
+
+	// Make Admin object
+	if out.AdminId != nil {
+		admin, err := u.userRepo.GetByUuid(ctx, *out.AdminId)
+		if err == nil {
+			out.Admin = &admin
+		}
 	}
 
 	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
