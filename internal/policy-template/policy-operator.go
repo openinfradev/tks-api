@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal/model"
+	"github.com/openinfradev/tks-api/pkg/domain"
+	"gopkg.in/yaml.v3"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -17,6 +19,16 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 
 	labels := map[string]string{}
 	labels["app.kubernetes.io/part-of"] = "tks-policy-operator"
+
+	if policy.MatchYaml != nil {
+		var match domain.Match
+
+		err := yaml.Unmarshal([]byte(*policy.MatchYaml), &match)
+
+		if err != nil {
+			policy.Match = &match
+		}
+	}
 
 	return &TKSPolicy{
 		TypeMeta: metav1.TypeMeta{

@@ -14,6 +14,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"gopkg.in/yaml.v3"
 )
 
 type PolicyHandler struct {
@@ -70,6 +71,22 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
+	}
+
+	if input.Match != nil && input.MatchYaml != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("both match and match yaml specified"), "P_INVALID_MATCH", ""))
+		return
+	}
+
+	if input.MatchYaml != nil {
+		var match domain.Match
+
+		err := yaml.Unmarshal([]byte(*input.MatchYaml), &match)
+
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
+			return
+		}
 	}
 
 	var dto model.Policy
@@ -134,6 +151,22 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if input.Match != nil && input.MatchYaml != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("both match and match yaml specified"), "P_INVALID_MATCH", ""))
+		return
+	}
+
+	if input.MatchYaml != nil {
+		var match domain.Match
+
+		err := yaml.Unmarshal([]byte(*input.MatchYaml), &match)
+
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
+			return
+		}
+	}
+
 	var templateId *uuid.UUID = nil
 
 	if input.TemplateId != nil {
@@ -147,8 +180,8 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.usecase.Update(r.Context(), organizationId, id,
-		input.Mandatory, input.PolicyName, &input.Description, templateId, input.EnforcementAction,
-		input.Parameters, input.Match, input.TargetClusterIds)
+		input.Mandatory, input.PolicyName, input.Description, templateId, input.EnforcementAction,
+		input.Parameters, input.Match, input.MatchYaml, input.TargetClusterIds)
 
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)

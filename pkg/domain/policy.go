@@ -40,10 +40,11 @@ type PolicyResponse struct {
 	Description       string          `json:"description"`
 	TemplateId        string          `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	TemplateName      string          `json:"templateName" example:"필수 Label 검사"`
-	EnforcementAction string          `json:"enforcementAction" enum:"warn,deny,dryrun"`
-	Parameters        string          `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\"}"`
+	EnforcementAction string          `json:"enforcementAction" enum:"warn,deny,dryrun" example:"deny"`
+	Parameters        string          `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
 	FilledParameters  []*ParameterDef `json:"filledParameters"`
-	Match             *Match          `json:"match,omitempty" swaggertype:"object,string" example:"refer:match.Match"`
+	Match             *Match          `json:"match,omitempty"`
+	MatchYaml         *string         `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
@@ -51,12 +52,13 @@ type CreatePolicyRequest struct {
 	TargetClusterIds []string `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        bool     `json:"mandatory"`
 
-	PolicyName        string `json:"policyName" example:"label 정책"`
-	Description       string `json:"description"`
-	TemplateId        string `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	EnforcementAction string `json:"enforcementAction" enum:"warn,deny,dryrun"`
-	Parameters        string `json:"parameters" example:"\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""`
-	Match             *Match `json:"match,omitempty" swaggertype:"object,string" example:"refer:match.Match"`
+	PolicyName        string  `json:"policyName" example:"label 정책"`
+	Description       string  `json:"description"`
+	TemplateId        string  `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	EnforcementAction string  `json:"enforcementAction" enum:"warn,deny,dryrun"  example:"deny"`
+	Parameters        string  `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
+	Match             *Match  `json:"match,omitempty"`
+	MatchYaml         *string `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
@@ -69,11 +71,12 @@ type UpdatePolicyRequest struct {
 	Mandatory        *bool     `json:"mandatory,omitempty"`
 
 	PolicyName        *string `json:"policyName,omitempty" example:"label 정책"`
-	Description       string  `json:"description"`
+	Description       *string `json:"description"`
 	TemplateId        *string `json:"templateId,omitempty" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	EnforcementAction *string `json:"enforcementAction,omitempty" enum:"warn,deny,dryrun"`
-	Parameters        *string `json:"parameters,omitempty" example:"\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""`
-	Match             *Match  `json:"match,omitempty" swaggertype:"object,string" example:"refer:match.Match"`
+	Parameters        *string `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
+	Match             *Match  `json:"match,omitempty"`
+	MatchYaml         *string `json:"matchYaml,omitempty"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 

@@ -132,6 +132,7 @@ var errorMap = map[ErrorCode]string{
 	"P_CREATE_ALREADY_EXISTED_NAME": "정첵에 이미 존재하는 이름입니다.",
 	"P_NOT_FOUND_POLICY":            "정책이 존재하지 않습니다.",
 	"P_INVALID_POLICY_NAME":         "유효하지 않은 정책 이름입니다. 정책 이름을 확인하세요.",
+	"P_INVALID_MATCH":               "유효하지 않은 match 설정입니다. match 설정을 확인하세요.",
 	"P_FAILED_FETCH_POLICY":         "정책 ID에 해당하는 정책을 가져오는데 실패했습니다.",
 	"P_FAILED_FETCH_CLUSTER":        "정책의 클러스터 정보를 가져오는데 실패했습니다.",
 	"P_CALL_TO_APPLY_KUBERNETES":    "쿠버네티스 클러스터 호출에 실패했습니다.",
