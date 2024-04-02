@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -15,7 +16,7 @@ type IRoleRepository interface {
 	Create(ctx context.Context, roleObj *model.Role) (string, error)
 	ListTksRoles(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]*model.Role, error)
 	GetTksRole(ctx context.Context, id string) (*model.Role, error)
-	GetTksRoleByRoleName(ctx context.Context, roleName string) (*model.Role, error)
+	GetTksRoleByRoleName(ctx context.Context, organizationId string, roleName string) (*model.Role, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, roleObj *model.Role) error
 }
@@ -24,9 +25,12 @@ type RoleRepository struct {
 	db *gorm.DB
 }
 
-func (r RoleRepository) GetTksRoleByRoleName(ctx context.Context, roleName string) (*model.Role, error) {
+func (r RoleRepository) GetTksRoleByRoleName(ctx context.Context, oragnizationId string, roleName string) (*model.Role, error) {
 	var role model.Role
-	if err := r.db.WithContext(ctx).Preload("Role").First(&role, "Role.name = ?", roleName).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&role, "organization_id = ? AND name = ?", oragnizationId, roleName).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

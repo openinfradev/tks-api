@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"github.com/openinfradev/tks-api/internal/model"
 	"context"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 )
@@ -13,6 +13,7 @@ type IRoleUsecase interface {
 	GetTksRole(ctx context.Context, id string) (*model.Role, error)
 	DeleteTksRole(ctx context.Context, id string) error
 	UpdateTksRole(ctx context.Context, role *model.Role) error
+	IsRoleNameExisted(ctx context.Context, organizationId string, roleName string) (bool, error)
 }
 
 type RoleUsecase struct {
@@ -58,4 +59,17 @@ func (r RoleUsecase) UpdateTksRole(ctx context.Context, role *model.Role) error 
 	}
 
 	return nil
+}
+
+func (r RoleUsecase) IsRoleNameExisted(ctx context.Context, organizationId string, roleName string) (bool, error) {
+	role, err := r.repo.GetTksRoleByRoleName(ctx, organizationId, roleName)
+	if err != nil {
+		return false, err
+	}
+
+	if role != nil {
+		return true, nil
+	}
+
+	return false, nil
 }

@@ -58,5 +58,10 @@ type ListTksRoleResponse struct {
 }
 
 type UpdateTksRoleRequest struct {
+	Name        string `json:"name" validate:"omitempty,min=0,max=100"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
+}
+
+type CheckRoleNameResponse struct {
+	IsExist bool `json:"isExist"`
 }

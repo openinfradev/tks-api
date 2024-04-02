@@ -195,6 +195,7 @@ const (
 	UpdateTksRole
 	GetPermissionsByRoleId
 	UpdatePermissionsByRoleId
+	IsRoleNameExisted
 
 	// Permission
 	GetPermissionTemplates

@@ -20,9 +20,9 @@ type IRoleHandler interface {
 	GetTksRole(w http.ResponseWriter, r *http.Request)
 	DeleteTksRole(w http.ResponseWriter, r *http.Request)
 	UpdateTksRole(w http.ResponseWriter, r *http.Request)
-
 	GetPermissionsByRoleId(w http.ResponseWriter, r *http.Request)
 	UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request)
+	IsRoleNameExisted(w http.ResponseWriter, r *http.Request)
 
 	Admin_ListTksRoles(w http.ResponseWriter, r *http.Request)
 	Admin_GetTksRole(w http.ResponseWriter, r *http.Request)
@@ -264,6 +264,7 @@ func (h RoleHandler) UpdateTksRole(w http.ResponseWriter, r *http.Request) {
 	// input to dto
 	dto := model.Role{
 		ID:          roleId,
+		Name:        input.Name,
 		Description: input.Description,
 	}
 
@@ -394,6 +395,7 @@ func (h RoleHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Re
 //	@Param			organizationId	path		string	true	"Organization ID"
 //	@Success		200				{object}	domain.ListTksRoleResponse
 //	@Router			/admin/organizations/{organizationId}/roles [get]
+//	@Security		JWT
 func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) {
 	// Same as ListTksRoles
 
@@ -450,6 +452,7 @@ func (h RoleHandler) Admin_ListTksRoles(w http.ResponseWriter, r *http.Request) 
 //	@Param			roleId			path		string	true	"Role ID"
 //	@Success		200				{object}	domain.GetTksRoleResponse
 //	@Router			/admin/organizations/{organizationId}/roles/{roleId} [get]
+//	@Security		JWT
 func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// Same as GetTksRole
 
@@ -479,5 +482,47 @@ func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:      role.UpdatedAt,
 	}
 
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// IsRoleNameExisted godoc
+//
+//	@Tags			Roles
+//	@Summary		Check whether the role name exists
+//	@Description	Check whether the role name exists
+//	@Produce		json
+//	@Param			organizationId	path	string	true	"Organization ID"
+//	@Param			roleName		path	string	true	"Role Name"
+//	@Success		200 {object} domain.CheckRoleNameResponse
+//	@Router			/organizations/{organizationId}/roles/{roleName}/existence [get]
+//	@Security		JWT
+func (h RoleHandler) IsRoleNameExisted(w http.ResponseWriter, r *http.Request) {
+	// path parameter
+	vars := mux.Vars(r)
+	var organizationId, roleName string
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+	if v, ok := vars["roleName"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		roleName = v
+	}
+
+	// check role name exist
+	isExist, err := h.roleUsecase.IsRoleNameExisted(r.Context(), organizationId, roleName)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.CheckRoleNameResponse
+	out.IsExist = isExist
+
+	// response
 	ResponseJSON(w, r, http.StatusOK, out)
 }
