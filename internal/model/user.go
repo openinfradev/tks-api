@@ -12,8 +12,7 @@ type User struct {
 	Password          string    `gorm:"-:all" json:"password"`
 	Name              string    `json:"name"`
 	Token             string    `json:"token"`
-	RoleId            string
-	Role              Role `gorm:"foreignKey:RoleId;references:ID" json:"role"`
+	Roles             []Role    `gorm:"many2many:user_roles;" json:"roles"`
 	OrganizationId    string
 	Organization      Organization `gorm:"foreignKey:OrganizationId;references:ID" json:"organization"`
 	Creator           string       `json:"creator"`

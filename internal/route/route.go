@@ -79,7 +79,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
 		Project:                    usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 		Audit:                      usecase.NewAuditUsecase(repoFactory),
-		Role:                       usecase.NewRoleUsecase(repoFactory),
+		Role:                       usecase.NewRoleUsecase(repoFactory, kc),
 		Permission:                 usecase.NewPermissionUsecase(repoFactory),
 		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
 		Policy:                     usecase.NewPolicyUsecase(repoFactory),

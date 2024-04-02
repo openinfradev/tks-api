@@ -14,14 +14,12 @@ import (
 
 // Interface
 type IUserRepository interface {
-	CreateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, email string,
-		department string, description string, organizationId string, roleId string) (model.User, error)
+	Create(ctx context.Context, user *model.User) (*model.User, error)
 	List(ctx context.Context, filters ...FilterFunc) (out *[]model.User, err error)
 	ListWithPagination(ctx context.Context, pg *pagination.Pagination, organizationId string) (out *[]model.User, err error)
 	Get(ctx context.Context, accountId string, organizationId string) (model.User, error)
 	GetByUuid(ctx context.Context, userId uuid.UUID) (model.User, error)
-	UpdateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, roleId string, email string,
-		department string, description string) (model.User, error)
+	Update(ctx context.Context, user *model.User) (*model.User, error)
 	UpdatePasswordAt(ctx context.Context, userId uuid.UUID, organizationId string, isTemporary bool) error
 	DeleteWithUuid(ctx context.Context, uuid uuid.UUID) error
 	Flush(ctx context.Context, organizationId string) error
@@ -51,31 +49,33 @@ func NewUserRepository(db *gorm.DB) IUserRepository {
 	}
 }
 
-func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, email string,
-	department string, description string, organizationId string, roleId string) (model.User, error) {
-
-	newUser := model.User{
-		ID:                uuid,
-		AccountId:         accountId,
-		Name:              name,
-		Email:             email,
-		Department:        department,
-		Description:       description,
-		OrganizationId:    organizationId,
-		RoleId:            roleId,
-		PasswordUpdatedAt: time.Now(),
-	}
-	res := r.db.WithContext(ctx).Create(&newUser)
+// func (r *UserRepository) CreateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, email string,
+//
+//	department string, description string, organizationId string, roleId string) (model.User, error) {
+func (r *UserRepository) Create(ctx context.Context, user *model.User) (*model.User, error) {
+	user.PasswordUpdatedAt = time.Now()
+	//newUser := model.User{
+	//	ID:                uuid,
+	//	AccountId:         accountId,
+	//	Name:              name,
+	//	Email:             email,
+	//	Department:        department,
+	//	Description:       description,
+	//	OrganizationId:    organizationId,
+	//	RoleId:            roleId,
+	//	PasswordUpdatedAt: time.Now(),
+	//}
+	res := r.db.WithContext(ctx).Create(user)
 	if res.Error != nil {
 		log.Error(ctx, res.Error.Error())
-		return model.User{}, res.Error
+		return nil, res.Error
 	}
-	user, err := r.getUserByAccountId(ctx, accountId, organizationId)
+	resp, err := r.getUserByAccountId(ctx, user.AccountId, user.Organization.ID)
 	if err != nil {
-		return model.User{}, err
+		return nil, err
 	}
 
-	return user, nil
+	return &resp, nil
 }
 
 func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]model.User, error) {
@@ -83,7 +83,7 @@ func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]mo
 	var res *gorm.DB
 
 	if filters == nil {
-		res = r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").Find(&users)
+		res = r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Roles").Find(&users)
 	} else {
 		combinedFilter := func(filters ...FilterFunc) FilterFunc {
 			return func(user *gorm.DB) *gorm.DB {
@@ -94,7 +94,7 @@ func (r *UserRepository) List(ctx context.Context, filters ...FilterFunc) (*[]mo
 			}
 		}
 		cFunc := combinedFilter(filters...)
-		res = cFunc(r.db.Model(&model.User{}).Preload("Organization").Preload("Role")).Find(&users)
+		res = cFunc(r.db.Model(&model.User{}).Preload("Organization").Preload("Roles")).Find(&users)
 	}
 
 	if res.Error != nil {
@@ -118,7 +118,7 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Role").Model(&model.User{}).Where("users.organization_id = ?", organizationId), &users)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Roles").Model(&model.User{}).Where("users.organization_id = ?", organizationId), &users)
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error
@@ -141,7 +141,7 @@ func (r *UserRepository) Get(ctx context.Context, accountId string, organization
 
 func (r *UserRepository) GetByUuid(ctx context.Context, userId uuid.UUID) (respUser model.User, err error) {
 	user := model.User{}
-	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").Find(&user, "id = ?", userId)
+	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Roles").Find(&user, "id = ?", userId)
 
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
@@ -153,29 +153,30 @@ func (r *UserRepository) GetByUuid(ctx context.Context, userId uuid.UUID) (respU
 
 	return user, nil
 }
-func (r *UserRepository) UpdateWithUuid(ctx context.Context, uuid uuid.UUID, accountId string, name string, roleId string,
-	email string, department string, description string) (model.User, error) {
-	var user model.User
-	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", uuid).Updates(model.User{
-		AccountId:   accountId,
-		Name:        name,
-		Email:       email,
-		Department:  department,
-		Description: description,
-		RoleId:      roleId,
+
+// func (r *UserRepository) Update(ctx context.Context, uuid uuid.UUID, accountId string, name string, roleId string,
+//
+//	email string, department string, description string) (model.User, error) {
+func (r *UserRepository) Update(ctx context.Context, user *model.User) (*model.User, error) {
+	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).Updates(model.User{
+		Name:        user.Name,
+		Email:       user.Email,
+		Department:  user.Department,
+		Description: user.Description,
+		Roles:       user.Roles,
 	})
-	if res.RowsAffected == 0 || res.Error != nil {
-		return model.User{}, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
-	}
+
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
-		return model.User{}, res.Error
+		return nil, res.Error
 	}
-	res = r.db.Model(&model.User{}).Preload("Organization").Preload("Role").Where("id = ?", uuid).Find(&user)
+
+	outUser := model.User{}
+	res = r.db.Model(&model.User{}).Preload("Organization").Preload("Roles").Where("users.id = ?", user.ID).Find(&outUser)
 	if res.Error != nil {
-		return model.User{}, res.Error
+		return nil, res.Error
 	}
-	return user, nil
+	return &outUser, nil
 }
 
 func (r *UserRepository) UpdatePasswordAt(ctx context.Context, userId uuid.UUID, organizationId string, isTemporary bool) error {
@@ -217,32 +218,10 @@ func (r *UserRepository) GetRoleByName(ctx context.Context, roleName string) (mo
 	return role, nil
 }
 
-//func (r *UserRepository) FetchRoles() (*[]model.Role, error) {
-//	var roles []model.Role
-//	res := r.db.Find(&roles)
-//
-//	if res.Error != nil {
-//		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-//		return nil, res.Error
-//	}
-//
-//	if res.RowsAffected == 0 {
-//		return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
-//	}
-//
-//	var out []model.Role
-//	for _, role := range roles {
-//		outRole := r.reflectRole(role)
-//		out = append(out, outRole)
-//	}
-//
-//	return &out, nil
-//}
-
 // private members
 func (r *UserRepository) getUserByAccountId(ctx context.Context, accountId string, organizationId string) (model.User, error) {
 	user := model.User{}
-	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Role").
+	res := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Roles").
 		Find(&user, "account_id = ? AND organization_id = ?", accountId, organizationId)
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)

@@ -99,18 +99,10 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	user.Organization = model.Organization{
 		ID: organizationId,
 	}
-
-	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
-	for _, role := range roles {
-		if role.Name == input.Role {
-			user.Role = *role
-			break
-		}
+	for _, role := range input.Roles {
+		user.Roles = append(user.Roles, model.Role{
+			ID: *role.ID,
+		})
 	}
 
 	resUser, err := u.usecase.Create(ctx, &user)
@@ -305,29 +297,31 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
-	if err = serializer.Map(r.Context(), input, &user); err != nil {
-		ErrorJSON(w, r, err)
-		return
-	}
 	user.Organization = model.Organization{
 		ID: organizationId,
 	}
 	user.AccountId = accountId
 
-	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
-	for _, role := range roles {
-		if role.Name == input.Role {
-			user.Role = *role
-			break
+	user.Email = input.Email
+	user.Name = input.Name
+	user.Department = input.Department
+	user.Description = input.Description
+	if input.Roles != nil {
+		for _, role := range *input.Roles {
+			user.Roles = append(user.Roles, model.Role{
+				ID: *role.ID,
+			})
 		}
+	} else {
+		orginUser, err := u.usecase.GetByAccountId(ctx, accountId, organizationId)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+		user.Roles = orginUser.Roles
 	}
 
-	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
+	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -535,8 +529,9 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.ID = requestUserInfo.GetUserId()
 	user.OrganizationId = organizationId
-	resUser, err := u.usecase.Update(ctx, requestUserInfo.GetUserId(), &user)
+	resUser, err := u.usecase.Update(ctx, &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -778,7 +773,9 @@ func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Re
 	}
 
 	var roles []*model.Role
-	roles = append(roles, &user.Role)
+	for _, role := range user.Roles {
+		roles = append(roles, &role)
+	}
 
 	var permissionSets []*model.PermissionSet
 	for _, role := range roles {
@@ -871,18 +868,10 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		Description: input.Description,
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	for _, role := range roles {
-		if role.Name == input.Role {
-			user.Role = *role
-			break
-		}
+	for _, role := range input.Roles {
+		user.Roles = append(user.Roles, model.Role{
+			ID: *role.ID,
+		})
 	}
 
 	user.Organization = model.Organization{
@@ -1136,21 +1125,13 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 	user.Organization = model.Organization{
 		ID: organizationId,
 	}
-
-	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
-	for _, role := range roles {
-		if role.Name == input.Role {
-			user.Role = *role
-			break
-		}
+	for _, role := range input.Roles {
+		user.Roles = append(user.Roles, model.Role{
+			ID: *role.ID,
+		})
 	}
 
-	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, accountId, &user)
+	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, &user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))

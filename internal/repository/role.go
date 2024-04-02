@@ -41,7 +41,9 @@ func (r RoleRepository) Create(ctx context.Context, roleObj *model.Role) (string
 	if roleObj == nil {
 		return "", fmt.Errorf("roleObj is nil")
 	}
-	roleObj.ID = uuid.New().String()
+	if roleObj.ID == "" {
+		roleObj.ID = uuid.New().String()
+	}
 	if err := r.db.WithContext(ctx).Create(roleObj).Error; err != nil {
 		return "", err
 	}

@@ -219,8 +219,16 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 		roleId = v
 	}
 
+	var organizationId string
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+
 	// delete role
-	if err := h.roleUsecase.DeleteTksRole(r.Context(), roleId); err != nil {
+	if err := h.roleUsecase.DeleteTksRole(r.Context(), organizationId, roleId); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}

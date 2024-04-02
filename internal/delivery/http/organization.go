@@ -112,8 +112,21 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 		return
 	}
 
+	user := model.User{
+		Organization: model.Organization{
+			ID: organizationId,
+		},
+		AccountId: input.AdminAccountId,
+		Name:      input.AdminName,
+		Email:     input.AdminEmail,
+		Roles: []model.Role{
+			{
+				ID: adminRoleId,
+			},
+		},
+	}
 	// Admin user 생성
-	admin, err := h.userUsecase.CreateAdmin(r.Context(), organizationId, input.AdminAccountId, input.AdminName, input.AdminEmail)
+	admin, err := h.userUsecase.CreateAdmin(r.Context(), &user)
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
