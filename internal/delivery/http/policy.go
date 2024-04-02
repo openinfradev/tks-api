@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	policytemplate "github.com/openinfradev/tks-api/internal/policy-template"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -29,6 +30,10 @@ type IPolicyHandler interface {
 	GetMandatoryPolicies(w http.ResponseWriter, r *http.Request)
 	SetMandatoryPolicies(w http.ResponseWriter, r *http.Request)
 	ExistsPolicyName(w http.ResponseWriter, r *http.Request)
+	ListClusterPolicyStatus(w http.ResponseWriter, r *http.Request)
+	GetClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
+	UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
+	GetPolicyEdit(w http.ResponseWriter, r *http.Request)
 }
 
 func NewPolicyHandler(u usecase.Usecase) IPolicyHandler {
@@ -447,6 +452,7 @@ func (h *PolicyHandler) SetMandatoryPolicies(w http.ResponseWriter, r *http.Requ
 			"C_INVALID_ORGANIZATION_ID", ""))
 		return
 	}
+
 	input := domain.SetMandatoryPoliciesRequest{}
 
 	err := UnmarshalRequestInput(r, &input)
@@ -528,6 +534,231 @@ func (h *PolicyHandler) ExistsPolicyName(w http.ResponseWriter, r *http.Request)
 
 	var out domain.CheckExistedResponse
 	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// ListClusterPolicyStatus godoc
+//
+//	@Tags			ClusterPolicyStatus
+//	@Summary		[ListClusterPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회
+//	@Description	클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string		true	"클러스터 식별자(uuid)"
+//	@Param			pageSize	query		string		false	"pageSize"
+//	@Param			pageNumber	query		string		false	"pageNumber"
+//	@Param			sortColumn	query		string		false	"sortColumn"
+//	@Param			sortOrder	query		string		false	"sortOrder"
+//	@Param			filters		query		[]string	false	"filters"
+//	@Success		200			{object}	domain.ListClusterPolicyStatusResponse
+//	@Router			/clusters/{clusterId}/policy-status [get]
+//	@Security		JWT
+func (h *PolicyHandler) ListClusterPolicyStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
+			"C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+
+	pg := pagination.NewPagination(&urlParams)
+
+	policyStatuses, err := h.usecase.ListClusterPolicyStatus(r.Context(), clusterId, pg)
+
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	out := domain.ListClusterPolicyStatusResponse{
+		Polices: policyStatuses,
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetClusterPolicyTemplateStatus godoc
+//
+//	@Tags			ClusterPolicyStatus
+//	@Summary		[GetClusterPolicyTemplateStatus] 클러스터 템플릿 상태 상세 조회
+//	@Description	템플릿의 클러스터 버전 등 상태를 조회한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"클러스터 식별자(uuid)"
+//	@Param			templateId	path		string	true	"정책 템플릿 식별자(uuid)"
+//	@Success		200			{object}	domain.GetClusterPolicyTemplateStatusResponse
+//	@Router			/clusters/{clusterId}/policy-templates/{templateId} [get]
+//	@Security		JWT
+func (h *PolicyHandler) GetClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
+			"C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyId"), "C_INVALID_POLICY_ID", ""))
+		return
+	}
+
+	out, err := h.usecase.GetClusterPolicyTemplateStatus(r.Context(), clusterId, id)
+
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// UpdateClusterPolicyTemplateStatus godoc
+//
+//	@Tags			ClusterPolicyStatus
+//	@Summary		[UpdateClusterPolicyTemplateStatus] 템플릿 버전 업데이트
+//	@Description	해당 템플릿의 버전 업데이트 및 연관된 정책의 새 기본값을 설정한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string											true	"클러스터 식별자(uuid)"
+//	@Param			templateId	path		string											true	"정책 템플릿 식별자(uuid)"
+//	@Param			body		body		domain.UpdateClusterPolicyTemplateStatusRequest	true	"update cluster policy template status request"
+//	@Success		200			{object}	nil
+//	@Router			/clusters/{clusterId}/policy-templates/{templateId} [patch]
+//	@Security		JWT
+func (h *PolicyHandler) UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
+			"C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	input := domain.UpdateClusterPolicyTemplateStatusRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyId"), "C_INVALID_POLICY_ID", ""))
+		return
+	}
+
+	err = h.usecase.UpdateClusterPolicyTemplateStatus(r.Context(), clusterId, id,
+		input.TemplateCurrentVersion, input.TemplateTargetVerson)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// GetPolicyEdit godoc
+//
+//	@Tags			Policy
+//	@Summary		[GetPolicy] 정책 조회
+//	@Description	정책 정보를 조회한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"조직 식별자(o로 시작)"
+//	@Param			policyId		path		string	true	"정책 식별자(uuid)"
+//	@Success		200				{object}	domain.GetPolicyResponse
+//	@Router			/organizations/{organizationId}/policies/{policyId}/edit [get]
+//	@Security		JWT
+func (h *PolicyHandler) GetPolicyEdit(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	policyId, ok := vars["policyId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyId"), "C_INVALID_POLICY_ID", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_ID", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	policy, err := h.usecase.GetForEdit(r.Context(), organizationId, id)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_NOT_FOUND_POLICY", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	if policy == nil {
+		ResponseJSON(w, r, http.StatusNotFound, nil)
+		return
+	}
+
+	var out domain.GetPolicyResponse
+	if err = serializer.Map(r.Context(), *policy, &out.Policy); err != nil {
+		log.Error(r.Context(), err)
+	}
+
+	parameterSchema := policy.PolicyTemplate.ParametersSchema
+	parameters := policy.Parameters
+
+	err = policytemplate.FillParamDefFromJsonStr(parameterSchema, parameters)
+	if err != nil {
+		log.Error(r.Context(), err)
+	} else {
+		out.Policy.FilledParameters = parameterSchema
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

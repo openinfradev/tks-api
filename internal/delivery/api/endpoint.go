@@ -243,6 +243,7 @@ const (
 	UpdatePolicy
 	UpdatePolicyTargetClusters
 	ExistsPolicyName
+	GetPolicyEdit
 
 	// OrganizationPolicyTemplate
 	ListPolicyTemplate

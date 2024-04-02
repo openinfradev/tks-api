@@ -3,8 +3,10 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	admin_domain "github.com/openinfradev/tks-api/pkg/domain/admin"
+	"github.com/openinfradev/tks-api/pkg/log"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/google/uuid"
@@ -38,17 +40,22 @@ type IPolicyTemplateUsecase interface {
 		policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) error
 	FillPermittedOrganizationsForList(ctx context.Context,
 		policyTemplates *[]model.PolicyTemplate, outs *[]admin_domain.PolicyTemplateResponse) error
+
+	ListPolicyTemplateStatistics(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (statistics []model.UsageCount, err error)
+	GetPolicyTemplateDeploy(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (deployInfo domain.GetPolicyTemplateDeployResponse, err error)
 }
 
 type PolicyTemplateUsecase struct {
 	organizationRepo repository.IOrganizationRepository
 	clusterRepo      repository.IClusterRepository
+	policyRepo       repository.IPolicyRepository
 	repo             repository.IPolicyTemplateRepository
 }
 
 func NewPolicyTemplateUsecase(r repository.Repository) IPolicyTemplateUsecase {
 	return &PolicyTemplateUsecase{
 		repo:             r.PolicyTemplate,
+		policyRepo:       r.Policy,
 		organizationRepo: r.Organization,
 		clusterRepo:      r.Cluster,
 	}
@@ -450,4 +457,66 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 	}
 
 	return response, nil
+}
+
+func (u *PolicyTemplateUsecase) ListPolicyTemplateStatistics(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (statistics []model.UsageCount, err error) {
+	return u.policyRepo.GetUsageCountByTemplateId(ctx, organizationId, policyTemplateId)
+}
+
+func (u *PolicyTemplateUsecase) GetPolicyTemplateDeploy(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (deployVersions domain.GetPolicyTemplateDeployResponse, err error) {
+	policyTemplate, err := u.repo.GetByID(ctx, policyTemplateId)
+
+	if err != nil {
+		return deployVersions, err
+	}
+
+	if !policyTemplate.IsPermittedToOrganization(organizationId) {
+		return deployVersions, httpErrors.NewNotFoundError(fmt.Errorf(
+			"policy template not found"),
+			"PT_NOT_FOUND_POLICY_TEMPLATE", "")
+	}
+
+	if organizationId == nil {
+		organizations, err := u.organizationRepo.Fetch(ctx, nil)
+		if err != nil {
+			return deployVersions, err
+		}
+
+		deployVersions.DeployVersion = map[string]string{}
+		for _, organization := range *organizations {
+			tksPolicyTemplate, err := policytemplate.GetTksPolicyTemplateCR(ctx, organization.PrimaryClusterId, strings.ToLower(policyTemplate.Kind))
+			if err != nil {
+				log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+				continue
+			}
+
+			for clusterId, status := range tksPolicyTemplate.Status.TemplateStatus {
+				if status != nil {
+					deployVersions.DeployVersion[clusterId] = status.Version
+				}
+			}
+		}
+
+		return deployVersions, nil
+	}
+
+	organization, err := u.organizationRepo.Get(ctx, *organizationId)
+	if err != nil {
+		return deployVersions, err
+	}
+
+	tksPolicyTemplate, err := policytemplate.GetTksPolicyTemplateCR(ctx, organization.PrimaryClusterId, strings.ToLower(policyTemplate.Kind))
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return deployVersions, httpErrors.NewInternalServerError(err, "P_FAILED_TO_CALL_KUBERNETES", "")
+	}
+
+	for clusterId, status := range tksPolicyTemplate.Status.TemplateStatus {
+		if status != nil {
+			deployVersions.DeployVersion[clusterId] = status.Version
+		}
+	}
+
+	return deployVersions, nil
 }

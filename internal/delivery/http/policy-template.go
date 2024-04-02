@@ -369,21 +369,39 @@ func (h *PolicyTemplateHandler) Admin_ListPolicyTemplateVersions(w http.Response
 //	@Router			/admin/policy-templates/{policyTemplateId}/statistics [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) Admin_ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request) {
-	// result := admin_domain.ListPolicyTemplateStatisticsResponse{
-	// 	PolicyTemplateStatistics: []admin_domain.PolicyTemplateStatistics{
-	// 		{
-	// 			OrganizationId:   util.UUIDGen(),
-	// 			OrganizationName: "개발팀",
-	// 			UsageCount:       10,
-	// 		},
-	// 		{
-	// 			OrganizationId:   util.UUIDGen(),
-	// 			OrganizationName: "운영팀",
-	// 			UsageCount:       5,
-	// 		},
-	// 	},
-	// }
-	// util.JsonResponse(w, result)
+	vars := mux.Vars(r)
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	usageCounts, err := h.usecase.ListPolicyTemplateStatistics(r.Context(), nil, id)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out admin_domain.ListPolicyTemplateStatisticsResponse
+	out.PolicyTemplateStatistics = make([]admin_domain.PolicyTemplateStatistics, len(usageCounts))
+	for i, usageCount := range usageCounts {
+		if err := serializer.Map(r.Context(), usageCount, &out.PolicyTemplateStatistics[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // Admin_GetPolicyTemplateDeploy godoc
@@ -398,18 +416,31 @@ func (h *PolicyTemplateHandler) Admin_ListPolicyTemplateStatistics(w http.Respon
 //	@Router			/admin/policy-templates/{policyTemplateId}/deploy [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request) {
-	// c1 := util.UUIDGen()
-	// c2 := util.UUIDGen()
-	// c3 := util.UUIDGen()
+	vars := mux.Vars(r)
 
-	// result := admin_domain.GetPolicyTemplateDeployResponse{
-	// 	DeployVersion: map[string]string{
-	// 		c1: "v1.0.1",
-	// 		c2: "v1.1.0",
-	// 		c3: "v1.1.0",
-	// 	},
-	// }
-	// util.JsonResponse(w, result)
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	out, err := h.usecase.GetPolicyTemplateDeploy(r.Context(), nil, id)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // Admin_GetPolicyTemplateVersion godoc
@@ -748,6 +779,9 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplate(w http.ResponseWriter, r *h
 		log.Info(r.Context(), err)
 	}
 
+	// // no converter found for *[]domain.ParameterDef -> []*domain.ParameterDef
+	// dto.ParametersSchema = input.ParametersSchema
+
 	dto.Type = "organization"
 	dto.OrganizationId = &organizationId
 
@@ -1063,21 +1097,45 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateVersions(w http.ResponseWriter
 //	@Router			/organizations/{organizationId}/policy-templates/{policyTemplateId}/statistics [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWriter, r *http.Request) {
-	// result := domain.ListPolicyTemplateStatisticsResponse{
-	// 	PolicyTemplateStatistics: []domain.PolicyTemplateStatistics{
-	// 		{
-	// 			OrganizationId:   util.UUIDGen(),
-	// 			OrganizationName: "개발팀",
-	// 			UsageCount:       10,
-	// 		},
-	// 		{
-	// 			OrganizationId:   util.UUIDGen(),
-	// 			OrganizationName: "운영팀",
-	// 			UsageCount:       5,
-	// 		},
-	// 	},
-	// }
-	// util.JsonResponse(w, result)
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	usageCounts, err := h.usecase.ListPolicyTemplateStatistics(r.Context(), &organizationId, id)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.ListPolicyTemplateStatisticsResponse
+	out.PolicyTemplateStatistics = make([]domain.PolicyTemplateStatistics, len(usageCounts))
+	for i, usageCount := range usageCounts {
+		if err := serializer.Map(r.Context(), usageCount, &out.PolicyTemplateStatistics[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
+	}
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetPolicyTemplateDeploy godoc
@@ -1093,18 +1151,37 @@ func (h *PolicyTemplateHandler) ListPolicyTemplateStatistics(w http.ResponseWrit
 //	@Router			/organizations/{organizationId}/policy-templates/{policyTemplateId}/deploy [get]
 //	@Security		JWT
 func (h *PolicyTemplateHandler) GetPolicyTemplateDeploy(w http.ResponseWriter, r *http.Request) {
-	// c1 := util.UUIDGen()
-	// c2 := util.UUIDGen()
-	// c3 := util.UUIDGen()
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
 
-	// result := domain.GetPolicyTemplateDeployResponse{
-	// 	DeployVersion: map[string]string{
-	// 		c1: "v1.0.1",
-	// 		c2: "v1.1.0",
-	// 		c3: "v1.1.0",
-	// 	},
-	// }
-	// util.JsonResponse(w, result)
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	out, err := h.usecase.GetPolicyTemplateDeploy(r.Context(), &organizationId, id)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetPolicyTemplateVersion godoc

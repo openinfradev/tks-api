@@ -40,15 +40,15 @@ type PolicyTemplate struct {
 	Deprecated               bool
 	Mandatory                bool // Tks 인 경우에는 무시
 	Severity                 string
-	PermittedOrganizations   []Organization        `gorm:"many2many:policy_template_permitted_organizations"`
-	ParametersSchema         []domain.ParameterDef `gorm:"-:all"`
-	Rego                     string                `gorm:"-:all"`
-	Libs                     []string              `gorm:"-:all"`
-	PermittedOrganizationIds []string              `gorm:"-:all"`
-	CreatorId                *uuid.UUID            `gorm:"type:uuid"`
-	Creator                  User                  `gorm:"foreignKey:CreatorId"`
-	UpdatorId                *uuid.UUID            `gorm:"type:uuid"`
-	Updator                  User                  `gorm:"foreignKey:UpdatorId"`
+	PermittedOrganizations   []Organization         `gorm:"many2many:policy_template_permitted_organizations"`
+	ParametersSchema         []*domain.ParameterDef `gorm:"-:all"`
+	Rego                     string                 `gorm:"-:all"`
+	Libs                     []string               `gorm:"-:all"`
+	PermittedOrganizationIds []string               `gorm:"-:all"`
+	CreatorId                *uuid.UUID             `gorm:"type:uuid"`
+	Creator                  User                   `gorm:"foreignKey:CreatorId"`
+	UpdatorId                *uuid.UUID             `gorm:"type:uuid"`
+	Updator                  User                   `gorm:"foreignKey:UpdatorId"`
 }
 
 func (pt *PolicyTemplate) IsTksTemplate() bool {
