@@ -369,6 +369,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, user *model.User) (
 			return nil, err
 		}
 	}
+	user.ID = (*users)[0].ID
 
 	resp, err := u.userRepository.Update(ctx, user)
 	if err != nil {
@@ -461,44 +462,47 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, newUser *mod
 		return nil, httpErrors.NewBadRequestError(fmt.Errorf("accountId is required"), "C_INVALID_ACCOUNT_ID", "")
 	}
 
-	deepCopyUser := *newUser
-	user, err := u.UpdateByAccountId(ctx, &deepCopyUser)
+	originUser, err := u.userRepository.Get(ctx, newUser.AccountId, newUser.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	var unassigningRoleIds, assigningRoleIds map[string]struct{}
+	unassigningRoleIds, assigningRoleIds := make(map[string]model.Role), make(map[string]model.Role)
 	for _, role := range newUser.Roles {
-		assigningRoleIds[role.ID] = struct{}{}
+		assigningRoleIds[role.ID] = role
 	}
-	for _, role := range user.Roles {
+	for _, role := range originUser.Roles {
 		if _, ok := assigningRoleIds[role.ID]; !ok {
-			unassigningRoleIds[role.ID] = struct{}{}
+			unassigningRoleIds[role.ID] = role
 		} else {
 			delete(assigningRoleIds, role.ID)
 		}
 	}
 
-	for roleId := range unassigningRoleIds {
-		groupName := fmt.Sprintf("%s@%s", roleId, user.Organization.ID)
-		if err := u.kc.LeaveGroup(ctx, user.Organization.ID, user.ID.String(), groupName); err != nil {
+	for _, role := range unassigningRoleIds {
+		groupName := fmt.Sprintf("%s@%s", role.Name, originUser.Organization.ID)
+		if err := u.kc.LeaveGroup(ctx, originUser.Organization.ID, originUser.ID.String(), groupName); err != nil {
 			log.Errorf(ctx, "leave group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
 
-	for roleId := range assigningRoleIds {
-		groupName := fmt.Sprintf("%s@%s", roleId, user.Organization.ID)
-		if err := u.kc.JoinGroup(ctx, user.Organization.ID, user.ID.String(), groupName); err != nil {
+	for _, role := range assigningRoleIds {
+		groupName := fmt.Sprintf("%s@%s", role.Name, originUser.Organization.ID)
+		if err := u.kc.JoinGroup(ctx, originUser.Organization.ID, originUser.ID.String(), groupName); err != nil {
 			log.Errorf(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
 	}
 
-	err = u.authRepository.UpdateExpiredTimeOnToken(ctx, user.Organization.ID, user.ID.String())
+	err = u.authRepository.UpdateExpiredTimeOnToken(ctx, originUser.Organization.ID, originUser.ID.String())
+	originUser.Name = newUser.Name
+	originUser.Email = newUser.Email
+	originUser.Department = newUser.Department
+	originUser.Description = newUser.Description
+	originUser.Roles = newUser.Roles
 
-	user.Roles = newUser.Roles
-	resp, err := u.userRepository.Update(ctx, user)
+	resp, err := u.userRepository.Update(ctx, &originUser)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
 	}

@@ -154,16 +154,12 @@ func (r *UserRepository) GetByUuid(ctx context.Context, userId uuid.UUID) (respU
 	return user, nil
 }
 
-// func (r *UserRepository) Update(ctx context.Context, uuid uuid.UUID, accountId string, name string, roleId string,
-//
-//	email string, department string, description string) (model.User, error) {
 func (r *UserRepository) Update(ctx context.Context, user *model.User) (*model.User, error) {
 	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).Updates(model.User{
 		Name:        user.Name,
 		Email:       user.Email,
 		Department:  user.Department,
 		Description: user.Description,
-		Roles:       user.Roles,
 	})
 
 	if res.Error != nil {
@@ -171,8 +167,22 @@ func (r *UserRepository) Update(ctx context.Context, user *model.User) (*model.U
 		return nil, res.Error
 	}
 
+	var u model.User
+	if err := r.db.WithContext(ctx).Preload("Roles").First(&u, "id = ?", user.ID).Error; err != nil {
+		return nil, err
+	}
+	if err := r.db.WithContext(ctx).Model(&u).Association("Roles").Clear(); err != nil {
+		return nil, err
+	}
+
+	for _, role := range user.Roles {
+		if err := r.db.WithContext(ctx).Model(&u).Association("Roles").Append(&role); err != nil {
+			return nil, err
+		}
+	}
+
 	outUser := model.User{}
-	res = r.db.Model(&model.User{}).Preload("Organization").Preload("Roles").Where("users.id = ?", user.ID).Find(&outUser)
+	res = r.db.WithContext(ctx).Preload("Organization").Preload("Roles").Model(&model.User{}).Where("users.id = ?", user.ID).Find(&outUser)
 	if res.Error != nil {
 		return nil, res.Error
 	}

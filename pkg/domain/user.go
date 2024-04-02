@@ -30,7 +30,7 @@ type UserResponse struct {
 	Name              string    `json:"name"`
 	Token             string    `json:"token"`
 	RoleId            string
-	Roles             []RoleResponse `json:"roles"`
+	Roles             []SimpleRoleResponse `json:"roles"`
 	OrganizationId    string
 	Organization      OrganizationResponse `gorm:"foreignKey:OrganizationId;references:ID" json:"organization"`
 	Creator           string               `json:"creator"`
@@ -114,21 +114,21 @@ type ListUserBody struct {
 }
 
 type UpdateUserRequest struct {
-	Name        string              `json:"name" validate:"required,min=1,max=30"`
-	Roles       *[]UserCreationRole `json:"roles" validate:"required"`
-	Email       string              `json:"email" validate:"required,email"`
-	Department  string              `json:"department" validate:"required,min=0,max=50"`
-	Description string              `json:"description" validate:"required,min=0,max=100"`
+	Name        string             `json:"name" validate:"required""`
+	Roles       []UserCreationRole `json:"roles" validate:"required"`
+	Email       string             `json:"email" validate:"required,email"`
+	Department  string             `json:"department" validate:"min=0,max=50"`
+	Description string             `json:"description" validate:"min=0,max=100"`
 }
 
 type UpdateUsersRequest struct {
 	Users []struct {
-		AccountId   string `json:"accountId" validate:"required"`
-		Name        string `json:"name" validate:"omitempty,min=1,max=30"`
-		Role        string `json:"role" validate:"oneof=admin user"`
-		Email       string `json:"email" validate:"omitempty,email"`
-		Department  string `json:"department" validate:"omitempty,min=0,max=50"`
-		Description string `json:"description" validate:"omitempty,min=0,max=100"`
+		AccountId   string             `json:"accountId" validate:"required"`
+		Name        string             `json:"name" validate:"required,name"`
+		Roles       []UserCreationRole `json:"roles" validate:"required"`
+		Email       string             `json:"email" validate:"required,email"`
+		Department  string             `json:"department" validate:"min=0,max=50"`
+		Description string             `json:"description" validate:"min=0,max=100"`
 	} `json:"users"`
 }
 
@@ -152,7 +152,7 @@ type GetMyProfileResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Roles        []RoleResponse       `json:"roles"`
+		Roles        []SimpleRoleResponse `json:"roles"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`

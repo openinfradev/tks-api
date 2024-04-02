@@ -100,9 +100,13 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 	for _, role := range input.Roles {
-		user.Roles = append(user.Roles, model.Role{
-			ID: *role.ID,
-		})
+		v, err := u.roleUsecase.GetTksRole(ctx, *role.ID)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		user.Roles = append(user.Roles, *v)
 	}
 
 	resUser, err := u.usecase.Create(ctx, &user)
@@ -121,6 +125,8 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
+
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
 
 	ResponseJSON(w, r, http.StatusCreated, out)
 
@@ -169,6 +175,8 @@ func (u UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 		log.Error(r.Context(), err)
 	}
 
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
@@ -211,6 +219,10 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
 			log.Error(r.Context(), err)
 		}
+
+		if out.Users[i].Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles); err != nil {
+			log.Error(r.Context(), err)
+		}
 	}
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
@@ -218,6 +230,18 @@ func (u UserHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+func (u UserHandler) convertUserRolesToSimpleRoleResponse(roles []model.Role) []domain.SimpleRoleResponse {
+	var simpleRoles []domain.SimpleRoleResponse
+	for _, role := range roles {
+		simpleRoles = append(simpleRoles, domain.SimpleRoleResponse{
+			ID:   role.ID,
+			Name: role.Name,
+		})
+	}
+
+	return simpleRoles
 }
 
 // Delete godoc
@@ -297,28 +321,21 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var user model.User
+	if err = serializer.Map(r.Context(), input, &user); err != nil {
+		log.Error(r.Context(), err)
+	}
 	user.Organization = model.Organization{
 		ID: organizationId,
 	}
 	user.AccountId = accountId
-
-	user.Email = input.Email
-	user.Name = input.Name
-	user.Department = input.Department
-	user.Description = input.Description
-	if input.Roles != nil {
-		for _, role := range *input.Roles {
-			user.Roles = append(user.Roles, model.Role{
-				ID: *role.ID,
-			})
-		}
-	} else {
-		orginUser, err := u.usecase.GetByAccountId(ctx, accountId, organizationId)
+	for _, role := range input.Roles {
+		v, err := u.roleUsecase.GetTksRole(ctx, *role.ID)
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
 		}
-		user.Roles = orginUser.Roles
+
+		user.Roles = append(user.Roles, *v)
 	}
 
 	resUser, err := u.usecase.UpdateByAccountIdByAdmin(ctx, &user)
@@ -338,6 +355,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -371,12 +389,7 @@ func (u UserHandler) UpdateUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roles, err := u.roleUsecase.ListTksRoles(r.Context(), organizationId, nil)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
+	ctx := r.Context()
 
 	users := make([]model.User, len(input.Users))
 	for i, user := range input.Users {
@@ -387,18 +400,20 @@ func (u UserHandler) UpdateUsers(w http.ResponseWriter, r *http.Request) {
 		users[i].Organization = model.Organization{
 			ID: organizationId,
 		}
-
 		users[i].AccountId = user.AccountId
 
-		for _, role := range roles {
-			if role.Name == user.Role {
-				users[i].Role = *role
-				break
+		for _, role := range user.Roles {
+			v, err := u.roleUsecase.GetTksRole(ctx, *role.ID)
+			if err != nil {
+				ErrorJSON(w, r, err)
+				return
 			}
+
+			users[i].Roles = append(users[i].Roles, *v)
 		}
 
 		//ToDo: Implement transaction
-		_, err := u.usecase.UpdateByAccountIdByAdmin(r.Context(), user.AccountId, &users[i])
+		_, err := u.usecase.UpdateByAccountIdByAdmin(r.Context(), &users[i])
 		if err != nil {
 			if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 				ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
@@ -477,6 +492,8 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
@@ -547,6 +564,8 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
+
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -869,9 +888,13 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, role := range input.Roles {
-		user.Roles = append(user.Roles, model.Role{
-			ID: *role.ID,
-		})
+		v, err := u.roleUsecase.GetTksRole(r.Context(), *role.ID)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		user.Roles = append(user.Roles, *v)
 	}
 
 	user.Organization = model.Organization{
@@ -945,6 +968,10 @@ func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
 		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
 			log.Error(r.Context(), err)
 		}
+
+		if out.Users[i].Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles); err != nil {
+			log.Error(r.Context(), err)
+		}
 	}
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
@@ -995,6 +1022,8 @@ func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
+
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -1148,6 +1177,8 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
+
+	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

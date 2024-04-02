@@ -30,7 +30,7 @@ type GetUserResponse struct {
 		ID           string                      `json:"id"`
 		AccountId    string                      `json:"accountId"`
 		Name         string                      `json:"name"`
-		Role         domain.RoleResponse         `json:"role"`
+		Roles        []domain.SimpleRoleResponse `json:"roles"`
 		Organization domain.OrganizationResponse `json:"organization"`
 		Email        string                      `json:"email"`
 		Department   string                      `json:"department"`
@@ -55,7 +55,7 @@ type UpdateUserResponse struct {
 		ID           string                      `json:"id"`
 		AccountId    string                      `json:"accountId"`
 		Name         string                      `json:"name"`
-		Role         domain.RoleResponse         `json:"role"`
+		Roles        []domain.SimpleRoleResponse `json:"roles"`
 		Organization domain.OrganizationResponse `json:"organization"`
 		Email        string                      `json:"email"`
 		Department   string                      `json:"department"`

@@ -27,10 +27,8 @@ type RoleResponse struct {
 }
 
 type SimpleRoleResponse = struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	OrganizationID string `json:"organizationId"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type CreateTksRoleRequest struct {
