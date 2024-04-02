@@ -10430,6 +10430,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "policyIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "stackTemplateId": {
                     "type": "string"
                 },

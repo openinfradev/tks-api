@@ -181,6 +181,13 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRule(w http.Respons
 		log.Info(r.Context(), err)
 	}
 
+	out.SystemNotificationRule.TargetUsers = make([]domain.SimpleUserResponse, len(systemNotificationRule.TargetUsers))
+	for i, targetUser := range systemNotificationRule.TargetUsers {
+		if err := serializer.Map(r.Context(), targetUser, &out.SystemNotificationRule.TargetUsers[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+	}
+
 	out.SystemNotificationRule.SystemNotificationConditions = make([]domain.SystemNotificationConditionResponse, len(systemNotificationRule.SystemNotificationConditions))
 	for i, condition := range systemNotificationRule.SystemNotificationConditions {
 		if err := serializer.Map(r.Context(), condition, &out.SystemNotificationRule.SystemNotificationConditions[i]); err != nil {
