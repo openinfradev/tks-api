@@ -2231,6 +2231,7 @@ definitions:
       match:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
       matchYaml:
+        example: "namespaces:\r\n- testns1"
         type: string
       parameters:
         example: '{"labels":{"key":"owner","allowedRegex":"test*"}'

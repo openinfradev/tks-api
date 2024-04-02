@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
-	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -18,6 +17,7 @@ import (
 	argowf "github.com/openinfradev/tks-api/pkg/argo-client"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/kubernetes"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"

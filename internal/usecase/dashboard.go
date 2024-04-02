@@ -10,12 +10,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
-	"github.com/openinfradev/tks-api/internal/kubernetes"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/kubernetes"
 	"github.com/openinfradev/tks-api/pkg/log"
 	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
 	gcache "github.com/patrickmn/go-cache"

@@ -2,11 +2,12 @@ package kubernetes_test
 
 import (
 	"context"
-	"github.com/openinfradev/tks-api/internal/kubernetes"
-	"gopkg.in/yaml.v3"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/openinfradev/tks-api/pkg/kubernetes"
+	"gopkg.in/yaml.v3"
 )
 
 const path = "/Users/1113433/local_vm_kube/kubeconfig"

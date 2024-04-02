@@ -12226,7 +12226,8 @@ const docTemplate = `{
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
                 },
                 "matchYaml": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "namespaces:\r\n- testns1"
                 },
                 "parameters": {
                     "type": "string",

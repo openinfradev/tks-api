@@ -4,6 +4,31 @@ import (
 	"time"
 )
 
+// enum
+type SystemNotificationRuleStatus int32
+
+const (
+	SystemNotificationRuleStatus_PENDING SystemNotificationRuleStatus = iota
+	SystemNotificationRuleStatus_APPLYED
+	SystemNotificationRuleStatus_ERROR
+)
+
+var systemNotificationRuleStatus = [...]string{
+	"PENDING",
+	"APPLYED",
+	"ERROR",
+}
+
+func (m SystemNotificationRuleStatus) String() string { return systemNotificationRuleStatus[(m)] }
+func (m SystemNotificationRuleStatus) FromString(s string) SystemNotificationRuleStatus {
+	for i, v := range systemNotificationRuleStatus {
+		if v == s {
+			return SystemNotificationRuleStatus(i)
+		}
+	}
+	return SystemNotificationRuleStatus_PENDING
+}
+
 type SystemNotificationRuleResponse struct {
 	ID                           string                                   `json:"id"`
 	Name                         string                                   `json:"name"`

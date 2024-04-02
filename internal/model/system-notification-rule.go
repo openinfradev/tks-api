@@ -36,6 +36,7 @@ type SystemNotificationRule struct {
 	MessageTitle                 string
 	MessageContent               string
 	MessageActionProposal        string
+	Status                       domain.SystemNotificationRuleStatus
 	CreatorId                    *uuid.UUID `gorm:"type:uuid"`
 	Creator                      *User      `gorm:"foreignKey:CreatorId"`
 	UpdatorId                    *uuid.UUID `gorm:"type:uuid"`
