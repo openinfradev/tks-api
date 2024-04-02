@@ -895,10 +895,13 @@ definitions:
         example: "namespaces:\r\n- testns1"
         type: string
       parameters:
-        example: '{"labels":{"key":"owner","allowedRegex":"test*"}'
+        example: '{"key":"value"}'
         type: string
       policyName:
         example: label 정책
+        type: string
+      policyResourceName:
+        example: labelpolicy
         type: string
       targetClusterIds:
         example:
@@ -2231,12 +2234,16 @@ definitions:
       match:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
       matchYaml:
+        example: "namespaces:\r\n- testns1"
         type: string
       parameters:
-        example: '{"labels":{"key":"owner","allowedRegex":"test*"}'
+        example: '{"key":"value"}'
         type: string
       policyName:
         example: label 정책
+        type: string
+      policyResourceName:
+        example: labelpolicy
         type: string
       targetClusterIds:
         example:

@@ -10209,11 +10209,15 @@ const docTemplate = `{
                 },
                 "parameters": {
                     "type": "string",
-                    "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
+                    "example": "{\"key\":\"value\"}"
                 },
                 "policyName": {
                     "type": "string",
                     "example": "label 정책"
+                },
+                "policyResourceName": {
+                    "type": "string",
+                    "example": "labelpolicy"
                 },
                 "targetClusterIds": {
                     "type": "array",
@@ -12226,15 +12230,20 @@ const docTemplate = `{
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
                 },
                 "matchYaml": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "namespaces:\r\n- testns1"
                 },
                 "parameters": {
                     "type": "string",
-                    "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
+                    "example": "{\"key\":\"value\"}"
                 },
                 "policyName": {
                     "type": "string",
                     "example": "label 정책"
+                },
+                "policyResourceName": {
+                    "type": "string",
+                    "example": "labelpolicy"
                 },
                 "targetClusterIds": {
                     "type": "array",

@@ -36,15 +36,16 @@ type PolicyResponse struct {
 	TargetClusterIds []string `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        bool     `json:"mandatory"`
 
-	PolicyName        string          `json:"policyName" example:"label 정책"`
-	Description       string          `json:"description"`
-	TemplateId        string          `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	TemplateName      string          `json:"templateName" example:"필수 Label 검사"`
-	EnforcementAction string          `json:"enforcementAction" enum:"warn,deny,dryrun" example:"deny"`
-	Parameters        string          `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
-	FilledParameters  []*ParameterDef `json:"filledParameters"`
-	Match             *Match          `json:"match,omitempty"`
-	MatchYaml         *string         `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
+	PolicyName         string          `json:"policyName" example:"label 정책"`
+	PolicyResourceName string          `json:"policyResourceName,omitempty" example:"labelpolicy"`
+	Description        string          `json:"description"`
+	TemplateId         string          `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	TemplateName       string          `json:"templateName" example:"필수 Label 검사"`
+	EnforcementAction  string          `json:"enforcementAction" enum:"warn,deny,dryrun" example:"deny"`
+	Parameters         string          `json:"parameters" example:"{\"key\":\"value\"}"`
+	FilledParameters   []*ParameterDef `json:"filledParameters"`
+	Match              *Match          `json:"match,omitempty"`
+	MatchYaml          *string         `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
@@ -52,13 +53,14 @@ type CreatePolicyRequest struct {
 	TargetClusterIds []string `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        bool     `json:"mandatory"`
 
-	PolicyName        string  `json:"policyName" example:"label 정책"`
-	Description       string  `json:"description"`
-	TemplateId        string  `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	EnforcementAction string  `json:"enforcementAction" enum:"warn,deny,dryrun"  example:"deny"`
-	Parameters        string  `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
-	Match             *Match  `json:"match,omitempty"`
-	MatchYaml         *string `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
+	PolicyName         string  `json:"policyName" example:"label 정책"`
+	PolicyResourceName string  `json:"policyResourceName,omitempty" example:"labelpolicy"`
+	Description        string  `json:"description"`
+	TemplateId         string  `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	EnforcementAction  string  `json:"enforcementAction" enum:"warn,deny,dryrun" example:"deny"`
+	Parameters         string  `json:"parameters" example:"{\"key\":\"value\"}"`
+	Match              *Match  `json:"match,omitempty"`
+	MatchYaml          *string `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 

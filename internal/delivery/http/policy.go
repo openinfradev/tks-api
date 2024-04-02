@@ -15,6 +15,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gopkg.in/yaml.v3"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type PolicyHandler struct {
@@ -85,6 +86,15 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
+			return
+		}
+	}
+
+	if len(input.PolicyResourceName) > 0 {
+		errMsgs := validation.IsDNS1123Subdomain(input.PolicyResourceName)
+
+		if len(errMsgs) > 0 {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid k8s resource name for policy: %v", errMsgs), "P_INVALID_RESURCE_NAME", ""))
 			return
 		}
 	}
