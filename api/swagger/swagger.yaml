@@ -1044,6 +1044,10 @@ definitions:
         type: string
       name:
         type: string
+      policyIds:
+        items:
+          type: string
+        type: array
       stackTemplateId:
         type: string
       tksCpNode:

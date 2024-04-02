@@ -81,22 +81,23 @@ type StackStepStatus struct {
 }
 
 type CreateStackRequest struct {
-	Name             string `json:"name" validate:"required,name,rfc1123"`
-	Description      string `json:"description"`
-	ClusterId        string `json:"clusterId"`
-	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
-	CloudAccountId   string `json:"cloudAccountId"`
-	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
-	TksCpNode        int    `json:"tksCpNode"`
-	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode     int    `json:"tksInfraNode"`
-	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode      int    `json:"tksUserNode"`
-	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+	Name             string   `json:"name" validate:"required,name,rfc1123"`
+	Description      string   `json:"description"`
+	ClusterId        string   `json:"clusterId"`
+	CloudService     string   `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId  string   `json:"stackTemplateId" validate:"required"`
+	CloudAccountId   string   `json:"cloudAccountId"`
+	ClusterEndpoint  string   `json:"userClusterEndpoint,omitempty"`
+	PolicyIds        []string `json:"policyIds,omitempty"`
+	TksCpNode        int      `json:"tksCpNode"`
+	TksCpNodeMax     int      `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string   `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int      `json:"tksInfraNode"`
+	TksInfraNodeMax  int      `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string   `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int      `json:"tksUserNode"`
+	TksUserNodeMax   int      `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string   `json:"tksUserNodeType,omitempty"`
 }
 
 type CreateStackResponse struct {
