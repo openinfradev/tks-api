@@ -25,6 +25,7 @@ type Policy struct {
 
 	Parameters  string        `gorm:"type:text"`
 	PolicyMatch string        `gorm:"type:text"`
+	MatchYaml   *string       `gorm:"type:text"`
 	Match       *domain.Match `gorm:"-:all"`
 
 	TemplateName   string         `gorm:"-:all"`

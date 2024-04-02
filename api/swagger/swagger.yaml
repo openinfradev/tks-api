@@ -885,17 +885,17 @@ definitions:
       description:
         type: string
       enforcementAction:
+        example: deny
         type: string
       mandatory:
         type: boolean
       match:
-        additionalProperties:
-          type: string
-        example:
-          refer: match.Match
-        type: object
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
+      matchYaml:
+        example: "namespaces:\r\n- testns1"
+        type: string
       parameters:
-        example: '"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"'
+        example: '{"labels":{"key":"owner","allowedRegex":"test*"}'
         type: string
       policyName:
         example: label 정책
@@ -1905,6 +1905,17 @@ definitions:
       id:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.Kinds:
+    properties:
+      apiGroups:
+        items:
+          type: string
+        type: array
+      kinds:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ListClusterPolicyStatusResponse:
     properties:
       polices:
@@ -2064,6 +2075,21 @@ definitions:
         example: 레이블 요구
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.Match:
+    properties:
+      excludedNamespaces:
+        items:
+          type: string
+        type: array
+      kinds:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Kinds'
+        type: array
+      namespaces:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse:
     properties:
       children:
@@ -2191,6 +2217,7 @@ definitions:
       description:
         type: string
       enforcementAction:
+        example: deny
         type: string
       filledParameters:
         items:
@@ -2202,13 +2229,11 @@ definitions:
       mandatory:
         type: boolean
       match:
-        additionalProperties:
-          type: string
-        example:
-          refer: match.Match
-        type: object
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
+      matchYaml:
+        type: string
       parameters:
-        example: '{"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"}'
+        example: '{"labels":{"key":"owner","allowedRegex":"test*"}'
         type: string
       policyName:
         example: label 정책
@@ -3231,13 +3256,11 @@ definitions:
       mandatory:
         type: boolean
       match:
-        additionalProperties:
-          type: string
-        example:
-          refer: match.Match
-        type: object
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
+      matchYaml:
+        type: string
       parameters:
-        example: '"labels":{"key":"owner","allowedRegex:^[a-zA-Z]+.agilebank.demo$}"'
+        example: '{"labels":{"key":"owner","allowedRegex":"test*"}'
         type: string
       policyName:
         example: label 정책

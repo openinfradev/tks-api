@@ -10194,23 +10194,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "enforcementAction": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "deny"
                 },
                 "mandatory": {
                     "type": "boolean"
                 },
                 "match": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "refer": "match.Match"
-                    }
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
+                },
+                "matchYaml": {
+                    "type": "string",
+                    "example": "namespaces:\r\n- testns1"
                 },
                 "parameters": {
                     "type": "string",
-                    "example": "\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""
+                    "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
                 },
                 "policyName": {
                     "type": "string",
@@ -11734,6 +11733,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.Kinds": {
+            "type": "object",
+            "properties": {
+                "apiGroups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.ListClusterPolicyStatusResponse": {
             "type": "object",
             "properties": {
@@ -11974,6 +11990,29 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.Match": {
+            "type": "object",
+            "properties": {
+                "excludedNamespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kinds": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Kinds"
+                    }
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse": {
             "type": "object",
             "properties": {
@@ -12167,7 +12206,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "enforcementAction": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "deny"
                 },
                 "filledParameters": {
                     "type": "array",
@@ -12183,17 +12223,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "match": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "refer": "match.Match"
-                    }
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
+                },
+                "matchYaml": {
+                    "type": "string"
                 },
                 "parameters": {
                     "type": "string",
-                    "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\"}"
+                    "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
                 },
                 "policyName": {
                     "type": "string",
@@ -13725,17 +13762,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "match": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "example": {
-                        "refer": "match.Match"
-                    }
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
+                },
+                "matchYaml": {
+                    "type": "string"
                 },
                 "parameters": {
                     "type": "string",
-                    "example": "\"labels\":{\"key\":\"owner\",\"allowedRegex:^[a-zA-Z]+.agilebank.demo$}\""
+                    "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
                 },
                 "policyName": {
                     "type": "string",

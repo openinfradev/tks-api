@@ -24,7 +24,7 @@ type IPolicyUsecase interface {
 	Create(ctx context.Context, organizationId string, dto model.Policy) (policyId uuid.UUID, err error)
 	Update(ctx context.Context, organizationId string, policyId uuid.UUID,
 		mandatory *bool, policyName *string, description *string, templateId *uuid.UUID, enforcementAction *string,
-		parameters *string, match *domain.Match, targetClusterIds *[]string) (err error)
+		parameters *string, match *domain.Match, matchYaml *string, targetClusterIds *[]string) (err error)
 	Delete(ctx context.Context, organizationId string, policyId uuid.UUID) (err error)
 	Get(ctx context.Context, organizationId string, policyId uuid.UUID) (policy *model.Policy, err error)
 	GetForEdit(ctx context.Context, organizationId string, policyId uuid.UUID) (policy *model.Policy, err error)
@@ -163,7 +163,7 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 
 func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, policyId uuid.UUID,
 	mandatory *bool, policyName *string, description *string, templateId *uuid.UUID, enforcementAction *string,
-	parameters *string, match *domain.Match, targetClusterIds *[]string) (err error) {
+	parameters *string, match *domain.Match, matchYaml *string, targetClusterIds *[]string) (err error) {
 
 	user, ok := request.UserFrom(ctx)
 	if !ok {
@@ -217,8 +217,12 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 		updateMap["parameters"] = parameters
 	}
 
-	if parameters != nil {
+	if matchYaml != nil {
+		updateMap["match_yaml"] = matchYaml
+		updateMap["policy_match"] = nil
+	} else if match != nil {
 		updateMap["policy_match"] = match.JSON()
+		updateMap["match_yaml"] = nil
 	}
 
 	var newTargetClusters *[]model.Cluster = nil
