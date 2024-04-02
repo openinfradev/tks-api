@@ -21,15 +21,15 @@ type PolicyTemplateResponse struct {
 	CreatedAt time.Time                 `json:"createdAt"`
 	UpdatedAt time.Time                 `json:"updatedAt"`
 
-	TemplateName     string                `json:"templateName" example:"필수 Label 검사"`
-	Kind             string                `json:"kind" example:"K8sRequiredLabels"`
-	Severity         string                `json:"severity" enums:"low,medium,high" example:"medium"`
-	Deprecated       bool                  `json:"deprecated" example:"false"`
-	Version          string                `json:"version,omitempty" example:"v1.0.1"`
-	Description      string                `json:"description,omitempty"  example:"이 정책은 ..."`
-	ParametersSchema []domain.ParameterDef `json:"parametersSchema,omitempty"`
-	Rego             string                `json:"rego" example:"rego 코드"`
-	Libs             []string              `json:"libs" example:"rego 코드"`
+	TemplateName     string                 `json:"templateName" example:"필수 Label 검사"`
+	Kind             string                 `json:"kind" example:"K8sRequiredLabels"`
+	Severity         string                 `json:"severity" enums:"low,medium,high" example:"medium"`
+	Deprecated       bool                   `json:"deprecated" example:"false"`
+	Version          string                 `json:"version,omitempty" example:"v1.0.1"`
+	Description      string                 `json:"description,omitempty"  example:"이 정책은 ..."`
+	ParametersSchema []*domain.ParameterDef `json:"parametersSchema,omitempty"`
+	Rego             string                 `json:"rego" example:"rego 코드"`
+	Libs             []string               `json:"libs" example:"rego 코드"`
 
 	PermittedOrganizations []PermittedOrganization `json:"permittedOrganizations"`
 }
