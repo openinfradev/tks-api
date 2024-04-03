@@ -68,7 +68,7 @@ type CreateSystemNotificationRequest struct {
 	Version                     string               `json:"version"`
 	GroupKey                    string               `json:"groupKey"`
 	TruncateSystemNotifications int                  `json:"truncateSystemNotifications"`
-	SystemNotifications         []SystemNotification `json:"systemNotifications"`
+	SystemNotifications         []SystemNotification `json:"alerts"`
 	GroupLabels                 struct {
 		SystemNotificationname string `json:"systemNotificationname"`
 	} `json:"groupLabels"`

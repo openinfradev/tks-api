@@ -55,33 +55,15 @@ insert into project_roles ( id, name, description, created_at, updated_at ) valu
 insert into project_roles ( id, name, description, created_at, updated_at ) values ( '2071bd6f-26b3-4c1a-a3ab-439bc89f0011', 'project-member', 'project-member', now(), now() );
 insert into project_roles ( id, name, description, created_at, updated_at ) values ( 'f62c16e1-316c-4d7f-9cfa-dbe4ed7dfa17', 'project-viewer', 'project-viewer', now(), now() );
 
-/*
-type SystemNotificationTemplate struct {
-	gorm.Model
-
-	ID               uuid.UUID      `gorm:"primarykey"`
-	Name             string         `gorm:"index:idx_name,unique"`
-	Organizations    []Organization `gorm:"many2many:system_notification_template_organizations;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
-	OrganizationIds  []string       `gorm:"-:all"`
-	Description      string
-	MetricQuery      string
-	MetricParameters []SystemNotificationMetricParameter `gorm:"foreignKey:SystemNotificationTemplateId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
-	CreatorId        *uuid.UUID
-	Creator          User `gorm:"foreignKey:CreatorId"`
-	UpdatorId        *uuid.UUID
-	Updator          User `gorm:"foreignKey:UpdatorId"`
-}
-
-*/
 ## SystemNotificationTemplates
-insert into system_notification_templates ( id, name, description, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('d42d716f-dd2e-429b-897d-b602f6382790', 'node-cpu-high-load', 'node-cpu-high-load', '(avg by (taco_cluster, instance) (rate(node_cpu_seconds_total{mode="idle"}[60s]))) < 0', null, null, now(), now() );
-insert into system_notification_templates ( id, name, description, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('f11eefa4-5a16-44fc-8dae-4662e7fba023', 'node-memory-high-utilization', 'node-memory-high-utilization', '(node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes) <  0.2', null, null, now(), now() );
-insert into system_notification_templates ( id, name, description, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'node-disk-full', 'node-disk-full', 'predict_linear(node_filesystem_free_bytes{mountpoint="/"}[6h], 24*3600) < 0', null, null, now(), now() );
-insert into system_notification_templates ( id, name, description, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'pvc-full', 'pvc-full', 'predict_linear(kubelet_volume_stats_available_bytes[6h], 24*3600) < 0', null, null, now(), now() );
-insert into system_notification_templates ( id, name, description, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', 'pod-restart-frequently', 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:]) > 2', null, null, now(), now() );
+insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
+values ('d42d716f-dd2e-429b-897d-b602f6382790', 'node-cpu-high-load', 'node-cpu-high-load', true, '(avg by (taco_cluster, instance) (rate(node_cpu_seconds_total{mode="idle"}[60s]))) < 0', null, null, now(), now() );
+insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
+values ('f11eefa4-5a16-44fc-8dae-4662e7fba023', 'node-memory-high-utilization', true, 'node-memory-high-utilization', '(node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes) <  0.2', null, null, now(), now() );
+insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
+values ('1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'node-disk-full', 'node-disk-full', true, 'predict_linear(node_filesystem_free_bytes{mountpoint="/"}[6h], 24*3600) < 0', null, null, now(), now() );
+insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
+values ('68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'pvc-full', 'pvc-full', true, 'predict_linear(kubelet_volume_stats_available_bytes[6h], 24*3600) < 0', null, null, now(), now() );
+insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
+values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', true, 'pod-restart-frequently', 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:]) > 2', null, null, now(), now() );
 

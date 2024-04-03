@@ -20,6 +20,7 @@ type SystemNotificationTemplate struct {
 
 	ID               uuid.UUID      `gorm:"primarykey"`
 	Name             string         `gorm:"index:idx_name,unique"`
+	IsSystem         bool           `gorm:"default:false"`
 	Organizations    []Organization `gorm:"many2many:system_notification_template_organizations;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	OrganizationIds  []string       `gorm:"-:all"`
 	Description      string

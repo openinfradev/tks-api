@@ -18,6 +18,7 @@ type ISystemNotificationRuleRepository interface {
 	Fetch(ctx context.Context, pg *pagination.Pagination) ([]model.SystemNotificationRule, error)
 	FetchWithOrganization(ctx context.Context, organizationId string, pg *pagination.Pagination) (out []model.SystemNotificationRule, err error)
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRuleId uuid.UUID, err error)
+	Creates(ctx context.Context, dto []model.SystemNotificationRule) (err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) (err error)
 	Delete(ctx context.Context, dto model.SystemNotificationRule) (err error)
 }
@@ -84,6 +85,15 @@ func (r *SystemNotificationRuleRepository) Create(ctx context.Context, dto model
 	}
 
 	return dto.ID, nil
+}
+
+func (r *SystemNotificationRuleRepository) Creates(ctx context.Context, rules []model.SystemNotificationRule) (err error) {
+	res := r.db.WithContext(ctx).Create(&rules)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil
 }
 
 func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model.SystemNotificationRule) (err error) {
