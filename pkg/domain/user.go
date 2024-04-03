@@ -6,23 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// // Deprecated: Policy is deprecated, use Permission instead.
-//
-//	type Policy = struct {
-//		ID               string    `json:"id"`
-//		Name             string    `json:"name"`
-//		Create           bool      `json:"create"`
-//		CreatePriviledge string    `json:"createPriviledge"`
-//		Update           bool      `json:"update"`
-//		UpdatePriviledge string    `json:"updatePriviledge"`
-//		Read             bool      `json:"read"`
-//		ReadPriviledge   string    `json:"readPriviledge"`
-//		Delete           bool      `json:"delete"`
-//		DeletePriviledge string    `json:"deletePriviledge"`
-//		Creator          string    `json:"creator"`
-//		CreatedAt        time.Time `json:"createdAt"`
-//		UpdatedAt        time.Time `json:"updatedAt"`
-//	}
 type UserResponse struct {
 	ID                uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId         string    `json:"accountId"`

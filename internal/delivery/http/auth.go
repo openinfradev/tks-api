@@ -101,6 +101,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), user, &out.User); err != nil {
 		log.Error(r.Context(), err)
 	}
+	for _, role := range user.Roles {
+		out.User.Roles = append(out.User.Roles, domain.SimpleRoleResponse{
+			ID:   role.ID,
+			Name: role.Name,
+		})
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
