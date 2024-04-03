@@ -56,6 +56,12 @@ func NewPolicyUsecase(r repository.Repository) IPolicyUsecase {
 	}
 }
 
+func randomResouceName(kind string) string {
+	uuid := uuid.New().String()
+	idStr := strings.Split(uuid, "-")
+	return strings.ToLower(kind) + "-" + idStr[len(idStr)-1]
+}
+
 func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto model.Policy) (policyId uuid.UUID, err error) {
 	dto.OrganizationId = organizationId
 
@@ -80,6 +86,19 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 
 	if policyTemplate == nil {
 		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_POlICY_TEMPLATE_NOT_FOUND", "policy template not found")
+	}
+
+	if len(dto.PolicyResourceName) == 0 {
+		dto.PolicyResourceName = randomResouceName(policyTemplate.Kind)
+	}
+
+	exists, err = u.repo.ExistByResourceName(ctx, dto.OrganizationId, dto.PolicyResourceName)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if exists {
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_CREATE_ALREADY_EXISTED_RESOURCE_NAME", "policy resource name already exists")
 	}
 
 	dto.TargetClusters = make([]model.Cluster, len(dto.TargetClusterIds))
@@ -126,7 +145,12 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 		err = policytemplate.ApplyTksPolicyTemplateCR(ctx, organization.PrimaryClusterId, policyTemplateCR)
 
 		if err != nil {
-			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+			errYaml := ""
+			if policyCR != nil {
+				errYaml, _ = policyTemplateCR.YAML()
+			}
+
+			log.Errorf(ctx, "error is :%s(%T), policyTemplateCR='%+v'", err.Error(), err, errYaml)
 
 			return uuid.Nil, httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
 		}
@@ -135,7 +159,12 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 	err = policytemplate.ApplyTksPolicyCR(ctx, organization.PrimaryClusterId, policyCR)
 
 	if err != nil {
-		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+		errYaml := ""
+		if policyCR != nil {
+			errYaml, _ = policyCR.YAML()
+		}
+
+		log.Errorf(ctx, "error is :%s(%T), policyCR='%+v'", err.Error(), err, errYaml)
 
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
 	}
@@ -303,14 +332,14 @@ func (u *PolicyUsecase) Delete(ctx context.Context, organizationId string, polic
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 	}
 
-	exists, err := policytemplate.ExistsTksPolicyCR(ctx, organization.PrimaryClusterId, policy.PolicyName)
+	exists, err := policytemplate.ExistsTksPolicyCR(ctx, organization.PrimaryClusterId, policy.PolicyResourceName)
 	if err != nil {
 		log.Errorf(ctx, "failed to check TksPolicyCR: %v", err)
 		return httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
 	}
 
 	if exists {
-		err = policytemplate.DeleteTksPolicyCR(ctx, organization.PrimaryClusterId, policy.PolicyName)
+		err = policytemplate.DeleteTksPolicyCR(ctx, organization.PrimaryClusterId, policy.PolicyResourceName)
 
 		if err != nil {
 			log.Errorf(ctx, "failed to delete TksPolicyCR: %v", err)

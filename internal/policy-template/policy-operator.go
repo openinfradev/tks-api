@@ -37,7 +37,7 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 		},
 
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   policy.PolicyName,
+			Name:   policy.PolicyResourceName,
 			Labels: labels,
 		},
 

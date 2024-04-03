@@ -14,9 +14,10 @@ type Policy struct {
 	ID             uuid.UUID `gorm:"primarykey;type:varchar(36);not null"`
 	OrganizationId string
 
-	PolicyName  string
-	Mandatory   bool
-	Description string
+	PolicyName         string
+	PolicyResourceName string
+	Mandatory          bool
+	Description        string
 
 	TargetClusterIds []string  `gorm:"-:all"`
 	TargetClusters   []Cluster `gorm:"many2many:policy_target_clusters"`

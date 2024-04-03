@@ -22,6 +22,7 @@ type IPolicyRepository interface {
 	FetchByClusterId(ctx context.Context, clusterId string, pg *pagination.Pagination) (out *[]model.Policy, err error)
 	FetchByClusterIdAndTemplaeId(ctx context.Context, clusterId string, templateId uuid.UUID) (out *[]model.Policy, err error)
 	ExistByName(ctx context.Context, organizationId string, policyName string) (exist bool, err error)
+	ExistByResourceName(ctx context.Context, organizationId string, policyName string) (exist bool, err error)
 	ExistByID(ctx context.Context, organizationId string, policyId uuid.UUID) (exist bool, err error)
 	GetByName(ctx context.Context, organizationId string, policyName string) (out *model.Policy, err error)
 	GetByID(ctx context.Context, organizationId string, policyId uuid.UUID) (out *model.Policy, err error)
@@ -148,6 +149,10 @@ func (r *PolicyRepository) ExistBy(ctx context.Context, organizationId string, k
 
 func (r *PolicyRepository) ExistByName(ctx context.Context, organizationId string, policyName string) (exist bool, err error) {
 	return r.ExistBy(ctx, organizationId, "policy_name", policyName)
+}
+
+func (r *PolicyRepository) ExistByResourceName(ctx context.Context, organizationId string, policyName string) (exist bool, err error) {
+	return r.ExistBy(ctx, organizationId, "policy_resource_name", policyName)
 }
 
 func (r *PolicyRepository) ExistByID(ctx context.Context, organizationId string, policyId uuid.UUID) (exist bool, err error) {
