@@ -227,7 +227,13 @@ func (r *UserRepository) UpdatePasswordAt(ctx context.Context, userId uuid.UUID,
 }
 
 func (r *UserRepository) DeleteWithUuid(ctx context.Context, uuid uuid.UUID) error {
-	res := r.db.WithContext(ctx).Unscoped().Delete(&model.User{}, "id = ?", uuid)
+	var user model.User
+	if err := r.db.WithContext(ctx).Model(&model.User{}).Preload("Organization").Preload("Roles").Find(&user, "id = ?", uuid).Error; err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+		return err
+	}
+
+	res := r.db.WithContext(ctx).Unscoped().Delete(&user)
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"gorm.io/gorm"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,4 +25,12 @@ type User struct {
 	Email       string `json:"email"`
 	Department  string `json:"department"`
 	Description string `json:"description"`
+}
+
+func (u *User) BeforeDelete(db *gorm.DB) (err error) {
+	err = db.Table("user_roles").Unscoped().Where("user_id = ?", u.ID).Delete(nil).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
