@@ -28,15 +28,16 @@ type SystemNotificationRule struct {
 	Description                  string
 	OrganizationId               string
 	Organization                 Organization               `gorm:"foreignKey:OrganizationId"`
+	IsSystem                     bool                       `gorm:"default:false"`
 	SystemNotificationTemplate   SystemNotificationTemplate `gorm:"foreignKey:SystemNotificationTemplateId"`
 	SystemNotificationTemplateId string
 	SystemNotificationConditions []SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
+	Clusters                     []Cluster                     `gorm:"many2many:system_notification_rule_clusters;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	TargetUsers                  []User                        `gorm:"many2many:system_notification_rule_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	TargetUserIds                []string                      `gorm:"-:all"`
 	MessageTitle                 string
 	MessageContent               string
 	MessageActionProposal        string
-	Status                       domain.SystemNotificationRuleStatus
 	CreatorId                    *uuid.UUID `gorm:"type:uuid"`
 	Creator                      *User      `gorm:"foreignKey:CreatorId"`
 	UpdatorId                    *uuid.UUID `gorm:"type:uuid"`

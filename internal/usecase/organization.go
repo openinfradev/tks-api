@@ -28,6 +28,7 @@ type IOrganizationUsecase interface {
 	UpdatePrimaryClusterId(ctx context.Context, organizationId string, clusterId string) (err error)
 	ChangeAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
 	Delete(ctx context.Context, organizationId string, accessToken string) error
+	createDefaultSystemNotificationRules(ctx context.Context, organizationId string, *model.Organization) (err error)
 }
 
 type OrganizationUsecase struct {
@@ -94,6 +95,12 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization
 		return "", errors.Wrap(err, "Failed to init workflow")
 	}
 
+	// Create default SystemNotificationRule
+	err = u.createDefaultSystemNotificationRules(ctx, organizationId, in)
+	if err != nil {
+		return ""
+	}
+	
 	return organizationId, nil
 }
 func (u *OrganizationUsecase) Fetch(ctx context.Context, pg *pagination.Pagination) (out *[]model.Organization, err error) {
@@ -216,5 +223,9 @@ func (u *OrganizationUsecase) ChangeAdminId(ctx context.Context, organizationId 
 		return err
 	}
 
+	return nil
+}
+
+func (u *OrganizationUsecase) createDefaultSystemNotificationRules(ctx context.Context, organizationId string, *model.Organization) error {
 	return nil
 }
