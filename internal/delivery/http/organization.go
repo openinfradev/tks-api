@@ -128,6 +128,14 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 	}
 	organization.AdminId = &admin.ID
 
+	// Default systemNotificationRules 생성
+	err = h.usecase.MakeDefaultSystemNotificationRules(r.Context(), organizationId, &organization)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var out domain.CreateOrganizationResponse
 	if err = serializer.Map(r.Context(), organization, &out); err != nil {
 		log.Error(r.Context(), err)

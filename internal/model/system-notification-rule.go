@@ -28,6 +28,7 @@ type SystemNotificationRule struct {
 	Description                  string
 	OrganizationId               string
 	Organization                 Organization               `gorm:"foreignKey:OrganizationId"`
+	IsSystem                     bool                       `gorm:"default:false"`
 	SystemNotificationTemplate   SystemNotificationTemplate `gorm:"foreignKey:SystemNotificationTemplateId"`
 	SystemNotificationTemplateId string
 	SystemNotificationConditions []SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
@@ -36,6 +37,7 @@ type SystemNotificationRule struct {
 	MessageTitle                 string
 	MessageContent               string
 	MessageActionProposal        string
+	Status                       domain.SystemNotificationRuleStatus
 	CreatorId                    *uuid.UUID `gorm:"type:uuid"`
 	Creator                      *User      `gorm:"foreignKey:CreatorId"`
 	UpdatorId                    *uuid.UUID `gorm:"type:uuid"`
