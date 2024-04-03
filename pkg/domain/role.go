@@ -63,3 +63,16 @@ type UpdateTksRoleRequest struct {
 type CheckRoleNameResponse struct {
 	IsExist bool `json:"isExist"`
 }
+
+type AppendUsersToRoleRequest struct {
+	Users []uuid.UUID `json:"users" validate:"required"`
+}
+
+type RemoveUsersFromRoleRequest struct {
+	Users []uuid.UUID `json:"users" validate:"required"`
+}
+
+type GetUsersInRoleIdResponse struct {
+	Users      []SimpleUserResponse `json:"users"`
+	Pagination PaginationResponse   `json:"pagination"`
+}

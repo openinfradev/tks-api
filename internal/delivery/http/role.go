@@ -24,12 +24,17 @@ type IRoleHandler interface {
 	UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Request)
 	IsRoleNameExisted(w http.ResponseWriter, r *http.Request)
 
+	GetUsersInRoleId(w http.ResponseWriter, r *http.Request)
+	AppendUsersToRole(w http.ResponseWriter, r *http.Request)
+	RemoveUsersFromRole(w http.ResponseWriter, r *http.Request)
+
 	Admin_ListTksRoles(w http.ResponseWriter, r *http.Request)
 	Admin_GetTksRole(w http.ResponseWriter, r *http.Request)
 }
 
 type RoleHandler struct {
 	roleUsecase       usecase.IRoleUsecase
+	userUsecase       usecase.IUserUsecase
 	permissionUsecase usecase.IPermissionUsecase
 }
 
@@ -37,6 +42,7 @@ func NewRoleHandler(usecase usecase.Usecase) *RoleHandler {
 	return &RoleHandler{
 		roleUsecase:       usecase.Role,
 		permissionUsecase: usecase.Permission,
+		userUsecase:       usecase.User,
 	}
 }
 
@@ -169,15 +175,20 @@ func (h RoleHandler) ListTksRoles(w http.ResponseWriter, r *http.Request) {
 func (h RoleHandler) GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// path parameter
 	vars := mux.Vars(r)
-	var roleId string
+	var organizationId, roleId string
 	if v, ok := vars["roleId"]; !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
 	} else {
 		roleId = v
 	}
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+	} else {
+		organizationId = v
+	}
 
 	// get role
-	role, err := h.roleUsecase.GetTksRole(r.Context(), roleId)
+	role, err := h.roleUsecase.GetTksRole(r.Context(), organizationId, roleId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -465,15 +476,20 @@ func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 	// Same as GetTksRole
 
 	vars := mux.Vars(r)
-	var roleId string
+	var organizationId, roleId string
 	if v, ok := vars["roleId"]; !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
 	} else {
 		roleId = v
 	}
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+	} else {
+		organizationId = v
+	}
 
 	// get role
-	role, err := h.roleUsecase.GetTksRole(r.Context(), roleId)
+	role, err := h.roleUsecase.GetTksRole(r.Context(), organizationId, roleId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -532,5 +548,196 @@ func (h RoleHandler) IsRoleNameExisted(w http.ResponseWriter, r *http.Request) {
 	out.IsExist = isExist
 
 	// response
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// AppendUsersToRole godoc
+//
+//	@Tags			Roles
+//	@Summary		Append Users To Role
+//	@Description	Append Users To Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path	string						true	"Organization ID"
+//	@Param			roleId			path	string						true	"Role ID"
+//	@Param			body			body	domain.AppendUsersToRoleRequest	true	"Append Users To Role Request"
+//	@Success		200
+//	@Router			/organizations/{organizationId}/roles/{roleId}/users [post]
+//	@Security		JWT
+func (h RoleHandler) AppendUsersToRole(w http.ResponseWriter, r *http.Request) {
+	// path parameter
+	vars := mux.Vars(r)
+	var organizationId, roleId string
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+	if v, ok := vars["roleId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		roleId = v
+	}
+
+	// request body
+	input := domain.AppendUsersToRoleRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	for _, user := range input.Users {
+		originUser, err := h.userUsecase.Get(r.Context(), user)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		role, err := h.roleUsecase.GetTksRole(r.Context(), organizationId, roleId)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		originUser.Roles = append(originUser.Roles, *role)
+
+		if _, err := h.userUsecase.UpdateByAccountIdByAdmin(r.Context(), originUser); err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+	}
+
+	// response
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// RemoveUsersFromRole godoc
+//
+//	@Tags			Roles
+//	@Summary		Remove Users From Role
+//	@Description	Remove Users From Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path	string							true	"Organization ID"
+//	@Param			roleId			path	string							true	"Role ID"
+//	@Param			body			body	domain.RemoveUsersFromRoleRequest	true	"Remove Users From Role Request"
+//	@Success		200
+//	@Router			/organizations/{organizationId}/roles/{roleId}/users [delete]
+//	@Security		JWT
+func (h RoleHandler) RemoveUsersFromRole(w http.ResponseWriter, r *http.Request) {
+	// path parameter
+	vars := mux.Vars(r)
+	var organizationId, roleId string
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+	if v, ok := vars["roleId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		roleId = v
+	}
+
+	// request body
+	input := domain.RemoveUsersFromRoleRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	for _, user := range input.Users {
+		originUser, err := h.userUsecase.Get(r.Context(), user)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		role, err := h.roleUsecase.GetTksRole(r.Context(), organizationId, roleId)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+
+		for i, r := range originUser.Roles {
+			if r.ID == role.ID {
+				originUser.Roles = append(originUser.Roles[:i], originUser.Roles[i+1:]...)
+				break
+			}
+		}
+
+		if _, err := h.userUsecase.UpdateByAccountIdByAdmin(r.Context(), originUser); err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+	}
+
+	// response
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// GetUsersInRoleId godoc
+//
+//	@Tags			Roles
+//	@Summary		Get Users By Role ID
+//	@Description	Get Users By Role ID
+//	@Produce		json
+//	@Param			organizationId	path	string	true	"Organization ID"
+//	@Param			roleId			path	string	true	"Role ID"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200 {object} domain.GetUsersInRoleIdResponse
+//	@Router			/organizations/{organizationId}/roles/{roleId}/users [get]
+//	@Security		JWT
+func (h RoleHandler) GetUsersInRoleId(w http.ResponseWriter, r *http.Request) {
+	// path parameter
+	vars := mux.Vars(r)
+	var organizationId, roleId string
+	if v, ok := vars["roleId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		roleId = v
+	}
+	if v, ok := vars["organizationId"]; !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(nil, "", ""))
+		return
+	} else {
+		organizationId = v
+	}
+
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+	users, err := h.userUsecase.ListUsersByRole(r.Context(), organizationId, roleId, pg)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetUsersInRoleIdResponse
+	out.Users = make([]domain.SimpleUserResponse, len(*users))
+	for i, user := range *users {
+		out.Users[i] = domain.SimpleUserResponse{
+			ID:         user.ID.String(),
+			AccountId:  user.AccountId,
+			Name:       user.Name,
+			Email:      user.Email,
+			Department: user.Department,
+		}
+	}
+
+	if err := serializer.Map(r.Context(), *pg, &out.Pagination); err != nil {
+		log.Info(r.Context(), err)
+	}
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }

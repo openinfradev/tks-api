@@ -293,6 +293,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByRoleId, http.HandlerFunc(roleHandler.GetPermissionsByRoleId))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.UpdatePermissionsByRoleId, http.HandlerFunc(roleHandler.UpdatePermissionsByRoleId))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleName}/existence", customMiddleware.Handle(internalApi.IsRoleNameExisted, http.HandlerFunc(roleHandler.IsRoleNameExisted))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/users", customMiddleware.Handle(internalApi.AppendUsersToRole, http.HandlerFunc(roleHandler.AppendUsersToRole))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/users", customMiddleware.Handle(internalApi.GetUsersInRoleId, http.HandlerFunc(roleHandler.GetUsersInRoleId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/users", customMiddleware.Handle(internalApi.RemoveUsersFromRole, http.HandlerFunc(roleHandler.RemoveUsersFromRole))).Methods(http.MethodDelete)
 
 	// Admin
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.Admin_ListTksRoles, http.HandlerFunc(roleHandler.Admin_ListTksRoles))).Methods(http.MethodGet)

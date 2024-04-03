@@ -11,7 +11,7 @@ import (
 type IRoleUsecase interface {
 	CreateTksRole(ctx context.Context, role *model.Role) (string, error)
 	ListTksRoles(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]*model.Role, error)
-	GetTksRole(ctx context.Context, id string) (*model.Role, error)
+	GetTksRole(ctx context.Context, orgainzationId string, id string) (*model.Role, error)
 	DeleteTksRole(ctx context.Context, organizationId string, id string) error
 	UpdateTksRole(ctx context.Context, role *model.Role) error
 	IsRoleNameExisted(ctx context.Context, organizationId string, roleName string) (bool, error)
@@ -47,8 +47,8 @@ func (r RoleUsecase) ListTksRoles(ctx context.Context, organizationId string, pg
 	return roles, nil
 }
 
-func (r RoleUsecase) GetTksRole(ctx context.Context, id string) (*model.Role, error) {
-	role, err := r.repo.GetTksRole(ctx, id)
+func (r RoleUsecase) GetTksRole(ctx context.Context, organizationId string, id string) (*model.Role, error) {
+	role, err := r.repo.GetTksRole(ctx, organizationId, id)
 	if err != nil {
 		return nil, err
 	}

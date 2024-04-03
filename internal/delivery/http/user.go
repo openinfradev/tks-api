@@ -100,7 +100,7 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ID: organizationId,
 	}
 	for _, role := range input.Roles {
-		v, err := u.roleUsecase.GetTksRole(ctx, *role.ID)
+		v, err := u.roleUsecase.GetTksRole(ctx, organizationId, *role.ID)
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -329,7 +329,7 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	user.AccountId = accountId
 	for _, role := range input.Roles {
-		v, err := u.roleUsecase.GetTksRole(ctx, *role.ID)
+		v, err := u.roleUsecase.GetTksRole(ctx, organizationId, *role.ID)
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return
@@ -403,7 +403,7 @@ func (u UserHandler) UpdateUsers(w http.ResponseWriter, r *http.Request) {
 		users[i].AccountId = user.AccountId
 
 		for _, role := range user.Roles {
-			v, err := u.roleUsecase.GetTksRole(ctx, *role.ID)
+			v, err := u.roleUsecase.GetTksRole(ctx, organizationId, *role.ID)
 			if err != nil {
 				ErrorJSON(w, r, err)
 				return
@@ -888,7 +888,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, role := range input.Roles {
-		v, err := u.roleUsecase.GetTksRole(r.Context(), *role.ID)
+		v, err := u.roleUsecase.GetTksRole(r.Context(), organizationId, *role.ID)
 		if err != nil {
 			ErrorJSON(w, r, err)
 			return

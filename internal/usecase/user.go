@@ -44,6 +44,8 @@ type IUserUsecase interface {
 	ValidateAccountByAccountId(ctx context.Context, accountId string, password string, organizationId string) error
 
 	UpdateByAccountIdByAdmin(ctx context.Context, user *model.User) (*model.User, error)
+
+	ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error)
 }
 
 type UserUsecase struct {
@@ -496,6 +498,11 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, newUser *mod
 	}
 
 	err = u.authRepository.UpdateExpiredTimeOnToken(ctx, originUser.Organization.ID, originUser.ID.String())
+	if err != nil {
+		log.Errorf(ctx, "update expired time on token failed: %v", err)
+		return nil, httpErrors.NewInternalServerError(err, "", "")
+	}
+
 	originUser.Name = newUser.Name
 	originUser.Email = newUser.Email
 	originUser.Department = newUser.Department
@@ -508,6 +515,16 @@ func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, newUser *mod
 	}
 
 	return resp, nil
+}
+
+func (u *UserUsecase) ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error) {
+	users, err := u.userRepository.ListUsersByRole(ctx, organizationId, roleId, pg)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+
 }
 
 func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {

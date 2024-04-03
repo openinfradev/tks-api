@@ -114,7 +114,7 @@ type ListUserBody struct {
 }
 
 type UpdateUserRequest struct {
-	Name        string             `json:"name" validate:"required""`
+	Name        string             `json:"name" validate:"required"`
 	Roles       []UserCreationRole `json:"roles" validate:"required"`
 	Email       string             `json:"email" validate:"required,email"`
 	Department  string             `json:"department" validate:"min=0,max=50"`

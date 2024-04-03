@@ -24,6 +24,8 @@ type IUserRepository interface {
 	DeleteWithUuid(ctx context.Context, uuid uuid.UUID) error
 	Flush(ctx context.Context, organizationId string) error
 
+	ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error)
+
 	AccountIdFilter(accountId string) FilterFunc
 	OrganizationFilter(organization string) FilterFunc
 	EmailFilter(email string) FilterFunc
@@ -154,6 +156,28 @@ func (r *UserRepository) GetByUuid(ctx context.Context, userId uuid.UUID) (respU
 	return user, nil
 }
 
+func (r *UserRepository) ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error) {
+	var users []model.User
+
+	if pg == nil {
+		pg = pagination.NewPagination(nil)
+	}
+
+	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Roles").Model(&model.User{}).
+		Where("users.organization_id = ? AND roles.id = ?", organizationId, roleId).
+		Joins("JOIN user_roles ON users.id = user_roles.user_id").
+		Joins("JOIN roles ON user_roles.role_id = roles.id"), &users)
+	if res.Error != nil {
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
+		return nil, res.Error
+	}
+
+	var out []model.User
+	out = append(out, users...)
+
+	return &out, nil
+}
+
 func (r *UserRepository) Update(ctx context.Context, user *model.User) (*model.User, error) {
 	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).Updates(model.User{
 		Name:        user.Name,
@@ -167,18 +191,10 @@ func (r *UserRepository) Update(ctx context.Context, user *model.User) (*model.U
 		return nil, res.Error
 	}
 
-	var u model.User
-	if err := r.db.WithContext(ctx).Preload("Roles").First(&u, "id = ?", user.ID).Error; err != nil {
+	err := r.db.WithContext(ctx).Model(&user).Association("Roles").Replace(user.Roles)
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 		return nil, err
-	}
-	if err := r.db.WithContext(ctx).Model(&u).Association("Roles").Clear(); err != nil {
-		return nil, err
-	}
-
-	for _, role := range user.Roles {
-		if err := r.db.WithContext(ctx).Model(&u).Association("Roles").Append(&role); err != nil {
-			return nil, err
-		}
 	}
 
 	outUser := model.User{}

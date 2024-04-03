@@ -15,7 +15,7 @@ import (
 type IRoleRepository interface {
 	Create(ctx context.Context, roleObj *model.Role) (string, error)
 	ListTksRoles(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]*model.Role, error)
-	GetTksRole(ctx context.Context, id string) (*model.Role, error)
+	GetTksRole(ctx context.Context, organizationId string, id string) (*model.Role, error)
 	GetTksRoleByRoleName(ctx context.Context, organizationId string, roleName string) (*model.Role, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, roleObj *model.Role) error
@@ -65,7 +65,7 @@ func (r RoleRepository) ListTksRoles(ctx context.Context, organizationId string,
 	return roles, nil
 }
 
-func (r RoleRepository) GetTksRole(ctx context.Context, id string) (*model.Role, error) {
+func (r RoleRepository) GetTksRole(ctx context.Context, organizationId string, id string) (*model.Role, error) {
 	var role model.Role
 	if err := r.db.WithContext(ctx).First(&role, "id = ?", id).Error; err != nil {
 		return nil, err

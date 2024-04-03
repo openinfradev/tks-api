@@ -197,6 +197,9 @@ const (
 	GetPermissionsByRoleId
 	UpdatePermissionsByRoleId
 	IsRoleNameExisted
+	AppendUsersToRole
+	GetUsersInRoleId
+	RemoveUsersFromRole
 
 	// Permission
 	GetPermissionTemplates
