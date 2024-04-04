@@ -927,6 +927,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin_Delete godoc
+//
 //	@Tags			Users
 //	@Summary		Delete user by admin in Admin Portal
 //	@Description	Delete user by admin in Admin Portal
