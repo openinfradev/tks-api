@@ -267,50 +267,6 @@ func (k *Keycloak) CreateRealm(ctx context.Context, organizationId string) (stri
 			return "", err
 		}
 	}
-	adminGroupUuid, err := k.createGroup(ctx, token.AccessToken, organizationId, "admin@"+organizationId)
-	if err != nil {
-		return realmUUID, err
-	}
-
-	realmManagementClientUuid, err := k.getClientByClientId(ctx, token.AccessToken, organizationId, "realm-management")
-	if err != nil {
-		return realmUUID, err
-	}
-
-	realmAdminRole, err := k.getClientRole(ctx, token.AccessToken, organizationId, realmManagementClientUuid, "realm-admin")
-	if err != nil {
-		return realmUUID, err
-	}
-
-	err = k.addClientRoleToGroup(ctx, token.AccessToken, organizationId, realmManagementClientUuid, adminGroupUuid,
-		&gocloak.Role{
-			ID:   realmAdminRole.ID,
-			Name: realmAdminRole.Name,
-		})
-
-	if err != nil {
-		return "", err
-	}
-
-	userGroupUuid, err := k.createGroup(ctx, token.AccessToken, organizationId, "user@"+organizationId)
-	if err != nil {
-		return "", err
-	}
-
-	viewUserRole, err := k.getClientRole(ctx, token.AccessToken, organizationId, realmManagementClientUuid, "view-users")
-	if err != nil {
-		return "", err
-	}
-
-	err = k.addClientRoleToGroup(ctx, token.AccessToken, organizationId, realmManagementClientUuid, userGroupUuid,
-		&gocloak.Role{
-			ID:   viewUserRole.ID,
-			Name: viewUserRole.Name,
-		})
-
-	if err != nil {
-		return "", err
-	}
 
 	// TODO: implement leader, member, viewer
 	//leaderGroup, err := c.ensureGroup(ctx, token, realmName, "leader@"+realmName)
@@ -809,44 +765,6 @@ func (k *Keycloak) ensureGroup(ctx context.Context, token *gocloak.JWT, realm st
 	}
 
 	return groups[0], err
-}
-func (k *Keycloak) createGroup(ctx context.Context, accessToken string, realm string, groupName string) (string, error) {
-	id, err := k.client.CreateGroup(context.Background(), accessToken, realm, gocloak.Group{Name: gocloak.StringP(groupName)})
-	if err != nil {
-		log.Error(ctx, "Creating Group is failed", err)
-		return "", err
-	}
-	return id, nil
-}
-
-func (k *Keycloak) getClientByClientId(ctx context.Context, accessToken string, realm string, clientId string) (
-	string, error) {
-	clients, err := k.client.GetClients(context.Background(), accessToken, realm, gocloak.GetClientsParams{ClientID: &clientId})
-	if err != nil {
-		log.Error(ctx, "Getting Client is failed", err)
-		return "", err
-	}
-	return *clients[0].ID, nil
-}
-
-func (k *Keycloak) getClientRole(ctx context.Context, accessToken string, realm string, clientUuid string,
-	roleName string) (*gocloak.Role, error) {
-	role, err := k.client.GetClientRole(context.Background(), accessToken, realm, clientUuid, roleName)
-	if err != nil {
-		log.Error(ctx, "Getting Client Role is failed", err)
-		return nil, err
-	}
-	return role, nil
-}
-
-func (k *Keycloak) addClientRoleToGroup(ctx context.Context, accessToken string, realm string, clientUuid string,
-	groupUuid string, role *gocloak.Role) error {
-	err := k.client.AddClientRolesToGroup(context.Background(), accessToken, realm, clientUuid, groupUuid, []gocloak.Role{*role})
-	if err != nil {
-		log.Error(ctx, "Adding Client Role to Group is failed", err)
-		return err
-	}
-	return nil
 }
 
 func (k *Keycloak) createClientProtocolMapper(ctx context.Context, accessToken string, realm string,

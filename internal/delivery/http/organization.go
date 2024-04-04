@@ -114,6 +114,13 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 		return
 	}
 
+	role, err := h.roleUsecase.GetTksRole(r.Context(), organizationId, adminRoleId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	user := model.User{
 		Organization: model.Organization{
 			ID: organizationId,
@@ -122,9 +129,7 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 		Name:      input.AdminName,
 		Email:     input.AdminEmail,
 		Roles: []model.Role{
-			{
-				ID: adminRoleId,
-			},
+			*role,
 		},
 	}
 	// Admin user 생성
