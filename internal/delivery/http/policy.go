@@ -318,6 +318,14 @@ func (h *PolicyHandler) GetPolicy(w http.ResponseWriter, r *http.Request) {
 		log.Error(r.Context(), err)
 	}
 
+	out.Policy.TargetClusters = make([]domain.SimpleClusterResponse, len(policy.TargetClusters))
+
+	for i, targetCluster := range policy.TargetClusters {
+		if err = serializer.Map(r.Context(), targetCluster, &out.Policy.TargetClusters[i]); err != nil {
+			log.Error(r.Context(), err)
+		}
+	}
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
@@ -362,6 +370,14 @@ func (h *PolicyHandler) ListPolicy(w http.ResponseWriter, r *http.Request) {
 		if err := serializer.Map(r.Context(), policy, &out.Policies[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
+		}
+
+		out.Policies[i].TargetClusters = make([]domain.SimpleClusterResponse, len(policy.TargetClusters))
+
+		for j, targetCluster := range policy.TargetClusters {
+			if err = serializer.Map(r.Context(), targetCluster, &out.Policies[i].TargetClusters[j]); err != nil {
+				log.Error(r.Context(), err)
+			}
 		}
 	}
 
@@ -791,6 +807,14 @@ func (h *PolicyHandler) GetPolicyEdit(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetPolicyResponse
 	if err = serializer.Map(r.Context(), *policy, &out.Policy); err != nil {
 		log.Error(r.Context(), err)
+	}
+
+	out.Policy.TargetClusters = make([]domain.SimpleClusterResponse, len(policy.TargetClusters))
+
+	for i, targetCluster := range policy.TargetClusters {
+		if err = serializer.Map(r.Context(), targetCluster, &out.Policy.TargetClusters[i]); err != nil {
+			log.Error(r.Context(), err)
+		}
 	}
 
 	parameterSchema := policy.PolicyTemplate.ParametersSchema

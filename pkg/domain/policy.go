@@ -33,8 +33,9 @@ type PolicyResponse struct {
 	CreatedAt time.Time          `json:"createdAt" format:"date-time"`
 	UpdatedAt time.Time          `json:"updatedAt" format:"date-time"`
 
-	TargetClusterIds []string `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
-	Mandatory        bool     `json:"mandatory"`
+	//	TargetClusterIds []string                `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
+	TargetClusters []SimpleClusterResponse `json:"targetClusters"`
+	Mandatory      bool                    `json:"mandatory"`
 
 	PolicyName         string          `json:"policyName" example:"label 정책"`
 	PolicyResourceName string          `json:"policyResourceName,omitempty" example:"labelpolicy"`
