@@ -1,6 +1,7 @@
 package model
 
 import (
+	"gorm.io/gorm"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,8 +13,7 @@ type User struct {
 	Password          string    `gorm:"-:all" json:"password"`
 	Name              string    `json:"name"`
 	Token             string    `json:"token"`
-	RoleId            string
-	Role              Role `gorm:"foreignKey:RoleId;references:ID" json:"role"`
+	Roles             []Role    `gorm:"many2many:user_roles;" json:"roles"`
 	OrganizationId    string
 	Organization      Organization `gorm:"foreignKey:OrganizationId;references:ID" json:"organization"`
 	Creator           string       `json:"creator"`
@@ -25,4 +25,12 @@ type User struct {
 	Email       string `json:"email"`
 	Department  string `json:"department"`
 	Description string `json:"description"`
+}
+
+func (u *User) BeforeDelete(db *gorm.DB) (err error) {
+	err = db.Table("user_roles").Unscoped().Where("user_id = ?", u.ID).Delete(nil).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

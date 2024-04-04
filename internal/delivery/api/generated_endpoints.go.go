@@ -611,6 +611,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "UpdatePermissionsByRoleId", 
 		Group: "Role",
 	},
+    IsRoleNameExisted: {
+		Name: "IsRoleNameExisted", 
+		Group: "Role",
+	},
     GetPermissionTemplates: {
 		Name: "GetPermissionTemplates", 
 		Group: "Permission",
@@ -1130,6 +1134,8 @@ func (e Endpoint) String() string {
 		return "GetPermissionsByRoleId"
 	case UpdatePermissionsByRoleId:
 		return "UpdatePermissionsByRoleId"
+	case IsRoleNameExisted:
+		return "IsRoleNameExisted"
 	case GetPermissionTemplates:
 		return "GetPermissionTemplates"
 	case Admin_CreateUser:
@@ -1546,6 +1552,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetPermissionsByRoleId
 	case "UpdatePermissionsByRoleId":
 		return UpdatePermissionsByRoleId
+	case "IsRoleNameExisted":
+		return IsRoleNameExisted
 	case "GetPermissionTemplates":
 		return GetPermissionTemplates
 	case "Admin_CreateUser":

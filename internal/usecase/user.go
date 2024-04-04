@@ -19,14 +19,14 @@ import (
 )
 
 type IUserUsecase interface {
-	CreateAdmin(ctx context.Context, organizationId string, accountId string, accountName string, email string) (*model.User, error)
+	CreateAdmin(ctx context.Context, user *model.User) (*model.User, error)
 	DeleteAdmin(ctx context.Context, organizationId string) error
 	DeleteAll(ctx context.Context, organizationId string) error
 	Create(ctx context.Context, user *model.User) (*model.User, error)
 	List(ctx context.Context, organizationId string) (*[]model.User, error)
 	ListWithPagination(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]model.User, error)
 	Get(ctx context.Context, userId uuid.UUID) (*model.User, error)
-	Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error)
+	Update(ctx context.Context, user *model.User) (*model.User, error)
 	ResetPassword(ctx context.Context, userId uuid.UUID) error
 	ResetPasswordByAccountId(ctx context.Context, accountId string, organizationId string) error
 	GenerateRandomPassword(ctx context.Context) string
@@ -35,7 +35,7 @@ type IUserUsecase interface {
 	GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error)
 	SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error
 
-	UpdateByAccountId(ctx context.Context, accountId string, user *model.User) (*model.User, error)
+	UpdateByAccountId(ctx context.Context, user *model.User) (*model.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
 	RenewalPasswordExpiredTime(ctx context.Context, userId uuid.UUID) error
 	RenewalPasswordExpiredTimeByAccountId(ctx context.Context, accountId string, organizationId string) error
@@ -43,7 +43,9 @@ type IUserUsecase interface {
 	ValidateAccount(ctx context.Context, userId uuid.UUID, password string, organizationId string) error
 	ValidateAccountByAccountId(ctx context.Context, accountId string, password string, organizationId string) error
 
-	UpdateByAccountIdByAdmin(ctx context.Context, accountId string, user *model.User) (*model.User, error)
+	UpdateByAccountIdByAdmin(ctx context.Context, user *model.User) (*model.User, error)
+
+	ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error)
 }
 
 type UserUsecase struct {
@@ -197,34 +199,23 @@ func (u *UserUsecase) DeleteAdmin(ctx context.Context, organizationId string) er
 	return nil
 }
 
-func (u *UserUsecase) CreateAdmin(ctx context.Context, organizationId string, accountId string, accountName string, email string) (*model.User, error) {
+func (u *UserUsecase) CreateAdmin(ctx context.Context, user *model.User) (*model.User, error) {
 	// Generate Admin user object
 	randomPassword := helper.GenerateRandomString(passwordLength)
-	user := model.User{
-		AccountId: accountId,
-		Password:  randomPassword,
-		Email:     email,
-		Role: model.Role{
-			Name: "admin",
-		},
-		Organization: model.Organization{
-			ID: organizationId,
-		},
-		Name: accountName,
-	}
+	user.Password = randomPassword
 
 	// Create Admin user in keycloak & DB
-	resUser, err := u.Create(context.Background(), &user)
+	resUser, err := u.Create(context.Background(), user)
 	if err != nil {
 		return nil, err
 	}
 
 	// Send mail of temporary password
-	organizationInfo, err := u.organizationRepository.Get(ctx, organizationId)
+	organizationInfo, err := u.organizationRepository.Get(ctx, resUser.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
-	message, err := mail.MakeGeneratingOrganizationMessage(ctx, organizationId, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
+	message, err := mail.MakeGeneratingOrganizationMessage(ctx, resUser.Organization.ID, organizationInfo.Name, user.Email, user.AccountId, randomPassword)
 	if err != nil {
 		return nil, httpErrors.NewInternalServerError(err, "", "")
 	}
@@ -346,35 +337,19 @@ func (u *UserUsecase) GetByEmail(ctx context.Context, email string, organization
 	return &(*users)[0], nil
 }
 
-func (u *UserUsecase) Update(ctx context.Context, userId uuid.UUID, user *model.User) (*model.User, error) {
-	storedUser, err := u.Get(ctx, userId)
+func (u *UserUsecase) Update(ctx context.Context, user *model.User) (*model.User, error) {
+	storedUser, err := u.Get(ctx, user.ID)
 	if err != nil {
 		return nil, err
 	}
 	user.AccountId = storedUser.AccountId
 
-	return u.UpdateByAccountId(ctx, storedUser.AccountId, user)
+	return u.UpdateByAccountId(ctx, user)
 }
 
-func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, user *model.User) (*model.User, error) {
-	var out model.User
-
-	originUser, err := u.kc.GetUser(ctx, user.Organization.ID, accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	if (originUser.Email == nil || *originUser.Email != user.Email) || (originUser.FirstName == nil || *originUser.FirstName != user.Name) {
-		originUser.Email = gocloak.StringP(user.Email)
-		originUser.FirstName = gocloak.StringP(user.Name)
-		err = u.kc.UpdateUser(ctx, user.Organization.ID, originUser)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func (u *UserUsecase) UpdateByAccountId(ctx context.Context, user *model.User) (*model.User, error) {
 	users, err := u.userRepository.List(ctx, u.userRepository.OrganizationFilter(user.Organization.ID),
-		u.userRepository.AccountIdFilter(accountId))
+		u.userRepository.AccountIdFilter(user.AccountId))
 	if err != nil {
 		if _, code := httpErrors.ErrorResponse(err); code == http.StatusNotFound {
 			return nil, httpErrors.NewNotFoundError(httpErrors.NotFound, "", "")
@@ -387,17 +362,23 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, accountId string, u
 		return nil, fmt.Errorf("multiple users found")
 	}
 
-	roleUuid := (*users)[0].Role.ID
-	if err != nil {
-		return nil, err
+	if ((*users)[0].Email != user.Email) || ((*users)[0].Name != user.Name) {
+		err = u.kc.UpdateUser(ctx, user.Organization.ID, &gocloak.User{
+			Email:     gocloak.StringP(user.Email),
+			FirstName: gocloak.StringP(user.Name),
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
+	user.ID = (*users)[0].ID
 
-	out, err = u.userRepository.UpdateWithUuid(ctx, (*users)[0].ID, user.AccountId, user.Name, roleUuid, user.Email, user.Department, user.Description)
+	resp, err := u.userRepository.Update(ctx, user)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
 	}
 
-	return &out, nil
+	return resp, nil
 }
 
 func (u *UserUsecase) Delete(ctx context.Context, userId uuid.UUID, organizationId string) error {
@@ -441,7 +422,11 @@ func (u *UserUsecase) DeleteByAccountId(ctx context.Context, accountId string, o
 
 func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User, error) {
 	// Create user in keycloak
-	groups := []string{fmt.Sprintf("%s@%s", user.Role.Name, user.Organization.ID)}
+	var groups []string
+	for _, role := range user.Roles {
+		groups = append(groups, fmt.Sprintf("%s@%s", role.Name, user.Organization.ID))
+	}
+
 	userUuidStr, err := u.kc.CreateUser(ctx, user.Organization.ID, &gocloak.User{
 		Username: gocloak.StringP(user.AccountId),
 		Credentials: &[]gocloak.CredentialRepresentation{
@@ -459,76 +444,87 @@ func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User
 		return nil, err
 	}
 
-	// Get user role
-	var roleUuid string
-	roles, err := u.roleRepository.ListTksRoles(ctx, user.Organization.ID, nil)
-	if err != nil {
-		return nil, err
-	}
-	if len(roles) == 0 {
-		return nil, httpErrors.NewInternalServerError(fmt.Errorf("role not found"), "", "")
-	}
-	for _, role := range roles {
-		if role.Name == user.Role.Name {
-			roleUuid = role.ID
-		}
-	}
-	if roleUuid == "" {
-		return nil, httpErrors.NewInternalServerError(fmt.Errorf("role not found"), "", "")
-	}
-
-	// Generate user uuid
-	userUuid, err := uuid.Parse(userUuidStr)
-	if err != nil {
+	if user.ID, err = uuid.Parse(userUuidStr); err != nil {
 		return nil, err
 	}
 
 	// Create user in DB
-	resUser, err := u.userRepository.CreateWithUuid(ctx, userUuid, user.AccountId, user.Name, user.Email,
-		user.Department, user.Description, user.Organization.ID, roleUuid)
+	resUser, err := u.userRepository.Create(ctx, user)
+	//resUser, err := u.userRepository.Create(ctx, userUuid, user.AccountId, user.Name, user.Email,
+	//	user.Department, user.Description, user.Organization.ID, roleUuid)
 	if err != nil {
 		return nil, err
 	}
 
-	return &resUser, nil
+	return resUser, nil
 }
 
-func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, accountId string, newUser *model.User) (*model.User, error) {
-	deepCopyUser := *newUser
-	user, err := u.UpdateByAccountId(ctx, accountId, &deepCopyUser)
+func (u *UserUsecase) UpdateByAccountIdByAdmin(ctx context.Context, newUser *model.User) (*model.User, error) {
+	if newUser.AccountId == "" {
+		return nil, httpErrors.NewBadRequestError(fmt.Errorf("accountId is required"), "C_INVALID_ACCOUNT_ID", "")
+	}
+
+	originUser, err := u.userRepository.Get(ctx, newUser.AccountId, newUser.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if newUser.Role.Name != user.Role.Name {
-		originGroupName := fmt.Sprintf("%s@%s", user.Role.Name, newUser.Organization.ID)
-		newGroupName := fmt.Sprintf("%s@%s", newUser.Role.Name, newUser.Organization.ID)
-		if err := u.kc.LeaveGroup(ctx, newUser.Organization.ID, user.ID.String(), originGroupName); err != nil {
+	unassigningRoleIds, assigningRoleIds := make(map[string]model.Role), make(map[string]model.Role)
+	for _, role := range newUser.Roles {
+		assigningRoleIds[role.ID] = role
+	}
+	for _, role := range originUser.Roles {
+		if _, ok := assigningRoleIds[role.ID]; !ok {
+			unassigningRoleIds[role.ID] = role
+		} else {
+			delete(assigningRoleIds, role.ID)
+		}
+	}
+
+	for _, role := range unassigningRoleIds {
+		groupName := fmt.Sprintf("%s@%s", role.Name, originUser.Organization.ID)
+		if err := u.kc.LeaveGroup(ctx, originUser.Organization.ID, originUser.ID.String(), groupName); err != nil {
 			log.Errorf(ctx, "leave group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
-		if err := u.kc.JoinGroup(ctx, newUser.Organization.ID, user.ID.String(), newGroupName); err != nil {
+	}
+
+	for _, role := range assigningRoleIds {
+		groupName := fmt.Sprintf("%s@%s", role.Name, originUser.Organization.ID)
+		if err := u.kc.JoinGroup(ctx, originUser.Organization.ID, originUser.ID.String(), groupName); err != nil {
 			log.Errorf(ctx, "join group in keycloak failed: %v", err)
 			return nil, httpErrors.NewInternalServerError(err, "", "")
 		}
-
-		targetUser, err := u.userRepository.Get(ctx, newUser.AccountId, newUser.Organization.ID)
-		if err != nil {
-			return nil, err
-		}
-		err = u.authRepository.UpdateExpiredTimeOnToken(ctx, newUser.Organization.ID, targetUser.ID.String())
-		if err != nil {
-			return nil, err
-		}
 	}
 
-	*user, err = u.userRepository.UpdateWithUuid(ctx, user.ID, user.AccountId, user.Name, newUser.Role.ID, user.Email,
-		user.Department, user.Description)
+	err = u.authRepository.UpdateExpiredTimeOnToken(ctx, originUser.Organization.ID, originUser.ID.String())
+	if err != nil {
+		log.Errorf(ctx, "update expired time on token failed: %v", err)
+		return nil, httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	originUser.Name = newUser.Name
+	originUser.Email = newUser.Email
+	originUser.Department = newUser.Department
+	originUser.Description = newUser.Description
+	originUser.Roles = newUser.Roles
+
+	resp, err := u.userRepository.Update(ctx, &originUser)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating user in repository failed")
 	}
 
-	return user, nil
+	return resp, nil
+}
+
+func (u *UserUsecase) ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error) {
+	users, err := u.userRepository.ListUsersByRole(ctx, organizationId, roleId, pg)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+
 }
 
 func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase {

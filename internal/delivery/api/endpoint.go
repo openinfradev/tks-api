@@ -25,6 +25,7 @@ const (
 	ListUser
 	GetUser
 	DeleteUser
+	UpdateUsers
 	UpdateUser
 	ResetPassword
 	CheckId
@@ -195,6 +196,10 @@ const (
 	UpdateTksRole
 	GetPermissionsByRoleId
 	UpdatePermissionsByRoleId
+	IsRoleNameExisted
+	AppendUsersToRole
+	GetUsersInRoleId
+	RemoveUsersFromRole
 
 	// Permission
 	GetPermissionTemplates

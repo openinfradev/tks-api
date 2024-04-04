@@ -79,7 +79,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
 		Project:                    usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 		Audit:                      usecase.NewAuditUsecase(repoFactory),
-		Role:                       usecase.NewRoleUsecase(repoFactory),
+		Role:                       usecase.NewRoleUsecase(repoFactory, kc),
 		Permission:                 usecase.NewPermissionUsecase(repoFactory),
 		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
 		Policy:                     usecase.NewPolicyUsecase(repoFactory),
@@ -112,6 +112,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.CreateUser, http.HandlerFunc(userHandler.Create))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.ListUser, http.HandlerFunc(userHandler.List))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.GetUser, http.HandlerFunc(userHandler.Get))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.UpdateUsers, http.HandlerFunc(userHandler.UpdateUsers))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.UpdateUser, http.HandlerFunc(userHandler.Update))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/reset-password", customMiddleware.Handle(internalApi.ResetPassword, http.HandlerFunc(userHandler.ResetPassword))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.DeleteUser, http.HandlerFunc(userHandler.Delete))).Methods(http.MethodDelete)
@@ -291,6 +292,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}", customMiddleware.Handle(internalApi.UpdateTksRole, http.HandlerFunc(roleHandler.UpdateTksRole))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByRoleId, http.HandlerFunc(roleHandler.GetPermissionsByRoleId))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/permissions", customMiddleware.Handle(internalApi.UpdatePermissionsByRoleId, http.HandlerFunc(roleHandler.UpdatePermissionsByRoleId))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleName}/existence", customMiddleware.Handle(internalApi.IsRoleNameExisted, http.HandlerFunc(roleHandler.IsRoleNameExisted))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/users", customMiddleware.Handle(internalApi.AppendUsersToRole, http.HandlerFunc(roleHandler.AppendUsersToRole))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/users", customMiddleware.Handle(internalApi.GetUsersInRoleId, http.HandlerFunc(roleHandler.GetUsersInRoleId))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/roles/{roleId}/users", customMiddleware.Handle(internalApi.RemoveUsersFromRole, http.HandlerFunc(roleHandler.RemoveUsersFromRole))).Methods(http.MethodDelete)
 
 	// Admin
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/roles", customMiddleware.Handle(internalApi.Admin_ListTksRoles, http.HandlerFunc(roleHandler.Admin_ListTksRoles))).Methods(http.MethodGet)

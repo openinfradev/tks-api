@@ -6,23 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// // Deprecated: Policy is deprecated, use Permission instead.
-//
-//	type Policy = struct {
-//		ID               string    `json:"id"`
-//		Name             string    `json:"name"`
-//		Create           bool      `json:"create"`
-//		CreatePriviledge string    `json:"createPriviledge"`
-//		Update           bool      `json:"update"`
-//		UpdatePriviledge string    `json:"updatePriviledge"`
-//		Read             bool      `json:"read"`
-//		ReadPriviledge   string    `json:"readPriviledge"`
-//		Delete           bool      `json:"delete"`
-//		DeletePriviledge string    `json:"deletePriviledge"`
-//		Creator          string    `json:"creator"`
-//		CreatedAt        time.Time `json:"createdAt"`
-//		UpdatedAt        time.Time `json:"updatedAt"`
-//	}
 type UserResponse struct {
 	ID                uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId         string    `json:"accountId"`
@@ -30,7 +13,7 @@ type UserResponse struct {
 	Name              string    `json:"name"`
 	Token             string    `json:"token"`
 	RoleId            string
-	Role              RoleResponse `gorm:"foreignKey:RoleId;references:ID" json:"role"`
+	Roles             []SimpleRoleResponse `json:"roles"`
 	OrganizationId    string
 	Organization      OrganizationResponse `gorm:"foreignKey:OrganizationId;references:ID" json:"organization"`
 	Creator           string               `json:"creator"`
@@ -45,13 +28,17 @@ type UserResponse struct {
 }
 
 type CreateUserRequest struct {
-	AccountId   string `json:"accountId" validate:"required"`
-	Password    string `json:"password" validate:"required"`
-	Name        string `json:"name" validate:"name"`
-	Email       string `json:"email" validate:"required,email"`
-	Department  string `json:"department" validate:"min=0,max=50"`
-	Role        string `json:"role" validate:"required,oneof=admin user"`
-	Description string `json:"description" validate:"min=0,max=100"`
+	AccountId   string             `json:"accountId" validate:"required"`
+	Password    string             `json:"password" validate:"required"`
+	Name        string             `json:"name" validate:"name"`
+	Email       string             `json:"email" validate:"required,email"`
+	Department  string             `json:"department" validate:"min=0,max=50"`
+	Roles       []UserCreationRole `json:"roles" validate:"required"`
+	Description string             `json:"description" validate:"min=0,max=100"`
+}
+
+type UserCreationRole struct {
+	ID *string `json:"id" validate:"required"`
 }
 
 type SimpleUserResponse struct {
@@ -67,7 +54,7 @@ type CreateUserResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Role         RoleResponse         `json:"role"`
+		Roles        []SimpleRoleResponse `json:"roles"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`
@@ -80,7 +67,7 @@ type GetUserResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Role         RoleResponse         `json:"role"`
+		Roles        []SimpleRoleResponse `json:"role"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`
@@ -99,7 +86,7 @@ type ListUserBody struct {
 	ID           string               `json:"id"`
 	AccountId    string               `json:"accountId"`
 	Name         string               `json:"name"`
-	Role         RoleResponse         `json:"role"`
+	Roles        []SimpleRoleResponse `json:"roles"`
 	Organization OrganizationResponse `json:"organization"`
 	Email        string               `json:"email"`
 	Department   string               `json:"department"`
@@ -110,11 +97,22 @@ type ListUserBody struct {
 }
 
 type UpdateUserRequest struct {
-	Name        string `json:"name" validate:"omitempty,min=1,max=30"`
-	Role        string `json:"role" validate:"oneof=admin user"`
-	Email       string `json:"email" validate:"omitempty,email"`
-	Department  string `json:"department" validate:"omitempty,min=0,max=50"`
-	Description string `json:"description" validate:"omitempty,min=0,max=100"`
+	Name        string             `json:"name" validate:"required"`
+	Roles       []UserCreationRole `json:"roles" validate:"required"`
+	Email       string             `json:"email" validate:"required,email"`
+	Department  string             `json:"department" validate:"min=0,max=50"`
+	Description string             `json:"description" validate:"min=0,max=100"`
+}
+
+type UpdateUsersRequest struct {
+	Users []struct {
+		AccountId   string             `json:"accountId" validate:"required"`
+		Name        string             `json:"name" validate:"required,name"`
+		Roles       []UserCreationRole `json:"roles" validate:"required"`
+		Email       string             `json:"email" validate:"required,email"`
+		Department  string             `json:"department" validate:"min=0,max=50"`
+		Description string             `json:"description" validate:"min=0,max=100"`
+	} `json:"users"`
 }
 
 type UpdateUserResponse struct {
@@ -122,7 +120,7 @@ type UpdateUserResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Role         RoleResponse         `json:"role"`
+		Roles        []SimpleRoleResponse `json:"roles"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`
@@ -137,7 +135,7 @@ type GetMyProfileResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Role         RoleResponse         `json:"role"`
+		Roles        []SimpleRoleResponse `json:"roles"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`
@@ -145,9 +143,9 @@ type GetMyProfileResponse struct {
 }
 type UpdateMyProfileRequest struct {
 	Password   string `json:"password" validate:"required"`
-	Name       string `json:"name" validate:"omitempty,min=1,max=30"`
-	Email      string `json:"email" validate:"omitempty,email"`
-	Department string `json:"department" validate:"omitempty,min=0,max=50"`
+	Name       string `json:"name" validate:"required,min=1,max=30"`
+	Email      string `json:"email" validate:"required,email"`
+	Department string `json:"department" validate:"required,min=0,max=50"`
 }
 
 type UpdateMyProfileResponse struct {
@@ -155,7 +153,7 @@ type UpdateMyProfileResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Role         RoleResponse         `json:"role"`
+		Roles        []SimpleRoleResponse `json:"role"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`

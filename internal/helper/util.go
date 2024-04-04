@@ -93,3 +93,12 @@ func StringP(value string) *string {
 func UUIDP(value uuid.UUID) *uuid.UUID {
 	return &value
 }
+
+func DeepCopy(src, dest interface{}) error {
+	bytes, err := json.Marshal(src)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(bytes, dest)
+}

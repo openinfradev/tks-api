@@ -7,13 +7,13 @@ import (
 )
 
 type CreateUserRequest struct {
-	AccountId     string `json:"accountId" validate:"required"`
-	Name          string `json:"name" validate:"name"`
-	Email         string `json:"email" validate:"required,email"`
-	Role          string `json:"role" validate:"required"`
-	Department    string `json:"department" validate:"min=0,max=50"`
-	Description   string `json:"description" validate:"min=0,max=100"`
-	AdminPassword string `json:"adminPassword"`
+	AccountId     string                    `json:"accountId" validate:"required"`
+	Name          string                    `json:"name" validate:"name"`
+	Email         string                    `json:"email" validate:"required,email"`
+	Roles         []domain.UserCreationRole `json:"roles" validate:"required"`
+	Department    string                    `json:"department" validate:"min=0,max=50"`
+	Description   string                    `json:"description" validate:"min=0,max=100"`
+	AdminPassword string                    `json:"adminPassword"`
 }
 
 type CreateUserResponse struct {
@@ -30,7 +30,7 @@ type GetUserResponse struct {
 		ID           string                      `json:"id"`
 		AccountId    string                      `json:"accountId"`
 		Name         string                      `json:"name"`
-		Role         domain.RoleResponse         `json:"role"`
+		Roles        []domain.SimpleRoleResponse `json:"roles"`
 		Organization domain.OrganizationResponse `json:"organization"`
 		Email        string                      `json:"email"`
 		Department   string                      `json:"department"`
@@ -42,12 +42,12 @@ type GetUserResponse struct {
 }
 
 type UpdateUserRequest struct {
-	Name          string `json:"name" validate:"name"`
-	Email         string `json:"email" validate:"required,email"`
-	Department    string `json:"department" validate:"min=0,max=50"`
-	Role          string `json:"role" validate:"required"`
-	Description   string `json:"description" validate:"min=0,max=100"`
-	AdminPassword string `json:"adminPassword"`
+	Name          string                    `json:"name" validate:"name"`
+	Email         string                    `json:"email" validate:"required,email"`
+	Department    string                    `json:"department" validate:"min=0,max=50"`
+	Roles         []domain.UserCreationRole `json:"roles" validate:"required"`
+	Description   string                    `json:"description" validate:"min=0,max=100"`
+	AdminPassword string                    `json:"adminPassword"`
 }
 
 type UpdateUserResponse struct {
@@ -55,7 +55,7 @@ type UpdateUserResponse struct {
 		ID           string                      `json:"id"`
 		AccountId    string                      `json:"accountId"`
 		Name         string                      `json:"name"`
-		Role         domain.RoleResponse         `json:"role"`
+		Roles        []domain.SimpleRoleResponse `json:"roles"`
 		Organization domain.OrganizationResponse `json:"organization"`
 		Email        string                      `json:"email"`
 		Department   string                      `json:"department"`

@@ -27,10 +27,8 @@ type RoleResponse struct {
 }
 
 type SimpleRoleResponse = struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	OrganizationID string `json:"organizationId"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type CreateTksRoleRequest struct {
@@ -58,5 +56,23 @@ type ListTksRoleResponse struct {
 }
 
 type UpdateTksRoleRequest struct {
+	Name        string `json:"name" validate:"omitempty,min=0,max=100"`
 	Description string `json:"description" validate:"omitempty,min=0,max=100"`
+}
+
+type CheckRoleNameResponse struct {
+	IsExist bool `json:"isExist"`
+}
+
+type AppendUsersToRoleRequest struct {
+	Users []uuid.UUID `json:"users" validate:"required"`
+}
+
+type RemoveUsersFromRoleRequest struct {
+	Users []uuid.UUID `json:"users" validate:"required"`
+}
+
+type GetUsersInRoleIdResponse struct {
+	Users      []SimpleUserResponse `json:"users"`
+	Pagination PaginationResponse   `json:"pagination"`
 }
