@@ -37,13 +37,13 @@ func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 // CreateOrganization godoc
 //
 //	@Tags			Organizations
-//	@Summary		Create organization
-//	@Description	Create organization
+//	@Summary		Create organization in Admin portal
+//	@Description	Create organization in Admin portal
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		domain.CreateOrganizationRequest	true	"create organization request"
 //	@Success		200		{object}	object
-//	@Router			/organizations [post]
+//	@Router			/admin/organizations [post]
 //	@Security		JWT
 func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateOrganizationRequest{}
@@ -114,6 +114,13 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 		return
 	}
 
+	role, err := h.roleUsecase.GetTksRole(r.Context(), organizationId, adminRoleId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	user := model.User{
 		Organization: model.Organization{
 			ID: organizationId,
@@ -122,9 +129,7 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 		Name:      input.AdminName,
 		Email:     input.AdminEmail,
 		Roles: []model.Role{
-			{
-				ID: adminRoleId,
-			},
+			*role,
 		},
 	}
 	// Admin user 생성
