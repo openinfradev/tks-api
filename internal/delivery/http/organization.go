@@ -37,13 +37,13 @@ func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 // CreateOrganization godoc
 //
 //	@Tags			Organizations
-//	@Summary		Create organization
-//	@Description	Create organization
+//	@Summary		Create organization in Admin portal
+//	@Description	Create organization in Admin portal
 //	@Accept			json
 //	@Produce		json
 //	@Param			body	body		domain.CreateOrganizationRequest	true	"create organization request"
 //	@Success		200		{object}	object
-//	@Router			/organizations [post]
+//	@Router			/admin/organizations [post]
 //	@Security		JWT
 func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateOrganizationRequest{}
