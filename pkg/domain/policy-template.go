@@ -147,7 +147,16 @@ type ParameterDef struct {
 	Type         string          `json:"type" examples:"string[]"`
 	DefaultValue string          `json:"defaultValue"`
 	Children     []*ParameterDef `json:"children"`
-	IsArray      bool            `json:"isArray"  examples:"true"`
+	IsArray      bool            `json:"isArray" examples:"true"`
+	IsNew        bool            `json:"isNew,omitempty" examples:"true"`
+}
+
+func (pd *ParameterDef) MarkNewRecursive() {
+	pd.IsNew = true
+
+	for _, child := range pd.Children {
+		child.MarkNewRecursive()
+	}
 }
 
 func (pd *ParameterDef) GetChildrenByName(name string) *ParameterDef {
@@ -173,6 +182,16 @@ type RegoCompieError struct {
 }
 
 type RegoCompileResponse struct {
+	ParametersSchema []*ParameterDef   `json:"parametersSchema,omitempty"`
+	Errors           []RegoCompieError `json:"errors,omitempty"`
+}
+
+type ExtractParametersRequest struct {
+	Rego string   `json:"rego" example:"Rego 코드" validate:"required"`
+	Libs []string `json:"libs,omitempty"`
+}
+
+type ExtractParametersResponse struct {
 	ParametersSchema []*ParameterDef   `json:"parametersSchema,omitempty"`
 	Errors           []RegoCompieError `json:"errors,omitempty"`
 }

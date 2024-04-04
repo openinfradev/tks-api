@@ -703,6 +703,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_ExistsPolicyTemplateName", 
 		Group: "PolicyTemplate",
 	},
+    Admin_ExtractParameters: {
+		Name: "Admin_ExtractParameters", 
+		Group: "PolicyTemplate",
+	},
     ListClusterPolicyStatus: {
 		Name: "ListClusterPolicyStatus", 
 		Group: "ClusterPolicyStatus",
@@ -805,6 +809,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     ExistsPolicyTemplateName: {
 		Name: "ExistsPolicyTemplateName", 
+		Group: "OrganizationPolicyTemplate",
+	},
+    ExtractParameters: {
+		Name: "ExtractParameters", 
 		Group: "OrganizationPolicyTemplate",
 	},
     ListPolicyTemplateExample: {
@@ -1180,6 +1188,8 @@ func (e Endpoint) String() string {
 		return "Admin_ExistsPolicyTemplateKind"
 	case Admin_ExistsPolicyTemplateName:
 		return "Admin_ExistsPolicyTemplateName"
+	case Admin_ExtractParameters:
+		return "Admin_ExtractParameters"
 	case ListClusterPolicyStatus:
 		return "ListClusterPolicyStatus"
 	case GetClusterPolicyTemplateStatus:
@@ -1232,6 +1242,8 @@ func (e Endpoint) String() string {
 		return "ExistsPolicyTemplateKind"
 	case ExistsPolicyTemplateName:
 		return "ExistsPolicyTemplateName"
+	case ExtractParameters:
+		return "ExtractParameters"
 	case ListPolicyTemplateExample:
 		return "ListPolicyTemplateExample"
 	case GetPolicyTemplateExample:
@@ -1598,6 +1610,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_ExistsPolicyTemplateKind
 	case "Admin_ExistsPolicyTemplateName":
 		return Admin_ExistsPolicyTemplateName
+	case "Admin_ExtractParameters":
+		return Admin_ExtractParameters
 	case "ListClusterPolicyStatus":
 		return ListClusterPolicyStatus
 	case "GetClusterPolicyTemplateStatus":
@@ -1650,6 +1664,8 @@ func GetEndpoint(name string) Endpoint {
 		return ExistsPolicyTemplateKind
 	case "ExistsPolicyTemplateName":
 		return ExistsPolicyTemplateName
+	case "ExtractParameters":
+		return ExtractParameters
 	case "ListPolicyTemplateExample":
 		return ListPolicyTemplateExample
 	case "GetPolicyTemplateExample":

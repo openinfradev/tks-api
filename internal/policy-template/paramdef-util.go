@@ -33,6 +33,28 @@ func GetNewParamDefs(paramdefs1 []*domain.ParameterDef, paramdefs2 []*domain.Par
 	return result, nil
 }
 
+func GetNewExtractedParamDefs(paramdefs []*domain.ParameterDef, extractedParamdefs []*domain.ParameterDef) (newParamdefs []*domain.ParameterDef, err error) {
+	result := []*domain.ParameterDef{}
+
+	if len(paramdefs) > len(extractedParamdefs) {
+		return nil, errors.New("not compatible, parameter number reduced")
+	}
+
+	for _, extractedParamdef := range extractedParamdefs {
+		paramdef := findParamDefByName(paramdefs, extractedParamdef.Key)
+
+		if paramdef == nil {
+			// Not found, it's new parameter
+			extractedParamdef.MarkNewRecursive()
+			result = append(result, extractedParamdef)
+		} else if !CompareParamDefAndExtractedParamDef(paramdef, extractedParamdef) {
+			return nil, fmt.Errorf("not compatible, parameter definition of '%s' is changed", extractedParamdef.Key)
+		}
+	}
+
+	return result, nil
+}
+
 func findParamDefByName(paramdefs []*domain.ParameterDef, name string) *domain.ParameterDef {
 	for _, paramdef := range paramdefs {
 		if paramdef.Key == name {
@@ -72,6 +94,46 @@ func CompareParamDef(paramdef1 *domain.ParameterDef, paramdef2 *domain.Parameter
 		child2 := paramdef2.GetChildrenByName(child.Key)
 
 		equals := CompareParamDef(child, child2)
+
+		if !equals {
+			return false
+		}
+	}
+
+	return true
+}
+
+func CompareParamDefAndExtractedParamDef(paramdef *domain.ParameterDef, extractedParamdef *domain.ParameterDef) bool {
+	if paramdef == nil || extractedParamdef == nil {
+		return extractedParamdef == paramdef
+	}
+
+	if paramdef.Key != extractedParamdef.Key {
+		return false
+	}
+
+	if paramdef.IsArray != extractedParamdef.IsArray {
+		return false
+	}
+
+	// object 기반이면 true, string 등 any 기반이면 false
+	paramDefIsObjectBased := paramdef.Type == "object" || paramdef.Type == "object[]"
+
+	// ovject 기반이면 true, any, anㅛ[] 등 기반이면 false
+	extractedParamdefIsObjectBased := paramdef.Type == "object" || paramdef.Type == "object[]"
+
+	if paramDefIsObjectBased != extractedParamdefIsObjectBased {
+		return false
+	}
+
+	if len(paramdef.Children) != len(extractedParamdef.Children) {
+		return false
+	}
+
+	for _, child := range paramdef.Children {
+		child2 := extractedParamdef.GetChildrenByName(child.Key)
+
+		equals := CompareParamDefAndExtractedParamDef(child, child2)
 
 		if !equals {
 			return false
