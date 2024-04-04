@@ -843,7 +843,6 @@ func convertModelToMergedPermissionSetResponse(ctx context.Context, permission *
 //	@Success		200				{object}	domain.Admin_CreateUserResponse	"create user response"
 //	@Router			/admin/organizations/{organizationId}/users [post]
 //	@Security		JWT
-
 func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -927,6 +926,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin_Delete godoc
+//
 //	@Tags			Users
 //	@Summary		Delete user by admin in Admin Portal
 //	@Description	Delete user by admin in Admin Portal
@@ -938,7 +938,6 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 //	@Success		200
 //	@Router			/admin/organizations/{organizationId}/users/{accountId} [delete]
 //	@Security		JWT
-
 func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userId, ok := vars["accountId"]
