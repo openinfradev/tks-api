@@ -67,7 +67,7 @@ type GetUserResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Roles        []SimpleRoleResponse `json:"role"`
+		Roles        []SimpleRoleResponse `json:"roles"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`
