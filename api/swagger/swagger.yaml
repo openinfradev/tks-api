@@ -165,6 +165,90 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectMemberRequest'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.Admin_CreateUserRequest:
+    properties:
+      accountId:
+        type: string
+      adminPassword:
+        type: string
+      department:
+        maxLength: 50
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UserCreationRole'
+        type: array
+    required:
+    - accountId
+    - email
+    - roles
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.Admin_CreateUserResponse:
+    properties:
+      id:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateUserRequest:
+    properties:
+      adminPassword:
+        type: string
+      department:
+        maxLength: 50
+        minLength: 0
+        type: string
+      description:
+        maxLength: 100
+        minLength: 0
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UserCreationRole'
+        type: array
+    required:
+    - email
+    - roles
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateUserResponse:
+    properties:
+      user:
+        properties:
+          accountId:
+            type: string
+          createdAt:
+            type: string
+          department:
+            type: string
+          description:
+            type: string
+          email:
+            type: string
+          id:
+            type: string
+          name:
+            type: string
+          organization:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
+          updatedAt:
+            type: string
+        type: object
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.AppGroupResponse:
     properties:
       appGroupType:
@@ -343,6 +427,15 @@ definitions:
         description: application version
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.AppendUsersToRoleRequest:
+    properties:
+      users:
+        items:
+          type: string
+        type: array
+    required:
+    - users
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ApplicationResponse:
     properties:
       appGroupId:
@@ -449,6 +542,11 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse:
     properties:
       existed:
+        type: boolean
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.CheckRoleNameResponse:
+    properties:
+      isExist:
         type: boolean
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CheckStackTemplateNameResponse:
@@ -1232,16 +1330,15 @@ definitions:
         type: string
       password:
         type: string
-      role:
-        enum:
-        - admin
-        - user
-        type: string
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UserCreationRole'
+        type: array
     required:
     - accountId
     - email
     - password
-    - role
+    - roles
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateUserResponse:
     properties:
@@ -1261,8 +1358,10 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse:
@@ -1342,6 +1441,11 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.DeleteOrganizationResponse:
     properties:
       id:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.DeleteUserRequest:
+    properties:
+      adminPassword:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.EndpointResponse:
@@ -1607,8 +1711,10 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetOrganizationResponse:
@@ -1862,11 +1968,22 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
           updatedAt:
             type: string
         type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetUsersInRoleIdResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      users:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetUsersPermissionsResponse:
     properties:
@@ -1996,8 +2113,10 @@ definitions:
         type: string
       organization:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-      role:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+        type: array
       updatedAt:
         type: string
     type: object
@@ -2028,8 +2147,10 @@ definitions:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
           passwordExpired:
             type: boolean
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
           token:
             type: string
         type: object
@@ -2564,6 +2685,15 @@ definitions:
           type: object
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.RemoveUsersFromRoleRequest:
+    properties:
+      users:
+        items:
+          type: string
+        type: array
+    required:
+    - users
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ResourceQuota:
     properties:
       quotas:
@@ -2581,34 +2711,6 @@ definitions:
         type: string
       usage:
         type: integer
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.RoleIdRoleNameResponse:
-    properties:
-      roleId:
-        type: string
-      roleName:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.RoleResponse:
-    properties:
-      createdAt:
-        type: string
-      creator:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      organization:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-      organizationId:
-        type: string
-      type:
-        type: string
-      updatedAt:
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.RollbackAppServeAppRequest:
     properties:
@@ -2678,6 +2780,13 @@ definitions:
         type: string
       version:
         example: v1.0.1
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse:
+    properties:
+      id:
+        type: string
+      name:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.SimpleStackTemplateResponse:
@@ -3162,6 +3271,9 @@ definitions:
       password:
         type: string
     required:
+    - department
+    - email
+    - name
     - password
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileResponse:
@@ -3180,8 +3292,10 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
         type: object
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationRequest:
@@ -3449,6 +3563,10 @@ definitions:
         maxLength: 100
         minLength: 0
         type: string
+      name:
+        maxLength: 100
+        minLength: 0
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateUserRequest:
     properties:
@@ -3463,14 +3581,15 @@ definitions:
       email:
         type: string
       name:
-        maxLength: 30
-        minLength: 1
         type: string
-      role:
-        enum:
-        - admin
-        - user
-        type: string
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UserCreationRole'
+        type: array
+    required:
+    - email
+    - name
+    - roles
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateUserResponse:
     properties:
@@ -3492,11 +3611,44 @@ definitions:
             type: string
           organization:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
+          roles:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+            type: array
           updatedAt:
             type: string
         type: object
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateUsersRequest:
+    properties:
+      users:
+        items:
+          properties:
+            accountId:
+              type: string
+            department:
+              maxLength: 50
+              minLength: 0
+              type: string
+            description:
+              maxLength: 100
+              minLength: 0
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+            roles:
+              items:
+                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UserCreationRole'
+              type: array
+          required:
+          - accountId
+          - email
+          - name
+          - roles
+          type: object
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatedPolicyTemplateParameter:
     properties:
@@ -3506,6 +3658,13 @@ definitions:
         type: string
       value:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UserCreationRole:
+    properties:
+      id:
+        type: string
+    required:
+    - id
     type: object
   github_com_openinfradev_tks-api_pkg_domain.VerifyIdentityForLostIdRequest:
     properties:
@@ -3674,34 +3833,6 @@ definitions:
       policyTemplate:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse'
     type: object
-  github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse:
-    properties:
-      user:
-        properties:
-          accountId:
-            type: string
-          createdAt:
-            type: string
-          creator:
-            type: string
-          department:
-            type: string
-          description:
-            type: string
-          email:
-            type: string
-          id:
-            type: string
-          name:
-            type: string
-          organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
-          updatedAt:
-            type: string
-        type: object
-    type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.ListPolicyTemplateResponse:
     properties:
       pagination:
@@ -3827,54 +3958,6 @@ definitions:
       templateName:
         example: 필수 Label 검사
         type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest:
-    properties:
-      adminPassword:
-        type: string
-      department:
-        maxLength: 50
-        minLength: 0
-        type: string
-      description:
-        maxLength: 100
-        minLength: 0
-        type: string
-      email:
-        type: string
-      name:
-        type: string
-      role:
-        type: string
-    required:
-    - email
-    - role
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserResponse:
-    properties:
-      user:
-        properties:
-          accountId:
-            type: string
-          createdAt:
-            type: string
-          department:
-            type: string
-          description:
-            type: string
-          email:
-            type: string
-          id:
-            type: string
-          name:
-            type: string
-          organization:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.OrganizationResponse'
-          role:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RoleResponse'
-          updatedAt:
-            type: string
-        type: object
     type: object
   github_com_openinfradev_tks-api_pkg_httpErrors.RestError:
     properties:
@@ -4013,6 +4096,30 @@ paths:
       summary: Get Audit
       tags:
       - Audits
+  /admin/organizations:
+    post:
+      consumes:
+      - application/json
+      description: Create organization in Admin portal
+      parameters:
+      - description: create organization request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+      security:
+      - JWT: []
+      summary: Create organization in Admin portal
+      tags:
+      - Organizations
   /admin/organizations/{organizationId}/projects:
     get:
       consumes:
@@ -4052,6 +4159,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse'
+      security:
+      - JWT: []
       summary: Admin List Tks Roles
       tags:
       - Roles
@@ -4076,15 +4185,52 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetTksRoleResponse'
+      security:
+      - JWT: []
       summary: Admin Get Tks Role
       tags:
       - Roles
-  /admin/organizations/{organizationId}/users/{accountId}:
-    get:
+  /admin/organizations/{organizationId}/users:
+    post:
       consumes:
       - application/json
-      description: Get user detail by admin
+      description: Create user by admin in Admin Portal
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: create user request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: create user response
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_CreateUserResponse'
+      security:
+      - JWT: []
+      summary: Create user by admin in Admin Portal
+      tags:
+      - Users
+  /admin/organizations/{organizationId}/users/{accountId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user by admin in Admin Portal
+      parameters:
+      - description: input
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteUserRequest'
       - description: organizationId
         in: path
         name: organizationId
@@ -4100,15 +4246,15 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.GetUserResponse'
-      summary: Get user detail by admin
+      security:
+      - JWT: []
+      summary: Delete user by admin in Admin Portal
       tags:
       - Users
     put:
       consumes:
       - application/json
-      description: Update user by admin
+      description: Update user by admin in Admin Portal
       parameters:
       - description: organizationId
         in: path
@@ -4125,17 +4271,17 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserRequest'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.UpdateUserResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Admin_UpdateUserResponse'
       security:
       - JWT: []
-      summary: Update user by admin
+      summary: Update user by admin in Admin Portal
       tags:
       - Users
   /admin/policy-templates:
@@ -5494,29 +5640,6 @@ paths:
       security:
       - JWT: []
       summary: Get organization list
-      tags:
-      - Organizations
-    post:
-      consumes:
-      - application/json
-      description: Create organization
-      parameters:
-      - description: create organization request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateOrganizationRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: object
-      security:
-      - JWT: []
-      summary: Create organization
       tags:
       - Organizations
   /organizations/{organizationId}:
@@ -8408,6 +8531,143 @@ paths:
       summary: Update Permissions By Role ID
       tags:
       - Roles
+  /organizations/{organizationId}/roles/{roleId}/users:
+    delete:
+      consumes:
+      - application/json
+      description: Remove Users From Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      - description: Remove Users From Role Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RemoveUsersFromRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Remove Users From Role
+      tags:
+      - Roles
+    get:
+      description: Get Users By Role ID
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: pageSize
+        type: string
+      - description: pageNumber
+        in: query
+        name: pageNumber
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetUsersInRoleIdResponse'
+      security:
+      - JWT: []
+      summary: Get Users By Role ID
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      description: Append Users To Role
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role ID
+        in: path
+        name: roleId
+        required: true
+        type: string
+      - description: Append Users To Role Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppendUsersToRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Append Users To Role
+      tags:
+      - Roles
+  /organizations/{organizationId}/roles/{roleName}/existence:
+    get:
+      description: Check whether the role name exists
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Role Name
+        in: path
+        name: roleName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckRoleNameResponse'
+      security:
+      - JWT: []
+      summary: Check whether the role name exists
+      tags:
+      - Roles
   /organizations/{organizationId}/stack-templates:
     get:
       consumes:
@@ -9306,6 +9566,34 @@ paths:
       security:
       - JWT: []
       summary: Create user
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update multiple users
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: input
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateUsersRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Update multiple users
       tags:
       - Users
   /organizations/{organizationId}/users/{accountId}:
