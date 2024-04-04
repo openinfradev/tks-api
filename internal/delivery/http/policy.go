@@ -36,6 +36,7 @@ type IPolicyHandler interface {
 	GetClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
 	UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
 	GetPolicyEdit(w http.ResponseWriter, r *http.Request)
+	GetPolicyStatistics(w http.ResponseWriter, r *http.Request)
 }
 
 func NewPolicyHandler(u usecase.Usecase) IPolicyHandler {
@@ -825,6 +826,42 @@ func (h *PolicyHandler) GetPolicyEdit(w http.ResponseWriter, r *http.Request) {
 		log.Error(r.Context(), err)
 	} else {
 		out.Policy.FilledParameters = parameterSchema
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyStatistics godoc
+//
+//	@Tags			Policy
+//	@Summary		[GetPolicyStatistics] 정책 템플릿, 정책 통계 조회
+//	@Description	템플릿, 정책의 통계를 조회한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"조직 식별자(o로 시작)"
+//	@Success		200				{object}	domain.PolicyStatisticsResponse
+//	@Router			/organizations/{organizationId}/policy-statistics [get]
+//	@Security		JWT
+func (h *PolicyHandler) GetPolicyStatistics(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	out, err := h.usecase.GetPolicyStatistics(r.Context(), organizationId)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

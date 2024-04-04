@@ -38,6 +38,7 @@ type IPolicyUsecase interface {
 	GetClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID) (clusterPolicyTemplateStatusResponse *domain.GetClusterPolicyTemplateStatusResponse, err error)
 	UpdateClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID,
 		currentVersion string, targetVerson string) (err error)
+	GetPolicyStatistics(ctx context.Context, organizationId string) (response *domain.PolicyStatisticsResponse, err error)
 }
 
 type PolicyUsecase struct {
@@ -624,6 +625,59 @@ func (u *PolicyUsecase) GetClusterPolicyTemplateStatus(ctx context.Context, clus
 		TemplateLatestVersonReleaseDate: latestTemplate.CreatedAt,
 		AffectedPolicies:                affectedPolicies,
 		UpdatedPolicyParameters:         updatedPolicyParameters,
+	}
+
+	return &result, nil
+}
+
+func (u *PolicyUsecase) GetPolicyStatistics(ctx context.Context, organizationId string) (response *domain.PolicyStatisticsResponse, err error) {
+	result := domain.PolicyStatisticsResponse{}
+
+	orgTemplateCount, err := u.templateRepo.CountOrganizationTemplate(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	tksTemplateCount, err := u.templateRepo.CountTksTemplateByOrganization(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	policyStatistics, err := u.repo.CountPolicyByEnforcementAction(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	var policyTotal int64
+	var deny int64
+	var dryrun int64
+	var warn int64
+
+	for _, stat := range policyStatistics {
+		switch stat.EnforcementAction {
+		case "deny":
+			deny = stat.Count
+			policyTotal += deny
+		case "dryrun":
+			dryrun = stat.Count
+			policyTotal += dryrun
+		case "warn":
+			warn = stat.Count
+			policyTotal += warn
+		}
+	}
+
+	result.Template = domain.TemplateCount{
+		TksTemplate:          tksTemplateCount,
+		OrganizationTemplate: orgTemplateCount,
+		Total:                tksTemplateCount + orgTemplateCount,
+	}
+
+	result.Policy = domain.PolicyCount{
+		Deny:   deny,
+		Warn:   warn,
+		Dryrun: dryrun,
+		Total:  policyTotal,
 	}
 
 	return &result, nil

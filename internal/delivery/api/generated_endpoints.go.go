@@ -51,6 +51,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "DeleteUser", 
 		Group: "User",
 	},
+    UpdateUsers: {
+		Name: "UpdateUsers", 
+		Group: "User",
+	},
     UpdateUser: {
 		Name: "UpdateUser", 
 		Group: "User",
@@ -615,6 +619,18 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "IsRoleNameExisted", 
 		Group: "Role",
 	},
+    AppendUsersToRole: {
+		Name: "AppendUsersToRole", 
+		Group: "Role",
+	},
+    GetUsersInRoleId: {
+		Name: "GetUsersInRoleId", 
+		Group: "Role",
+	},
+    RemoveUsersFromRole: {
+		Name: "RemoveUsersFromRole", 
+		Group: "Role",
+	},
     GetPermissionTemplates: {
 		Name: "GetPermissionTemplates", 
 		Group: "Permission",
@@ -725,6 +741,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     SetMandatoryPolicies: {
 		Name: "SetMandatoryPolicies", 
+		Group: "Policy",
+	},
+    GetPolicyStatistics: {
+		Name: "GetPolicyStatistics", 
 		Group: "Policy",
 	},
     ListPolicy: {
@@ -862,6 +882,8 @@ func (e Endpoint) String() string {
 		return "GetUser"
 	case DeleteUser:
 		return "DeleteUser"
+	case UpdateUsers:
+		return "UpdateUsers"
 	case UpdateUser:
 		return "UpdateUser"
 	case ResetPassword:
@@ -1144,6 +1166,12 @@ func (e Endpoint) String() string {
 		return "UpdatePermissionsByRoleId"
 	case IsRoleNameExisted:
 		return "IsRoleNameExisted"
+	case AppendUsersToRole:
+		return "AppendUsersToRole"
+	case GetUsersInRoleId:
+		return "GetUsersInRoleId"
+	case RemoveUsersFromRole:
+		return "RemoveUsersFromRole"
 	case GetPermissionTemplates:
 		return "GetPermissionTemplates"
 	case Admin_CreateUser:
@@ -1200,6 +1228,8 @@ func (e Endpoint) String() string {
 		return "GetMandatoryPolicies"
 	case SetMandatoryPolicies:
 		return "SetMandatoryPolicies"
+	case GetPolicyStatistics:
+		return "GetPolicyStatistics"
 	case ListPolicy:
 		return "ListPolicy"
 	case CreatePolicy:
@@ -1284,6 +1314,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetUser
 	case "DeleteUser":
 		return DeleteUser
+	case "UpdateUsers":
+		return UpdateUsers
 	case "UpdateUser":
 		return UpdateUser
 	case "ResetPassword":
@@ -1566,6 +1598,12 @@ func GetEndpoint(name string) Endpoint {
 		return UpdatePermissionsByRoleId
 	case "IsRoleNameExisted":
 		return IsRoleNameExisted
+	case "AppendUsersToRole":
+		return AppendUsersToRole
+	case "GetUsersInRoleId":
+		return GetUsersInRoleId
+	case "RemoveUsersFromRole":
+		return RemoveUsersFromRole
 	case "GetPermissionTemplates":
 		return GetPermissionTemplates
 	case "Admin_CreateUser":
@@ -1622,6 +1660,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetMandatoryPolicies
 	case "SetMandatoryPolicies":
 		return SetMandatoryPolicies
+	case "GetPolicyStatistics":
+		return GetPolicyStatistics
 	case "ListPolicy":
 		return ListPolicy
 	case "CreatePolicy":

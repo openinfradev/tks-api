@@ -30,6 +30,7 @@ type IPolicyRepository interface {
 	UpdatePolicyTargetClusters(ctx context.Context, organizationId string, policyId uuid.UUID, currentClusterIds []string, targetClusters []model.Cluster) (err error)
 	SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error)
 	GetUsageCountByTemplateId(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (usageCounts []model.UsageCount, err error)
+	CountPolicyByEnforcementAction(ctx context.Context, organizationId string) (policyCount []model.PolicyCount, err error)
 }
 
 type PolicyRepository struct {
@@ -274,6 +275,20 @@ func (r *PolicyRepository) GetUsageCountByTemplateId(ctx context.Context, organi
 	}
 
 	err = query.Group("organizations.id").Scan(&usageCounts).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+func (r *PolicyRepository) CountPolicyByEnforcementAction(ctx context.Context, organizationId string) (policyCount []model.PolicyCount, err error) {
+
+	err = r.db.WithContext(ctx).Model(&model.Policy{}).
+		Select("enforcement_action", "count(enforcement_action) as count").
+		Where("organization_id = ?", organizationId).
+		Group("enforcement_action").Scan(&policyCount).Error
 
 	if err != nil {
 		return nil, err

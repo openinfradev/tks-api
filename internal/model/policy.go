@@ -83,3 +83,8 @@ type UsageCount struct {
 	OrganizationName string
 	UsageCount       int
 }
+
+type PolicyCount struct {
+	EnforcementAction string
+	Count             int64
+}

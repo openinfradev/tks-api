@@ -242,6 +242,7 @@ const (
 	// Policy
 	GetMandatoryPolicies
 	SetMandatoryPolicies
+	GetPolicyStatistics
 	ListPolicy
 	CreatePolicy
 	DeletePolicy
