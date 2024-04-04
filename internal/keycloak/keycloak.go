@@ -56,7 +56,7 @@ type Keycloak struct {
 func (k *Keycloak) CreateGroup(ctx context.Context, organizationId string, groupName string) (string, error) {
 	token := k.adminCliToken
 	group := gocloak.Group{
-		Name: gocloak.StringP(groupName),
+		Name: gocloak.StringP(groupName + "@" + organizationId),
 	}
 	groupId, err := k.client.CreateGroup(context.Background(), token.AccessToken, organizationId, group)
 	if err != nil {

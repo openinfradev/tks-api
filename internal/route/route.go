@@ -127,8 +127,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/users/{accountId}/permissions", customMiddleware.Handle(internalApi.GetPermissionsByAccountId, http.HandlerFunc(userHandler.GetPermissionsByAccountId))).Methods(http.MethodGet)
 
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.Admin_CreateUser, http.HandlerFunc(userHandler.Admin_Create))).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users", customMiddleware.Handle(internalApi.Admin_ListUser, http.HandlerFunc(userHandler.Admin_List))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.Admin_GetUser, http.HandlerFunc(userHandler.Admin_Get))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.Admin_UpdateUser, http.HandlerFunc(userHandler.Admin_Update))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/organizations/{organizationId}/users/{accountId}", customMiddleware.Handle(internalApi.Admin_DeleteUser, http.HandlerFunc(userHandler.Admin_Delete))).Methods(http.MethodDelete)
 

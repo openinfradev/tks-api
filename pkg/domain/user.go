@@ -153,7 +153,7 @@ type UpdateMyProfileResponse struct {
 		ID           string               `json:"id"`
 		AccountId    string               `json:"accountId"`
 		Name         string               `json:"name"`
-		Roles        []SimpleRoleResponse `json:"role"`
+		Roles        []SimpleRoleResponse `json:"roles"`
 		Organization OrganizationResponse `json:"organization"`
 		Email        string               `json:"email"`
 		Department   string               `json:"department"`
@@ -167,4 +167,46 @@ type UpdatePasswordRequest struct {
 
 type CheckExistedResponse struct {
 	Existed bool `json:"existed"`
+}
+
+type Admin_CreateUserRequest struct {
+	AccountId     string             `json:"accountId" validate:"required"`
+	Name          string             `json:"name" validate:"name"`
+	Email         string             `json:"email" validate:"required,email"`
+	Roles         []UserCreationRole `json:"roles" validate:"required"`
+	Department    string             `json:"department" validate:"min=0,max=50"`
+	Description   string             `json:"description" validate:"min=0,max=100"`
+	AdminPassword string             `json:"adminPassword"`
+}
+
+type Admin_CreateUserResponse struct {
+	ID string `json:"id"`
+}
+
+type Admin_UpdateUserRequest struct {
+	Name          string             `json:"name" validate:"name"`
+	Email         string             `json:"email" validate:"required,email"`
+	Department    string             `json:"department" validate:"min=0,max=50"`
+	Roles         []UserCreationRole `json:"roles" validate:"required"`
+	Description   string             `json:"description" validate:"min=0,max=100"`
+	AdminPassword string             `json:"adminPassword"`
+}
+
+type Admin_UpdateUserResponse struct {
+	User struct {
+		ID           string               `json:"id"`
+		AccountId    string               `json:"accountId"`
+		Name         string               `json:"name"`
+		Roles        []SimpleRoleResponse `json:"roles"`
+		Organization OrganizationResponse `json:"organization"`
+		Email        string               `json:"email"`
+		Department   string               `json:"department"`
+		Description  string               `json:"description"`
+		CreatedAt    time.Time            `json:"createdAt"`
+		UpdatedAt    time.Time            `json:"updatedAt"`
+	} `json:"user"`
+}
+
+type DeleteUserRequest struct {
+	AdminPassword string `json:"adminPassword"`
 }
