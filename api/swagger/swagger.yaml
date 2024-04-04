@@ -1145,25 +1145,21 @@ definitions:
         type: string
       name:
         type: string
-      systemNotificationConditions:
-        items:
-          properties:
-            duration:
-              type: integer
-            enableEmail:
-              type: boolean
-            enablePortal:
-              type: boolean
-            order:
-              type: integer
-            parameters:
-              items:
-                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
-              type: array
-            severity:
-              type: string
-          type: object
-        type: array
+      systemNotificationCondition:
+        properties:
+          duration:
+            type: string
+          enableEmail:
+            type: boolean
+          enablePortal:
+            type: boolean
+          parameters:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+            type: array
+          severity:
+            type: string
+        type: object
       systemNotificationTemplateId:
         type: string
       targetUserIds:
@@ -2905,18 +2901,18 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse:
     properties:
       duration:
-        type: integer
+        type: string
       enableEmail:
         type: boolean
       enablePortal:
         type: boolean
-      order:
-        type: integer
       parameters:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
         type: array
       severity:
+        type: string
+      systemNotificationRuleId:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse:
@@ -3006,10 +3002,8 @@ definitions:
         type: string
       name:
         type: string
-      systemNotificationConditions:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse'
-        type: array
+      systemNotificationCondition:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse'
       systemNotificationTemplate:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse'
       targetUsers:
@@ -3399,25 +3393,23 @@ definitions:
         type: string
       name:
         type: string
-      systemNotificationConditions:
-        items:
-          properties:
-            duration:
-              type: integer
-            enableEmail:
-              type: boolean
-            enablePortal:
-              type: boolean
-            order:
-              type: integer
-            parameters:
-              items:
-                $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
-              type: array
-            severity:
-              type: string
-          type: object
-        type: array
+      systemNotificationCondition:
+        properties:
+          duration:
+            type: string
+          enableEmail:
+            type: boolean
+          enablePortal:
+            type: boolean
+          parameters:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter'
+            type: array
+          severity:
+            type: string
+          systemNotificationRuleId:
+            type: string
+        type: object
       systemNotificationTemplateId:
         type: string
       targetUserIds:

@@ -67,3 +67,26 @@ values ('68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'pvc-full', 'pvc-full', true, 'p
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
 values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', true, 'pod-restart-frequently', 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:]) > 2', null, null, now(), now() );
 
+## SystemNotificationTemplates -> SystemNotificationMetricParameters
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 0, 'd42d716f-dd2e-429b-897d-b602f6382790', 'STACK', '$labels.taco_cluster', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 1, 'd42d716f-dd2e-429b-897d-b602f6382790', 'INSTANCE', '$labels.instance', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 0, 'f11eefa4-5a16-44fc-8dae-4662e7fba023', 'STACK', '$labels.taco_cluster', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 1, 'f11eefa4-5a16-44fc-8dae-4662e7fba023', 'INSTANCE', '$labels.instance', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 0, '1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'STACK', '$labels.taco_cluster', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 1, '1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'INSTANCE', '$labels.instance', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 0, '68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'STACK', '$labels.taco_cluster', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 1, '68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'PVC', '$labels.persistentvolumeclaim', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 0, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'STACK', '$labels.taco_cluster', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 1, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'POD', '$labels.pod', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 3, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'NAMESPACE', '$labels.namespace', now(), now() );

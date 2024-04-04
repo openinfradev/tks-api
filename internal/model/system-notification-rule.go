@@ -11,9 +11,8 @@ type SystemNotificationCondition struct {
 	gorm.Model
 
 	SystemNotificationRuleId uuid.UUID
-	Order                    int
 	Severity                 string
-	Duration                 int
+	Duration                 string
 	Parameter                datatypes.JSON
 	Parameters               []domain.SystemNotificationParameter `gorm:"-:all"`
 	EnableEmail              bool                                 `gorm:"default:false"`
@@ -27,13 +26,13 @@ type SystemNotificationRule struct {
 	Name                         string    `gorm:"index,unique"`
 	Description                  string
 	OrganizationId               string
-	Organization                 Organization               `gorm:"foreignKey:OrganizationId"`
-	IsSystem                     bool                       `gorm:"default:false"`
-	SystemNotificationTemplate   SystemNotificationTemplate `gorm:"foreignKey:SystemNotificationTemplateId"`
-	SystemNotificationTemplateId string
-	SystemNotificationConditions []SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
-	TargetUsers                  []User                        `gorm:"many2many:system_notification_rule_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
-	TargetUserIds                []string                      `gorm:"-:all"`
+	Organization                 Organization `gorm:"foreignKey:OrganizationId"`
+	IsSystem                     bool         `gorm:"default:false"`
+	SystemNotificationTemplateId uuid.UUID
+	SystemNotificationTemplate   SystemNotificationTemplate  `gorm:"foreignKey:SystemNotificationTemplateId"`
+	SystemNotificationCondition  SystemNotificationCondition `gorm:"foreignKey:SystemNotificationRuleId"`
+	TargetUsers                  []User                      `gorm:"many2many:system_notification_rule_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
+	TargetUserIds                []string                    `gorm:"-:all"`
 	MessageTitle                 string
 	MessageContent               string
 	MessageActionProposal        string

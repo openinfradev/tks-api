@@ -10577,32 +10577,26 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "systemNotificationConditions": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "duration": {
-                                "type": "integer"
-                            },
-                            "enableEmail": {
-                                "type": "boolean"
-                            },
-                            "enablePortal": {
-                                "type": "boolean"
-                            },
-                            "order": {
-                                "type": "integer"
-                            },
-                            "parameters": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
-                                }
-                            },
-                            "severity": {
-                                "type": "string"
+                "systemNotificationCondition": {
+                    "type": "object",
+                    "properties": {
+                        "duration": {
+                            "type": "string"
+                        },
+                        "enableEmail": {
+                            "type": "boolean"
+                        },
+                        "enablePortal": {
+                            "type": "boolean"
+                        },
+                        "parameters": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
                             }
+                        },
+                        "severity": {
+                            "type": "string"
                         }
                     }
                 },
@@ -13232,16 +13226,13 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "duration": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "enableEmail": {
                     "type": "boolean"
                 },
                 "enablePortal": {
                     "type": "boolean"
-                },
-                "order": {
-                    "type": "integer"
                 },
                 "parameters": {
                     "type": "array",
@@ -13250,6 +13241,9 @@ const docTemplate = `{
                     }
                 },
                 "severity": {
+                    "type": "string"
+                },
+                "systemNotificationRuleId": {
                     "type": "string"
                 }
             }
@@ -13385,11 +13379,8 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "systemNotificationConditions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse"
-                    }
+                "systemNotificationCondition": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse"
                 },
                 "systemNotificationTemplate": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleSystemNotificationTemplateResponse"
@@ -13983,32 +13974,29 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "systemNotificationConditions": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "duration": {
-                                "type": "integer"
-                            },
-                            "enableEmail": {
-                                "type": "boolean"
-                            },
-                            "enablePortal": {
-                                "type": "boolean"
-                            },
-                            "order": {
-                                "type": "integer"
-                            },
-                            "parameters": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
-                                }
-                            },
-                            "severity": {
-                                "type": "string"
+                "systemNotificationCondition": {
+                    "type": "object",
+                    "properties": {
+                        "duration": {
+                            "type": "string"
+                        },
+                        "enableEmail": {
+                            "type": "boolean"
+                        },
+                        "enablePortal": {
+                            "type": "boolean"
+                        },
+                        "parameters": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationParameter"
                             }
+                        },
+                        "severity": {
+                            "type": "string"
+                        },
+                        "systemNotificationRuleId": {
+                            "type": "string"
                         }
                     }
                 },

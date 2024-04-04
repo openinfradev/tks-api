@@ -17,18 +17,20 @@ import (
 )
 
 type OrganizationHandler struct {
-	usecase           usecase.IOrganizationUsecase
-	userUsecase       usecase.IUserUsecase
-	roleUsecase       usecase.IRoleUsecase
-	permissionUsecase usecase.IPermissionUsecase
+	usecase                       usecase.IOrganizationUsecase
+	userUsecase                   usecase.IUserUsecase
+	roleUsecase                   usecase.IRoleUsecase
+	permissionUsecase             usecase.IPermissionUsecase
+	systemNotificationRuleUsecase usecase.ISystemNotificationRuleUsecase
 }
 
 func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 	return &OrganizationHandler{
-		usecase:           u.Organization,
-		userUsecase:       u.User,
-		roleUsecase:       u.Role,
-		permissionUsecase: u.Permission,
+		usecase:                       u.Organization,
+		userUsecase:                   u.User,
+		roleUsecase:                   u.Role,
+		permissionUsecase:             u.Permission,
+		systemNotificationRuleUsecase: u.SystemNotificationRule,
 	}
 }
 
@@ -142,7 +144,7 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 	organization.AdminId = &admin.ID
 
 	// Default systemNotificationRules 생성
-	err = h.usecase.MakeDefaultSystemNotificationRules(r.Context(), organizationId, &organization)
+	err = h.systemNotificationRuleUsecase.MakeDefaultSystemNotificationRules(r.Context(), organizationId, &organization)
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
