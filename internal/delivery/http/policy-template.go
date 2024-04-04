@@ -457,12 +457,6 @@ func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateDeploy(w http.ResponseWri
 //	@Security		JWT
 func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
-			"C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
 
 	policyTemplateId, ok := vars["policyTemplateId"]
 	if !ok {
@@ -482,7 +476,7 @@ func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateVersion(w http.ResponseWr
 		return
 	}
 
-	policyTemplate, err := h.usecase.GetPolicyTemplateVersion(r.Context(), &organizationId, id, version)
+	policyTemplate, err := h.usecase.GetPolicyTemplateVersion(r.Context(), nil, id, version)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_NOT_FOUND_POLICY_TEMPLATE_VERSION", ""))
