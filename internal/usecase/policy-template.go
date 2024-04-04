@@ -32,7 +32,7 @@ type IPolicyTemplateUsecase interface {
 	GetPolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
 	ListPolicyTemplateVersions(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
 	DeletePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string) (err error)
-	CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
+	CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error)
 
 	RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error)
 
@@ -395,7 +395,7 @@ func (u *PolicyTemplateUsecase) DeletePolicyTemplateVersion(ctx context.Context,
 	return u.repo.DeletePolicyTemplateVersion(ctx, policyTemplateId, version)
 }
 
-func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
+func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error) {
 	policyTemplate, err := u.repo.GetByID(ctx, policyTemplateId)
 
 	if err != nil {

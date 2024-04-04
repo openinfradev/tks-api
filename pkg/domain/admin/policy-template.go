@@ -43,12 +43,12 @@ type SimplePolicyTemplateResponse struct {
 }
 
 type CreatePolicyTemplateRequest struct {
-	TemplateName     string                `json:"templateName" example:"필수 Label 검사" validate:"name"`
-	Kind             string                `json:"kind" example:"K8sRequiredLabels" validate:"required"`
-	Severity         string                `json:"severity" enums:"low,medium,high" example:"medium"`
-	Deprecated       bool                  `json:"deprecated" example:"false"`
-	Description      string                `json:"description,omitempty"  example:"이 정책은 ..."`
-	ParametersSchema []domain.ParameterDef `json:"parametersSchema,omitempty"`
+	TemplateName     string                 `json:"templateName" example:"필수 Label 검사" validate:"name"`
+	Kind             string                 `json:"kind" example:"K8sRequiredLabels" validate:"required"`
+	Severity         string                 `json:"severity" enums:"low,medium,high" example:"medium"`
+	Deprecated       bool                   `json:"deprecated" example:"false"`
+	Description      string                 `json:"description,omitempty"  example:"이 정책은 ..."`
+	ParametersSchema []*domain.ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
 	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
@@ -130,7 +130,7 @@ type CreatePolicyTemplateVersionRequest struct {
 	CurrentVersion  string `json:"currentVersion" example:"v1.0.0" validate:"required"`
 	ExpectedVersion string `json:"expectedVersion" example:"v1.1.0" validate:"required"`
 
-	ParametersSchema []domain.ParameterDef `json:"parametersSchema,omitempty"`
+	ParametersSchema []*domain.ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
 	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
