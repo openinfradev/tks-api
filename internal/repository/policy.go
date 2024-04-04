@@ -234,16 +234,22 @@ func (r *PolicyRepository) UpdatePolicyTargetClusters(ctx context.Context, organ
 
 func (r *PolicyRepository) SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error) {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err = tx.Model(&model.Policy{}).
-			Where("organization_id = ? id in ?", organizationId, mandatoryPolicyIds).
-			Update("mandatory", true).Error; err != nil {
-			return err
+		if len(mandatoryPolicyIds) > 0 {
+			if err = tx.Model(&model.Policy{}).
+				Where("organization_id = ?", organizationId).
+				Where("id in ?", mandatoryPolicyIds).
+				Update("mandatory", true).Error; err != nil {
+				return err
+			}
 		}
 
-		if err = tx.Model(&model.Policy{}).
-			Where("organization_id = ? id in ?", organizationId, nonMandatoryPolicyIds).
-			Update("mandatory", false).Error; err != nil {
-			return err
+		if len(nonMandatoryPolicyIds) > 0 {
+			if err = tx.Model(&model.Policy{}).
+				Where("organization_id = ?", organizationId).
+				Where("id in ?", nonMandatoryPolicyIds).
+				Update("mandatory", false).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil
