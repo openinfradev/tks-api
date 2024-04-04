@@ -363,8 +363,8 @@ func (u UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 //	@Description	Update multiple users
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string						true	"organizationId"
-//	@Param			body			body		[]domain.UpdateUsersRequest	true	"input"
+//	@Param			organizationId	path	string						true	"organizationId"
+//	@Param			body			body	[]domain.UpdateUsersRequest	true	"input"
 //	@Success		200
 //	@Router			/organizations/{organizationId}/users [put]
 //	@Security		JWT
@@ -932,9 +932,9 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 //	@Description	Delete user by admin in Admin Portal
 //	@Accept			json
 //	@Produce		json
-//	@Param			body			body		domain.DeleteUserRequest	true	"input"
-//	@Param			organizationId	path		string	true	"organizationId"
-//	@Param			accountId		path		string	true	"accountId"
+//	@Param			body			body	domain.DeleteUserRequest	true	"input"
+//	@Param			organizationId	path	string						true	"organizationId"
+//	@Param			accountId		path	string						true	"accountId"
 //	@Success		200
 //	@Router			/admin/organizations/{organizationId}/users/{accountId} [delete]
 //	@Security		JWT

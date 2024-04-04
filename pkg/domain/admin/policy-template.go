@@ -177,3 +177,13 @@ type RegoCompileResponse struct {
 	ParametersSchema []*domain.ParameterDef   `json:"parametersSchema,omitempty"`
 	Errors           []domain.RegoCompieError `json:"errors,omitempty"`
 }
+
+type ExtractParametersRequest struct {
+	Rego string   `json:"rego" example:"Rego 코드" validate:"required"`
+	Libs []string `json:"libs,omitempty"`
+}
+
+type ExtractParametersResponse struct {
+	ParametersSchema []*domain.ParameterDef   `json:"parametersSchema,omitempty"`
+	Errors           []domain.RegoCompieError `json:"errors,omitempty"`
+}

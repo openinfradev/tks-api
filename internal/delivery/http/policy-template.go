@@ -39,6 +39,7 @@ type IPolicyTemplateHandler interface {
 	Admin_GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	Admin_DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	Admin_ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request)
+	Admin_ExtractParameters(w http.ResponseWriter, r *http.Request)
 
 	CreatePolicyTemplate(w http.ResponseWriter, r *http.Request)
 	UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request)
@@ -53,6 +54,7 @@ type IPolicyTemplateHandler interface {
 	GetPolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request)
+	ExtractParameters(w http.ResponseWriter, r *http.Request)
 
 	RegoCompile(w http.ResponseWriter, r *http.Request)
 }
@@ -355,6 +357,61 @@ func (h *PolicyTemplateHandler) Admin_ListPolicyTemplateVersions(w http.Response
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_ExtractParameters godoc
+//
+//	@Tags			PolicyTemplate
+//	@Summary		[Admin_ExtractParameters] 정책 템플릿 파라미터 추출
+//	@Description	정책 템플릿 파라미터를 기존 버전의 수정불가능한 파라미터를 포함해서 추출한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			policyTemplateId	path		string									true	"정책 템플릿 식별자(uuid)"
+//	@Param			version				path		string									true	"버전(v0.0.0 형식)"
+//	@Param			body				body		admin_domain.ExtractParametersRequest	true	"Rego 코드"
+//	@Success		200					{object}	admin_domain.ExtractParametersResponse
+//	@Router			/admin/policy-templates/{policyTemplateId}/versions/{version}/extract-parameters [post]
+//	@Security		JWT
+func (h *PolicyTemplateHandler) Admin_ExtractParameters(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	version, ok := vars["version"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid version"), "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
+		return
+	}
+
+	input := admin_domain.ExtractParametersRequest{}
+
+	err = UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	response, err := h.usecase.ExtractPolicyParameters(r.Context(), nil, id, version, input.Rego, input.Libs)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusCreated, response)
 }
 
 // Admin_ListPolicyTemplateStatistics godoc
@@ -1464,4 +1521,80 @@ func (h *PolicyTemplateHandler) ExistsPolicyTemplateKind(w http.ResponseWriter, 
 	out.Existed = exist
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// ExtractParameters godoc
+//
+//	@Tags			PolicyTemplate
+//	@Summary		[ExtractParameters] 정책 템플릿 파라미터 추출
+//	@Description	정책 템플릿 파라미터를 기존 버전의 수정불가능한 파라미터를 포함해서 추출한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string							true	"조직 식별자(o로 시작)"
+//	@Param			policyTemplateId	path		string							true	"정책 템플릿 식별자(uuid)"
+//	@Param			version				path		string							true	"버전(v0.0.0 형식)"
+//	@Param			body				body		domain.ExtractParametersRequest	true	"Rego 코드"
+//	@Success		200					{object}	domain.ExtractParametersResponse
+//	@Router			/organizations/{organizationId}/policy-templates/{policyTemplateId}/versions/{version}/extract-parameters [post]
+//	@Security		JWT
+func (h *PolicyTemplateHandler) ExtractParameters(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	policyTemplateId, ok := vars["policyTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid policyTemplateId"), "C_INVALID_POLICY_TEMPLATE_ID", ""))
+		return
+	}
+
+	version, ok := vars["version"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid version"), "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
+		return
+	}
+
+	id, err := uuid.Parse(policyTemplateId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "PT_INVALID_POLICY_TEMPLATE_VERSION", ""))
+		return
+	}
+
+	input := domain.ExtractParametersRequest{}
+
+	err = UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.ExtractParametersResponse
+
+	response, err := h.usecase.ExtractPolicyParameters(r.Context(), &organizationId, id, version, input.Rego, input.Libs)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	if err := serializer.Map(r.Context(), response, &out); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusCreated, response)
 }

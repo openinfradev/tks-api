@@ -232,6 +232,7 @@ const (
 	Admin_GetPolicyTemplateVersion
 	Admin_ExistsPolicyTemplateKind
 	Admin_ExistsPolicyTemplateName
+	Admin_ExtractParameters
 
 	// ClusterPolicyStatus
 	ListClusterPolicyStatus
@@ -264,6 +265,7 @@ const (
 	GetPolicyTemplateVersion
 	ExistsPolicyTemplateKind
 	ExistsPolicyTemplateName
+	ExtractParameters
 
 	// PolicyTemplateExample
 	ListPolicyTemplateExample

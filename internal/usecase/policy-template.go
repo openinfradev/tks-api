@@ -43,6 +43,8 @@ type IPolicyTemplateUsecase interface {
 
 	ListPolicyTemplateStatistics(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (statistics []model.UsageCount, err error)
 	GetPolicyTemplateDeploy(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (deployInfo domain.GetPolicyTemplateDeployResponse, err error)
+
+	ExtractPolicyParameters(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string, rego string, libs []string) (response *domain.RegoCompileResponse, err error)
 }
 
 type PolicyTemplateUsecase struct {
@@ -519,4 +521,75 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateDeploy(ctx context.Context, org
 	}
 
 	return deployVersions, nil
+}
+
+func (u *PolicyTemplateUsecase) ExtractPolicyParameters(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string, rego string, libs []string) (response *domain.RegoCompileResponse, err error) {
+	policyTemplate, err := u.repo.GetPolicyTemplateVersion(ctx, policyTemplateId, version)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if policyTemplate == nil {
+		return nil, httpErrors.NewBadRequestError(fmt.Errorf(
+			"failed to fetch policy template"),
+			"PT_FAILED_FETCH_POLICY_TEMPLATE", "")
+	}
+
+	if !policyTemplate.IsPermittedToOrganization(organizationId) {
+		// 다른 Organization의 템플릿을 조작하려고 함, 보안을 위해서 해당 식별자 존재 자체를 알려주면 안되므로 not found
+		if *organizationId != *policyTemplate.OrganizationId {
+			return nil, httpErrors.NewNotFoundError(fmt.Errorf(
+				"policy template version not found"),
+				"PT_NOT_FOUND_POLICY_TEMPLATE", "")
+		}
+	}
+
+	modules := map[string]*ast.Module{}
+
+	response = &domain.RegoCompileResponse{}
+	response.Errors = []domain.RegoCompieError{}
+
+	mod, err := ast.ParseModuleWithOpts("rego", rego, ast.ParserOptions{})
+	if err != nil {
+		return nil, err
+	}
+	modules["rego"] = mod
+
+	compiler := ast.NewCompiler()
+	compiler.Compile(modules)
+
+	if compiler.Failed() {
+		for _, compileError := range compiler.Errors {
+			response.Errors = append(response.Errors, domain.RegoCompieError{
+				Status:  400,
+				Code:    "PT_INVALID_REGO_SYNTAX",
+				Message: "invalid rego syntax",
+				Text: fmt.Sprintf("[%d:%d] %s",
+					compileError.Location.Row, compileError.Location.Col,
+					compileError.Message),
+			})
+		}
+	}
+
+	extractedParamDefs := policytemplate.ExtractParameter(modules)
+	paramdefs := policyTemplate.ParametersSchema
+
+	newParams, err := policytemplate.GetNewExtractedParamDefs(paramdefs, extractedParamDefs)
+
+	response.ParametersSchema = []*domain.ParameterDef{}
+
+	if err != nil {
+		response.Errors = append(response.Errors, domain.RegoCompieError{
+			Status:  400,
+			Code:    "PT_NOT_COMPATIBLE_PARAMS",
+			Message: "new parameters are not compatible to current version",
+			Text:    err.Error(),
+		})
+	} else {
+		response.ParametersSchema = append(response.ParametersSchema, paramdefs...)
+		response.ParametersSchema = append(response.ParametersSchema, newParams...)
+	}
+
+	return response, nil
 }

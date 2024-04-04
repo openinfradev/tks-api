@@ -515,9 +515,9 @@ func (h RoleHandler) Admin_GetTksRole(w http.ResponseWriter, r *http.Request) {
 //	@Summary		Check whether the role name exists
 //	@Description	Check whether the role name exists
 //	@Produce		json
-//	@Param			organizationId	path	string	true	"Organization ID"
-//	@Param			roleName		path	string	true	"Role Name"
-//	@Success		200 {object} domain.CheckRoleNameResponse
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			roleName		path		string	true	"Role Name"
+//	@Success		200				{object}	domain.CheckRoleNameResponse
 //	@Router			/organizations/{organizationId}/roles/{roleName}/existence [get]
 //	@Security		JWT
 func (h RoleHandler) IsRoleNameExisted(w http.ResponseWriter, r *http.Request) {
@@ -558,8 +558,8 @@ func (h RoleHandler) IsRoleNameExisted(w http.ResponseWriter, r *http.Request) {
 //	@Description	Append Users To Role
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path	string						true	"Organization ID"
-//	@Param			roleId			path	string						true	"Role ID"
+//	@Param			organizationId	path	string							true	"Organization ID"
+//	@Param			roleId			path	string							true	"Role ID"
 //	@Param			body			body	domain.AppendUsersToRoleRequest	true	"Append Users To Role Request"
 //	@Success		200
 //	@Router			/organizations/{organizationId}/roles/{roleId}/users [post]
@@ -621,8 +621,8 @@ func (h RoleHandler) AppendUsersToRole(w http.ResponseWriter, r *http.Request) {
 //	@Description	Remove Users From Role
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path	string							true	"Organization ID"
-//	@Param			roleId			path	string							true	"Role ID"
+//	@Param			organizationId	path	string								true	"Organization ID"
+//	@Param			roleId			path	string								true	"Role ID"
 //	@Param			body			body	domain.RemoveUsersFromRoleRequest	true	"Remove Users From Role Request"
 //	@Success		200
 //	@Router			/organizations/{organizationId}/roles/{roleId}/users [delete]
@@ -688,14 +688,14 @@ func (h RoleHandler) RemoveUsersFromRole(w http.ResponseWriter, r *http.Request)
 //	@Summary		Get Users By Role ID
 //	@Description	Get Users By Role ID
 //	@Produce		json
-//	@Param			organizationId	path	string	true	"Organization ID"
-//	@Param			roleId			path	string	true	"Role ID"
+//	@Param			organizationId	path		string		true	"Organization ID"
+//	@Param			roleId			path		string		true	"Role ID"
 //	@Param			pageSize		query		string		false	"pageSize"
 //	@Param			pageNumber		query		string		false	"pageNumber"
 //	@Param			soertColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
-//	@Success		200 {object} domain.GetUsersInRoleIdResponse
+//	@Success		200				{object}	domain.GetUsersInRoleIdResponse
 //	@Router			/organizations/{organizationId}/roles/{roleId}/users [get]
 //	@Security		JWT
 func (h RoleHandler) GetUsersInRoleId(w http.ResponseWriter, r *http.Request) {
