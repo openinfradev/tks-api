@@ -28,30 +28,31 @@ type IOrganizationUsecase interface {
 	UpdatePrimaryClusterId(ctx context.Context, organizationId string, clusterId string) (err error)
 	ChangeAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
 	Delete(ctx context.Context, organizationId string, accessToken string) error
-	MakeDefaultSystemNotificationRules(ctx context.Context, organizationId string, organization *model.Organization) (err error)
 }
 
 type OrganizationUsecase struct {
-	repo                       repository.IOrganizationRepository
-	userRepo                   repository.IUserRepository
-	roleRepo                   repository.IRoleRepository
-	clusterRepo                repository.IClusterRepository
-	stackTemplateRepo          repository.IStackTemplateRepository
-	systemNotificationRuleRepo repository.ISystemNotificationRuleRepository
-	argo                       argowf.ArgoClient
-	kc                         keycloak.IKeycloak
+	repo                           repository.IOrganizationRepository
+	userRepo                       repository.IUserRepository
+	roleRepo                       repository.IRoleRepository
+	clusterRepo                    repository.IClusterRepository
+	stackTemplateRepo              repository.IStackTemplateRepository
+	systemNotificationRuleRepo     repository.ISystemNotificationRuleRepository
+	systemNotificationTemplateRepo repository.ISystemNotificationTemplateRepository
+	argo                           argowf.ArgoClient
+	kc                             keycloak.IKeycloak
 }
 
 func NewOrganizationUsecase(r repository.Repository, argoClient argowf.ArgoClient, kc keycloak.IKeycloak) IOrganizationUsecase {
 	return &OrganizationUsecase{
-		repo:                       r.Organization,
-		userRepo:                   r.User,
-		roleRepo:                   r.Role,
-		clusterRepo:                r.Cluster,
-		stackTemplateRepo:          r.StackTemplate,
-		systemNotificationRuleRepo: r.SystemNotificationRule,
-		argo:                       argoClient,
-		kc:                         kc,
+		repo:                           r.Organization,
+		userRepo:                       r.User,
+		roleRepo:                       r.Role,
+		clusterRepo:                    r.Cluster,
+		stackTemplateRepo:              r.StackTemplate,
+		systemNotificationRuleRepo:     r.SystemNotificationRule,
+		systemNotificationTemplateRepo: r.SystemNotificationTemplate,
+		argo:                           argoClient,
+		kc:                             kc,
 	}
 }
 
@@ -213,17 +214,6 @@ func (u *OrganizationUsecase) ChangeAdminId(ctx context.Context, organizationId 
 	}
 
 	err = u.repo.UpdateAdminId(ctx, organizationId, adminId)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (u *OrganizationUsecase) MakeDefaultSystemNotificationRules(ctx context.Context, organizationId string, dto *model.Organization) error {
-	var rules []model.SystemNotificationRule
-
-	err := u.systemNotificationRuleRepo.Creates(ctx, rules)
 	if err != nil {
 		return err
 	}

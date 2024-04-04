@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+const SN_TYPE_NODE_CPU_HIGH_LOAD = "node-cpu-high-load"
+const SN_TYPE_NODE_MEMORY_HIGH_UTILIZATION = "node-memory-high-utilization"
+const SN_TYPE_NODE_DISK_FULL = "node-disk-full"
+const SN_TYPE_PVC_FULL = "pvc_full"
+const SN_TYPE_POD_RESTART_FREQUENTLY = "pod-restart-frequently"
+
 type SystemNotificationTemplateResponse struct {
 	ID               string                                      `json:"id"`
 	Name             string                                      `json:"name"`

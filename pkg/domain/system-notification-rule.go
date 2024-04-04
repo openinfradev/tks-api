@@ -30,19 +30,19 @@ func (m SystemNotificationRuleStatus) FromString(s string) SystemNotificationRul
 }
 
 type SystemNotificationRuleResponse struct {
-	ID                           string                                   `json:"id"`
-	Name                         string                                   `json:"name"`
-	Description                  string                                   `json:"description"`
-	MessageTitle                 string                                   `json:"messageTitle"`
-	MessageContent               string                                   `json:"messageContent"`
-	MessageActionProposal        string                                   `json:"messageActionProposal"`
-	TargetUsers                  []SimpleUserResponse                     `json:"targetUsers"`
-	SystemNotificationTemplate   SimpleSystemNotificationTemplateResponse `json:"systemNotificationTemplate"`
-	SystemNotificationConditions []SystemNotificationConditionResponse    `json:"systemNotificationConditions"`
-	Creator                      SimpleUserResponse                       `json:"creator"`
-	Updator                      SimpleUserResponse                       `json:"updator"`
-	CreatedAt                    time.Time                                `json:"createdAt"`
-	UpdatedAt                    time.Time                                `json:"updatedAt"`
+	ID                          string                                   `json:"id"`
+	Name                        string                                   `json:"name"`
+	Description                 string                                   `json:"description"`
+	MessageTitle                string                                   `json:"messageTitle"`
+	MessageContent              string                                   `json:"messageContent"`
+	MessageActionProposal       string                                   `json:"messageActionProposal"`
+	TargetUsers                 []SimpleUserResponse                     `json:"targetUsers"`
+	SystemNotificationTemplate  SimpleSystemNotificationTemplateResponse `json:"systemNotificationTemplate"`
+	SystemNotificationCondition SystemNotificationConditionResponse      `json:"systemNotificationCondition"`
+	Creator                     SimpleUserResponse                       `json:"creator"`
+	Updator                     SimpleUserResponse                       `json:"updator"`
+	CreatedAt                   time.Time                                `json:"createdAt"`
+	UpdatedAt                   time.Time                                `json:"updatedAt"`
 }
 
 type SystemNotificationParameter struct {
@@ -52,12 +52,12 @@ type SystemNotificationParameter struct {
 }
 
 type SystemNotificationConditionResponse struct {
-	Order        int                           `json:"order"`
-	Severity     string                        `json:"severity"`
-	Duration     int                           `json:"duration"`
-	Parameters   []SystemNotificationParameter `json:"parameters"`
-	EnableEmail  bool                          `json:"enableEmail"`
-	EnablePortal bool                          `json:"enablePortal"`
+	SystemNotificationRuleId string                        `json:"systemNotificationRuleId"`
+	Severity                 string                        `json:"severity"`
+	Duration                 string                        `json:"duration"`
+	Parameters               []SystemNotificationParameter `json:"parameters"`
+	EnableEmail              bool                          `json:"enableEmail"`
+	EnablePortal             bool                          `json:"enablePortal"`
 }
 
 type SimpleSystemNotificationRuleResponse struct {
@@ -83,14 +83,13 @@ type CreateSystemNotificationRuleRequest struct {
 	MessageActionProposal        string   `json:"messageActionProposal"`
 	TargetUserIds                []string `json:"targetUserIds"`
 	SystemNotificationTemplateId string   `json:"systemNotificationTemplateId" validate:"required"`
-	SystemNotificationConditions []struct {
-		Order        int                           `json:"order"`
+	SystemNotificationCondition  struct {
 		Severity     string                        `json:"severity"`
-		Duration     int                           `json:"duration"`
+		Duration     string                        `json:"duration"`
 		Parameters   []SystemNotificationParameter `json:"parameters"`
 		EnableEmail  bool                          `json:"enableEmail"`
 		EnablePortal bool                          `json:"enablePortal"`
-	} `json:"systemNotificationConditions"`
+	} `json:"systemNotificationCondition"`
 }
 
 type CreateSystemNotificationRuleResponse struct {
@@ -105,14 +104,14 @@ type UpdateSystemNotificationRuleRequest struct {
 	MessageActionProposal        string   `json:"messageActionProposal"`
 	TargetUserIds                []string `json:"targetUserIds"`
 	SystemNotificationTemplateId string   `json:"systemNotificationTemplateId" validate:"required"`
-	SystemNotificationConditions []struct {
-		Order        int                           `json:"order"`
-		Severity     string                        `json:"severity"`
-		Duration     int                           `json:"duration"`
-		Parameters   []SystemNotificationParameter `json:"parameters"`
-		EnableEmail  bool                          `json:"enableEmail"`
-		EnablePortal bool                          `json:"enablePortal"`
-	} `json:"systemNotificationConditions"`
+	SystemNotificationCondition  struct {
+		SystemNotificationRuleId string                        `json:"systemNotificationRuleId"`
+		Severity                 string                        `json:"severity"`
+		Duration                 string                        `json:"duration"`
+		Parameters               []SystemNotificationParameter `json:"parameters"`
+		EnableEmail              bool                          `json:"enableEmail"`
+		EnablePortal             bool                          `json:"enablePortal"`
+	} `json:"systemNotificationCondition"`
 }
 
 type CheckSystemNotificationRuleNameResponse struct {

@@ -60,13 +60,6 @@ func (h *SystemNotificationRuleHandler) CreateSystemNotificationRule(w http.Resp
 	}
 	dto.OrganizationId = organizationId
 
-	dto.SystemNotificationConditions = make([]model.SystemNotificationCondition, len(input.SystemNotificationConditions))
-	for i, systemNotificationCondition := range input.SystemNotificationConditions {
-		if err := serializer.Map(r.Context(), systemNotificationCondition, &dto.SystemNotificationConditions[i]); err != nil {
-			log.Info(r.Context(), err)
-		}
-	}
-
 	id, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -125,15 +118,9 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRules(w http.Respon
 			}
 		}
 
-		out.SystemNotificationRules[i].SystemNotificationConditions = make([]domain.SystemNotificationConditionResponse, len(systemNotificationRule.SystemNotificationConditions))
-		for j, condition := range systemNotificationRule.SystemNotificationConditions {
-			if err := serializer.Map(r.Context(), condition, &out.SystemNotificationRules[i].SystemNotificationConditions[j]); err != nil {
-				log.Info(r.Context(), err)
-			}
-			err = json.Unmarshal(condition.Parameter, &out.SystemNotificationRules[i].SystemNotificationConditions[j].Parameters)
-			if err != nil {
-				log.Error(r.Context(), err)
-			}
+		err = json.Unmarshal(systemNotificationRule.SystemNotificationCondition.Parameter, &out.SystemNotificationRules[i].SystemNotificationCondition.Parameters)
+		if err != nil {
+			log.Error(r.Context(), err)
 		}
 	}
 
@@ -188,16 +175,9 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRule(w http.Respons
 		}
 	}
 
-	out.SystemNotificationRule.SystemNotificationConditions = make([]domain.SystemNotificationConditionResponse, len(systemNotificationRule.SystemNotificationConditions))
-	for i, condition := range systemNotificationRule.SystemNotificationConditions {
-		if err := serializer.Map(r.Context(), condition, &out.SystemNotificationRule.SystemNotificationConditions[i]); err != nil {
-			log.Info(r.Context(), err)
-		}
-		log.Info(r.Context(), condition.Parameter)
-		err = json.Unmarshal(condition.Parameter, &out.SystemNotificationRule.SystemNotificationConditions[i].Parameters)
-		if err != nil {
-			log.Error(r.Context(), err)
-		}
+	err = json.Unmarshal(systemNotificationRule.SystemNotificationCondition.Parameter, &out.SystemNotificationRule.SystemNotificationCondition.Parameters)
+	if err != nil {
+		log.Error(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
@@ -248,13 +228,6 @@ func (h *SystemNotificationRuleHandler) UpdateSystemNotificationRule(w http.Resp
 	}
 	dto.OrganizationId = organizationId
 	dto.ID = systemNotificationRuleId
-
-	dto.SystemNotificationConditions = make([]model.SystemNotificationCondition, len(input.SystemNotificationConditions))
-	for i, systemNotificationCondition := range input.SystemNotificationConditions {
-		if err := serializer.Map(r.Context(), systemNotificationCondition, &dto.SystemNotificationConditions[i]); err != nil {
-			log.Info(r.Context(), err)
-		}
-	}
 
 	err = h.usecase.Update(r.Context(), dto)
 	if err != nil {
@@ -327,6 +300,15 @@ func (h *SystemNotificationRuleHandler) CheckSystemNotificationRuleName(w http.R
 			return
 		}
 	}
+
+	/*
+		// [TEST]
+		err = h.usecase.MakeDefaultSystemNotificationRules(r.Context(), "oolw6roj6", nil)
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
+	*/
 
 	var out domain.CheckSystemNotificationRuleNameResponse
 	out.Existed = exist

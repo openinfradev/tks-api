@@ -106,7 +106,7 @@ func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model
 	m.Name = dto.Name
 	m.Description = dto.Description
 	m.SystemNotificationTemplateId = dto.SystemNotificationTemplateId
-	//m.SystemNotificationConditions = dto.SystemNotificationConditions
+	m.SystemNotificationCondition = dto.SystemNotificationCondition
 	m.MessageTitle = dto.MessageTitle
 	m.MessageContent = dto.MessageContent
 	m.MessageActionProposal = dto.MessageActionProposal
@@ -118,10 +118,6 @@ func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model
 	}
 
 	err = r.db.WithContext(ctx).Model(&m).Association("TargetUsers").Replace(dto.TargetUsers)
-	if err != nil {
-		return err
-	}
-	err = r.db.WithContext(ctx).Model(&m).Association("SystemNotificationConditions").Replace(dto.SystemNotificationConditions)
 	if err != nil {
 		return err
 	}
