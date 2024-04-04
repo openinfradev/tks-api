@@ -186,11 +186,30 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	filteredClusters := funk.Filter(clusters, func(x model.Cluster) bool {
 		return x.Status != domain.ClusterStatus_DELETED
 	})
+
+	var normal, abnormal int
 	if filteredClusters != nil {
-		out.Stack = fmt.Sprintf("%d 개", len(filteredClusters.([]model.Cluster)))
-	} else {
-		out.Stack = "0 개"
+		for _, cluster := range filteredClusters.([]model.Cluster) {
+			clientSet, err := kubernetes.GetClientFromClusterId(ctx, cluster.ID.String())
+			if err != nil {
+				return out, errors.Wrap(err, "Failed to get client set for user cluster")
+			}
+			// get cluster info
+			clusterInfo, err := clientSet.CoreV1().Services("kube-system").List(context.TODO(), metav1.ListOptions{LabelSelector: "kubernetes.io/cluster-service"})
+			if err != nil {
+				abnormal++
+				log.Debugf(ctx, "Failed to get cluster info: %v\n", err)
+				continue
+			}
+			if clusterInfo.Items[0].ObjectMeta.Labels["kubernetes.io/cluster-service"] == "true" {
+				normal++
+			} else {
+				abnormal++
+			}
+		}
 	}
+	out.Stack.Normal = strconv.Itoa(normal)
+	out.Stack.Abnormal = strconv.Itoa(abnormal)
 
 	// CPU
 	/*
@@ -210,7 +229,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 			cpu = cpu + cpuVal
 		}
 	}
-	out.Cpu = fmt.Sprintf("%d 개", cpu)
+	out.Cpu = strconv.Itoa(cpu)
 
 	// Memory
 	result, err = thanosClient.Get(ctx, "sum by (taco_cluster) (machine_memory_bytes)")
@@ -228,7 +247,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 			memory = memory + memory_
 		}
 	}
-	out.Memory = fmt.Sprintf("%v GiB", math.Round(memory))
+	out.Memory = fmt.Sprintf("%v", math.Round(memory))
 
 	// Storage
 	result, err = thanosClient.Get(ctx, "sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
@@ -246,7 +265,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 			storage = storage + storage_
 		}
 	}
-	out.Storage = fmt.Sprintf("%v GiB", math.Round(storage))
+	out.Storage = fmt.Sprintf("%v", math.Round(storage))
 
 	return
 }

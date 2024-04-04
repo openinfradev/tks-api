@@ -115,7 +115,10 @@ type GetDashboardChartResponse struct {
 }
 
 type DashboardResource struct {
-	Stack   string `json:"stack"`
+	Stack struct {
+		Normal   string `json:"normal"`
+		Abnormal string `json:"abnormal"`
+	} `json:"stack"`
 	Cpu     string `json:"cpu"`
 	Memory  string `json:"memory"`
 	Storage string `json:"storage"`
