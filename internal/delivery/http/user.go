@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	admin_domain "github.com/openinfradev/tks-api/pkg/domain/admin"
-
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -40,8 +38,6 @@ type IUserHandler interface {
 
 	// Admin
 	Admin_Create(w http.ResponseWriter, r *http.Request)
-	Admin_List(w http.ResponseWriter, r *http.Request)
-	Admin_Get(w http.ResponseWriter, r *http.Request)
 	Admin_Delete(w http.ResponseWriter, r *http.Request)
 	Admin_Update(w http.ResponseWriter, r *http.Request)
 }
@@ -836,14 +832,15 @@ func convertModelToMergedPermissionSetResponse(ctx context.Context, permission *
 }
 
 // Admin_Create godoc
+//
 //	@Tags			Users
-//	@Summary		Create user by admin
-//	@Description	Create user by admin
+//	@Summary		Create user by admin in Admin Portal
+//	@Description	Create user by admin in Admin Portal
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string							true	"organizationId"
-//	@Param			body			body		admin_domain.CreateUserRequest	true	"create user request"
-//	@Success		200				{object}	admin_domain.CreateUserResponse	"create user response"
+//	@Param			body			body		domain.Admin_CreateUserRequest	true	"create user request"
+//	@Success		200				{object}	domain.Admin_CreateUserResponse	"create user response"
 //	@Router			/admin/organizations/{organizationId}/users [post]
 //	@Security		JWT
 
@@ -855,7 +852,7 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := admin_domain.CreateUserRequest{}
+	input := domain.Admin_CreateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
@@ -922,121 +919,23 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out admin_domain.CreateUserResponse
+	var out domain.Admin_CreateUserResponse
 
 	out.ID = resUser.ID.String()
 	ResponseJSON(w, r, http.StatusCreated, out)
 
 }
 
-// Admin_List godoc
-//	@Tags			Users
-//	@Summary		Get user list by admin
-//	@Description	Get user list by admin
-//	@Accept			json
-//	@Produce		json
-//	@Param			organizationId	path		string							true	"organizationId"
-//	@Param			limit			query		string							false	"pageSize"
-//	@Param			page			query		string							false	"pageNumber"
-//	@Param			soertColumn		query		string							false	"sortColumn"
-//	@Param			sortOrder		query		string							false	"sortOrder"
-//	@Param			filters			query		[]string						false	"filters"
-//	@Success		200				{object}	admin_domain.ListUserResponse	"user list response"
-//	@Router			/admin/organizations/{organizationId}/users [get]
-//	@Security		JWT
-
-func (u UserHandler) Admin_List(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "", ""))
-		return
-	}
-
-	urlParams := r.URL.Query()
-	pg := pagination.NewPagination(&urlParams)
-	users, err := u.usecase.ListWithPagination(r.Context(), organizationId, pg)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var out admin_domain.ListUserResponse
-	out.Users = make([]domain.ListUserBody, len(*users))
-	for i, user := range *users {
-		if err = serializer.Map(r.Context(), user, &out.Users[i]); err != nil {
-			log.Error(r.Context(), err)
-		}
-
-		if out.Users[i].Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles); err != nil {
-			log.Error(r.Context(), err)
-		}
-	}
-
-	if out.Pagination, err = pg.Response(r.Context()); err != nil {
-		log.Info(r.Context(), err)
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
-}
-
-// Admin_Get godoc
-//
-//	@Tags			Users
-//	@Summary		Get user detail by admin
-//	@Description	Get user detail by admin
-//	@Accept			json
-//	@Produce		json
-//	@Param			organizationId	path		string	true	"organizationId"
-//	@Param			accountId		path		string	true	"accountId"
-//	@Success		200				{object}	admin_domain.GetUserResponse
-//	@Router			/admin/organizations/{organizationId}/users/{accountId} [get]
-func (u UserHandler) Admin_Get(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	userId, ok := vars["accountId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("accountId not found in path"), "C_INVALID_ACCOUNT_ID", ""))
-		return
-	}
-	organizationId, ok := vars["organizationId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-
-	user, err := u.usecase.GetByAccountId(r.Context(), userId, organizationId)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-
-		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-			return
-		}
-
-		ErrorJSON(w, r, err)
-		return
-	}
-
-	var out admin_domain.GetUserResponse
-	if err = serializer.Map(r.Context(), *user, &out.User); err != nil {
-		log.Error(r.Context(), err)
-	}
-
-	out.User.Roles = u.convertUserRolesToSimpleRoleResponse(user.Roles)
-
-	ResponseJSON(w, r, http.StatusOK, out)
-}
-
 // Admin_Delete godoc
 //	@Tags			Users
-//	@Summary		Delete user by admin
-//	@Description	Delete user by admin
+//	@Summary		Delete user by admin in Admin Portal
+//	@Description	Delete user by admin in Admin Portal
 //	@Accept			json
 //	@Produce		json
+//	@Param			body			body		domain.DeleteUserRequest	true	"input"
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			accountId		path		string	true	"accountId"
-//	@Success		200				{object}	admin_domain.User
+//	@Success		200
 //	@Router			/admin/organizations/{organizationId}/users/{accountId} [delete]
 //	@Security		JWT
 
@@ -1053,7 +952,7 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := admin_domain.DeleteUserRequest{}
+	input := domain.DeleteUserRequest{}
 
 	// TKS 관리자가 아닌 경우 Password 확인
 	if organizationId != "master" {
@@ -1096,14 +995,14 @@ func (u UserHandler) Admin_Delete(w http.ResponseWriter, r *http.Request) {
 // Admin_Update godoc
 //
 //	@Tags			Users
-//	@Summary		Update user by admin
-//	@Description	Update user by admin
+//	@Summary		Update user by admin in Admin Portal
+//	@Description	Update user by admin in Admin Portal
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string							true	"organizationId"
 //	@Param			accountId		path		string							true	"accountId"
-//	@Param			body			body		admin_domain.UpdateUserRequest	true	"input"
-//	@Success		200				{object}	admin_domain.UpdateUserResponse
+//	@Param			body			body		domain.Admin_UpdateUserRequest	true	"input"
+//	@Success		200				{object}	domain.Admin_UpdateUserResponse
 //	@Router			/admin/organizations/{organizationId}/users/{accountId} [put]
 //	@Security		JWT
 func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
@@ -1119,7 +1018,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := admin_domain.UpdateUserRequest{}
+	input := domain.Admin_UpdateUserRequest{}
 	err := UnmarshalRequestInput(r, &input)
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
@@ -1171,7 +1070,7 @@ func (u UserHandler) Admin_Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var out admin_domain.UpdateUserResponse
+	var out domain.Admin_UpdateUserResponse
 	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
 		ErrorJSON(w, r, err)
