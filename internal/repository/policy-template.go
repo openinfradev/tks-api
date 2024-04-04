@@ -32,7 +32,7 @@ type IPolicyTemplateRepository interface {
 	ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
 	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
 	DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error)
-	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error)
+	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error)
 	GetLatestTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID) (version string, err error)
 }
 
@@ -373,7 +373,7 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(ctx context.Conte
 	})
 }
 
-func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []domain.ParameterDef, rego string, libs []string) (version string, err error) {
+func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error) {
 	var policyTemplateVersion model.PolicyTemplateSupportedVersion
 	res := r.db.WithContext(ctx).Limit(1).
 		Where("policy_template_id = ?", policyTemplateId).Where("version = ?", version).
