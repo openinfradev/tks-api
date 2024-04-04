@@ -301,8 +301,8 @@ func (h *SystemNotificationRuleHandler) CheckSystemNotificationRuleName(w http.R
 		}
 	}
 
+	// [TEST]
 	/*
-		// [TEST]
 		err = h.usecase.MakeDefaultSystemNotificationRules(r.Context(), "oolw6roj6", nil)
 		if err != nil {
 			ErrorJSON(w, r, err)

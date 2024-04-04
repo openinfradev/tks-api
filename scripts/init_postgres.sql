@@ -57,15 +57,15 @@ insert into project_roles ( id, name, description, created_at, updated_at ) valu
 
 ## SystemNotificationTemplates
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('d42d716f-dd2e-429b-897d-b602f6382790', 'node-cpu-high-load', 'node-cpu-high-load', true, '(avg by (taco_cluster, instance) (rate(node_cpu_seconds_total{mode="idle"}[60s]))) < 0', null, null, now(), now() );
+values ('d42d716f-dd2e-429b-897d-b602f6382790', 'node-cpu-high-load', 'node-cpu-high-load', true, '(avg by (taco_cluster, instance) (rate(node_cpu_seconds_total{mode="idle"}[60s])))', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('f11eefa4-5a16-44fc-8dae-4662e7fba023', 'node-memory-high-utilization', true, 'node-memory-high-utilization', '(node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes) <  0.2', null, null, now(), now() );
+values ('f11eefa4-5a16-44fc-8dae-4662e7fba023', 'node-memory-high-utilization', true, 'node-memory-high-utilization', '(node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes)', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'node-disk-full', 'node-disk-full', true, 'predict_linear(node_filesystem_free_bytes{mountpoint="/"}[6h], 24*3600) < 0', null, null, now(), now() );
+values ('1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'node-disk-full', 'node-disk-full', true, 'predict_linear(node_filesystem_free_bytes{mountpoint="/"}[6h], 24*3600)', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'pvc-full', 'pvc-full', true, 'predict_linear(kubelet_volume_stats_available_bytes[6h], 24*3600) < 0', null, null, now(), now() );
+values ('68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'pvc-full', 'pvc-full', true, 'predict_linear(kubelet_volume_stats_available_bytes[6h], 24*3600)', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', true, 'pod-restart-frequently', 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:]) > 2', null, null, now(), now() );
+values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', true, 'pod-restart-frequently', 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:])', null, null, now(), now() );
 
 ## SystemNotificationTemplates -> SystemNotificationMetricParameters
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
@@ -89,4 +89,4 @@ values ( 0, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'STACK', '$labels.taco_clust
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
 values ( 1, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'POD', '$labels.pod', now(), now() );
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
-values ( 3, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'NAMESPACE', '$labels.namespace', now(), now() );
+values ( 2, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'NAMESPACE', '$labels.namespace', now(), now() );
