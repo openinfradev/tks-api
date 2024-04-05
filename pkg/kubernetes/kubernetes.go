@@ -346,7 +346,7 @@ func RemoveClusterRoleBinding(ctx context.Context, kubeconfig []byte, projectNam
 	return nil
 }
 
-func EnsureRoleBinding(ctx context.Context, kubeconfig []byte, projectName string, namespace string) error {
+func EnsureRoleBinding(ctx context.Context, kubeconfig []byte, projectId string, namespace string) error {
 	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
 	if err != nil {
 		log.Error(ctx, err)
@@ -356,8 +356,8 @@ func EnsureRoleBinding(ctx context.Context, kubeconfig []byte, projectName strin
 	clientset := kubernetes.NewForConfigOrDie(config_user)
 
 	for _, role := range []string{leaderRole, memberRole, viewerRole} {
-		obj := generateClusterRoleToRoleBinding(role+"@"+projectName, projectName+"-"+role, namespace, projectName+"-"+role)
-		if _, err = clientset.RbacV1().RoleBindings(namespace).Get(context.Background(), projectName+"-"+role, metav1.GetOptions{}); err != nil {
+		obj := generateClusterRoleToRoleBinding(role+"@"+projectId, projectId+"-"+role, projectId+"-"+role, namespace)
+		if _, err = clientset.RbacV1().RoleBindings(namespace).Get(context.Background(), projectId+"-"+role, metav1.GetOptions{}); err != nil {
 			_, err = clientset.RbacV1().RoleBindings(namespace).Create(context.Background(), obj, metav1.CreateOptions{})
 			if err != nil {
 				log.Error(ctx, err)
@@ -426,6 +426,32 @@ func getClusterRole(role, objName string) *rbacV1.ClusterRole {
 	}
 
 	return &clusterRole
+}
+
+func EnsureNamespace(ctx context.Context, kubeconfig []byte, projectName string) error {
+	config_user, err := clientcmd.RESTConfigFromKubeConfig(kubeconfig)
+	if err != nil {
+		log.Error(ctx, err)
+		return err
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config_user)
+
+	if n, err := clientset.CoreV1().Namespaces().Get(context.Background(), projectName, metav1.GetOptions{}); err != nil {
+		_, err = clientset.CoreV1().Namespaces().Create(context.Background(), &v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: projectName,
+			},
+		}, metav1.CreateOptions{})
+		if err != nil {
+			log.Error(ctx, err)
+			return err
+		}
+	} else {
+		log.Info(ctx, "Namespace already exists", n)
+	}
+
+	return nil
 }
 
 func EnsureCommonClusterRole(ctx context.Context, kubeconfig []byte, projectName string) error {
