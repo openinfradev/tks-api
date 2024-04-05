@@ -482,7 +482,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 }
 
 func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error) {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId.String())
+	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId.String(), kubernetes.KubeconfigForUser)
 	//kubeconfig, err := kubernetes.GetKubeConfig("cmsai5k5l")
 	if err != nil {
 		return "", err

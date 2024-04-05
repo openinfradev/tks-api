@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	v1 "k8s.io/api/core/v1"
 	"os"
 	"strings"
 
@@ -22,6 +23,13 @@ import (
 	clientcmd "k8s.io/client-go/tools/clientcmd"
 
 	"github.com/openinfradev/tks-api/pkg/log"
+)
+
+type KubeConfigType string
+
+const (
+	KubeconfigForAdmin KubeConfigType = "admin"
+	KubeconfigForUser  KubeConfigType = "user"
 )
 
 func getAdminConfig(ctx context.Context) (*rest.Config, error) {
@@ -115,13 +123,19 @@ func GetAwsAccountIdSecret(ctx context.Context) (awsAccountId string, err error)
 	return
 }
 
-func GetKubeConfig(ctx context.Context, clusterId string) ([]byte, error) {
+func GetKubeConfig(ctx context.Context, clusterId string, configType KubeConfigType) ([]byte, error) {
 	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	secrets, err := clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-user-kubeconfig", metav1.GetOptions{})
+	var secrets *v1.Secret
+
+	if configType == KubeconfigForAdmin {
+		secrets, err = clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-kubeconfig", metav1.GetOptions{})
+	} else if configType == KubeconfigForUser {
+		secrets, err = clientset.CoreV1().Secrets(clusterId).Get(context.TODO(), clusterId+"-tks-user-kubeconfig", metav1.GetOptions{})
+	}
 	if err != nil {
 		log.Error(ctx, err)
 		return nil, err
