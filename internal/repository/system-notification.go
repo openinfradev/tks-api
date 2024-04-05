@@ -85,20 +85,19 @@ func (r *SystemNotificationRepository) FetchPodRestart(ctx context.Context, orga
 
 func (r *SystemNotificationRepository) Create(ctx context.Context, dto model.SystemNotification) (systemNotificationId uuid.UUID, err error) {
 	systemNotification := model.SystemNotification{
-		ID:             uuid.New(),
-		OrganizationId: dto.OrganizationId,
-		Name:           dto.Name,
-		Code:           dto.Code,
-		Message:        dto.Message,
-		Description:    dto.Description,
-		Grade:          dto.Grade,
-		ClusterId:      dto.ClusterId,
-		Node:           dto.Node,
-		GrafanaUrl:     dto.GrafanaUrl,
-		CheckPoint:     dto.CheckPoint,
-		Summary:        dto.Summary,
-		RawData:        dto.RawData,
-		Status:         domain.SystemNotificationActionStatus_CREATED,
+		ID:                    uuid.New(),
+		OrganizationId:        dto.OrganizationId,
+		Name:                  dto.Name,
+		Severity:              dto.Severity,
+		MessageTitle:          dto.MessageTitle,
+		MessageContent:        dto.MessageContent,
+		MessageActionProposal: dto.MessageActionProposal,
+		ClusterId:             dto.ClusterId,
+		Node:                  dto.Node,
+		GrafanaUrl:            dto.GrafanaUrl,
+		Summary:               dto.Summary,
+		RawData:               dto.RawData,
+		Status:                domain.SystemNotificationActionStatus_CREATED,
 	}
 	res := r.db.WithContext(ctx).Create(&systemNotification)
 	if res.Error != nil {
@@ -110,7 +109,9 @@ func (r *SystemNotificationRepository) Create(ctx context.Context, dto model.Sys
 func (r *SystemNotificationRepository) Update(ctx context.Context, dto model.SystemNotification) (err error) {
 	res := r.db.WithContext(ctx).Model(&model.SystemNotification{}).
 		Where("id = ?", dto.ID).
-		Updates(map[string]interface{}{"Description": dto.Description})
+		Updates(map[string]interface{}{
+			"MessageTitle": dto.MessageTitle,
+		})
 	if res.Error != nil {
 		return res.Error
 	}

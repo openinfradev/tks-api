@@ -102,18 +102,17 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 		}
 
 		dto := model.SystemNotification{
-			OrganizationId: organizationId,
-			Name:           systemNotification.Labels.SystemNotificationName,
-			Code:           systemNotification.Labels.SystemNotificationName,
-			Grade:          systemNotification.Labels.Severity,
-			Node:           node,
-			Message:        systemNotification.Annotations.Message,
-			Description:    systemNotification.Annotations.Description,
-			CheckPoint:     systemNotification.Annotations.Checkpoint,
-			Summary:        systemNotification.Annotations.Summary,
-			ClusterId:      domain.ClusterId(clusterId),
-			GrafanaUrl:     u.makeGrafanaUrl(ctx, primaryCluster, systemNotification, domain.ClusterId(clusterId)),
-			RawData:        rawData,
+			OrganizationId:        organizationId,
+			Name:                  systemNotification.Labels.SystemNotificationName,
+			Severity:              systemNotification.Labels.Severity,
+			Node:                  node,
+			MessageTitle:          systemNotification.Annotations.Message,
+			MessageContent:        systemNotification.Annotations.Description,
+			MessageActionProposal: systemNotification.Annotations.Checkpoint,
+			Summary:               systemNotification.Annotations.Summary,
+			ClusterId:             domain.ClusterId(clusterId),
+			GrafanaUrl:            u.makeGrafanaUrl(ctx, primaryCluster, systemNotification, domain.ClusterId(clusterId)),
+			RawData:               rawData,
 		}
 
 		_, err = u.repo.Create(ctx, dto)
