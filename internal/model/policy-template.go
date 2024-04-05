@@ -108,7 +108,12 @@ func (pt *PolicyTemplate) AfterFind(tx *gorm.DB) (err error) {
 		supportedVersion := pt.SupportedVersions[0]
 		pt.Version = supportedVersion.Version
 		pt.Rego = supportedVersion.Rego
-		pt.Libs = strings.Split(supportedVersion.Libs, FILE_DELIMETER)
+
+		if len(strings.TrimSpace(supportedVersion.Libs)) == 0 {
+			pt.Libs = []string{}
+		} else {
+			pt.Libs = strings.Split(supportedVersion.Libs, FILE_DELIMETER)
+		}
 
 		// 마찬가지로 에러 무시
 		_ = json.Unmarshal([]byte(supportedVersion.ParameterSchema), &pt.ParametersSchema)

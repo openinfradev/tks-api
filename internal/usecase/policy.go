@@ -129,7 +129,7 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 	// DB 생성 전 policy DTO에 PolicyTemplate 필드를 넣어주면 탬플릿이 생성될 수 있으므로,
 	// dto에 세팅하지 않고 변환 후 필요한 템플릿 리소스 이름을 따로 넣어 줌
 	if len(policyCR.Spec.Template) == 0 {
-		policyCR.Spec.Template = policyTemplate.ResoureName()
+		policyCR.Spec.Template = policyTemplate.Kind
 	}
 
 	policyTemplateCR := policytemplate.PolicyTemplateToTksPolicyTemplateCR(policyTemplate)

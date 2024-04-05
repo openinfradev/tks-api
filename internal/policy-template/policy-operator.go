@@ -44,7 +44,7 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 		Spec: TKSPolicySpec{
 			EnforcementAction: policy.EnforcementAction,
 			Clusters:          policy.TargetClusterIds,
-			Template:          policy.PolicyTemplate.ResoureName(),
+			Template:          policy.PolicyTemplate.Kind,
 			Match:             policy.Match,
 			Params:            &jsonParams,
 		},
