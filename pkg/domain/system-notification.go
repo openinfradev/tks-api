@@ -33,24 +33,24 @@ func (m SystemNotificationActionStatus) FromString(s string) SystemNotificationA
 	return SystemNotificationActionStatus_ERROR
 }
 
-type SystemNotification struct {
+type SystemNotificationRequest struct {
 	Status       string    `json:"status"`
 	GeneratorURL string    `json:"generatorURL"`
 	FingerPrint  string    `json:"fingerprint"`
 	StartsAt     time.Time `json:"startsAt"`
 	EndsAt       time.Time `json:"endsAt"`
 	Labels       struct {
-		SystemNotificationName string `json:"systemNotificationname"`
-		Container              string `json:"container"`
-		Endpoint               string `json:"endpoint"`
-		Job                    string `json:"job"`
-		Namespace              string `json:"namespace"`
-		Pod                    string `json:"pod"`
-		Prometheus             string `json:"prometheus"`
-		Service                string `json:"service"`
-		Severity               string `json:"severity"`
-		Instance               string `json:"instance"`
-		TacoCluster            string `json:"taco_cluster"`
+		AlertName   string `json:"alertname"`
+		Container   string `json:"container"`
+		Endpoint    string `json:"endpoint"`
+		Job         string `json:"job"`
+		Namespace   string `json:"namespace"`
+		Pod         string `json:"pod"`
+		Prometheus  string `json:"prometheus"`
+		Service     string `json:"service"`
+		Severity    string `json:"severity"`
+		Instance    string `json:"instance"`
+		TacoCluster string `json:"taco_cluster"`
 	} `json:"labels"`
 	Annotations struct {
 		Message        string `json:"message"`
@@ -62,15 +62,15 @@ type SystemNotification struct {
 }
 
 type CreateSystemNotificationRequest struct {
-	Receiver                    string               `json:"receiver"`
-	Status                      string               `json:"status"`
-	ExternalURL                 string               `json:"externalURL"`
-	Version                     string               `json:"version"`
-	GroupKey                    string               `json:"groupKey"`
-	TruncateSystemNotifications int                  `json:"truncateSystemNotifications"`
-	SystemNotifications         []SystemNotification `json:"alerts"`
-	GroupLabels                 struct {
-		SystemNotificationname string `json:"systemNotificationname"`
+	Receiver            string                      `json:"receiver"`
+	Status              string                      `json:"status"`
+	ExternalURL         string                      `json:"externalURL"`
+	Version             string                      `json:"version"`
+	GroupKey            string                      `json:"groupKey"`
+	TruncatedAlerts     int                         `json:"truncatedAlerts"`
+	SystemNotifications []SystemNotificationRequest `json:"alerts"`
+	GroupLabels         struct {
+		SystemNotificationname string `json:"alertname"`
 	} `json:"groupLabels"`
 	//CommonLabels      string `json:"commonLabels"`
 	//CommonAnnotations string `json:"commonAnnotations"`

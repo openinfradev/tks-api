@@ -97,13 +97,13 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 		*/
 
 		node := ""
-		if strings.Contains(systemNotification.Labels.SystemNotificationName, "node") {
+		if strings.Contains(systemNotification.Labels.AlertName, "node") {
 			node = systemNotification.Labels.Instance
 		}
 
 		dto := model.SystemNotification{
 			OrganizationId:        organizationId,
-			Name:                  systemNotification.Labels.SystemNotificationName,
+			Name:                  systemNotification.Labels.AlertName,
 			Severity:              systemNotification.Labels.Severity,
 			Node:                  node,
 			MessageTitle:          systemNotification.Annotations.Message,
@@ -239,7 +239,7 @@ func (u *SystemNotificationUsecase) makeAdditionalInfo(systemNotification *model
 	}
 }
 
-func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster model.Cluster, systemNotification domain.SystemNotification, clusterId domain.ClusterId) (url string) {
+func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster model.Cluster, systemNotification domain.SystemNotificationRequest, clusterId domain.ClusterId) (url string) {
 	primaryGrafanaEndpoint := ""
 	appGroups, err := u.appGroupRepo.Fetch(ctx, primaryCluster.ID, nil)
 	if err == nil {
@@ -261,7 +261,7 @@ func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryC
 
 	// tks_node_dashboard/tks-kubernetes-view-nodes?orgId=1&refresh=30s&var-datasource=default&var-taco_cluster=c19rjkn4j&var-job=prometheus-node-exporter&var-hostname=All&var-node=10.0.168.71:9100&var-device=All&var-maxmount=%2F&var-show_hostname=prometheus-node-exporter-xt4vb
 
-	switch systemNotification.Labels.SystemNotificationName {
+	switch systemNotification.Labels.AlertName {
 	case "node-memory-high-utilization":
 		url = primaryGrafanaEndpoint + "/d/tks_node_dashboard/tks-kubernetes-view-nodes?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	case "node-cpu-high-load":
