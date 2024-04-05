@@ -177,7 +177,7 @@ func convert(paramdefs []*domain.ParameterDef) map[string]apiextensionsv1.JSONSc
 			}
 		case isObject:
 			result[paramdef.Key] = *ParamDefsToJSONSchemaProeprties(paramdef.Children)
-		_:
+		default:
 			result[paramdef.Key] = apiextensionsv1.JSONSchemaProps{Type: paramdef.Type}
 		}
 
