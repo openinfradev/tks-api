@@ -395,7 +395,34 @@ func (u *PolicyUsecase) UpdatePolicyTargetClusters(ctx context.Context, organiza
 		targetClusters[i] = cluster
 	}
 
-	return u.repo.UpdatePolicyTargetClusters(ctx, organizationId, policyId, currentClusterIds, targetClusters)
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
+	}
+
+	err = u.repo.UpdatePolicyTargetClusters(ctx, organizationId, policyId, currentClusterIds, targetClusters)
+	if err != nil {
+		return err
+	}
+
+	policy, err := u.repo.GetByID(ctx, organizationId, policyId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid policyId"), "C_INVALID_POLICY_ID", "")
+	}
+
+	policyCR := policytemplate.PolicyToTksPolicyCR(policy)
+
+	err = policytemplate.ApplyTksPolicyCR(ctx, organization.PrimaryClusterId, policyCR)
+
+	if err != nil {
+		log.Errorf(ctx, "failed to apply TksPolicyCR: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func (u *PolicyUsecase) SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error) {
@@ -474,10 +501,10 @@ func (u *PolicyUsecase) ListClusterPolicyStatus(ctx context.Context, clusterId s
 
 	primaryClusterId := cluster.Organization.PrimaryClusterId
 
-	tksClusterCR, err := policytemplate.GetTksClusterCR(ctx, primaryClusterId, clusterId)
-	if err != nil {
-		return nil, err
-	}
+	// tksClusterCR, err := policytemplate.GetTksClusterCR(ctx, primaryClusterId, clusterId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	result := make([]domain.ClusterPolicyStatusResponse, len(*policies))
 
@@ -490,11 +517,19 @@ func (u *PolicyUsecase) ListClusterPolicyStatus(ctx context.Context, clusterId s
 		result[i].PolicyDescription = policy.Description
 		result[i].PolicyMandatory = policy.Mandatory
 		latestVersion, _ := u.templateRepo.GetLatestTemplateVersion(ctx, policy.TemplateId)
-		version, ok := tksClusterCR.Status.Templates[policy.PolicyTemplate.Kind]
 
-		if ok {
-			result[i].TemplateCurrentVersion = version
+		tksPolicyTemplateCR, err := policytemplate.GetTksPolicyTemplateCR(ctx, primaryClusterId, policy.PolicyTemplate.ResoureName())
+		if err != nil {
+			return nil, err
 		}
+
+		result[i].TemplateCurrentVersion = tksPolicyTemplateCR.Spec.Version
+
+		// version, ok := tksClusterCR.Status.Templates[policy.PolicyTemplate.Kind]
+
+		// if ok {
+		// 	result[i].TemplateCurrentVersion = version
+		// }
 
 		result[i].TemplateLatestVerson = latestVersion
 		result[i].TemplateDescription = policy.PolicyTemplate.Description
@@ -580,16 +615,23 @@ func (u *PolicyUsecase) GetClusterPolicyTemplateStatus(ctx context.Context, clus
 
 	primaryClusterId := cluster.Organization.PrimaryClusterId
 
-	tksClusterCR, err := policytemplate.GetTksClusterCR(ctx, primaryClusterId, clusterId)
+	// tksClusterCR, err := policytemplate.GetTksClusterCR(ctx, primaryClusterId, clusterId)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// version, ok := tksClusterCR.Status.Templates[latestTemplate.Kind]
+	//
+	// if !ok {
+	// 	return nil, fmt.Errorf("version not found in CR")
+	// }
+
+	tksPolicyTemplateCR, err := policytemplate.GetTksPolicyTemplateCR(ctx, primaryClusterId, latestTemplate.ResoureName())
 	if err != nil {
 		return nil, err
 	}
 
-	version, ok := tksClusterCR.Status.Templates[latestTemplate.Kind]
-
-	if !ok {
-		return nil, fmt.Errorf("version not found in CR")
-	}
+	version := tksPolicyTemplateCR.Spec.Version
 
 	currentTemplate, err := u.templateRepo.GetPolicyTemplateVersion(ctx, policyTemplateId, version)
 	if err != nil {

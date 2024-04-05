@@ -59,6 +59,10 @@ func (pt *PolicyTemplate) IsOrganizationTemplate() bool {
 	return !pt.IsTksTemplate()
 }
 
+func (pt *PolicyTemplate) ResoureName() string {
+	return strings.ToLower(pt.Kind)
+}
+
 func (pt *PolicyTemplate) IsPermittedToOrganization(organizationId *string) bool {
 	// tks Admin은 organizationId가 nil
 	if organizationId == nil {
