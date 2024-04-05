@@ -484,10 +484,18 @@ func (k *Keycloak) EnsureClientRoleWithClientName(ctx context.Context, organizat
 		Name: gocloak.StringP(roleName),
 	}
 
-	_, err = k.client.CreateClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, role)
+	r, err := k.client.GetClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, roleName)
 	if err != nil {
-		log.Error(ctx, "Creating Client Role is failed", err)
+		log.Error(ctx, "Getting Client Role is failed", err)
 		return err
+	}
+
+	if r == nil {
+		_, err = k.client.CreateClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, role)
+		if err != nil {
+			log.Error(ctx, "Creating Client Role is failed", err)
+			return err
+		}
 	}
 
 	return nil
@@ -519,10 +527,18 @@ func (k *Keycloak) DeleteClientRoleWithClientName(ctx context.Context, organizat
 		return nil
 	}
 
-	err = k.client.DeleteClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, *roles[0].ID)
+	r, err := k.client.GetClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, roleName)
 	if err != nil {
-		log.Error(ctx, "Deleting Client Role is failed", err)
+		log.Error(ctx, "Getting Client Role is failed", err)
 		return err
+	}
+
+	if r != nil {
+		err = k.client.DeleteClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, *roles[0].ID)
+		if err != nil {
+			log.Error(ctx, "Deleting Client Role is failed", err)
+			return err
+		}
 	}
 
 	return nil

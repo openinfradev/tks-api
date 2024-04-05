@@ -1310,6 +1310,12 @@ func (p ProjectHandler) CreateProjectNamespace(w http.ResponseWriter, r *http.Re
 	}
 
 	// tasks for keycloak & k8s
+	// ToDo: Check if the namespace is already created
+	if err := p.usecase.EnsureNamespaceForCluster(r.Context(), organizationId, projectNamespaceReq.StackId, projectNamespaceReq.Namespace); err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
 	if err := p.usecase.EnsureRequiredSetupForCluster(r.Context(), organizationId, projectId, projectNamespaceReq.StackId); err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return

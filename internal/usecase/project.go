@@ -51,6 +51,7 @@ type IProjectUsecase interface {
 	UpdateProjectNamespace(ctx context.Context, pn *model.ProjectNamespace) error
 	DeleteProjectNamespace(ctx context.Context, organizationId string, projectId string, projectNamespace string, stackId string) error
 	GetAppCount(ctx context.Context, organizationId string, projectId string, namespace string) (appCount int, err error)
+	EnsureNamespaceForCluster(ctx context.Context, organizationId string, stackId string, namespaceName string) error
 	EnsureRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error
 	MayRemoveRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error
 	CreateK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
@@ -446,7 +447,7 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(ctx context.Context, orga
 	pns, err := u.projectRepo.GetProjectNamespaces(ctx, organizationId, projectId, nil)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to get project namespace in database.")
 	}
 
 	var alreadySetUp bool
@@ -464,24 +465,24 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(ctx context.Context, orga
 
 	if err := u.createK8SInitialResource(ctx, organizationId, projectId, stackId); err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
 	if err := u.createKeycloakClientRoles(ctx, organizationId, projectId, stackId+"-k8s-api"); err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
 	projectMembers, err := u.GetProjectMembers(ctx, projectId, ProjectAll, nil)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 	for _, pm := range projectMembers {
 		err = u.assignEachKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId+"-k8s-api", pm.ProjectUserId.String(), pm.ProjectRole.Name)
 		if err != nil {
 			log.Error(ctx, err)
-			return errors.Wrap(err, "Failed to create project namespace.")
+			return err
 		}
 	}
 
@@ -490,8 +491,7 @@ func (u *ProjectUsecase) EnsureRequiredSetupForCluster(ctx context.Context, orga
 func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	pns, err := u.projectRepo.GetProjectNamespaces(ctx, organizationId, projectId, nil)
 	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 	var nsCount int
 	for _, pn := range pns {
@@ -506,26 +506,22 @@ func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(ctx context.Context, o
 	}
 
 	if err := u.deleteK8SInitialResource(ctx, organizationId, projectId, stackId); err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
 	projectMembers, err := u.GetProjectMembers(ctx, projectId, ProjectAll, nil)
 	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 	for _, pm := range projectMembers {
 		err = u.unassignKeycloakClientRoleToMember(ctx, organizationId, projectId, stackId+"-k8s-api", pm.ProjectUserId.String(), pm.ProjectRole.Name)
 		if err != nil {
-			log.Error(ctx, err)
-			return errors.Wrap(err, "Failed to create project namespace.")
+			return err
 		}
 	}
 
 	if err := u.deleteKeycloakClientRoles(ctx, organizationId, projectId, stackId+"-k8s-api"); err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
 	return nil
@@ -533,32 +529,22 @@ func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(ctx context.Context, o
 func (u *ProjectUsecase) createK8SInitialResource(ctx context.Context, organizationId string, projectId string, stackId string) error {
 	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to get kubeconfig.")
 	}
 
-	pr, err := u.GetProject(ctx, organizationId, projectId)
+	err = kubernetes.EnsureClusterRole(ctx, kubeconfig, projectId)
 	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
-	err = kubernetes.EnsureClusterRole(ctx, kubeconfig, pr.Name)
+	err = kubernetes.EnsureCommonClusterRole(ctx, kubeconfig, projectId)
 	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
-	err = kubernetes.EnsureCommonClusterRole(ctx, kubeconfig, pr.Name)
+	err = kubernetes.EnsureCommonClusterRoleBinding(ctx, kubeconfig, projectId)
 	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
-	}
-
-	err = kubernetes.EnsureCommonClusterRoleBinding(ctx, kubeconfig, pr.Name)
-	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 
 	return nil
@@ -567,42 +553,36 @@ func (u *ProjectUsecase) deleteK8SInitialResource(ctx context.Context, organizat
 	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to get kubeconfig.")
 	}
 
-	pr, err := u.GetProject(ctx, organizationId, projectId)
+	err = kubernetes.RemoveClusterRole(ctx, kubeconfig, projectId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to remove cluster roles.")
 	}
 
-	err = kubernetes.RemoveClusterRole(ctx, kubeconfig, pr.Name)
+	err = kubernetes.RemoveCommonClusterRole(ctx, kubeconfig, projectId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to remove common cluster roles.")
 	}
 
-	err = kubernetes.RemoveCommonClusterRole(ctx, kubeconfig, pr.Name)
+	err = kubernetes.RemoveCommonClusterRoleBinding(ctx, kubeconfig, projectId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
-	}
-
-	err = kubernetes.RemoveCommonClusterRoleBinding(ctx, kubeconfig, pr.Name)
-	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to remove common cluster role bindings.")
 	}
 
 	return nil
 }
 func (u *ProjectUsecase) createKeycloakClientRoles(ctx context.Context, organizationId string, projectId string, clientId string) error {
 	// create Roles in keycloak
-	for _, role := range []string{strconv.Itoa(ProjectLeader), strconv.Itoa(ProjectMember), strconv.Itoa(ProjectViewer)} {
+	roles := []string{"project-leader", "project-member", "project-viewer"}
+	for _, role := range roles {
 		err := u.kc.EnsureClientRoleWithClientName(ctx, organizationId, clientId, role+"@"+projectId)
 		if err != nil {
-			log.Error(ctx, err)
-			return errors.Wrap(err, "Failed to create project namespace.")
+			return errors.Wrap(err, "Failed to create keycloak client role.")
 		}
 
 	}
@@ -616,7 +596,7 @@ func (u *ProjectUsecase) deleteKeycloakClientRoles(ctx context.Context, organiza
 		err := u.kc.DeleteClientRoleWithClientName(ctx, organizationId, clientId, role+"@"+projectId)
 		if err != nil {
 			log.Error(ctx, err)
-			return errors.Wrap(err, "Failed to create project namespace.")
+			return errors.Wrap(err, "Failed to delete keycloak client roles.")
 		}
 	}
 	return nil
@@ -625,38 +605,32 @@ func (u *ProjectUsecase) CreateK8SNSRoleBinding(ctx context.Context, organizatio
 	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to get kubeconfig.")
 	}
 
-	pr, err := u.GetProject(ctx, organizationId, projectId)
+	err = kubernetes.EnsureRoleBinding(ctx, kubeconfig, projectId, namespace)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
-	}
-
-	err = kubernetes.EnsureRoleBinding(ctx, kubeconfig, pr.Name, namespace)
-	if err != nil {
-		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to create K8s role binding.")
 	}
 
 	return nil
 }
 func (u *ProjectUsecase) DeleteK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error {
 	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (u *ProjectUsecase) AssignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, clientId string, projectMemberId string) error {
 	pm, err := u.GetProjectMember(ctx, projectMemberId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to get project member.")
 	}
 	err = u.assignEachKeycloakClientRoleToMember(ctx, organizationId, projectId, clientId, pm.ProjectUserId.String(), pm.ProjectRole.Name)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 	return nil
 }
@@ -665,7 +639,7 @@ func (u *ProjectUsecase) assignEachKeycloakClientRoleToMember(ctx context.Contex
 	err := u.kc.AssignClientRoleToUser(ctx, organizationId, userId, clientId, roleName+"@"+projectId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to assign each KeycloakClientRole to member.")
 	}
 	return nil
 }
@@ -674,12 +648,12 @@ func (u *ProjectUsecase) UnassignKeycloakClientRoleToMember(ctx context.Context,
 	pm, err := u.GetProjectMember(ctx, projectMemberId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to get project member.")
 	}
 	err = u.unassignKeycloakClientRoleToMember(ctx, organizationId, projectId, clientId, pm.ProjectUser.ID.String(), pm.ProjectRole.Name)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return err
 	}
 	return nil
 }
@@ -688,7 +662,7 @@ func (u *ProjectUsecase) unassignKeycloakClientRoleToMember(ctx context.Context,
 	err := u.kc.UnassignClientRoleToUser(ctx, organizationId, userId, clientId, roleName+"@"+projectId)
 	if err != nil {
 		log.Error(ctx, err)
-		return errors.Wrap(err, "Failed to create project namespace.")
+		return errors.Wrap(err, "Failed to un-assign each KeycloakClientRole to member.")
 	}
 	return nil
 }
@@ -833,4 +807,20 @@ func (u *ProjectUsecase) GetResourcesUsage(ctx context.Context, organizationId s
 	out.Storage = "3.0 %"
 
 	return
+}
+
+func (u *ProjectUsecase) EnsureNamespaceForCluster(ctx context.Context, organizationId string, stackId string, namespaceName string) error {
+	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
+	if err != nil {
+		log.Error(ctx, err)
+		return errors.Wrap(err, "Failed to get kubeconfig.")
+	}
+
+	err = kubernetes.EnsureNamespace(ctx, kubeconfig, namespaceName)
+	if err != nil {
+		log.Error(ctx, err)
+		return errors.Wrap(err, "Failed to create K8s namespace resource.")
+	}
+
+	return nil
 }
