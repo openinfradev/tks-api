@@ -51,6 +51,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "DeleteUser", 
 		Group: "User",
 	},
+    UpdateUsers: {
+		Name: "UpdateUsers", 
+		Group: "User",
+	},
     UpdateUser: {
 		Name: "UpdateUser", 
 		Group: "User",
@@ -411,6 +415,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "UpdateSystemNotificationRule", 
 		Group: "SystemNotificationRule",
 	},
+    MakeDefaultSystemNotificationRules: {
+		Name: "MakeDefaultSystemNotificationRules", 
+		Group: "SystemNotificationRule",
+	},
     CreateSystemNotification: {
 		Name: "CreateSystemNotification", 
 		Group: "SystemNotification",
@@ -613,6 +621,18 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     IsRoleNameExisted: {
 		Name: "IsRoleNameExisted", 
+		Group: "Role",
+	},
+    AppendUsersToRole: {
+		Name: "AppendUsersToRole", 
+		Group: "Role",
+	},
+    GetUsersInRoleId: {
+		Name: "GetUsersInRoleId", 
+		Group: "Role",
+	},
+    RemoveUsersFromRole: {
+		Name: "RemoveUsersFromRole", 
 		Group: "Role",
 	},
     GetPermissionTemplates: {
@@ -862,6 +882,8 @@ func (e Endpoint) String() string {
 		return "GetUser"
 	case DeleteUser:
 		return "DeleteUser"
+	case UpdateUsers:
+		return "UpdateUsers"
 	case UpdateUser:
 		return "UpdateUser"
 	case ResetPassword:
@@ -1042,6 +1064,8 @@ func (e Endpoint) String() string {
 		return "DeleteSystemNotificationRule"
 	case UpdateSystemNotificationRule:
 		return "UpdateSystemNotificationRule"
+	case MakeDefaultSystemNotificationRules:
+		return "MakeDefaultSystemNotificationRules"
 	case CreateSystemNotification:
 		return "CreateSystemNotification"
 	case GetSystemNotifications:
@@ -1144,6 +1168,12 @@ func (e Endpoint) String() string {
 		return "UpdatePermissionsByRoleId"
 	case IsRoleNameExisted:
 		return "IsRoleNameExisted"
+	case AppendUsersToRole:
+		return "AppendUsersToRole"
+	case GetUsersInRoleId:
+		return "GetUsersInRoleId"
+	case RemoveUsersFromRole:
+		return "RemoveUsersFromRole"
 	case GetPermissionTemplates:
 		return "GetPermissionTemplates"
 	case Admin_CreateUser:
@@ -1284,6 +1314,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetUser
 	case "DeleteUser":
 		return DeleteUser
+	case "UpdateUsers":
+		return UpdateUsers
 	case "UpdateUser":
 		return UpdateUser
 	case "ResetPassword":
@@ -1464,6 +1496,8 @@ func GetEndpoint(name string) Endpoint {
 		return DeleteSystemNotificationRule
 	case "UpdateSystemNotificationRule":
 		return UpdateSystemNotificationRule
+	case "MakeDefaultSystemNotificationRules":
+		return MakeDefaultSystemNotificationRules
 	case "CreateSystemNotification":
 		return CreateSystemNotification
 	case "GetSystemNotifications":
@@ -1566,6 +1600,12 @@ func GetEndpoint(name string) Endpoint {
 		return UpdatePermissionsByRoleId
 	case "IsRoleNameExisted":
 		return IsRoleNameExisted
+	case "AppendUsersToRole":
+		return AppendUsersToRole
+	case "GetUsersInRoleId":
+		return GetUsersInRoleId
+	case "RemoveUsersFromRole":
+		return RemoveUsersFromRole
 	case "GetPermissionTemplates":
 		return GetPermissionTemplates
 	case "Admin_CreateUser":

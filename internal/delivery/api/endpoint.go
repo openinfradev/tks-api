@@ -136,6 +136,7 @@ const (
 	CheckSystemNotificationRuleName
 	DeleteSystemNotificationRule
 	UpdateSystemNotificationRule
+	MakeDefaultSystemNotificationRules
 
 	// SystemNotification
 	CreateSystemNotification
