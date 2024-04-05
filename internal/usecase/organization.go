@@ -112,6 +112,7 @@ func (u *OrganizationUsecase) Fetch(ctx context.Context, pg *pagination.Paginati
 				continue
 			}
 			for _, user := range *users {
+				user := user
 				if user.ID == *organization.AdminId {
 					(*organizations)[i].Admin = &user
 				}

@@ -2346,6 +2346,17 @@ definitions:
       value:
         type: integer
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyCount:
+    properties:
+      deny:
+        type: integer
+      dryrun:
+        type: integer
+      total:
+        type: integer
+      warn:
+        type: integer
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.PolicyParameter:
     properties:
       name:
@@ -2409,6 +2420,13 @@ definitions:
         type: string
       updator:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyStatisticsResponse:
+    properties:
+      policyCount:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyCount'
+      templateCount:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateCount'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PolicyStatus:
     properties:
@@ -3179,6 +3197,15 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
     required:
     - metricQuery
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.TemplateCount:
+    properties:
+      organizationTemplate:
+        type: integer
+      tksTemplate:
+        type: integer
+      total:
+        type: integer
     type: object
   github_com_openinfradev_tks-api_pkg_domain.TemplateResponse:
     properties:
@@ -6688,6 +6715,29 @@ paths:
       security:
       - JWT: []
       summary: '[ExistsPolicyName] 정책 아름 존재 여부 확인'
+      tags:
+      - Policy
+  /organizations/{organizationId}/policy-statistics:
+    get:
+      consumes:
+      - application/json
+      description: 템플릿, 정책의 통계를 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyStatisticsResponse'
+      security:
+      - JWT: []
+      summary: '[GetPolicyStatistics] 정책 템플릿, 정책 통계 조회'
       tags:
       - Policy
   /organizations/{organizationId}/policy-templates:
