@@ -75,8 +75,6 @@ func (u *SystemNotificationRuleUsecase) Create(ctx context.Context, dto model.Sy
 		return uuid.Nil, err
 	}
 
-	// [TODO] update kubernetes resources
-
 	return
 }
 
@@ -103,7 +101,10 @@ func (u *SystemNotificationRuleUsecase) Update(ctx context.Context, dto model.Sy
 		return err
 	}
 
-	// [TODO] update kubernetes resources
+	// update status for appling kubernetes
+	if err = u.repo.UpdateStatus(ctx, dto.ID, domain.SystemNotificationRuleStatus_PENDING); err != nil {
+		return err
+	}
 
 	return nil
 }

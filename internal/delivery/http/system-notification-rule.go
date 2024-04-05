@@ -302,16 +302,42 @@ func (h *SystemNotificationRuleHandler) CheckSystemNotificationRuleName(w http.R
 	}
 
 	// [TEST]
-	/*
-		err = h.usecase.MakeDefaultSystemNotificationRules(r.Context(), "oolw6roj6", nil)
-		if err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
-	*/
+	err = h.usecase.MakeDefaultSystemNotificationRules(r.Context(), "oolw6roj6", nil)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
 
 	var out domain.CheckSystemNotificationRuleNameResponse
 	out.Existed = exist
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// MakeDefaultSystemNotificationRules godoc
+//
+//	@Tags			SystemNotificationRules
+//	@Summary		MakeDefaultSystemNotificationRules
+//	@Description	MakeDefaultSystemNotificationRules
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/system-notification-rules/default-system-rules [POST]
+//	@Security		JWT
+func (h *SystemNotificationRuleHandler) MakeDefaultSystemNotificationRules(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	err := h.usecase.MakeDefaultSystemNotificationRules(r.Context(), organizationId, nil)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }

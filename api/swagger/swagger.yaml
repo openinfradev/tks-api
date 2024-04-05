@@ -1394,7 +1394,12 @@ definitions:
       memory:
         type: string
       stack:
-        type: string
+        properties:
+          abnormal:
+            type: string
+          normal:
+            type: string
+        type: object
       storage:
         type: string
     type: object
@@ -1464,6 +1469,29 @@ definitions:
     properties:
       existed:
         type: boolean
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ExtractParametersRequest:
+    properties:
+      libs:
+        items:
+          type: string
+        type: array
+      rego:
+        example: Rego 코드
+        type: string
+    required:
+    - rego
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ExtractParametersResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RegoCompieError'
+        type: array
+      parametersSchema:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.FilterResponse:
     properties:
@@ -2285,6 +2313,8 @@ definitions:
         type: string
       isArray:
         type: boolean
+      isNew:
+        type: boolean
       key:
         type: string
       type:
@@ -2362,12 +2392,11 @@ definitions:
       policyResourceName:
         example: labelpolicy
         type: string
-      targetClusterIds:
-        example:
-        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
-        - 83bf8081-f0c5-4b31-826d-23f6f366ec90
+      targetClusters:
+        description: TargetClusterIds []string                `json:"targetClusterIds"
+          example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
         items:
-          type: string
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse'
         type: array
       templateId:
         example: d98ef5f1-4a68-4047-a446-2207787ce3ff
@@ -3816,6 +3845,29 @@ definitions:
       existed:
         type: boolean
     type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersRequest:
+    properties:
+      libs:
+        items:
+          type: string
+        type: array
+      rego:
+        example: Rego 코드
+        type: string
+    required:
+    - rego
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.RegoCompieError'
+        type: array
+      parametersSchema:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.GetPolicyTemplateDeployResponse:
     properties:
       deployVersion:
@@ -4566,6 +4618,40 @@ paths:
       security:
       - JWT: []
       summary: '[Admin_GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
+      tags:
+      - PolicyTemplate
+  /admin/policy-templates/{policyTemplateId}/versions/{version}/extract-parameters:
+    post:
+      consumes:
+      - application/json
+      description: 정책 템플릿 파라미터를 기존 버전의 수정불가능한 파라미터를 포함해서 추출한다.
+      parameters:
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: 버전(v0.0.0 형식)
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: Rego 코드
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersResponse'
+      security:
+      - JWT: []
+      summary: '[Admin_ExtractParameters] 정책 템플릿 파라미터 추출'
       tags:
       - PolicyTemplate
   /admin/policy-templates/kind/{policyTemplateKind}/existence:
@@ -6945,6 +7031,45 @@ paths:
       summary: '[GetPolicyTemplateVersion] 정책 템플릿 특정 버전 조회'
       tags:
       - PolicyTemplate
+  /organizations/{organizationId}/policy-templates/{policyTemplateId}/versions/{version}/extract-parameters:
+    post:
+      consumes:
+      - application/json
+      description: 정책 템플릿 파라미터를 기존 버전의 수정불가능한 파라미터를 포함해서 추출한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: 버전(v0.0.0 형식)
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: Rego 코드
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExtractParametersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExtractParametersResponse'
+      security:
+      - JWT: []
+      summary: '[ExtractParameters] 정책 템플릿 파라미터 추출'
+      tags:
+      - PolicyTemplate
   /organizations/{organizationId}/policy-templates/kind/{policyTemplateKind}/existence:
     get:
       consumes:
@@ -9213,6 +9338,27 @@ paths:
       security:
       - JWT: []
       summary: Update SystemNotificationRule
+      tags:
+      - SystemNotificationRules
+  /organizations/{organizationId}/system-notification-rules/default-system-rules:
+    post:
+      consumes:
+      - application/json
+      description: MakeDefaultSystemNotificationRules
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: MakeDefaultSystemNotificationRules
       tags:
       - SystemNotificationRules
   /organizations/{organizationId}/system-notification-rules/name/{name}/existence:

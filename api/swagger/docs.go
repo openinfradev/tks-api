@@ -1023,6 +1023,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/policy-templates/{policyTemplateId}/versions/{version}/extract-parameters": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정책 템플릿 파라미터를 기존 버전의 수정불가능한 파라미터를 포함해서 추출한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PolicyTemplate"
+                ],
+                "summary": "[Admin_ExtractParameters] 정책 템플릿 파라미터 추출",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "정책 템플릿 식별자(uuid)",
+                        "name": "policyTemplateId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "버전(v0.0.0 형식)",
+                        "name": "version",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rego 코드",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/stack-templates": {
             "get": {
                 "security": [
@@ -4800,6 +4853,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/policy-templates/{policyTemplateId}/versions/{version}/extract-parameters": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "정책 템플릿 파라미터를 기존 버전의 수정불가능한 파라미터를 포함해서 추출한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PolicyTemplate"
+                ],
+                "summary": "[ExtractParameters] 정책 템플릿 파라미터 추출",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 템플릿 식별자(uuid)",
+                        "name": "policyTemplateId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "버전(v0.0.0 형식)",
+                        "name": "version",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rego 코드",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExtractParametersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExtractParametersResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/primary-cluster": {
             "patch": {
                 "security": [
@@ -8104,6 +8217,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/system-notification-rules/default-system-rules": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "MakeDefaultSystemNotificationRules",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationRules"
+                ],
+                "summary": "MakeDefaultSystemNotificationRules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/system-notification-rules/name/{name}/existence": {
             "get": {
                 "security": [
@@ -11265,7 +11412,15 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "stack": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                        "abnormal": {
+                            "type": "string"
+                        },
+                        "normal": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "storage": {
                     "type": "string"
@@ -11370,6 +11525,41 @@ const docTemplate = `{
             "properties": {
                 "existed": {
                     "type": "boolean"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ExtractParametersRequest": {
+            "type": "object",
+            "required": [
+                "rego"
+            ],
+            "properties": {
+                "libs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rego": {
+                    "type": "string",
+                    "example": "Rego 코드"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ExtractParametersResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RegoCompieError"
+                    }
+                },
+                "parametersSchema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef"
+                    }
                 }
             }
         },
@@ -12631,6 +12821,9 @@ const docTemplate = `{
                 "isArray": {
                     "type": "boolean"
                 },
+                "isNew": {
+                    "type": "boolean"
+                },
                 "key": {
                     "type": "string"
                 },
@@ -12745,15 +12938,12 @@ const docTemplate = `{
                     "type": "string",
                     "example": "labelpolicy"
                 },
-                "targetClusterIds": {
+                "targetClusters": {
+                    "description": "TargetClusterIds []string                ` + "`" + `json:\"targetClusterIds\" example:\"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90\"` + "`" + `",
                     "type": "array",
                     "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "83bf8081-f0c5-4b31-826d-23f6f366ec90",
-                        "83bf8081-f0c5-4b31-826d-23f6f366ec90"
-                    ]
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse"
+                    }
                 },
                 "templateId": {
                     "type": "string",
@@ -14910,6 +15100,41 @@ const docTemplate = `{
             "properties": {
                 "existed": {
                     "type": "boolean"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersRequest": {
+            "type": "object",
+            "required": [
+                "rego"
+            ],
+            "properties": {
+                "libs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "rego": {
+                    "type": "string",
+                    "example": "Rego 코드"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain_admin.ExtractParametersResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.RegoCompieError"
+                    }
+                },
+                "parametersSchema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef"
+                    }
                 }
             }
         },

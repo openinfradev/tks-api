@@ -9,6 +9,7 @@ import (
 
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 // Interfaces
@@ -20,6 +21,7 @@ type ISystemNotificationRuleRepository interface {
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRuleId uuid.UUID, err error)
 	Creates(ctx context.Context, dto []model.SystemNotificationRule) (err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) (err error)
+	UpdateStatus(ctx context.Context, systemNotificationRuleId uuid.UUID, status domain.SystemNotificationRuleStatus) (err error)
 	Delete(ctx context.Context, dto model.SystemNotificationRule) (err error)
 }
 
@@ -130,5 +132,18 @@ func (r *SystemNotificationRuleRepository) Delete(ctx context.Context, dto model
 	if res.Error != nil {
 		return res.Error
 	}
+	return nil
+}
+
+func (r *SystemNotificationRuleRepository) UpdateStatus(ctx context.Context, systemNotificationRuleId uuid.UUID, status domain.SystemNotificationRuleStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.SystemNotificationRule{}).
+		Where("id = ?", systemNotificationRuleId).
+		Updates(map[string]interface{}{
+			"Status": status,
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+
 	return nil
 }
