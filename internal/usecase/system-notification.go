@@ -273,7 +273,7 @@ func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryC
 	case "pvc-full":
 		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	default:
-		log.Errorf(ctx, "Invalid systemNotification name %s", systemNotification.Labels.SystemNotificationName)
+		url = ""
 	}
 
 	return
