@@ -338,6 +338,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	policyHandler := delivery.NewPolicyHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/mandatory-policies", customMiddleware.Handle(internalApi.GetMandatoryPolicies, http.HandlerFunc(policyHandler.GetMandatoryPolicies))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/mandatory-policies", customMiddleware.Handle(internalApi.SetMandatoryPolicies, http.HandlerFunc(policyHandler.SetMandatoryPolicies))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policy-statistics", customMiddleware.Handle(internalApi.GetPolicyStatistics, http.HandlerFunc(policyHandler.GetPolicyStatistics))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies", customMiddleware.Handle(internalApi.ListPolicy, http.HandlerFunc(policyHandler.ListPolicy))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies", customMiddleware.Handle(internalApi.CreatePolicy, http.HandlerFunc(policyHandler.CreatePolicy))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyId}/clusters", customMiddleware.Handle(internalApi.UpdatePolicyTargetClusters, http.HandlerFunc(policyHandler.UpdatePolicyTargetClusters))).Methods(http.MethodPatch)

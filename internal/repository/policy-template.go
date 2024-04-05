@@ -34,6 +34,8 @@ type IPolicyTemplateRepository interface {
 	DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error)
 	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error)
 	GetLatestTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID) (version string, err error)
+	CountTksTemplateByOrganization(ctx context.Context, organizationId string) (count int64, err error)
+	CountOrganizationTemplate(ctx context.Context, organizationId string) (count int64, err error)
 }
 
 type PolicyTemplateRepository struct {
@@ -158,6 +160,48 @@ func (r *PolicyTemplateRepository) FetchForOrganization(ctx context.Context, org
 	}
 
 	return policyTemplates, nil
+}
+
+func (r *PolicyTemplateRepository) CountTksTemplateByOrganization(ctx context.Context, organizationId string) (count int64, err error) {
+	subQueryAloowedAll := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id")
+	subQueryMatchId := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id").
+		Where("organization_id = ?", organizationId)
+
+	err = r.db.WithContext(ctx).
+		Model(&model.PolicyTemplate{}).
+		Where(
+			// tks 템플릿인 경우
+			r.db.Where("type = ?", "tks").
+				Where(
+					// permitted_organizations이 비어있거나
+					r.db.Where("id not in (?)", subQueryAloowedAll).
+						Or("id in (?)", subQueryMatchId),
+					// permitted_organization에 매칭되는 템플릿 아이디가 있거나
+				),
+		).Count(&count).Error
+
+	return
+}
+
+func (r *PolicyTemplateRepository) CountOrganizationTemplate(ctx context.Context, organizationId string) (count int64, err error) {
+	subQueryAloowedAll := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id")
+	subQueryMatchId := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id").
+		Where("organization_id = ?", organizationId)
+
+	err = r.db.WithContext(ctx).
+		Model(&model.PolicyTemplate{}).
+		Where(
+			// tks 템플릿인 경우
+			r.db.Where("type = ?", "tks").
+				Where(
+					// permitted_organizations이 비어있거나
+					r.db.Where("id not in (?)", subQueryAloowedAll).
+						Or("id in (?)", subQueryMatchId),
+					// permitted_organization에 매칭되는 템플릿 아이디가 있거나
+				),
+		).Count(&count).Error
+
+	return
 }
 
 func (r *PolicyTemplateRepository) ExistsBy(ctx context.Context, key string, value interface{}) (exists bool, err error) {

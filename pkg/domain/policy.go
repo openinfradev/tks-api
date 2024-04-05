@@ -183,7 +183,25 @@ type PolicyUpdate struct {
 }
 
 type UpdateClusterPolicyTemplateStatusRequest struct {
-	TemplateCurrentVersion string `json:"templateCurrentVersion"  example:"v1.0.1"`
-	TemplateTargetVerson   string `json:"templateTargetVerson"  example:"v1.0.3"`
+	TemplateCurrentVersion string `json:"templateCurrentVersion" example:"v1.0.1"`
+	TemplateTargetVerson   string `json:"templateTargetVerson" example:"v1.0.3"`
 	// PolicyUpdate           []PolicyUpdate `json:"policyUpdate"`
+}
+
+type TemplateCount struct {
+	TksTemplate          int64 `json:"tksTemplate"`
+	OrganizationTemplate int64 `json:"organizationTemplate"`
+	Total                int64 `json:"total"`
+}
+
+type PolicyCount struct {
+	Deny   int64 `json:"deny"`
+	Warn   int64 `json:"warn"`
+	Dryrun int64 `json:"dryrun"`
+	Total  int64 `json:"total"`
+}
+
+type PolicyStatisticsResponse struct {
+	Template TemplateCount `json:"templateCount"`
+	Policy   PolicyCount   `json:"policyCount"`
 }
