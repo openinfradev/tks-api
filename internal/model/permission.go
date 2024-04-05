@@ -154,6 +154,7 @@ func newDashboard() *Permission {
 						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
+							api.GetDashboard,
 							api.GetChartsDashboard,
 							api.GetChartDashboard,
 							api.GetStacksDashboard,
@@ -165,6 +166,10 @@ func newDashboard() *Permission {
 						Name:      "수정",
 						Key:       OperationUpdate,
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateDashboard,
+							api.UpdateDashboard,
+						),
 					},
 				},
 			},
@@ -191,12 +196,12 @@ func newStack() *Permission {
 						Key:       OperationRead,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
+							// Stack
 							api.GetStacks,
 							api.GetStack,
 							api.CheckStackName,
 							api.GetStackStatus,
 							api.GetStackKubeConfig,
-
 							api.SetFavoriteStack,
 							api.DeleteFavoriteStack,
 
@@ -219,19 +224,14 @@ func newStack() *Permission {
 						Key:       OperationCreate,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
+							// Stack
 							api.CreateStack,
 							api.InstallStack,
-							api.CreateAppgroup,
 
 							// Cluster
-							api.CreateCluster,
-							api.ImportCluster,
-							api.InstallCluster,
 							api.CreateBootstrapKubeconfig,
-
-							// AppGroup
-							api.CreateAppgroup,
-							api.CreateApplication,
+							api.GetBootstrapKubeconfig,
+							api.GetNodes,
 						),
 					},
 					{
@@ -249,6 +249,7 @@ func newStack() *Permission {
 						Key:       OperationDelete,
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
+							// Stack
 							api.DeleteStack,
 
 							// Cluster
@@ -802,6 +803,7 @@ func newConfiguration() *Permission {
 							api.GetUser,
 							api.CheckId,
 							api.CheckEmail,
+							api.GetPermissionsByAccountId,
 						),
 					},
 					{
@@ -811,8 +813,6 @@ func newConfiguration() *Permission {
 						IsAllowed: helper.BoolP(false),
 						Endpoints: endpointObjects(
 							api.CreateUser,
-							api.CheckId,
-							api.CheckEmail,
 						),
 					},
 					{
@@ -949,15 +949,9 @@ func newCommon() *Permission {
 			api.VerifyIdentityForLostPassword,
 			api.VerifyToken,
 
-			// Stack
-			api.SetFavoriteStack,
-			api.DeleteFavoriteStack,
-
-			// Project
-			api.SetFavoriteProject,
-			api.SetFavoriteProjectNamespace,
-			api.UnSetFavoriteProject,
-			api.UnSetFavoriteProjectNamespace,
+			// User
+			api.GetUser,
+			api.GetPermissionsByAccountId,
 
 			// MyProfile
 			api.GetMyProfile,
@@ -966,9 +960,11 @@ func newCommon() *Permission {
 			api.RenewPasswordExpiredDate,
 			api.DeleteMyProfile,
 
-			// StackTemplate
-			api.GetOrganizationStackTemplates,
-			api.GetOrganizationStackTemplate,
+			// Organization
+			api.GetOrganization,
+
+			// Role
+			api.GetPermissionsByRoleId,
 
 			// Utiliy
 			api.CompileRego,
