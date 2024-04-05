@@ -4239,6 +4239,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/policy-statistics": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "템플릿, 정책의 통계를 조회한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[GetPolicyStatistics] 정책 템플릿, 정책 통계 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyStatisticsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/policy-templates": {
             "get": {
                 "security": [
@@ -12872,6 +12909,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.PolicyCount": {
+            "type": "object",
+            "properties": {
+                "deny": {
+                    "type": "integer"
+                },
+                "dryrun": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "warn": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.PolicyParameter": {
             "type": "object",
             "properties": {
@@ -12959,6 +13013,17 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.PolicyStatisticsResponse": {
+            "type": "object",
+            "properties": {
+                "policyCount": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyCount"
+                },
+                "templateCount": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateCount"
                 }
             }
         },
@@ -14115,6 +14180,20 @@ const docTemplate = `{
                 },
                 "updator": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.TemplateCount": {
+            "type": "object",
+            "properties": {
+                "organizationTemplate": {
+                    "type": "integer"
+                },
+                "tksTemplate": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
