@@ -13968,19 +13968,10 @@ const docTemplate = `{
                 "cluster": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse"
                 },
-                "code": {
-                    "type": "string"
-                },
                 "createdAt": {
                     "type": "string"
                 },
-                "description": {
-                    "type": "string"
-                },
                 "firedAt": {
-                    "type": "string"
-                },
-                "grade": {
                     "type": "string"
                 },
                 "grafanaUrl": {
@@ -13992,10 +13983,13 @@ const docTemplate = `{
                 "lastTaker": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 },
-                "message": {
+                "messageActionProposal": {
                     "type": "string"
                 },
-                "name": {
+                "messageContent": {
+                    "type": "string"
+                },
+                "messageTitle": {
                     "type": "string"
                 },
                 "node": {
@@ -14008,6 +14002,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "rawData": {
+                    "type": "string"
+                },
+                "severity": {
                     "type": "string"
                 },
                 "status": {

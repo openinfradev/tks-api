@@ -79,7 +79,7 @@ type CreateSystemNotificationRequest struct {
 type SystemNotificationResponse struct {
 	ID                        string                             `json:"id"`
 	OrganizationId            string                             `json:"organizationId"`
-	Severity                  string                             `json:"grade"`
+	Severity                  string                             `json:"severity"`
 	MessageTitle              string                             `json:"messageTitle"`
 	MessageContent            string                             `json:"messageContent"`
 	MessageActionProposal     string                             `json:"messageActionProposal"`
