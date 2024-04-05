@@ -79,11 +79,10 @@ type CreateSystemNotificationRequest struct {
 type SystemNotificationResponse struct {
 	ID                        string                             `json:"id"`
 	OrganizationId            string                             `json:"organizationId"`
-	Name                      string                             `json:"name"`
-	Description               string                             `json:"description"`
-	Message                   string                             `json:"message"`
-	Code                      string                             `json:"code"`
-	Grade                     string                             `json:"grade"`
+	Severity                  string                             `json:"grade"`
+	MessageTitle              string                             `json:"messageTitle"`
+	MessageContent            string                             `json:"messageContent"`
+	MessageActionProposal     string                             `json:"messageActionProposal"`
 	Cluster                   SimpleClusterResponse              `json:"cluster"`
 	GrafanaUrl                string                             `json:"grafanaUrl"`
 	Node                      string                             `json:"node"`

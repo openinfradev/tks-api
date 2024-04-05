@@ -14,17 +14,16 @@ type SystemNotification struct {
 	gorm.Model
 
 	ID                        uuid.UUID `gorm:"primarykey"`
+	Name                      string
 	OrganizationId            string
 	Organization              Organization `gorm:"foreignKey:OrganizationId"`
-	Name                      string
-	Code                      string
-	Description               string
-	Grade                     string
-	Message                   string
 	ClusterId                 domain.ClusterId
 	Cluster                   Cluster `gorm:"foreignKey:ClusterId"`
+	Severity                  string
+	MessageTitle              string
+	MessageContent            string
+	MessageActionProposal     string
 	Node                      string
-	CheckPoint                string
 	GrafanaUrl                string
 	FiredAt                   *time.Time                 `gorm:"-:all"`
 	TakedAt                   *time.Time                 `gorm:"-:all"`
