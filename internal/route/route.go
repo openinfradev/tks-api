@@ -349,8 +349,8 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyName, http.HandlerFunc(policyHandler.ExistsPolicyName))).Methods(http.MethodGet)
 
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-status", customMiddleware.Handle(internalApi.ListClusterPolicyStatus, http.HandlerFunc(policyHandler.ListClusterPolicyStatus))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-templates/{templateId}", customMiddleware.Handle(internalApi.GetClusterPolicyTemplateStatus, http.HandlerFunc(policyHandler.GetClusterPolicyTemplateStatus))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-templates/{templateId}", customMiddleware.Handle(internalApi.UpdateClusterPolicyTemplateStatus, http.HandlerFunc(policyHandler.UpdateClusterPolicyTemplateStatus))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.GetClusterPolicyTemplateStatus, http.HandlerFunc(policyHandler.GetClusterPolicyTemplateStatus))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.UpdateClusterPolicyTemplateStatus, http.HandlerFunc(policyHandler.UpdateClusterPolicyTemplateStatus))).Methods(http.MethodPatch)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
