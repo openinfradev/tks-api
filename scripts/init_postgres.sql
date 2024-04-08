@@ -65,7 +65,9 @@ values ('1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'node-disk-full', 'node-disk-ful
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
 values ('68dcb92d-91cc-47d0-9b2f-2285d74f157f', 'pvc-full', 'pvc-full', true, 'predict_linear(kubelet_volume_stats_available_bytes[6h], 24*3600)', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', true, 'pod-restart-frequently', 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:])', null, null, now(), now() );
+values ('46e9e216-364a-4a3f-9182-85b2c4c34f77', 'pod-restart-frequently', 'pod-restart-frequently', true, 'increase(kube_pod_container_status_restarts_total{namespace!="kube-system"}[60m:])', null, null, now(), now() );
+insert into system_notification_templates ( id, name, description, is_system, metric_query, creator_id, updator_id, created_at, updated_at )
+values ('7355d0f9-7c14-4f70-92ea-a9868624ff82', 'policy-audited', 'policy-audited', true, 'opa_scorecard_constraint_violations{namespace!="kube-system|taco-system|gatekeeper-system"}', null, null, now(), now() );
 
 ## SystemNotificationTemplates -> SystemNotificationMetricParameters
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
@@ -90,3 +92,17 @@ insert into system_notification_metric_parameters ( "order", system_notification
 values ( 1, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'POD', '$labels.pod', now(), now() );
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
 values ( 2, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'NAMESPACE', '$labels.namespace', now(), now() );
+values ( 0, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'STACK', '$labels.taco_cluster', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 1, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'NAME', '$labels.name', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 2, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'KIND', '$labels.kind', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 3, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'VIOLATING_KIND', '$labels.violating_kind', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 4, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'VIOLATING_NAMESPACE', '$labels.violating_namespace', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 5, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'VIOLATING_NAME', '$labels.violating_name', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
+values ( 6, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'VIOLATION_MSG', '$labels.violation_msg', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
