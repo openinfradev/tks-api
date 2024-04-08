@@ -256,8 +256,8 @@ func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryC
 		}
 	}
 
-	// check type
-	url = primaryGrafanaEndpoint
+	//// check type
+	//url = primaryGrafanaEndpoint
 
 	// tks_node_dashboard/tks-kubernetes-view-nodes?orgId=1&refresh=30s&var-datasource=default&var-taco_cluster=c19rjkn4j&var-job=prometheus-node-exporter&var-hostname=All&var-node=10.0.168.71:9100&var-device=All&var-maxmount=%2F&var-show_hostname=prometheus-node-exporter-xt4vb
 
