@@ -39,6 +39,9 @@ type IPolicyUsecase interface {
 	UpdateClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID,
 		currentVersion string, targetVerson string) (err error)
 	GetPolicyStatistics(ctx context.Context, organizationId string) (response *domain.PolicyStatisticsResponse, err error)
+	AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
+	UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
+	DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
 }
 
 type PolicyUsecase struct {
@@ -124,7 +127,35 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 	dto.CreatorId = &userId
 	dto.TemplateId = policyTemplate.ID
 
-	policyCR := policytemplate.PolicyToTksPolicyCR(&dto)
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
+	}
+
+	primaryClusterId := organization.PrimaryClusterId
+
+	// k8s에 label로 policyID를 기록해 주기 위해 DB 컬럼 생성 시 ID를 생성하지 않고 미리 생성
+	dto.ID = uuid.New()
+
+	err = createOrUpdatPolicy(ctx, &dto, policyTemplate, primaryClusterId)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	id, err := u.repo.Create(ctx, dto)
+
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
+}
+
+func createOrUpdatPolicy(ctx context.Context, dto *model.Policy, policyTemplate *model.PolicyTemplate, primaryClusterId string) error {
+	policyCR := policytemplate.PolicyToTksPolicyCR(dto)
 
 	// DB 생성 전 policy DTO에 PolicyTemplate 필드를 넣어주면 탬플릿이 생성될 수 있으므로,
 	// dto에 세팅하지 않고 변환 후 필요한 템플릿 리소스 이름을 따로 넣어 줌
@@ -134,23 +165,15 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 
 	policyTemplateCR := policytemplate.PolicyTemplateToTksPolicyTemplateCR(policyTemplate)
 
-	organization, err := u.organizationRepo.Get(ctx, organizationId)
-
+	exists, err := policytemplate.ExistsTksPolicyTemplateCR(ctx, primaryClusterId, policyTemplateCR.Name)
 	if err != nil {
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 
-		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
-	}
-
-	exists, err = policytemplate.ExistsTksPolicyTemplateCR(ctx, organization.PrimaryClusterId, policyTemplateCR.Name)
-	if err != nil {
-		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
-
-		return uuid.Nil, httpErrors.NewInternalServerError(err, "P_FAILED_TO_CALL_KUBERNETES", "")
+		return httpErrors.NewInternalServerError(err, "P_FAILED_TO_CALL_KUBERNETES", "")
 	}
 
 	if !exists {
-		err = policytemplate.ApplyTksPolicyTemplateCR(ctx, organization.PrimaryClusterId, policyTemplateCR)
+		err = policytemplate.ApplyTksPolicyTemplateCR(ctx, primaryClusterId, policyTemplateCR)
 
 		if err != nil {
 			errYaml := ""
@@ -160,22 +183,11 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 
 			log.Errorf(ctx, "error is :%s(%T), policyTemplateCR='%+v'", err.Error(), err, errYaml)
 
-			return uuid.Nil, httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
+			return httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
 		}
 	}
 
-	err = policytemplate.ApplyTksPolicyCR(ctx, organization.PrimaryClusterId, policyCR)
-
-	if err != nil {
-		errYaml := ""
-		if policyCR != nil {
-			errYaml, _ = policyCR.YAML()
-		}
-
-		log.Errorf(ctx, "error is :%s(%T), policyCR='%+v'", err.Error(), err, errYaml)
-
-		return uuid.Nil, httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
-	}
+	err = policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, policyCR)
 
 	// policyYaml, _ := policyCR.YAML()
 	// policyTemplateYaml, _ := policyTemplateCR.YAML()
@@ -189,13 +201,18 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 	// fmt.Printf("%+v\n", policyTemplateCR.Spec.Targets[0].Rego)
 	// fmt.Println("------------------------------------------------")
 
-	id, err := u.repo.Create(ctx, dto)
-
 	if err != nil {
-		return uuid.Nil, err
+		errYaml := ""
+		if policyCR != nil {
+			errYaml, _ = policyCR.YAML()
+		}
+
+		log.Errorf(ctx, "error is :%s(%T), policyCR='%+v'", err.Error(), err, errYaml)
+
+		return httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
 	}
 
-	return id, nil
+	return nil
 }
 
 func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, policyId uuid.UUID,
@@ -730,6 +747,184 @@ func (u *PolicyUsecase) GetPolicyStatistics(ctx context.Context, organizationId 
 	}
 
 	return &result, nil
+}
+
+func (u *PolicyUsecase) AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error) {
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
+
+	primaryClusterId := organization.PrimaryClusterId
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
+	}
+
+	tkpolicies, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return err
+	}
+
+	ids := make([]string, len(policyIds))
+	for i, policyId := range policyIds {
+		ids[i] = policyId.String()
+	}
+
+	// mapset.NewSet([]string{})
+
+	for _, tkspolicy := range tkpolicies {
+		policyId := tkspolicy.GetPolicyID()
+
+		// 추가 대상
+		if slices.Contains(ids, policyId) {
+			// 현재 클러스터가 안 추가되어 있으면
+			if !slices.Contains(tkspolicy.Spec.Clusters, string(clusterId)) {
+				tkspolicy.Spec.Clusters = append(tkspolicy.Spec.Clusters, string(clusterId))
+
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				if err != nil {
+					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+				}
+			}
+
+		}
+	}
+
+	policies := []model.Policy{}
+
+	for _, policyId := range policyIds {
+		policy, err := u.repo.GetByID(ctx, organizationId, policyId)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+			continue
+		}
+
+		policies = append(policies, *policy)
+	}
+
+	return u.repo.AddPoliciesForClusterID(ctx, organizationId, clusterId, policies)
+}
+
+func (u *PolicyUsecase) UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error) {
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
+
+	primaryClusterId := organization.PrimaryClusterId
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
+	}
+
+	tkpolicies, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return err
+	}
+
+	ids := make([]string, len(policyIds))
+	for i, policyId := range policyIds {
+		ids[i] = policyId.String()
+	}
+
+	// mapset.NewSet([]string{})
+
+	for _, tkspolicy := range tkpolicies {
+		policyId := tkspolicy.GetPolicyID()
+
+		// 세팅 대상
+		if slices.Contains(ids, policyId) {
+			// 현재 클러스터가 안 추가되어 있으면
+			if !slices.Contains(tkspolicy.Spec.Clusters, string(clusterId)) {
+				tkspolicy.Spec.Clusters = append(tkspolicy.Spec.Clusters, string(clusterId))
+
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				if err != nil {
+					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+				}
+			}
+
+		} else { // 클리어 대상
+			// 현재 클러스터가 추가되어 있으면
+			if slices.Contains(tkspolicy.Spec.Clusters, string(clusterId)) {
+				newClusters := []string{}
+
+				tkspolicy.Spec.Clusters = slices.Filter(newClusters, tkspolicy.Spec.Clusters,
+					func(s string) bool { return s != string(clusterId) })
+
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				if err != nil {
+					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+				}
+			}
+		}
+	}
+
+	policies := []model.Policy{}
+
+	for _, policyId := range policyIds {
+		policy, err := u.repo.GetByID(ctx, organizationId, policyId)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+			continue
+		}
+
+		policies = append(policies, *policy)
+	}
+
+	return u.repo.UpdatePoliciesForClusterID(ctx, organizationId, clusterId, policies)
+}
+
+func (u *PolicyUsecase) DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error) {
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
+
+	primaryClusterId := organization.PrimaryClusterId
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
+	}
+
+	tkpolicies, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return err
+	}
+
+	ids := make([]string, len(policyIds))
+	for i, policyId := range policyIds {
+		ids[i] = policyId.String()
+	}
+
+	for _, tkspolicy := range tkpolicies {
+		policyId := tkspolicy.GetPolicyID()
+
+		if slices.Contains(ids, policyId) {
+			// 현재 클러스터가 추가되어 있으면 제거
+			if slices.Contains(tkspolicy.Spec.Clusters, string(clusterId)) {
+				newClusters := []string{}
+
+				tkspolicy.Spec.Clusters = slices.Filter(newClusters, tkspolicy.Spec.Clusters,
+					func(s string) bool { return s != string(clusterId) })
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+
+				if err != nil {
+					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+				}
+			}
+		}
+	}
+
+	return u.repo.DeletePoliciesForClusterID(ctx, organizationId, clusterId, policyIds)
 }
 
 func extractNewTemplateParameter(paramdefs []*domain.ParameterDef, newParamDefs []*domain.ParameterDef) (policyParameters []domain.UpdatedPolicyTemplateParameter, err error) {

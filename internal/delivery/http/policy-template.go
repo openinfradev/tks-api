@@ -40,6 +40,9 @@ type IPolicyTemplateHandler interface {
 	Admin_DeletePolicyTemplateVersion(w http.ResponseWriter, r *http.Request)
 	Admin_ListPolicyTemplateVersions(w http.ResponseWriter, r *http.Request)
 	Admin_ExtractParameters(w http.ResponseWriter, r *http.Request)
+	Admin_AddPermittedPolicyTemplatesForOrganization(w http.ResponseWriter, r *http.Request)
+	Admin_UpdatePermittedPolicyTemplatesForOrganization(w http.ResponseWriter, r *http.Request)
+	Admin_DeletePermittedPolicyTemplatesForOrganization(w http.ResponseWriter, r *http.Request)
 
 	CreatePolicyTemplate(w http.ResponseWriter, r *http.Request)
 	UpdatePolicyTemplate(w http.ResponseWriter, r *http.Request)
@@ -745,6 +748,159 @@ func (h *PolicyTemplateHandler) Admin_ExistsPolicyTemplateKind(w http.ResponseWr
 	out.Existed = exist
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// Admin_AddPermittedPolicyTemplatesForOrganization godoc
+//
+//	@Tags			PolicyTemplate
+//	@Summary		[Admin_AddPermittedPolicyTemplatesForOrganization] 특정 조직에 대해 허용된 tks 템플릿 목록 추가
+//	@Description	특정 조직에 대해 허용된 tks 템플릿 목록을 추가한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string															true	"조직 식별자(o로 시작)"
+//	@Param			body			body		admin_domain.AddPermittedPolicyTemplatesForOrganizationRequest	true	"update pemitted policy template request"
+//	@Success		200				{object}	nil
+//	@Router			/admin/organizations/{organizationId}/policyTemplates [post]
+//	@Security		JWT
+func (h *PolicyTemplateHandler) Admin_AddPermittedPolicyTemplatesForOrganization(w http.ResponseWriter, r *http.Request) {
+	// TODO: API 형상 추후 반드시 검토
+
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := admin_domain.AddPermittedPolicyTemplatesForOrganizationRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ids := make([]uuid.UUID, len(input.PolicyTemplateIds))
+
+	for i, policyTemplateId := range input.PolicyTemplateIds {
+		id, err := uuid.Parse(policyTemplateId)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+			return
+		}
+		ids[i] = id
+	}
+
+	err = h.usecase.AddPermittedPolicyTemplatesForOrganization(r.Context(), organizationId, ids)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+func (h *PolicyTemplateHandler) Admin_UpdatePermittedPolicyTemplatesForOrganization(w http.ResponseWriter, r *http.Request) {
+	// TODO: API 형상 추후 반드시 검토
+
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := admin_domain.UpdatePermittedPolicyTemplatesForOrganizationRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ids := make([]uuid.UUID, len(input.PolicyTemplateIds))
+
+	for i, policyTemplateId := range input.PolicyTemplateIds {
+		id, err := uuid.Parse(policyTemplateId)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+			return
+		}
+		ids[i] = id
+	}
+
+	err = h.usecase.UpdatePermittedPolicyTemplatesForOrganization(r.Context(), organizationId, ids)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// Admin_DeletePermittedPolicyTemplatesForOrganization godoc
+//
+//	@Tags			PolicyTemplate
+//	@Summary		[Admin_DeletePermittedPolicyTemplatesForOrganization] 특정 조직에 대해 허용된 tks 템플릿 목록 제거
+//	@Description	특정 조직에 대해 허용된 tks 템플릿의 허용 상태를 해제(제거)한다. tks 우형 템플릿에 대해서만 동작하고 organization 유형 템플릿에 대해서는 거부된다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string																true	"조직 식별자(o로 시작)"
+//	@Param			body			body		admin_domain.DeletePermittedPolicyTemplatesForOrganizationRequest	true	"delete pemitted policy template request"
+//	@Success		200				{object}	nil
+//	@Router			/admin/organizations/{organizationId}/policyTemplates [put]
+//	@Security		JWT
+func (h *PolicyTemplateHandler) Admin_DeletePermittedPolicyTemplatesForOrganization(w http.ResponseWriter, r *http.Request) {
+	// TODO: API 형상 추후 반드시 검토
+
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := admin_domain.DeletePermittedPolicyTemplatesForOrganizationRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ids := make([]uuid.UUID, len(input.PolicyTemplateIds))
+
+	for i, policyTemplateId := range input.PolicyTemplateIds {
+		id, err := uuid.Parse(policyTemplateId)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_TEMPLATE_ID", ""))
+			return
+		}
+		ids[i] = id
+	}
+
+	err = h.usecase.DeletePermittedPolicyTemplatesForOrganization(r.Context(), organizationId, ids)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
 // CompileRego godoc
@@ -1581,13 +1737,6 @@ func (h *PolicyTemplateHandler) ExtractParameters(w http.ResponseWriter, r *http
 
 	if err := serializer.Map(r.Context(), response, &out); err != nil {
 		log.Info(r.Context(), err)
-	}
-
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-
-		ErrorJSON(w, r, err)
-		return
 	}
 
 	ResponseJSON(w, r, http.StatusCreated, response)

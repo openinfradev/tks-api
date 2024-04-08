@@ -67,6 +67,10 @@ type TKSPolicyList struct {
 
 // ============== Copied Fron Operator End ==============
 
+func (tksPolicy *TKSPolicy) GetPolicyID() string {
+	return tksPolicy.ObjectMeta.Labels[PolicyIDLabel]
+}
+
 func (tksPolicy *TKSPolicy) JSON() (string, error) {
 	result, err := json.MarshalIndent(tksPolicy, "", "  ")
 
@@ -225,4 +229,45 @@ func ExistsTksPolicyCR(ctx context.Context, primaryClusterId string, name string
 		return result != nil, nil
 	}
 	return true, nil
+}
+
+func ListTksPolicyCR(ctx context.Context, primaryClusterId string) ([]*TKSPolicy, error) {
+	if syncToKubernetes() {
+		dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		results, err := dynamicClient.Resource(TKSPolicyGVR).Namespace(primaryClusterId).
+			List(ctx, metav1.ListOptions{})
+
+		if err != nil {
+			return nil, err
+		}
+
+		tkspolicies := make([]*TKSPolicy, len(results.Items))
+
+		for i, result := range results.Items {
+			jsonBytes, err := json.Marshal(result.Object)
+
+			if err != nil {
+				return nil, err
+			}
+
+			var tksPolicy TKSPolicy
+			err = json.Unmarshal(jsonBytes, &tksPolicy)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tkspolicies[i] = &tksPolicy
+		}
+
+		return tkspolicies, nil
+	}
+
+	tkspolicies := make([]*TKSPolicy, 0)
+	return tkspolicies, nil
 }

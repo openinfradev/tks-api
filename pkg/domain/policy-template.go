@@ -195,3 +195,15 @@ type ExtractParametersResponse struct {
 	ParametersSchema []*ParameterDef   `json:"parametersSchema,omitempty"`
 	Errors           []RegoCompieError `json:"errors,omitempty"`
 }
+
+type AddPoliciesForStackRequest struct {
+	PolicyIds []string `json:"policyIds"`
+}
+
+type UpdatePoliciesForStackRequest struct {
+	PolicyIds []string `json:"policyIds"`
+}
+
+type DeletePoliciesForStackRequest struct {
+	PolicyIds []string `json:"policyIds"`
+}

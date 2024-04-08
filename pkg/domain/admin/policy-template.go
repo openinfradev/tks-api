@@ -187,3 +187,15 @@ type ExtractParametersResponse struct {
 	ParametersSchema []*domain.ParameterDef   `json:"parametersSchema,omitempty"`
 	Errors           []domain.RegoCompieError `json:"errors,omitempty"`
 }
+
+type AddPermittedPolicyTemplatesForOrganizationRequest struct {
+	PolicyTemplateIds []string `json:"policyTemplateIds"`
+}
+
+type UpdatePermittedPolicyTemplatesForOrganizationRequest struct {
+	PolicyTemplateIds []string `json:"policyTemplateIds"`
+}
+
+type DeletePermittedPolicyTemplatesForOrganizationRequest struct {
+	PolicyTemplateIds []string `json:"policyTemplateIds"`
+}

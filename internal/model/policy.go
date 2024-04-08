@@ -40,7 +40,9 @@ type Policy struct {
 }
 
 func (p *Policy) BeforeCreate(tx *gorm.DB) (err error) {
-	p.ID = uuid.New()
+	if p.ID == uuid.Nil {
+		p.ID = uuid.New()
+	}
 
 	if p.Match != nil {
 		jsonBytes, err := json.Marshal(p.Match)

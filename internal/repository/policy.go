@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -31,6 +32,9 @@ type IPolicyRepository interface {
 	SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error)
 	GetUsageCountByTemplateId(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (usageCounts []model.UsageCount, err error)
 	CountPolicyByEnforcementAction(ctx context.Context, organizationId string) (policyCount []model.PolicyCount, err error)
+	AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policies []model.Policy) (err error)
+	UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policies []model.Policy) (err error)
+	DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
 }
 
 type PolicyRepository struct {
@@ -295,4 +299,31 @@ func (r *PolicyRepository) CountPolicyByEnforcementAction(ctx context.Context, o
 	}
 
 	return
+}
+
+func (r *PolicyRepository) AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policies []model.Policy) (err error) {
+	var cluster model.Cluster
+	cluster.ID = clusterId
+
+	err = r.db.WithContext(ctx).Model(&cluster).
+		Association("Policies").Append(policies)
+
+	return err
+}
+
+func (r *PolicyRepository) UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policies []model.Policy) (err error) {
+	var cluster model.Cluster
+	cluster.ID = clusterId
+
+	err = r.db.WithContext(ctx).Model(&cluster).
+		Association("Policies").Replace(policies)
+
+	return err
+}
+
+func (r *PolicyRepository) DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error) {
+	return r.db.WithContext(ctx).
+		Where("cluster_id = ?", clusterId).
+		Where("policy_id in ?", policyIds).
+		Delete(&model.PolicyTargetCluster{}).Error
 }

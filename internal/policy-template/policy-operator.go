@@ -10,6 +10,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	PartOfKey       = "app.kubernetes.io/part-of"
+	PartOfVal       = "tks-policy-operator"
+	TksLabelPrefix  = "tks/"
+	PolicyIDLabel   = TksLabelPrefix + "policy-id"
+	TemplateIDLabel = TksLabelPrefix + "policy-template-id"
+)
+
 func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 	if policy == nil {
 		return nil
@@ -18,7 +26,9 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 	jsonParams := apiextensionsv1.JSON{Raw: []byte(policy.Parameters)}
 
 	labels := map[string]string{}
-	labels["app.kubernetes.io/part-of"] = "tks-policy-operator"
+	labels[PartOfKey] = PartOfVal
+	labels[PolicyIDLabel] = policy.ID.String()
+	labels[TemplateIDLabel] = policy.TemplateId.String()
 
 	if policy.MatchYaml != nil {
 		var match domain.Match
@@ -57,7 +67,8 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 	}
 
 	labels := map[string]string{}
-	labels["app.kubernetes.io/part-of"] = "tks-policy-operator"
+	labels[PartOfKey] = PartOfVal
+	labels[TemplateIDLabel] = policyTemplate.ID.String()
 
 	return &TKSPolicyTemplate{
 		TypeMeta: metav1.TypeMeta{

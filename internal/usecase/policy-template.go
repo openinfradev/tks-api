@@ -45,6 +45,10 @@ type IPolicyTemplateUsecase interface {
 	GetPolicyTemplateDeploy(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (deployInfo domain.GetPolicyTemplateDeployResponse, err error)
 
 	ExtractPolicyParameters(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string, rego string, libs []string) (response *domain.RegoCompileResponse, err error)
+
+	AddPermittedPolicyTemplatesForOrganization(ctx context.Context, organizationId string, policyTemplateIds []uuid.UUID) (err error)
+	UpdatePermittedPolicyTemplatesForOrganization(ctx context.Context, organizationId string, policyTemplateIds []uuid.UUID) (err error)
+	DeletePermittedPolicyTemplatesForOrganization(ctx context.Context, organizationId string, policyTemplateIds []uuid.UUID) (err error)
 }
 
 type PolicyTemplateUsecase struct {
@@ -163,6 +167,10 @@ func (u *PolicyTemplateUsecase) FillPermittedOrganizationsForList(ctx context.Co
 // 모든 조직 목록에 대해 허용 여부 업데이트
 func (u *PolicyTemplateUsecase) fillPermittedOrganizations(_ context.Context, organizations *[]model.Organization, policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) {
 	if policyTemplate == nil || organizations == nil || out == nil {
+		return
+	}
+
+	if policyTemplate.IsOrganizationTemplate() {
 		return
 	}
 
@@ -588,4 +596,56 @@ func (u *PolicyTemplateUsecase) ExtractPolicyParameters(ctx context.Context, org
 	}
 
 	return response, nil
+}
+
+func (u *PolicyTemplateUsecase) AddPermittedPolicyTemplatesForOrganization(ctx context.Context, organizationId string, policyTemplateIds []uuid.UUID) (err error) {
+	policyTemplates := make([]model.PolicyTemplate, len(policyTemplateIds))
+
+	for i, policyTemplateId := range policyTemplateIds {
+		result, err := u.repo.GetByID(ctx, policyTemplateId)
+
+		if err != nil || result == nil {
+			return httpErrors.NewBadRequestError(fmt.Errorf(
+				"failed to fetch policy template"),
+				"PT_FAILED_FETCH_POLICY_TEMPLATE", "")
+		}
+
+		if result.IsOrganizationTemplate() {
+			return httpErrors.NewBadRequestError(fmt.Errorf(
+				"failed to permit organization to organization policy template"),
+				"PT_FAILED_TO_PERMIT_ORG_TEMPLATE", "")
+		}
+
+		policyTemplates[i] = *result
+	}
+
+	return u.organizationRepo.AddPermittedPolicyTemplatesByID(ctx, organizationId, policyTemplates)
+}
+
+func (u *PolicyTemplateUsecase) UpdatePermittedPolicyTemplatesForOrganization(ctx context.Context, organizationId string, policyTemplateIds []uuid.UUID) (err error) {
+	policyTemplates := make([]model.PolicyTemplate, len(policyTemplateIds))
+
+	for i, policyTemplateId := range policyTemplateIds {
+		result, err := u.repo.GetByID(ctx, policyTemplateId)
+
+		if err != nil || result == nil {
+			return httpErrors.NewBadRequestError(fmt.Errorf(
+				"failed to fetch policy template"),
+				"PT_FAILED_FETCH_POLICY_TEMPLATE", "")
+		}
+
+		if result.IsOrganizationTemplate() {
+			return httpErrors.NewBadRequestError(fmt.Errorf(
+				"failed to permit organization to organization policy template"),
+				"PT_FAILED_TO_PERMIT_ORG_TEMPLATE", "")
+		}
+
+		policyTemplates[i] = *result
+	}
+
+	return u.organizationRepo.UpdatePermittedPolicyTemplatesByID(ctx, organizationId, policyTemplates)
+}
+
+func (u *PolicyTemplateUsecase) DeletePermittedPolicyTemplatesForOrganization(ctx context.Context, organizationId string, policyTemplateIds []uuid.UUID) (err error) {
+	return u.organizationRepo.DeletePermittedPolicyTemplatesByID(ctx, organizationId, policyTemplateIds)
 }

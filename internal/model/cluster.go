@@ -42,6 +42,7 @@ type Cluster struct {
 	Creator                User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId              *uuid.UUID `gorm:"type:uuid"`
 	Updator                User       `gorm:"foreignKey:UpdatorId"`
+	Policies               []Policy   `gorm:"many2many:policy_target_clusters"`
 }
 
 func (m *Cluster) SetDefaultConf() {

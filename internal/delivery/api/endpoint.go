@@ -234,6 +234,8 @@ const (
 	Admin_ExistsPolicyTemplateKind
 	Admin_ExistsPolicyTemplateName
 	Admin_ExtractParameters
+	Admin_AddPermittedPolicyTemplatesForOrganization
+	Admin_DeletePermittedPolicyTemplatesForOrganization
 
 	// ClusterPolicyStatus
 	ListClusterPolicyStatus
@@ -252,6 +254,8 @@ const (
 	UpdatePolicyTargetClusters
 	ExistsPolicyName
 	GetPolicyEdit
+	AddPoliciesForStack
+	DeletePoliciesForStack
 
 	// OrganizationPolicyTemplate
 	ListPolicyTemplate
