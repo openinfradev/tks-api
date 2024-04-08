@@ -158,6 +158,13 @@ definitions:
     required:
     - systemNotificationTemplateIds
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.AddPoliciesForStackRequest:
+    properties:
+      policyIds:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.AddProjectMemberRequest:
     properties:
       projectMembers:
@@ -643,35 +650,6 @@ definitions:
         type: string
       validity:
         type: integer
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.ClusterPolicyStatusResponse:
-    properties:
-      policyDescription:
-        example: org 레이블 설정 여부 검사
-        type: string
-      policyId:
-        example: 0091fe9b-e44b-423d-9562-ac2b73089593
-        type: string
-      policyMandatory:
-        type: boolean
-      policyName:
-        example: org 레이블 요구
-        type: string
-      templateCurrentVersion:
-        example: v1.0.1
-        type: string
-      templateDescription:
-        example: 파라미터로 설정된 레이블 검사
-        type: string
-      templateId:
-        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
-        type: string
-      templateLatestVerson:
-        example: v1.0.3
-        type: string
-      templateName:
-        example: 레이블 요구
-        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ClusterResponse:
     properties:
@@ -1452,6 +1430,13 @@ definitions:
       id:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.DeletePoliciesForStackRequest:
+    properties:
+      policyIds:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.DeleteUserRequest:
     properties:
       adminPassword:
@@ -1636,37 +1621,6 @@ definitions:
       nodes:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterNode'
-        type: array
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetClusterPolicyTemplateStatusResponse:
-    properties:
-      affectedPolicies:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyStatus'
-        type: array
-      templateCurrentVersion:
-        example: v1.0.1
-        type: string
-      templateDescription:
-        example: 파라미터로 설정된 레이블 검사
-        type: string
-      templateId:
-        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
-        type: string
-      templateLatestVerson:
-        example: v1.0.3
-        type: string
-      templateLatestVersonReleaseDate:
-        format: date-time
-        type: string
-      templateMandatory:
-        type: boolean
-      templateName:
-        example: 레이블 요구
-        type: string
-      updatedPolicyParameters:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatedPolicyTemplateParameter'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetClusterResponse:
@@ -1875,6 +1829,37 @@ definitions:
       kubeConfig:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetStackPolicyTemplateStatusResponse:
+    properties:
+      affectedPolicies:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyStatus'
+        type: array
+      templateCurrentVersion:
+        example: v1.0.1
+        type: string
+      templateDescription:
+        example: 파라미터로 설정된 레이블 검사
+        type: string
+      templateId:
+        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
+        type: string
+      templateLatestVerson:
+        example: v1.0.3
+        type: string
+      templateLatestVersonReleaseDate:
+        format: date-time
+        type: string
+      templateMandatory:
+        type: boolean
+      templateName:
+        example: 레이블 요구
+        type: string
+      updatedPolicyParameters:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdatedPolicyTemplateParameter'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetStackResponse:
     properties:
       stack:
@@ -2064,13 +2049,6 @@ definitions:
           type: string
         type: array
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.ListClusterPolicyStatusResponse:
-    properties:
-      polices:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterPolicyStatusResponse'
-        type: array
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse:
     properties:
       organizations:
@@ -2114,6 +2092,13 @@ definitions:
         - v1.0.0
         items:
           type: string
+        type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ListStackPolicyStatusResponse:
+    properties:
+      polices:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatusResponse'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ListTksRoleResponse:
@@ -2920,6 +2905,35 @@ definitions:
     - tksInfraNode
     - tksUserNode
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatusResponse:
+    properties:
+      policyDescription:
+        example: org 레이블 설정 여부 검사
+        type: string
+      policyId:
+        example: 0091fe9b-e44b-423d-9562-ac2b73089593
+        type: string
+      policyMandatory:
+        type: boolean
+      policyName:
+        example: org 레이블 요구
+        type: string
+      templateCurrentVersion:
+        example: v1.0.1
+        type: string
+      templateDescription:
+        example: 파라미터로 설정된 레이블 검사
+        type: string
+      templateId:
+        example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
+        type: string
+      templateLatestVerson:
+        example: v1.0.3
+        type: string
+      templateName:
+        example: 레이블 요구
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.StackResponse:
     properties:
       cloudAccount:
@@ -3121,6 +3135,8 @@ definitions:
         type: string
       node:
         type: string
+      notificationType:
+        type: string
       organizationId:
         type: string
       processingSec:
@@ -3152,6 +3168,8 @@ definitions:
         type: string
       id:
         type: string
+      isSystem:
+        type: boolean
       messageActionProposal:
         type: string
       messageContent:
@@ -3183,6 +3201,8 @@ definitions:
         type: string
       id:
         type: string
+      isSystem:
+        type: boolean
       metricParameters:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationMetricParameterResponse'
@@ -3290,15 +3310,6 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.UpdateCloudAccountRequest:
     properties:
       description:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.UpdateClusterPolicyTemplateStatusRequest:
-    properties:
-      templateCurrentVersion:
-        example: v1.0.1
-        type: string
-      templateTargetVerson:
-        example: v1.0.3
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest:
@@ -3508,6 +3519,15 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UpdateStackPolicyTemplateStatusRequest:
+    properties:
+      templateCurrentVersion:
+        example: v1.0.1
+        type: string
+      templateTargetVerson:
+        example: v1.0.3
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateStackRequest:
     properties:
@@ -3776,6 +3796,13 @@ definitions:
       startY:
         type: integer
     type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.AddPermittedPolicyTemplatesForOrganizationRequest:
+    properties:
+      policyTemplateIds:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateReponse:
     properties:
       id:
@@ -3863,6 +3890,13 @@ definitions:
       version:
         example: v1.1.1
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain_admin.DeletePermittedPolicyTemplatesForOrganizationRequest:
+    properties:
+      policyTemplateIds:
+        items:
+          type: string
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.ExistsPolicyTemplateKindResponse:
     properties:
@@ -4201,6 +4235,62 @@ paths:
       summary: Create organization in Admin portal
       tags:
       - Organizations
+  /admin/organizations/{organizationId}/policyTemplates:
+    post:
+      consumes:
+      - application/json
+      description: 특정 조직에 대해 허용된 tks 템플릿 목록을 추가한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: update pemitted policy template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.AddPermittedPolicyTemplatesForOrganizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[Admin_AddPermittedPolicyTemplatesForOrganization] 특정 조직에 대해 허용된 tks
+        템플릿 목록 추가'
+      tags:
+      - PolicyTemplate
+    put:
+      consumes:
+      - application/json
+      description: 특정 조직에 대해 허용된 tks 템플릿의 허용 상태를 해제(제거)한다. tks 우형 템플릿에 대해서만 동작하고 organization
+        유형 템플릿에 대해서는 거부된다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: delete pemitted policy template request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.DeletePermittedPolicyTemplatesForOrganizationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[Admin_DeletePermittedPolicyTemplatesForOrganization] 특정 조직에 대해 허용된
+        tks 템플릿 목록 제거'
+      tags:
+      - PolicyTemplate
   /admin/organizations/{organizationId}/projects:
     get:
       consumes:
@@ -5562,111 +5652,6 @@ paths:
       summary: Get nodes information for BYOH
       tags:
       - Clusters
-  /clusters/{clusterId}/policy-status:
-    get:
-      consumes:
-      - application/json
-      description: 클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.
-      parameters:
-      - description: 클러스터 식별자(uuid)
-        in: path
-        name: clusterId
-        required: true
-        type: string
-      - description: pageSize
-        in: query
-        name: pageSize
-        type: string
-      - description: pageNumber
-        in: query
-        name: pageNumber
-        type: string
-      - description: sortColumn
-        in: query
-        name: sortColumn
-        type: string
-      - description: sortOrder
-        in: query
-        name: sortOrder
-        type: string
-      - collectionFormat: csv
-        description: filters
-        in: query
-        items:
-          type: string
-        name: filters
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListClusterPolicyStatusResponse'
-      security:
-      - JWT: []
-      summary: '[ListClusterPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회'
-      tags:
-      - ClusterPolicyStatus
-  /clusters/{clusterId}/policy-templates/{templateId}:
-    get:
-      consumes:
-      - application/json
-      description: 템플릿의 클러스터 버전 등 상태를 조회한다.
-      parameters:
-      - description: 클러스터 식별자(uuid)
-        in: path
-        name: clusterId
-        required: true
-        type: string
-      - description: 정책 템플릿 식별자(uuid)
-        in: path
-        name: templateId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterPolicyTemplateStatusResponse'
-      security:
-      - JWT: []
-      summary: '[GetClusterPolicyTemplateStatus] 클러스터 템플릿 상태 상세 조회'
-      tags:
-      - ClusterPolicyStatus
-    patch:
-      consumes:
-      - application/json
-      description: 해당 템플릿의 버전 업데이트 및 연관된 정책의 새 기본값을 설정한다.
-      parameters:
-      - description: 클러스터 식별자(uuid)
-        in: path
-        name: clusterId
-        required: true
-        type: string
-      - description: 정책 템플릿 식별자(uuid)
-        in: path
-        name: templateId
-        required: true
-        type: string
-      - description: update cluster policy template status request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateClusterPolicyTemplateStatusRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-      security:
-      - JWT: []
-      summary: '[UpdateClusterPolicyTemplateStatus] 템플릿 버전 업데이트'
-      tags:
-      - ClusterPolicyStatus
   /clusters/{clusterId}/site-values:
     get:
       consumes:
@@ -9175,6 +9160,187 @@ paths:
       summary: Get KubeConfig by stack
       tags:
       - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/policies:
+    post:
+      consumes:
+      - application/json
+      description: 특정 스택의 정책 목록을 정책 식별자 리스트로 지정해서 추가한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 스택 식별자
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: add policies for stack request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AddPoliciesForStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[AddPoliciesForStack] 특정 스택의 정책 목록 추가'
+      tags:
+      - Policy
+    put:
+      consumes:
+      - application/json
+      description: 특정 스택에서 정책 식별자로 지정된 정책을 제거한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 스택 식별자
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: delete policies for stack request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeletePoliciesForStackRequest'
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - JWT: []
+      summary: '[DeletePoliciesForStack] 특정 스택의 정책 제거'
+      tags:
+      - Policy
+  /organizations/{organizationId}/stacks/{stackId}/policy-status:
+    get:
+      consumes:
+      - application/json
+      description: 클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 스택 식별자
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: pageSize
+        type: string
+      - description: pageNumber
+        in: query
+        name: pageNumber
+        type: string
+      - description: sortColumn
+        in: query
+        name: sortColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListStackPolicyStatusResponse'
+      security:
+      - JWT: []
+      summary: '[ListStackPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회'
+      tags:
+      - StackPolicyStatus
+  /organizations/{organizationId}/stacks/{stackId}/policy-templates/{policyTemplateId}:
+    get:
+      consumes:
+      - application/json
+      description: 템플릿의 클러스터 버전 등 상태를 조회한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 스택 식별자
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackPolicyTemplateStatusResponse'
+      security:
+      - JWT: []
+      summary: '[GetStackPolicyTemplateStatus] 클러스터 템플릿 상태 상세 조회'
+      tags:
+      - StackPolicyStatus
+    patch:
+      consumes:
+      - application/json
+      description: 해당 템플릿의 버전 업데이트 및 연관된 정책의 새 기본값을 설정한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 스택 식별자
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: 정책 템플릿 식별자(uuid)
+        in: path
+        name: policyTemplateId
+        required: true
+        type: string
+      - description: update stack policy template status request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateStackPolicyTemplateStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: '[UpdateStackPolicyTemplateStatus] 템플릿 버전 업데이트'
+      tags:
+      - StackPolicyStatus
   /organizations/{organizationId}/stacks/{stackId}/status:
     get:
       consumes:

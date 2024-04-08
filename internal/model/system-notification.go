@@ -15,6 +15,7 @@ type SystemNotification struct {
 
 	ID                        uuid.UUID `gorm:"primarykey"`
 	Name                      string
+	NotificationType          string `gorm:"default:SYSTEM_NOTIFICATION"`
 	OrganizationId            string
 	Organization              Organization `gorm:"foreignKey:OrganizationId"`
 	ClusterId                 domain.ClusterId

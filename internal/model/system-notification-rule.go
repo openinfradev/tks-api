@@ -25,6 +25,7 @@ type SystemNotificationRule struct {
 	ID                           uuid.UUID `gorm:"primarykey"`
 	Name                         string    `gorm:"index,unique"`
 	Description                  string
+	NotificationType             string `gorm:"default:SYSTEM_NOTIFICATION"`
 	OrganizationId               string
 	Organization                 Organization `gorm:"foreignKey:OrganizationId"`
 	IsSystem                     bool         `gorm:"default:false"`
