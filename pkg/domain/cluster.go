@@ -140,25 +140,26 @@ func (m *ClusterConf) SetDefault() {
 }
 
 type CreateClusterRequest struct {
-	OrganizationId         string `json:"organizationId" validate:"required"`
-	CloudService           string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId        string `json:"stackTemplateId" validate:"required"`
-	Name                   string `json:"name" validate:"required,name"`
-	Description            string `json:"description"`
-	CloudAccountId         string `json:"cloudAccountId"`
-	ClusterType            string `json:"clusterType"`
-	ByoClusterEndpointHost string `json:"byoClusterEndpointHost,omitempty"`
-	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort,omitempty"`
-	IsStack                bool   `json:"isStack,omitempty"`
-	TksCpNode              int    `json:"tksCpNode"`
-	TksCpNodeMax           int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType          string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode           int    `json:"tksInfraNode"`
-	TksInfraNodeMax        int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType       string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode            int    `json:"tksUserNode"`
-	TksUserNodeMax         int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
+	OrganizationId         string   `json:"organizationId" validate:"required"`
+	CloudService           string   `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId        string   `json:"stackTemplateId" validate:"required"`
+	Name                   string   `json:"name" validate:"required,name"`
+	Description            string   `json:"description"`
+	CloudAccountId         string   `json:"cloudAccountId"`
+	ClusterType            string   `json:"clusterType"`
+	ByoClusterEndpointHost string   `json:"byoClusterEndpointHost,omitempty"`
+	ByoClusterEndpointPort int      `json:"byoClusterEndpointPort,omitempty"`
+	IsStack                bool     `json:"isStack,omitempty"`
+	PolicyIds              []string `json:"policyIds,omitempty"`
+	TksCpNode              int      `json:"tksCpNode"`
+	TksCpNodeMax           int      `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType          string   `json:"tksCpNodeType,omitempty"`
+	TksInfraNode           int      `json:"tksInfraNode"`
+	TksInfraNodeMax        int      `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType       string   `json:"tksInfraNodeType,omitempty"`
+	TksUserNode            int      `json:"tksUserNode"`
+	TksUserNodeMax         int      `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType        string   `json:"tksUserNodeType,omitempty"`
 }
 
 type ImportClusterRequest struct {

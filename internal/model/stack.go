@@ -30,6 +30,7 @@ type Stack = struct {
 	Favorited       bool
 	ClusterEndpoint string
 	Resource        domain.DashboardStack
+	PolicyIds       []string
 }
 
 type StackConf struct {

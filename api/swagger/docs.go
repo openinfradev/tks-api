@@ -10746,6 +10746,12 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
+                "policyIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "stackTemplateId": {
                     "type": "string"
                 },

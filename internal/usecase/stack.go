@@ -135,6 +135,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
 			"cloud_service=" + dto.CloudService,
 			"cluster_endpoint=" + dto.ClusterEndpoint,
+			"policy_ids=" + strings.Join(dto.PolicyIds, ","),
 		},
 	})
 	if err != nil {

@@ -910,6 +910,10 @@ definitions:
         type: string
       organizationId:
         type: string
+      policyIds:
+        items:
+          type: string
+        type: array
       stackTemplateId:
         type: string
       tksCpNode:
