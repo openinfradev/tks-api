@@ -237,10 +237,10 @@ const (
 	Admin_AddPermittedPolicyTemplatesForOrganization
 	Admin_DeletePermittedPolicyTemplatesForOrganization
 
-	// ClusterPolicyStatus
-	ListClusterPolicyStatus
-	GetClusterPolicyTemplateStatus
-	UpdateClusterPolicyTemplateStatus
+	// StackPolicyStatus
+	ListStackPolicyStatus
+	GetStackPolicyTemplateStatus
+	UpdateStackPolicyTemplateStatus
 
 	// Policy
 	GetMandatoryPolicies

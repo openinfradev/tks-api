@@ -735,17 +735,17 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_DeletePermittedPolicyTemplatesForOrganization", 
 		Group: "PolicyTemplate",
 	},
-    ListClusterPolicyStatus: {
-		Name: "ListClusterPolicyStatus", 
-		Group: "ClusterPolicyStatus",
+    ListStackPolicyStatus: {
+		Name: "ListStackPolicyStatus", 
+		Group: "StackPolicyStatus",
 	},
-    GetClusterPolicyTemplateStatus: {
-		Name: "GetClusterPolicyTemplateStatus", 
-		Group: "ClusterPolicyStatus",
+    GetStackPolicyTemplateStatus: {
+		Name: "GetStackPolicyTemplateStatus", 
+		Group: "StackPolicyStatus",
 	},
-    UpdateClusterPolicyTemplateStatus: {
-		Name: "UpdateClusterPolicyTemplateStatus", 
-		Group: "ClusterPolicyStatus",
+    UpdateStackPolicyTemplateStatus: {
+		Name: "UpdateStackPolicyTemplateStatus", 
+		Group: "StackPolicyStatus",
 	},
     GetMandatoryPolicies: {
 		Name: "GetMandatoryPolicies", 
@@ -1244,12 +1244,12 @@ func (e Endpoint) String() string {
 		return "Admin_AddPermittedPolicyTemplatesForOrganization"
 	case Admin_DeletePermittedPolicyTemplatesForOrganization:
 		return "Admin_DeletePermittedPolicyTemplatesForOrganization"
-	case ListClusterPolicyStatus:
-		return "ListClusterPolicyStatus"
-	case GetClusterPolicyTemplateStatus:
-		return "GetClusterPolicyTemplateStatus"
-	case UpdateClusterPolicyTemplateStatus:
-		return "UpdateClusterPolicyTemplateStatus"
+	case ListStackPolicyStatus:
+		return "ListStackPolicyStatus"
+	case GetStackPolicyTemplateStatus:
+		return "GetStackPolicyTemplateStatus"
+	case UpdateStackPolicyTemplateStatus:
+		return "UpdateStackPolicyTemplateStatus"
 	case GetMandatoryPolicies:
 		return "GetMandatoryPolicies"
 	case SetMandatoryPolicies:
@@ -1686,12 +1686,12 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_AddPermittedPolicyTemplatesForOrganization
 	case "Admin_DeletePermittedPolicyTemplatesForOrganization":
 		return Admin_DeletePermittedPolicyTemplatesForOrganization
-	case "ListClusterPolicyStatus":
-		return ListClusterPolicyStatus
-	case "GetClusterPolicyTemplateStatus":
-		return GetClusterPolicyTemplateStatus
-	case "UpdateClusterPolicyTemplateStatus":
-		return UpdateClusterPolicyTemplateStatus
+	case "ListStackPolicyStatus":
+		return ListStackPolicyStatus
+	case "GetStackPolicyTemplateStatus":
+		return GetStackPolicyTemplateStatus
+	case "UpdateStackPolicyTemplateStatus":
+		return UpdateStackPolicyTemplateStatus
 	case "GetMandatoryPolicies":
 		return GetMandatoryPolicies
 	case "SetMandatoryPolicies":

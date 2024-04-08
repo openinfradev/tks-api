@@ -353,9 +353,9 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policies", customMiddleware.Handle(internalApi.AddPoliciesForStack, http.HandlerFunc(policyHandler.AddPoliciesForStack))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policies", customMiddleware.Handle(internalApi.DeletePoliciesForStack, http.HandlerFunc(policyHandler.DeletePoliciesForStack))).Methods(http.MethodPut)
 
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-status", customMiddleware.Handle(internalApi.ListClusterPolicyStatus, http.HandlerFunc(policyHandler.ListClusterPolicyStatus))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.GetClusterPolicyTemplateStatus, http.HandlerFunc(policyHandler.GetClusterPolicyTemplateStatus))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.UpdateClusterPolicyTemplateStatus, http.HandlerFunc(policyHandler.UpdateClusterPolicyTemplateStatus))).Methods(http.MethodPatch)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policy-status", customMiddleware.Handle(internalApi.ListStackPolicyStatus, http.HandlerFunc(policyHandler.ListStackPolicyStatus))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.GetStackPolicyTemplateStatus, http.HandlerFunc(policyHandler.GetStackPolicyTemplateStatus))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.UpdateStackPolicyTemplateStatus, http.HandlerFunc(policyHandler.UpdateStackPolicyTemplateStatus))).Methods(http.MethodPatch)
 
 	// assets
 	r.PathPrefix("/api/").HandlerFunc(http.NotFound)
