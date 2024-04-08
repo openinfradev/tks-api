@@ -183,6 +183,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				Name:                         domain.SN_TYPE_NODE_CPU_HIGH_LOAD + "-critical",
 				Description:                  "",
 				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
 				SystemNotificationTemplateId: template.ID,
 				SystemNotificationCondition: model.SystemNotificationCondition{
@@ -208,6 +209,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				Name:                         domain.SN_TYPE_NODE_MEMORY_HIGH_UTILIZATION + "-warning",
 				Description:                  "",
 				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
 				SystemNotificationTemplateId: template.ID,
 				SystemNotificationCondition: model.SystemNotificationCondition{
@@ -233,6 +235,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				Name:                         domain.SN_TYPE_NODE_DISK_FULL + "-critical",
 				Description:                  "",
 				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
 				SystemNotificationTemplateId: template.ID,
 				SystemNotificationCondition: model.SystemNotificationCondition{
@@ -258,6 +261,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				Name:                         domain.SN_TYPE_PVC_FULL + "-critical",
 				Description:                  "",
 				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
 				SystemNotificationTemplateId: template.ID,
 				SystemNotificationCondition: model.SystemNotificationCondition{
@@ -283,6 +287,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				Name:                         domain.SN_TYPE_POD_RESTART_FREQUENTLY + "-critical",
 				Description:                  "",
 				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
 				SystemNotificationTemplateId: template.ID,
 				SystemNotificationCondition: model.SystemNotificationCondition{
@@ -297,6 +302,32 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				MessageTitle:          "스택의 Pod가 재기동되고 있습니다.",
 				MessageContent:        "스택 (<<STACK>>)의 파드(<<POD>>)가 30분 동안 5회 이상 재기동 ({{$value}} 회). 특정 Pod가 빈번하게 재기동 되고 있습니다. 점검이 필요합니다. (<<STACK>> 스택, <<POD>> 파드)",
 				MessageActionProposal: "pod spec. 에 대한 점검이 필요합니다. pod의 log 및 status를 확인해 주세요.",
+				Status:                domain.SystemNotificationRuleStatus_PENDING,
+				CreatorId:             organization.AdminId,
+				UpdatorId:             organization.AdminId,
+			})
+		} else if template.Name == domain.SN_TYPE_POLICY_AUDITED {
+			ruleId := uuid.New()
+			rules = append(rules, model.SystemNotificationRule{
+				ID:                           ruleId,
+				Name:                         domain.SN_TYPE_POLICY_AUDITED + "-critical",
+				Description:                  "",
+				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
+				IsSystem:                     true,
+				SystemNotificationTemplateId: template.ID,
+				SystemNotificationCondition: model.SystemNotificationCondition{
+					SystemNotificationRuleId: ruleId,
+					Severity:                 "critical",
+					Duration:                 "3m",
+					Parameter:                []byte("[{\"order\": 0, \"value\": \"2\", \"operator\": \">\"}]"),
+					EnableEmail:              true,
+					EnablePortal:             true,
+				},
+				TargetUsers:           []model.User{organizationAdmin},
+				MessageTitle:          "<<KIND>> / <<NAME>>",
+				MessageContent:        "클러스터(<<INSTANCE>>)의 자원(<<VIOLATING_KIND>> - <<VIOLATING_NAMESPACE>> / <<VIOLATING_NAME>>)에서 정책(<<KIND>> / <<NAME>>)위반이 발생했습니다. 메시지: <<VIOLATING_MSG>>",
+				MessageActionProposal: "정책위반이 발생하였습니다.(<<KIND>> / <<NAME>>)",
 				Status:                domain.SystemNotificationRuleStatus_PENDING,
 				CreatorId:             organization.AdminId,
 				UpdatorId:             organization.AdminId,

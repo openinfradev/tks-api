@@ -383,6 +383,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetOrganizationSystemNotificationTemplates", 
 		Group: "SystemNotificationTemplate",
 	},
+    GetOrganizationSystemNotificationTemplate: {
+		Name: "GetOrganizationSystemNotificationTemplate", 
+		Group: "SystemNotificationTemplate",
+	},
     AddOrganizationSystemNotificationTemplates: {
 		Name: "AddOrganizationSystemNotificationTemplates", 
 		Group: "SystemNotificationTemplate",
@@ -1068,6 +1072,8 @@ func (e Endpoint) String() string {
 		return "Admin_CheckSystemNotificationTemplateName"
 	case GetOrganizationSystemNotificationTemplates:
 		return "GetOrganizationSystemNotificationTemplates"
+	case GetOrganizationSystemNotificationTemplate:
+		return "GetOrganizationSystemNotificationTemplate"
 	case AddOrganizationSystemNotificationTemplates:
 		return "AddOrganizationSystemNotificationTemplates"
 	case RemoveOrganizationSystemNotificationTemplates:
@@ -1510,6 +1516,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_CheckSystemNotificationTemplateName
 	case "GetOrganizationSystemNotificationTemplates":
 		return GetOrganizationSystemNotificationTemplates
+	case "GetOrganizationSystemNotificationTemplate":
+		return GetOrganizationSystemNotificationTemplate
 	case "AddOrganizationSystemNotificationTemplates":
 		return AddOrganizationSystemNotificationTemplates
 	case "RemoveOrganizationSystemNotificationTemplates":

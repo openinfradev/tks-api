@@ -9,6 +9,12 @@ const SN_TYPE_NODE_MEMORY_HIGH_UTILIZATION = "node-memory-high-utilization"
 const SN_TYPE_NODE_DISK_FULL = "node-disk-full"
 const SN_TYPE_PVC_FULL = "pvc-full"
 const SN_TYPE_POD_RESTART_FREQUENTLY = "pod-restart-frequently"
+const SN_TYPE_POLICY_AUDITED = "policy-audited"
+
+const (
+	NT_SYSTEM_NOTIFICATION = "SYSTEM_NOTIFICATION"
+	NT_POLICY              = "POLICY"
+)
 
 type SystemNotificationTemplateResponse struct {
 	ID               string                                      `json:"id"`

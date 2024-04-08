@@ -9,13 +9,13 @@ type SystemNotificationRuleStatus int32
 
 const (
 	SystemNotificationRuleStatus_PENDING SystemNotificationRuleStatus = iota
-	SystemNotificationRuleStatus_APPLYED
+	SystemNotificationRuleStatus_APPLIED
 	SystemNotificationRuleStatus_ERROR
 )
 
 var systemNotificationRuleStatus = [...]string{
 	"PENDING",
-	"APPLYED",
+	"APPLIED",
 	"ERROR",
 }
 

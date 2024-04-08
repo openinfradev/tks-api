@@ -126,6 +126,7 @@ const (
 	Admin_GetSystemNotificationTemplate
 	Admin_CheckSystemNotificationTemplateName
 	GetOrganizationSystemNotificationTemplates
+	GetOrganizationSystemNotificationTemplate
 	AddOrganizationSystemNotificationTemplates
 	RemoveOrganizationSystemNotificationTemplates
 

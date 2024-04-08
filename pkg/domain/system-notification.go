@@ -58,6 +58,7 @@ type SystemNotificationRequest struct {
 		Description    string `json:"description"`
 		Checkpoint     string `json:"Checkpoint"`
 		Discriminative string `json:"discriminative"`
+		AlertType      string `json:"alertType"`
 	} `json:"annotations"`
 }
 
@@ -70,7 +71,7 @@ type CreateSystemNotificationRequest struct {
 	TruncatedAlerts     int                         `json:"truncatedAlerts"`
 	SystemNotifications []SystemNotificationRequest `json:"alerts"`
 	GroupLabels         struct {
-		SystemNotificationname string `json:"alertname"`
+		SystemNotificationName string `json:"alertname"`
 	} `json:"groupLabels"`
 	//CommonLabels      string `json:"commonLabels"`
 	//CommonAnnotations string `json:"commonAnnotations"`
@@ -95,6 +96,7 @@ type SystemNotificationResponse struct {
 	SystemNotificationActions []SystemNotificationActionResponse `json:"systemNotificationActions"`
 	LastTaker                 SimpleUserResponse                 `json:"lastTaker"`
 	RawData                   string                             `json:"rawData"`
+	NotificationType          string                             `json:"notificationType"`
 	CreatedAt                 time.Time                          `json:"createdAt"`
 	UpdatedAt                 time.Time                          `json:"updatedAt"`
 }
