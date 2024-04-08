@@ -17,6 +17,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/utils/strings/slices"
 )
 
@@ -34,9 +35,9 @@ type IPolicyUsecase interface {
 	UpdatePolicyTargetClusters(ctx context.Context, organizationId string, policyId uuid.UUID, currentClusterIds []string, targetClusterIds []string) (err error)
 	SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error)
 	GetMandatoryPolicies(ctx context.Context, organizationId string) (response *domain.GetMandatoryPoliciesResponse, err error)
-	ListClusterPolicyStatus(ctx context.Context, clusterId string, pg *pagination.Pagination) (policyStatuses []domain.ClusterPolicyStatusResponse, err error)
-	GetClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID) (clusterPolicyTemplateStatusResponse *domain.GetClusterPolicyTemplateStatusResponse, err error)
-	UpdateClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID,
+	ListStackPolicyStatus(ctx context.Context, clusterId string, pg *pagination.Pagination) (policyStatuses []domain.StackPolicyStatusResponse, err error)
+	GetStackPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID) (clusterPolicyTemplateStatusResponse *domain.GetStackPolicyTemplateStatusResponse, err error)
+	UpdateStackPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID,
 		currentVersion string, targetVerson string) (err error)
 	GetPolicyStatistics(ctx context.Context, organizationId string) (response *domain.PolicyStatisticsResponse, err error)
 	AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
@@ -509,7 +510,7 @@ func (u *PolicyUsecase) GetMandatoryPolicies(ctx context.Context, organizationId
 	return &out, nil
 }
 
-func (u *PolicyUsecase) ListClusterPolicyStatus(ctx context.Context, clusterId string, pg *pagination.Pagination) (policyStatuses []domain.ClusterPolicyStatusResponse, err error) {
+func (u *PolicyUsecase) ListStackPolicyStatus(ctx context.Context, clusterId string, pg *pagination.Pagination) (policyStatuses []domain.StackPolicyStatusResponse, err error) {
 	policies, err := u.repo.FetchByClusterId(ctx, clusterId, pg)
 
 	if err != nil {
@@ -530,7 +531,7 @@ func (u *PolicyUsecase) ListClusterPolicyStatus(ctx context.Context, clusterId s
 	// 	return nil, err
 	// }
 
-	result := make([]domain.ClusterPolicyStatusResponse, len(*policies))
+	result := make([]domain.StackPolicyStatusResponse, len(*policies))
 
 	for i, policy := range *policies {
 		if err := serializer.Map(ctx, policy, &result[i]); err != nil {
@@ -562,7 +563,7 @@ func (u *PolicyUsecase) ListClusterPolicyStatus(ctx context.Context, clusterId s
 	return result, nil
 }
 
-func (u *PolicyUsecase) UpdateClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID,
+func (u *PolicyUsecase) UpdateStackPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID,
 	currentVersion string, targetVerson string) (err error) {
 	if currentVersion == targetVerson {
 		// 버전 동일, 할일 없음
@@ -618,7 +619,7 @@ func (u *PolicyUsecase) UpdateClusterPolicyTemplateStatus(ctx context.Context, c
 	return policytemplate.UpdateTksPolicyTemplateCR(ctx, primaryClusterId, tksPolicyTemplate)
 }
 
-func (u *PolicyUsecase) GetClusterPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID) (clusterPolicyTemplateStatusResponse *domain.GetClusterPolicyTemplateStatusResponse, err error) {
+func (u *PolicyUsecase) GetStackPolicyTemplateStatus(ctx context.Context, clusterId string, policyTemplateId uuid.UUID) (stackPolicyTemplateStatusResponse *domain.GetStackPolicyTemplateStatusResponse, err error) {
 	policies, err := u.repo.FetchByClusterIdAndTemplaeId(ctx, clusterId, policyTemplateId)
 
 	if err != nil {
@@ -628,6 +629,10 @@ func (u *PolicyUsecase) GetClusterPolicyTemplateStatus(ctx context.Context, clus
 	latestTemplate, err := u.templateRepo.GetByID(ctx, policyTemplateId)
 	if err != nil {
 		return nil, err
+	}
+
+	if latestTemplate == nil {
+		return nil, httpErrors.NewBadRequestError(err, "P_FAILED_FETCH_TEMPLATE", "")
 	}
 
 	// policies가 빈 목록일 수도 있으므로 policy의 organization 정보는 못 가져올 수도 있음
@@ -650,12 +655,19 @@ func (u *PolicyUsecase) GetClusterPolicyTemplateStatus(ctx context.Context, clus
 	// 	return nil, fmt.Errorf("version not found in CR")
 	// }
 
+	var version string
+
 	tksPolicyTemplateCR, err := policytemplate.GetTksPolicyTemplateCR(ctx, primaryClusterId, latestTemplate.ResoureName())
 	if err != nil {
-		return nil, err
+		if errors.IsNotFound(err) {
+			// CR이 배포되지 않았으므로 최신 버전이 현재 버전임(앞으로 설치될 모든 정책은 이 버전으로 설치되므로)
+			version = latestTemplate.Version
+		} else {
+			return nil, err
+		}
+	} else {
+		version = tksPolicyTemplateCR.Spec.Version
 	}
-
-	version := tksPolicyTemplateCR.Spec.Version
 
 	currentTemplate, err := u.templateRepo.GetPolicyTemplateVersion(ctx, policyTemplateId, version)
 	if err != nil {
@@ -682,7 +694,7 @@ func (u *PolicyUsecase) GetClusterPolicyTemplateStatus(ctx context.Context, clus
 		affectedPolicies[i].PolicyParameters = parsed
 	}
 
-	result := domain.GetClusterPolicyTemplateStatusResponse{
+	result := domain.GetStackPolicyTemplateStatusResponse{
 		TemplateName:                    currentTemplate.TemplateName,
 		TemplateId:                      policyTemplateId.String(),
 		TemplateDescription:             currentTemplate.Description,

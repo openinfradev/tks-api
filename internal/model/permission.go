@@ -285,9 +285,9 @@ func newPolicy() *Permission {
 							api.Admin_ExistsPolicyTemplateName,
 							api.Admin_ExistsPolicyTemplateKind,
 
-							// ClusterPolicyStatus
-							api.ListClusterPolicyStatus,
-							api.GetClusterPolicyTemplateStatus,
+							// StackPolicyStatus
+							api.ListStackPolicyStatus,
+							api.GetStackPolicyTemplateStatus,
 
 							// Policy
 							api.GetMandatoryPolicies,
@@ -339,7 +339,7 @@ func newPolicy() *Permission {
 							api.Admin_UpdatePolicyTemplate,
 
 							// ClusterPolicyStatus
-							api.UpdateClusterPolicyTemplateStatus,
+							api.UpdateStackPolicyTemplateStatus,
 
 							// Policy
 							api.UpdatePolicy,

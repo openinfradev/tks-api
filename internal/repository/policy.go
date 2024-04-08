@@ -124,7 +124,7 @@ func (r *PolicyRepository) FetchByClusterIdAndTemplaeId(ctx context.Context, clu
 		Where("cluster_id = ?", clusterId)
 
 	res := r.db.WithContext(ctx).Preload(clause.Associations).
-		Where("template_id = ?").Where("id in (?)", subQueryClusterId).Find(&out)
+		Where("template_id = ?", templateId).Where("id in (?)", subQueryClusterId).Find(&out)
 
 	if res.Error != nil {
 		return nil, res.Error

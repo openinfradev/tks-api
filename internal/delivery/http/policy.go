@@ -32,9 +32,9 @@ type IPolicyHandler interface {
 	GetMandatoryPolicies(w http.ResponseWriter, r *http.Request)
 	SetMandatoryPolicies(w http.ResponseWriter, r *http.Request)
 	ExistsPolicyName(w http.ResponseWriter, r *http.Request)
-	ListClusterPolicyStatus(w http.ResponseWriter, r *http.Request)
-	GetClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
-	UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
+	ListStackPolicyStatus(w http.ResponseWriter, r *http.Request)
+	GetStackPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
+	UpdateStackPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
 	GetPolicyEdit(w http.ResponseWriter, r *http.Request)
 	GetPolicyStatistics(w http.ResponseWriter, r *http.Request)
 	AddPoliciesForStack(w http.ResponseWriter, r *http.Request)
@@ -601,29 +601,30 @@ func (h *PolicyHandler) ExistsPolicyName(w http.ResponseWriter, r *http.Request)
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// ListClusterPolicyStatus godoc
+// ListStackPolicyStatus godoc
 //
-//	@Tags			ClusterPolicyStatus
-//	@Summary		[ListClusterPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회
+//	@Tags			StackPolicyStatus
+//	@Summary		[ListStackPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회
 //	@Description	클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.
 //	@Accept			json
 //	@Produce		json
-//	@Param			clusterId	path		string		true	"클러스터 식별자(uuid)"
-//	@Param			pageSize	query		string		false	"pageSize"
-//	@Param			pageNumber	query		string		false	"pageNumber"
-//	@Param			sortColumn	query		string		false	"sortColumn"
-//	@Param			sortOrder	query		string		false	"sortOrder"
-//	@Param			filters		query		[]string	false	"filters"
-//	@Success		200			{object}	domain.ListClusterPolicyStatusResponse
-//	@Router			/clusters/{clusterId}/policy-status [get]
+//	@Param			organizationId	path		string		true	"조직 식별자(o로 시작)"
+//	@Param			stackId			path		string		true	"스택 식별자"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			sortColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.ListStackPolicyStatusResponse
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/policy-status [get]
 //	@Security		JWT
-func (h *PolicyHandler) ListClusterPolicyStatus(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyHandler) ListStackPolicyStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	clusterId, ok := vars["clusterId"]
+	stackId, ok := vars["stackId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
-			"C_INVALID_CLUSTER_ID", ""))
+			"C_INVALID_STACK_ID", ""))
 		return
 	}
 
@@ -631,39 +632,40 @@ func (h *PolicyHandler) ListClusterPolicyStatus(w http.ResponseWriter, r *http.R
 
 	pg := pagination.NewPagination(&urlParams)
 
-	policyStatuses, err := h.usecase.ListClusterPolicyStatus(r.Context(), clusterId, pg)
+	policyStatuses, err := h.usecase.ListStackPolicyStatus(r.Context(), stackId, pg)
 
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	out := domain.ListClusterPolicyStatusResponse{
+	out := domain.ListStackPolicyStatusResponse{
 		Polices: policyStatuses,
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// GetClusterPolicyTemplateStatus godoc
+// GetStackPolicyTemplateStatus godoc
 //
-//	@Tags			ClusterPolicyStatus
-//	@Summary		[GetClusterPolicyTemplateStatus] 클러스터 템플릿 상태 상세 조회
+//	@Tags			StackPolicyStatus
+//	@Summary		[GetStackPolicyTemplateStatus] 클러스터 템플릿 상태 상세 조회
 //	@Description	템플릿의 클러스터 버전 등 상태를 조회한다.
 //	@Accept			json
 //	@Produce		json
-//	@Param			clusterId	path		string	true	"클러스터 식별자(uuid)"
-//	@Param			templateId	path		string	true	"정책 템플릿 식별자(uuid)"
-//	@Success		200			{object}	domain.GetClusterPolicyTemplateStatusResponse
-//	@Router			/clusters/{clusterId}/policy-templates/{policyTemplateId} [get]
+//	@Param			organizationId		path		string	true	"조직 식별자(o로 시작)"
+//	@Param			stackId				path		string	true	"스택 식별자"
+//	@Param			policyTemplateId	path		string	true	"정책 템플릿 식별자(uuid)"
+//	@Success		200					{object}	domain.GetStackPolicyTemplateStatusResponse
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/policy-templates/{policyTemplateId} [get]
 //	@Security		JWT
-func (h *PolicyHandler) GetClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyHandler) GetStackPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	clusterId, ok := vars["clusterId"]
+	stackId, ok := vars["stackId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
-			"C_INVALID_CLUSTER_ID", ""))
+			"C_INVALID_STACK_ID", ""))
 		return
 	}
 
@@ -680,7 +682,7 @@ func (h *PolicyHandler) GetClusterPolicyTemplateStatus(w http.ResponseWriter, r 
 		return
 	}
 
-	out, err := h.usecase.GetClusterPolicyTemplateStatus(r.Context(), clusterId, id)
+	out, err := h.usecase.GetStackPolicyTemplateStatus(r.Context(), stackId, id)
 
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -690,26 +692,27 @@ func (h *PolicyHandler) GetClusterPolicyTemplateStatus(w http.ResponseWriter, r 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// UpdateClusterPolicyTemplateStatus godoc
+// UpdateStackPolicyTemplateStatus godoc
 //
-//	@Tags			ClusterPolicyStatus
-//	@Summary		[UpdateClusterPolicyTemplateStatus] 템플릿 버전 업데이트
+//	@Tags			StackPolicyStatus
+//	@Summary		[UpdateStackPolicyTemplateStatus] 템플릿 버전 업데이트
 //	@Description	해당 템플릿의 버전 업데이트 및 연관된 정책의 새 기본값을 설정한다.
 //	@Accept			json
 //	@Produce		json
-//	@Param			clusterId	path		string											true	"클러스터 식별자(uuid)"
-//	@Param			templateId	path		string											true	"정책 템플릿 식별자(uuid)"
-//	@Param			body		body		domain.UpdateClusterPolicyTemplateStatusRequest	true	"update cluster policy template status request"
-//	@Success		200			{object}	nil
-//	@Router			/clusters/{clusterId}/policy-templates/{policyTemplateId} [patch]
+//	@Param			organizationId		path		string											true	"조직 식별자(o로 시작)"
+//	@Param			stackId				path		string											true	"스택 식별자"
+//	@Param			policyTemplateId	path		string											true	"정책 템플릿 식별자(uuid)"
+//	@Param			body				body		domain.UpdateStackPolicyTemplateStatusRequest	true	"update stack policy template status request"
+//	@Success		200					{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/policy-templates/{policyTemplateId} [patch]
 //	@Security		JWT
-func (h *PolicyHandler) UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
+func (h *PolicyHandler) UpdateStackPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	clusterId, ok := vars["clusterId"]
+	stackId, ok := vars["stackId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
-			"C_INVALID_CLUSTER_ID", ""))
+			"C_INVALID_STACK_ID", ""))
 		return
 	}
 
@@ -719,7 +722,7 @@ func (h *PolicyHandler) UpdateClusterPolicyTemplateStatus(w http.ResponseWriter,
 		return
 	}
 
-	input := domain.UpdateClusterPolicyTemplateStatusRequest{}
+	input := domain.UpdateStackPolicyTemplateStatusRequest{}
 
 	err := UnmarshalRequestInput(r, &input)
 
@@ -735,7 +738,7 @@ func (h *PolicyHandler) UpdateClusterPolicyTemplateStatus(w http.ResponseWriter,
 		return
 	}
 
-	err = h.usecase.UpdateClusterPolicyTemplateStatus(r.Context(), clusterId, id,
+	err = h.usecase.UpdateStackPolicyTemplateStatus(r.Context(), stackId, id,
 		input.TemplateCurrentVersion, input.TemplateTargetVerson)
 
 	if err != nil {

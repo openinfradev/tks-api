@@ -136,6 +136,7 @@ var errorMap = map[ErrorCode]string{
 	"P_INVALID_MATCH":                        "유효하지 않은 match 설정입니다. match 설정을 확인하세요.",
 	"P_FAILED_FETCH_POLICY":                  "정책 ID에 해당하는 정책을 가져오는데 실패했습니다.",
 	"P_FAILED_FETCH_CLUSTER":                 "정책의 클러스터 정보를 가져오는데 실패했습니다.",
+	"P_FAILED_FETCH_TEMPLATE":                "정책의 클러스터 정보를 가져오는데 실패했습니다.",
 	"P_CALL_TO_APPLY_KUBERNETES":             "쿠버네티스 클러스터 호출에 실패했습니다.",
 	"P_FAILED_TO_APPLY_KUBERNETES":           "쿠버네티스 클러스터 변경사항 적용에 실패했습니다.",
 }

@@ -23,9 +23,7 @@ func GetNewParamDefs(paramdefs1 []*domain.ParameterDef, paramdefs2 []*domain.Par
 		if paramdef1 == nil {
 			// Not found, it's new parameter
 			result = append(result, paramdef2)
-		}
-
-		if !CompareParamDef(paramdef2, paramdef1) {
+		} else if !CompareParamDef(paramdef2, paramdef1) {
 			return nil, fmt.Errorf("not compatible, parameter definition of '%s' is changed", paramdef2.Key)
 		}
 	}

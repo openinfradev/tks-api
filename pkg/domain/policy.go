@@ -125,7 +125,7 @@ type SetMandatoryPoliciesRequest struct {
 	Policies []MandatoryPolicyPatchInfo `json:"policies"`
 }
 
-type ClusterPolicyStatusResponse struct {
+type StackPolicyStatusResponse struct {
 	PolicyName             string `json:"policyName" example:"org 레이블 요구"`
 	PolicyId               string `json:"policyId" example:"0091fe9b-e44b-423d-9562-ac2b73089593"`
 	PolicyDescription      string `json:"policyDescription" example:"org 레이블 설정 여부 검사"`
@@ -137,11 +137,11 @@ type ClusterPolicyStatusResponse struct {
 	TemplateLatestVerson   string `json:"templateLatestVerson"  example:"v1.0.3"`
 }
 
-type ListClusterPolicyStatusResponse struct {
-	Polices []ClusterPolicyStatusResponse `json:"polices"`
+type ListStackPolicyStatusResponse struct {
+	Polices []StackPolicyStatusResponse `json:"polices"`
 }
 
-type GetClusterPolicyTemplateStatusResponse struct {
+type GetStackPolicyTemplateStatusResponse struct {
 	TemplateName                    string                           `json:"templateName" example:"레이블 요구"`
 	TemplateId                      string                           `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
 	TemplateDescription             string                           `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
@@ -182,7 +182,7 @@ type PolicyUpdate struct {
 	UpdatedPolicyParameters []UpdatedPolicyParameters `json:"updatedPolicyParameters"`
 }
 
-type UpdateClusterPolicyTemplateStatusRequest struct {
+type UpdateStackPolicyTemplateStatusRequest struct {
 	TemplateCurrentVersion string `json:"templateCurrentVersion" example:"v1.0.1"`
 	TemplateTargetVerson   string `json:"templateTargetVerson" example:"v1.0.3"`
 	// PolicyUpdate           []PolicyUpdate `json:"policyUpdate"`
