@@ -17,6 +17,7 @@ type SystemNotificationTemplateResponse struct {
 	MetricQuery      string                                      `json:"metricQuery" validate:"required"`
 	MetricParameters []SystemNotificationMetricParameterResponse `json:"metricParameters,omitempty"`
 	Organizations    []SimpleOrganizationResponse                `json:"organizations,omitempty"`
+	IsSystem         bool                                        `json:"isSystem"`
 	Creator          SimpleUserResponse                          `json:"creator"`
 	Updator          SimpleUserResponse                          `json:"updator"`
 	CreatedAt        time.Time                                   `json:"createdAt"`
