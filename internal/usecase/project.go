@@ -444,23 +444,10 @@ func (u *ProjectUsecase) GetAppCount(ctx context.Context, organizationId string,
 }
 
 func (u *ProjectUsecase) EnsureRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error {
-	pns, err := u.projectRepo.GetProjectNamespaces(ctx, organizationId, projectId, nil)
+	_, err := u.projectRepo.GetProjectNamespaces(ctx, organizationId, projectId, nil)
 	if err != nil {
 		log.Error(ctx, err)
 		return errors.Wrap(err, "Failed to get project namespace in database.")
-	}
-
-	var alreadySetUp bool
-	for _, pn := range pns {
-		if pn.StackId == stackId {
-			alreadySetUp = true
-			break
-		}
-	}
-
-	// if already set up, it means that required setup is already done
-	if alreadySetUp {
-		return nil
 	}
 
 	if err := u.createK8SInitialResource(ctx, organizationId, projectId, stackId); err != nil {

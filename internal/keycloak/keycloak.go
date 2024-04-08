@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-
 	"github.com/spf13/viper"
 
 	"time"
@@ -484,16 +483,20 @@ func (k *Keycloak) EnsureClientRoleWithClientName(ctx context.Context, organizat
 		Name: gocloak.StringP(roleName),
 	}
 
-	r, err := k.client.GetClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, roleName)
+	_, err = k.client.GetClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, roleName)
 	if err != nil {
-		log.Error(ctx, "Getting Client Role is failed", err)
-		return err
-	}
-
-	if r == nil {
-		_, err = k.client.CreateClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, role)
-		if err != nil {
-			log.Error(ctx, "Creating Client Role is failed", err)
+		if apiErr, ok := err.(*gocloak.APIError); ok {
+			if apiErr.Code == 404 {
+				_, err = k.client.CreateClientRole(context.Background(), token.AccessToken, organizationId, *targetClient.ID, role)
+				if err != nil {
+					log.Error(ctx, "Creating Client Role is failed", err)
+					return err
+				}
+				return nil
+			} else {
+				return err
+			}
+		} else {
 			return err
 		}
 	}
