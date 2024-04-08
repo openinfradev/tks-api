@@ -8802,6 +8802,43 @@
                 }
             }
         },
+        "/organizations/{organizationId}/system-notification-templates/{systemNotificationTemplateId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Organization SystemNotificationTemplate",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SystemNotificationTemplates"
+                ],
+                "summary": "Get Organization SystemNotificationTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "systemNotificationTemplateId",
+                        "name": "systemNotificationTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplateResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/system-notifications": {
             "get": {
                 "security": [

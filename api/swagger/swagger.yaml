@@ -9700,6 +9700,29 @@ paths:
       summary: Remove organization systemNotificationTemplates
       tags:
       - SystemNotificationTemplates
+  /organizations/{organizationId}/system-notification-templates/{systemNotificationTemplateId}:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization SystemNotificationTemplate
+      parameters:
+      - description: systemNotificationTemplateId
+        in: path
+        name: systemNotificationTemplateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetSystemNotificationTemplateResponse'
+      security:
+      - JWT: []
+      summary: Get Organization SystemNotificationTemplate
+      tags:
+      - SystemNotificationTemplates
   /organizations/{organizationId}/system-notifications:
     get:
       consumes:

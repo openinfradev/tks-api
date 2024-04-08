@@ -262,6 +262,62 @@ func (h *SystemNotificationTemplateHandler) DeleteSystemNotificationTemplate(w h
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
+// GetOrganizationSystemNotificationTemplate godoc
+//
+//	@Tags			SystemNotificationTemplates
+//	@Summary		Get Organization SystemNotificationTemplate
+//	@Description	Get Organization SystemNotificationTemplate
+//	@Accept			json
+//	@Produce		json
+//	@Param			systemNotificationTemplateId	path		string	true	"systemNotificationTemplateId"
+//	@Success		200								{object}	domain.GetSystemNotificationTemplateResponse
+//	@Router			/organizations/{organizationId}/system-notification-templates/{systemNotificationTemplateId} [get]
+//	@Security		JWT
+func (h *SystemNotificationTemplateHandler) GetOrganizationSystemNotificationTemplate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	strId, ok := vars["systemNotificationTemplateId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid systemNotificationTemplateId"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
+		return
+	}
+
+	systemNotificationTemplateId, err := uuid.Parse(strId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to parse uuid %s"), "C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID", ""))
+		return
+	}
+
+	systemNotificationTemplate, err := h.usecase.Get(r.Context(), systemNotificationTemplateId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetSystemNotificationTemplateResponse
+	if err := serializer.Map(r.Context(), systemNotificationTemplate, &out.SystemNotificationTemplate); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	out.SystemNotificationTemplate.Organizations = make([]domain.SimpleOrganizationResponse, len(systemNotificationTemplate.Organizations))
+	for i, organization := range systemNotificationTemplate.Organizations {
+		if err := serializer.Map(r.Context(), organization, &out.SystemNotificationTemplate.Organizations[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
+	}
+
+	out.SystemNotificationTemplate.MetricParameters = make([]domain.SystemNotificationMetricParameterResponse, len(systemNotificationTemplate.MetricParameters))
+	for i, metricParameters := range systemNotificationTemplate.MetricParameters {
+		if err := serializer.Map(r.Context(), metricParameters, &out.SystemNotificationTemplate.MetricParameters[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
 // GetOrganizationSystemNotificationTemplates godoc
 //
 //	@Tags			SystemNotificationTemplates
