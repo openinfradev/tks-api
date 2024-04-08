@@ -652,7 +652,7 @@ func (h *PolicyHandler) ListClusterPolicyStatus(w http.ResponseWriter, r *http.R
 //	@Param			clusterId	path		string	true	"클러스터 식별자(uuid)"
 //	@Param			templateId	path		string	true	"정책 템플릿 식별자(uuid)"
 //	@Success		200			{object}	domain.GetClusterPolicyTemplateStatusResponse
-//	@Router			/clusters/{clusterId}/policy-templates/{templateId} [get]
+//	@Router			/clusters/{clusterId}/policy-templates/{policyTemplateId} [get]
 //	@Security		JWT
 func (h *PolicyHandler) GetClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -698,7 +698,7 @@ func (h *PolicyHandler) GetClusterPolicyTemplateStatus(w http.ResponseWriter, r 
 //	@Param			templateId	path		string											true	"정책 템플릿 식별자(uuid)"
 //	@Param			body		body		domain.UpdateClusterPolicyTemplateStatusRequest	true	"update cluster policy template status request"
 //	@Success		200			{object}	nil
-//	@Router			/clusters/{clusterId}/policy-templates/{templateId} [patch]
+//	@Router			/clusters/{clusterId}/policy-templates/{policyTemplateId} [patch]
 //	@Security		JWT
 func (h *PolicyHandler) UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

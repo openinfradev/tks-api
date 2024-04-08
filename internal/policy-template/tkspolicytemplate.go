@@ -56,25 +56,31 @@ type Code struct {
 	Source *Anything `json:"source"`
 }
 
+// ============== Copied Fron Operator Start ==============
+// CRD, Target struct는 이 파일의 것을 사용
+
+// TKSPolicyTemplateSpec defines the desired state of TKSPolicyTemplate
 type TKSPolicyTemplateSpec struct {
 	CRD      CRD      `json:"crd,omitempty"`
 	Targets  []Target `json:"targets,omitempty"`
 	Clusters []string `json:"clusters,omitempty"`
-	ToLatest []string `json:"toLatest,omitempty"`
 	Version  string   `json:"version"`
+	ToLatest []string `json:"toLatest,omitempty"`
 }
 
+// TemplateStatus defines the constraints state of ConstraintTemplate on the cluster
 type TemplateStatus struct {
-	ConstraintTemplateStatus string `json:"status" enums:"ready,applying,deleting,error"`
-	Reason                   string `json:"reason"`
+	ConstraintTemplateStatus string `json:"constraintTemplateStatus" enums:"ready,applying,deleting,error"`
+	Reason                   string `json:"reason,omitempty"`
 	LastUpdate               string `json:"lastUpdate"`
 	Version                  string `json:"version"`
 }
 
+// TKSPolicyTemplateStatus defines the observed state of TKSPolicyTemplate
 type TKSPolicyTemplateStatus struct {
-	TemplateStatus map[string]*TemplateStatus `json:"clusterStatus"`
-	LastUpdate     string                     `json:"lastUpdate"`
-	UpdateQueue    map[string]bool            `json:"updateQueue,omitempty"`
+	TemplateStatus map[string]TemplateStatus `json:"templateStatus,omitempty"`
+	LastUpdate     string                    `json:"lastUpdate"`
+	UpdateQueue    map[string]bool           `json:"updateQueue,omitempty"`
 }
 
 // TKSPolicyTemplate is the Schema for the tkspolicytemplates API
@@ -85,6 +91,15 @@ type TKSPolicyTemplate struct {
 	Spec   TKSPolicyTemplateSpec   `json:"spec,omitempty"`
 	Status TKSPolicyTemplateStatus `json:"status,omitempty"`
 }
+
+// TKSPolicyTemplateList contains a list of TKSPolicyTemplate
+type TKSPolicyTemplateList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []TKSPolicyTemplate `json:"items"`
+}
+
+// ============== Copied Fron Operator End ==============
 
 func (tksPolicyTemplate *TKSPolicyTemplate) JSON() (string, error) {
 	result, err := json.MarshalIndent(tksPolicyTemplate, "", "  ")

@@ -20,29 +20,36 @@ var TKSPolicyGVR = schema.GroupVersionResource{
 	Resource: "tkspolicies",
 }
 
+// ============== Copied Fron Operator Start ==============
+// match.Match는 domain.Match로 변경해야 함s
+
+// TKSPolicySpec defines the desired state of TKSPolicy
 type TKSPolicySpec struct {
 	Clusters []string `json:"clusters"`
 	Template string   `json:"template" validate:"required"`
 
-	// map[string]interface를 쓸 수 없어서 apiextensionsv1.JSON 사용
-	Params *apiextensionsv1.JSON `json:"params,omitempty"`
-	Match  *domain.Match         `json:"match,omitempty"`
+	Params            *apiextensionsv1.JSON `json:"params,omitempty"`
+	Match             *domain.Match         `json:"match,omitempty"`
+	EnforcementAction string                `json:"enforcementAction,omitempty"`
 }
 
+// PolicyStatus defines the constraints state on the cluster
 type PolicyStatus struct {
-	ConstraintStatus string `json:"status" enums:"ready,applying,deleting,error"`
-	Reason           string `json:"reason"`
+	ConstraintStatus string `json:"constraintStatus" enums:"ready,applying,deleting,error"`
+	Reason           string `json:"reason,omitempty"`
 	LastUpdate       string `json:"lastUpdate"`
 	TemplateVersion  string `json:"templateVersion"`
 }
 
 // TKSPolicyStatus defines the observed state of TKSPolicy
 type TKSPolicyStatus struct {
-	Clusters    map[string]PolicyStatus `json:"clusters"`
+	Clusters    map[string]PolicyStatus `json:"clusters,omitempty"`
 	LastUpdate  string                  `json:"lastUpdate"`
 	UpdateQueue map[string]bool         `json:"updateQueue,omitempty"`
+	Reason      string                  `json:"reason,omitempty"`
 }
 
+// TKSPolicy is the Schema for the tkspolicies API
 type TKSPolicy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -50,6 +57,15 @@ type TKSPolicy struct {
 	Spec   TKSPolicySpec   `json:"spec,omitempty"`
 	Status TKSPolicyStatus `json:"status,omitempty"`
 }
+
+// TKSPolicyList contains a list of TKSPolicy
+type TKSPolicyList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []TKSPolicy `json:"items"`
+}
+
+// ============== Copied Fron Operator End ==============
 
 func (tksPolicy *TKSPolicy) JSON() (string, error) {
 	result, err := json.MarshalIndent(tksPolicy, "", "  ")

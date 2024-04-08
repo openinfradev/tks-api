@@ -493,9 +493,7 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateDeploy(ctx context.Context, org
 			}
 
 			for clusterId, status := range tksPolicyTemplate.Status.TemplateStatus {
-				if status != nil {
-					deployVersions.DeployVersion[clusterId] = status.Version
-				}
+				deployVersions.DeployVersion[clusterId] = status.Version
 			}
 		}
 
@@ -515,9 +513,7 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateDeploy(ctx context.Context, org
 	}
 
 	for clusterId, status := range tksPolicyTemplate.Status.TemplateStatus {
-		if status != nil {
-			deployVersions.DeployVersion[clusterId] = status.Version
-		}
+		deployVersions.DeployVersion[clusterId] = status.Version
 	}
 
 	return deployVersions, nil
