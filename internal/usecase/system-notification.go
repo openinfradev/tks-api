@@ -273,8 +273,8 @@ func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryC
 	case "pvc-full":
 		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	default:
-		url = ""
+		url = "/d/tks_cluster_dashboard"
 	}
 
-	return
+	return url
 }

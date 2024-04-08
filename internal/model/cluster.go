@@ -38,6 +38,7 @@ type Cluster struct {
 	TksUserNodeMax         int
 	TksUserNodeType        string
 	Kubeconfig             []byte     `gorm:"-:all"`
+	PolicyIds              []string   `gorm:"-:all"`
 	CreatorId              *uuid.UUID `gorm:"type:uuid"`
 	Creator                User       `gorm:"foreignKey:CreatorId"`
 	UpdatorId              *uuid.UUID `gorm:"type:uuid"`

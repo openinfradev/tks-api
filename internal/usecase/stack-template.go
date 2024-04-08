@@ -57,10 +57,13 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 	}
 
 	services := "["
-	for _, serviceId := range dto.ServiceIds {
+	for i, serviceId := range dto.ServiceIds {
+		if i > 1 {
+			services = services + ","
+		}
 		switch serviceId {
 		case "LMA":
-			services = services + internal.SERVICE_LMA + ","
+			services = services + internal.SERVICE_LMA
 		case "SERVICE_MESH":
 			services = services + internal.SERVICE_SERVICE_MESH
 		}
