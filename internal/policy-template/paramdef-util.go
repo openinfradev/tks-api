@@ -142,7 +142,7 @@ func CompareParamDefAndExtractedParamDef(paramdef *domain.ParameterDef, extracte
 }
 
 func ParamDefsToJSONSchemaProeprties(paramdefs []*domain.ParameterDef) *apiextensionsv1.JSONSchemaProps {
-	if paramdefs == nil {
+	if len(paramdefs) == 0 {
 		return nil
 	}
 
@@ -174,7 +174,11 @@ func convert(paramdefs []*domain.ParameterDef) map[string]apiextensionsv1.JSONSc
 				},
 			}
 		case isObject:
-			result[paramdef.Key] = *ParamDefsToJSONSchemaProeprties(paramdef.Children)
+			props := ParamDefsToJSONSchemaProeprties(paramdef.Children)
+
+			if props != nil {
+				result[paramdef.Key] = *props
+			}
 		default:
 			result[paramdef.Key] = apiextensionsv1.JSONSchemaProps{Type: paramdef.Type}
 		}

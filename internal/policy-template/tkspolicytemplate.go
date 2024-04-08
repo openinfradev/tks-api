@@ -46,8 +46,8 @@ type Validation struct {
 
 type Target struct {
 	Target string   `json:"target,omitempty"`
-	Rego   string   `json:"rego,omitempty"`
-	Libs   []string `json:"libs,omitempty"`
+	Rego   string   `json:"rego,omitempty" yaml:"rego,omitempty,flow"`
+	Libs   []string `json:"libs,omitempty" yaml:"libs,omitempty,flow"`
 	Code   []Code   `json:"code,omitempty"`
 }
 
