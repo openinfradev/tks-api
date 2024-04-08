@@ -26,6 +26,9 @@ type IOrganizationRepository interface {
 	RemoveSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
 	Delete(ctx context.Context, organizationId string) (err error)
 	InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error
+	AddPermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
+	UpdatePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
+	DeletePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplateids []uuid.UUID) (err error)
 }
 
 type OrganizationRepository struct {
@@ -226,4 +229,31 @@ func (r *OrganizationRepository) RemoveSystemNotificationTemplates(ctx context.C
 	}
 
 	return nil
+}
+
+func (r *OrganizationRepository) AddPermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
+	var organization model.Organization
+	organization.ID = organizationId
+
+	err = r.db.WithContext(ctx).Model(&organization).
+		Association("PolicyTemplates").Append(policyTemplates)
+
+	return err
+}
+
+func (r *OrganizationRepository) UpdatePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
+	var organization model.Organization
+	organization.ID = organizationId
+
+	err = r.db.WithContext(ctx).Model(&organization).
+		Association("PolicyTemplates").Replace(policyTemplates)
+
+	return err
+}
+
+func (r *OrganizationRepository) DeletePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplateids []uuid.UUID) (err error) {
+	return r.db.WithContext(ctx).
+		Where("organization_id = ?", organizationId).
+		Where("policy_template_id in ?", policyTemplateids).
+		Delete(&model.PolicyTemplatePermittedOrganization{}).Error
 }

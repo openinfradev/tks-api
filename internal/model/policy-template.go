@@ -78,7 +78,9 @@ func (pt *PolicyTemplate) IsPermittedToOrganization(organizationId *string) bool
 }
 
 func (pt *PolicyTemplate) BeforeCreate(tx *gorm.DB) (err error) {
-	pt.ID = uuid.New()
+	if pt.ID == uuid.Nil {
+		pt.ID = uuid.New()
+	}
 
 	jsonByte, err := json.Marshal(pt.ParametersSchema)
 

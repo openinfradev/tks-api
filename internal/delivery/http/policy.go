@@ -37,6 +37,9 @@ type IPolicyHandler interface {
 	UpdateClusterPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
 	GetPolicyEdit(w http.ResponseWriter, r *http.Request)
 	GetPolicyStatistics(w http.ResponseWriter, r *http.Request)
+	AddPoliciesForStack(w http.ResponseWriter, r *http.Request)
+	UpdatePoliciesForStack(w http.ResponseWriter, r *http.Request)
+	DeletePoliciesForStack(w http.ResponseWriter, r *http.Request)
 }
 
 func NewPolicyHandler(u usecase.Usecase) IPolicyHandler {
@@ -865,4 +868,179 @@ func (h *PolicyHandler) GetPolicyStatistics(w http.ResponseWriter, r *http.Reque
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// AddPoliciesForStack godoc
+//
+//	@Tags			Policy
+//	@Summary		[AddPoliciesForStack] 특정 스택의 정책 목록 추가
+//	@Description	특정 스택의 정책 목록을 정책 식별자 리스트로 지정해서 추가한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string								true	"조직 식별자(o로 시작)"
+//	@Param			stackId			path		string								true	"스택 식별자"
+//	@Param			body			body		domain.AddPoliciesForStackRequest	true	"add policies for stack request"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/policies [post]
+//	@Security		JWT
+func (h *PolicyHandler) AddPoliciesForStack(w http.ResponseWriter, r *http.Request) {
+	// TODO: API 형상 추후 반드시 검토
+
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("stackId not found in path"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	input := domain.AddPoliciesForStackRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ids := make([]uuid.UUID, len(input.PolicyIds))
+
+	for i, policyId := range input.PolicyIds {
+		id, err := uuid.Parse(policyId)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_ID", ""))
+			return
+		}
+		ids[i] = id
+	}
+
+	err = h.usecase.AddPoliciesForClusterID(r.Context(), organizationId, domain.ClusterId(stackId), ids)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+func (h *PolicyHandler) UpdatePoliciesForStack(w http.ResponseWriter, r *http.Request) {
+	// TODO: API 형상 추후 반드시 검토
+
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("stackId not found in path"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	input := domain.UpdatePoliciesForStackRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ids := make([]uuid.UUID, len(input.PolicyIds))
+
+	for i, policyId := range input.PolicyIds {
+		id, err := uuid.Parse(policyId)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_ID", ""))
+			return
+		}
+		ids[i] = id
+	}
+
+	err = h.usecase.UpdatePoliciesForClusterID(r.Context(), organizationId, domain.ClusterId(stackId), ids)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// DeletePoliciesForStack godoc
+//
+//	@Tags			Policy
+//	@Summary		[DeletePoliciesForStack] 특정 스택의 정책 제거
+//	@Description	특정 스택에서 정책 식별자로 지정된 정책을 제거한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path	string									true	"조직 식별자(o로 시작)"
+//	@Param			stackId			path	string									true	"스택 식별자"
+//	@Param			body			body	domain.DeletePoliciesForStackRequest	true	"delete policies for stack request"
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/policies [put]
+//	@Security		JWT
+func (h *PolicyHandler) DeletePoliciesForStack(w http.ResponseWriter, r *http.Request) {
+	// TODO: API 형상 추후 반드시 검토
+
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("stackId not found in path"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	input := domain.DeletePoliciesForStackRequest{}
+
+	err := UnmarshalRequestInput(r, &input)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ids := make([]uuid.UUID, len(input.PolicyIds))
+
+	for i, policyId := range input.PolicyIds {
+		id, err := uuid.Parse(policyId)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "C_INVALID_POLICY_ID", ""))
+			return
+		}
+		ids[i] = id
+	}
+
+	err = h.usecase.DeletePoliciesForClusterID(r.Context(), organizationId, domain.ClusterId(stackId), ids)
+
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
 }

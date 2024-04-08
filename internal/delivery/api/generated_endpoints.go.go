@@ -727,6 +727,14 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_ExtractParameters", 
 		Group: "PolicyTemplate",
 	},
+    Admin_AddPermittedPolicyTemplatesForOrganization: {
+		Name: "Admin_AddPermittedPolicyTemplatesForOrganization", 
+		Group: "PolicyTemplate",
+	},
+    Admin_DeletePermittedPolicyTemplatesForOrganization: {
+		Name: "Admin_DeletePermittedPolicyTemplatesForOrganization", 
+		Group: "PolicyTemplate",
+	},
     ListClusterPolicyStatus: {
 		Name: "ListClusterPolicyStatus", 
 		Group: "ClusterPolicyStatus",
@@ -781,6 +789,14 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     GetPolicyEdit: {
 		Name: "GetPolicyEdit", 
+		Group: "Policy",
+	},
+    AddPoliciesForStack: {
+		Name: "AddPoliciesForStack", 
+		Group: "Policy",
+	},
+    DeletePoliciesForStack: {
+		Name: "DeletePoliciesForStack", 
 		Group: "Policy",
 	},
     ListPolicyTemplate: {
@@ -1224,6 +1240,10 @@ func (e Endpoint) String() string {
 		return "Admin_ExistsPolicyTemplateName"
 	case Admin_ExtractParameters:
 		return "Admin_ExtractParameters"
+	case Admin_AddPermittedPolicyTemplatesForOrganization:
+		return "Admin_AddPermittedPolicyTemplatesForOrganization"
+	case Admin_DeletePermittedPolicyTemplatesForOrganization:
+		return "Admin_DeletePermittedPolicyTemplatesForOrganization"
 	case ListClusterPolicyStatus:
 		return "ListClusterPolicyStatus"
 	case GetClusterPolicyTemplateStatus:
@@ -1252,6 +1272,10 @@ func (e Endpoint) String() string {
 		return "ExistsPolicyName"
 	case GetPolicyEdit:
 		return "GetPolicyEdit"
+	case AddPoliciesForStack:
+		return "AddPoliciesForStack"
+	case DeletePoliciesForStack:
+		return "DeletePoliciesForStack"
 	case ListPolicyTemplate:
 		return "ListPolicyTemplate"
 	case CreatePolicyTemplate:
@@ -1658,6 +1682,10 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_ExistsPolicyTemplateName
 	case "Admin_ExtractParameters":
 		return Admin_ExtractParameters
+	case "Admin_AddPermittedPolicyTemplatesForOrganization":
+		return Admin_AddPermittedPolicyTemplatesForOrganization
+	case "Admin_DeletePermittedPolicyTemplatesForOrganization":
+		return Admin_DeletePermittedPolicyTemplatesForOrganization
 	case "ListClusterPolicyStatus":
 		return ListClusterPolicyStatus
 	case "GetClusterPolicyTemplateStatus":
@@ -1686,6 +1714,10 @@ func GetEndpoint(name string) Endpoint {
 		return ExistsPolicyName
 	case "GetPolicyEdit":
 		return GetPolicyEdit
+	case "AddPoliciesForStack":
+		return AddPoliciesForStack
+	case "DeletePoliciesForStack":
+		return DeletePoliciesForStack
 	case "ListPolicyTemplate":
 		return ListPolicyTemplate
 	case "CreatePolicyTemplate":

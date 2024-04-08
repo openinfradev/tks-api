@@ -200,6 +200,11 @@ func DeleteTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, nam
 	err = dynamicClient.Resource(TKSPolicyTemplateGVR).Namespace(primaryClusterId).
 		Delete(ctx, name, metav1.DeleteOptions{})
 
+	// 삭제할 리소스가 존재하지 않았다면 성공으로 처리
+	if errors.IsNotFound(err) {
+		return nil
+	}
+
 	return err
 }
 
