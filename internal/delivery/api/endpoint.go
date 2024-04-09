@@ -117,6 +117,7 @@ const (
 	GetChartDashboard     // 대시보드/대시보드/조회
 	GetStacksDashboard    // 대시보드/대시보드/조회
 	GetResourcesDashboard // 대시보드/대시보드/조회
+	GetPolicyStatusDashboard
 
 	// SystemNotificationTemplate
 	Admin_CreateSystemNotificationTemplate

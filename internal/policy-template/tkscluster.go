@@ -2,10 +2,10 @@ package policytemplate
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/openinfradev/tks-api/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -14,7 +14,7 @@ var TKSClusterGVR = schema.GroupVersionResource{
 	Resource: "tksclusters",
 }
 
-// ============== Copied Fron Operator Start ==============
+// ============== Copied From Operator Start ==============
 
 // TemplateReference defines the desired state of TKSCluster
 type TemplateReference struct {
@@ -70,35 +70,50 @@ type TKSClusterList struct {
 	Items           []TKSCluster `json:"items"`
 }
 
-// ============== Copied Fron Operator End ==============
+// ============== Copied From Operator End ==============
 
-func GetTksClusterCR(ctx context.Context, primaryClusterId string, name string) (*TKSCluster, error) {
+func GetTksClusterCR(ctx context.Context, primaryClusterId string, resourceName string) (*TKSCluster, error) {
 	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
-
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := dynamicClient.Resource(TKSClusterGVR).Namespace(primaryClusterId).
-		Get(ctx, name, metav1.GetOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Unstructured를 바로 TKSPolicyTemplate으로 컨버팅할 수 없기 때문에 json으로 변환
-	jsonBytes, err := json.Marshal(result.Object)
-
+	resource, err := dynamicClient.Resource(TKSClusterGVR).Namespace(primaryClusterId).
+		Get(ctx, resourceName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	var tksCluster TKSCluster
-	err = json.Unmarshal(jsonBytes, &tksCluster)
-
+	unstructuredObj := resource.UnstructuredContent()
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredObj, &tksCluster)
 	if err != nil {
 		return nil, err
 	}
 
 	return &tksCluster, nil
+}
+
+func GetTksClusterCRs(ctx context.Context, primaryClusterId string) (tksClusters []TKSCluster, err error) {
+	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resources, err := dynamicClient.Resource(TKSClusterGVR).Namespace(primaryClusterId).
+		List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var tksCluster TKSCluster
+	for _, resource := range resources.Items {
+		if err = runtime.DefaultUnstructuredConverter.
+			FromUnstructured(resource.UnstructuredContent(), &tksCluster); err != nil {
+			return nil, err
+		}
+		tksClusters = append(tksClusters, tksCluster)
+	}
+
+	return tksClusters, nil
 }
