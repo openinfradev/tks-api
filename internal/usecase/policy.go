@@ -752,11 +752,18 @@ func (u *PolicyUsecase) GetPolicyStatistics(ctx context.Context, organizationId 
 		Total:                tksTemplateCount + orgTemplateCount,
 	}
 
+	policyFromOrgTemplates, err := u.templateRepo.CountPolicyFromOrganizationTemplate(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
 	result.Policy = domain.PolicyCount{
-		Deny:   deny,
-		Warn:   warn,
-		Dryrun: dryrun,
-		Total:  policyTotal,
+		Deny:            deny,
+		Warn:            warn,
+		Dryrun:          dryrun,
+		FromOrgTemplate: policyFromOrgTemplates,
+		FromTksTemplate: policyTotal - policyFromOrgTemplates,
+		Total:           policyTotal,
 	}
 
 	return &result, nil
