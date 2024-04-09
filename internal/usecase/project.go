@@ -56,6 +56,7 @@ type IProjectUsecase interface {
 	MayRemoveRequiredSetupForCluster(ctx context.Context, organizationId string, projectId string, stackId string) error
 	CreateK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
 	DeleteK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error
+	GetProjectNamespaceKubeconfig(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (string, error)
 	GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error)
 	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error)
 	GetResourcesUsage(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceResourcesUsage, err error)
@@ -652,6 +653,53 @@ func (u *ProjectUsecase) unassignKeycloakClientRoleToMember(ctx context.Context,
 		return errors.Wrap(err, "Failed to un-assign each KeycloakClientRole to member.")
 	}
 	return nil
+}
+
+func (u *ProjectUsecase) GetProjectNamespaceKubeconfig(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (string, error) {
+	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId.String(), kubernetes.KubeconfigForUser)
+	if err != nil {
+		log.Error(ctx, err)
+		return "", errors.Wrap(err, "Failed to get kubeconfig.")
+	}
+
+	type kubeConfigType struct {
+		APIVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Clusters   []struct {
+			Name    string `yaml:"name"`
+			Cluster struct {
+				Server                   string `yaml:"server"`
+				CertificateAuthorityData string `yaml:"certificate-authority-data,omitempty"`
+			} `yaml:"cluster"`
+		} `yaml:"clusters"`
+		Contexts []struct {
+			Name    string `yaml:"name"`
+			Context struct {
+				Cluster   string `yaml:"cluster"`
+				User      string `yaml:"user"`
+				Namespace string `yaml:"namespace,omitempty"`
+			} `yaml:"context"`
+		} `yaml:"contexts"`
+
+		Users []interface{} `yaml:"users,omitempty"`
+	}
+
+	var config kubeConfigType
+	err = yaml.Unmarshal(kubeconfig, &config)
+	if err != nil {
+		log.Error(ctx, err)
+		return "", errors.Wrap(err, "Failed to unmarshal kubeconfig.")
+	}
+	config.Contexts[0].Context.Namespace = namespace
+
+	kubeconfig, err = yaml.Marshal(config)
+	if err != nil {
+		log.Error(ctx, err)
+		return "", errors.Wrap(err, "Failed to marshal kubeconfig.")
+	}
+
+	return string(kubeconfig[:]), nil
+
 }
 
 func (u *ProjectUsecase) GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error) {

@@ -185,6 +185,7 @@ const (
 	UnSetFavoriteProjectNamespace
 	GetProjectKubeconfig
 	GetProjectNamespaceK8sResources
+	GetProjectNamespaceKubeconfig
 
 	// Audit
 	GetAudits
