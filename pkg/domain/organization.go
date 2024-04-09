@@ -75,7 +75,7 @@ type CreateOrganizationRequest struct {
 	Description    string `json:"description" validate:"omitempty,min=0,max=100"`
 	AdminAccountId string `json:"adminAccountId" validate:"required"`
 	AdminName      string `json:"adminName" validate:"name"`
-	AdminEmail     string `json:"adminEmail" validate:"required,email"`
+	AdminEmail     string `json:"adminEmail" validate:"required"`
 }
 
 type CreateOrganizationResponse struct {
