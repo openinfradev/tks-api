@@ -514,6 +514,11 @@ func (h *DashboardHandler) GetPolicyUpdate(w http.ResponseWriter, r *http.Reques
 	}
 
 	dpu, err := h.usecase.GetPolicyUpdate(r.Context(), policyTemplates, policies)
+	if err != nil {
+		log.Error(r.Context(), "Failed to make policy update status", err)
+		ErrorJSON(w, r, err)
+		return
+	}
 
 	var out domain.GetDashboardPolicyUpdateResponse
 	out.PolicyUpdate = dpu

@@ -342,7 +342,9 @@ func GetTksPolicyTemplateCRs(ctx context.Context, primaryClusterId string) (tksP
 
 	var tksPolicyTemplate TKSPolicyTemplate
 	for _, c := range resources.Items {
-		err = runtime.DefaultUnstructuredConverter.FromUnstructured(c.UnstructuredContent(), &tksPolicyTemplate)
+		if err = runtime.DefaultUnstructuredConverter.FromUnstructured(c.UnstructuredContent(), &tksPolicyTemplate); err != nil {
+			return nil, err
+		}
 		tksPolicyTemplates = append(tksPolicyTemplates, tksPolicyTemplate)
 	}
 
