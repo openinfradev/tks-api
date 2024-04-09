@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -160,6 +161,10 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	var dto model.Cluster
 	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
+	}
+	cId, err := uuid.Parse(input.CloudAccountId)
+	if err == nil {
+		dto.CloudAccountId = &cId
 	}
 
 	dto.ClusterType = domain.ClusterType_USER
