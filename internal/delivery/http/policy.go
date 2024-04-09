@@ -661,7 +661,7 @@ func (h *PolicyHandler) ListStackPolicyStatus(w http.ResponseWriter, r *http.Req
 //	@Param			sortColumn		query		string		false	"sortColumn"
 //	@Param			sortOrder		query		string		false	"sortOrder"
 //	@Param			filters			query		[]string	false	"filters"
-//	@Success		200				{object}	domain.ListStackPolicyStatusResponse
+//	@Success		200				{object}	domain.StackPolicyStatistics
 //	@Router			/organizations/{organizationId}/stacks/{stackId}/statistics [get]
 //	@Security		JWT
 func (h *PolicyHandler) StackPolicyStatistics(w http.ResponseWriter, r *http.Request) {

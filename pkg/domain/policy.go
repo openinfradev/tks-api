@@ -195,10 +195,12 @@ type TemplateCount struct {
 }
 
 type PolicyCount struct {
-	Deny   int64 `json:"deny"`
-	Warn   int64 `json:"warn"`
-	Dryrun int64 `json:"dryrun"`
-	Total  int64 `json:"total"`
+	Deny            int64 `json:"deny"`
+	Warn            int64 `json:"warn"`
+	Dryrun          int64 `json:"dryrun"`
+	FromTksTemplate int64 `json:"fromTksTemplate"`
+	FromOrgTemplate int64 `json:"fromOrgTemplate"`
+	Total           int64 `json:"total"`
 }
 
 type PolicyStatisticsResponse struct {
