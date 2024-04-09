@@ -194,7 +194,7 @@ func NewPagination(urlParams *url.Values) *Pagination {
 					pg.Page, _ = strconv.Atoi(value[0])
 				}
 			case PAGE_SIZE:
-				if value[0] == "" {
+				if value[0] != "" {
 					if limitNum, err := strconv.Atoi(value[0]); err == nil {
 						pg.Limit = limitNum
 					}
