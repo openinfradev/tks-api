@@ -103,20 +103,20 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 	}
 
 	// Make stack nodes
-	var stackConf domain.StackConfResponse
-	if err = serializer.Map(ctx, dto, &stackConf); err != nil {
-		log.Info(ctx, err)
-	}
+	// [TODO] to be advanced feature
+	dto.Conf.TksCpNodeMax = dto.Conf.TksCpNode
+	dto.Conf.TksInfraNodeMax = dto.Conf.TksInfraNode
+	dto.Conf.TksUserNodeMax = dto.Conf.TksUserNode
 	if stackTemplate.CloudService == "AWS" && stackTemplate.KubeType == "AWS" {
-		if stackConf.TksCpNode == 0 {
-			stackConf.TksCpNode = 3
-			stackConf.TksCpNodeMax = 3
-			stackConf.TksInfraNode = 3
-			stackConf.TksInfraNodeMax = 3
+		if dto.Conf.TksCpNode == 0 {
+			dto.Conf.TksCpNode = 3
+			dto.Conf.TksCpNodeMax = 3
+			dto.Conf.TksInfraNode = 3
+			dto.Conf.TksInfraNodeMax = 3
 		}
 
 		// user 노드는 MAX_AZ_NUM의 배수로 요청한다.
-		if stackConf.TksUserNode%domain.MAX_AZ_NUM != 0 {
+		if dto.Conf.TksUserNode%domain.MAX_AZ_NUM != 0 {
 			return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid node count"), "", "")
 		}
 	}
@@ -132,7 +132,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
 			"base_repo_branch=" + viper.GetString("revision"),
-			"infra_conf=" + strings.Replace(helper.ModelToJson(stackConf), "\"", "\\\"", -1),
+			"infra_conf=" + strings.Replace(helper.ModelToJson(dto.Conf), "\"", "\\\"", -1),
 			"cloud_service=" + dto.CloudService,
 			"cluster_endpoint=" + dto.ClusterEndpoint,
 			"policy_ids=" + strings.Join(dto.PolicyIds, ","),
