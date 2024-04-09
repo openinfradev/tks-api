@@ -400,6 +400,33 @@ func (u *ProjectUsecase) GetProjectNamespaces(ctx context.Context, organizationI
 		return nil, errors.Wrap(err, "Failed to retrieve project namespaces.")
 	}
 
+	for _, pn := range pns {
+		o, err := u.organizationRepository.Get(ctx, organizationId)
+		if err != nil {
+			log.Error(ctx, err)
+			return nil, errors.Wrap(err, "Failed to get organization.")
+		}
+
+		appGroupsInPrimaryCluster, err := u.appgroupRepository.Fetch(ctx, domain.ClusterId(o.PrimaryClusterId), nil)
+		if err != nil {
+			log.Error(ctx, err)
+			return nil, errors.Wrap(err, "Failed to get app groups.")
+		}
+
+		for i, appGroup := range appGroupsInPrimaryCluster {
+			if appGroup.AppGroupType == domain.AppGroupType_LMA {
+				applications, err := u.appgroupRepository.GetApplications(ctx, appGroup.ID, domain.ApplicationType_GRAFANA)
+				if err != nil {
+					log.Error(ctx, err)
+					return nil, errors.Wrap(err, "Failed to get applications.")
+				}
+				if len(applications) > 0 {
+					pns[i].GrafanaUrl = applications[0].Endpoint + "/d/tks_namespace_dashboard/tks-kubernetes-view-namespaces?orgId=" + organizationId + "&var-datasource=Prometheus&var-taco_cluster=" + pn.StackId + "&var-namespace=" + pn.Namespace
+				}
+			}
+		}
+	}
+
 	return pns, nil
 }
 
@@ -409,7 +436,30 @@ func (u *ProjectUsecase) GetProjectNamespace(ctx context.Context, organizationId
 		log.Error(ctx, err)
 		return nil, errors.Wrap(err, "Failed to retrieve project namespace.")
 	}
+	o, err := u.organizationRepository.Get(ctx, organizationId)
+	if err != nil {
+		log.Error(ctx, err)
+		return nil, errors.Wrap(err, "Failed to get organization.")
+	}
 
+	appGroupsInPrimaryCluster, err := u.appgroupRepository.Fetch(ctx, domain.ClusterId(o.PrimaryClusterId), nil)
+	if err != nil {
+		log.Error(ctx, err)
+		return nil, errors.Wrap(err, "Failed to get app groups.")
+	}
+
+	for _, appGroup := range appGroupsInPrimaryCluster {
+		if appGroup.AppGroupType == domain.AppGroupType_LMA {
+			applications, err := u.appgroupRepository.GetApplications(ctx, appGroup.ID, domain.ApplicationType_GRAFANA)
+			if err != nil {
+				log.Error(ctx, err)
+				return nil, errors.Wrap(err, "Failed to get applications.")
+			}
+			if len(applications) > 0 {
+				pn.GrafanaUrl = applications[0].Endpoint + "/d/tks_namespace_dashboard/tks-kubernetes-view-namespaces?orgId=" + organizationId + "&var-datasource=Prometheus&var-taco_cluster=" + stackId + "&var-namespace=" + projectNamespace
+			}
+		}
+	}
 	return pn, nil
 }
 

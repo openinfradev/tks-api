@@ -78,6 +78,7 @@ type ProjectNamespace struct {
 	ProjectId   string        `gorm:"not null" json:"projectId"`
 	Description string        `json:"description,omitempty"`
 	Status      string        `json:"status,omitempty"`
+	GrafanaUrl  string        `gorm:"-:all" json:"grafanaUrl,omitempty"`
 	CreatedAt   time.Time     `gorm:"autoCreateTime:false" json:"createdAt"`
 	UpdatedAt   *time.Time    `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt   *time.Time    `json:"deletedAt"`
