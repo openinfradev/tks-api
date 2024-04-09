@@ -258,6 +258,7 @@ const (
 	GetPolicyEdit
 	AddPoliciesForStack
 	DeletePoliciesForStack
+	StackPolicyStatistics
 
 	// OrganizationPolicyTemplate
 	ListPolicyTemplate

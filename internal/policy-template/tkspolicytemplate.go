@@ -149,6 +149,10 @@ func (tksPolicyTemplate *TKSPolicyTemplate) ToUnstructured() (*unstructured.Unst
 	return tksPolicyTemplateUnstructured, nil
 }
 
+func (tksPolicyTemplate *TKSPolicyTemplate) GetId() string {
+	return tksPolicyTemplate.ObjectMeta.Labels[TemplateIDLabel]
+}
+
 func ApplyTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tksPolicyTemplate *TKSPolicyTemplate) error {
 	if syncToKubernetes() {
 		dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
@@ -281,4 +285,45 @@ func UpdateTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tks
 		Update(ctx, tksPolicyUnstructured, metav1.UpdateOptions{})
 
 	return err
+}
+
+func ListTksPolicyTemplateCR(ctx context.Context, primaryClusterId string) ([]*TKSPolicyTemplate, error) {
+	if syncToKubernetes() {
+		dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		results, err := dynamicClient.Resource(TKSPolicyTemplateGVR).Namespace(primaryClusterId).
+			List(ctx, metav1.ListOptions{})
+
+		if err != nil {
+			return nil, err
+		}
+
+		tkspolicytemplates := make([]*TKSPolicyTemplate, len(results.Items))
+
+		for i, result := range results.Items {
+			jsonBytes, err := json.Marshal(result.Object)
+
+			if err != nil {
+				return nil, err
+			}
+
+			var tksPolicyTemplate TKSPolicyTemplate
+			err = json.Unmarshal(jsonBytes, &tksPolicyTemplate)
+
+			if err != nil {
+				return nil, err
+			}
+
+			tkspolicytemplates[i] = &tksPolicyTemplate
+		}
+
+		return tkspolicytemplates, nil
+	}
+
+	tkspolicytemplates := make([]*TKSPolicyTemplate, 0)
+	return tkspolicytemplates, nil
 }
