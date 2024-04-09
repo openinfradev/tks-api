@@ -1,6 +1,7 @@
 package policytemplate
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/openinfradev/tks-api/internal/model"
@@ -23,7 +24,16 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 		return nil
 	}
 
-	jsonParams := apiextensionsv1.JSON{Raw: []byte(policy.Parameters)}
+	var params *apiextensionsv1.JSON = nil
+
+	var jsonResult map[string]interface{}
+
+	err := json.Unmarshal([]byte(policy.Parameters), &jsonResult)
+
+	if err == nil && len(jsonResult) > 0 {
+		jsonParams := apiextensionsv1.JSON{Raw: []byte(policy.Parameters)}
+		params = &jsonParams
+	}
 
 	labels := map[string]string{}
 	labels[PartOfKey] = PartOfVal
@@ -56,7 +66,7 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 			Clusters:          policy.TargetClusterIds,
 			Template:          policy.PolicyTemplate.Kind,
 			Match:             policy.Match,
-			Params:            &jsonParams,
+			Params:            params,
 		},
 	}
 }
@@ -94,12 +104,31 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 			},
 			Targets: []Target{{
 				Target: "admission.k8s.gatekeeper.sh",
-				Rego:   policyTemplate.Rego,
-				Libs:   policyTemplate.Libs,
+				Rego:   stripCarriageReturn(policyTemplate.Rego),
+				Libs:   stripCarriageReturns(policyTemplate.Libs),
 			}},
 			Version: policyTemplate.Version,
 		},
 	}
+}
+
+func stripCarriageReturn(str string) string {
+	return strings.ReplaceAll(str, "\r", "")
+}
+
+func stripCarriageReturns(strs []string) []string {
+	if strs == nil {
+		return nil
+	}
+
+	result := make([]string, len(strs))
+
+	for i, str := range strs {
+		result[i] = stripCarriageReturn(str)
+	}
+
+	return result
+
 }
 
 func syncToKubernetes() bool {
