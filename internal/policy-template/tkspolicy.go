@@ -71,6 +71,10 @@ func (tksPolicy *TKSPolicy) GetPolicyID() string {
 	return tksPolicy.ObjectMeta.Labels[PolicyIDLabel]
 }
 
+func (tksPolicy *TKSPolicy) GetTemplateID() string {
+	return tksPolicy.ObjectMeta.Labels[TemplateIDLabel]
+}
+
 func (tksPolicy *TKSPolicy) JSON() (string, error) {
 	result, err := json.MarshalIndent(tksPolicy, "", "  ")
 

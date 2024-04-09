@@ -43,6 +43,7 @@ type IPolicyUsecase interface {
 	AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
 	UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
 	DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
+	GetStackPolicyStatistics(ctx context.Context, organizationId string, clusterId domain.ClusterId) (statistics *domain.StackPolicyStatistics, err error)
 }
 
 type PolicyUsecase struct {
@@ -937,6 +938,84 @@ func (u *PolicyUsecase) DeletePoliciesForClusterID(ctx context.Context, organiza
 	}
 
 	return u.repo.DeletePoliciesForClusterID(ctx, organizationId, clusterId, policyIds)
+}
+
+func (u *PolicyUsecase) GetStackPolicyStatistics(ctx context.Context, organizationId string, clusterId domain.ClusterId) (statistics *domain.StackPolicyStatistics, err error) {
+	organization, err := u.organizationRepo.Get(ctx, organizationId)
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
+	}
+
+	primaryClusterId := organization.PrimaryClusterId
+
+	templateList, err := policytemplate.ListTksPolicyTemplateCR(ctx, primaryClusterId)
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return nil, httpErrors.NewInternalServerError(fmt.Errorf("fail to get template list from kubernetes"), "P_FAILED_TO_CALL_KUBERNETES", "")
+	}
+
+	totalTemplateCount := len(templateList)
+	outdatedTemplateIds := []string{}
+
+	for _, template := range templateList {
+		templateId := template.GetId()
+
+		id, err := uuid.Parse(templateId)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+			continue
+		}
+
+		version, err := u.templateRepo.GetLatestTemplateVersion(ctx, id)
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+			continue
+		}
+
+		if version != template.Spec.Version {
+			outdatedTemplateIds = append(outdatedTemplateIds, templateId)
+		}
+	}
+
+	outdatedTemplateCount := len(outdatedTemplateIds)
+	uptodateTemplateCount := totalTemplateCount - outdatedTemplateCount
+
+	policyList, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return nil, httpErrors.NewInternalServerError(fmt.Errorf("fail to get policy list from kubernetes"), "P_FAILED_TO_CALL_KUBERNETES", "")
+	}
+
+	outdatedPolicyCount := 0
+
+	for _, policy := range policyList {
+		templateId := policy.GetTemplateID()
+
+		if slices.Contains(outdatedTemplateIds, templateId) {
+			outdatedPolicyCount++
+		}
+	}
+
+	tototalPolicyCount := len(policyList)
+
+	uptodatePolicyCount := tototalPolicyCount - outdatedPolicyCount
+
+	result := domain.StackPolicyStatistics{
+		TotalTemplateCount:     totalTemplateCount,
+		UptodateTemplateCount:  uptodateTemplateCount,
+		OutofdateTemplateCount: outdatedTemplateCount,
+		TotalPolicyCount:       tototalPolicyCount,
+		UptodatePolicyCount:    uptodatePolicyCount,
+		OutofdatePolicyCount:   outdatedPolicyCount,
+	}
+
+	return &result, nil
 }
 
 func extractNewTemplateParameter(paramdefs []*domain.ParameterDef, newParamDefs []*domain.ParameterDef) (policyParameters []domain.UpdatedPolicyTemplateParameter, err error) {

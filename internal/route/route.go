@@ -354,6 +354,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policies/{policyName}/existence", customMiddleware.Handle(internalApi.ExistsPolicyName, http.HandlerFunc(policyHandler.ExistsPolicyName))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policies", customMiddleware.Handle(internalApi.AddPoliciesForStack, http.HandlerFunc(policyHandler.AddPoliciesForStack))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policies", customMiddleware.Handle(internalApi.DeletePoliciesForStack, http.HandlerFunc(policyHandler.DeletePoliciesForStack))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/statistics", customMiddleware.Handle(internalApi.StackPolicyStatistics, http.HandlerFunc(policyHandler.StackPolicyStatistics))).Methods(http.MethodGet)
 
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policy-status", customMiddleware.Handle(internalApi.ListStackPolicyStatus, http.HandlerFunc(policyHandler.ListStackPolicyStatus))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}/policy-templates/{policyTemplateId}", customMiddleware.Handle(internalApi.GetStackPolicyTemplateStatus, http.HandlerFunc(policyHandler.GetStackPolicyTemplateStatus))).Methods(http.MethodGet)

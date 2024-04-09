@@ -40,6 +40,7 @@ type IPolicyHandler interface {
 	AddPoliciesForStack(w http.ResponseWriter, r *http.Request)
 	UpdatePoliciesForStack(w http.ResponseWriter, r *http.Request)
 	DeletePoliciesForStack(w http.ResponseWriter, r *http.Request)
+	StackPolicyStatistics(w http.ResponseWriter, r *http.Request)
 }
 
 func NewPolicyHandler(u usecase.Usecase) IPolicyHandler {
@@ -644,6 +645,51 @@ func (h *PolicyHandler) ListStackPolicyStatus(w http.ResponseWriter, r *http.Req
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// StackPolicyStatistics godoc
+//
+//	@Tags			StackPolicyStatus
+//	@Summary		[ListStackPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회
+//	@Description	클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string		true	"조직 식별자(o로 시작)"
+//	@Param			stackId			path		string		true	"스택 식별자"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			sortColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.ListStackPolicyStatusResponse
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/statistics [get]
+//	@Security		JWT
+func (h *PolicyHandler) StackPolicyStatistics(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid clusterId"),
+			"C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	stackPolicyStatistics, err := h.usecase.GetStackPolicyStatistics(r.Context(),
+		organizationId, domain.ClusterId(stackId))
+
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, stackPolicyStatistics)
 }
 
 // GetStackPolicyTemplateStatus godoc

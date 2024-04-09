@@ -205,3 +205,12 @@ type PolicyStatisticsResponse struct {
 	Template TemplateCount `json:"templateCount"`
 	Policy   PolicyCount   `json:"policyCount"`
 }
+
+type StackPolicyStatistics struct {
+	TotalTemplateCount     int `json:"totalTemplateCount"`
+	UptodateTemplateCount  int `json:"uptodateTemplateCount"`
+	OutofdateTemplateCount int `json:"outofdateTemplateCount"`
+	TotalPolicyCount       int `json:"totalPolicyCount"`
+	UptodatePolicyCount    int `json:"uptodatePolicyCount"`
+	OutofdatePolicyCount   int `json:"outofdatePolicyCount"`
+}
