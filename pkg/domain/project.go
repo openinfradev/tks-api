@@ -148,6 +148,7 @@ type ProjectNamespaceResponse struct {
 	Description string     `json:"description"`
 	Status      string     `json:"status"`
 	AppCount    int        `json:"appCount"`
+	GrafanaUrl  string     `json:"grafanaUrl"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	UpdatedAt   *time.Time `json:"updatedAt"`
 }
