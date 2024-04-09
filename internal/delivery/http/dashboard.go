@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
+	policytemplate "github.com/openinfradev/tks-api/internal/policy-template"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -22,15 +23,18 @@ type IDashboardHandler interface {
 	GetChart(w http.ResponseWriter, r *http.Request)
 	GetStacks(w http.ResponseWriter, r *http.Request)
 	GetResources(w http.ResponseWriter, r *http.Request)
+	GetPolicyStatus(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
-	usecase usecase.IDashboardUsecase
+	usecase             usecase.IDashboardUsecase
+	organizationUsecase usecase.IOrganizationUsecase
 }
 
 func NewDashboardHandler(h usecase.Usecase) IDashboardHandler {
 	return &DashboardHandler{
-		usecase: h.Dashboard,
+		usecase:             h.Dashboard,
+		organizationUsecase: h.Organization,
 	}
 }
 
@@ -412,5 +416,58 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 		log.Info(r.Context(), err)
 	}
 
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyStatus godoc
+//
+//	@Tags			Dashboards
+//	@Summary		Get policy status
+//	@Description	Get policy status
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.GetDashboardPolicyStatusResponse
+//	@Router			/organizations/{organizationId}/dashboard/policy-status [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetPolicyStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("%s: invalid organizationId", organizationId),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	organization, err := h.organizationUsecase.Get(r.Context(), organizationId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to retrieve organization")
+		ErrorJSON(w, r, fmt.Errorf("failed to retrieve organization"))
+		return
+	}
+
+	tksClusters, err := policytemplate.GetTksClusterCRs(r.Context(), organization.PrimaryClusterId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to retrieve tkscluster list", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var policyStatus domain.DashboardPolicyStatus
+	for _, c := range tksClusters {
+		switch status := c.Status.TKSProxy.Status; status {
+		case "ready":
+			policyStatus.Normal++
+		case "warn":
+			policyStatus.Warning++
+		case "error":
+			policyStatus.Error++
+		default:
+			continue
+		}
+	}
+
+	var out domain.GetDashboardPolicyStatusResponse
+	out.PolicyStatus = policyStatus
 	ResponseJSON(w, r, http.StatusOK, out)
 }

@@ -178,3 +178,13 @@ type UpdateDashboardRequest struct {
 type CommonDashboardResponse struct {
 	Result string `json:"result"`
 }
+
+type DashboardPolicyStatus struct {
+	Normal  int `json:"normal"`
+	Warning int `json:"warning"`
+	Error   int `json:"error"`
+}
+
+type GetDashboardPolicyStatusResponse struct {
+	PolicyStatus DashboardPolicyStatus `json:"statuses"`
+}

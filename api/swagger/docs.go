@@ -3300,6 +3300,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/dashboard/policy-status": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get policy status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get policy status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatusResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboard/resources": {
             "get": {
                 "security": [
@@ -11652,6 +11689,20 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyStatus": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "integer"
+                },
+                "normal": {
+                    "type": "integer"
+                },
+                "warning": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.DashboardResource": {
             "type": "object",
             "properties": {
@@ -12078,6 +12129,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse"
                     }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatusResponse": {
+            "type": "object",
+            "properties": {
+                "statuses": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyStatus"
                 }
             }
         },

@@ -180,6 +180,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	// Stack
 	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
 	if err != nil {
+		log.Error(ctx, err)
 		return out, err
 	}
 
@@ -201,10 +202,12 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 				log.Debugf(ctx, "Failed to get cluster info: %v\n", err)
 				continue
 			}
-			if clusterInfo.Items[0].ObjectMeta.Labels["kubernetes.io/cluster-service"] == "true" {
-				normal++
-			} else {
-				abnormal++
+			if clusterInfo != nil && len(clusterInfo.Items) > 0 {
+				if clusterInfo.Items[0].ObjectMeta.Labels["kubernetes.io/cluster-service"] == "true" {
+					normal++
+				} else {
+					abnormal++
+				}
 			}
 		}
 	}
@@ -217,6 +220,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	*/
 	result, err := thanosClient.Get(ctx, "sum by (taco_cluster) (machine_cpu_cores)")
 	if err != nil {
+		log.Error(ctx, err)
 		return out, err
 	}
 	cpu := 0
@@ -234,6 +238,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	// Memory
 	result, err = thanosClient.Get(ctx, "sum by (taco_cluster) (machine_memory_bytes)")
 	if err != nil {
+		log.Error(ctx, err)
 		return out, err
 	}
 	memory := float64(0)
@@ -252,6 +257,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	// Storage
 	result, err = thanosClient.Get(ctx, "sum by (taco_cluster) (kubelet_volume_stats_capacity_bytes)")
 	if err != nil {
+		log.Error(ctx, err)
 		return out, err
 	}
 	storage := float64(0)
