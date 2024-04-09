@@ -55,6 +55,7 @@ type IProjectHandler interface {
 	GetProjectKubeconfig(w http.ResponseWriter, r *http.Request)
 	GetProjectNamespaceK8sResources(w http.ResponseWriter, r *http.Request)
 	GetProjectNamespaceResourcesUsage(w http.ResponseWriter, r *http.Request)
+	GetProjectNamespaceKubeconfig(w http.ResponseWriter, r *http.Request)
 }
 
 type ProjectHandler struct {
@@ -1819,5 +1820,58 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 	if err = serializer.Map(r.Context(), resourcesUsage, &out.ResourcesUsage); err != nil {
 		log.Error(r.Context(), err)
 	}
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetProjectNamespaceKubeconfig godoc
+//
+//	@Tags			Projects
+//	@Summary		Get project namespace kubeconfig
+//	@Description	Get project namespace kubeconfig
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"Organization ID"
+//	@Param			projectId			path		string	true	"Project ID"
+//	@Param			stackId				path		string	true	"Stack ID"
+//	@Param			projectNamespace	path		string	true	"Project Namespace"
+//	@Success		200					{object}	domain.GetProjectNamespaceKubeConfigResponse
+//	@Router			/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig [get]
+//	@Security		JWT
+func (p ProjectHandler) GetProjectNamespaceKubeconfig(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found in path"), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	projectNamespace, ok := vars["projectNamespace"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid projectNamespace"), "C_INVALID_PROJECT_NAMESPACE", ""))
+		return
+	}
+	stackId, ok := vars["stackId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid stackId"), "C_INVALID_STACK_ID", ""))
+		return
+	}
+
+	kubeconfig, err := p.usecase.GetProjectNamespaceKubeconfig(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
+	if err != nil {
+		log.Error(r.Context(), "Failed to get project kubeconfig.", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	out := domain.GetProjectNamespaceKubeConfigResponse{
+		KubeConfig: kubeconfig,
+	}
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }
