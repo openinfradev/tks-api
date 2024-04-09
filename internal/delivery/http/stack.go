@@ -56,6 +56,10 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
+	if err = serializer.Map(r.Context(), input, &dto.Conf); err != nil {
+		log.Info(r.Context(), err)
+	}
+
 	dto.OrganizationId = organizationId
 	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {

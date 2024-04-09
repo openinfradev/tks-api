@@ -31,6 +31,7 @@ type Stack = struct {
 	ClusterEndpoint string
 	Resource        domain.DashboardStack
 	PolicyIds       []string
+	Conf            StackConf
 }
 
 type StackConf struct {
