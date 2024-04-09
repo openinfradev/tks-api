@@ -24,6 +24,7 @@ type IDashboardHandler interface {
 	GetStacks(w http.ResponseWriter, r *http.Request)
 	GetResources(w http.ResponseWriter, r *http.Request)
 	GetPolicyStatus(w http.ResponseWriter, r *http.Request)
+	GetPolicyUpdate(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
@@ -469,5 +470,57 @@ func (h *DashboardHandler) GetPolicyStatus(w http.ResponseWriter, r *http.Reques
 
 	var out domain.GetDashboardPolicyStatusResponse
 	out.PolicyStatus = policyStatus
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyUpdate godoc
+//
+//	@Tags			Dashboards
+//	@Summary		Get the number of policytemplates that need to be updated
+//	@Description	Get the number of policytemplates that need to be updated
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.GetDashboardPolicyUpdateResponse
+//	@Router			/organizations/{organizationId}/dashboard/policy-update [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetPolicyUpdate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("%s: invalid organizationId", organizationId),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	organization, err := h.organizationUsecase.Get(r.Context(), organizationId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to retrieve organization")
+		ErrorJSON(w, r, fmt.Errorf("failed to retrieve organization"))
+		return
+	}
+
+	policyTemplates, err := policytemplate.GetTksPolicyTemplateCRs(r.Context(), organization.PrimaryClusterId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to retrieve policytemplate list", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+	policies, err := policytemplate.GetTksPolicyCRs(r.Context(), organization.PrimaryClusterId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to retrieve policy list", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	dpu, err := h.usecase.GetPolicyUpdate(r.Context(), policyTemplates, policies)
+	if err != nil {
+		log.Error(r.Context(), "Failed to make policy update status", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetDashboardPolicyUpdateResponse
+	out.PolicyUpdate = dpu
 	ResponseJSON(w, r, http.StatusOK, out)
 }

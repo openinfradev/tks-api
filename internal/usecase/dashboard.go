@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/model"
+	policytemplate "github.com/openinfradev/tks-api/internal/policy-template"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -33,6 +34,7 @@ type IDashboardUsecase interface {
 	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
 	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
 	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
+	GetPolicyUpdate(ctx context.Context, policyTemplates []policytemplate.TKSPolicyTemplate, policies []policytemplate.TKSPolicy) (domain.DashboardPolicyUpdate, error)
 }
 
 type DashboardUsecase struct {
@@ -41,6 +43,8 @@ type DashboardUsecase struct {
 	clusterRepo            repository.IClusterRepository
 	appGroupRepo           repository.IAppGroupRepository
 	systemNotificationRepo repository.ISystemNotificationRepository
+	policyTemplateRepo     repository.IPolicyTemplateRepository
+	policyRepo             repository.IPolicyRepository
 	cache                  *gcache.Cache
 }
 
@@ -51,6 +55,8 @@ func NewDashboardUsecase(r repository.Repository, cache *gcache.Cache) IDashboar
 		clusterRepo:            r.Cluster,
 		appGroupRepo:           r.AppGroup,
 		systemNotificationRepo: r.SystemNotification,
+		policyTemplateRepo:     r.PolicyTemplate,
+		policyRepo:             r.Policy,
 		cache:                  cache,
 	}
 }
@@ -599,6 +605,47 @@ func (u *DashboardUsecase) getClusterNameFromId(ctx context.Context, clusterId s
 
 	u.cache.Set(prefix+clusterId, clusterName, gcache.DefaultExpiration)
 	return
+}
+
+func (u *DashboardUsecase) GetPolicyUpdate(ctx context.Context, policyTemplates []policytemplate.TKSPolicyTemplate,
+	policies []policytemplate.TKSPolicy) (domain.DashboardPolicyUpdate, error) {
+
+	var outdatedTemplateIds []string
+	for _, tpt := range policyTemplates {
+		templateId := tpt.Labels[policytemplate.TemplateIDLabel]
+		id, err := uuid.Parse(templateId)
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+			continue
+		}
+		version, err := u.policyTemplateRepo.GetLatestTemplateVersion(ctx, id)
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+			continue
+		}
+
+		if version != tpt.Spec.Version {
+			outdatedTemplateIds = append(outdatedTemplateIds, templateId)
+		}
+	}
+
+	outdatedTemplateCount := len(outdatedTemplateIds)
+	outdatedPolicyCount := 0
+
+	for _, policy := range policies {
+		templateId := policy.Labels[policytemplate.TemplateIDLabel]
+
+		if slices.Contains(outdatedTemplateIds, templateId) {
+			outdatedPolicyCount++
+		}
+	}
+
+	dpu := domain.DashboardPolicyUpdate{
+		PolicyTemplate: outdatedTemplateCount,
+		Policy:         outdatedPolicyCount,
+	}
+
+	return dpu, nil
 }
 
 func rangeDate(start, end time.Time) func() time.Time {

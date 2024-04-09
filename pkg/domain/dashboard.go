@@ -188,3 +188,12 @@ type DashboardPolicyStatus struct {
 type GetDashboardPolicyStatusResponse struct {
 	PolicyStatus DashboardPolicyStatus `json:"statuses"`
 }
+
+type DashboardPolicyUpdate struct {
+	PolicyTemplate int `json:"policyTemplate"`
+	Policy         int `json:"policy"`
+}
+
+type GetDashboardPolicyUpdateResponse struct {
+	PolicyUpdate DashboardPolicyUpdate `json:"updatedResources"`
+}

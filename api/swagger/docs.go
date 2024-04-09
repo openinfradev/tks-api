@@ -3337,6 +3337,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/dashboard/policy-update": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get the number of policytemplates that need to be updated",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get the number of policytemplates that need to be updated",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyUpdateResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboard/resources": {
             "get": {
                 "security": [
@@ -8331,6 +8368,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/{stackId}/statistics": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "클러스터의 정책과 정책 템플릿, 버전 등을 포함한 상태 목록을 조회한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackPolicyStatus"
+                ],
+                "summary": "[ListStackPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "스택 식별자",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "pageNumber",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "sortColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListStackPolicyStatusResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks/{stackId}/status": {
             "get": {
                 "security": [
@@ -11703,6 +11818,17 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyUpdate": {
+            "type": "object",
+            "properties": {
+                "policy": {
+                    "type": "integer"
+                },
+                "policyTemplate": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.DashboardResource": {
             "type": "object",
             "properties": {
@@ -12137,6 +12263,14 @@ const docTemplate = `{
             "properties": {
                 "statuses": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyStatus"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyUpdateResponse": {
+            "type": "object",
+            "properties": {
+                "updatedResources": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyUpdate"
                 }
             }
         },

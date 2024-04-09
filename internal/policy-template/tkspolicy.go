@@ -235,43 +235,66 @@ func ExistsTksPolicyCR(ctx context.Context, primaryClusterId string, name string
 	return true, nil
 }
 
-func ListTksPolicyCR(ctx context.Context, primaryClusterId string) ([]*TKSPolicy, error) {
-	if syncToKubernetes() {
-		dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
+//func ListTksPolicyCR(ctx context.Context, primaryClusterId string) ([]TKSPolicy, error) {
+//	if syncToKubernetes() {
+//		dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
+//
+//		if err != nil {
+//			return nil, err
+//		}
+//
+//		results, err := dynamicClient.Resource(TKSPolicyGVR).Namespace(primaryClusterId).
+//			List(ctx, metav1.ListOptions{})
+//
+//		if err != nil {
+//			return nil, err
+//		}
+//
+//		tkspolicies := make([]TKSPolicy, len(results.Items))
+//
+//		for i, result := range results.Items {
+//			jsonBytes, err := json.Marshal(result.Object)
+//
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			var tksPolicy TKSPolicy
+//			err = json.Unmarshal(jsonBytes, &tksPolicy)
+//
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			tkspolicies[i] = tksPolicy
+//		}
+//
+//		return tkspolicies, nil
+//	}
+//
+//	tkspolicies := make([]TKSPolicy, 0)
+//	return tkspolicies, nil
+//}
 
-		if err != nil {
-			return nil, err
-		}
-
-		results, err := dynamicClient.Resource(TKSPolicyGVR).Namespace(primaryClusterId).
-			List(ctx, metav1.ListOptions{})
-
-		if err != nil {
-			return nil, err
-		}
-
-		tkspolicies := make([]*TKSPolicy, len(results.Items))
-
-		for i, result := range results.Items {
-			jsonBytes, err := json.Marshal(result.Object)
-
-			if err != nil {
-				return nil, err
-			}
-
-			var tksPolicy TKSPolicy
-			err = json.Unmarshal(jsonBytes, &tksPolicy)
-
-			if err != nil {
-				return nil, err
-			}
-
-			tkspolicies[i] = &tksPolicy
-		}
-
-		return tkspolicies, nil
+func GetTksPolicyCRs(ctx context.Context, primaryClusterId string) (tksPolicies []TKSPolicy, err error) {
+	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	tkspolicies := make([]*TKSPolicy, 0)
-	return tkspolicies, nil
+	resources, err := dynamicClient.Resource(TKSPolicyGVR).Namespace(primaryClusterId).
+		List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var tksPolicy TKSPolicy
+	for _, c := range resources.Items {
+		if err = runtime.DefaultUnstructuredConverter.FromUnstructured(c.UnstructuredContent(), &tksPolicy); err != nil {
+			return nil, err
+		}
+		tksPolicies = append(tksPolicies, tksPolicy)
+	}
+
+	return tksPolicies, nil
 }
