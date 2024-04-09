@@ -773,7 +773,7 @@ func (u *PolicyUsecase) AddPoliciesForClusterID(ctx context.Context, organizatio
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 	}
 
-	tkpolicies, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	tkpolicies, err := policytemplate.GetTksPolicyCRs(ctx, primaryClusterId)
 	if err != nil {
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 
@@ -796,7 +796,7 @@ func (u *PolicyUsecase) AddPoliciesForClusterID(ctx context.Context, organizatio
 			if !slices.Contains(tkspolicy.Spec.Clusters, string(clusterId)) {
 				tkspolicy.Spec.Clusters = append(tkspolicy.Spec.Clusters, string(clusterId))
 
-				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, &tkspolicy)
 				if err != nil {
 					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 				}
@@ -833,7 +833,7 @@ func (u *PolicyUsecase) UpdatePoliciesForClusterID(ctx context.Context, organiza
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 	}
 
-	tkpolicies, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	tkpolicies, err := policytemplate.GetTksPolicyCRs(ctx, primaryClusterId)
 	if err != nil {
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 
@@ -856,7 +856,7 @@ func (u *PolicyUsecase) UpdatePoliciesForClusterID(ctx context.Context, organiza
 			if !slices.Contains(tkspolicy.Spec.Clusters, string(clusterId)) {
 				tkspolicy.Spec.Clusters = append(tkspolicy.Spec.Clusters, string(clusterId))
 
-				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, &tkspolicy)
 				if err != nil {
 					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 				}
@@ -870,7 +870,7 @@ func (u *PolicyUsecase) UpdatePoliciesForClusterID(ctx context.Context, organiza
 				tkspolicy.Spec.Clusters = slices.Filter(newClusters, tkspolicy.Spec.Clusters,
 					func(s string) bool { return s != string(clusterId) })
 
-				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, &tkspolicy)
 				if err != nil {
 					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 				}
@@ -906,7 +906,7 @@ func (u *PolicyUsecase) DeletePoliciesForClusterID(ctx context.Context, organiza
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 	}
 
-	tkpolicies, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	tkpolicies, err := policytemplate.GetTksPolicyCRs(ctx, primaryClusterId)
 	if err != nil {
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 
@@ -928,7 +928,7 @@ func (u *PolicyUsecase) DeletePoliciesForClusterID(ctx context.Context, organiza
 
 				tkspolicy.Spec.Clusters = slices.Filter(newClusters, tkspolicy.Spec.Clusters,
 					func(s string) bool { return s != string(clusterId) })
-				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, tkspolicy)
+				err := policytemplate.ApplyTksPolicyCR(ctx, primaryClusterId, &tkspolicy)
 
 				if err != nil {
 					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
@@ -951,7 +951,7 @@ func (u *PolicyUsecase) GetStackPolicyStatistics(ctx context.Context, organizati
 
 	primaryClusterId := organization.PrimaryClusterId
 
-	templateList, err := policytemplate.ListTksPolicyTemplateCR(ctx, primaryClusterId)
+	templateList, err := policytemplate.GetTksPolicyTemplateCRs(ctx, primaryClusterId)
 	if err != nil {
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 
@@ -985,7 +985,7 @@ func (u *PolicyUsecase) GetStackPolicyStatistics(ctx context.Context, organizati
 	outdatedTemplateCount := len(outdatedTemplateIds)
 	uptodateTemplateCount := totalTemplateCount - outdatedTemplateCount
 
-	policyList, err := policytemplate.ListTksPolicyCR(ctx, primaryClusterId)
+	policyList, err := policytemplate.GetTksPolicyCRs(ctx, primaryClusterId)
 	if err != nil {
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 
