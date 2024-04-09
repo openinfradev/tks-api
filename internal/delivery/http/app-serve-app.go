@@ -74,9 +74,10 @@ type AppServeAppHandler struct {
 	prjUsecase usecase.IProjectUsecase
 }
 
-func NewAppServeAppHandler(h usecase.Usecase) *AppServeAppHandler {
+func NewAppServeAppHandler(u usecase.Usecase) *AppServeAppHandler {
 	return &AppServeAppHandler{
-		usecase: h.AppServeApp,
+		usecase:    u.AppServeApp,
+		prjUsecase: u.Project,
 	}
 }
 
@@ -127,7 +128,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	log.Infof(r.Context(), "Processing CREATE request for app '%s'...", app.Name)
 
 	// Namespace validation
-	exist, err := h.prjUsecase.IsProjectNamespaceExist(organizationId, projectId, app.TargetClusterId, app.Namespace)
+	exist, err := h.prjUsecase.IsProjectNamespaceExist(r.Context(), organizationId, projectId, app.TargetClusterId, app.Namespace)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking namespace record: %s", err), "", ""))
 		return
@@ -166,7 +167,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, app.Name)
+	exist, err = h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, app.Name)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -250,10 +251,18 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 //	@Security		JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
 	organizationId, ok := vars["organizationId"]
-	fmt.Printf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId"), "C_INVALID_PROJECT_ID", ""))
 		return
 	}
 
@@ -270,8 +279,9 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 		ErrorJSON(w, r, err)
 		return
 	}
+
 	pg := pagination.NewPagination(&urlParams)
-	apps, err := h.usecase.GetAppServeApps(r.Context(), organizationId, showAll, pg)
+	apps, err := h.usecase.GetAppServeApps(r.Context(), organizationId, projectId, showAll, pg)
 	if err != nil {
 		log.Error(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
@@ -487,7 +497,6 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
 
-	// TODO: Fix runtime error here!
 	// Check if projectId exists
 	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
 	if err != nil {
@@ -566,7 +575,7 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	}
 
 	// Check if projectId exists
-	prj, err := h.prjUsecase.GetProject(organizationId, projectId)
+	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %s", err), "", ""))
 		return

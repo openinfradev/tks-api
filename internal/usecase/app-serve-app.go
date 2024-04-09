@@ -25,7 +25,7 @@ import (
 
 type IAppServeAppUsecase interface {
 	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
+	GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
 	GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
 	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
@@ -180,10 +180,10 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 	return appId, app.Name, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
-	apps, err := u.repo.GetAppServeApps(ctx, organizationId, showAll, pg)
+func (u *AppServeAppUsecase) GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
+	apps, err := u.repo.GetAppServeApps(ctx, organizationId, projectId, showAll, pg)
 	if err != nil {
-		fmt.Println(apps)
+		log.Debugf(ctx, "Apps: [%v]", apps)
 	}
 
 	return apps, nil
