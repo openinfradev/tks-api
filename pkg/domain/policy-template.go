@@ -182,8 +182,8 @@ type RegoCompieError struct {
 }
 
 type RegoCompileResponse struct {
-	ParametersSchema []*ParameterDef   `json:"parametersSchema,omitempty"`
-	Errors           []RegoCompieError `json:"errors,omitempty"`
+	ParametersSchema []*ParameterDef   `json:"parametersSchema"`
+	Errors           []RegoCompieError `json:"errors"`
 }
 
 type ExtractParametersRequest struct {
@@ -192,8 +192,8 @@ type ExtractParametersRequest struct {
 }
 
 type ExtractParametersResponse struct {
-	ParametersSchema []*ParameterDef   `json:"parametersSchema,omitempty"`
-	Errors           []RegoCompieError `json:"errors,omitempty"`
+	ParametersSchema []*ParameterDef   `json:"parametersSchema"`
+	Errors           []RegoCompieError `json:"errors"`
 }
 
 type AddPoliciesForStackRequest struct {

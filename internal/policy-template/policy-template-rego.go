@@ -1,6 +1,7 @@
 package policytemplate
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -14,7 +15,9 @@ const (
 	input_param_prefix    = "input.parameters"
 	input_extract_pattern = `input(\.parameters|\[\"parameters\"\])((\[\"[\w\-]+\"\])|(\[_\])|(\.\w+))*` //(\.\w+)*` //  (\.\w+\[\"\w+\"\])|(\.\w+\[\w+\])|(\.\w+))*`
 	//	input_extract_pattern = `input\.parameters((\[\".+\"\])?(\.\w+\[\"\w+\"\])|(\.\w+\[\w+\])|(\.\w+))+`
-	obj_get_pattern = `object\.get\((input|input\.parameters|input\.parameters\.[^,]+)\, \"*([^,\"]+)\"*, [^\)]+\)`
+	obj_get_pattern    = `object\.get\((input|input\.parameters|input\.parameters\.[^,]+)\, \"*([^,\"]+)\"*, [^\)]+\)`
+	package_name_regex = `package ([\w\.]+)[\n\r]+`
+	import_regex       = `import ([\w\.]+)[\n\r]+`
 )
 
 var (
@@ -268,6 +271,23 @@ func ExtractParameter(modules map[string]*ast.Module) []*domain.ParameterDef {
 	return defStore.store
 }
 
+func MergeRegoAndLibs(rego string, libs []string) string {
+	if len(libs) == 0 {
+		return rego
+	}
+
+	var re = regexp.MustCompile(import_regex)
+	var re2 = regexp.MustCompile(package_name_regex)
+
+	result := re.ReplaceAllString(rego, "")
+
+	for _, lib := range libs {
+		result += re2.ReplaceAllString(lib, "")
+	}
+
+	return result
+}
+
 type ParamDefStore struct {
 	store []*domain.ParameterDef
 }
@@ -345,4 +365,76 @@ func createKey(key string, isLast bool) *domain.ParameterDef {
 	}
 
 	return newDef
+}
+
+func CompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Module, compiler *ast.Compiler, err error) {
+	modules = map[string]*ast.Module{}
+
+	regoPackage := GetPackageFromRegoCode(rego)
+
+	regoModule, err := ast.ParseModuleWithOpts(regoPackage, rego, ast.ParserOptions{})
+	if err != nil {
+		return modules, nil, err
+	}
+
+	modules[regoPackage] = regoModule
+
+	for i, lib := range libs {
+		// Lib이 공백이면 무시
+		if len(strings.TrimSpace(lib)) == 0 {
+			continue
+		}
+
+		libPackage := GetPackageFromRegoCode(lib)
+
+		// Lib의 패키지 명이 공백이면 rego에서 import 될 수 없기 때문에 에러 처리
+		// 패키지 명이 Parse할 때 비어있으면 에러가 나지만, rego인지 lib인지 정확히 알기 어려울 수 있으므로 알려 줌
+		if len(strings.TrimSpace(libPackage)) == 0 {
+			return modules, nil, fmt.Errorf("lib[%d] is not valid, empty package name", i)
+		}
+
+		libModule, err := ast.ParseModuleWithOpts(libPackage, lib, ast.ParserOptions{})
+		if err != nil {
+			return modules, nil, err
+		}
+
+		modules[libPackage] = libModule
+	}
+
+	compiler = ast.NewCompiler()
+	compiler.Compile(modules)
+
+	return modules, compiler, nil
+}
+
+func MergeAndCompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Module, err error) {
+	modules = map[string]*ast.Module{}
+
+	regoPackage := GetPackageFromRegoCode(rego)
+
+	merged := MergeRegoAndLibs(rego, libs)
+
+	module, err := ast.ParseModuleWithOpts(regoPackage, merged, ast.ParserOptions{})
+	if err != nil {
+		return modules, err
+	}
+
+	modules[regoPackage] = module
+
+	compiler := ast.NewCompiler()
+	compiler.Compile(modules)
+
+	return modules, nil
+}
+
+func GetPackageFromRegoCode(regoCode string) string {
+	packageRegex := regexp.MustCompile(package_name_regex)
+
+	match := packageRegex.FindStringSubmatch(regoCode)
+
+	if len(match) > 1 {
+		return match[1]
+	}
+
+	return ""
 }
