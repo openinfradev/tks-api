@@ -94,6 +94,10 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 		}
 	}
 
+	if err := policytemplate.ValidateParamDefs(dto.ParametersSchema); err != nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(err, "PT_INVALID_PARAMETER_SCHEMA", "")
+	}
+
 	if dto.IsTksTemplate() {
 		// TKS 템블릿이면
 		dto.Mandatory = false
@@ -430,6 +434,10 @@ func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context,
 			"PT_NOT_PERMITTED_ON_TKS_POLICY_TEMPLATE", "")
 	}
 
+	if err := policytemplate.ValidateParamDefs(policyTemplate.ParametersSchema); err != nil {
+		return "", httpErrors.NewBadRequestError(err, "PT_INVALID_PARAMETER_SCHEMA", "")
+	}
+
 	return u.repo.CreatePolicyTemplateVersion(ctx, policyTemplateId, newVersion, schema, rego, libs)
 }
 
@@ -437,7 +445,7 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 	response = &domain.RegoCompileResponse{}
 	response.Errors = []domain.RegoCompieError{}
 
-	modules, compiler, err := policytemplate.CompileRegoWithLibs(request.Rego, request.Libs)
+	compiler, err := policytemplate.CompileRegoWithLibs(request.Rego, request.Libs)
 
 	if err != nil {
 		response.Errors = append(response.Errors, domain.RegoCompieError{
@@ -465,7 +473,7 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 
 	if parseParameter {
 		// 효율적인 파라미터 추출을 위한 머지
-		modules, err = policytemplate.MergeAndCompileRegoWithLibs(request.Rego, request.Libs)
+		modules, err := policytemplate.MergeAndCompileRegoWithLibs(request.Rego, request.Libs)
 		if err != nil {
 			response.Errors = append(response.Errors, domain.RegoCompieError{
 				Status:  400,
@@ -564,7 +572,7 @@ func (u *PolicyTemplateUsecase) ExtractPolicyParameters(ctx context.Context, org
 	response = &domain.RegoCompileResponse{}
 	response.Errors = []domain.RegoCompieError{}
 
-	modules, compiler, err := policytemplate.CompileRegoWithLibs(rego, libs)
+	compiler, err := policytemplate.CompileRegoWithLibs(rego, libs)
 
 	if err != nil {
 		response.Errors = append(response.Errors, domain.RegoCompieError{
@@ -592,7 +600,7 @@ func (u *PolicyTemplateUsecase) ExtractPolicyParameters(ctx context.Context, org
 		return response, nil
 	}
 
-	modules, err = policytemplate.MergeAndCompileRegoWithLibs(rego, libs)
+	modules, err := policytemplate.MergeAndCompileRegoWithLibs(rego, libs)
 	if err != nil {
 		response.Errors = append(response.Errors, domain.RegoCompieError{
 			Status:  400,

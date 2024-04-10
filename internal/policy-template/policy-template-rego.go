@@ -367,14 +367,14 @@ func createKey(key string, isLast bool) *domain.ParameterDef {
 	return newDef
 }
 
-func CompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Module, compiler *ast.Compiler, err error) {
-	modules = map[string]*ast.Module{}
+func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, err error) {
+	modules := map[string]*ast.Module{}
 
 	regoPackage := GetPackageFromRegoCode(rego)
 
 	regoModule, err := ast.ParseModuleWithOpts(regoPackage, rego, ast.ParserOptions{})
 	if err != nil {
-		return modules, nil, err
+		return nil, err
 	}
 
 	modules[regoPackage] = regoModule
@@ -390,12 +390,12 @@ func CompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Mo
 		// Lib의 패키지 명이 공백이면 rego에서 import 될 수 없기 때문에 에러 처리
 		// 패키지 명이 Parse할 때 비어있으면 에러가 나지만, rego인지 lib인지 정확히 알기 어려울 수 있으므로 알려 줌
 		if len(strings.TrimSpace(libPackage)) == 0 {
-			return modules, nil, fmt.Errorf("lib[%d] is not valid, empty package name", i)
+			return nil, fmt.Errorf("lib[%d] is not valid, empty package name", i)
 		}
 
 		libModule, err := ast.ParseModuleWithOpts(libPackage, lib, ast.ParserOptions{})
 		if err != nil {
-			return modules, nil, err
+			return nil, err
 		}
 
 		modules[libPackage] = libModule
@@ -404,7 +404,7 @@ func CompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Mo
 	compiler = ast.NewCompiler()
 	compiler.Compile(modules)
 
-	return modules, compiler, nil
+	return compiler, nil
 }
 
 func MergeAndCompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Module, err error) {

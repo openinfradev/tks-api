@@ -127,6 +127,7 @@ var errorMap = map[ErrorCode]string{
 	"PT_INVALID_POLICY_TEMPLATE_KIND":         "유효하지 않은 정책 템플릿 유형입니다. 정책 템플릿 유형을 확인하세요.",
 	"PT_INVALID_REGO_PARSEPARAMETER":          "유효하지 않은 Rego 파싱 설정입니다. Rego 파싱 설정을 확인하세요.",
 	"PT_NOT_PERMITTED_ON_TKS_POLICY_TEMPLATE": "tks 템플릿에 대해 해당 동작을 수행할 수 없습니다.",
+	"PT_INVALID_PARAMETER_SCHEMA":             "파라미터 스키마에 잘못된 타입이 지정되었습니다.",
 
 	// Policy
 	"P_CREATE_ALREADY_EXISTED_NAME":          "정첵에 이미 존재하는 이름입니다.",
