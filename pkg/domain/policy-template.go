@@ -32,7 +32,7 @@ type SimplePolicyTemplateResponse struct {
 }
 
 type CreatePolicyTemplateRequest struct {
-	TemplateName     string          `json:"templateName" validate:"required,name" example:"필수 Label 검사" validate:"name"`
+	TemplateName     string          `json:"templateName" validate:"required,name" example:"필수 Label 검사"`
 	Kind             string          `json:"kind" example:"K8sRequiredLabels" validate:"required,pascalcase"`
 	Severity         string          `json:"severity" validate:"required,oneof=low medium high" enums:"low,medium,high" example:"medium"`
 	Deprecated       bool            `json:"deprecated" example:"false"`
