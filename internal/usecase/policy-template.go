@@ -10,7 +10,6 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/google/uuid"
-	"github.com/open-policy-agent/opa/ast"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -93,6 +92,10 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 		if err == nil && exists {
 			return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_CREATE_ALREADY_EXISTED_KIND", "policy template kind already exists")
 		}
+	}
+
+	if err := policytemplate.ValidateParamDefs(dto.ParametersSchema); err != nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(err, "PT_INVALID_PARAMETER_SCHEMA", "")
 	}
 
 	if dto.IsTksTemplate() {
@@ -431,25 +434,27 @@ func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context,
 			"PT_NOT_PERMITTED_ON_TKS_POLICY_TEMPLATE", "")
 	}
 
+	if err := policytemplate.ValidateParamDefs(policyTemplate.ParametersSchema); err != nil {
+		return "", httpErrors.NewBadRequestError(err, "PT_INVALID_PARAMETER_SCHEMA", "")
+	}
+
 	return u.repo.CreatePolicyTemplateVersion(ctx, policyTemplateId, newVersion, schema, rego, libs)
 }
 
 func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error) {
-	modules := map[string]*ast.Module{}
-
 	response = &domain.RegoCompileResponse{}
 	response.Errors = []domain.RegoCompieError{}
 
-	mod, err := ast.ParseModuleWithOpts("rego", request.Rego, ast.ParserOptions{})
+	compiler, err := policytemplate.CompileRegoWithLibs(request.Rego, request.Libs)
+
 	if err != nil {
-		return nil, err
-	}
-	modules["rego"] = mod
-
-	compiler := ast.NewCompiler()
-	compiler.Compile(modules)
-
-	if compiler.Failed() {
+		response.Errors = append(response.Errors, domain.RegoCompieError{
+			Status:  400,
+			Code:    "PT_FAILED_TO_LOAD_REGO_MODULE",
+			Message: "failed to load rego module",
+			Text:    err.Error(),
+		})
+	} else if compiler.Failed() {
 		for _, compileError := range compiler.Errors {
 			response.Errors = append(response.Errors, domain.RegoCompieError{
 				Status:  400,
@@ -462,8 +467,23 @@ func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, 
 		}
 	}
 
+	if len(response.Errors) > 0 {
+		return response, nil
+	}
+
 	if parseParameter {
-		response.ParametersSchema = policytemplate.ExtractParameter(modules)
+		// 효율적인 파라미터 추출을 위한 머지
+		modules, err := policytemplate.MergeAndCompileRegoWithLibs(request.Rego, request.Libs)
+		if err != nil {
+			response.Errors = append(response.Errors, domain.RegoCompieError{
+				Status:  400,
+				Code:    "PT_FAILED_TO_LOAD_REGO_MODULE",
+				Message: "failed to load merged rego module",
+				Text:    err.Error(),
+			})
+		} else {
+			response.ParametersSchema = policytemplate.ExtractParameter(modules)
+		}
 	}
 
 	return response, nil
@@ -549,21 +569,20 @@ func (u *PolicyTemplateUsecase) ExtractPolicyParameters(ctx context.Context, org
 		}
 	}
 
-	modules := map[string]*ast.Module{}
-
 	response = &domain.RegoCompileResponse{}
 	response.Errors = []domain.RegoCompieError{}
 
-	mod, err := ast.ParseModuleWithOpts("rego", rego, ast.ParserOptions{})
+	compiler, err := policytemplate.CompileRegoWithLibs(rego, libs)
+
 	if err != nil {
-		return nil, err
-	}
-	modules["rego"] = mod
-
-	compiler := ast.NewCompiler()
-	compiler.Compile(modules)
-
-	if compiler.Failed() {
+		response.Errors = append(response.Errors, domain.RegoCompieError{
+			Status:  400,
+			Code:    "PT_FAILED_TO_LOAD_REGO_MODULE",
+			Message: "failed to load rego module",
+			Text:    err.Error(),
+		})
+		return response, nil
+	} else if compiler.Failed() {
 		for _, compileError := range compiler.Errors {
 			response.Errors = append(response.Errors, domain.RegoCompieError{
 				Status:  400,
@@ -574,6 +593,21 @@ func (u *PolicyTemplateUsecase) ExtractPolicyParameters(ctx context.Context, org
 					compileError.Message),
 			})
 		}
+		return response, nil
+	}
+
+	if len(response.Errors) > 0 {
+		return response, nil
+	}
+
+	modules, err := policytemplate.MergeAndCompileRegoWithLibs(rego, libs)
+	if err != nil {
+		response.Errors = append(response.Errors, domain.RegoCompieError{
+			Status:  400,
+			Code:    "PT_FAILED_TO_LOAD_REGO_MODULE",
+			Message: "failed to load merged rego module",
+			Text:    err.Error(),
+		})
 	}
 
 	extractedParamDefs := policytemplate.ExtractParameter(modules)

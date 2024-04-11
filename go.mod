@@ -36,6 +36,7 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/thoas/go-funk v0.9.3
 	github.com/vmware-tanzu/cluster-api-provider-bringyourownhost v0.5.0
+	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.21.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/net v0.22.0

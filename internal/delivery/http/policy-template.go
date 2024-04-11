@@ -1735,7 +1735,7 @@ func (h *PolicyTemplateHandler) ExtractParameters(w http.ResponseWriter, r *http
 		return
 	}
 
-	if err := serializer.Map(r.Context(), response, &out); err != nil {
+	if err := serializer.Map(r.Context(), *response, &out); err != nil {
 		log.Info(r.Context(), err)
 	}
 

@@ -146,7 +146,11 @@ func ParamDefsToJSONSchemaProeprties(paramdefs []*domain.ParameterDef) *apiexten
 		return nil
 	}
 
-	result := apiextensionsv1.JSONSchemaProps{Type: "object", Properties: convert(paramdefs)}
+	result := apiextensionsv1.JSONSchemaProps{
+		Type:                 "object",
+		Properties:           convert(paramdefs),
+		AdditionalProperties: &apiextensionsv1.JSONSchemaPropsOrBool{Allows: false},
+	}
 
 	return &result
 }
