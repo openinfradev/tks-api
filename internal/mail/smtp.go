@@ -33,7 +33,7 @@ type Mailer interface {
 
 type MessageInfo struct {
 	From    string
-	To      string
+	To      []string
 	Subject string
 	Body    string
 }
@@ -50,14 +50,17 @@ type SmtpMailer struct {
 
 func (s *SmtpMailer) SendMail(ctx context.Context) error {
 	s.client.SetHeader("From", s.message.From)
-	s.client.SetHeader("To", s.message.To)
 	s.client.SetHeader("Subject", s.message.Subject)
 	s.client.SetBody("text/html", s.message.Body)
-
 	d := NewDialer(s.Host, s.Port, s.Username, s.Password)
-	if err := d.DialAndSend(s.client); err != nil {
-		log.Errorf(ctx, "failed to send email, %v", err)
-		return err
+
+	for _, to := range s.message.To {
+		s.client.SetHeader("To", to)
+
+		if err := d.DialAndSend(s.client); err != nil {
+			log.Errorf(ctx, "failed to send email, %v", err)
+			continue
+		}
 	}
 
 	return nil

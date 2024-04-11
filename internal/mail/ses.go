@@ -23,7 +23,7 @@ type AwsMailer struct {
 func (a *AwsMailer) SendMail(ctx context.Context) error {
 	input := &awsSes.SendEmailInput{
 		Destination: &types.Destination{
-			ToAddresses: []string{a.message.To},
+			ToAddresses: a.message.To,
 		},
 		Message: &types.Message{
 			Subject: &types.Content{

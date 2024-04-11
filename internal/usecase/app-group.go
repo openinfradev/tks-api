@@ -127,7 +127,7 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 		"app_group_id=" + dto.ID.String(),
 		"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 		"console_url=" + viper.GetString("console-address"),
-		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/alerts",
+		"alert_tks=" + viper.GetString("external-address") + "/system-api/1.0/system-notifications",
 		"alert_slack=" + viper.GetString("alert-slack"),
 		"cloud_account_id=" + tksCloudAccountId,
 		"object_store=" + tksObjectStore,
