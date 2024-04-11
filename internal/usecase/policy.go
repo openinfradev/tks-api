@@ -137,6 +137,12 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 	}
 
+	if err := policytemplate.ValidateJSONusingParamdefs(policyTemplate.ParametersSchema, dto.Parameters); err != nil {
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+		return uuid.Nil, httpErrors.NewBadRequestError(err, "P_INVALID_POLICY_PARAMETER", "")
+	}
+
 	primaryClusterId := organization.PrimaryClusterId
 
 	// k8s에 label로 policyID를 기록해 주기 위해 DB 컬럼 생성 시 ID를 생성하지 않고 미리 생성
@@ -226,7 +232,7 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 		return httpErrors.NewBadRequestError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
 	}
 
-	_, err = u.repo.GetByID(ctx, organizationId, policyId)
+	policy, err := u.repo.GetByID(ctx, organizationId, policyId)
 	if err != nil {
 		return httpErrors.NewNotFoundError(err, "P_FAILED_FETCH_POLICY", "")
 	}
@@ -249,8 +255,11 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 		updateMap["description"] = description
 	}
 
+	schema := policy.PolicyTemplate.ParametersSchema
+
 	if templateId != nil {
 		policyTemplate, err := u.templateRepo.GetByID(ctx, *templateId)
+		schema = policyTemplate.ParametersSchema
 
 		if err != nil {
 			return err
@@ -271,6 +280,12 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 
 	if parameters != nil {
 		updateMap["parameters"] = parameters
+
+		if err := policytemplate.ValidateJSONusingParamdefs(schema, *parameters); err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+
+			return httpErrors.NewBadRequestError(err, "P_INVALID_POLICY_PARAMETER", "")
+		}
 	}
 
 	if matchYaml != nil {
