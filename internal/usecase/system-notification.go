@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/mail"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -31,18 +32,20 @@ type ISystemNotificationUsecase interface {
 }
 
 type SystemNotificationUsecase struct {
-	repo             repository.ISystemNotificationRepository
-	clusterRepo      repository.IClusterRepository
-	organizationRepo repository.IOrganizationRepository
-	appGroupRepo     repository.IAppGroupRepository
+	repo                       repository.ISystemNotificationRepository
+	clusterRepo                repository.IClusterRepository
+	organizationRepo           repository.IOrganizationRepository
+	appGroupRepo               repository.IAppGroupRepository
+	systemNotificationRuleRepo repository.ISystemNotificationRuleRepository
 }
 
 func NewSystemNotificationUsecase(r repository.Repository) ISystemNotificationUsecase {
 	return &SystemNotificationUsecase{
-		repo:             r.SystemNotification,
-		clusterRepo:      r.Cluster,
-		appGroupRepo:     r.AppGroup,
-		organizationRepo: r.Organization,
+		repo:                       r.SystemNotification,
+		clusterRepo:                r.Cluster,
+		appGroupRepo:               r.AppGroup,
+		organizationRepo:           r.Organization,
+		systemNotificationRuleRepo: r.SystemNotificationRule,
 	}
 }
 
@@ -117,20 +120,40 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 
 		_, err = u.repo.Create(ctx, dto)
 		if err != nil {
+			log.Error(ctx, "Failed to create systemNotification ", err)
 			continue
 		}
 
-		/*
-			for _, user := range dto.System
-			message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, "test", dto.Users, user.AccountId, randomPassword)
-			if err != nil {
-				return nil, httpErrors.NewInternalServerError(err, "", "")
-			}
-			mailer := mail.New(message)
-			if err := mailer.SendMail(ctx); err != nil {
-				return nil, httpErrors.NewInternalServerError(err, "", "")
-			}
-		*/
+		if systemNotification.Annotations.SystemNotificationRuleId == "" {
+			log.Error(ctx, "Invalid systemNotificationRuleId ")
+			continue
+		}
+
+		systemNotificationRuleId, err := uuid.Parse(systemNotification.Annotations.SystemNotificationRuleId)
+		if err != nil {
+			log.Error(ctx, "Failed to parse uuid ", err)
+			continue
+		}
+		rule, err := u.systemNotificationRuleRepo.Get(ctx, systemNotificationRuleId)
+		if err != nil {
+			log.Error(ctx, "Failed to get systemNotificationRule ", err)
+			continue
+		}
+
+		to := []string{}
+		for _, user := range rule.TargetUsers {
+			to = append(to, user.Email)
+		}
+		message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, to)
+		if err != nil {
+			log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
+			continue
+		}
+		mailer := mail.New(message)
+		if err := mailer.SendMail(ctx); err != nil {
+			log.Error(ctx, fmt.Sprintf("Failed to send email to %s. err : %s", to, err.Error()))
+			continue
+		}
 	}
 
 	return nil

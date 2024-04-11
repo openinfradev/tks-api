@@ -53,12 +53,13 @@ type SystemNotificationRequest struct {
 		TacoCluster string `json:"taco_cluster"`
 	} `json:"labels"`
 	Annotations struct {
-		Message        string `json:"message"`
-		Summary        string `json:"summary"`
-		Description    string `json:"description"`
-		Checkpoint     string `json:"Checkpoint"`
-		Discriminative string `json:"discriminative"`
-		AlertType      string `json:"alertType"`
+		Message                  string `json:"message"`
+		Summary                  string `json:"summary"`
+		Description              string `json:"description"`
+		Checkpoint               string `json:"Checkpoint"`
+		Discriminative           string `json:"discriminative"`
+		AlertType                string `json:"alertType"`
+		SystemNotificationRuleId string `json:"systemNotificationRuleId"`
 	} `json:"annotations"`
 }
 

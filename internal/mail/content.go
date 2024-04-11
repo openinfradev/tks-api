@@ -27,7 +27,7 @@ func MakeVerityIdentityMessage(ctx context.Context, to, code string) (*MessageIn
 
 	m := &MessageInfo{
 		From:    from,
-		To:      to,
+		To:      []string{to},
 		Subject: subject,
 		Body:    tpl.String(),
 	}
@@ -54,7 +54,7 @@ func MakeTemporaryPasswordMessage(ctx context.Context, to, organizationId, accou
 
 	m := &MessageInfo{
 		From:    from,
-		To:      to,
+		To:      []string{to},
 		Subject: subject,
 		Body:    tpl.String(),
 	}
@@ -90,7 +90,7 @@ func MakeGeneratingOrganizationMessage(
 
 	m := &MessageInfo{
 		From:    from,
-		To:      to,
+		To:      []string{to},
 		Subject: subject,
 		Body:    tpl.String(),
 	}
@@ -98,10 +98,7 @@ func MakeGeneratingOrganizationMessage(
 	return m, nil
 }
 
-func MakeSystemNotificationMessage(
-	ctx context.Context,
-	organizationId string, title string,
-	to string) (*MessageInfo, error) {
+func MakeSystemNotificationMessage(ctx context.Context, organizationId string, title string, to []string) (*MessageInfo, error) {
 	subject := "[TKS] 시스템 알림이 발생하였습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/system_notification.html")
