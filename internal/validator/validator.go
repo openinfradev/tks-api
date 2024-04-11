@@ -11,7 +11,13 @@ import (
 	"github.com/opentracing/opentracing-go/log"
 )
 
-const REGEX_RFC1123 = `^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`
+const (
+	REGEX_RFC1123           = `^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`
+	REGEX_SIMPLE_SEMVER     = `^v\d+\.\d+\.\d+$`
+	REGEX_PASCAL_CASE       = `^([A-Z][a-z\d]+)+$` // 대문자로 시작하는 camel case(pascal case or upper camel case)를 표현한 정규식
+	REGEX_RFC1123_DNS_LABEL = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+	REGEX_RFC1123_SUBDOMAIN = `^` + REGEX_RFC1123_DNS_LABEL + `(\.` + REGEX_RFC1123_DNS_LABEL + `)*$`
+)
 
 func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
 	en := en.New()
@@ -27,6 +33,9 @@ func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
 	// register custom validator
 	_ = v.RegisterValidation("rfc1123", validateRfc1123)
 	_ = v.RegisterValidation("name", validateName)
+	_ = v.RegisterValidation("version", validateVersion)
+	_ = v.RegisterValidation("pascalcase", validatePascalCase)
+	_ = v.RegisterValidation("resourcename", validateResourceName)
 
 	// register custom error
 	_ = v.RegisterTranslation("required", trans, func(ut ut.Translator) error {
@@ -64,4 +73,31 @@ func validateName(fl validator.FieldLevel) bool {
 	}
 
 	return utf8.RuneCountInString(fl.Field().String()) <= 30
+}
+
+func validateVersion(fl validator.FieldLevel) bool {
+	if fl.Field().String() == "" {
+		return false
+	}
+
+	r, _ := regexp.Compile(REGEX_SIMPLE_SEMVER)
+	return r.MatchString(fl.Field().String())
+}
+
+func validatePascalCase(fl validator.FieldLevel) bool {
+	if fl.Field().String() == "" {
+		return false
+	}
+
+	r, _ := regexp.Compile(REGEX_PASCAL_CASE)
+	return r.MatchString(fl.Field().String())
+}
+
+func validateResourceName(fl validator.FieldLevel) bool {
+	if fl.Field().String() == "" {
+		return false
+	}
+
+	r, _ := regexp.Compile(REGEX_RFC1123_SUBDOMAIN)
+	return r.MatchString(fl.Field().String())
 }
