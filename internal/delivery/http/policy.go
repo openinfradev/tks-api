@@ -93,6 +93,11 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
 			return
 		}
+
+		if err := ValidateDomainObject(match); err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
 	}
 
 	if len(input.PolicyResourceName) > 0 {
@@ -178,6 +183,11 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
+			return
+		}
+
+		if err := ValidateDomainObject(match); err != nil {
+			ErrorJSON(w, r, err)
 			return
 		}
 	}
