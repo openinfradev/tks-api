@@ -1807,6 +1807,11 @@ definitions:
       k8sResources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceK8sResources'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse:
+    properties:
+      kubeConfig:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse:
     properties:
       resourcesUsage:
@@ -2367,6 +2372,10 @@ definitions:
         type: integer
       dryrun:
         type: integer
+      fromOrgTemplate:
+        type: integer
+      fromTksTemplate:
+        type: integer
       total:
         type: integer
       warn:
@@ -2624,6 +2633,8 @@ definitions:
       createdAt:
         type: string
       description:
+        type: string
+      grafanaUrl:
         type: string
       namespace:
         type: string
@@ -2931,6 +2942,21 @@ definitions:
     - tksInfraNode
     - tksUserNode
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics:
+    properties:
+      outofdatePolicyCount:
+        type: integer
+      outofdateTemplateCount:
+        type: integer
+      totalPolicyCount:
+        type: integer
+      totalTemplateCount:
+        type: integer
+      uptodatePolicyCount:
+        type: integer
+      uptodateTemplateCount:
+        type: integer
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatusResponse:
     properties:
       policyDescription:
@@ -3204,6 +3230,8 @@ definitions:
         type: string
       name:
         type: string
+      notificationType:
+        type: string
       systemNotificationCondition:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse'
       systemNotificationTemplate:
@@ -3236,6 +3264,8 @@ definitions:
       metricQuery:
         type: string
       name:
+        type: string
+      notificationType:
         type: string
       organizations:
         items:
@@ -8453,6 +8483,44 @@ paths:
       summary: Get k8s resources for project namespace
       tags:
       - Projects
+  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig:
+    get:
+      consumes:
+      - application/json
+      description: Get project namespace kubeconfig
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: Stack ID
+        in: path
+        name: stackId
+        required: true
+        type: string
+      - description: Project Namespace
+        in: path
+        name: projectNamespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse'
+      security:
+      - JWT: []
+      summary: Get project namespace kubeconfig
+      tags:
+      - Projects
   /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage:
     get:
       consumes:
@@ -9458,7 +9526,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListStackPolicyStatusResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics'
       security:
       - JWT: []
       summary: '[ListStackPolicyStatus] 클러스터의 정책과 정책 템플릿, 버전 조회'

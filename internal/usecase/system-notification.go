@@ -119,6 +119,18 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 		if err != nil {
 			continue
 		}
+
+		/*
+			for _, user := range dto.System
+			message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, "test", dto.Users, user.AccountId, randomPassword)
+			if err != nil {
+				return nil, httpErrors.NewInternalServerError(err, "", "")
+			}
+			mailer := mail.New(message)
+			if err := mailer.SendMail(ctx); err != nil {
+				return nil, httpErrors.NewInternalServerError(err, "", "")
+			}
+		*/
 	}
 
 	return nil

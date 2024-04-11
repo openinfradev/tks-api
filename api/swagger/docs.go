@@ -6960,6 +6960,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get project namespace kubeconfig",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project namespace kubeconfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Stack ID",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Namespace",
+                        "name": "projectNamespace",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/resources-usage": {
             "get": {
                 "security": [
@@ -8440,7 +8498,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ListStackPolicyStatusResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics"
                         }
                     }
                 }
@@ -12480,6 +12538,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse": {
+            "type": "object",
+            "properties": {
+                "kubeConfig": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse": {
             "type": "object",
             "properties": {
@@ -13335,6 +13401,12 @@ const docTemplate = `{
                 "dryrun": {
                     "type": "integer"
                 },
+                "fromOrgTemplate": {
+                    "type": "integer"
+                },
+                "fromTksTemplate": {
+                    "type": "integer"
+                },
                 "total": {
                     "type": "integer"
                 },
@@ -13707,6 +13779,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "grafanaUrl": {
                     "type": "string"
                 },
                 "namespace": {
@@ -14172,6 +14247,29 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics": {
+            "type": "object",
+            "properties": {
+                "outofdatePolicyCount": {
+                    "type": "integer"
+                },
+                "outofdateTemplateCount": {
+                    "type": "integer"
+                },
+                "totalPolicyCount": {
+                    "type": "integer"
+                },
+                "totalTemplateCount": {
+                    "type": "integer"
+                },
+                "uptodatePolicyCount": {
+                    "type": "integer"
+                },
+                "uptodateTemplateCount": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatusResponse": {
             "type": "object",
             "properties": {
@@ -14582,6 +14680,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "notificationType": {
+                    "type": "string"
+                },
                 "systemNotificationCondition": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse"
                 },
@@ -14633,6 +14734,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "notificationType": {
                     "type": "string"
                 },
                 "organizations": {
