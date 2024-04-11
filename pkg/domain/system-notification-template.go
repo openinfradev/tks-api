@@ -20,6 +20,7 @@ type SystemNotificationTemplateResponse struct {
 	ID               string                                      `json:"id"`
 	Name             string                                      `json:"name"`
 	Description      string                                      `json:"description"`
+	NotificationType string                                      `json:"notificationType"`
 	MetricQuery      string                                      `json:"metricQuery" validate:"required"`
 	MetricParameters []SystemNotificationMetricParameterResponse `json:"metricParameters,omitempty"`
 	Organizations    []SimpleOrganizationResponse                `json:"organizations,omitempty"`

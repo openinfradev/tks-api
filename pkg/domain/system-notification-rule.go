@@ -32,6 +32,7 @@ func (m SystemNotificationRuleStatus) FromString(s string) SystemNotificationRul
 type SystemNotificationRuleResponse struct {
 	ID                          string                                   `json:"id"`
 	Name                        string                                   `json:"name"`
+	NotificationType            string                                   `json:"notificationType"`
 	Description                 string                                   `json:"description"`
 	MessageTitle                string                                   `json:"messageTitle"`
 	MessageContent              string                                   `json:"messageContent"`
