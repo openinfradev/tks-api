@@ -54,11 +54,11 @@ type CreatePolicyRequest struct {
 	TargetClusterIds []string `json:"targetClusterIds" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        bool     `json:"mandatory"`
 
-	PolicyName         string  `json:"policyName" example:"label 정책"`
-	PolicyResourceName string  `json:"policyResourceName,omitempty" example:"labelpolicy"`
+	PolicyName         string  `json:"policyName" validate:"required,name" example:"label 정책"`
+	PolicyResourceName string  `json:"policyResourceName,omitempty" validate:"resourcename" example:"labelpolicy"`
 	Description        string  `json:"description"`
 	TemplateId         string  `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	EnforcementAction  string  `json:"enforcementAction" enum:"warn,deny,dryrun" example:"deny"`
+	EnforcementAction  string  `json:"enforcementAction" validate:"required,oneof=deny dryrun warn" enum:"warn,deny,dryrun" example:"deny"`
 	Parameters         string  `json:"parameters" example:"{\"key\":\"value\"}"`
 	Match              *Match  `json:"match,omitempty"`
 	MatchYaml          *string `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
@@ -73,10 +73,10 @@ type UpdatePolicyRequest struct {
 	TargetClusterIds *[]string `json:"targetClusterIds,omitempty" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        *bool     `json:"mandatory,omitempty"`
 
-	PolicyName        *string `json:"policyName,omitempty" example:"label 정책"`
+	PolicyName        *string `json:"policyName,omitempty" validate:"required,name" example:"label 정책"`
 	Description       *string `json:"description"`
 	TemplateId        *string `json:"templateId,omitempty" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	EnforcementAction *string `json:"enforcementAction,omitempty" enum:"warn,deny,dryrun"`
+	EnforcementAction *string `json:"enforcementAction" validate:"required,oneof=deny dryrun warn" enum:"warn,deny,dryrun" example:"deny"`
 	Parameters        *string `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
 	Match             *Match  `json:"match,omitempty"`
 	MatchYaml         *string `json:"matchYaml,omitempty"`
@@ -133,8 +133,8 @@ type StackPolicyStatusResponse struct {
 	TemplateName           string `json:"templateName" example:"레이블 요구"`
 	TemplateId             string `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
 	TemplateDescription    string `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
-	TemplateCurrentVersion string `json:"templateCurrentVersion"  example:"v1.0.1"`
-	TemplateLatestVerson   string `json:"templateLatestVerson"  example:"v1.0.3"`
+	TemplateCurrentVersion string `json:"templateCurrentVersion" example:"v1.0.1"`
+	TemplateLatestVerson   string `json:"templateLatestVerson" example:"v1.0.3"`
 }
 
 type ListStackPolicyStatusResponse struct {
@@ -146,8 +146,8 @@ type GetStackPolicyTemplateStatusResponse struct {
 	TemplateId                      string                           `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
 	TemplateDescription             string                           `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
 	TemplateMandatory               bool                             `json:"templateMandatory"`
-	TemplateCurrentVersion          string                           `json:"templateCurrentVersion"  example:"v1.0.1"`
-	TemplateLatestVerson            string                           `json:"templateLatestVerson"  example:"v1.0.3"`
+	TemplateCurrentVersion          string                           `json:"templateCurrentVersion" example:"v1.0.1"`
+	TemplateLatestVerson            string                           `json:"templateLatestVerson" example:"v1.0.3"`
 	TemplateLatestVersonReleaseDate time.Time                        `json:"templateLatestVersonReleaseDate" format:"date-time"`
 	UpdatedPolicyParameters         []UpdatedPolicyTemplateParameter `json:"updatedPolicyParameters"`
 	AffectedPolicies                []PolicyStatus                   `json:"affectedPolicies"`
@@ -183,8 +183,8 @@ type PolicyUpdate struct {
 }
 
 type UpdateStackPolicyTemplateStatusRequest struct {
-	TemplateCurrentVersion string `json:"templateCurrentVersion" example:"v1.0.1"`
-	TemplateTargetVerson   string `json:"templateTargetVerson" example:"v1.0.3"`
+	TemplateCurrentVersion string `json:"templateCurrentVersion" validate:"version" example:"v1.0.1"`
+	TemplateTargetVerson   string `json:"templateTargetVerson" validate:"version" example:"v1.0.3"`
 	// PolicyUpdate           []PolicyUpdate `json:"policyUpdate"`
 }
 

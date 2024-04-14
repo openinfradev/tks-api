@@ -2,8 +2,6 @@ package domain
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type PolicyTemplateResponse struct {
@@ -34,9 +32,9 @@ type SimplePolicyTemplateResponse struct {
 }
 
 type CreatePolicyTemplateRequest struct {
-	TemplateName     string          `json:"templateName" example:"필수 Label 검사" validate:"name"`
-	Kind             string          `json:"kind" example:"K8sRequiredLabels" validate:"required"`
-	Severity         string          `json:"severity" enums:"low,medium,high" example:"medium"`
+	TemplateName     string          `json:"templateName" validate:"required,name" example:"필수 Label 검사"`
+	Kind             string          `json:"kind" example:"K8sRequiredLabels" validate:"required,pascalcase"`
+	Severity         string          `json:"severity" validate:"required,oneof=low medium high" enums:"low,medium,high" example:"medium"`
 	Deprecated       bool            `json:"deprecated" example:"false"`
 	Description      string          `json:"description,omitempty"  example:"이 정책은 ..."`
 	ParametersSchema []*ParameterDef `json:"parametersSchema,omitempty"`
@@ -52,37 +50,10 @@ type CreatePolicyTemplateReponse struct {
 	ID string `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 }
 
-type UpdateCommmonPolicyTemplateRequest struct {
-	TemplateName string `json:"templateName" example:"필수 Label 검사"`
-	Description  string `json:"description,omitempty"`
-	Severity     string `json:"severity" enums:"low,medium,high" example:"medium"`
-	Deprecated   bool   `json:"deprecated" example:"false"`
-	// Tags         []string `json:"tags,omitempty"`
-}
-
-type UpdatePolicyTemplateUpdate struct {
-	ID                       uuid.UUID
-	Type                     string
-	UpdatorId                uuid.UUID
-	TemplateName             *string
-	Description              *string
-	Severity                 *string
-	Deprecated               *bool
-	PermittedOrganizationIds *[]string
-}
-
-func (dto *UpdatePolicyTemplateUpdate) IsNothingToUpdate() bool {
-	return dto.TemplateName == nil &&
-		dto.Description == nil &&
-		dto.Severity == nil &&
-		dto.Deprecated == nil &&
-		dto.PermittedOrganizationIds == nil
-}
-
 type UpdatePolicyTemplateRequest struct {
-	TemplateName             *string   `json:"templateName,omitempty" example:"필수 Label 검사"`
+	TemplateName             *string   `json:"templateName,omitempty" validate:"required,name" example:"필수 Label 검사"`
 	Description              *string   `json:"description,omitempty"`
-	Severity                 *string   `json:"severity,omitempty" enums:"low,medium,high" example:"medium"`
+	Severity                 *string   `json:"severity,omitempty" validate:"oneof=low medium high" enums:"low,medium,high" example:"medium"`
 	Deprecated               *bool     `json:"deprecated,omitempty" example:"false"`
 	PermittedOrganizationIds *[]string `json:"permittedOrganizationIds,omitempty"`
 }
@@ -100,9 +71,9 @@ type GetPolicyTemplateVersionResponse struct {
 }
 
 type CreatePolicyTemplateVersionRequest struct {
-	VersionUpType   string `json:"versionUpType" enums:"major,minor,patch" example:"minor" validate:"required"`
-	CurrentVersion  string `json:"currentVersion" example:"v1.0.0" validate:"required"`
-	ExpectedVersion string `json:"expectedVersion" example:"v1.1.0" validate:"required"`
+	VersionUpType   string `json:"versionUpType" validate:"required,oneof=major minor patch" enums:"major,minor,patch" example:"minor"`
+	CurrentVersion  string `json:"currentVersion" validate:"required,version" example:"v1.0.0"`
+	ExpectedVersion string `json:"expectedVersion" validate:"required,version" example:"v1.1.0"`
 
 	ParametersSchema []*ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
