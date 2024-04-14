@@ -71,6 +71,22 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 	return nil
 }
 
+// Http Request가 아닌 경우에도 domain 객체 validate가 필요한 경우 호출
+// 예를 들어 정책의 match를 RawYaml로 전달받았을 경우 이를 domain.Match 객체로 unmarshalling 한 후 domain.Match를 이용해서 validate 가능
+func ValidateDomainObject(in any) error {
+	err := validate.Struct(in)
+	if err != nil {
+		var valErrs validator_.ValidationErrors
+		if errors.As(err, &valErrs) {
+			for _, e := range valErrs {
+				return httpErrors.NewBadRequestError(err, "", e.Translate(trans))
+			}
+		}
+	}
+
+	return nil
+}
+
 /*
 func (h *APIHandler) GetClientFromClusterId(clusterId string) (*kubernetes.Clientset, error) {
 	const prefix = "CACHE_KEY_KUBE_CLIENT_"

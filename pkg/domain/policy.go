@@ -6,14 +6,14 @@ import (
 )
 
 type Kinds struct {
-	APIGroups []string `json:"apiGroups,omitempty" protobuf:"bytes,1,rep,name=apiGroups"`
+	APIGroups []string `json:"apiGroups,omitempty"`
 	Kinds     []string `json:"kinds,omitempty"`
 }
 
 type Match struct {
-	Namespaces         []string `json:"namespaces,omitempty"`
-	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty"`
-	Kinds              []Kinds  `json:"kinds,omitempty"`
+	Namespaces         []string `json:"namespaces,omitempty" validate:"matchnamespace"`
+	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty" validate:"matchnamespace"`
+	Kinds              []Kinds  `json:"kinds,omitempty" validate:"matchkinds"`
 }
 
 func (m *Match) JSON() string {

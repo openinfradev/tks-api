@@ -2,12 +2,14 @@ package validator
 
 import (
 	"regexp"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/opentracing/opentracing-go/log"
 )
 
@@ -16,6 +18,7 @@ const (
 	REGEX_SIMPLE_SEMVER     = `^v\d+\.\d+\.\d+$`
 	REGEX_PASCAL_CASE       = `^([A-Z][a-z\d]+)+$` // 대문자로 시작하는 camel case(pascal case or upper camel case)를 표현한 정규식
 	REGEX_RFC1123_DNS_LABEL = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
+	REGEX_RESOURCE_NAME     = `^` + REGEX_RFC1123_DNS_LABEL + "$"
 	REGEX_RFC1123_SUBDOMAIN = `^` + REGEX_RFC1123_DNS_LABEL + `(\.` + REGEX_RFC1123_DNS_LABEL + `)*$`
 )
 
@@ -36,6 +39,8 @@ func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
 	_ = v.RegisterValidation("version", validateVersion)
 	_ = v.RegisterValidation("pascalcase", validatePascalCase)
 	_ = v.RegisterValidation("resourcename", validateResourceName)
+	_ = v.RegisterValidation("matchnamespace", validateMatchNamespace)
+	_ = v.RegisterValidation("matchkinds", validateMatchKinds)
 
 	// register custom error
 	_ = v.RegisterTranslation("required", trans, func(ut ut.Translator) error {
@@ -98,6 +103,105 @@ func validateResourceName(fl validator.FieldLevel) bool {
 		return false
 	}
 
-	r, _ := regexp.Compile(REGEX_RFC1123_SUBDOMAIN)
+	r, _ := regexp.Compile(REGEX_RESOURCE_NAME)
 	return r.MatchString(fl.Field().String())
+}
+
+func validateMatchKinds(fl validator.FieldLevel) bool {
+	kinds, ok := fl.Field().Interface().([]domain.Kinds)
+	if !ok {
+		return false
+	}
+
+	for _, kind := range kinds {
+		if ok := validateMatchKindAPIGroup(kind.APIGroups) && validateMatchKindKind(kind.Kinds); !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func validateMatchKindAPIGroup(apigroups []string) bool {
+	if len(apigroups) == 0 {
+		return true
+	}
+
+	containsWildcard := false
+
+	r, _ := regexp.Compile(REGEX_RFC1123_SUBDOMAIN)
+
+	for _, apigroup := range apigroups {
+		if apigroup == "*" || apigroup == "" {
+			containsWildcard = true
+		} else {
+			if !r.MatchString(apigroup) {
+				return false
+			}
+		}
+	}
+
+	if containsWildcard && len(apigroups) != 1 {
+		return false
+	}
+
+	return true
+}
+
+func validateMatchKindKind(kinds []string) bool {
+	if len(kinds) == 0 {
+		return true
+	}
+
+	containsWildcard := false
+
+	r, _ := regexp.Compile(REGEX_PASCAL_CASE)
+
+	for _, kind := range kinds {
+		if kind == "*" || kind == "" {
+			containsWildcard = true
+		} else {
+			if !r.MatchString(kind) {
+				return false
+			}
+		}
+	}
+
+	if containsWildcard && len(kinds) != 1 {
+		return false
+	}
+
+	return true
+}
+
+func validateMatchNamespace(fl validator.FieldLevel) bool {
+	namespaces, ok := fl.Field().Interface().([]string)
+	if !ok {
+		return false
+	}
+
+	if len(namespaces) == 0 {
+		return true
+	}
+
+	containsWildcard := false
+
+	r, _ := regexp.Compile(REGEX_RESOURCE_NAME)
+
+	for _, namespace := range namespaces {
+		if namespace == "*" || namespace == "" {
+			containsWildcard = true
+		} else {
+			trimmed := strings.TrimSuffix(strings.TrimPrefix(namespace, "*"), "*")
+			if !r.MatchString(trimmed) {
+				return false
+			}
+		}
+	}
+
+	if containsWildcard && len(namespaces) != 1 {
+		return false
+	}
+
+	return true
 }
