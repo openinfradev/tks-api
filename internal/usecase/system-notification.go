@@ -140,19 +140,21 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			continue
 		}
 
-		to := []string{}
-		for _, user := range rule.TargetUsers {
-			to = append(to, user.Email)
-		}
-		message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, to)
-		if err != nil {
-			log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
-			continue
-		}
-		mailer := mail.New(message)
-		if err := mailer.SendMail(ctx); err != nil {
-			log.Error(ctx, fmt.Sprintf("Failed to send email to %s. err : %s", to, err.Error()))
-			continue
+		if rule.SystemNotificationCondition.EnableEmail {
+			to := []string{}
+			for _, user := range rule.TargetUsers {
+				to = append(to, user.Email)
+			}
+			message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, to)
+			if err != nil {
+				log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
+				continue
+			}
+			mailer := mail.New(message)
+			if err := mailer.SendMail(ctx); err != nil {
+				log.Error(ctx, fmt.Sprintf("Failed to send email to %s. err : %s", to, err.Error()))
+				continue
+			}
 		}
 	}
 
@@ -308,7 +310,7 @@ func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryC
 	case "pvc-full":
 		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard/tks-kubernetes-view-cluster-global?var-taco_cluster=" + clusterId.String() + "&kiosk"
 	default:
-		url = "/d/tks_cluster_dashboard"
+		url = primaryGrafanaEndpoint + "/d/tks_cluster_dashboard"
 	}
 
 	return url
