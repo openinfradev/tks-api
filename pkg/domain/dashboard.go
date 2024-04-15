@@ -197,3 +197,28 @@ type DashboardPolicyUpdate struct {
 type GetDashboardPolicyUpdateResponse struct {
 	PolicyUpdate DashboardPolicyUpdate `json:"updatedResources"`
 }
+
+type GetDashboardPolicyEnforcementResponse struct {
+	BarChart
+	ChartData BarChartData `json:"chartData"`
+	UpdatedAt time.Time    `json:"updatedAt"`
+}
+
+type BarChart struct {
+	ChartType      string `json:"chartType"`
+	OrganizationId string `json:"organizationId"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Duration       string `json:"duration"`
+	Interval       string `json:"interval"`
+}
+
+type BarChartData struct {
+	XAxis  *Axis        `json:"xAxis,omitempty"`
+	Series []UnitNumber `json:"series,omitempty"`
+}
+
+type UnitNumber struct {
+	Name string `json:"name"`
+	Data []int  `json:"data"`
+}

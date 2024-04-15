@@ -516,6 +516,15 @@ definitions:
           type: string
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.BarChartData:
+    properties:
+      series:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.UnitNumber'
+        type: array
+      xAxis:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Axis'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.BootstrapKubeconfig:
     properties:
       expiration:
@@ -1673,6 +1682,25 @@ definitions:
         items:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardChartResponse'
         type: array
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyEnforcementResponse:
+    properties:
+      chartData:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.BarChartData'
+      chartType:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+      interval:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatusResponse:
     properties:
@@ -3314,6 +3342,15 @@ definitions:
       data:
         items:
           type: string
+        type: array
+      name:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.UnitNumber:
+    properties:
+      data:
+        items:
+          type: integer
         type: array
       name:
         type: string
@@ -6180,173 +6217,6 @@ paths:
       summary: Check name for cloudAccount
       tags:
       - CloudAccounts
-  /organizations/{organizationId}/dashboard/charts:
-    get:
-      consumes:
-      - application/json
-      description: Get charts data
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: chartType
-        in: query
-        name: chartType
-        type: string
-      - description: duration
-        in: query
-        name: duration
-        required: true
-        type: string
-      - description: interval
-        in: query
-        name: interval
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartsResponse'
-      security:
-      - JWT: []
-      summary: Get charts data
-      tags:
-      - Dashboards
-  /organizations/{organizationId}/dashboard/charts/{chartType}:
-    get:
-      consumes:
-      - application/json
-      description: Get chart data
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: chartType
-        in: path
-        name: chartType
-        required: true
-        type: string
-      - description: duration
-        in: query
-        name: duration
-        required: true
-        type: string
-      - description: interval
-        in: query
-        name: interval
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartResponse'
-      security:
-      - JWT: []
-      summary: Get chart data
-      tags:
-      - Dashboards
-  /organizations/{organizationId}/dashboard/policy-status:
-    get:
-      consumes:
-      - application/json
-      description: Get policy status
-      parameters:
-      - description: Organization ID
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatusResponse'
-      security:
-      - JWT: []
-      summary: Get policy status
-      tags:
-      - Dashboards
-  /organizations/{organizationId}/dashboard/policy-update:
-    get:
-      consumes:
-      - application/json
-      description: Get the number of policytemplates that need to be updated
-      parameters:
-      - description: Organization ID
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyUpdateResponse'
-      security:
-      - JWT: []
-      summary: Get the number of policytemplates that need to be updated
-      tags:
-      - Dashboards
-  /organizations/{organizationId}/dashboard/resources:
-    get:
-      consumes:
-      - application/json
-      description: Get resources
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResourcesResponse'
-      security:
-      - JWT: []
-      summary: Get resources
-      tags:
-      - Dashboards
-  /organizations/{organizationId}/dashboard/stacks:
-    get:
-      consumes:
-      - application/json
-      description: Get stacks
-      parameters:
-      - description: organizationId
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardStacksResponse'
-      security:
-      - JWT: []
-      summary: Get stacks
-      tags:
-      - Dashboards
   /organizations/{organizationId}/dashboards:
     get:
       consumes:
@@ -6364,7 +6234,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse'
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse'
+            type: array
       security:
       - JWT: []
       summary: Get dashboard
@@ -6426,6 +6298,196 @@ paths:
       summary: Update dashboard
       tags:
       - Dashboards
+  /organizations/{organizationId}/dashboards/charts:
+    get:
+      consumes:
+      - application/json
+      description: Get charts data
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: chartType
+        in: query
+        name: chartType
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartsResponse'
+      security:
+      - JWT: []
+      summary: Get charts data
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/charts/{chartType}:
+    get:
+      consumes:
+      - application/json
+      description: Get chart data
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: chartType
+        in: path
+        name: chartType
+        required: true
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardChartResponse'
+      security:
+      - JWT: []
+      summary: Get chart data
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/policy-enforcement:
+    get:
+      consumes:
+      - application/json
+      description: Get the number of policy enforcement
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyEnforcementResponse'
+      security:
+      - JWT: []
+      summary: Get the number of policy enforcement
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/policy-status:
+    get:
+      consumes:
+      - application/json
+      description: Get policy status
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatusResponse'
+      security:
+      - JWT: []
+      summary: Get policy status
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/policy-update:
+    get:
+      consumes:
+      - application/json
+      description: Get the number of policytemplates that need to be updated
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyUpdateResponse'
+      security:
+      - JWT: []
+      summary: Get the number of policytemplates that need to be updated
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/resources:
+    get:
+      consumes:
+      - application/json
+      description: Get resources
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResourcesResponse'
+      security:
+      - JWT: []
+      summary: Get resources
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/stacks:
+    get:
+      consumes:
+      - application/json
+      description: Get stacks
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardStacksResponse'
+      security:
+      - JWT: []
+      summary: Get stacks
+      tags:
+      - Dashboard Widgets
   /organizations/{organizationId}/mandatory-policies:
     get:
       consumes:

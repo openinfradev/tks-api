@@ -363,6 +363,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetPolicyUpdateDashboard", 
 		Group: "Dashboard",
 	},
+    GetPolicyEnforcementDashboard: {
+		Name: "GetPolicyEnforcementDashboard", 
+		Group: "Dashboard",
+	},
     Admin_CreateSystemNotificationTemplate: {
 		Name: "Admin_CreateSystemNotificationTemplate", 
 		Group: "SystemNotificationTemplate",
@@ -589,6 +593,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     GetProjectNamespaceK8sResources: {
 		Name: "GetProjectNamespaceK8sResources", 
+		Group: "Project",
+	},
+    GetProjectNamespaceKubeconfig: {
+		Name: "GetProjectNamespaceKubeconfig", 
 		Group: "Project",
 	},
     GetAudits: {
@@ -1074,6 +1082,8 @@ func (e Endpoint) String() string {
 		return "GetPolicyStatusDashboard"
 	case GetPolicyUpdateDashboard:
 		return "GetPolicyUpdateDashboard"
+	case GetPolicyEnforcementDashboard:
+		return "GetPolicyEnforcementDashboard"
 	case Admin_CreateSystemNotificationTemplate:
 		return "Admin_CreateSystemNotificationTemplate"
 	case Admin_UpdateSystemNotificationTemplate:
@@ -1188,6 +1198,8 @@ func (e Endpoint) String() string {
 		return "GetProjectKubeconfig"
 	case GetProjectNamespaceK8sResources:
 		return "GetProjectNamespaceK8sResources"
+	case GetProjectNamespaceKubeconfig:
+		return "GetProjectNamespaceKubeconfig"
 	case GetAudits:
 		return "GetAudits"
 	case GetAudit:
@@ -1524,6 +1536,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetPolicyStatusDashboard
 	case "GetPolicyUpdateDashboard":
 		return GetPolicyUpdateDashboard
+	case "GetPolicyEnforcementDashboard":
+		return GetPolicyEnforcementDashboard
 	case "Admin_CreateSystemNotificationTemplate":
 		return Admin_CreateSystemNotificationTemplate
 	case "Admin_UpdateSystemNotificationTemplate":
@@ -1638,6 +1652,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetProjectKubeconfig
 	case "GetProjectNamespaceK8sResources":
 		return GetProjectNamespaceK8sResources
+	case "GetProjectNamespaceKubeconfig":
+		return GetProjectNamespaceKubeconfig
 	case "GetAudits":
 		return GetAudits
 	case "GetAudit":
