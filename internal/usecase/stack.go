@@ -121,6 +121,12 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 		}
 	}
 
+	var conf domain.StackConfResponse
+	if err := serializer.Map(ctx, dto.Conf, &conf); err != nil {
+		log.Error(ctx, err)
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid node conf"), "", "")
+	}
+
 	workflow := "tks-stack-create"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
@@ -132,7 +138,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 			"stack_template_id=" + dto.StackTemplateId.String(),
 			"creator=" + user.GetUserId().String(),
 			"base_repo_branch=" + viper.GetString("revision"),
-			"infra_conf=" + strings.Replace(helper.ModelToJson(dto.Conf), "\"", "\\\"", -1),
+			"infra_conf=" + strings.Replace(helper.ModelToJson(conf), "\"", "\\\"", -1),
 			"cloud_service=" + dto.CloudService,
 			"cluster_endpoint=" + dto.ClusterEndpoint,
 			"policy_ids=" + strings.Join(dto.PolicyIds, ","),

@@ -193,8 +193,15 @@ func (h *StackTemplateHandler) UpdateStackTemplate(w http.ResponseWriter, r *htt
 		return
 	}
 
+	input := domain.UpdateStackTemplateRequest{}
+	err = UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var dto model.StackTemplate
-	if err := serializer.Map(r.Context(), r, &dto); err != nil {
+	if err := serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
 	dto.ID = stackTemplateId
