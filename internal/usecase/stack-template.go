@@ -56,21 +56,7 @@ func (u *StackTemplateUsecase) Create(ctx context.Context, dto model.StackTempla
 		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("duplicate stackTemplate name"), "ST_CREATE_ALREADY_EXISTED_NAME", "")
 	}
 
-	services := "["
-	for i, serviceId := range dto.ServiceIds {
-		if i > 1 {
-			services = services + ","
-		}
-		switch serviceId {
-		case "LMA":
-			services = services + internal.SERVICE_LMA
-		case "SERVICE_MESH":
-			services = services + internal.SERVICE_SERVICE_MESH
-		}
-	}
-	services = services + "]"
-	dto.Services = []byte(services)
-
+	dto.Services = servicesFromIds(dto.ServiceIds)
 	stackTemplateId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
@@ -92,10 +78,17 @@ func (u *StackTemplateUsecase) Update(ctx context.Context, dto model.StackTempla
 		return httpErrors.NewBadRequestError(err, "ST_NOT_EXISTED_STACK_TEMPLATE", "")
 	}
 
+	dto.Services = servicesFromIds(dto.ServiceIds)
 	err = u.repo.Update(ctx, dto)
 	if err != nil {
 		return err
 	}
+
+	err = u.UpdateOrganizations(ctx, dto)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -232,4 +225,21 @@ func (u *StackTemplateUsecase) RemoveOrganizationStackTemplates(ctx context.Cont
 	}
 
 	return nil
+}
+
+func servicesFromIds(serviceIds []string) []byte {
+	services := "["
+	for i, serviceId := range serviceIds {
+		if i > 0 {
+			services = services + ","
+		}
+		switch serviceId {
+		case "LMA":
+			services = services + internal.SERVICE_LMA
+		case "SERVICE_MESH":
+			services = services + internal.SERVICE_SERVICE_MESH
+		}
+	}
+	services = services + "]"
+	return []byte(services)
 }

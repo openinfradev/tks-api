@@ -62,17 +62,15 @@ type GetStackTemplateResponse struct {
 }
 
 type CreateStackTemplateRequest struct {
-	Name        string `json:"name" validate:"required,name"`
-	Description string `json:"description"`
-	Version     string `json:"version" validate:"required"`
-
-	CloudService string `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
-	Platform     string `json:"platform" validate:"required"`
-	TemplateType string `json:"templateType" validate:"oneof=STANDARD MSA"`
-	Template     string `json:"template" validate:"required"`
-	KubeVersion  string `json:"kubeVersion" validate:"required"`
-	KubeType     string `json:"kubeType" validate:"required"`
-
+	Name            string   `json:"name" validate:"required,name"`
+	Description     string   `json:"description"`
+	Version         string   `json:"version" validate:"required"`
+	CloudService    string   `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
+	Platform        string   `json:"platform" validate:"required"`
+	TemplateType    string   `json:"templateType" validate:"oneof=STANDARD MSA"`
+	Template        string   `json:"template" validate:"required"`
+	KubeVersion     string   `json:"kubeVersion" validate:"required"`
+	KubeType        string   `json:"kubeType" validate:"required"`
 	OrganizationIds []string `json:"organizationIds" validate:"required"`
 	ServiceIds      []string `json:"serviceIds" validate:"required"`
 }
@@ -82,15 +80,16 @@ type CreateStackTemplateResponse struct {
 }
 
 type UpdateStackTemplateRequest struct {
-	Description  string   `json:"description"`
-	Template     string   `json:"template"`
-	TemplateType string   `json:"templateType"`
-	CloudService string   `json:"cloudService"`
-	Version      string   `json:"version"`
-	Platform     string   `json:"platform"`
-	KubeVersion  string   `json:"kubeVersion"`
-	KubeType     string   `json:"kubeType"`
-	ServiceIds   []string `json:"serviceIds" validate:"required"`
+	Description     string   `json:"description"`
+	Version         string   `json:"version" validate:"required"`
+	CloudService    string   `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
+	Platform        string   `json:"platform" validate:"required"`
+	TemplateType    string   `json:"templateType" validate:"oneof=STANDARD MSA"`
+	Template        string   `json:"template" validate:"required"`
+	KubeVersion     string   `json:"kubeVersion" validate:"required"`
+	KubeType        string   `json:"kubeType" validate:"required"`
+	OrganizationIds []string `json:"organizationIds" validate:"required"`
+	ServiceIds      []string `json:"serviceIds" validate:"required"`
 }
 
 type GetStackTemplateServicesResponse struct {

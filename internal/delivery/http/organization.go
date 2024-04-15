@@ -197,8 +197,6 @@ func (h *OrganizationHandler) GetOrganizations(w http.ResponseWriter, r *http.Re
 		if err = serializer.Map(r.Context(), organization, &out.Organizations[i]); err != nil {
 			log.Error(r.Context(), err)
 		}
-
-		log.Info(r.Context(), organization)
 	}
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
