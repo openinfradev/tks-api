@@ -35,6 +35,7 @@ type IDashboardUsecase interface {
 	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
 	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
 	GetPolicyUpdate(ctx context.Context, policyTemplates []policytemplate.TKSPolicyTemplate, policies []policytemplate.TKSPolicy) (domain.DashboardPolicyUpdate, error)
+	GetPolicyEnforcement(ctx context.Context, organizationId string, primaryClusterId string) (*domain.BarChartData, error)
 }
 
 type DashboardUsecase struct {
@@ -646,6 +647,115 @@ func (u *DashboardUsecase) GetPolicyUpdate(ctx context.Context, policyTemplates 
 	}
 
 	return dpu, nil
+}
+
+func (u *DashboardUsecase) GetPolicyEnforcement(ctx context.Context, organizationId string, primaryClusterId string) (*domain.BarChartData, error) {
+	type DashboardPolicyTemplate struct {
+		ClusterId      string
+		PolicyTemplate map[string]map[string]int
+	}
+
+	clusters, err := policytemplate.GetTksClusterCRs(ctx, primaryClusterId)
+	if err != nil {
+		log.Error(ctx, "Failed to retrieve policytemplate list ", err)
+		return nil, err
+	}
+
+	dashboardPolicyTemplates := make([]DashboardPolicyTemplate, 0)
+	for _, cluster := range clusters {
+		// If the cluster does not have a policytemplate, skip ahead
+		// cluster.Status.Templates = {"K8sAllowedRepos": ["members"]}
+		if cluster.Status.Templates == nil {
+			continue
+		}
+		// policyTemplates = {"K8sAllowedRepos": {"members": 1}}
+		policyTemplates := make(map[string]map[string]int)
+		for templateName, policies := range cluster.Status.Templates {
+			for _, policy := range policies {
+				policyTemplates[templateName] = make(map[string]int)
+				policyTemplates[templateName][policy] = 1
+			}
+		}
+		dashboardPolicyTemplates = append(dashboardPolicyTemplates,
+			DashboardPolicyTemplate{ClusterId: cluster.Name, PolicyTemplate: policyTemplates})
+	}
+
+	// fetch policies from db
+	dbPolicies, err := u.policyRepo.Fetch(ctx, organizationId, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	type TotalPolicyCount struct {
+		PolicyName          string
+		OptionalPolicyCount int
+		RequiredPolicyCount int
+	}
+
+	// totalTemplate = {"template name": TotalPolicyCount}
+	totalTemplate := make(map[string]*TotalPolicyCount)
+	for _, dpt := range dashboardPolicyTemplates {
+		for templateName, policies := range dpt.PolicyTemplate {
+			if _, ok := totalTemplate[templateName]; !ok {
+				totalTemplate[templateName] = &TotalPolicyCount{"", 0, 0}
+			}
+			// check if policy is required or optional
+			for policy, count := range policies {
+				for _, dbPolicy := range *dbPolicies {
+					if policy == dbPolicy.PolicyResourceName {
+						temp := totalTemplate[templateName]
+						temp.PolicyName = policy
+						if dbPolicy.Mandatory {
+							temp.RequiredPolicyCount += count
+						} else {
+							temp.OptionalPolicyCount += count
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Y축
+	var series []domain.UnitNumber
+	var yRequiredData []int
+	var yOptionalData []int
+
+	// X축
+	var xAxis *domain.Axis
+	var xData []string
+
+	for key, val := range totalTemplate {
+		// X axis Data
+		xData = append(xData, key)
+
+		// Y axis Data
+		yOptionalData = append(yOptionalData, val.OptionalPolicyCount)
+		yRequiredData = append(yRequiredData, val.RequiredPolicyCount)
+	}
+
+	xAxis = &domain.Axis{
+		Data: xData,
+	}
+
+	optionalUnit := domain.UnitNumber{
+		Name: "선택",
+		Data: yOptionalData,
+	}
+	series = append(series, optionalUnit)
+
+	requiredUnit := domain.UnitNumber{
+		Name: "필수",
+		Data: yRequiredData,
+	}
+	series = append(series, requiredUnit)
+
+	bcd := &domain.BarChartData{
+		XAxis:  xAxis,
+		Series: series,
+	}
+
+	return bcd, nil
 }
 
 func rangeDate(start, end time.Time) func() time.Time {

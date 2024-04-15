@@ -13,6 +13,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type IDashboardHandler interface {
@@ -25,6 +26,7 @@ type IDashboardHandler interface {
 	GetResources(w http.ResponseWriter, r *http.Request)
 	GetPolicyStatus(w http.ResponseWriter, r *http.Request)
 	GetPolicyUpdate(w http.ResponseWriter, r *http.Request)
+	GetPolicyEnforcement(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
@@ -111,7 +113,7 @@ func (h *DashboardHandler) CreateDashboard(w http.ResponseWriter, r *http.Reques
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"Organization ID"
-//	@Success		200				{object}	domain.GetDashboardResponse
+//	@Success		200				{array}	domain.GetDashboardResponse
 //	@Router			/organizations/{organizationId}/dashboards [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
@@ -207,7 +209,7 @@ func (h *DashboardHandler) UpdateDashboard(w http.ResponseWriter, r *http.Reques
 
 // GetCharts godoc
 //
-//	@Tags			Dashboards
+//	@Tags			Dashboard Widgets
 //	@Summary		Get charts data
 //	@Description	Get charts data
 //	@Accept			json
@@ -217,7 +219,7 @@ func (h *DashboardHandler) UpdateDashboard(w http.ResponseWriter, r *http.Reques
 //	@Param			duration		query		string	true	"duration"
 //	@Param			interval		query		string	true	"interval"
 //	@Success		200				{object}	domain.GetDashboardChartsResponse
-//	@Router			/organizations/{organizationId}/dashboard/charts [get]
+//	@Router			/organizations/{organizationId}/dashboards/charts [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -267,7 +269,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 
 // GetChart godoc
 //
-//	@Tags			Dashboards
+//	@Tags			Dashboard Widgets
 //	@Summary		Get chart data
 //	@Description	Get chart data
 //	@Accept			json
@@ -277,7 +279,7 @@ func (h *DashboardHandler) GetCharts(w http.ResponseWriter, r *http.Request) {
 //	@Param			duration		query		string	true	"duration"
 //	@Param			interval		query		string	true	"interval"
 //	@Success		200				{object}	domain.GetDashboardChartResponse
-//	@Router			/organizations/{organizationId}/dashboard/charts/{chartType} [get]
+//	@Router			/organizations/{organizationId}/dashboards/charts/{chartType} [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -344,14 +346,14 @@ func (h *DashboardHandler) GetChart(w http.ResponseWriter, r *http.Request) {
 
 // GetStacks godoc
 //
-//	@Tags			Dashboards
+//	@Tags			Dashboard Widgets
 //	@Summary		Get stacks
 //	@Description	Get stacks
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Success		200				{object}	domain.GetDashboardStacksResponse
-//	@Router			/organizations/{organizationId}/dashboard/stacks [get]
+//	@Router			/organizations/{organizationId}/dashboards/stacks [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -386,14 +388,14 @@ func (h *DashboardHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 
 // GetResources godoc
 //
-//	@Tags			Dashboards
+//	@Tags			Dashboard Widgets
 //	@Summary		Get resources
 //	@Description	Get resources
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Success		200				{object}	domain.GetDashboardResourcesResponse
-//	@Router			/organizations/{organizationId}/dashboard/resources [get]
+//	@Router			/organizations/{organizationId}/dashboards/resources [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -422,14 +424,14 @@ func (h *DashboardHandler) GetResources(w http.ResponseWriter, r *http.Request) 
 
 // GetPolicyStatus godoc
 //
-//	@Tags			Dashboards
+//	@Tags			Dashboard Widgets
 //	@Summary		Get policy status
 //	@Description	Get policy status
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"Organization ID"
 //	@Success		200				{object}	domain.GetDashboardPolicyStatusResponse
-//	@Router			/organizations/{organizationId}/dashboard/policy-status [get]
+//	@Router			/organizations/{organizationId}/dashboards/policy-status [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetPolicyStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -475,14 +477,14 @@ func (h *DashboardHandler) GetPolicyStatus(w http.ResponseWriter, r *http.Reques
 
 // GetPolicyUpdate godoc
 //
-//	@Tags			Dashboards
+//	@Tags			Dashboard Widgets
 //	@Summary		Get the number of policytemplates that need to be updated
 //	@Description	Get the number of policytemplates that need to be updated
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"Organization ID"
 //	@Success		200				{object}	domain.GetDashboardPolicyUpdateResponse
-//	@Router			/organizations/{organizationId}/dashboard/policy-update [get]
+//	@Router			/organizations/{organizationId}/dashboards/policy-update [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetPolicyUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -522,5 +524,49 @@ func (h *DashboardHandler) GetPolicyUpdate(w http.ResponseWriter, r *http.Reques
 
 	var out domain.GetDashboardPolicyUpdateResponse
 	out.PolicyUpdate = dpu
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyEnforcement godoc
+//
+//	@Tags			Dashboard Widgets
+//	@Summary		Get the number of policy enforcement
+//	@Description	Get the number of policy enforcement
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.GetDashboardPolicyEnforcementResponse
+//	@Router			/organizations/{organizationId}/dashboards/policy-enforcement [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetPolicyEnforcement(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("%s: invalid organizationId", organizationId),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	organization, err := h.organizationUsecase.Get(r.Context(), organizationId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to retrieve organization")
+		ErrorJSON(w, r, fmt.Errorf("failed to retrieve organization"))
+		return
+	}
+
+	bcd, err := h.usecase.GetPolicyEnforcement(r.Context(), organizationId, organization.PrimaryClusterId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to make policy bar chart data", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetDashboardPolicyEnforcementResponse
+	out.ChartType = "PolicyEnforcement"
+	out.OrganizationId = organizationId
+	out.Name = "정책 적용 현황"
+	out.Description = "정책 적용 현황 통계 데이터"
+	out.ChartData = *bcd
+	out.UpdatedAt = time.Now()
 	ResponseJSON(w, r, http.StatusOK, out)
 }

@@ -119,6 +119,7 @@ const (
 	GetResourcesDashboard // 대시보드/대시보드/조회
 	GetPolicyStatusDashboard
 	GetPolicyUpdateDashboard
+	GetPolicyEnforcementDashboard
 
 	// SystemNotificationTemplate
 	Admin_CreateSystemNotificationTemplate
