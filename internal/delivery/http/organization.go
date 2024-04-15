@@ -148,13 +148,17 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 	}
 	organization.AdminId = &admin.ID
 
-	// Default systemNotificationRules 생성
-	err = h.systemNotificationRuleUsecase.MakeDefaultSystemNotificationRules(r.Context(), organizationId, &organization)
-	if err != nil {
-		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
-		ErrorJSON(w, r, err)
-		return
-	}
+	/*
+		0415 팀미팅의 결과, 기본 시스템 알림은 decapod 시스템을 사용한다.
+
+		// Default systemNotificationRules 생성
+		err = h.systemNotificationRuleUsecase.MakeDefaultSystemNotificationRules(r.Context(), organizationId, &organization)
+		if err != nil {
+			log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+			ErrorJSON(w, r, err)
+			return
+		}
+	*/
 
 	var out domain.CreateOrganizationResponse
 	if err = serializer.Map(r.Context(), organization, &out); err != nil {
