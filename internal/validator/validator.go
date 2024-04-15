@@ -99,8 +99,10 @@ func validatePascalCase(fl validator.FieldLevel) bool {
 }
 
 func validateResourceName(fl validator.FieldLevel) bool {
+	// 정책 리소스 이름을 지정하지 않으면 지정하기 때문에 유효함
+	// 다른 리소스 이름을 처리할 때에는 분리 필요
 	if fl.Field().String() == "" {
-		return false
+		return true
 	}
 
 	r, _ := regexp.Compile(REGEX_RESOURCE_NAME)

@@ -103,17 +103,14 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 		dto.Mandatory = false
 		dto.OrganizationId = nil
 
-		dto.PermittedOrganizations = make([]model.Organization, len(dto.PermittedOrganizationIds))
-		for i, organizationId := range dto.PermittedOrganizationIds {
-
-			organization, err := u.organizationRepo.Get(ctx, organizationId)
+		for _, organizationId := range dto.PermittedOrganizationIds {
+			_, err := u.organizationRepo.Get(ctx, organizationId)
 			if err != nil {
 				return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 			}
-			dto.PermittedOrganizations[i] = organization
 		}
 	} else {
-		dto.PermittedOrganizations = make([]model.Organization, 0)
+		dto.PermittedOrganizationIds = make([]string, 0)
 	}
 
 	userId := user.GetUserId()
