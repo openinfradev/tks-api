@@ -11266,12 +11266,21 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.CreatePolicyRequest": {
             "type": "object",
+            "required": [
+                "enforcementAction",
+                "policyName"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
                 },
                 "enforcementAction": {
                     "type": "string",
+                    "enum": [
+                        "deny",
+                        "dryrun",
+                        "warn"
+                    ],
                     "example": "deny"
                 },
                 "mandatory": {
@@ -11333,7 +11342,9 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "kind",
-                "rego"
+                "rego",
+                "severity",
+                "templateName"
             ],
             "properties": {
                 "deprecated": {
@@ -15068,12 +15079,22 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyRequest": {
             "type": "object",
+            "required": [
+                "enforcementAction",
+                "policyName"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
                 },
                 "enforcementAction": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "deny",
+                        "dryrun",
+                        "warn"
+                    ],
+                    "example": "deny"
                 },
                 "mandatory": {
                     "type": "boolean"
@@ -15110,6 +15131,9 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest": {
             "type": "object",
+            "required": [
+                "templateName"
+            ],
             "properties": {
                 "deprecated": {
                     "type": "boolean",
@@ -15633,7 +15657,9 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "kind",
-                "rego"
+                "rego",
+                "severity",
+                "templateName"
             ],
             "properties": {
                 "deprecated": {
@@ -15987,6 +16013,9 @@ const docTemplate = `{
         },
         "github_com_openinfradev_tks-api_pkg_domain_admin.UpdatePolicyTemplateRequest": {
             "type": "object",
+            "required": [
+                "templateName"
+            ],
             "properties": {
                 "deprecated": {
                     "type": "boolean",

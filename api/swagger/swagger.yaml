@@ -965,6 +965,10 @@ definitions:
       description:
         type: string
       enforcementAction:
+        enum:
+        - deny
+        - dryrun
+        - warn
         example: deny
         type: string
       mandatory:
@@ -993,6 +997,9 @@ definitions:
       templateId:
         example: d98ef5f1-4a68-4047-a446-2207787ce3ff
         type: string
+    required:
+    - enforcementAction
+    - policyName
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyResponse:
     properties:
@@ -1046,6 +1053,8 @@ definitions:
     required:
     - kind
     - rego
+    - severity
+    - templateName
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreatePolicyTemplateVersionRequest:
     properties:
@@ -3492,6 +3501,11 @@ definitions:
       description:
         type: string
       enforcementAction:
+        enum:
+        - deny
+        - dryrun
+        - warn
+        example: deny
         type: string
       mandatory:
         type: boolean
@@ -3515,6 +3529,9 @@ definitions:
       templateId:
         example: d98ef5f1-4a68-4047-a446-2207787ce3ff
         type: string
+    required:
+    - enforcementAction
+    - policyName
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest:
     properties:
@@ -3537,6 +3554,8 @@ definitions:
       templateName:
         example: 필수 Label 검사
         type: string
+    required:
+    - templateName
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePrimaryClusterRequest:
     properties:
@@ -3906,6 +3925,8 @@ definitions:
     required:
     - kind
     - rego
+    - severity
+    - templateName
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.CreatePolicyTemplateVersionRequest:
     properties:
@@ -4129,6 +4150,8 @@ definitions:
       templateName:
         example: 필수 Label 검사
         type: string
+    required:
+    - templateName
     type: object
   github_com_openinfradev_tks-api_pkg_httpErrors.RestError:
     properties:
