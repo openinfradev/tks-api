@@ -204,6 +204,12 @@ type GetDashboardPolicyEnforcementResponse struct {
 	UpdatedAt time.Time    `json:"updatedAt"`
 }
 
+type GetDashboardPolicyViolationResponse struct {
+	BarChart
+	ChartData BarChartData `json:"chartData"`
+	UpdatedAt time.Time    `json:"updatedAt"`
+}
+
 type BarChart struct {
 	ChartType      string `json:"chartType"`
 	OrganizationId string `json:"organizationId"`

@@ -1712,6 +1712,25 @@ definitions:
       updatedResources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyUpdate'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse:
+    properties:
+      chartData:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.BarChartData'
+      chartType:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+      interval:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardResourcesResponse:
     properties:
       resources:
@@ -6377,11 +6396,21 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get the number of policy enforcement
+      description: Get the number of policy violation
       parameters:
       - description: Organization ID
         in: path
         name: organizationId
+        required: true
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
         required: true
         type: string
       produces:
@@ -6390,10 +6419,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyEnforcementResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse'
       security:
       - JWT: []
-      summary: Get the number of policy enforcement
+      summary: Get the number of policy violation
       tags:
       - Dashboard Widgets
   /organizations/{organizationId}/dashboards/policy-status:
