@@ -32,7 +32,7 @@ func NewAuditRepository(db *gorm.DB) IAuditRepository {
 
 // Logics
 func (r *AuditRepository) Get(ctx context.Context, auditId uuid.UUID) (out model.Audit, err error) {
-	res := r.db.WithContext(ctx).Preload(clause.Associations).First(&out, "id = ?", auditId)
+	res := r.db.WithContext(ctx).Preload(clause.Associations).Preload("User.Roles").First(&out, "id = ?", auditId)
 	if res.Error != nil {
 		return
 	}
