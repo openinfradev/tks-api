@@ -12737,11 +12737,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "708d1e5b-4e6f-40e9-87a3-329e2fd051a5"
                 },
-                "templateLatestVerson": {
+                "templateLatestVersion": {
                     "type": "string",
                     "example": "v1.0.3"
                 },
-                "templateLatestVersonReleaseDate": {
+                "templateLatestVersionReleaseDate": {
                     "type": "string",
                     "format": "date-time"
                 },
@@ -14394,7 +14394,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "708d1e5b-4e6f-40e9-87a3-329e2fd051a5"
                 },
-                "templateLatestVerson": {
+                "templateLatestVersion": {
                     "type": "string",
                     "example": "v1.0.3"
                 },
