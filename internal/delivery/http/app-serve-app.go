@@ -599,10 +599,10 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(r.Context(), app, &out.AppServeApp); err != nil {
+	if err := serializer.Map(r.Context(), *app, &out.AppServeApp); err != nil {
 		log.Info(r.Context(), err)
 	}
-	if err := serializer.Map(r.Context(), task, &out.AppServeAppTask); err != nil {
+	if err := serializer.Map(r.Context(), *task, &out.AppServeAppTask); err != nil {
 		log.Info(r.Context(), err)
 	}
 
