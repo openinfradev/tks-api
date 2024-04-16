@@ -124,38 +124,37 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			continue
 		}
 
-		if systemNotification.Annotations.SystemNotificationRuleId == "" {
-			log.Error(ctx, "Invalid systemNotificationRuleId ")
-			continue
-		}
-
-		systemNotificationRuleId, err := uuid.Parse(systemNotification.Annotations.SystemNotificationRuleId)
-		if err != nil {
-			log.Error(ctx, "Failed to parse uuid ", err)
-			continue
-		}
-		rule, err := u.systemNotificationRuleRepo.Get(ctx, systemNotificationRuleId)
-		if err != nil {
-			log.Error(ctx, "Failed to get systemNotificationRule ", err)
-			continue
-		}
-
-		if rule.SystemNotificationCondition.EnableEmail {
-			to := []string{}
-			for _, user := range rule.TargetUsers {
-				to = append(to, user.Email)
-			}
-			message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, to)
+		// 사용자가 생성한 알림
+		if systemNotification.Annotations.SystemNotificationRuleId != "" {
+			systemNotificationRuleId, err := uuid.Parse(systemNotification.Annotations.SystemNotificationRuleId)
 			if err != nil {
-				log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
+				log.Error(ctx, "Failed to parse uuid ", err)
 				continue
 			}
-			mailer := mail.New(message)
-			if err := mailer.SendMail(ctx); err != nil {
-				log.Error(ctx, fmt.Sprintf("Failed to send email to %s. err : %s", to, err.Error()))
+			rule, err := u.systemNotificationRuleRepo.Get(ctx, systemNotificationRuleId)
+			if err != nil {
+				log.Error(ctx, "Failed to get systemNotificationRule ", err)
 				continue
+			}
+
+			if rule.SystemNotificationCondition.EnableEmail {
+				to := []string{}
+				for _, user := range rule.TargetUsers {
+					to = append(to, user.Email)
+				}
+				message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, to)
+				if err != nil {
+					log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
+					continue
+				}
+				mailer := mail.New(message)
+				if err := mailer.SendMail(ctx); err != nil {
+					log.Error(ctx, fmt.Sprintf("Failed to send email to %s. err : %s", to, err.Error()))
+					continue
+				}
 			}
 		}
+
 	}
 
 	return nil

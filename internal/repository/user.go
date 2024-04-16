@@ -10,6 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Interface
@@ -120,7 +121,19 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.WithContext(ctx).Preload("Organization").Preload("Roles").Model(&model.User{}).Where("users.organization_id = ?", organizationId), &users)
+	db := r.db.WithContext(ctx).Preload(clause.Associations).Model(&model.User{}).
+		Where("users.organization_id = ?", organizationId)
+
+	// [TODO] more pretty!
+	for _, filter := range pg.Filters {
+		log.Info(ctx, "KTKFREE ", filter.Relation)
+		if filter.Relation == "Roles" {
+			db = db.Where("id IN (SELECT user_id FROM user_roles WHERE name IN ?)", filter.Values)
+			break
+		}
+	}
+
+	_, res := pg.Fetch(db, &users)
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return nil, res.Error

@@ -1912,10 +1912,10 @@ definitions:
       templateId:
         example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
         type: string
-      templateLatestVerson:
+      templateLatestVersion:
         example: v1.0.3
         type: string
-      templateLatestVersonReleaseDate:
+      templateLatestVersionReleaseDate:
         format: date-time
         type: string
       templateMandatory:
@@ -3016,7 +3016,7 @@ definitions:
       templateId:
         example: 708d1e5b-4e6f-40e9-87a3-329e2fd051a5
         type: string
-      templateLatestVerson:
+      templateLatestVersion:
         example: v1.0.3
         type: string
       templateName:
