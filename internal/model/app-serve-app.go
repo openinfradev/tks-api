@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+    "github.com/google/uuid"
+    "gorm.io/gorm"
 )
 
 type AppServeApp struct {
@@ -51,4 +53,9 @@ type AppServeAppTask struct {
 	CreatedAt         time.Time  `gorm:"autoCreateTime:false" json:"createdAt"` // createdAt is  a creation timestamp for the application
 	UpdatedAt         *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt         *time.Time `json:"deletedAt"`
+}
+
+func (t *AppServeAppTask) BeforeCreate(tx *gorm.DB) (err error) {
+	t.ID = uuid.New().String()
+	return nil
 }

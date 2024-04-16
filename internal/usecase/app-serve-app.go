@@ -25,7 +25,7 @@ import (
 
 type IAppServeAppUsecase interface {
 	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
+	GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
 	GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
 	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
@@ -144,6 +144,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 		"strategy=" + app.AppServeAppTasks[0].Strategy,
 		"app_type=" + app.AppType,
 		"organization_id=" + app.OrganizationId,
+		"project_id=" + app.ProjectId,
 		"target_cluster_id=" + app.TargetClusterId,
 		"app_name=" + app.Name,
 		"namespace=" + app.Namespace,
@@ -180,10 +181,10 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 	return appId, app.Name, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
-	apps, err := u.repo.GetAppServeApps(ctx, organizationId, showAll, pg)
+func (u *AppServeAppUsecase) GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error) {
+	apps, err := u.repo.GetAppServeApps(ctx, organizationId, projectId, showAll, pg)
 	if err != nil {
-		fmt.Println(apps)
+		log.Debugf(ctx, "Apps: [%v]", apps)
 	}
 
 	return apps, nil
@@ -398,6 +399,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string
 			"asa_id=" + app.ID,
 			"asa_task_id=" + taskId,
 			"organization_id=" + app.OrganizationId,
+			"project_id=" + app.ProjectId,
 			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})
@@ -505,6 +507,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.A
 			"strategy=" + appTask.Strategy,
 			"app_type=" + app.AppType,
 			"organization_id=" + app.OrganizationId,
+			"project_id=" + app.ProjectId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"namespace=" + app.Namespace,
@@ -578,6 +581,7 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(ctx context.Context, appId strin
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
+			"project_id=" + app.ProjectId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"namespace=" + app.Namespace,
@@ -609,10 +613,7 @@ func (u *AppServeAppUsecase) AbortAppServeApp(ctx context.Context, appId string)
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the abort process is done.
 	latestTaskId := app.AppServeAppTasks[0].ID
-	strategy := app.AppServeAppTasks[0].Strategy
 	log.Info(ctx, "latestTaskId = ", latestTaskId)
-	log.Info(ctx, "strategy = ", strategy)
-
 	log.Info(ctx, "Updating app status to 'ABORTING'..")
 
 	err = u.repo.UpdateStatus(ctx, appId, latestTaskId, "ABORTING", "")
@@ -631,12 +632,12 @@ func (u *AppServeAppUsecase) AbortAppServeApp(ctx context.Context, appId string)
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
+			"project_id=" + app.ProjectId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"namespace=" + app.Namespace,
 			"asa_id=" + app.ID,
 			"asa_task_id=" + latestTaskId,
-			"strategy=" + strategy,
 			"tks_api_url=" + viper.GetString("external-address"),
 		},
 	})

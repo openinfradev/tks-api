@@ -44,7 +44,7 @@ func init() {
 	flag.String("console-address", "https://tks-console-dev.taco-cat.xyz", "service address for console")
 
 	// app-serve-apps
-	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")
+	flag.String("image-registry-url", "harbor.taco-cat.xyz/appserving", "URL of image registry")
 	flag.String("harbor-pw-secret", "harbor-core", "name of harbor password secret")
 	flag.String("git-repository-url", "github.com/openinfradev", "URL of git repository")
 

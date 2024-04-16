@@ -15,7 +15,7 @@ import (
 
 type IAppServeAppRepository interface {
 	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error)
-	GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
+	GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
 
 	GetAppServeAppTasksByAppId(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
@@ -63,7 +63,7 @@ func (r *AppServeAppRepository) CreateTask(ctx context.Context, task *model.AppS
 	return task.ID, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeApps(ctx context.Context, organizationId string, showAll bool, pg *pagination.Pagination) (apps []model.AppServeApp, err error) {
+func (r *AppServeAppRepository) GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) (apps []model.AppServeApp, err error) {
 	var clusters []model.Cluster
 	if pg == nil {
 		pg = pagination.NewPagination(nil)
@@ -71,9 +71,9 @@ func (r *AppServeAppRepository) GetAppServeApps(ctx context.Context, organizatio
 
 	// TODO: should return different records based on showAll param
 	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.AppServeApp{}).
-		Where("app_serve_apps.organization_id = ? AND status <> 'DELETE_SUCCESS'", organizationId), &apps)
+		Where("app_serve_apps.project_id = ? AND status <> 'DELETE_SUCCESS'", projectId), &apps)
 	if res.Error != nil {
-		return nil, fmt.Errorf("error while finding appServeApps with organizationId: %s", organizationId)
+		return nil, fmt.Errorf("error while finding appServeApps with projectId: %s", projectId)
 	}
 
 	// If no record is found, just return empty array.
@@ -100,6 +100,10 @@ func (r *AppServeAppRepository) GetAppServeApps(ctx context.Context, organizatio
 	return
 }
 
+// ////////////////////////////////////////////////////////////////////////////////////////
+// TODO: this API will'be deprecated soon once the new task-related API's are verified.
+// Until then, this is available (except for stage info) just for backward compatibility.
+// ////////////////////////////////////////////////////////////////////////////////////////
 func (r *AppServeAppRepository) GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error) {
 	var app model.AppServeApp
 	var cluster model.Cluster
