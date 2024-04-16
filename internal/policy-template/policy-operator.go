@@ -50,6 +50,12 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 		}
 	}
 
+	targetClusterIds := make([]string, 0)
+
+	if policy.TargetClusterIds != nil {
+		targetClusterIds = policy.TargetClusterIds
+	}
+
 	return &TKSPolicy{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tkspolicy.openinfradev.github.io/v1",
@@ -63,7 +69,7 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 
 		Spec: TKSPolicySpec{
 			EnforcementAction: policy.EnforcementAction,
-			Clusters:          policy.TargetClusterIds,
+			Clusters:          targetClusterIds,
 			Template:          policy.PolicyTemplate.Kind,
 			Match:             policy.Match,
 			Params:            params,
