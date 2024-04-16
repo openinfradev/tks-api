@@ -79,7 +79,7 @@ func (u *SystemNotificationRuleUsecase) Create(ctx context.Context, dto model.Sy
 }
 
 func (u *SystemNotificationRuleUsecase) Update(ctx context.Context, dto model.SystemNotificationRule) error {
-	_, err := u.repo.Get(ctx, dto.ID)
+	rule, err := u.repo.Get(ctx, dto.ID)
 	if err != nil {
 		return httpErrors.NewBadRequestError(err, "SNR_NOT_EXISTED_STACK_TEMPLATE", "")
 	}
@@ -95,6 +95,10 @@ func (u *SystemNotificationRuleUsecase) Update(ctx context.Context, dto model.Sy
 			}
 		}
 	}
+
+	// Make parameters
+	dto.SystemNotificationCondition.Parameter = []byte(helper.ModelToJson(dto.SystemNotificationCondition.Parameters))
+	dto.SystemNotificationCondition.ID = rule.SystemNotificationCondition.ID
 
 	err = u.repo.Update(ctx, dto)
 	if err != nil {
