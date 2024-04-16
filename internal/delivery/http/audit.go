@@ -71,6 +71,12 @@ func (h *AuditHandler) GetAudits(w http.ResponseWriter, r *http.Request) {
 		if err := serializer.Map(r.Context(), audit, &out.Audits[i]); err != nil {
 			log.Info(r.Context(), err)
 		}
+		out.Audits[i].User.Roles = make([]domain.SimpleRoleResponse, len(audit.User.Roles))
+		for j, role := range audit.User.Roles {
+			if err := serializer.Map(r.Context(), role, &out.Audits[i].User.Roles[j]); err != nil {
+				log.Info(r.Context(), err)
+			}
+		}
 	}
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {

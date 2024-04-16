@@ -49,6 +49,15 @@ type SimpleUserResponse struct {
 	Email      string `json:"email"`
 }
 
+type SimpleUserResponseWithRoles struct {
+	ID         string               `json:"id"`
+	AccountId  string               `json:"accountId"`
+	Name       string               `json:"name"`
+	Department string               `json:"department"`
+	Email      string               `json:"email"`
+	Roles      []SimpleRoleResponse `json:"roles"`
+}
+
 type CreateUserResponse struct {
 	User struct {
 		ID           string               `json:"id"`
