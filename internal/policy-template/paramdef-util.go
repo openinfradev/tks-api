@@ -251,13 +251,13 @@ func FillParamDefFromJson(paramdefs []*domain.ParameterDef, parameters *map[stri
 		} else if nestedMapArray, ok := value.([]map[string]interface{}); ok {
 			jsonByte, err := json.Marshal(nestedMapArray)
 
-			if err != nil {
+			if err == nil {
 				paramdef.DefaultValue = string(jsonByte)
 			}
 		} else if value != nil {
 			jsonByte, err := json.Marshal(value)
 
-			if err != nil {
+			if err == nil {
 				paramdef.DefaultValue = string(jsonByte)
 			}
 		}
