@@ -572,7 +572,7 @@ func (u *PolicyUsecase) ListStackPolicyStatus(ctx context.Context, clusterId str
 		// 	result[i].TemplateCurrentVersion = version
 		// }
 
-		result[i].TemplateLatestVerson = latestVersion
+		result[i].TemplateLatestVersion = latestVersion
 		result[i].TemplateDescription = policy.PolicyTemplate.Description
 	}
 
@@ -711,14 +711,14 @@ func (u *PolicyUsecase) GetStackPolicyTemplateStatus(ctx context.Context, cluste
 	}
 
 	result := domain.GetStackPolicyTemplateStatusResponse{
-		TemplateName:                    currentTemplate.TemplateName,
-		TemplateId:                      policyTemplateId.String(),
-		TemplateDescription:             currentTemplate.Description,
-		TemplateLatestVerson:            latestTemplate.Version,
-		TemplateCurrentVersion:          currentTemplate.Version,
-		TemplateLatestVersonReleaseDate: latestTemplate.CreatedAt,
-		AffectedPolicies:                affectedPolicies,
-		UpdatedPolicyParameters:         updatedPolicyParameters,
+		TemplateName:                     currentTemplate.TemplateName,
+		TemplateId:                       policyTemplateId.String(),
+		TemplateDescription:              currentTemplate.Description,
+		TemplateLatestVersion:            latestTemplate.Version,
+		TemplateCurrentVersion:           currentTemplate.Version,
+		TemplateLatestVersionReleaseDate: latestTemplate.CreatedAt,
+		AffectedPolicies:                 affectedPolicies,
+		UpdatedPolicyParameters:          updatedPolicyParameters,
 	}
 
 	return &result, nil

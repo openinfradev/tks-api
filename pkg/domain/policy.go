@@ -134,7 +134,7 @@ type StackPolicyStatusResponse struct {
 	TemplateId             string `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
 	TemplateDescription    string `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
 	TemplateCurrentVersion string `json:"templateCurrentVersion" example:"v1.0.1"`
-	TemplateLatestVerson   string `json:"templateLatestVerson" example:"v1.0.3"`
+	TemplateLatestVersion  string `json:"templateLatestVersion" example:"v1.0.3"`
 }
 
 type ListStackPolicyStatusResponse struct {
@@ -142,15 +142,15 @@ type ListStackPolicyStatusResponse struct {
 }
 
 type GetStackPolicyTemplateStatusResponse struct {
-	TemplateName                    string                           `json:"templateName" example:"레이블 요구"`
-	TemplateId                      string                           `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
-	TemplateDescription             string                           `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
-	TemplateMandatory               bool                             `json:"templateMandatory"`
-	TemplateCurrentVersion          string                           `json:"templateCurrentVersion" example:"v1.0.1"`
-	TemplateLatestVerson            string                           `json:"templateLatestVerson" example:"v1.0.3"`
-	TemplateLatestVersonReleaseDate time.Time                        `json:"templateLatestVersonReleaseDate" format:"date-time"`
-	UpdatedPolicyParameters         []UpdatedPolicyTemplateParameter `json:"updatedPolicyParameters"`
-	AffectedPolicies                []PolicyStatus                   `json:"affectedPolicies"`
+	TemplateName                     string                           `json:"templateName" example:"레이블 요구"`
+	TemplateId                       string                           `json:"templateId" example:"708d1e5b-4e6f-40e9-87a3-329e2fd051a5"`
+	TemplateDescription              string                           `json:"templateDescription" example:"파라미터로 설정된 레이블 검사"`
+	TemplateMandatory                bool                             `json:"templateMandatory"`
+	TemplateCurrentVersion           string                           `json:"templateCurrentVersion" example:"v1.0.1"`
+	TemplateLatestVersion            string                           `json:"templateLatestVersion" example:"v1.0.3"`
+	TemplateLatestVersionReleaseDate time.Time                        `json:"templateLatestVersionReleaseDate" format:"date-time"`
+	UpdatedPolicyParameters          []UpdatedPolicyTemplateParameter `json:"updatedPolicyParameters"`
+	AffectedPolicies                 []PolicyStatus                   `json:"affectedPolicies"`
 }
 
 type PolicyStatus struct {
