@@ -3435,7 +3435,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Get the number of policy enforcement",
+                "description": "Get the number of policy violation",
                 "consumes": [
                     "application/json"
                 ],
@@ -3445,7 +3445,7 @@ const docTemplate = `{
                 "tags": [
                     "Dashboard Widgets"
                 ],
-                "summary": "Get the number of policy enforcement",
+                "summary": "Get the number of policy violation",
                 "parameters": [
                     {
                         "type": "string",
@@ -3453,13 +3453,27 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "duration",
+                        "name": "duration",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "interval",
+                        "name": "interval",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyEnforcementResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse"
                         }
                     }
                 }
@@ -12423,6 +12437,35 @@ const docTemplate = `{
             "properties": {
                 "updatedResources": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyUpdate"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse": {
+            "type": "object",
+            "properties": {
+                "chartData": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.BarChartData"
+                },
+                "chartType": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "interval": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
