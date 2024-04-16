@@ -6,6 +6,7 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,6 +37,7 @@ type IDashboardUsecase interface {
 	GetResources(ctx context.Context, organizationId string) (out domain.DashboardResource, err error)
 	GetPolicyUpdate(ctx context.Context, policyTemplates []policytemplate.TKSPolicyTemplate, policies []policytemplate.TKSPolicy) (domain.DashboardPolicyUpdate, error)
 	GetPolicyEnforcement(ctx context.Context, organizationId string, primaryClusterId string) (*domain.BarChartData, error)
+	GetPolicyViolation(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error)
 }
 
 type DashboardUsecase struct {
@@ -758,6 +760,126 @@ func (u *DashboardUsecase) GetPolicyEnforcement(ctx context.Context, organizatio
 	return bcd, nil
 }
 
+func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error) {
+	thanosClient, err := u.GetThanosClient(ctx, organizationId)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create thanos client")
+	}
+
+	durationSec, intervalSec := getDurationAndIntervalSec(duration, interval)
+
+	clusterIdStr, err := u.GetFlatClusterIds(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+	query := fmt.Sprintf("sum by(kind,name,violation_enforcement)(opa_scorecard_constraint_violations{taco_cluster=~\"%s\"})", clusterIdStr)
+
+	now := time.Now()
+	pm, err := thanosClient.FetchPolicyRange(ctx, query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+	if err != nil {
+		return nil, err
+	}
+
+	// totalViolation: {"K8sRequiredLabels": {"violation_enforcement": 2}}
+	totalViolation := make(map[string]map[string]int)
+
+	// Y축
+	var series []domain.UnitNumber
+	var yDenyData []int
+	var yWarnData []int
+	var yDryrunData []int
+
+	// X축
+	var xAxis *domain.Axis
+	var xData []string
+
+	for _, res := range pm.Data.Result {
+		policyTemplate := res.Metric.Kind
+		if len(res.Metric.Violation) == 0 {
+			continue
+		}
+		if !slices.Contains(xData, policyTemplate) {
+			xData = append(xData, policyTemplate)
+		}
+
+		count, err := strconv.Atoi(res.Value[1].(string))
+		if err != nil {
+			count = 0
+		}
+		violation := res.Metric.Violation
+		if val, ok := totalViolation[policyTemplate][violation]; !ok {
+			totalViolation[policyTemplate] = make(map[string]int)
+			totalViolation[policyTemplate][violation] = count
+		} else {
+			totalViolation[policyTemplate][violation] = val + count
+		}
+	}
+
+	for _, violations := range totalViolation {
+		yDenyData = append(yDenyData, violations["deny"])
+		yWarnData = append(yWarnData, violations["warn"])
+		yDryrunData = append(yDryrunData, violations["dryrun"])
+	}
+
+	xAxis = &domain.Axis{
+		Data: xData,
+	}
+
+	denyUnit := domain.UnitNumber{
+		Name: "거부",
+		Data: yDenyData,
+	}
+	series = append(series, denyUnit)
+
+	warnUnit := domain.UnitNumber{
+		Name: "경고",
+		Data: yWarnData,
+	}
+	series = append(series, warnUnit)
+
+	dryrunUnit := domain.UnitNumber{
+		Name: "감사",
+		Data: yDryrunData,
+	}
+	series = append(series, dryrunUnit)
+
+	bcd := &domain.BarChartData{
+		XAxis:  xAxis,
+		Series: series,
+	}
+
+	return bcd, nil
+
+}
+
+func (u *DashboardUsecase) GetThanosClient(ctx context.Context, organizationId string) (thanos.ThanosClient, error) {
+	thanosUrl, err := u.getThanosUrl(ctx, organizationId)
+	if err != nil {
+		log.Error(ctx, err)
+		return nil, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
+	}
+	address, port := helper.SplitAddress(ctx, thanosUrl)
+	client, err := thanos.New(address, port, false, "")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create thanos client")
+	}
+	return client, nil
+}
+
+func (u *DashboardUsecase) GetFlatClusterIds(ctx context.Context, organizationId string) (string, error) {
+	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
+	if err != nil {
+		log.Error(ctx, err)
+		return "", err
+	}
+	var clusterIds []string
+	for _, cluster := range clusters {
+		clusterIds = append(clusterIds, cluster.ID.String())
+	}
+	clusterIdStr := strings.Join(clusterIds, "|")
+	return clusterIdStr, nil
+}
+
 func rangeDate(start, end time.Time) func() time.Time {
 	y, m, d := start.Date()
 	start = time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
@@ -772,4 +894,28 @@ func rangeDate(start, end time.Time) func() time.Time {
 		start = start.AddDate(0, 0, 1)
 		return date
 	}
+}
+
+func getDurationAndIntervalSec(duration string, interval string) (int, int) {
+	durationSec := 60 * 60 * 24
+	switch duration {
+	case "1h":
+		durationSec = 60 * 60
+	case "1d":
+		durationSec = 60 * 60 * 24
+	case "7d":
+		durationSec = 60 * 60 * 24 * 7
+	case "30d":
+		durationSec = 60 * 60 * 24 * 30
+	}
+
+	intervalSec := 60 * 60 // default 1h
+	switch interval {
+	case "1h":
+		intervalSec = 60 * 60
+	case "1d":
+		intervalSec = 60 * 60 * 24
+	}
+
+	return durationSec, intervalSec
 }

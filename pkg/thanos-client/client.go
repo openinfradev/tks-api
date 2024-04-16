@@ -16,6 +16,7 @@ import (
 type ThanosClient interface {
 	Get(ctx context.Context, query string) (Metric, error)
 	FetchRange(ctx context.Context, query string, start int, end int, step int) (out Metric, err error)
+	FetchPolicyRange(ctx context.Context, query string, start int, end int, step int) (*PolicyMetric, error)
 }
 
 type ThanosClientImpl struct {
@@ -123,4 +124,39 @@ func (c *ThanosClientImpl) FetchRange(ctx context.Context, query string, start i
 	}
 
 	return
+}
+
+func (c *ThanosClientImpl) FetchPolicyRange(ctx context.Context, query string, start int, end int, step int) (pm *PolicyMetric, err error) {
+	rangeParam := fmt.Sprintf("&dedup=true&partial_response=false&start=%d&end=%d&step=%d&max_source_resolution=0s", start, end, step)
+	query = url.QueryEscape(query) + rangeParam
+	requestUrl := c.url + "/api/v1/query_range?query=" + query
+
+	res, err := c.client.Get(requestUrl)
+	if err != nil {
+		return nil, err
+	}
+	if res == nil {
+		return nil, fmt.Errorf("failed to call thanos")
+	}
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("invalid http status. return code: %d", res.StatusCode)
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Error(ctx, "error closing http body")
+		}
+	}()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &pm)
+	if err != nil {
+		return nil, err
+	}
+
+	return pm, nil
 }

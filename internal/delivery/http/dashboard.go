@@ -27,6 +27,7 @@ type IDashboardHandler interface {
 	GetPolicyStatus(w http.ResponseWriter, r *http.Request)
 	GetPolicyUpdate(w http.ResponseWriter, r *http.Request)
 	GetPolicyEnforcement(w http.ResponseWriter, r *http.Request)
+	GetPolicyViolation(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
@@ -566,6 +567,56 @@ func (h *DashboardHandler) GetPolicyEnforcement(w http.ResponseWriter, r *http.R
 	out.OrganizationId = organizationId
 	out.Name = "정책 적용 현황"
 	out.Description = "정책 적용 현황 통계 데이터"
+	out.ChartData = *bcd
+	out.UpdatedAt = time.Now()
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyViolation godoc
+//
+//	@Tags			Dashboard Widgets
+//	@Summary		Get the number of policy violation
+//	@Description	Get the number of policy violation
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			duration		query		string	true	"duration"
+//	@Param			interval		query		string	true	"interval"
+//	@Success		200				{object}	domain.GetDashboardPolicyViolationResponse
+//	@Router			/organizations/{organizationId}/dashboards/policy-enforcement [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetPolicyViolation(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("%s: invalid organizationId", organizationId),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	query := r.URL.Query()
+	duration := query.Get("duration")
+	if duration == "" {
+		duration = "1d" // default
+	}
+
+	interval := query.Get("interval")
+	if interval == "" {
+		interval = "1d" // default
+	}
+
+	bcd, err := h.usecase.GetPolicyViolation(r.Context(), organizationId, duration, interval)
+	if err != nil {
+		log.Error(r.Context(), "Failed to make policy bar chart data", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetDashboardPolicyViolationResponse
+	out.ChartType = "PolicyViolation"
+	out.OrganizationId = organizationId
+	out.Name = "정책 위반 현황"
+	out.Description = "정책 위반 현황 통계 데이터"
 	out.ChartData = *bcd
 	out.UpdatedAt = time.Now()
 	ResponseJSON(w, r, http.StatusOK, out)
