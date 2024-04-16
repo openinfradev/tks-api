@@ -630,6 +630,10 @@ func reflectClusterToStack(ctx context.Context, cluster model.Cluster, appGroups
 		log.Error(ctx, err)
 	}
 
+	if err := serializer.Map(ctx, cluster, &out.Conf); err != nil {
+		log.Error(ctx, err)
+	}
+
 	status, statusDesc := getStackStatus(cluster, appGroups)
 
 	out.ID = domain.StackId(cluster.ID)
