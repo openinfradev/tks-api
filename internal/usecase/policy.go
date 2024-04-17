@@ -244,11 +244,20 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 	}
 
 	if policyName != nil {
-		exists, err := u.repo.ExistByName(ctx, organizationId, *policyName)
-		if err == nil && exists {
-			return httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY__NAME", "policy template name already exists")
+		policy, err := u.repo.GetByName(ctx, organizationId, *policyName)
+		if err != nil {
+			return err
 		}
-		updateMap["policy_name"] = policyName
+
+		// 이름이 같은 정책이 존재하지만 아이디가 서로 다른 경우, 즉 다른 정책이 해당 이름 사용 중임
+		if policy != nil && policyId != policy.ID {
+			return httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY_NAME", "policy name already exists")
+		}
+
+		// 해당 이름 사용중인 정책이 없으면 업데이트, 있으면 동일 정책이므로 업데이트 안 함
+		if policy == nil {
+			updateMap["policy_name"] = policyName
+		}
 	}
 
 	if description != nil {
@@ -323,23 +332,13 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 		return err
 	}
 
-	if policyName != nil || templateId != nil || enforcementAction != nil ||
+	if templateId != nil || enforcementAction != nil ||
 		parameters != nil || match != nil || targetClusterIds != nil {
 
 		organization, err := u.organizationRepo.Get(ctx, organizationId)
 
 		if err != nil {
 			return httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
-		}
-
-		if policyName != nil {
-			err = policytemplate.DeleteTksPolicyCR(ctx, organization.PrimaryClusterId, *policyName)
-
-			if err != nil {
-				log.Errorf(ctx, "failed to delete TksPolicyCR: %v", err)
-				return httpErrors.NewInternalServerError(err, "P_FAILED_TO_APPLY_KUBERNETES", "")
-
-			}
 		}
 
 		policy, err := u.repo.GetByID(ctx, organizationId, policyId)
