@@ -126,7 +126,6 @@ func (r *UserRepository) ListWithPagination(ctx context.Context, pg *pagination.
 
 	// [TODO] more pretty!
 	for _, filter := range pg.Filters {
-		log.Info(ctx, "KTKFREE ", filter.Relation)
 		if filter.Relation == "Roles" {
 			db = db.Where("id IN (SELECT user_id FROM user_roles WHERE name IN ?)", filter.Values)
 			break
