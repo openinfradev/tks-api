@@ -105,4 +105,3 @@ insert into system_notification_metric_parameters ( "order", system_notification
 values ( 5, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'VIOLATING_NAME', '$labels.violating_name', now(), now() );
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
 values ( 6, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'VIOLATION_MSG', '$labels.violation_msg', now(), now() );
-insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
