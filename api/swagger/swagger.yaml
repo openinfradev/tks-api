@@ -507,7 +507,7 @@ definitions:
       updatedAt:
         type: string
       user:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponseWithRoles'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.Axis:
     properties:
@@ -1711,6 +1711,8 @@ definitions:
     properties:
       updatedResources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyUpdate'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationLogResponse:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse:
     properties:
@@ -2970,6 +2972,23 @@ definitions:
       name:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponseWithRoles:
+    properties:
+      accountId:
+        type: string
+      department:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.StackConfResponse:
     properties:
       tksCpNode:
@@ -3287,6 +3306,8 @@ definitions:
       name:
         type: string
       notificationType:
+        type: string
+      status:
         type: string
       systemNotificationCondition:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SystemNotificationConditionResponse'
@@ -6396,21 +6417,11 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get the number of policy violation
+      description: Get the number of policy enforcement
       parameters:
       - description: Organization ID
         in: path
         name: organizationId
-        required: true
-        type: string
-      - description: duration
-        in: query
-        name: duration
-        required: true
-        type: string
-      - description: interval
-        in: query
-        name: interval
         required: true
         type: string
       produces:
@@ -6419,10 +6430,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyEnforcementResponse'
       security:
       - JWT: []
-      summary: Get the number of policy violation
+      summary: Get the number of policy enforcement
       tags:
       - Dashboard Widgets
   /organizations/{organizationId}/dashboards/policy-status:
@@ -6469,6 +6480,62 @@ paths:
       security:
       - JWT: []
       summary: Get the number of policytemplates that need to be updated
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/policy-violation:
+    get:
+      consumes:
+      - application/json
+      description: Get the number of policy violation
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse'
+      security:
+      - JWT: []
+      summary: Get the number of policy violation
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/policy-violation-log:
+    get:
+      consumes:
+      - application/json
+      description: Get policy violation log
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationLogResponse'
+      security:
+      - JWT: []
+      summary: Get policy violation log
       tags:
       - Dashboard Widgets
   /organizations/{organizationId}/dashboards/resources:
