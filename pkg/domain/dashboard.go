@@ -210,6 +210,10 @@ type GetDashboardPolicyViolationResponse struct {
 	UpdatedAt time.Time    `json:"updatedAt"`
 }
 
+type GetDashboardPolicyViolationLogResponse struct {
+	// TODO implement me
+}
+
 type BarChart struct {
 	ChartType      string `json:"chartType"`
 	OrganizationId string `json:"organizationId"`

@@ -38,6 +38,7 @@ type IDashboardUsecase interface {
 	GetPolicyUpdate(ctx context.Context, policyTemplates []policytemplate.TKSPolicyTemplate, policies []policytemplate.TKSPolicy) (domain.DashboardPolicyUpdate, error)
 	GetPolicyEnforcement(ctx context.Context, organizationId string, primaryClusterId string) (*domain.BarChartData, error)
 	GetPolicyViolation(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error)
+	GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error)
 }
 
 type DashboardUsecase struct {
@@ -850,6 +851,11 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 
 	return bcd, nil
 
+}
+
+func (u *DashboardUsecase) GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error) {
+	// TODO Implement me
+	return nil, nil
 }
 
 func (u *DashboardUsecase) GetThanosClient(ctx context.Context, organizationId string) (thanos.ThanosClient, error) {

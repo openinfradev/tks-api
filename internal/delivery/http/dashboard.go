@@ -28,6 +28,7 @@ type IDashboardHandler interface {
 	GetPolicyUpdate(w http.ResponseWriter, r *http.Request)
 	GetPolicyEnforcement(w http.ResponseWriter, r *http.Request)
 	GetPolicyViolation(w http.ResponseWriter, r *http.Request)
+	GetPolicyViolationLog(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
@@ -583,7 +584,7 @@ func (h *DashboardHandler) GetPolicyEnforcement(w http.ResponseWriter, r *http.R
 //	@Param			duration		query		string	true	"duration"
 //	@Param			interval		query		string	true	"interval"
 //	@Success		200				{object}	domain.GetDashboardPolicyViolationResponse
-//	@Router			/organizations/{organizationId}/dashboards/policy-enforcement [get]
+//	@Router			/organizations/{organizationId}/dashboards/policy-violation [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetPolicyViolation(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -619,5 +620,35 @@ func (h *DashboardHandler) GetPolicyViolation(w http.ResponseWriter, r *http.Req
 	out.Description = "정책 위반 현황 통계 데이터"
 	out.ChartData = *bcd
 	out.UpdatedAt = time.Now()
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyViolationLog godoc
+//
+//	@Tags			Dashboard Widgets
+//	@Summary		Get policy violation log
+//	@Description	Get policy violation log
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.GetDashboardPolicyViolationLogResponse
+//	@Router			/organizations/{organizationId}/dashboards/policy-violation-log [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetPolicyViolationLog(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("%s: invalid organizationId", organizationId),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	out, err := h.usecase.GetPolicyViolationLog(r.Context(), organizationId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to make policy violation log", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }

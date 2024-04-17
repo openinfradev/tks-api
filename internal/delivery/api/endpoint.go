@@ -121,6 +121,7 @@ const (
 	GetPolicyUpdateDashboard
 	GetPolicyEnforcementDashboard
 	GetPolicyViolationDashboard
+	GetPolicyViolationLogDashboard
 
 	// SystemNotificationTemplate
 	Admin_CreateSystemNotificationTemplate
