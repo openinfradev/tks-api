@@ -94,7 +94,7 @@ func (r *PolicyRepository) Fetch(ctx context.Context, organizationId string, pg 
 	}
 
 	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations).
-		Where("organization_id = ?", organizationId), &out)
+		Where("policies.organization_id = ?", organizationId), &out)
 
 	if res.Error != nil {
 		return nil, res.Error

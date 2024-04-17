@@ -85,7 +85,18 @@ func (r *OrganizationRepository) Fetch(ctx context.Context, pg *pagination.Pagin
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(r.db.WithContext(ctx).Preload(clause.Associations), &out)
+	db := r.db.WithContext(ctx).Preload(clause.Associations).Model(&model.Organization{})
+
+	// [TODO] more pretty!
+	for _, filter := range pg.Filters {
+		if filter.Relation == "Admin" {
+			db = db.Joins("left outer join users on users.id::text = organizations.admin_id::text").
+				Where("users.name like ?", "%"+filter.Values[0]+"%")
+			break
+		}
+	}
+
+	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}

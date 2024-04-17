@@ -69,10 +69,20 @@ func (r *SystemNotificationRuleRepository) FetchWithOrganization(ctx context.Con
 		pg = pagination.NewPagination(nil)
 	}
 
-	_, res := pg.Fetch(
-		r.db.WithContext(ctx).Preload(clause.Associations).
-			Where("organization_id = ?", organizationId),
-		&out)
+	db := r.db.WithContext(ctx).Preload(clause.Associations).Model(&model.SystemNotificationRule{}).
+		Where("system_notification_rules.organization_id = ?", organizationId)
+
+	// [TODO] more pretty!
+	for _, filter := range pg.Filters {
+		if filter.Relation == "TargetUsers" {
+			db = db.Joins("left outer join system_notification_rule_users on system_notification_rules.id = system_notification_rule_users.system_notification_rule_id").
+				Joins("left outer join users on system_notification_rule_users.user_id = users.id").
+				Where("users.name like ?", "%"+filter.Values[0]+"%")
+			break
+		}
+	}
+
+	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
