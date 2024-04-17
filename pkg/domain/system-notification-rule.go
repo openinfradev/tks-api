@@ -41,6 +41,7 @@ type SystemNotificationRuleResponse struct {
 	SystemNotificationTemplate  SimpleSystemNotificationTemplateResponse `json:"systemNotificationTemplate"`
 	SystemNotificationCondition SystemNotificationConditionResponse      `json:"systemNotificationCondition"`
 	IsSystem                    bool                                     `json:"isSystem"`
+	Status                      string                                   `json:"status"`
 	Creator                     SimpleUserResponse                       `json:"creator"`
 	Updator                     SimpleUserResponse                       `json:"updator"`
 	CreatedAt                   time.Time                                `json:"createdAt"`
@@ -66,6 +67,7 @@ type SimpleSystemNotificationRuleResponse struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Status      string `json:"status"`
 }
 
 type GetSystemNotificationRulesResponse struct {
