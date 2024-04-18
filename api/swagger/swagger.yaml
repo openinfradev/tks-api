@@ -1702,6 +1702,13 @@ definitions:
       updatedAt:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatisticsResponse:
+    properties:
+      policyCount:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyCount'
+      templateCount:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateCount'
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatusResponse:
     properties:
       statuses:
@@ -6434,6 +6441,29 @@ paths:
       security:
       - JWT: []
       summary: Get the number of policy enforcement
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/policy-statistics:
+    get:
+      consumes:
+      - application/json
+      description: Get policy violation log
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatisticsResponse'
+      security:
+      - JWT: []
+      summary: Get policy violation log
       tags:
       - Dashboard Widgets
   /organizations/{organizationId}/dashboards/policy-status:
