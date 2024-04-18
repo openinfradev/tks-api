@@ -153,6 +153,7 @@ func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(ctx context.Context, 
 func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
 	var task model.AppServeAppTask
 	var app model.AppServeApp
+	var cluster model.Cluster
 
 	// Retrieve task info
 	res := r.db.WithContext(ctx).Where("id = ?", taskId).First(&task)
@@ -173,6 +174,10 @@ func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, task
 	if res.RowsAffected == 0 {
 		return nil, nil, fmt.Errorf("Couldn't find app with ID %s associated with task %s", app.ID, taskId)
 	}
+
+	// Add cluster name to app object
+	r.db.WithContext(ctx).Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
+	app.TargetClusterName = cluster.Name
 
 	return &task, &app, nil
 }
