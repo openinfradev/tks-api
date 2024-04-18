@@ -214,6 +214,10 @@ type GetDashboardPolicyViolationLogResponse struct {
 	// TODO implement me
 }
 
+type GetDashboardPolicyStatisticsResponse struct {
+	PolicyStatisticsResponse
+}
+
 type BarChart struct {
 	ChartType      string `json:"chartType"`
 	OrganizationId string `json:"organizationId"`

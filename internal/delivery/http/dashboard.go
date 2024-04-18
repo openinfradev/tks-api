@@ -29,17 +29,20 @@ type IDashboardHandler interface {
 	GetPolicyEnforcement(w http.ResponseWriter, r *http.Request)
 	GetPolicyViolation(w http.ResponseWriter, r *http.Request)
 	GetPolicyViolationLog(w http.ResponseWriter, r *http.Request)
+	GetPolicyStatistics(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
 	usecase             usecase.IDashboardUsecase
 	organizationUsecase usecase.IOrganizationUsecase
+	policyUsecase       usecase.IPolicyUsecase
 }
 
 func NewDashboardHandler(h usecase.Usecase) IDashboardHandler {
 	return &DashboardHandler{
 		usecase:             h.Dashboard,
 		organizationUsecase: h.Organization,
+		policyUsecase:       h.Policy,
 	}
 }
 
@@ -649,6 +652,42 @@ func (h *DashboardHandler) GetPolicyViolationLog(w http.ResponseWriter, r *http.
 		ErrorJSON(w, r, err)
 		return
 	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetPolicyStatistics godoc
+//
+//	@Tags			Dashboard Widgets
+//	@Summary		Get policy violation log
+//	@Description	Get policy violation log
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.GetDashboardPolicyStatisticsResponse
+//	@Router			/organizations/{organizationId}/dashboards/policy-statistics [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetPolicyStatistics(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	psr, err := h.policyUsecase.GetPolicyStatistics(r.Context(), organizationId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
+			return
+		}
+
+		ErrorJSON(w, r, err)
+		return
+	}
+	out := domain.GetDashboardPolicyStatisticsResponse{PolicyStatisticsResponse: *psr}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
