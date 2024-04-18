@@ -30,7 +30,7 @@ import (
 
 type IDashboardUsecase interface {
 	CreateDashboard(ctx context.Context, dashboard *model.Dashboard) (string, error)
-	GetDashboard(ctx context.Context, organizationId string, userId string) (*model.Dashboard, error)
+	GetDashboard(ctx context.Context, organizationId string, userId string, dashboardKey string) (*model.Dashboard, error)
 	UpdateDashboard(ctx context.Context, dashboard *model.Dashboard) error
 	GetCharts(ctx context.Context, organizationId string, chartType domain.ChartType, duration string, interval string, year string, month string) (res []domain.DashboardChart, err error)
 	GetStacks(ctx context.Context, organizationId string) (out []domain.DashboardStack, err error)
@@ -74,8 +74,8 @@ func (u *DashboardUsecase) CreateDashboard(ctx context.Context, dashboard *model
 	return dashboardId, nil
 }
 
-func (u *DashboardUsecase) GetDashboard(ctx context.Context, organizationId string, userId string) (*model.Dashboard, error) {
-	dashboard, err := u.dashboardRepo.GetDashboardByUserId(ctx, organizationId, userId)
+func (u *DashboardUsecase) GetDashboard(ctx context.Context, organizationId string, userId string, dashboardKey string) (*model.Dashboard, error) {
+	dashboard, err := u.dashboardRepo.GetDashboardByUserId(ctx, organizationId, userId, dashboardKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get dashboard.")
 	}

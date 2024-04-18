@@ -11,7 +11,7 @@ import (
 type IDashboardRepository interface {
 	CreateDashboard(ctx context.Context, d *model.Dashboard) (string, error)
 	GetDashboardById(ctx context.Context, organizationId string, dashboardId string) (*model.Dashboard, error)
-	GetDashboardByUserId(ctx context.Context, organizationId string, userId string) (*model.Dashboard, error)
+	GetDashboardByUserId(ctx context.Context, organizationId string, userId string, dashboardKey string) (*model.Dashboard, error)
 	UpdateDashboard(ctx context.Context, d *model.Dashboard) error
 }
 
@@ -51,9 +51,9 @@ func (dr DashboardRepository) GetDashboardById(ctx context.Context, organization
 	return d, nil
 }
 
-func (dr DashboardRepository) GetDashboardByUserId(ctx context.Context, organizationId string, userId string) (d *model.Dashboard, err error) {
+func (dr DashboardRepository) GetDashboardByUserId(ctx context.Context, organizationId string, userId string, dashboardKey string) (d *model.Dashboard, err error) {
 	res := dr.db.WithContext(ctx).Limit(1).
-		Where("organization_id = ? and user_id = ?", organizationId, userId).
+		Where("organization_id = ? and user_id = ? and key = ?", organizationId, userId, dashboardKey).
 		First(&d)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {

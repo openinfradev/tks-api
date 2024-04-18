@@ -10,6 +10,7 @@ type Dashboard struct {
 	ID             uuid.UUID `gorm:"primarykey;type:uuid"`
 	OrganizationId string    `gorm:"type:varchar(36)"`
 	UserId         uuid.UUID
+	Key            string
 	Content        string
 	IsAdmin        bool `gorm:"default:false"`
 }

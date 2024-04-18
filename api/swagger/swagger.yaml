@@ -934,16 +934,12 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateDashboardRequest:
     properties:
-      groupName:
-        type: string
-      sizeX:
-        type: integer
-      sizeY:
-        type: integer
-      widgets:
+      contents:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardContents'
         type: array
+      dashboardKey:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.CreateDashboardResponse:
     properties:
@@ -1385,6 +1381,19 @@ definitions:
         type: string
       year:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.DashboardContents:
+    properties:
+      groupName:
+        type: string
+      sizeX:
+        type: integer
+      sizeY:
+        type: integer
+      widgets:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse'
+        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyStatus:
     properties:
@@ -3959,8 +3968,6 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.WidgetResponse:
     properties:
-      key:
-        type: string
       sizeX:
         type: integer
       sizeY:
@@ -3969,6 +3976,8 @@ definitions:
         type: integer
       startY:
         type: integer
+      widgetKey:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.AddPermittedPolicyTemplatesForOrganizationRequest:
     properties:
@@ -6263,30 +6272,6 @@ paths:
       tags:
       - CloudAccounts
   /organizations/{organizationId}/dashboards:
-    get:
-      consumes:
-      - application/json
-      description: Get dashboard
-      parameters:
-      - description: Organization ID
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse'
-            type: array
-      security:
-      - JWT: []
-      summary: Get dashboard
-      tags:
-      - Dashboards
     post:
       consumes:
       - application/json
@@ -6313,6 +6298,36 @@ paths:
       security:
       - JWT: []
       summary: Create new dashboard
+      tags:
+      - Dashboards
+  /organizations/{organizationId}/dashboards/{dashboardKey}:
+    get:
+      consumes:
+      - application/json
+      description: Get dashboard
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Dashboard Key
+        in: path
+        name: dashboardKey
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse'
+            type: array
+      security:
+      - JWT: []
+      summary: Get dashboard
       tags:
       - Dashboards
     put:
@@ -6343,7 +6358,7 @@ paths:
       summary: Update dashboard
       tags:
       - Dashboards
-  /organizations/{organizationId}/dashboards/charts:
+  /organizations/{organizationId}/dashboards/widgets/charts:
     get:
       consumes:
       - application/json
@@ -6380,7 +6395,7 @@ paths:
       summary: Get charts data
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/charts/{chartType}:
+  /organizations/{organizationId}/dashboards/widgets/charts/{chartType}:
     get:
       consumes:
       - application/json
@@ -6418,7 +6433,7 @@ paths:
       summary: Get chart data
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/policy-enforcement:
+  /organizations/{organizationId}/dashboards/widgets/policy-enforcement:
     get:
       consumes:
       - application/json
@@ -6441,7 +6456,7 @@ paths:
       summary: Get the number of policy enforcement
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/policy-statistics:
+  /organizations/{organizationId}/dashboards/widgets/policy-statistics:
     get:
       consumes:
       - application/json
@@ -6464,7 +6479,7 @@ paths:
       summary: Get policy violation log
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/policy-status:
+  /organizations/{organizationId}/dashboards/widgets/policy-status:
     get:
       consumes:
       - application/json
@@ -6487,7 +6502,7 @@ paths:
       summary: Get policy status
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/policy-update:
+  /organizations/{organizationId}/dashboards/widgets/policy-update:
     get:
       consumes:
       - application/json
@@ -6510,7 +6525,7 @@ paths:
       summary: Get the number of policytemplates that need to be updated
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/policy-violation:
+  /organizations/{organizationId}/dashboards/widgets/policy-violation:
     get:
       consumes:
       - application/json
@@ -6543,7 +6558,7 @@ paths:
       summary: Get the number of policy violation
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/policy-violation-log:
+  /organizations/{organizationId}/dashboards/widgets/policy-violation-log:
     get:
       consumes:
       - application/json
@@ -6566,7 +6581,7 @@ paths:
       summary: Get policy violation log
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/resources:
+  /organizations/{organizationId}/dashboards/widgets/resources:
     get:
       consumes:
       - application/json
@@ -6589,7 +6604,7 @@ paths:
       summary: Get resources
       tags:
       - Dashboard Widgets
-  /organizations/{organizationId}/dashboards/stacks:
+  /organizations/{organizationId}/dashboards/widgets/stacks:
     get:
       consumes:
       - application/json
