@@ -130,13 +130,13 @@ type AppGroupResponse = struct {
 }
 
 type ApplicationResponse = struct {
-	ID              uuid.UUID       `json:"id"`
-	AppGroupId      AppGroupId      `json:"appGroupId"`
-	Endpoint        string          `json:"endpoint"`
-	Metadata        string          `json:"metadata"`
-	ApplicationType ApplicationType `json:"applicationType"`
-	CreatedAt       time.Time       `json:"createdAt"`
-	UpdatedAt       time.Time       `json:"updatedAt"`
+	ID         uuid.UUID       `json:"id"`
+	AppGroupId AppGroupId      `json:"appGroupId"`
+	Endpoint   string          `json:"endpoint"`
+	Metadata   string          `json:"metadata"`
+	Type       ApplicationType `json:"applicationType"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	UpdatedAt  time.Time       `json:"updatedAt"`
 }
 
 type CreateAppGroupRequest struct {
@@ -151,9 +151,9 @@ type CreateAppGroupResponse struct {
 }
 
 type CreateApplicationRequest struct {
-	ApplicationType string `json:"applicationType"`
-	Endpoint        string `json:"endpoint"`
-	Metadata        string `json:"metadata"`
+	Type     string `json:"applicationType"`
+	Endpoint string `json:"endpoint"`
+	Metadata string `json:"metadata"`
 }
 
 type GetAppGroupsResponse struct {
