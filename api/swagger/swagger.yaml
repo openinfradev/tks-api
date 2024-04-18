@@ -1186,8 +1186,7 @@ definitions:
       cloudService:
         enum:
         - AWS
-        - AZZURE
-        - GCP
+        - BYOH
         type: string
       description:
         type: string
@@ -3707,8 +3706,7 @@ definitions:
       cloudService:
         enum:
         - AWS
-        - AZZURE
-        - GCP
+        - BYOH
         type: string
       description:
         type: string
