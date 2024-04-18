@@ -50,7 +50,19 @@ func NewPolicyTemplateRepository(db *gorm.DB) IPolicyTemplateRepository {
 }
 
 func (r *PolicyTemplateRepository) Create(ctx context.Context, dto model.PolicyTemplate) (policyTemplateId uuid.UUID, err error) {
-	err = r.db.WithContext(ctx).Create(&dto).Error
+	err = r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 이미 org가 존재하므로 many2many 레코드를 추가하지 않고 관계만 업데이트하도록 보장
+		if err := tx.Omit("PermittedOrganizations").Create(&dto).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&dto).Association("PermittedOrganizations").
+			Append(dto.PermittedOrganizations); err != nil {
+			return err
+		}
+
+		return nil
+	})
 
 	if err != nil {
 		return uuid.Nil, err
@@ -67,7 +79,7 @@ func (r *PolicyTemplateRepository) Update(ctx context.Context, policyTemplateId 
 
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if permittedOrganizations != nil {
-			err = r.db.WithContext(ctx).Model(&policyTemplate).Limit(1).
+			err = tx.WithContext(ctx).Model(&policyTemplate).Limit(1).
 				Association("PermittedOrganizations").Replace(permittedOrganizations)
 
 			if err != nil {
@@ -76,7 +88,7 @@ func (r *PolicyTemplateRepository) Update(ctx context.Context, policyTemplateId 
 		}
 
 		if len(updateMap) > 0 {
-			err = r.db.WithContext(ctx).Model(&policyTemplate).Limit(1).
+			err = tx.WithContext(ctx).Model(&policyTemplate).Limit(1).
 				Where("id = ?", policyTemplateId).Where("type = ?", "tks").
 				Updates(updateMap).Error
 

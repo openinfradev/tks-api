@@ -6,11 +6,11 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
-type PermittedOrganization struct {
-	OrganizationId   string `json:"organizationId"`
-	OrganizationName string `json:"organizationName"`
-	Permitted        bool   `json:"permitted"`
-}
+// type PermittedOrganization struct {
+// 	OrganizationId   string `json:"organizationId"`
+// 	OrganizationName string `json:"organizationName"`
+// 	Permitted        bool   `json:"permitted"`
+// }
 
 type PolicyTemplateResponse struct {
 	ID        string                    `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
@@ -30,7 +30,7 @@ type PolicyTemplateResponse struct {
 	Rego             string                 `json:"rego" example:"rego 코드"`
 	Libs             []string               `json:"libs" example:"rego 코드"`
 
-	PermittedOrganizations []PermittedOrganization `json:"permittedOrganizations"`
+	PermittedOrganizations []domain.SimpleOrganizationResponse `json:"permittedOrganizations"`
 }
 
 type SimplePolicyTemplateResponse struct {

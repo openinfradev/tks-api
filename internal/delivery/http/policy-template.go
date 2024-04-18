@@ -261,9 +261,17 @@ func (h *PolicyTemplateHandler) Admin_GetPolicyTemplate(w http.ResponseWriter, r
 		log.Error(r.Context(), err)
 	}
 
-	if err = h.usecase.FillPermittedOrganizations(r.Context(), policyTemplate, &out.PolicyTemplate); err != nil {
-		log.Error(r.Context(), err)
+	out.PolicyTemplate.PermittedOrganizations = make([]domain.SimpleOrganizationResponse, len(policyTemplate.PermittedOrganizations))
+	for i, organization := range policyTemplate.PermittedOrganizations {
+		if err := serializer.Map(r.Context(), organization, &out.PolicyTemplate.PermittedOrganizations[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
 	}
+
+	// if err = h.usecase.FillPermittedOrganizations(r.Context(), policyTemplate, &out.PolicyTemplate); err != nil {
+	// 	log.Error(r.Context(), err)
+	// }
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -301,11 +309,20 @@ func (h *PolicyTemplateHandler) Admin_ListPolicyTemplate(w http.ResponseWriter, 
 			log.Info(r.Context(), err)
 			continue
 		}
+
+		out.PolicyTemplates[i].PermittedOrganizations = make([]domain.SimpleOrganizationResponse, len(policyTemplate.PermittedOrganizations))
+		for j, organization := range policyTemplate.PermittedOrganizations {
+			if err := serializer.Map(r.Context(), organization, &out.PolicyTemplates[i].PermittedOrganizations[j]); err != nil {
+				log.Info(r.Context(), err)
+				continue
+			}
+		}
+
 	}
 
-	if err = h.usecase.FillPermittedOrganizationsForList(r.Context(), &policyTemplates, &out.PolicyTemplates); err != nil {
-		log.Error(r.Context(), err)
-	}
+	// if err = h.usecase.FillPermittedOrganizationsForList(r.Context(), &policyTemplates, &out.PolicyTemplates); err != nil {
+	// 	log.Error(r.Context(), err)
+	// }
 
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
@@ -554,9 +571,18 @@ func (h *PolicyTemplateHandler) Admin_GetPolicyTemplateVersion(w http.ResponseWr
 		log.Error(r.Context(), err)
 	}
 
-	if err = h.usecase.FillPermittedOrganizations(r.Context(), policyTemplate, &out.PolicyTemplate); err != nil {
-		log.Error(r.Context(), err)
+	out.PolicyTemplate.PermittedOrganizations = make([]domain.SimpleOrganizationResponse, len(policyTemplate.PermittedOrganizations))
+
+	for i, organization := range policyTemplate.PermittedOrganizations {
+		if err := serializer.Map(r.Context(), organization, &out.PolicyTemplate.PermittedOrganizations[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
 	}
+
+	// if err = h.usecase.FillPermittedOrganizations(r.Context(), policyTemplate, &out.PolicyTemplate); err != nil {
+	// 	log.Error(r.Context(), err)
+	// }
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
