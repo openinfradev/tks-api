@@ -65,7 +65,7 @@ type CreateStackTemplateRequest struct {
 	Name            string   `json:"name" validate:"required,name"`
 	Description     string   `json:"description"`
 	Version         string   `json:"version" validate:"required"`
-	CloudService    string   `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
+	CloudService    string   `json:"cloudService" validate:"oneof=AWS BYOH"`
 	Platform        string   `json:"platform" validate:"required"`
 	TemplateType    string   `json:"templateType" validate:"oneof=STANDARD MSA"`
 	Template        string   `json:"template" validate:"required"`
@@ -82,7 +82,7 @@ type CreateStackTemplateResponse struct {
 type UpdateStackTemplateRequest struct {
 	Description     string   `json:"description"`
 	Version         string   `json:"version" validate:"required"`
-	CloudService    string   `json:"cloudService" validate:"oneof=AWS AZZURE GCP"`
+	CloudService    string   `json:"cloudService" validate:"oneof=AWS BYOH"`
 	Platform        string   `json:"platform" validate:"required"`
 	TemplateType    string   `json:"templateType" validate:"oneof=STANDARD MSA"`
 	Template        string   `json:"template" validate:"required"`

@@ -11723,8 +11723,7 @@
                     "type": "string",
                     "enum": [
                         "AWS",
-                        "AZZURE",
-                        "GCP"
+                        "BYOH"
                     ]
                 },
                 "description": {
@@ -15514,8 +15513,7 @@
                     "type": "string",
                     "enum": [
                         "AWS",
-                        "AZZURE",
-                        "GCP"
+                        "BYOH"
                     ]
                 },
                 "description": {

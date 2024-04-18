@@ -11729,8 +11729,7 @@ const docTemplate = `{
                     "type": "string",
                     "enum": [
                         "AWS",
-                        "AZZURE",
-                        "GCP"
+                        "BYOH"
                     ]
                 },
                 "description": {
@@ -15520,8 +15519,7 @@ const docTemplate = `{
                     "type": "string",
                     "enum": [
                         "AWS",
-                        "AZZURE",
-                        "GCP"
+                        "BYOH"
                     ]
                 },
                 "description": {
