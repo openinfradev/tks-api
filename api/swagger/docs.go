@@ -3186,88 +3186,6 @@ const docTemplate = `{
             }
         },
         "/organizations/{organizationId}/dashboards": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get dashboard",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dashboards"
-                ],
-                "summary": "Get dashboard",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse"
-                            }
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Update dashboard",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dashboards"
-                ],
-                "summary": "Update dashboard",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Request body to update dashboard",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonDashboardResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -3313,7 +3231,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/charts": {
+        "/organizations/{organizationId}/dashboards/widgets/charts": {
             "get": {
                 "security": [
                     {
@@ -3370,7 +3288,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/charts/{chartType}": {
+        "/organizations/{organizationId}/dashboards/widgets/charts/{chartType}": {
             "get": {
                 "security": [
                     {
@@ -3428,7 +3346,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/policy-enforcement": {
+        "/organizations/{organizationId}/dashboards/widgets/policy-enforcement": {
             "get": {
                 "security": [
                     {
@@ -3465,7 +3383,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/policy-statistics": {
+        "/organizations/{organizationId}/dashboards/widgets/policy-statistics": {
             "get": {
                 "security": [
                     {
@@ -3502,7 +3420,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/policy-status": {
+        "/organizations/{organizationId}/dashboards/widgets/policy-status": {
             "get": {
                 "security": [
                     {
@@ -3539,7 +3457,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/policy-update": {
+        "/organizations/{organizationId}/dashboards/widgets/policy-update": {
             "get": {
                 "security": [
                     {
@@ -3576,7 +3494,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/policy-violation": {
+        "/organizations/{organizationId}/dashboards/widgets/policy-violation": {
             "get": {
                 "security": [
                     {
@@ -3627,7 +3545,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/policy-violation-log": {
+        "/organizations/{organizationId}/dashboards/widgets/policy-violation-log": {
             "get": {
                 "security": [
                     {
@@ -3664,7 +3582,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/resources": {
+        "/organizations/{organizationId}/dashboards/widgets/resources": {
             "get": {
                 "security": [
                     {
@@ -3701,7 +3619,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/dashboards/stacks": {
+        "/organizations/{organizationId}/dashboards/widgets/stacks": {
             "get": {
                 "security": [
                     {
@@ -3733,6 +3651,97 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardStacksResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/dashboards/{dashboardKey}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Get dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Dashboard Key",
+                        "name": "dashboardKey",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update dashboard",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboards"
+                ],
+                "summary": "Update dashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body to update dashboard",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.UpdateDashboardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CommonDashboardResponse"
                         }
                     }
                 }
@@ -11391,20 +11400,14 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.CreateDashboardRequest": {
             "type": "object",
             "properties": {
-                "groupName": {
-                    "type": "string"
-                },
-                "sizeX": {
-                    "type": "integer"
-                },
-                "sizeY": {
-                    "type": "integer"
-                },
-                "widgets": {
+                "contents": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardContents"
                     }
+                },
+                "dashboardKey": {
+                    "type": "string"
                 }
             }
         },
@@ -12049,6 +12052,26 @@ const docTemplate = `{
                 },
                 "year": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.DashboardContents": {
+            "type": "object",
+            "properties": {
+                "groupName": {
+                    "type": "string"
+                },
+                "sizeX": {
+                    "type": "integer"
+                },
+                "sizeY": {
+                    "type": "integer"
+                },
+                "widgets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.WidgetResponse"
+                    }
                 }
             }
         },
@@ -15931,9 +15954,6 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.WidgetResponse": {
             "type": "object",
             "properties": {
-                "key": {
-                    "type": "string"
-                },
                 "sizeX": {
                     "type": "integer"
                 },
@@ -15945,6 +15965,9 @@ const docTemplate = `{
                 },
                 "startY": {
                     "type": "integer"
+                },
+                "widgetKey": {
+                    "type": "string"
                 }
             }
         },
