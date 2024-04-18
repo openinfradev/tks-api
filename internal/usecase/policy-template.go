@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	admin_domain "github.com/openinfradev/tks-api/pkg/domain/admin"
 	"github.com/openinfradev/tks-api/pkg/log"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -35,10 +33,10 @@ type IPolicyTemplateUsecase interface {
 
 	RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error)
 
-	FillPermittedOrganizations(ctx context.Context,
-		policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) error
-	FillPermittedOrganizationsForList(ctx context.Context,
-		policyTemplates *[]model.PolicyTemplate, outs *[]admin_domain.PolicyTemplateResponse) error
+	// FillPermittedOrganizations(ctx context.Context,
+	// 	policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) error
+	// FillPermittedOrganizationsForList(ctx context.Context,
+	// 	policyTemplates *[]model.PolicyTemplate, outs *[]admin_domain.PolicyTemplateResponse) error
 
 	ListPolicyTemplateStatistics(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (statistics []model.UsageCount, err error)
 	GetPolicyTemplateDeploy(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (deployInfo domain.GetPolicyTemplateDeployResponse, err error)
@@ -102,15 +100,18 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 		// TKS 템블릿이면
 		dto.Mandatory = false
 		dto.OrganizationId = nil
+		dto.PermittedOrganizations = make([]model.Organization, len(dto.PermittedOrganizationIds))
 
-		for _, organizationId := range dto.PermittedOrganizationIds {
-			_, err := u.organizationRepo.Get(ctx, organizationId)
+		for i, organizationId := range dto.PermittedOrganizationIds {
+			organization, err := u.organizationRepo.Get(ctx, organizationId)
 			if err != nil {
 				return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", "")
 			}
+			dto.PermittedOrganizations[i] = organization
 		}
 	} else {
 		dto.PermittedOrganizationIds = make([]string, 0)
+		dto.PermittedOrganizations = make([]model.Organization, 0)
 	}
 
 	userId := user.GetUserId()
@@ -127,71 +128,93 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 
 func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, organizationId *string, pg *pagination.Pagination) (policyTemplates []model.PolicyTemplate, err error) {
 	if organizationId == nil {
-		return u.repo.Fetch(ctx, pg)
+		policyTemplates, err = u.repo.Fetch(ctx, pg)
+	} else {
+		policyTemplates, err = u.repo.FetchForOrganization(ctx, *organizationId, pg)
 	}
-
-	return u.repo.FetchForOrganization(ctx, *organizationId, pg)
-}
-
-func (u *PolicyTemplateUsecase) FillPermittedOrganizations(ctx context.Context,
-	policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) error {
-	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 
 	if err != nil {
-		return err
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 	}
-
-	u.fillPermittedOrganizations(ctx, organizations, policyTemplate, out)
-
-	return nil
-}
-
-func (u *PolicyTemplateUsecase) FillPermittedOrganizationsForList(ctx context.Context,
-	policyTemplates *[]model.PolicyTemplate, outs *[]admin_domain.PolicyTemplateResponse) error {
 
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 
 	if err != nil {
-		return err
+		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 	}
 
-	results := *outs
-
-	for i, policyTemplate := range *policyTemplates {
-		u.fillPermittedOrganizations(ctx, organizations, &policyTemplate, &results[i])
-	}
-
-	return nil
-}
-
-// 모든 조직 목록에 대해 허용 여부 업데이트
-func (u *PolicyTemplateUsecase) fillPermittedOrganizations(_ context.Context, organizations *[]model.Organization, policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) {
-	if policyTemplate == nil || organizations == nil || out == nil {
-		return
-	}
-
-	if policyTemplate.IsOrganizationTemplate() {
-		return
-	}
-
-	// 정책 템플릿에서 허용된 조직 목록이 없다는 것은 모든 조직이 사용할 수 있음을 의미함
-	allPermitted := len(policyTemplate.PermittedOrganizationIds) == 0
-
-	// 허용된 조직 포함 여부를 효율적으로 처리하기 위해 ID 리스트를 셋으로 변환
-	permittedOrganizationIdSet := mapset.NewSet(policyTemplate.PermittedOrganizationIds...)
-
-	out.PermittedOrganizations = make([]admin_domain.PermittedOrganization, len(*organizations))
-
-	for i, organization := range *organizations {
-		permitted := allPermitted || permittedOrganizationIdSet.ContainsOne(organization.ID)
-
-		out.PermittedOrganizations[i] = admin_domain.PermittedOrganization{
-			OrganizationId:   organization.ID,
-			OrganizationName: organization.Name,
-			Permitted:        permitted,
+	for i := range policyTemplates {
+		// 단순히 참조하면 업데이트가 안되므로 pointer derefrencing
+		policyTemplate := &policyTemplates[i]
+		if policyTemplate.IsTksTemplate() && len(policyTemplate.PermittedOrganizations) == 0 {
+			if organizations != nil {
+				(*policyTemplate).PermittedOrganizations = *organizations
+			}
 		}
 	}
+
+	return policyTemplates, err
 }
+
+// func (u *PolicyTemplateUsecase) FillPermittedOrganizations(ctx context.Context,
+// 	policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) error {
+// 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	u.fillPermittedOrganizations(ctx, organizations, policyTemplate, out)
+
+// 	return nil
+// }
+
+// func (u *PolicyTemplateUsecase) FillPermittedOrganizationsForList(ctx context.Context,
+// 	policyTemplates *[]model.PolicyTemplate, outs *[]admin_domain.PolicyTemplateResponse) error {
+
+// 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	results := *outs
+
+// 	for i, policyTemplate := range *policyTemplates {
+// 		u.fillPermittedOrganizations(ctx, organizations, &policyTemplate, &results[i])
+// 	}
+
+// 	return nil
+// }
+
+// // 모든 조직 목록에 대해 허용 여부 업데이트
+// func (u *PolicyTemplateUsecase) fillPermittedOrganizations(_ context.Context, organizations *[]model.Organization, policyTemplate *model.PolicyTemplate, out *admin_domain.PolicyTemplateResponse) {
+// 	if policyTemplate == nil || organizations == nil || out == nil {
+// 		return
+// 	}
+
+// 	if policyTemplate.IsOrganizationTemplate() {
+// 		return
+// 	}
+
+// 	// 정책 템플릿에서 허용된 조직 목록이 없다는 것은 모든 조직이 사용할 수 있음을 의미함
+// 	allPermitted := len(policyTemplate.PermittedOrganizationIds) == 0
+
+// 	// 허용된 조직 포함 여부를 효율적으로 처리하기 위해 ID 리스트를 셋으로 변환
+// 	permittedOrganizationIdSet := mapset.NewSet(policyTemplate.PermittedOrganizationIds...)
+
+// 	out.PermittedOrganizations = make([]admin_domain.PermittedOrganization, len(*organizations))
+
+// 	for i, organization := range *organizations {
+// 		permitted := allPermitted || permittedOrganizationIdSet.ContainsOne(organization.ID)
+
+// 		out.PermittedOrganizations[i] = admin_domain.PermittedOrganization{
+// 			OrganizationId:   organization.ID,
+// 			OrganizationName: organization.Name,
+// 			Permitted:        permitted,
+// 		}
+// 	}
+// }
 
 func (u *PolicyTemplateUsecase) Get(ctx context.Context, organizationId *string, policyTemplateID uuid.UUID) (policyTemplates *model.PolicyTemplate, err error) {
 	policyTemplate, err := u.repo.GetByID(ctx, policyTemplateID)
@@ -204,6 +227,16 @@ func (u *PolicyTemplateUsecase) Get(ctx context.Context, organizationId *string,
 		return nil, httpErrors.NewNotFoundError(fmt.Errorf(
 			"policy template not found"),
 			"PT_NOT_FOUND_POLICY_TEMPLATE", "")
+	}
+
+	if policyTemplate.IsTksTemplate() && len(policyTemplate.PermittedOrganizations) == 0 {
+		organizations, err := u.organizationRepo.Fetch(ctx, nil)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+		} else if organizations != nil {
+			policyTemplate.PermittedOrganizations = *organizations
+		}
 	}
 
 	return policyTemplate, nil
@@ -355,6 +388,16 @@ func (u *PolicyTemplateUsecase) GetPolicyTemplateVersion(ctx context.Context, or
 		return nil, httpErrors.NewNotFoundError(fmt.Errorf(
 			"policy template not found"),
 			"PT_NOT_FOUND_POLICY_TEMPLATE", "")
+	}
+
+	if policyTemplate.IsTksTemplate() && len(policyTemplate.PermittedOrganizations) == 0 {
+		organizations, err := u.organizationRepo.Fetch(ctx, nil)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+		} else if organizations != nil {
+			policyTemplate.PermittedOrganizations = *organizations
+		}
 	}
 
 	return policyTemplate, nil
