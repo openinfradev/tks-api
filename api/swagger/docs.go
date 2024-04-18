@@ -3465,6 +3465,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/dashboards/policy-statistics": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get policy violation log",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard Widgets"
+                ],
+                "summary": "Get policy violation log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatisticsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboards/policy-status": {
             "get": {
                 "security": [
@@ -12495,6 +12532,17 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyStatisticsResponse": {
+            "type": "object",
+            "properties": {
+                "policyCount": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyCount"
+                },
+                "templateCount": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.TemplateCount"
                 }
             }
         },
