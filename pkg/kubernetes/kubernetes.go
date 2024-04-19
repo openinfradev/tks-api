@@ -394,9 +394,9 @@ func RemoveRoleBinding(ctx context.Context, kubeconfig []byte, projectName strin
 }
 
 const (
-	leaderRole = "leader"
-	memberRole = "member"
-	viewerRole = "viewer"
+	leaderRole = "project-leader"
+	memberRole = "project-member"
+	viewerRole = "project-viewer"
 )
 
 func getClusterRole(role, objName string) *rbacV1.ClusterRole {
