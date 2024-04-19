@@ -1773,6 +1773,29 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardStackResponse'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardWorkloadResponse:
+    properties:
+      cronJobCount:
+        type: integer
+      cronJobPodCount:
+        type: integer
+      daemonSetCount:
+        type: integer
+      daemonSetPodCount:
+        type: integer
+      deploymentCount:
+        type: integer
+      deploymentPodCount:
+        type: integer
+      jobCount:
+        type: integer
+      jobPodCount:
+        type: integer
+      statefulSetCount:
+        type: integer
+      statefulSetPodCount:
+        type: integer
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetMandatoryPoliciesResponse:
     properties:
       templates:
@@ -6625,6 +6648,29 @@ paths:
       security:
       - JWT: []
       summary: Get stacks
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/widgets/workload:
+    get:
+      consumes:
+      - application/json
+      description: Get workloads
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardWorkloadResponse'
+      security:
+      - JWT: []
+      summary: Get workloads
       tags:
       - Dashboard Widgets
   /organizations/{organizationId}/mandatory-policies:

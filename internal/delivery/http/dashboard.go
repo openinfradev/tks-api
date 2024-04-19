@@ -30,6 +30,7 @@ type IDashboardHandler interface {
 	GetPolicyViolation(w http.ResponseWriter, r *http.Request)
 	GetPolicyViolationLog(w http.ResponseWriter, r *http.Request)
 	GetPolicyStatistics(w http.ResponseWriter, r *http.Request)
+	GetWorkload(w http.ResponseWriter, r *http.Request)
 }
 
 type DashboardHandler struct {
@@ -705,4 +706,34 @@ func (h *DashboardHandler) GetPolicyStatistics(w http.ResponseWriter, r *http.Re
 	out := domain.GetDashboardPolicyStatisticsResponse{PolicyStatisticsResponse: *psr}
 
 	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetWorkload godoc
+//
+//	@Tags			Dashboard Widgets
+//	@Summary		Get workloads
+//	@Description	Get workloads
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Success		200				{object}	domain.GetDashboardWorkloadResponse
+//	@Router			/organizations/{organizationId}/dashboards/widgets/workload [get]
+//	@Security		JWT
+func (h *DashboardHandler) GetWorkload(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	dwr, err := h.usecase.GetWorkload(r.Context(), organizationId)
+	if err != nil {
+		log.Error(r.Context(), "Failed to make workload", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, dwr)
 }

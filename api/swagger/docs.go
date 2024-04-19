@@ -3656,6 +3656,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/dashboards/widgets/workload": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get workloads",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard Widgets"
+                ],
+                "summary": "Get workloads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardWorkloadResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/dashboards/{dashboardKey}": {
             "get": {
                 "security": [
@@ -12652,6 +12689,41 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardStackResponse"
                     }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardWorkloadResponse": {
+            "type": "object",
+            "properties": {
+                "cronJobCount": {
+                    "type": "integer"
+                },
+                "cronJobPodCount": {
+                    "type": "integer"
+                },
+                "daemonSetCount": {
+                    "type": "integer"
+                },
+                "daemonSetPodCount": {
+                    "type": "integer"
+                },
+                "deploymentCount": {
+                    "type": "integer"
+                },
+                "deploymentPodCount": {
+                    "type": "integer"
+                },
+                "jobCount": {
+                    "type": "integer"
+                },
+                "jobPodCount": {
+                    "type": "integer"
+                },
+                "statefulSetCount": {
+                    "type": "integer"
+                },
+                "statefulSetPodCount": {
+                    "type": "integer"
                 }
             }
         },

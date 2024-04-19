@@ -39,6 +39,7 @@ type IDashboardUsecase interface {
 	GetPolicyEnforcement(ctx context.Context, organizationId string, primaryClusterId string) (*domain.BarChartData, error)
 	GetPolicyViolation(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error)
 	GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error)
+	GetWorkload(ctx context.Context, organizationId string) (*domain.GetDashboardWorkloadResponse, error)
 }
 
 type DashboardUsecase struct {
@@ -856,6 +857,143 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 func (u *DashboardUsecase) GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error) {
 	// TODO Implement me
 	return nil, nil
+}
+
+func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId string) (*domain.GetDashboardWorkloadResponse, error) {
+	thanosClient, err := u.GetThanosClient(ctx, organizationId)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create thanos client")
+	}
+
+	clusterIdStr, err := u.GetFlatClusterIds(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	dwr := &domain.GetDashboardWorkloadResponse{}
+
+	// Deployment count
+	query := fmt.Sprintf("count (kube_deployment_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
+	wm, err := thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err := strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.DeploymentCount = count
+
+	// Deployment pod count
+	query = fmt.Sprintf("sum (kube_deployment_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.DeploymentPodCount = count
+
+	// StatefulSet count
+	query = fmt.Sprintf("count (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.StatefulSetCount = count
+
+	// StatefulSet pod count
+	query = fmt.Sprintf("sum (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.StatefulSetPodCount = count
+
+	// DaemonSet count
+	query = fmt.Sprintf("count (kube_daemonset_status_number_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.DaemonSetCount = count
+
+	// DaemonSet pod count
+	query = fmt.Sprintf("sum (kube_daemonset_status_number_available{taco_cluster=~'%s'} )", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.DaemonSetPodCount = count
+
+	// CronJob count
+	query = fmt.Sprintf("count (kube_cronjob_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.CronJobCount = count
+
+	// CronJob pod count
+	query = fmt.Sprintf("sum (kube_cronjob_status_active{taco_cluster=~'%s'} )", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.CronJobPodCount = count
+
+	// Job count
+	query = fmt.Sprintf("count (kube_job_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.JobCount = count
+
+	// Job pod count
+	query = fmt.Sprintf("sum (kube_job_status_active{taco_cluster=~'%s'} )", clusterIdStr)
+	wm, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
+	if err != nil {
+		count = 0
+	}
+	dwr.JobPodCount = count
+
+	return dwr, nil
+
 }
 
 func (u *DashboardUsecase) GetThanosClient(ctx context.Context, organizationId string) (thanos.ThanosClient, error) {
