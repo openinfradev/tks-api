@@ -223,6 +223,31 @@ type GetDashboardPolicyStatisticsResponse struct {
 	PolicyStatisticsResponse
 }
 
+type GetDashboardWorkloadResponse struct {
+	DeploymentCount     int `json:"deploymentCount"`
+	DeploymentPodCount  int `json:"deploymentPodCount"`
+	StatefulSetCount    int `json:"statefulSetCount"`
+	StatefulSetPodCount int `json:"statefulSetPodCount"`
+	DaemonSetCount      int `json:"daemonSetCount"`
+	DaemonSetPodCount   int `json:"daemonSetPodCount"`
+	CronJobCount        int `json:"cronJobCount"`
+	CronJobPodCount     int `json:"cronJobPodCount"`
+	JobCount            int `json:"jobCount"`
+	JobPodCount         int `json:"jobPodCount"`
+}
+
+type WorkloadMetric struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric struct {
+			} `json:"metric"`
+			Value []interface{} `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
+}
+
 type BarChart struct {
 	ChartType      string `json:"chartType"`
 	OrganizationId string `json:"organizationId"`
