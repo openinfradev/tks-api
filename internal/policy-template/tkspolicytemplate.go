@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/openinfradev/tks-api/pkg/kubernetes"
+	"github.com/openinfradev/tks-api/pkg/log"
 	"gopkg.in/yaml.v3"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
@@ -158,12 +159,16 @@ func ApplyTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tksP
 		dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
 
 		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+				err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
 			return err
 		}
 
 		policyTemplate, err := GetTksPolicyTemplateCR(ctx, primaryClusterId, strings.ToLower(tksPolicyTemplate.Kind))
 
 		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+				err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
 			if errors.IsNotFound(err) {
 				tksPolicyTemplateUnstructured, err := tksPolicyTemplate.ToUnstructured()
 
@@ -183,11 +188,18 @@ func ApplyTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tksP
 		tksPolicyTemplateUnstructured, err := policyTemplate.ToUnstructured()
 
 		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+				err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
 			return err
 		}
 
 		_, err = dynamicClient.Resource(TKSPolicyTemplateGVR).Namespace(primaryClusterId).
 			Update(ctx, tksPolicyTemplateUnstructured, metav1.UpdateOptions{})
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+				err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
+		}
 
 		return err
 	}
@@ -198,6 +210,8 @@ func DeleteTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, nam
 	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
 		return err
 	}
 
@@ -216,6 +230,8 @@ func ExistsTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, nam
 	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
 		return false, err
 	}
 
@@ -223,6 +239,9 @@ func ExistsTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, nam
 		Get(ctx, name, metav1.GetOptions{})
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
+
 		if errors.IsNotFound(err) {
 			return false, nil
 		} else {
@@ -237,6 +256,8 @@ func GetTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, name s
 	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
 		return nil, err
 	}
 
@@ -244,6 +265,8 @@ func GetTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, name s
 		Get(ctx, name, metav1.GetOptions{})
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
 		return nil, err
 	}
 
@@ -251,6 +274,8 @@ func GetTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, name s
 	jsonBytes, err := json.Marshal(result.Object)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
 		return nil, err
 	}
 
@@ -258,6 +283,8 @@ func GetTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, name s
 	err = json.Unmarshal(jsonBytes, &tksPolicyTemplate)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, name)
 		return nil, err
 	}
 
@@ -268,12 +295,17 @@ func UpdateTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tks
 	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
+
 		return err
 	}
 
 	obj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(tksPolicyTemplate)
 
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
 		return err
 	}
 
@@ -283,6 +315,12 @@ func UpdateTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tks
 
 	_, err = dynamicClient.Resource(TKSPolicyTemplateGVR).Namespace(primaryClusterId).
 		Update(ctx, tksPolicyUnstructured, metav1.UpdateOptions{})
+
+	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+			err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
+		return err
+	}
 
 	return err
 }
@@ -331,18 +369,27 @@ func UpdateTksPolicyTemplateCR(ctx context.Context, primaryClusterId string, tks
 func GetTksPolicyTemplateCRs(ctx context.Context, primaryClusterId string) (tksPolicyTemplates []TKSPolicyTemplate, err error) {
 	dynamicClient, err := kubernetes.GetDynamicClientAdminCluster(ctx)
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s'",
+			err.Error(), err, primaryClusterId)
+
 		return nil, err
 	}
 
 	resources, err := dynamicClient.Resource(TKSPolicyTemplateGVR).Namespace(primaryClusterId).
 		List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
+		log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s'",
+			err.Error(), err, primaryClusterId)
+
 		return nil, err
 	}
 
 	var tksPolicyTemplate TKSPolicyTemplate
 	for _, c := range resources.Items {
 		if err = runtime.DefaultUnstructuredConverter.FromUnstructured(c.UnstructuredContent(), &tksPolicyTemplate); err != nil {
+			log.Errorf(ctx, "error is :%s(%T), primaryClusterId='%s', policyTemplateName='%+v'",
+				err.Error(), err, primaryClusterId, tksPolicyTemplate.Name)
+
 			return nil, err
 		}
 		tksPolicyTemplates = append(tksPolicyTemplates, tksPolicyTemplate)
