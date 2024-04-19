@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"golang.org/x/exp/maps"
 )
@@ -281,7 +282,7 @@ func MergeRegoAndLibs(rego string, libs []string) string {
 
 	result := re.ReplaceAllString(rego, "")
 
-	for _, lib := range libs {
+	for _, lib := range processLibs(libs) {
 		result += re2.ReplaceAllString(lib, "")
 	}
 
@@ -367,6 +368,16 @@ func createKey(key string, isLast bool) *domain.ParameterDef {
 	return newDef
 }
 
+func processLibs(libs []string) []string {
+	// libs 에 --- 로 코딩되어 여러 개가 한 번에 들어온 경우 분할
+	newLibs := []string{}
+	for _, lib := range libs {
+		newLibs = append(newLibs, strings.Split(stripCarriageReturn(lib), model.FILE_DELIMETER)...)
+	}
+
+	return newLibs
+}
+
 func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, err error) {
 	modules := map[string]*ast.Module{}
 
@@ -379,7 +390,7 @@ func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, er
 
 	modules[regoPackage] = regoModule
 
-	for i, lib := range libs {
+	for i, lib := range processLibs(libs) {
 		// Lib이 공백이면 무시
 		if len(strings.TrimSpace(lib)) == 0 {
 			continue
