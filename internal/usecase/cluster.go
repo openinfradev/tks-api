@@ -198,7 +198,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 				"cloud_account_id=" + tksCloudAccountId,
 				"base_repo_branch=" + viper.GetString("revision"),
 				"keycloak_url=" + viper.GetString("keycloak-address"),
-				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
+				"policy_ids=" + strings.Join(dto.PolicyIds, ","),
 			},
 		})
 	if err != nil {
