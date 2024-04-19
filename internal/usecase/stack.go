@@ -248,13 +248,13 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 		return out, err
 	}
 
-	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, cluster.OrganizationId)
 	out = reflectClusterToStack(ctx, cluster, appGroups)
 
 	if organization.PrimaryClusterId == cluster.ID.String() {
 		out.PrimaryCluster = true
 	}
 
+	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, cluster.OrganizationId)
 	for _, resource := range stackResources {
 		if resource.ID == domain.StackId(cluster.ID) {
 			if err := serializer.Map(ctx, resource, &out.Resource); err != nil {
@@ -433,6 +433,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 		}
 	}
 
+	// Check AppServing
 	appsCnt, err := u.appServeAppRepo.GetNumOfAppsOnStack(ctx, dto.OrganizationId, dto.ID.String())
 	if err != nil {
 		return errors.Wrap(err, "Failed to get numOfAppsOnStack")
@@ -441,7 +442,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 		return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 	}
 
-	// [TODO] BYOH 삭제는 어떻게 처리하는게 좋은가?
+	// Policy 삭제
 
 	workflow := "tks-stack-delete"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
