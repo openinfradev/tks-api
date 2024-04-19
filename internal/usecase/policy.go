@@ -44,6 +44,7 @@ type IPolicyUsecase interface {
 	UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
 	DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
 	GetStackPolicyStatistics(ctx context.Context, organizationId string, clusterId domain.ClusterId) (statistics *domain.StackPolicyStatistics, err error)
+	GetPolicyIDsByClusterID(ctx context.Context, clusterId domain.ClusterId) (out *[]uuid.UUID, err error)
 }
 
 type PolicyUsecase struct {
@@ -1037,6 +1038,10 @@ func (u *PolicyUsecase) GetStackPolicyStatistics(ctx context.Context, organizati
 	}
 
 	return &result, nil
+}
+
+func (u *PolicyUsecase) GetPolicyIDsByClusterID(ctx context.Context, clusterId domain.ClusterId) (out *[]uuid.UUID, err error) {
+	return u.repo.GetPolicyIDsByClusterID(ctx, clusterId)
 }
 
 func extractNewTemplateParameter(paramdefs []*domain.ParameterDef, newParamDefs []*domain.ParameterDef) (policyParameters []domain.UpdatedPolicyTemplateParameter, err error) {
