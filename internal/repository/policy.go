@@ -35,6 +35,7 @@ type IPolicyRepository interface {
 	AddPoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policies []model.Policy) (err error)
 	UpdatePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policies []model.Policy) (err error)
 	DeletePoliciesForClusterID(ctx context.Context, organizationId string, clusterId domain.ClusterId, policyIds []uuid.UUID) (err error)
+	GetPolicyIDsByClusterID(ctx context.Context, clusterId domain.ClusterId) (out *[]uuid.UUID, err error)
 }
 
 type PolicyRepository struct {
@@ -338,4 +339,30 @@ func (r *PolicyRepository) DeletePoliciesForClusterID(ctx context.Context, organ
 		Where("cluster_id = ?", clusterId).
 		Where("policy_id in ?", policyIds).
 		Delete(&model.PolicyTargetCluster{}).Error
+}
+
+func (r *PolicyRepository) GetPolicyIDsByClusterID(ctx context.Context, clusterId domain.ClusterId) (*[]uuid.UUID, error) {
+	var policyTargetClusters []model.PolicyTargetCluster
+
+	err := r.db.WithContext(ctx).
+		Where("cluster_id = ?", clusterId).
+		Find(&policyTargetClusters).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Infof(ctx, "Not found policices for clusterId '%v'", clusterId)
+			return nil, nil
+		} else {
+			log.Error(ctx, err)
+			return nil, err
+		}
+	}
+
+	result := make([]uuid.UUID, len(policyTargetClusters))
+
+	for i, policyTargetCluster := range policyTargetClusters {
+		result[i] = policyTargetCluster.PolicyId
+	}
+
+	return &result, nil
 }
