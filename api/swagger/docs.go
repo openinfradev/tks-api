@@ -16308,20 +16308,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain_admin.PermittedOrganization": {
-            "type": "object",
-            "properties": {
-                "organizationId": {
-                    "type": "string"
-                },
-                "organizationName": {
-                    "type": "string"
-                },
-                "permitted": {
-                    "type": "boolean"
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse": {
             "type": "object",
             "properties": {
@@ -16365,7 +16351,7 @@ const docTemplate = `{
                 "permittedOrganizations": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PermittedOrganization"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse"
                     }
                 },
                 "rego": {

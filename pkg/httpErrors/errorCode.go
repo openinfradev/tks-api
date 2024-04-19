@@ -79,6 +79,7 @@ var errorMap = map[ErrorCode]string{
 	"S_INVALID_CLUSTER_URL":         "BYOH 타입의 클러스터 생성은 반드시 userClusterEndpoint 값이 필요합니다.",
 	"S_INVALID_CLUSTER_ID":          "BYOH 타입의 클러스터 생성은 반드시 clusterId 값이 필요합니다.",
 	"S_INVALID_CLOUD_SERVICE":       "클라우드 서비스 타입이 잘못되었습니다.",
+	"S_FAILED_DELETE_POLICIES":      "스택의 폴리시들을 삭제하는 실패하였습니다",
 
 	// Alert
 	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",

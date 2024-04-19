@@ -16,12 +16,14 @@ import (
 )
 
 type StackHandler struct {
-	usecase usecase.IStackUsecase
+	usecase       usecase.IStackUsecase
+	usecasePolicy usecase.IPolicyUsecase
 }
 
 func NewStackHandler(h usecase.Usecase) *StackHandler {
 	return &StackHandler{
-		usecase: h.Stack,
+		usecase:       h.Stack,
+		usecasePolicy: h.Policy,
 	}
 }
 
@@ -310,7 +312,22 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	dto.ID = domain.StackId(strId)
 	dto.OrganizationId = organizationId
 
-	err := h.usecase.Delete(r.Context(), dto)
+	// Delete Policies
+	policyIds, err := h.usecasePolicy.GetPolicyIDsByClusterID(r.Context(), domain.ClusterId(dto.ID))
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "S_FAILED_DELETE_POLICIES", ""))
+		return
+	}
+
+	if policyIds != nil && len(*policyIds) > 0 {
+		err = h.usecasePolicy.DeletePoliciesForClusterID(r.Context(), organizationId, domain.ClusterId(dto.ID), *policyIds)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "S_FAILED_DELETE_POLICIES", ""))
+			return
+		}
+	}
+
+	err = h.usecase.Delete(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return

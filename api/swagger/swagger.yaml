@@ -4183,15 +4183,6 @@ definitions:
           type: string
         type: array
     type: object
-  github_com_openinfradev_tks-api_pkg_domain_admin.PermittedOrganization:
-    properties:
-      organizationId:
-        type: string
-      organizationName:
-        type: string
-      permitted:
-        type: boolean
-    type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse:
     properties:
       createdAt:
@@ -4222,7 +4213,7 @@ definitions:
         type: array
       permittedOrganizations:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.PermittedOrganization'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse'
         type: array
       rego:
         example: rego 코드
