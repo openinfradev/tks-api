@@ -383,6 +383,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "GetWorkloadDashboard", 
 		Group: "Dashboard",
 	},
+    GetPolicyViolationTop5Dashboard: {
+		Name: "GetPolicyViolationTop5Dashboard", 
+		Group: "Dashboard",
+	},
     Admin_CreateSystemNotificationTemplate: {
 		Name: "Admin_CreateSystemNotificationTemplate", 
 		Group: "SystemNotificationTemplate",
@@ -1108,6 +1112,8 @@ func (e Endpoint) String() string {
 		return "GetPolicyStatisticsDashboard"
 	case GetWorkloadDashboard:
 		return "GetWorkloadDashboard"
+	case GetPolicyViolationTop5Dashboard:
+		return "GetPolicyViolationTop5Dashboard"
 	case Admin_CreateSystemNotificationTemplate:
 		return "Admin_CreateSystemNotificationTemplate"
 	case Admin_UpdateSystemNotificationTemplate:
@@ -1570,6 +1576,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetPolicyStatisticsDashboard
 	case "GetWorkloadDashboard":
 		return GetWorkloadDashboard
+	case "GetPolicyViolationTop5Dashboard":
+		return GetPolicyViolationTop5Dashboard
 	case "Admin_CreateSystemNotificationTemplate":
 		return Admin_CreateSystemNotificationTemplate
 	case "Admin_UpdateSystemNotificationTemplate":

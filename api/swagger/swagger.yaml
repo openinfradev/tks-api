@@ -1748,6 +1748,25 @@ definitions:
       updatedAt:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationTop5Response:
+    properties:
+      chartData:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.BarChartData'
+      chartType:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+      interval:
+        type: string
+      name:
+        type: string
+      organizationId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardResourcesResponse:
     properties:
       resources:
@@ -6593,6 +6612,39 @@ paths:
       security:
       - JWT: []
       summary: Get policy violation log
+      tags:
+      - Dashboard Widgets
+  /organizations/{organizationId}/dashboards/widgets/policy-violation-top5:
+    get:
+      consumes:
+      - application/json
+      description: Get policy violation top5
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: duration
+        in: query
+        name: duration
+        required: true
+        type: string
+      - description: interval
+        in: query
+        name: interval
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationTop5Response'
+      security:
+      - JWT: []
+      summary: Get policy violation top5
       tags:
       - Dashboard Widgets
   /organizations/{organizationId}/dashboards/widgets/resources:
