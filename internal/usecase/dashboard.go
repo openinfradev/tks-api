@@ -40,6 +40,7 @@ type IDashboardUsecase interface {
 	GetPolicyViolation(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error)
 	GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error)
 	GetWorkload(ctx context.Context, organizationId string) (*domain.GetDashboardWorkloadResponse, error)
+	GetPolicyViolationTop5(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error)
 }
 
 type DashboardUsecase struct {
@@ -851,7 +852,6 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 	}
 
 	return bcd, nil
-
 }
 
 func (u *DashboardUsecase) GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error) {
@@ -875,7 +875,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// Deployment count
 	var count int
 	query := fmt.Sprintf("count (kube_deployment_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err := thanosClient.Get(ctx, query)
+	wm, err := thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -887,7 +887,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// Deployment pod count
 	count = 0
 	query = fmt.Sprintf("sum (kube_deployment_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -899,7 +899,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// StatefulSet count
 	count = 0
 	query = fmt.Sprintf("count (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -911,7 +911,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// StatefulSet pod count
 	count = 0
 	query = fmt.Sprintf("sum (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -923,7 +923,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// DaemonSet count
 	count = 0
 	query = fmt.Sprintf("count (kube_daemonset_status_number_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -935,7 +935,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// DaemonSet pod count
 	count = 0
 	query = fmt.Sprintf("sum (kube_daemonset_status_number_available{taco_cluster=~'%s'} )", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -947,7 +947,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// CronJob count
 	count = 0
 	query = fmt.Sprintf("count (kube_cronjob_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -959,7 +959,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// CronJob pod count
 	count = 0
 	query = fmt.Sprintf("sum (kube_cronjob_status_active{taco_cluster=~'%s'} )", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -971,7 +971,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// Job count
 	count = 0
 	query = fmt.Sprintf("count (kube_job_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -983,7 +983,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	// Job pod count
 	count = 0
 	query = fmt.Sprintf("sum (kube_job_status_active{taco_cluster=~'%s'} )", clusterIdStr)
-	wm, err = thanosClient.Get(ctx, query)
+	wm, err = thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -993,7 +993,99 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	dwr.JobPodCount = count
 
 	return dwr, nil
+}
 
+func (u *DashboardUsecase) GetPolicyViolationTop5(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error) {
+	thanosClient, err := u.GetThanosClient(ctx, organizationId)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create thanos client")
+	}
+
+	durationSec, intervalSec := getDurationAndIntervalSec(duration, interval)
+
+	clusterIdStr, err := u.GetFlatClusterIds(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	query := fmt.Sprintf("topk (5, sum by (kind) (opa_scorecard_constraint_violations{taco_cluster=~'%s'}))", clusterIdStr)
+	ptm, err := thanosClient.FetchPolicyTemplateRange(ctx, query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+	if err != nil {
+		return nil, err
+	}
+
+	templateNames := make([]string, 0)
+	for _, result := range ptm.Data.Result {
+		templateNames = append(templateNames, result.Metric.Kind)
+	}
+
+	// X축
+	var xAxis *domain.Axis
+	xData := make([]string, 0)
+
+	// Y축
+	var series []domain.UnitNumber
+	yDenyData := make([]int, 0)
+	yWarnData := make([]int, 0)
+	yDryrunData := make([]int, 0)
+
+	for _, templateName := range templateNames {
+		xData = append(xData, templateName)
+
+		query = fmt.Sprintf("sum by (violation_enforcement) "+
+			"(opa_scorecard_constraint_violations{taco_cluster='%s', kind='%s'})", clusterIdStr, templateName)
+		pvcm, err := thanosClient.FetchPolicyViolationCountRange(ctx, query, int(now.Unix())-durationSec, int(now.Unix()), intervalSec)
+		if err != nil {
+			return nil, err
+		}
+
+		denyCount := 0
+		warnCount := 0
+		dryrunCount := 0
+		for _, result := range pvcm.Data.Result {
+			switch policy := result.Metric.ViolationEnforcement; policy {
+			case "":
+				denyCount, _ = strconv.Atoi(result.Value[1].(string))
+			case "warn":
+				warnCount, _ = strconv.Atoi(result.Value[1].(string))
+			case "dryrun":
+				dryrunCount, _ = strconv.Atoi(result.Value[1].(string))
+			}
+		}
+		yDenyData = append(yDenyData, denyCount)
+		yWarnData = append(yWarnData, warnCount)
+		yDryrunData = append(yDryrunData, dryrunCount)
+	}
+
+	xAxis = &domain.Axis{
+		Data: xData,
+	}
+
+	denyUnit := domain.UnitNumber{
+		Name: "거부",
+		Data: yDenyData,
+	}
+	series = append(series, denyUnit)
+
+	warnUnit := domain.UnitNumber{
+		Name: "경고",
+		Data: yWarnData,
+	}
+	series = append(series, warnUnit)
+
+	dryrunUnit := domain.UnitNumber{
+		Name: "감사",
+		Data: yDryrunData,
+	}
+	series = append(series, dryrunUnit)
+
+	bcd := &domain.BarChartData{
+		XAxis:  xAxis,
+		Series: series,
+	}
+
+	return bcd, nil
 }
 
 func (u *DashboardUsecase) GetThanosClient(ctx context.Context, organizationId string) (thanos.ThanosClient, error) {

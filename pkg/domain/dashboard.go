@@ -236,16 +236,8 @@ type GetDashboardWorkloadResponse struct {
 	JobPodCount         int `json:"jobPodCount"`
 }
 
-type WorkloadMetric struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Metric struct {
-			} `json:"metric"`
-			Value []interface{} `json:"value"`
-		} `json:"result"`
-	} `json:"data"`
+type GetDashboardPolicyViolationTop5Response struct {
+	GetDashboardPolicyViolationResponse
 }
 
 type BarChart struct {
