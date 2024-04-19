@@ -196,7 +196,7 @@ func (u *DashboardUsecase) GetResources(ctx context.Context, organizationId stri
 	}
 
 	filteredClusters := funk.Filter(clusters, func(x model.Cluster) bool {
-		return x.Status != domain.ClusterStatus_DELETED
+		return x.Status == domain.ClusterStatus_RUNNING
 	})
 
 	var normal, abnormal int
@@ -722,12 +722,12 @@ func (u *DashboardUsecase) GetPolicyEnforcement(ctx context.Context, organizatio
 
 	// Y축
 	var series []domain.UnitNumber
-	var yRequiredData []int
-	var yOptionalData []int
+	yRequiredData := make([]int, 0)
+	yOptionalData := make([]int, 0)
 
 	// X축
 	var xAxis *domain.Axis
-	var xData []string
+	xData := make([]string, 0)
 
 	for key, val := range totalTemplate {
 		// X axis Data
@@ -787,13 +787,13 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 
 	// Y축
 	var series []domain.UnitNumber
-	var yDenyData []int
-	var yWarnData []int
-	var yDryrunData []int
+	yDenyData := make([]int, 0)
+	yWarnData := make([]int, 0)
+	yDryrunData := make([]int, 0)
 
 	// X축
 	var xAxis *domain.Axis
-	var xData []string
+	xData := make([]string, 0)
 
 	for _, res := range pm.Data.Result {
 		policyTemplate := res.Metric.Kind
@@ -873,122 +873,122 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	dwr := &domain.GetDashboardWorkloadResponse{}
 
 	// Deployment count
+	var count int
 	query := fmt.Sprintf("count (kube_deployment_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
 	wm, err := thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err := strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.DeploymentCount = count
 
 	// Deployment pod count
+	count = 0
 	query = fmt.Sprintf("sum (kube_deployment_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.DeploymentPodCount = count
 
 	// StatefulSet count
+	count = 0
 	query = fmt.Sprintf("count (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.StatefulSetCount = count
 
 	// StatefulSet pod count
+	count = 0
 	query = fmt.Sprintf("sum (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.StatefulSetPodCount = count
 
 	// DaemonSet count
+	count = 0
 	query = fmt.Sprintf("count (kube_daemonset_status_number_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.DaemonSetCount = count
 
 	// DaemonSet pod count
+	count = 0
 	query = fmt.Sprintf("sum (kube_daemonset_status_number_available{taco_cluster=~'%s'} )", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.DaemonSetPodCount = count
 
 	// CronJob count
+	count = 0
 	query = fmt.Sprintf("count (kube_cronjob_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.CronJobCount = count
 
 	// CronJob pod count
+	count = 0
 	query = fmt.Sprintf("sum (kube_cronjob_status_active{taco_cluster=~'%s'} )", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.CronJobPodCount = count
 
 	// Job count
+	count = 0
 	query = fmt.Sprintf("count (kube_job_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.JobCount = count
 
 	// Job pod count
+	count = 0
 	query = fmt.Sprintf("sum (kube_job_status_active{taco_cluster=~'%s'} )", clusterIdStr)
 	wm, err = thanosClient.Get(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	count, err = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	if err != nil {
-		count = 0
+	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
+		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
 	dwr.JobPodCount = count
 
