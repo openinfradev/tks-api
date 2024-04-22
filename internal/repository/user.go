@@ -191,7 +191,8 @@ func (r *UserRepository) ListUsersByRole(ctx context.Context, organizationId str
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *model.User) (*model.User, error) {
-	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).Updates(model.User{
+	res := r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).
+		Select("Name", "Email", "Department", "Description").Updates(model.User{
 		Name:        user.Name,
 		Email:       user.Email,
 		Department:  user.Department,

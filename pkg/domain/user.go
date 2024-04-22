@@ -154,7 +154,7 @@ type UpdateMyProfileRequest struct {
 	Password   string `json:"password" validate:"required"`
 	Name       string `json:"name" validate:"required,min=1,max=30"`
 	Email      string `json:"email" validate:"required,email"`
-	Department string `json:"department" validate:"required,min=0,max=50"`
+	Department string `json:"department" validate:"min=0,max=50"`
 }
 
 type UpdateMyProfileResponse struct {

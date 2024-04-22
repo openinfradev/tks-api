@@ -507,7 +507,7 @@ func (u UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 //	@Security		JWT
 func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	organizationId, ok := vars["organizationId"]
+	_, ok := vars["organizationId"]
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("organizationId not found in path"), "C_INVALID_ORGANIZATION_ID", ""))
 		return
@@ -535,16 +535,16 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	var user model.User
-	if err = serializer.Map(r.Context(), input, &user); err != nil {
-		log.Error(r.Context(), err)
+	user, err := u.usecase.Get(r.Context(), requestUserInfo.GetUserId())
+	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
+	user.Name = input.Name
+	user.Email = input.Email
+	user.Department = input.Department
 
-	user.ID = requestUserInfo.GetUserId()
-	user.OrganizationId = organizationId
-	resUser, err := u.usecase.Update(ctx, &user)
+	resUser, err := u.usecase.Update(ctx, user)
 	if err != nil {
 		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
