@@ -344,6 +344,12 @@
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "projectName",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5274,6 +5280,12 @@
                         "type": "string",
                         "description": "(all | only)",
                         "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "projectName",
                         "in": "query"
                     }
                 ],
@@ -15365,7 +15377,6 @@
         "github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileRequest": {
             "type": "object",
             "required": [
-                "department",
                 "email",
                 "name",
                 "password"

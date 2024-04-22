@@ -350,6 +350,12 @@ const docTemplate = `{
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "projectName",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5280,6 +5286,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "(all | only)",
                         "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "projectName",
                         "in": "query"
                     }
                 ],
@@ -15371,7 +15383,6 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.UpdateMyProfileRequest": {
             "type": "object",
             "required": [
-                "department",
                 "email",
                 "name",
                 "password"
