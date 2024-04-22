@@ -57,7 +57,11 @@ func (r RoleUsecase) GetTksRole(ctx context.Context, organizationId string, id s
 }
 
 func (r RoleUsecase) DeleteTksRole(ctx context.Context, organizationId string, id string) error {
-	err := r.kc.DeleteGroup(ctx, organizationId, id)
+	role, err := r.repo.GetTksRole(ctx, organizationId, id)
+	if err != nil {
+		return err
+	}
+	err = r.kc.DeleteGroup(ctx, organizationId, role.Name+"@"+organizationId)
 	if err != nil {
 		return err
 	}
