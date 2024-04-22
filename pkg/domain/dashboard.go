@@ -223,18 +223,27 @@ type GetDashboardPolicyStatisticsResponse struct {
 	PolicyStatisticsResponse
 }
 
-type GetDashboardWorkloadResponse struct {
-	DeploymentCount     int `json:"deploymentCount"`
-	DeploymentPodCount  int `json:"deploymentPodCount"`
-	StatefulSetCount    int `json:"statefulSetCount"`
-	StatefulSetPodCount int `json:"statefulSetPodCount"`
-	DaemonSetCount      int `json:"daemonSetCount"`
-	DaemonSetPodCount   int `json:"daemonSetPodCount"`
-	CronJobCount        int `json:"cronJobCount"`
-	CronJobPodCount     int `json:"cronJobPodCount"`
-	JobCount            int `json:"jobCount"`
-	JobPodCount         int `json:"jobPodCount"`
+type WorkloadData struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
 }
+type GetDashboardWorkloadResponse struct {
+	Title string         `json:"title"`
+	Data  []WorkloadData `json:"data"`
+}
+
+//type GetDashboardWorkloadResponse struct {
+//	DeploymentCount     int `json:"deploymentCount"`
+//	DeploymentPodCount  int `json:"deploymentPodCount"`
+//	StatefulSetCount    int `json:"statefulSetCount"`
+//	StatefulSetPodCount int `json:"statefulSetPodCount"`
+//	DaemonSetCount      int `json:"daemonSetCount"`
+//	DaemonSetPodCount   int `json:"daemonSetPodCount"`
+//	CronJobCount        int `json:"cronJobCount"`
+//	CronJobPodCount     int `json:"cronJobPodCount"`
+//	JobCount            int `json:"jobCount"`
+//	JobPodCount         int `json:"jobPodCount"`
+//}
 
 type GetDashboardPolicyViolationTop5Response struct {
 	GetDashboardPolicyViolationResponse
