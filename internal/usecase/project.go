@@ -30,7 +30,7 @@ const (
 
 type IProjectUsecase interface {
 	CreateProject(ctx context.Context, p *model.Project) (string, error)
-	GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, projectName string, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
 	GetProject(ctx context.Context, organizationId string, projectId string) (*model.Project, error)
 	GetProjectWithLeader(ctx context.Context, organizationId string, projectId string) (*model.Project, error)
 	IsProjectNameExist(ctx context.Context, organizationId string, projectName string) (bool, error)
@@ -113,9 +113,9 @@ func (u *ProjectUsecase) CreateProject(ctx context.Context, p *model.Project) (s
 	return projectId, nil
 }
 
-func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string, userId string, onlyMyProject bool, projectName string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	if userId == "" {
-		if pr, err = u.projectRepo.GetAllProjects(ctx, organizationId, pg); err != nil {
+		if pr, err = u.projectRepo.GetAllProjects(ctx, organizationId, projectName, pg); err != nil {
 			log.Error(ctx, err)
 			return nil, errors.Wrap(err, "Failed to get projects.")
 		}
@@ -126,9 +126,9 @@ func (u *ProjectUsecase) GetProjects(ctx context.Context, organizationId string,
 			return nil, errors.Wrap(err, "Failed to parse uuid to string")
 		}
 		if !onlyMyProject {
-			pr, err = u.projectRepo.GetProjects(ctx, organizationId, userUuid, pg)
+			pr, err = u.projectRepo.GetProjects(ctx, organizationId, userUuid, projectName, pg)
 		} else {
-			pr, err = u.projectRepo.GetProjectsByUserId(ctx, organizationId, userUuid, pg)
+			pr, err = u.projectRepo.GetProjectsByUserId(ctx, organizationId, userUuid, projectName, pg)
 		}
 		if err != nil {
 			log.Error(ctx, err)

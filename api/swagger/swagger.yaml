@@ -3525,7 +3525,6 @@ definitions:
       password:
         type: string
     required:
-    - department
     - email
     - name
     - password
@@ -4514,6 +4513,10 @@ paths:
         in: path
         name: organizationId
         required: true
+        type: string
+      - description: Project Name
+        in: query
+        name: projectName
         type: string
       produces:
       - application/json
@@ -7629,6 +7632,10 @@ paths:
       - description: (all | only)
         in: query
         name: query
+        type: string
+      - description: Project Name
+        in: query
+        name: projectName
         type: string
       produces:
       - application/json

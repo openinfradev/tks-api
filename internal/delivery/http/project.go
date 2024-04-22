@@ -166,6 +166,7 @@ func (p ProjectHandler) CreateProject(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"Organization ID"
 //	@Param			query			query		string	false	"(all | only)"
+//	@Param			projectName		query		string	false	"Project Name"
 //	@Success		200				{object}	domain.GetProjectsResponse
 //	@Router			/organizations/{organizationId}/projects [get]
 //	@Security		JWT
@@ -184,6 +185,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	if queryName == "only" {
 		onlyMyProject = true
 	}
+	projectName := urlParams.Get("projectName")
 
 	pg := pagination.NewPagination(&urlParams)
 
@@ -194,7 +196,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, fmt.Errorf("failed to retrieve user info from request"))
 	}
 	myUserId := requestUserInfo.GetUserId().String()
-	pr, err := p.usecase.GetProjects(r.Context(), organizationId, myUserId, onlyMyProject, pg)
+	pr, err := p.usecase.GetProjects(r.Context(), organizationId, myUserId, onlyMyProject, projectName, pg)
 	if err != nil {
 		log.Error(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)
@@ -222,6 +224,7 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectName		query		string	false	"Project Name"
 //	@Success		200				{object}	domain.GetProjectsResponse
 //	@Router			/admin/organizations/{organizationId}/projects [get]
 //	@Security		JWT
@@ -235,8 +238,9 @@ func (p ProjectHandler) Admin_GetProjects(w http.ResponseWriter, r *http.Request
 	}
 
 	urlParams := r.URL.Query()
+	projectName := urlParams.Get("projectName")
 	pg := pagination.NewPagination(&urlParams)
-	pr, err := p.usecase.GetProjects(r.Context(), organizationId, "", false, pg)
+	pr, err := p.usecase.GetProjects(r.Context(), organizationId, "", false, projectName, pg)
 	if err != nil {
 		log.Error(r.Context(), "Failed to retrieve projects ", err)
 		ErrorJSON(w, r, err)

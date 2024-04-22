@@ -16,9 +16,9 @@ import (
 
 type IProjectRepository interface {
 	CreateProject(ctx context.Context, p *model.Project) (string, error)
-	GetProjects(ctx context.Context, organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
-	GetProjectsByUserId(ctx context.Context, organizationId string, userId uuid.UUID, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
-	GetAllProjects(ctx context.Context, organizationId string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error)
+	GetProjects(ctx context.Context, organizationId string, userId uuid.UUID, projectName string, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetProjectsByUserId(ctx context.Context, organizationId string, userId uuid.UUID, projectName string, pg *pagination.Pagination) ([]domain.ProjectResponse, error)
+	GetAllProjects(ctx context.Context, organizationId string, projectName string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error)
 	GetProjectById(ctx context.Context, organizationId string, projectId string) (*model.Project, error)
 	GetProjectByIdAndLeader(ctx context.Context, organizationId string, projectId string) (*model.Project, error)
 	GetProjectByName(ctx context.Context, organizationId string, projectName string) (*model.Project, error)
@@ -64,7 +64,7 @@ func (r *ProjectRepository) CreateProject(ctx context.Context, p *model.Project)
 	return p.ID, nil
 }
 
-func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId string, userId uuid.UUID, projectName string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	res := r.db.WithContext(ctx).Raw(""+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
@@ -100,6 +100,7 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId "+
+		"   and p.name like '%"+projectName+"%' "+
 		"union "+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       false as is_my_project, '' as project_role_id, '' as project_role_name, "+
@@ -135,6 +136,7 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"         group by p.id) as pm_count on p.id = pm_count.project_id"+
 		" where p.id = pm.project_id "+
 		"   and p.organization_id = @organizationId "+
+		"   and p.name like '%"+projectName+"%' "+
 		"   and p.id not in (select projects.id "+
 		"                      from projects "+
 		"                      left join project_members on project_members.project_id = projects.id "+
@@ -149,7 +151,7 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 	return pr, nil
 }
 
-func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizationId string, userId uuid.UUID, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizationId string, userId uuid.UUID, projectName string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	res := r.db.WithContext(ctx).Raw(""+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
@@ -184,7 +186,9 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 		"         where p.organization_id = @organizationId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
-		"   and p.organization_id = @organizationId", sql.Named("organizationId", organizationId), sql.Named("userId", userId)).
+		"   and p.organization_id = @organizationId "+
+		"   and p.name like '%"+projectName+"%' ",
+		sql.Named("organizationId", organizationId), sql.Named("userId", userId)).
 		Scan(&pr)
 
 	if res.Error != nil {
@@ -200,7 +204,7 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 	return pr, nil
 }
 
-func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
+func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId string, projectName string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	res := r.db.WithContext(ctx).Raw(""+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       false as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
@@ -234,7 +238,9 @@ func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId s
 		"         where p.organization_id = @organizationId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
-		"   and p.organization_id = @organizationId", sql.Named("organizationId", organizationId)).
+		"   and p.organization_id = @organizationId "+
+		"   and p.name like '%"+projectName+"%' ",
+		sql.Named("organizationId", organizationId)).
 		Scan(&pr)
 
 	if res.Error != nil {
