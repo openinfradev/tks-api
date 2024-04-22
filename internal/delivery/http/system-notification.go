@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -99,25 +100,16 @@ func (h *SystemNotificationHandler) GetSystemNotifications(w http.ResponseWriter
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
-	// convert status
 	for i, filter := range pg.GetFilters() {
 		if filter.Column == "status" {
 			for j, value := range filter.Values {
-				switch value {
-				case "CREATED":
-					pg.GetFilters()[i].Values[j] = "0"
-				case "INPROGRESS":
-					pg.GetFilters()[i].Values[j] = "1"
-				case "CLOSED":
-					pg.GetFilters()[i].Values[j] = "2"
-				case "ERROR":
-					pg.GetFilters()[i].Values[j] = "3"
-				}
+				var s domain.SystemNotificationActionStatus
+				pg.GetFilters()[i].Values[j] = strconv.Itoa(int(s.FromString(value)))
 			}
 		}
 	}
 
-	systemNotifications, err := h.usecase.Fetch(r.Context(), organizationId, pg)
+	systemNotifications, err := h.usecase.FetchSystemNotifications(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return

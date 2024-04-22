@@ -155,6 +155,9 @@ const (
 	UpdateSystemNotification
 	CreateSystemNotificationAction
 
+	// PolicyNotification
+	GetPolicyNotifications
+
 	// Stack
 	GetStacks           // 스택관리/조회
 	CreateStack         // 스택관리/생성
