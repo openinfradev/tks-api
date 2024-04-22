@@ -117,6 +117,9 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 	userId := user.GetUserId()
 	dto.CreatorId = &userId
 
+	dto.Rego = policytemplate.FormatRegoCode(dto.Rego)
+	dto.Libs = policytemplate.FormatLibCode(dto.Libs)
+
 	id, err := u.repo.Create(ctx, dto)
 
 	if err != nil {
@@ -477,6 +480,9 @@ func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context,
 	if err := policytemplate.ValidateParamDefs(policyTemplate.ParametersSchema); err != nil {
 		return "", httpErrors.NewBadRequestError(err, "PT_INVALID_PARAMETER_SCHEMA", "")
 	}
+
+	rego = policytemplate.FormatRegoCode(rego)
+	libs = policytemplate.FormatLibCode(libs)
 
 	return u.repo.CreatePolicyTemplateVersion(ctx, policyTemplateId, newVersion, schema, rego, libs)
 }
