@@ -232,19 +232,6 @@ type GetDashboardWorkloadResponse struct {
 	Data  []WorkloadData `json:"data"`
 }
 
-//type GetDashboardWorkloadResponse struct {
-//	DeploymentCount     int `json:"deploymentCount"`
-//	DeploymentPodCount  int `json:"deploymentPodCount"`
-//	StatefulSetCount    int `json:"statefulSetCount"`
-//	StatefulSetPodCount int `json:"statefulSetPodCount"`
-//	DaemonSetCount      int `json:"daemonSetCount"`
-//	DaemonSetPodCount   int `json:"daemonSetPodCount"`
-//	CronJobCount        int `json:"cronJobCount"`
-//	CronJobPodCount     int `json:"cronJobPodCount"`
-//	JobCount            int `json:"jobCount"`
-//	JobPodCount         int `json:"jobPodCount"`
-//}
-
 type GetDashboardPolicyViolationTop5Response struct {
 	GetDashboardPolicyViolationResponse
 }
