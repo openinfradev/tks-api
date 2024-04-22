@@ -12775,35 +12775,14 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.GetDashboardWorkloadResponse": {
             "type": "object",
             "properties": {
-                "cronJobCount": {
-                    "type": "integer"
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.WorkloadData"
+                    }
                 },
-                "cronJobPodCount": {
-                    "type": "integer"
-                },
-                "daemonSetCount": {
-                    "type": "integer"
-                },
-                "daemonSetPodCount": {
-                    "type": "integer"
-                },
-                "deploymentCount": {
-                    "type": "integer"
-                },
-                "deploymentPodCount": {
-                    "type": "integer"
-                },
-                "jobCount": {
-                    "type": "integer"
-                },
-                "jobPodCount": {
-                    "type": "integer"
-                },
-                "statefulSetCount": {
-                    "type": "integer"
-                },
-                "statefulSetPodCount": {
-                    "type": "integer"
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -16118,6 +16097,17 @@ const docTemplate = `{
                 },
                 "widgetKey": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.WorkloadData": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
                 }
             }
         },

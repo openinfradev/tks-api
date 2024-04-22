@@ -870,11 +870,11 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 		return nil, err
 	}
 
-	dwr := &domain.GetDashboardWorkloadResponse{}
+	dwr := &domain.GetDashboardWorkloadResponse{Title: "자원별 Pod 배포 현황"}
 
-	// Deployment count
-	var count int
-	query := fmt.Sprintf("count (kube_deployment_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
+	// Deployment pod count
+	count := 0
+	query := fmt.Sprintf("sum (kube_deployment_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
 	wm, err := thanosClient.GetWorkload(ctx, query)
 	if err != nil {
 		return nil, err
@@ -882,31 +882,8 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
 		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
-	dwr.DeploymentCount = count
 
-	// Deployment pod count
-	count = 0
-	query = fmt.Sprintf("sum (kube_deployment_status_replicas_available{taco_cluster=~'%s'} )", clusterIdStr)
-	wm, err = thanosClient.GetWorkload(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
-		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	}
-	dwr.DeploymentPodCount = count
-
-	// StatefulSet count
-	count = 0
-	query = fmt.Sprintf("count (kube_statefulset_status_replicas_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.GetWorkload(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
-		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	}
-	dwr.StatefulSetCount = count
+	dwr.Data = append(dwr.Data, domain.WorkloadData{Name: "Deployments", Value: count})
 
 	// StatefulSet pod count
 	count = 0
@@ -918,19 +895,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
 		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
-	dwr.StatefulSetPodCount = count
-
-	// DaemonSet count
-	count = 0
-	query = fmt.Sprintf("count (kube_daemonset_status_number_available{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.GetWorkload(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
-		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	}
-	dwr.DaemonSetCount = count
+	dwr.Data = append(dwr.Data, domain.WorkloadData{Name: "StatefulSets", Value: count})
 
 	// DaemonSet pod count
 	count = 0
@@ -942,19 +907,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
 		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
-	dwr.DaemonSetPodCount = count
-
-	// CronJob count
-	count = 0
-	query = fmt.Sprintf("count (kube_cronjob_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.GetWorkload(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
-		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	}
-	dwr.CronJobCount = count
+	dwr.Data = append(dwr.Data, domain.WorkloadData{Name: "DaemonSets", Value: count})
 
 	// CronJob pod count
 	count = 0
@@ -966,19 +919,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
 		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
-	dwr.CronJobPodCount = count
-
-	// Job count
-	count = 0
-	query = fmt.Sprintf("count (kube_job_status_active{taco_cluster=~'%s'} != 0)", clusterIdStr)
-	wm, err = thanosClient.GetWorkload(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
-		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
-	}
-	dwr.JobCount = count
+	dwr.Data = append(dwr.Data, domain.WorkloadData{Name: "CronJobs", Value: count})
 
 	// Job pod count
 	count = 0
@@ -990,7 +931,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 	if len(wm.Data.Result) > 0 && len(wm.Data.Result[0].Value) > 1 {
 		count, _ = strconv.Atoi(wm.Data.Result[0].Value[1].(string))
 	}
-	dwr.JobPodCount = count
+	dwr.Data = append(dwr.Data, domain.WorkloadData{Name: "Jobs", Value: count})
 
 	return dwr, nil
 }

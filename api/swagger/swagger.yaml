@@ -1794,26 +1794,12 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardWorkloadResponse:
     properties:
-      cronJobCount:
-        type: integer
-      cronJobPodCount:
-        type: integer
-      daemonSetCount:
-        type: integer
-      daemonSetPodCount:
-        type: integer
-      deploymentCount:
-        type: integer
-      deploymentPodCount:
-        type: integer
-      jobCount:
-        type: integer
-      jobPodCount:
-        type: integer
-      statefulSetCount:
-        type: integer
-      statefulSetPodCount:
-        type: integer
+      data:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.WorkloadData'
+        type: array
+      title:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetMandatoryPoliciesResponse:
     properties:
@@ -4020,6 +4006,13 @@ definitions:
         type: integer
       widgetKey:
         type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.WorkloadData:
+    properties:
+      name:
+        type: string
+      value:
+        type: integer
     type: object
   github_com_openinfradev_tks-api_pkg_domain_admin.AddPermittedPolicyTemplatesForOrganizationRequest:
     properties:
