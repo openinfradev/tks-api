@@ -183,25 +183,38 @@ func (u *ProjectUsecase) UpdateProject(ctx context.Context, p *model.Project, ne
 	p.ProjectNamespaces = nil
 	p.ProjectMembers = nil
 
+	// only project table update
 	if err := u.projectRepo.UpdateProject(ctx, p); err != nil {
 		log.Error(ctx, err)
 		return errors.Wrap(err, "Failed to update project.")
 	}
 
 	if newLeaderId != "" && currentLeaderId != newLeaderId {
-		if err := u.RemoveProjectMember(ctx, p.OrganizationId, currentMemberId); err != nil {
-			log.Error(ctx, err)
-			return errors.Wrap(err, "Failed to remove project member.")
-		}
-
 		pu, err := u.GetProjectUser(ctx, newLeaderId)
 		if err != nil {
 			return err
 		}
 		if pu == nil {
-			return errors.Wrap(err, "No userid")
+			return errors.Wrap(err, "The user doesn't exist.")
 		}
 
+		// If project leader exists, remove leader
+		if currentMemberId != "" {
+			if err := u.RemoveProjectMember(ctx, p.OrganizationId, currentMemberId); err != nil {
+				log.Error(ctx, err)
+				return errors.Wrap(err, "Failed to remove project member.")
+			}
+		}
+
+		if projectRoleId == "" {
+			pr, err := u.projectRepo.GetProjectRoleByName(ctx, "project-leader")
+			if err != nil {
+				return err
+			}
+			projectRoleId = pr.ID
+		}
+
+		// If the Member does not exist in the Project, insert it, but if it does, update it.
 		pm, err := u.projectRepo.GetProjectMemberByUserId(ctx, p.ID, newLeaderId)
 		if err != nil {
 			return err
