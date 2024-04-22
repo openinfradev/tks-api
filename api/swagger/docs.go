@@ -4502,6 +4502,121 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/policy-notifications": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get PolicyNotifications",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PolicyNotifications"
+                ],
+                "summary": "Get PolicyNotifications",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "pageNumber",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/policy-notifications/{policyNotificationId}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get PolicyNotification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "PolicyNotifications"
+                ],
+                "summary": "Get PolicyNotification",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "policyNotificationId",
+                        "name": "policyNotificationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/policy-statistics": {
             "get": {
                 "security": [
@@ -12875,6 +12990,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationResponse": {
+            "type": "object",
+            "properties": {
+                "policyNotification": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyNotificationResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationsResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                },
+                "policyNotifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyNotificationResponse"
+                    }
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse": {
             "type": "object",
             "properties": {
@@ -13839,6 +13976,53 @@ const docTemplate = `{
                 },
                 "warn": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.PolicyNotificationResponse": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "grafanaUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "messageActionProposal": {
+                    "type": "string"
+                },
+                "messageContent": {
+                    "type": "string"
+                },
+                "messageTitle": {
+                    "type": "string"
+                },
+                "notificationType": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "string"
+                },
+                "rawData": {
+                    "type": "string"
+                },
+                "read": {
+                    "type": "boolean"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
                 }
             }
         },
@@ -15079,6 +15263,9 @@ const docTemplate = `{
                 },
                 "rawData": {
                     "type": "string"
+                },
+                "read": {
+                    "type": "boolean"
                 },
                 "severity": {
                     "type": "string"

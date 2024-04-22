@@ -98,6 +98,7 @@ type SystemNotificationResponse struct {
 	LastTaker                 SimpleUserResponse                 `json:"lastTaker"`
 	RawData                   string                             `json:"rawData"`
 	NotificationType          string                             `json:"notificationType"`
+	Read                      bool                               `json:"read"`
 	CreatedAt                 time.Time                          `json:"createdAt"`
 	UpdatedAt                 time.Time                          `json:"updatedAt"`
 }

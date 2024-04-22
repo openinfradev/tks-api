@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -98,6 +99,15 @@ func (h *SystemNotificationRuleHandler) GetSystemNotificationRules(w http.Respon
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
+	for i, filter := range pg.GetFilters() {
+		if filter.Column == "status" {
+			for j, value := range filter.Values {
+				var s domain.SystemNotificationRuleStatus
+				pg.GetFilters()[i].Values[j] = strconv.Itoa(int(s.FromString(value)))
+			}
+		}
+	}
+
 	systemNotificationRules, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)

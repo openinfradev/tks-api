@@ -23,7 +23,8 @@ import (
 type ISystemNotificationUsecase interface {
 	Get(ctx context.Context, systemNotificationId uuid.UUID) (model.SystemNotification, error)
 	GetByName(ctx context.Context, organizationId string, name string) (model.SystemNotification, error)
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotification, error)
+	FetchSystemNotifications(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotification, error)
+	FetchPolicyNotifications(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotification, error)
 	Create(ctx context.Context, dto domain.CreateSystemNotificationRequest) (err error)
 	Update(ctx context.Context, dto model.SystemNotification) error
 	Delete(ctx context.Context, dto model.SystemNotification) error
@@ -37,6 +38,7 @@ type SystemNotificationUsecase struct {
 	organizationRepo           repository.IOrganizationRepository
 	appGroupRepo               repository.IAppGroupRepository
 	systemNotificationRuleRepo repository.ISystemNotificationRuleRepository
+	userRepo                   repository.IUserRepository
 }
 
 func NewSystemNotificationUsecase(r repository.Repository) ISystemNotificationUsecase {
@@ -46,6 +48,7 @@ func NewSystemNotificationUsecase(r repository.Repository) ISystemNotificationUs
 		appGroupRepo:               r.AppGroup,
 		organizationRepo:           r.Organization,
 		systemNotificationRuleRepo: r.SystemNotificationRule,
+		userRepo:                   r.User,
 	}
 }
 
@@ -165,11 +168,24 @@ func (u *SystemNotificationUsecase) Update(ctx context.Context, dto model.System
 }
 
 func (u *SystemNotificationUsecase) Get(ctx context.Context, systemNotificationId uuid.UUID) (systemNotification model.SystemNotification, err error) {
+	userInfo, ok := request.UserFrom(ctx)
+	if !ok {
+		return systemNotification, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
 	systemNotification, err = u.repo.Get(ctx, systemNotificationId)
 	if err != nil {
 		return systemNotification, err
 	}
-	u.makeAdditionalInfo(&systemNotification)
+	u.makeAdditionalInfo(&systemNotification, userInfo.GetUserId())
+
+	user, err := u.userRepo.GetByUuid(ctx, userInfo.GetUserId())
+	if err == nil {
+		err = u.repo.UpdateRead(ctx, systemNotificationId, user)
+		if err != nil {
+			return systemNotification, err
+		}
+	}
 
 	return
 }
@@ -185,14 +201,37 @@ func (u *SystemNotificationUsecase) GetByName(ctx context.Context, organizationI
 	return
 }
 
-func (u *SystemNotificationUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (systemNotifications []model.SystemNotification, err error) {
-	systemNotifications, err = u.repo.Fetch(ctx, organizationId, pg)
+func (u *SystemNotificationUsecase) FetchSystemNotifications(ctx context.Context, organizationId string, pg *pagination.Pagination) (systemNotifications []model.SystemNotification, err error) {
+	userInfo, ok := request.UserFrom(ctx)
+	if !ok {
+		return systemNotifications, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	systemNotifications, err = u.repo.FetchSystemNotifications(ctx, organizationId, pg)
 	if err != nil {
 		return nil, err
 	}
 
 	for i := range systemNotifications {
-		u.makeAdditionalInfo(&systemNotifications[i])
+		u.makeAdditionalInfo(&systemNotifications[i], userInfo.GetUserId())
+	}
+
+	return systemNotifications, nil
+}
+
+func (u *SystemNotificationUsecase) FetchPolicyNotifications(ctx context.Context, organizationId string, pg *pagination.Pagination) (systemNotifications []model.SystemNotification, err error) {
+	userInfo, ok := request.UserFrom(ctx)
+	if !ok {
+		return systemNotifications, httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	systemNotifications, err = u.repo.FetchPolicyNotifications(ctx, organizationId, pg)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range systemNotifications {
+		u.makeAdditionalInfo(&systemNotifications[i], userInfo.GetUserId())
 	}
 
 	return systemNotifications, nil
@@ -256,7 +295,8 @@ func (u *SystemNotificationUsecase) getOrganizationFromCluster(clusters *[]model
 	return "", fmt.Errorf("No martched organization %s", strId)
 }
 
-func (u *SystemNotificationUsecase) makeAdditionalInfo(systemNotification *model.SystemNotification) {
+func (u *SystemNotificationUsecase) makeAdditionalInfo(systemNotification *model.SystemNotification, userId uuid.UUID) {
+
 	systemNotification.FiredAt = &systemNotification.CreatedAt
 	//systemNotification.Status = model.SystemNotificationActionStatus_CREATED
 
@@ -272,6 +312,14 @@ func (u *SystemNotificationUsecase) makeAdditionalInfo(systemNotification *model
 		systemNotification.LastTaker = systemNotification.SystemNotificationActions[len(systemNotification.SystemNotificationActions)-1].Taker
 		systemNotification.TakedSec = int((systemNotification.SystemNotificationActions[0].CreatedAt).Sub(systemNotification.CreatedAt).Seconds())
 		//systemNotification.Status = systemNotification.SystemNotificationActions[len(systemNotification.SystemNotificationActions)-1].Status
+	}
+
+	systemNotification.Read = false
+	for _, v := range systemNotification.Readers {
+		if v.ID == userId {
+			systemNotification.Read = true
+			break
+		}
 	}
 }
 

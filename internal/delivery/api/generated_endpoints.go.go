@@ -479,6 +479,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "CreateSystemNotificationAction", 
 		Group: "SystemNotification",
 	},
+    GetPolicyNotifications: {
+		Name: "GetPolicyNotifications", 
+		Group: "PolicyNotification",
+	},
     GetStacks: {
 		Name: "GetStacks", 
 		Group: "Stack",
@@ -1160,6 +1164,8 @@ func (e Endpoint) String() string {
 		return "UpdateSystemNotification"
 	case CreateSystemNotificationAction:
 		return "CreateSystemNotificationAction"
+	case GetPolicyNotifications:
+		return "GetPolicyNotifications"
 	case GetStacks:
 		return "GetStacks"
 	case CreateStack:
@@ -1624,6 +1630,8 @@ func GetEndpoint(name string) Endpoint {
 		return UpdateSystemNotification
 	case "CreateSystemNotificationAction":
 		return CreateSystemNotificationAction
+	case "GetPolicyNotifications":
+		return GetPolicyNotifications
 	case "GetStacks":
 		return GetStacks
 	case "CreateStack":

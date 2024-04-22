@@ -36,6 +36,8 @@ type SystemNotification struct {
 	Summary                   string
 	RawData                   datatypes.JSON
 	Status                    domain.SystemNotificationActionStatus `gorm:"index"`
+	Read                      bool                                  `gorm:"-:all"`
+	Readers                   []User                                `gorm:"many2many:system_notification_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 }
 
 type SystemNotificationAction struct {

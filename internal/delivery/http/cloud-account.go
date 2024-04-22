@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -98,6 +99,15 @@ func (h *CloudAccountHandler) GetCloudAccounts(w http.ResponseWriter, r *http.Re
 
 	urlParams := r.URL.Query()
 	pg := pagination.NewPagination(&urlParams)
+	for i, filter := range pg.GetFilters() {
+		if filter.Column == "status" {
+			for j, value := range filter.Values {
+				var s domain.CloudAccountStatus
+				pg.GetFilters()[i].Values[j] = strconv.Itoa(int(s.FromString(value)))
+			}
+		}
+	}
+
 	cloudAccounts, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)

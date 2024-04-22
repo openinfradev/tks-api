@@ -217,15 +217,6 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboards/{dashboardKey}", customMiddleware.Handle(internalApi.GetDashboard, http.HandlerFunc(dashboardHandler.GetDashboard))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/dashboards/{dashboardKey}", customMiddleware.Handle(internalApi.UpdateDashboard, http.HandlerFunc(dashboardHandler.UpdateDashboard))).Methods(http.MethodPut)
 
-	systemNotificationHandler := delivery.NewSystemNotificationHandler(usecaseFactory)
-	r.HandleFunc(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/system-notifications", systemNotificationHandler.CreateSystemNotification).Methods(http.MethodPost)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications", customMiddleware.Handle(internalApi.GetSystemNotifications, http.HandlerFunc(systemNotificationHandler.GetSystemNotifications))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}", customMiddleware.Handle(internalApi.GetSystemNotification, http.HandlerFunc(systemNotificationHandler.GetSystemNotification))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}", customMiddleware.Handle(internalApi.DeleteSystemNotification, http.HandlerFunc(systemNotificationHandler.DeleteSystemNotification))).Methods(http.MethodDelete)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}", customMiddleware.Handle(internalApi.UpdateSystemNotification, http.HandlerFunc(systemNotificationHandler.UpdateSystemNotification))).Methods(http.MethodPut)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}/actions", customMiddleware.Handle(internalApi.CreateSystemNotificationAction, http.HandlerFunc(systemNotificationHandler.CreateSystemNotificationAction))).Methods(http.MethodPost)
-	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", systemNotificationHandler.CreateSystemNotification).Methods(http.MethodPost)
-
 	systemNotificationTemplateHandler := delivery.NewSystemNotificationTemplateHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/system-notification-templates", customMiddleware.Handle(internalApi.Admin_CreateSystemNotificationTemplate, http.HandlerFunc(systemNotificationTemplateHandler.CreateSystemNotificationTemplate))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/system-notification-templates", customMiddleware.Handle(internalApi.Admin_GetSystemNotificationTemplates, http.HandlerFunc(systemNotificationTemplateHandler.GetSystemNotificationTemplates))).Methods(http.MethodGet)
@@ -246,6 +237,18 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.GetSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.GetSystemNotificationRule))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.UpdateSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.UpdateSystemNotificationRule))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId}", customMiddleware.Handle(internalApi.DeleteSystemNotificationRule, http.HandlerFunc(systemNotificationRuleHandler.DeleteSystemNotificationRule))).Methods(http.MethodDelete)
+
+	systemNotificationHandler := delivery.NewSystemNotificationHandler(usecaseFactory)
+	r.HandleFunc(SYSTEM_API_PREFIX+SYSTEM_API_VERSION+"/system-notifications", systemNotificationHandler.CreateSystemNotification).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications", customMiddleware.Handle(internalApi.GetSystemNotifications, http.HandlerFunc(systemNotificationHandler.GetSystemNotifications))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}", customMiddleware.Handle(internalApi.GetSystemNotification, http.HandlerFunc(systemNotificationHandler.GetSystemNotification))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}", customMiddleware.Handle(internalApi.DeleteSystemNotification, http.HandlerFunc(systemNotificationHandler.DeleteSystemNotification))).Methods(http.MethodDelete)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}", customMiddleware.Handle(internalApi.UpdateSystemNotification, http.HandlerFunc(systemNotificationHandler.UpdateSystemNotification))).Methods(http.MethodPut)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/system-notifications/{systemNotificationId}/actions", customMiddleware.Handle(internalApi.CreateSystemNotificationAction, http.HandlerFunc(systemNotificationHandler.CreateSystemNotificationAction))).Methods(http.MethodPost)
+	r.HandleFunc(API_PREFIX+API_VERSION+"/alerttest", systemNotificationHandler.CreateSystemNotification).Methods(http.MethodPost)
+
+	policyNotificationHandler := delivery.NewPolicyNotificationHandler(usecaseFactory)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policy-notifications", customMiddleware.Handle(internalApi.GetSystemNotifications, http.HandlerFunc(policyNotificationHandler.GetPolicyNotifications))).Methods(http.MethodGet)
 
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)

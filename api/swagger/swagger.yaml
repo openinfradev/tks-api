@@ -1851,6 +1851,20 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PermissionResponse'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationResponse:
+    properties:
+      policyNotification:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyNotificationResponse'
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationsResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
+      policyNotifications:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyNotificationResponse'
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetPolicyResponse:
     properties:
       policy:
@@ -2481,6 +2495,37 @@ definitions:
         type: integer
       warn:
         type: integer
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyNotificationResponse:
+    properties:
+      cluster:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleClusterResponse'
+      createdAt:
+        type: string
+      grafanaUrl:
+        type: string
+      id:
+        type: string
+      messageActionProposal:
+        type: string
+      messageContent:
+        type: string
+      messageTitle:
+        type: string
+      notificationType:
+        type: string
+      organizationId:
+        type: string
+      rawData:
+        type: string
+      read:
+        type: boolean
+      severity:
+        type: string
+      status:
+        type: string
+      updatedAt:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.PolicyParameter:
     properties:
@@ -3313,6 +3358,8 @@ definitions:
         type: integer
       rawData:
         type: string
+      read:
+        type: boolean
       severity:
         type: string
       status:
@@ -7134,6 +7181,80 @@ paths:
       summary: '[ExistsPolicyName] 정책 아름 존재 여부 확인'
       tags:
       - Policy
+  /organizations/{organizationId}/policy-notifications:
+    get:
+      consumes:
+      - application/json
+      description: Get PolicyNotifications
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: pageSize
+        in: query
+        name: pageSize
+        type: string
+      - description: pageNumber
+        in: query
+        name: pageNumber
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationsResponse'
+      security:
+      - JWT: []
+      summary: Get PolicyNotifications
+      tags:
+      - PolicyNotifications
+  /organizations/{organizationId}/policy-notifications/{policyNotificationId}:
+    get:
+      consumes:
+      - application/json
+      description: Get PolicyNotification
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: policyNotificationId
+        in: path
+        name: policyNotificationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationResponse'
+      security:
+      - JWT: []
+      summary: Get PolicyNotification
+      tags:
+      - PolicyNotifications
   /organizations/{organizationId}/policy-statistics:
     get:
       consumes:

@@ -87,6 +87,15 @@ func (p *Pagination) GetFilters() []Filter {
 	return p.Filters
 }
 
+func (p *Pagination) GetFilter(key string) *Filter {
+	for _, filter := range p.Filters {
+		if filter.Column == key {
+			return &filter
+		}
+	}
+	return nil
+}
+
 func (p *Pagination) AddFilter(f Filter) {
 	p.Filters = append(p.Filters, f)
 }
