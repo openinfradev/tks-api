@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/format"
 	"github.com/open-policy-agent/opa/types"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/pkg/domain"
@@ -557,4 +558,33 @@ func GetPackageFromRegoCode(regoCode string) string {
 	}
 
 	return ""
+}
+
+func FormatRegoCode(rego string) string {
+	packageName := GetPackageFromRegoCode(rego)
+
+	// 패키지 명을 파싱할 수 없으면 포맷팅할 수 있는 코드가 아닐 것이므로 그냥 리턴
+	if packageName == "" {
+		return rego
+	}
+
+	bytes, err := format.Source("rego", []byte(rego))
+
+	if err != nil {
+		return rego
+	}
+
+	return strings.Replace(string(bytes), "\t", "  ", -1)
+}
+
+func FormatLibCode(libs []string) []string {
+	processedLibs := processLibs(libs)
+
+	result := make([]string, len(processedLibs))
+
+	for i, lib := range processedLibs {
+		result[i] = FormatRegoCode(lib)
+	}
+
+	return result
 }
