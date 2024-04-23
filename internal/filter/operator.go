@@ -35,7 +35,7 @@ var (
 				if dataType != DataTypeText && dataType != DataTypeEnum {
 					return filter.Where(tx, "FALSE")
 				}
-				query := castEnumAsText(column, dataType) + " LIKE ?"
+				query := castEnumAsText(column, dataType) + " ILIKE ?"
 				value := sqlutil.EscapeLike(filter.Args[0]) + "%"
 				return filter.Where(tx, query, value)
 			},
@@ -46,7 +46,7 @@ var (
 				if dataType != DataTypeText && dataType != DataTypeEnum {
 					return filter.Where(tx, "FALSE")
 				}
-				query := castEnumAsText(column, dataType) + " LIKE ?"
+				query := castEnumAsText(column, dataType) + " ILIKE ?"
 				value := "%" + sqlutil.EscapeLike(filter.Args[0])
 				return filter.Where(tx, query, value)
 			},
@@ -57,7 +57,7 @@ var (
 				if dataType != DataTypeText && dataType != DataTypeEnum {
 					return filter.Where(tx, "FALSE")
 				}
-				query := castEnumAsText(column, dataType) + " LIKE ?"
+				query := castEnumAsText(column, dataType) + " ILIKE ?"
 				value := "%" + sqlutil.EscapeLike(filter.Args[0]) + "%"
 				return filter.Where(tx, query, value)
 			},
@@ -68,7 +68,7 @@ var (
 				if dataType != DataTypeText && dataType != DataTypeEnum {
 					return filter.Where(tx, "FALSE")
 				}
-				query := castEnumAsText(column, dataType) + " NOT LIKE ?"
+				query := castEnumAsText(column, dataType) + " NOT ILIKE ?"
 				value := "%" + sqlutil.EscapeLike(filter.Args[0]) + "%"
 				return filter.Where(tx, query, value)
 			},
