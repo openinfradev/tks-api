@@ -72,7 +72,7 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 			Clusters:          targetClusterIds,
 			Template:          policy.PolicyTemplate.Kind,
 			Match:             policy.Match,
-			Params:            params,
+			Parameters:        params,
 		},
 	}
 }

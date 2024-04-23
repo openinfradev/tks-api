@@ -28,7 +28,7 @@ type TKSPolicySpec struct {
 	Clusters []string `json:"clusters"`
 	Template string   `json:"template" validate:"required"`
 
-	Params            *apiextensionsv1.JSON `json:"params,omitempty"`
+	Parameters        *apiextensionsv1.JSON `json:"parameters,omitempty"`
 	Match             *domain.Match         `json:"match,omitempty"`
 	EnforcementAction string                `json:"enforcementAction,omitempty"`
 }
