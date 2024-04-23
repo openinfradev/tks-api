@@ -104,7 +104,7 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 						Kind: policyTemplate.Kind,
 					},
 					Validation: &Validation{
-						OpenAPIV3Schema: ParamDefsToJSONSchemaProeprties(policyTemplate.ParametersSchema),
+						OpenAPIV3Schema: ParamDefsToJSONSchemaProeprties(policyTemplate.ParametersSchema, false),
 					},
 				},
 			},
