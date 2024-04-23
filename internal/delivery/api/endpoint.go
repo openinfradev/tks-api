@@ -157,6 +157,7 @@ const (
 
 	// PolicyNotification
 	GetPolicyNotifications
+	GetPolicyNotification
 
 	// Stack
 	GetStacks           // 스택관리/조회
