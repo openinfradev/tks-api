@@ -47,7 +47,7 @@ func ValidateParamDefs(paramdefs []*domain.ParameterDef) error {
 }
 
 func ValidateJSONusingParamdefs(paramdefs []*domain.ParameterDef, jsonStr string) error {
-	jsonSchema := ParamDefsToJSONSchemaProeprties(paramdefs)
+	jsonSchema := ParamDefsToJSONSchemaProeprties(paramdefs, true)
 
 	if jsonSchema == nil {
 		// 파라미터가 없는데 "{}" 이나 ""이면 에러가 아님

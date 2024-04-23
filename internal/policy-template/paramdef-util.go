@@ -141,21 +141,26 @@ func CompareParamDefAndExtractedParamDef(paramdef *domain.ParameterDef, extracte
 	return true
 }
 
-func ParamDefsToJSONSchemaProeprties(paramdefs []*domain.ParameterDef) *apiextensionsv1.JSONSchemaProps {
+func ParamDefsToJSONSchemaProeprties(paramdefs []*domain.ParameterDef, forValidation bool) *apiextensionsv1.JSONSchemaProps {
 	if len(paramdefs) == 0 {
 		return nil
 	}
 
 	result := apiextensionsv1.JSONSchemaProps{
-		Type:                 "object",
-		Properties:           convert(paramdefs),
-		AdditionalProperties: &apiextensionsv1.JSONSchemaPropsOrBool{Allows: false},
+		Type:       "object",
+		Properties: convert(paramdefs, forValidation),
+	}
+
+	// 파라미터 validation인 경우에는 AddtionalProperties로 스키마에 없는 필드가 처리되지 않아야 함
+	// Operator에 보낼때는 해당 속성이 없어야 함
+	if forValidation {
+		result.AdditionalProperties = &apiextensionsv1.JSONSchemaPropsOrBool{Allows: false}
 	}
 
 	return &result
 }
 
-func convert(paramdefs []*domain.ParameterDef) map[string]apiextensionsv1.JSONSchemaProps {
+func convert(paramdefs []*domain.ParameterDef, forValidation bool) map[string]apiextensionsv1.JSONSchemaProps {
 	result := map[string]apiextensionsv1.JSONSchemaProps{}
 
 	for _, paramdef := range paramdefs {
@@ -167,7 +172,7 @@ func convert(paramdefs []*domain.ParameterDef) map[string]apiextensionsv1.JSONSc
 			result[paramdef.Key] = apiextensionsv1.JSONSchemaProps{
 				Type: "array",
 				Items: &apiextensionsv1.JSONSchemaPropsOrArray{
-					Schema: ParamDefsToJSONSchemaProeprties(paramdef.Children),
+					Schema: ParamDefsToJSONSchemaProeprties(paramdef.Children, forValidation),
 				},
 			}
 		case isArary:
@@ -178,7 +183,7 @@ func convert(paramdefs []*domain.ParameterDef) map[string]apiextensionsv1.JSONSc
 				},
 			}
 		case isObject:
-			props := ParamDefsToJSONSchemaProeprties(paramdef.Children)
+			props := ParamDefsToJSONSchemaProeprties(paramdef.Children, forValidation)
 
 			if props != nil {
 				result[paramdef.Key] = *props
