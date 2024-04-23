@@ -15249,6 +15249,9 @@ const docTemplate = `{
                 "messageTitle": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "node": {
                     "type": "string"
                 },

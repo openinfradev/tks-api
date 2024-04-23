@@ -3348,6 +3348,8 @@ definitions:
         type: string
       messageTitle:
         type: string
+      name:
+        type: string
       node:
         type: string
       notificationType:
