@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -352,6 +353,7 @@ func (h *PolicyHandler) GetPolicy(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string		true	"조직 식별자(o로 시작)"
+//	@Param			filledParameter	query		string		false	"filledParameter"
 //	@Param			pageSize		query		string		false	"pageSize"
 //	@Param			pageNumber		query		string		false	"pageNumber"
 //	@Param			sortColumn		query		string		false	"sortColumn"
@@ -373,7 +375,19 @@ func (h *PolicyHandler) ListPolicy(w http.ResponseWriter, r *http.Request) {
 
 	pg := pagination.NewPagination(&urlParams)
 
-	policies, err := h.usecase.Fetch(r.Context(), organizationId, pg)
+	filledParameter := false
+
+	parse := urlParams.Get("filledParameter")
+	if len(parse) > 0 {
+		parsedBool, err := strconv.ParseBool(parse)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid fillParameter: '%s'", parse), "PT_INVALID_FILLPARAMETER", ""))
+			return
+		}
+		filledParameter = parsedBool
+	}
+
+	policies, err := h.usecase.Fetch(r.Context(), organizationId, pg, filledParameter)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -392,6 +406,18 @@ func (h *PolicyHandler) ListPolicy(w http.ResponseWriter, r *http.Request) {
 		for j, targetCluster := range policy.TargetClusters {
 			if err = serializer.Map(r.Context(), targetCluster, &out.Policies[i].TargetClusters[j]); err != nil {
 				log.Error(r.Context(), err)
+			}
+		}
+
+		if filledParameter {
+			parameterSchema := policy.PolicyTemplate.ParametersSchema
+			parameters := policy.Parameters
+
+			err = policytemplate.FillParamDefFromJsonStr(parameterSchema, parameters)
+			if err != nil {
+				log.Error(r.Context(), err)
+			} else {
+				out.Policies[i].FilledParameters = parameterSchema
 			}
 		}
 	}
