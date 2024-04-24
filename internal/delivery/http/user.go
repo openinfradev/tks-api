@@ -795,13 +795,8 @@ func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var roles []*model.Role
-	for _, role := range user.Roles {
-		roles = append(roles, &role)
-	}
-
 	var permissionSets []*model.PermissionSet
-	for _, role := range roles {
+	for _, role := range user.Roles {
 		permissionSet, err := u.permissionUsecase.GetPermissionSetByRoleId(r.Context(), role.ID)
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))

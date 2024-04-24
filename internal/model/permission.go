@@ -104,7 +104,7 @@ func NewAdminPermissionSet() *PermissionSet {
 }
 
 func GetEdgePermission(root *Permission, edgePermissions []*Permission, f *func(permission Permission) bool) []*Permission {
-	if root.Children == nil {
+	if root.Children == nil || len(root.Children) == 0 {
 		return append(edgePermissions, root)
 	}
 
