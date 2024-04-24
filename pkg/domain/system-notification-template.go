@@ -10,6 +10,7 @@ const SN_TYPE_NODE_DISK_FULL = "node-disk-full"
 const SN_TYPE_PVC_FULL = "pvc-full"
 const SN_TYPE_POD_RESTART_FREQUENTLY = "pod-restart-frequently"
 const SN_TYPE_POLICY_AUDITED = "policy-audited"
+const SN_TYPE_POLICY_BLOCKED = "policy-blocked"
 
 const (
 	NT_SYSTEM_NOTIFICATION = "SYSTEM_NOTIFICATION"

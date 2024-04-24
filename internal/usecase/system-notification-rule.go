@@ -184,7 +184,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			ruleId := uuid.New()
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
-				Name:                         domain.SN_TYPE_NODE_CPU_HIGH_LOAD + "-critical",
+				Name:                         domain.SN_TYPE_NODE_CPU_HIGH_LOAD + "-warning",
 				Description:                  "",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
@@ -192,7 +192,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				SystemNotificationTemplateId: template.ID,
 				SystemNotificationCondition: model.SystemNotificationCondition{
 					SystemNotificationRuleId: ruleId,
-					Severity:                 "critical",
+					Severity:                 "warning",
 					Duration:                 "3m",
 					Parameter:                []byte("[{\"order\": 0, \"value\": \"10\", \"operator\": \"<\"}]"),
 					EnableEmail:              true,
@@ -245,7 +245,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				SystemNotificationCondition: model.SystemNotificationCondition{
 					SystemNotificationRuleId: ruleId,
 					Severity:                 "critical",
-					Duration:                 "3m",
+					Duration:                 "30m",
 					Parameter:                []byte("[{\"order\": 0, \"value\": \"0\", \"operator\": \"<\"}]"),
 					EnableEmail:              true,
 					EnablePortal:             true,
@@ -271,7 +271,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				SystemNotificationCondition: model.SystemNotificationCondition{
 					SystemNotificationRuleId: ruleId,
 					Severity:                 "critical",
-					Duration:                 "3m",
+					Duration:                 "30m",
 					Parameter:                []byte("[{\"order\": 0, \"value\": \"0\", \"operator\": \"<\"}]"),
 					EnableEmail:              true,
 					EnablePortal:             true,
@@ -297,7 +297,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				SystemNotificationCondition: model.SystemNotificationCondition{
 					SystemNotificationRuleId: ruleId,
 					Severity:                 "critical",
-					Duration:                 "3m",
+					Duration:                 "30m",
 					Parameter:                []byte("[{\"order\": 0, \"value\": \"2\", \"operator\": \">\"}]"),
 					EnableEmail:              true,
 					EnablePortal:             true,
@@ -323,21 +323,61 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				SystemNotificationCondition: model.SystemNotificationCondition{
 					SystemNotificationRuleId: ruleId,
 					Severity:                 "critical",
-					Duration:                 "3m",
-					Parameter:                []byte("[{\"order\": 0, \"value\": \"2\", \"operator\": \">\"}]"),
+					Duration:                 "1m",
+					Parameter:                []byte("[{\"order\": 0, \"value\": \"1\", \"operator\": \"==\"}]"),
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
 				TargetUsers:           []model.User{organizationAdmin},
-				MessageTitle:          "<<KIND>> / <<NAME>>",
-				MessageContent:        "클러스터(<<INSTANCE>>)의 자원(<<VIOLATING_KIND>> - <<VIOLATING_NAMESPACE>> / <<VIOLATING_NAME>>)에서 정책(<<KIND>> / <<NAME>>)위반이 발생했습니다. 메시지: <<VIOLATING_MSG>>",
+				MessageTitle:          "정책 위반(<<KIND>> / <<NAME>>)",
+				MessageContent:        "스택 (<<STACK>>)의 자원(<<VIOLATING_KIND>> - <<VIOLATING_NAMESPACE>> / <<VIOLATING_NAME>>)에서 정책(<<KIND>> / <<NAME>>)위반이 발생했습니다. 메시지 - <<VIOLATION_MSG>>",
 				MessageActionProposal: "정책위반이 발생하였습니다.(<<KIND>> / <<NAME>>)",
+				Status:                domain.SystemNotificationRuleStatus_PENDING,
+				CreatorId:             organization.AdminId,
+				UpdatorId:             organization.AdminId,
+			})
+		} else if template.Name == domain.SN_TYPE_POLICY_BLOCKED {
+			ruleId := uuid.New()
+			rules = append(rules, model.SystemNotificationRule{
+				ID:                           ruleId,
+				Name:                         domain.SN_TYPE_POLICY_BLOCKED + "-critical",
+				Description:                  "",
+				OrganizationId:               organizationId,
+				NotificationType:             template.NotificationType,
+				IsSystem:                     true,
+				SystemNotificationTemplateId: template.ID,
+				SystemNotificationCondition: model.SystemNotificationCondition{
+					SystemNotificationRuleId: ruleId,
+					Severity:                 "critical",
+					Duration:                 "1m",
+					Parameter:                []byte("[{\"order\": 0, \"value\": \"1\", \"operator\": \"==\"}]"),
+					EnableEmail:              true,
+					EnablePortal:             true,
+				},
+				TargetUsers:           []model.User{organizationAdmin},
+				MessageTitle:          "정책 위반(<<KIND>> / <<NAME>>) 시도",
+				MessageContent:        "스택 (<<STACK>>)의 자원(<<VIOLATING_KIND>> - <<VIOLATING_NAMESPACE>> / <<VIOLATING_NAME>>)에서 정책(<<KIND>> / <<NAME>>)위반 시도가 발생했습니다. 메시지 - <<VIOLATION_MSG>>",
+				MessageActionProposal: "정책위반이 시도가 발생하였습니다.(<<KIND>> / <<NAME>>)",
 				Status:                domain.SystemNotificationRuleStatus_PENDING,
 				CreatorId:             organization.AdminId,
 				UpdatorId:             organization.AdminId,
 			})
 		}
 	}
+
+	/*
+			          - alert: policy-blocked
+		            annotations:
+		              Checkpoint: "정책위반이 시도가 발생하였습니다.({{  $labels.kind }} / {{ $labels.name }})"
+		              description: "클러스터 ( {{ $labels.taco_cluster }})의 자원({{ $labels.violating_kind }} - {{ $labels.violating_namespace }} / {{  $labels.violating_nam }})에서 정책({{  $labels.kind }} / {{ $labels.name }})위반 시도가 발생했습니다. 메시지 - {{ $labels.violation_msg }}"
+		              discriminative: $labels.kind,$labels.name,$labels.taco_cluster,$labels.violating_kind,$labels.violating_name,$labels.violating_namespace,$labels.violation_msg
+		              message: 정책 위반({{ $labels.kind }} / {{ $labels.name }}) 시도
+		            expr: opa_scorecard_constraint_violations{namespace!='kube-system|taco-system|gatekeeper-system',violation_enforcement=''} == 1
+		            for: 1m
+		            labels:
+		              severity: critical
+
+	*/
 
 	err = u.repo.Creates(ctx, rules)
 	if err != nil {
