@@ -29,7 +29,7 @@ type IPolicyUsecase interface {
 	Delete(ctx context.Context, organizationId string, policyId uuid.UUID) (err error)
 	Get(ctx context.Context, organizationId string, policyId uuid.UUID) (policy *model.Policy, err error)
 	GetForEdit(ctx context.Context, organizationId string, policyId uuid.UUID) (policy *model.Policy, err error)
-	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]model.Policy, error)
+	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination, filledParameter bool) (*[]model.Policy, error)
 	IsPolicyIdExist(ctx context.Context, organizationId string, policyId uuid.UUID) (exists bool, err error)
 	IsPolicyNameExist(ctx context.Context, organizationId string, policyName string) (exists bool, err error)
 	UpdatePolicyTargetClusters(ctx context.Context, organizationId string, policyId uuid.UUID, currentClusterIds []string, targetClusterIds []string) (err error)
@@ -412,8 +412,26 @@ func (u *PolicyUsecase) GetForEdit(ctx context.Context, organizationId string, p
 	return policy, err
 }
 
-func (u *PolicyUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) (*[]model.Policy, error) {
-	return u.repo.Fetch(ctx, organizationId, pg)
+func (u *PolicyUsecase) Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination, filledParameter bool) (*[]model.Policy, error) {
+	policies, err := u.repo.Fetch(ctx, organizationId, pg)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 단순 Fetch인 경우에는 Policy에 해당하는 Template만 Join해 줌
+	// PolicyTemplate의 최신 버전을 조회해서 파라미터 스키마 등을 조회해서 넣어줘야 함
+	if filledParameter {
+		for i, policy := range *policies {
+			policyTemplate, err := u.templateRepo.GetByID(ctx, policy.TemplateId)
+
+			if err == nil && policyTemplate != nil {
+				(*policies)[i].PolicyTemplate = *policyTemplate
+			}
+		}
+	}
+
+	return policies, err
 }
 
 func (u *PolicyUsecase) IsPolicyNameExist(ctx context.Context, organizationId string, policyName string) (exists bool, err error) {
