@@ -781,6 +781,12 @@ func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Re
 		organizationId = v
 	}
 
+	// ToDo: admin portal에 대해서는 현재 permission 관련 로직을 적용하지 않아 임시로 빈 값을 리턴하도록 함
+	if organizationId == "master" {
+		ResponseJSON(w, r, http.StatusOK, domain.GetUsersPermissionsResponse{})
+		return
+	}
+
 	user, err := u.usecase.GetByAccountId(r.Context(), accountId, organizationId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
