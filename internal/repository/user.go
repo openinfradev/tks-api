@@ -246,7 +246,7 @@ func (r *UserRepository) DeleteWithUuid(ctx context.Context, uuid uuid.UUID) err
 		return err
 	}
 
-	res := r.db.WithContext(ctx).Unscoped().Delete(&user)
+	res := r.db.WithContext(ctx).Delete(&user)
 	if res.Error != nil {
 		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error

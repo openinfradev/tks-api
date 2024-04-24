@@ -8,6 +8,8 @@ import (
 )
 
 type User struct {
+	gorm.Model
+
 	ID                uuid.UUID `gorm:"primarykey;type:uuid" json:"id"`
 	AccountId         string    `json:"accountId"`
 	Password          string    `gorm:"-:all" json:"password"`
