@@ -205,7 +205,6 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 
 	var out domain.GetProjectsResponse
 	out.Projects = pr
-	log.Debugf(r.Context(), "Pagination: %+v", pg)
 	if out.Pagination, err = pg.Response(r.Context()); err != nil {
 		log.Info(r.Context(), err)
 	}
