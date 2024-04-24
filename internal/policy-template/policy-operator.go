@@ -110,7 +110,7 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 			},
 			Targets: []Target{{
 				Target: "admission.k8s.gatekeeper.sh",
-				Rego:   stripCarriageReturn(policyTemplate.Rego),
+				Rego:   stripCarriageReturn(AddTksGuardToRego(policyTemplate.Rego)),
 				Libs:   stripCarriageReturns(policyTemplate.Libs),
 			}},
 			Version: policyTemplate.Version,
