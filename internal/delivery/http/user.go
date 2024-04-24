@@ -540,6 +540,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
+	user.ID = requestUserInfo.GetUserId()
 	user.Name = input.Name
 	user.Email = input.Email
 	user.Department = input.Department
