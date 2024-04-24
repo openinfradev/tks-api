@@ -158,6 +158,12 @@ func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, systemNotifi
 	if err != nil {
 		return err
 	}
+
+	// update status for appling kubernetes
+	if err = u.repo.UpdateStatus(ctx, systemNotificationRuleId, domain.SystemNotificationRuleStatus_PENDING); err != nil {
+		return err
+	}
+
 	return
 }
 
