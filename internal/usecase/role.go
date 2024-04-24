@@ -68,8 +68,16 @@ func (r RoleUsecase) DeleteTksRole(ctx context.Context, organizationId string, i
 	return r.repo.Delete(ctx, id)
 }
 
-func (r RoleUsecase) UpdateTksRole(ctx context.Context, role *model.Role) error {
-	err := r.repo.Update(ctx, role)
+func (r RoleUsecase) UpdateTksRole(ctx context.Context, newRole *model.Role) error {
+	role, err := r.repo.GetTksRole(ctx, newRole.OrganizationID, newRole.ID)
+	if err != nil {
+		return err
+	}
+	err = r.kc.UpdateGroup(ctx, role.OrganizationID, role.Name, newRole.Name)
+	if err != nil {
+		return err
+	}
+	err = r.repo.Update(ctx, newRole)
 	if err != nil {
 		return err
 	}

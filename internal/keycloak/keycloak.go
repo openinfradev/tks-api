@@ -36,6 +36,7 @@ type IKeycloak interface {
 	LeaveGroup(ctx context.Context, organizationId string, userId string, groupName string) error
 	CreateGroup(ctx context.Context, organizationId string, groupName string) (string, error)
 	DeleteGroup(ctx context.Context, organizationId string, groupName string) error
+	UpdateGroup(ctx context.Context, organizationId string, oldGroupName string, newGroupName string) error
 	EnsureClientRoleWithClientName(ctx context.Context, organizationId string, clientName string, roleName string) error
 	DeleteClientRoleWithClientName(ctx context.Context, organizationId string, clientName string, roleName string) error
 
@@ -82,6 +83,29 @@ func (k *Keycloak) DeleteGroup(ctx context.Context, organizationId string, group
 		return err
 	}
 
+	return nil
+}
+
+func (k *Keycloak) UpdateGroup(ctx context.Context, organizationId string, oldGroupName string, newGroupName string) error {
+	token := k.adminCliToken
+	groups, err := k.client.GetGroups(context.Background(), token.AccessToken, organizationId, gocloak.GetGroupsParams{
+		Search: &oldGroupName,
+	})
+	if err != nil {
+		log.Error(ctx, err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	if len(groups) == 0 {
+		return httpErrors.NewNotFoundError(fmt.Errorf("group not found"), "", "")
+	}
+	err = k.client.UpdateGroup(context.Background(), token.AccessToken, organizationId, gocloak.Group{
+		ID:   groups[0].ID,
+		Name: gocloak.StringP(newGroupName + "@" + organizationId),
+	})
+	if err != nil {
+		log.Error(ctx, err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
 	return nil
 }
 
