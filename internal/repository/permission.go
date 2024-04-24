@@ -55,7 +55,8 @@ func (r PermissionRepository) Create(ctx context.Context, p *model.Permission) e
 func (r PermissionRepository) List(ctx context.Context, roleId string) ([]*model.Permission, error) {
 	var permissions []*model.Permission
 
-	err := r.db.WithContext(ctx).Preload("Children.Children.Children.Children").Where("parent_id IS NULL AND role_id = ?", roleId).Find(&permissions).Error
+	err := r.db.WithContext(ctx).Preload("Children.Children.Children.Children").
+		Where("parent_id IS NULL AND role_id = ?", roleId).Find(&permissions).Error
 	if err != nil {
 		return nil, err
 	}
