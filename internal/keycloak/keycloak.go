@@ -102,6 +102,10 @@ func (k *Keycloak) UpdateGroup(ctx context.Context, organizationId string, oldGr
 		ID:   groups[0].ID,
 		Name: gocloak.StringP(newGroupName + "@" + organizationId),
 	})
+	if err != nil {
+		log.Error(ctx, err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
 	return nil
 }
 
