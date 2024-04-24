@@ -25,23 +25,23 @@ const (
 )
 
 var (
-	input_extract_regex = regexp.MustCompile(input_extract_pattern)
-	obj_get_list_regex  = regexp.MustCompile(obj_get_list_pattern)
-	obj_get_regex       = regexp.MustCompile(obj_get_pattern)
-	array_param_map     = buildArrayParameterMap()
+	input_extract_regex           = regexp.MustCompile(input_extract_pattern)
+	obj_get_list_regex            = regexp.MustCompile(obj_get_list_pattern)
+	obj_get_regex                 = regexp.MustCompile(obj_get_pattern)
+	array_param_map, capabilities = buildArrayParameterMap()
 )
 
 // OPA 내장 함수 중 array 인자를 가진 함수와 array 인자의 위치를 담은 자료구조를 생성한다.
 // // OPA 내장 함수 목록은 정책에 상관없으므로 처음 로딩될 때 한 번만 호출해 변수에 담아두고 사용하면 된다.
 // OPA 엔진 버전에 따라 달라진다. 0.62 버전 기준으로 이 함수의 결과 값은 다음과 같다.
 // map[all:[true] any:[true] array.concat:[true true] array.reverse:[true] array.slice:[true false false] concat:[false true] count:[true] glob.match:[false true false] graph.reachable:[false true] graph.reachable_paths:[false true] internal.print:[true] json.filter:[false true] json.patch:[false true] json.remove:[false true] max:[true] min:[true] net.cidr_contains_matches:[true true] net.cidr_merge:[true] object.filter:[false true] object.remove:[false true] object.subset:[true true] object.union_n:[true] product:[true] sort:[true] sprintf:[false true] strings.any_prefix_match:[true true] strings.any_suffix_match:[true true] sum:[true] time.clock:[true] time.date:[true] time.diff:[true true] time.format:[true] time.weekday:[true]]
-func buildArrayParameterMap() map[string][]bool {
+func buildArrayParameterMap() (map[string][]bool, *ast.Capabilities) {
 	compiler := ast.NewCompiler()
 
 	// 아주 단순한 rego 코드를 컴파일해도 컴파일러의 모든 Built-In 함수 정보를 컴파일 할 수 있음
 	mod, err := ast.ParseModuleWithOpts("hello", "package hello\n hello {input.message = \"world\"}", ast.ParserOptions{})
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 
 	// 컴파일을 수행해야 Built-in 함수 정보 로딩할 수 있음
@@ -49,7 +49,26 @@ func buildArrayParameterMap() map[string][]bool {
 	modules["hello"] = mod
 	compiler.Compile(modules)
 
-	return getArrayParameterMap(compiler)
+	var external_data = &ast.Builtin{
+		Name: "external_data",
+		Decl: types.NewFunction(
+			types.Args(
+				types.Named("a", types.NewObject(
+					[]*types.StaticProperty{
+						types.NewStaticProperty("provider", types.S),
+						types.NewStaticProperty("keys", types.NewArray([]types.Type{types.S}, types.A)),
+					},
+					nil,
+				)),
+			),
+			types.Named("output", types.A),
+		), // TODO(sr): types.A?  ^^^^^^^ (also below)
+	}
+
+	capabilities := compiler.Capabilities()
+	capabilities.Builtins = append(capabilities.Builtins, external_data)
+
+	return getArrayParameterMap(compiler), capabilities
 }
 
 func getArrayParameterMap(compiler *ast.Compiler) map[string][]bool {
@@ -140,9 +159,6 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 	exprs := rule.Body
 	localAssignMap := map[string]string{}
 
-	// if strings.Contains(rule.String(), "statefulset_vct_noname_msg") {
-	// 	fmt.Printf("1111111 %+ v%+v\n", rule.Head.Name, rule.Head.Key.String())
-	// }
 	for i, param := range passedParams {
 		if isSubstitutionRequired(param) {
 			argName := rule.Head.Args[i].String()
@@ -493,7 +509,7 @@ func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, er
 
 	regoPackage := GetPackageFromRegoCode(rego)
 
-	regoModule, err := ast.ParseModuleWithOpts(regoPackage, rego, ast.ParserOptions{})
+	regoModule, err := ast.ParseModuleWithOpts(regoPackage, rego, ast.ParserOptions{Capabilities: capabilities})
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +530,7 @@ func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, er
 			return nil, fmt.Errorf("lib[%d] is not valid, empty package name", i)
 		}
 
-		libModule, err := ast.ParseModuleWithOpts(libPackage, lib, ast.ParserOptions{})
+		libModule, err := ast.ParseModuleWithOpts(libPackage, lib, ast.ParserOptions{Capabilities: capabilities})
 		if err != nil {
 			return nil, err
 		}
@@ -522,7 +538,8 @@ func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, er
 		modules[libPackage] = libModule
 	}
 
-	compiler = ast.NewCompiler()
+	compiler = ast.NewCompiler().WithCapabilities(capabilities)
+
 	compiler.Compile(modules)
 
 	return compiler, nil
@@ -535,14 +552,15 @@ func MergeAndCompileRegoWithLibs(rego string, libs []string) (modules map[string
 
 	merged := MergeRegoAndLibs(rego, libs)
 
-	module, err := ast.ParseModuleWithOpts(regoPackage, merged, ast.ParserOptions{})
+	module, err := ast.ParseModuleWithOpts(regoPackage, merged, ast.ParserOptions{Capabilities: capabilities})
 	if err != nil {
 		return modules, err
 	}
 
 	modules[regoPackage] = module
 
-	compiler := ast.NewCompiler()
+	compiler := ast.NewCompiler().WithCapabilities(capabilities)
+
 	compiler.Compile(modules)
 
 	return modules, nil
