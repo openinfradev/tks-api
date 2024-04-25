@@ -10974,17 +10974,23 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 },
-                "organization": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse"
-                },
                 "organizationId": {
                     "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
                 },
-                "user": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponseWithRoles"
+                "userAccountId": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                },
+                "userRoles": {
+                    "type": "string"
                 }
             }
         },
@@ -14846,32 +14852,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponseWithRoles": {
-            "type": "object",
-            "properties": {
-                "accountId": {
-                    "type": "string"
-                },
-                "department": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse"
-                    }
                 }
             }
         },
