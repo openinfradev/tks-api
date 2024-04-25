@@ -39,6 +39,7 @@ func OpaGatekeeper(r *http.Request) bool {
 
 	if strings.HasSuffix(requestUserInfo.GetAccountId(), string(usecase.OPAGatekeeperReservedAccountIdSuffix)) {
 		// Allow restricted API from OPA Gatekeeper
+		// ToDo: Add only API endpoints for OPA Gatekeeper
 	}
 
 	return true
