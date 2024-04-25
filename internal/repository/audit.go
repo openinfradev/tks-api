@@ -60,7 +60,7 @@ func (r *AuditRepository) Create(ctx context.Context, dto model.Audit) (auditId 
 		Message:        dto.Message,
 		Description:    dto.Description,
 		ClientIP:       dto.ClientIP,
-		UserId:         &dto.ID,
+		UserId:         dto.UserId,
 		UserAccountId:  dto.UserAccountId,
 		UserName:       dto.UserName,
 		UserRoles:      dto.UserRoles,
