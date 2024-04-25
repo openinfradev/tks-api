@@ -21,7 +21,7 @@ type ISystemNotificationRuleUsecase interface {
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.SystemNotificationRule, error)
 	Create(ctx context.Context, dto model.SystemNotificationRule) (systemNotificationRule uuid.UUID, err error)
 	Update(ctx context.Context, dto model.SystemNotificationRule) error
-	Delete(ctx context.Context, systemNotificationRuleId uuid.UUID) error
+	Delete(ctx context.Context, systemNotificationRuleId uuid.UUID) (model.SystemNotificationRule, error)
 	GetByName(ctx context.Context, name string) (model.SystemNotificationRule, error)
 	MakeDefaultSystemNotificationRules(ctx context.Context, organizationId string, dto *model.Organization) error
 }
@@ -141,30 +141,30 @@ func (u *SystemNotificationRuleUsecase) Fetch(ctx context.Context, organizationI
 	return res, nil
 }
 
-func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, systemNotificationRuleId uuid.UUID) (err error) {
+func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, systemNotificationRuleId uuid.UUID) (out model.SystemNotificationRule, err error) {
 	systemNotificationRule, err := u.repo.Get(ctx, systemNotificationRuleId)
 	if err != nil {
-		return err
+		return out, err
 	}
 
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 	userId := user.GetUserId()
 	systemNotificationRule.UpdatorId = &userId
 
 	err = u.repo.Delete(ctx, systemNotificationRule)
 	if err != nil {
-		return err
+		return out, err
 	}
 
 	// update status for appling kubernetes
 	if err = u.repo.UpdateStatus(ctx, systemNotificationRuleId, domain.SystemNotificationRuleStatus_PENDING); err != nil {
-		return err
+		return out, err
 	}
 
-	return
+	return systemNotificationRule, nil
 }
 
 func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx context.Context, organizationId string, dto *model.Organization) error {
@@ -370,20 +370,6 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			})
 		}
 	}
-
-	/*
-			          - alert: policy-blocked
-		            annotations:
-		              Checkpoint: "정책위반이 시도가 발생하였습니다.({{  $labels.kind }} / {{ $labels.name }})"
-		              description: "클러스터 ( {{ $labels.taco_cluster }})의 자원({{ $labels.violating_kind }} - {{ $labels.violating_namespace }} / {{  $labels.violating_nam }})에서 정책({{  $labels.kind }} / {{ $labels.name }})위반 시도가 발생했습니다. 메시지 - {{ $labels.violation_msg }}"
-		              discriminative: $labels.kind,$labels.name,$labels.taco_cluster,$labels.violating_kind,$labels.violating_name,$labels.violating_namespace,$labels.violation_msg
-		              message: 정책 위반({{ $labels.kind }} / {{ $labels.name }}) 시도
-		            expr: opa_scorecard_constraint_violations{namespace!='kube-system|taco-system|gatekeeper-system',violation_enforcement=''} == 1
-		            for: 1m
-		            labels:
-		              severity: critical
-
-	*/
 
 	err = u.repo.Creates(ctx, rules)
 	if err != nil {

@@ -133,6 +133,7 @@ type StackResponse struct {
 	Favorited       bool                        `json:"favorited"`
 	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
 	Resource        DashboardStackResponse      `json:"resource,omitempty"`
+	AppServeAppCnt  int                         `json:"appServeAppCnt"`
 	CreatedAt       time.Time                   `json:"createdAt"`
 	UpdatedAt       time.Time                   `json:"updatedAt"`
 }

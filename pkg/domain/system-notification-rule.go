@@ -121,3 +121,8 @@ type UpdateSystemNotificationRuleRequest struct {
 type CheckSystemNotificationRuleNameResponse struct {
 	Existed bool `json:"existed"`
 }
+
+type DeleteSystemNotificationRuleResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}

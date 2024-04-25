@@ -219,3 +219,7 @@ type Admin_UpdateUserResponse struct {
 type DeleteUserRequest struct {
 	AdminPassword string `json:"adminPassword"`
 }
+
+type DeleteUserResponse struct {
+	AccountId string `json:"accountId"`
+}

@@ -15,8 +15,8 @@ type SystemNotificationCondition struct {
 	Duration                 string
 	Parameter                datatypes.JSON
 	Parameters               []domain.SystemNotificationParameter `gorm:"-:all"`
-	EnableEmail              bool                                 `gorm:"default:false"`
-	EnablePortal             bool                                 `gorm:"default:true"`
+	EnableEmail              bool
+	EnablePortal             bool
 }
 
 type SystemNotificationRule struct {

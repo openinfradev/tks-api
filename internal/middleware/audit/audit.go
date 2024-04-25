@@ -56,7 +56,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 				if err != nil {
 					log.Error(r.Context(), err)
 				}
-				message, description = fn(r.Context(), lrw.GetBody(), body, statusCode)
+				message, description = fn(r.Context(), lrw.GetBody().Bytes(), body, statusCode)
 				r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 				dto := model.Audit{

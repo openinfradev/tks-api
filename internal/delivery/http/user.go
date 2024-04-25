@@ -250,7 +250,7 @@ func (u UserHandler) convertUserRolesToSimpleRoleResponse(roles []model.Role) []
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			accountId		path		string	true	"accountId"
-//	@Success		200				{object}	nil
+//	@Success		200				{object}	domain.DeleteUserResponse
 //	@Router			/organizations/{organizationId}/users/{accountId} [delete]
 //	@Security		JWT
 func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -278,7 +278,10 @@ func (u UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, nil)
+	out := domain.DeleteUserResponse{
+		AccountId: userId,
+	}
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // Update godoc
