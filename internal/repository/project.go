@@ -66,9 +66,13 @@ func (r *ProjectRepository) CreateProject(ctx context.Context, p *model.Project)
 
 func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId string, userId uuid.UUID, projectName string, pg *pagination.Pagination) (pr []domain.ProjectResponse, err error) {
 	res := r.db.WithContext(ctx).Raw(""+
+		"select id, organization_id, name, description, created_at, is_my_project, project_role_id, project_role_name, namespace_count, app_count, member_count, "+
+		"       project_leader_id, project_leader_name"+
+		"  from ( "+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
-		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count, "+
+		"       pm_leader.project_leader_id as project_leader_id, pm_leader.project_leader_name as project_leader_name "+
 		"  from projects as p "+
 		"  left join "+
 		"       (select pm.project_id as project_id, pm.project_user_id as project_user_id, pm.project_role_id as project_role_id, "+
@@ -78,6 +82,11 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"          left join project_roles as pr on pr.id = pm.project_role_id "+
 		"          left join users on users.id = pm.project_user_id "+
 		"         where pm.project_user_id = @userId) as pm on p.id = pm.project_id "+
+		"  left join "+
+		"       (select pm.project_id as project_id, pm.project_user_id as project_leader_id, users.name as project_leader_name "+
+		"          from project_members as pm "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.is_project_leader = true) as pm_leader on p.id = pm_leader.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pn.stack_id || pn.project_id) as count "+
 		"          from project_namespaces as pn "+
@@ -99,12 +108,14 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"         where p.organization_id = @organizationId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
+		"   and p.id = pm_leader.project_id "+
 		"   and p.organization_id = @organizationId "+
 		"   and p.name like '%"+projectName+"%' "+
 		"union "+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       false as is_my_project, '' as project_role_id, '' as project_role_name, "+
-		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count, "+
+		"       pm_leader.project_leader_id as project_leader_id, pm_leader.project_leader_name as project_leader_name "+
 		"  from projects as p "+
 		"  left join "+
 		"       (select pm.project_id as project_id, pm.project_user_id as project_user_id, pm.project_role_id as project_role_id, "+
@@ -114,6 +125,11 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"          left join project_roles as pr on pr.id = pm.project_role_id "+
 		"          left join users on users.id = pm.project_user_id "+
 		"         where pm.project_user_id <> @userId) as pm on p.id = pm.project_id "+
+		"  left join "+
+		"       (select pm.project_id as project_id, pm.project_user_id as project_leader_id, users.name as project_leader_name "+
+		"          from project_members as pm "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.is_project_leader = true) as pm_leader on p.id = pm_leader.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pn.stack_id || pn.project_id) as count "+
 		"          from project_namespaces as pn "+
@@ -135,12 +151,15 @@ func (r *ProjectRepository) GetProjects(ctx context.Context, organizationId stri
 		"         where p.organization_id = @organizationId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id"+
 		" where p.id = pm.project_id "+
+		"   and p.id = pm_leader.project_id "+
 		"   and p.organization_id = @organizationId "+
 		"   and p.name like '%"+projectName+"%' "+
 		"   and p.id not in (select projects.id "+
 		"                      from projects "+
 		"                      left join project_members on project_members.project_id = projects.id "+
-		"                     where project_members.project_user_id = @userId) ",
+		"                     where project_members.project_user_id = @userId) "+
+		") as union_project "+
+		"order by is_my_project desc ",
 		sql.Named("organizationId", organizationId), sql.Named("userId", userId)).
 		Scan(&pr)
 	if res.Error != nil {
@@ -155,7 +174,8 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 	res := r.db.WithContext(ctx).Raw(""+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       true as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
-		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count, "+
+		"       pm_leader.project_leader_id as project_leader_id, pm_leader.project_leader_name as project_leader_name "+
 		"  from projects as p "+
 		"  left join "+
 		"       (select pm.project_id as project_id, pm.project_user_id as project_user_id, pm.project_role_id as project_role_id, "+
@@ -165,6 +185,11 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 		"          left join project_roles as pr on pr.id = pm.project_role_id "+
 		"          left join users on users.id = pm.project_user_id "+
 		"         where pm.project_user_id = @userId) as pm on p.id = pm.project_id "+
+		"  left join "+
+		"       (select pm.project_id as project_id, pm.project_user_id as project_leader_id, users.name as project_leader_name "+
+		"          from project_members as pm "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.is_project_leader = true) as pm_leader on p.id = pm_leader.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pn.stack_id || pn.project_id) as count "+
 		"          from project_namespaces as pn "+
@@ -186,6 +211,7 @@ func (r *ProjectRepository) GetProjectsByUserId(ctx context.Context, organizatio
 		"         where p.organization_id = @organizationId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
+		"   and p.id = pm_leader.project_id "+
 		"   and p.organization_id = @organizationId "+
 		"   and p.name like '%"+projectName+"%' ",
 		sql.Named("organizationId", organizationId), sql.Named("userId", userId)).
@@ -208,7 +234,8 @@ func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId s
 	res := r.db.WithContext(ctx).Raw(""+
 		"select distinct p.id as id, p.organization_id as organization_id, p.name as name, p.description as description, p.created_at as created_at, "+
 		"       false as is_my_project, pm.project_role_id as project_role_id, pm.pr_name as project_role_name, "+
-		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count "+
+		"       pn.count as namespace_count, asa.count as app_count, pm_count.count as member_count, "+
+		"       pm_leader.project_leader_id as project_leader_id, pm_leader.project_leader_name as project_leader_name "+
 		"  from projects as p "+
 		"  left join "+
 		"       (select distinct pm.project_id as project_id, '' as project_user_id, '' as project_role_id, "+
@@ -217,6 +244,11 @@ func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId s
 		"          from project_members as pm "+
 		"          left join project_roles as pr on pr.id = pm.project_role_id "+
 		"          left join users on users.id = pm.project_user_id) as pm on p.id = pm.project_id "+
+		"  left join "+
+		"       (select pm.project_id as project_id, pm.project_user_id as project_leader_id, users.name as project_leader_name "+
+		"          from project_members as pm "+
+		"          left join users on users.id = pm.project_user_id "+
+		"         where pm.is_project_leader = true) as pm_leader on p.id = pm_leader.project_id "+
 		"  left join "+
 		"       (select p.id as project_id, count(pn.stack_id || pn.project_id) as count "+
 		"          from project_namespaces as pn "+
@@ -238,6 +270,7 @@ func (r *ProjectRepository) GetAllProjects(ctx context.Context, organizationId s
 		"         where p.organization_id = @organizationId "+
 		"         group by p.id) as pm_count on p.id = pm_count.project_id "+
 		" where p.id = pm.project_id "+
+		"   and p.id = pm_leader.project_id "+
 		"   and p.organization_id = @organizationId "+
 		"   and p.name like '%"+projectName+"%' ",
 		sql.Named("organizationId", organizationId)).
