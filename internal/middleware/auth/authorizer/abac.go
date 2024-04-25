@@ -3,10 +3,8 @@ package authorizer
 import (
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/repository"
-	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"net/http"
-	"strings"
 )
 
 var (
@@ -37,10 +35,11 @@ func OpaGatekeeper(r *http.Request) bool {
 		return false
 	}
 
-	if strings.HasSuffix(requestUserInfo.GetAccountId(), string(usecase.OPAGatekeeperReservedAccountIdSuffix)) {
-		// Allow restricted API from OPA Gatekeeper
-		// ToDo: Add only API endpoints for OPA Gatekeeper
-	}
+	_ = requestUserInfo
+	// ToDo: Add only API endpoints for OPA Gatekeeper
+	//if strings.HasSuffix(requestUserInfo.GetAccountId(), string(usecase.OPAGatekeeperReservedAccountIdSuffix)) {
+	//	// Allow restricted API from OPA Gatekeeper
+	//}
 
 	return true
 }
