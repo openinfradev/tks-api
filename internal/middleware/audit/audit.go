@@ -20,12 +20,14 @@ type Interface interface {
 }
 
 type defaultAudit struct {
-	repo repository.IAuditRepository
+	repo     repository.IAuditRepository
+	userRepo repository.IUserRepository
 }
 
 func NewDefaultAudit(repo repository.Repository) *defaultAudit {
 	return &defaultAudit{
-		repo: repo.Audit,
+		repo:     repo.Audit,
+		userRepo: repo.User,
 	}
 }
 
@@ -59,13 +61,30 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 				message, description = fn(r.Context(), lrw.GetBody().Bytes(), body, statusCode)
 				r.Body = io.NopCloser(bytes.NewBuffer(body))
 
+				u, err := a.userRepo.GetByUuid(r.Context(), userId)
+				if err != nil {
+					log.Error(r.Context(), err)
+					return
+				}
+
+				userRoles := ""
+				for i, role := range u.Roles {
+					if i > 0 {
+						userRoles = userRoles + ","
+					}
+					userRoles = userRoles + role.Name
+				}
+
 				dto := model.Audit{
 					OrganizationId: organizationId,
 					Group:          internalApi.ApiMap[endpoint].Group,
 					Message:        message,
 					Description:    description,
 					ClientIP:       GetClientIpAddress(w, r),
-					UserId:         &userId,
+					UserId:         &u.ID,
+					UserAccountId:  u.AccountId,
+					UserName:       u.Name,
+					UserRoles:      userRoles,
 				}
 				if _, err := a.repo.Create(r.Context(), dto); err != nil {
 					log.Error(r.Context(), err)

@@ -500,14 +500,18 @@ definitions:
         type: string
       message:
         type: string
-      organization:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleOrganizationResponse'
       organizationId:
         type: string
       updatedAt:
         type: string
-      user:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponseWithRoles'
+      userAccountId:
+        type: string
+      userId:
+        type: string
+      userName:
+        type: string
+      userRoles:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.Axis:
     properties:
@@ -3071,23 +3075,6 @@ definitions:
         type: string
       name:
         type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponseWithRoles:
-    properties:
-      accountId:
-        type: string
-      department:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      roles:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleRoleResponse'
-        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.StackConfResponse:
     properties:

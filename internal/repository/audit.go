@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -32,7 +31,7 @@ func NewAuditRepository(db *gorm.DB) IAuditRepository {
 
 // Logics
 func (r *AuditRepository) Get(ctx context.Context, auditId uuid.UUID) (out model.Audit, err error) {
-	res := r.db.WithContext(ctx).Preload(clause.Associations).Preload("User.Roles").First(&out, "id = ?", auditId)
+	res := r.db.WithContext(ctx).First(&out, "id = ?", auditId)
 	if res.Error != nil {
 		return
 	}
@@ -44,8 +43,7 @@ func (r *AuditRepository) Fetch(ctx context.Context, pg *pagination.Pagination) 
 		pg = pagination.NewPagination(nil)
 	}
 
-	db := r.db.WithContext(ctx).Model(&model.Audit{}).Preload(clause.Associations).
-		Preload("User.Roles")
+	db := r.db.WithContext(ctx).Model(&model.Audit{})
 
 	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
@@ -62,7 +60,11 @@ func (r *AuditRepository) Create(ctx context.Context, dto model.Audit) (auditId 
 		Message:        dto.Message,
 		Description:    dto.Description,
 		ClientIP:       dto.ClientIP,
-		UserId:         dto.UserId}
+		UserId:         &dto.ID,
+		UserAccountId:  dto.UserAccountId,
+		UserName:       dto.UserName,
+		UserRoles:      dto.UserRoles,
+	}
 	res := r.db.WithContext(ctx).Create(&audit)
 	if res.Error != nil {
 		return uuid.Nil, res.Error

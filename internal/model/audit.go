@@ -11,11 +11,13 @@ type Audit struct {
 
 	ID             uuid.UUID `gorm:"primarykey"`
 	OrganizationId string
-	Organization   Organization `gorm:"foreignKey:OrganizationId"`
+	Organization   Organization
 	Group          string
 	Message        string
 	Description    string
 	ClientIP       string
 	UserId         *uuid.UUID `gorm:"type:uuid"`
-	User           User       `gorm:"foreignKey:UserId"`
+	UserAccountId  string
+	UserName       string
+	UserRoles      string
 }

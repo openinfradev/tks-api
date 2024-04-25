@@ -10,7 +10,6 @@ import (
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -124,9 +123,6 @@ func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model
 	m.MessageContent = dto.MessageContent
 	m.MessageActionProposal = dto.MessageActionProposal
 	m.UpdatorId = dto.UpdatorId
-
-	log.Info(ctx, "KTKFREE1 ", m.SystemNotificationCondition.EnableEmail)
-	log.Info(ctx, "KTKFREE2 ", m.SystemNotificationCondition.EnablePortal)
 
 	res = r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Save(&m)
 	if res.Error != nil {

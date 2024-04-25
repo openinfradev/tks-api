@@ -19,23 +19,42 @@ type IAuditUsecase interface {
 }
 
 type AuditUsecase struct {
-	repo repository.IAuditRepository
+	repo     repository.IAuditRepository
+	userRepo repository.IUserRepository
 }
 
 func NewAuditUsecase(r repository.Repository) IAuditUsecase {
 	return &AuditUsecase{
-		repo: r.Audit,
+		repo:     r.Audit,
+		userRepo: r.User,
 	}
 }
 
 func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
-	if dto.UserId == nil {
-		user, ok := request.UserFrom(ctx)
+	if dto.UserId == nil || *dto.UserId == uuid.Nil {
+		userInfo, ok := request.UserFrom(ctx)
 		if ok {
-			userId := user.GetUserId()
-			dto.UserId = &userId
+			id := userInfo.GetUserId()
+			dto.UserId = &id
 		}
 	}
+
+	user, err := u.userRepo.GetByUuid(ctx, *dto.UserId)
+	if err != nil {
+		return auditId, err
+	}
+
+	userRoles := ""
+	for i, role := range user.Roles {
+		if i > 0 {
+			userRoles = userRoles + ","
+		}
+		userRoles = userRoles + role.Name
+	}
+	dto.UserAccountId = user.AccountId
+	dto.UserName = user.Name
+	dto.UserRoles = userRoles
+
 	auditId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return uuid.Nil, httpErrors.NewInternalServerError(err, "", "")
