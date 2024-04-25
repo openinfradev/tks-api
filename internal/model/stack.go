@@ -32,6 +32,7 @@ type Stack = struct {
 	Resource        domain.DashboardStack
 	PolicyIds       []string
 	Conf            StackConf
+	AppServeAppCnt  int
 }
 
 type StackConf struct {
