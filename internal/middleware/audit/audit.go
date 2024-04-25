@@ -76,15 +76,16 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 				}
 
 				dto := model.Audit{
-					OrganizationId: organizationId,
-					Group:          internalApi.ApiMap[endpoint].Group,
-					Message:        message,
-					Description:    description,
-					ClientIP:       GetClientIpAddress(w, r),
-					UserId:         &u.ID,
-					UserAccountId:  u.AccountId,
-					UserName:       u.Name,
-					UserRoles:      userRoles,
+					OrganizationId:   organizationId,
+					OrganizationName: u.Organization.Name,
+					Group:            internalApi.ApiMap[endpoint].Group,
+					Message:          message,
+					Description:      description,
+					ClientIP:         GetClientIpAddress(w, r),
+					UserId:           &u.ID,
+					UserAccountId:    u.AccountId,
+					UserName:         u.Name,
+					UserRoles:        userRoles,
 				}
 				if _, err := a.repo.Create(r.Context(), dto); err != nil {
 					log.Error(r.Context(), err)

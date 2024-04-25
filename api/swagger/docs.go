@@ -10977,6 +10977,9 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
+                "organizationName": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "type": "string"
                 },

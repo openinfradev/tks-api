@@ -51,6 +51,8 @@ func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uui
 		}
 		userRoles = userRoles + role.Name
 	}
+	dto.OrganizationId = user.Organization.ID
+	dto.OrganizationName = user.Organization.Name
 	dto.UserAccountId = user.AccountId
 	dto.UserName = user.Name
 	dto.UserRoles = userRoles
