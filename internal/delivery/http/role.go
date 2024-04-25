@@ -2,8 +2,6 @@ package http
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
@@ -12,6 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
+	"net/http"
 )
 
 type IRoleHandler interface {
