@@ -29,7 +29,7 @@ type IAppServeAppUsecase interface {
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
 	GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
 	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
-	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
+	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, *model.AppServeApp, error)
 	GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(ctx context.Context, appId string) (bool, error)
 	IsAppServeAppNameExist(ctx context.Context, orgId string, appName string) (bool, error)
@@ -242,13 +242,13 @@ func (u *AppServeAppUsecase) GetAppServeAppTaskById(ctx context.Context, taskId 
 	return task, app, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error) {
-	task, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
+func (u *AppServeAppUsecase) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
+	task, app, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return task, nil
+	return task, app, nil
 }
 
 func (u *AppServeAppUsecase) GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error) {

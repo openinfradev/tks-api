@@ -394,26 +394,48 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 		return
 	}
 
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	fmt.Printf("appId = [%s]\n", appId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
 		return
 	}
-	task, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %s", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+	}
+
+	task, app, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 	if task == nil {
-		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("no task exists"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No task exists"), "", ""))
 		return
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	if err := serializer.Map(r.Context(), task, &out.AppServeAppTask); err != nil {
+	if err := serializer.Map(r.Context(), *app, &out.AppServeApp); err != nil {
 		log.Info(r.Context(), err)
 	}
+	if err := serializer.Map(r.Context(), *task, &out.AppServeAppTask); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	out.Stages = makeStages(r.Context(), task, app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }

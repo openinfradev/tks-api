@@ -20,8 +20,8 @@ type IAppServeAppRepository interface {
 
 	GetAppServeAppTasksByAppId(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
 	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
+	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, *model.AppServeApp, error)
 
-	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
 	GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error)
 
 	IsAppServeAppExist(ctx context.Context, appId string) (int64, error)
@@ -182,20 +182,35 @@ func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, task
 	return &task, &app, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error) {
+func (r *AppServeAppRepository) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
 	var task model.AppServeAppTask
+	var app model.AppServeApp
+	var cluster model.Cluster
 
-	// TODO: Does this work?? where's app ID here?
-	res := r.db.WithContext(ctx).Order("created_at desc").First(&task)
+	res := r.db.WithContext(ctx).Order("created_at desc").Where("app_serve_app_id = ?", appId).First(&task)
 	if res.Error != nil {
 		log.Debug(ctx, res.Error)
-		return nil, res.Error
+		return nil, nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, nil
+		return nil, nil, fmt.Errorf("No task with App ID %s", appId)
 	}
 
-	return &task, nil
+	// Retrieve app info
+	res = r.db.WithContext(ctx).Where("id = ?", appId).First(&app)
+	if res.Error != nil {
+		log.Debug(ctx, res.Error)
+		return nil, nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil, fmt.Errorf("Couldn't find app with ID %s", appId)
+	}
+
+	// Add cluster name to app object
+	r.db.WithContext(ctx).Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
+	app.TargetClusterName = cluster.Name
+
+	return &task, &app, nil
 }
 
 func (r *AppServeAppRepository) GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error) {

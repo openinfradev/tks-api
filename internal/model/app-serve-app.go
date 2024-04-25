@@ -1,9 +1,9 @@
 package model
 
 import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"time"
-    "github.com/google/uuid"
-    "gorm.io/gorm"
 )
 
 type AppServeApp struct {
