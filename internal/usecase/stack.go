@@ -350,6 +350,12 @@ func (u *StackUsecase) Fetch(ctx context.Context, organizationId string, pg *pag
 			}
 		}
 
+		if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+			outStack.Favorited = true
+		} else {
+			outStack.Favorited = false
+		}
+
 		out = append(out, outStack)
 	}
 

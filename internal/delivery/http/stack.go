@@ -93,7 +93,7 @@ func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
-// GetStack godoc
+// GetStacks godoc
 //
 //	@Tags			Stacks
 //	@Summary		Get Stacks
