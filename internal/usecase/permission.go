@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
+	"sort"
 )
 
 type IPermissionUsecase interface {
@@ -80,17 +81,32 @@ func (p PermissionUsecase) GetPermissionSetByRoleId(ctx context.Context, roleId 
 		case string(model.ConfigurationPermission):
 			permissionSet.Configuration = permission
 		}
+
+		p.sortPermissionRecursive(permission)
 	}
 
 	return permissionSet, nil
 }
 
 func (p PermissionUsecase) ListPermissions(ctx context.Context, roleId string) ([]*model.Permission, error) {
-	return p.repo.List(ctx, roleId)
+	permissions, err := p.repo.List(ctx, roleId)
+	if err != nil {
+		return nil, err
+	}
+	for _, permission := range permissions {
+		p.sortPermissionRecursive(permission)
+	}
+
+	return permissions, nil
 }
 
 func (p PermissionUsecase) GetPermission(ctx context.Context, id uuid.UUID) (*model.Permission, error) {
-	return p.repo.Get(ctx, id)
+	permission, err := p.repo.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	p.sortPermissionRecursive(permission)
+	return permission, nil
 }
 
 func (p PermissionUsecase) DeletePermission(ctx context.Context, id uuid.UUID) error {
@@ -148,4 +164,31 @@ func (p PermissionUsecase) mergePermission(ctx context.Context, mergedPermission
 	}
 
 	return mergedPermission
+}
+
+func (p PermissionUsecase) sortPermissionRecursive(permission *model.Permission) {
+	if len(permission.Children) > 0 {
+		if permission.Children[0].IsAllowed != nil {
+			sort.Slice(permission.Children, func(i, j int) bool {
+				key1 := permission.Children[i].Key
+				key2 := permission.Children[j].Key
+
+				order1, exists1 := model.SortOrder[key1]
+				order2, exists2 := model.SortOrder[key2]
+
+				if exists1 && exists2 {
+					return order1 < order2
+				} else if exists1 {
+					return true
+				} else if exists2 {
+					return false
+				}
+
+				return key1 < key2
+			})
+		}
+		for _, child := range permission.Children {
+			p.sortPermissionRecursive(child)
+		}
+	}
 }

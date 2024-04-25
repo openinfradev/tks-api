@@ -9,6 +9,14 @@ import (
 
 type PermissionKind string
 
+var SortOrder = map[string]int{
+	OperationRead:     0,
+	OperationCreate:   1,
+	OperationUpdate:   2,
+	OperationDelete:   3,
+	OperationDownload: 4,
+}
+
 const (
 	DashBoardPermission     PermissionKind = "대시보드"
 	StackPermission         PermissionKind = "스택"
