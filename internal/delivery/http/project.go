@@ -210,10 +210,9 @@ func (p ProjectHandler) GetProjects(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if pr == nil {
-		ResponseJSON(w, r, http.StatusNotFound, domain.GetProjectsResponse{})
-	} else {
-		ResponseJSON(w, r, http.StatusOK, out)
+		out.Projects = make([]domain.ProjectResponse, 0)
 	}
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // Admin_GetProjects godoc
@@ -293,25 +292,47 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
+	if project == nil {
+		project, err := p.usecase.GetProject(r.Context(), organizationId, projectId)
+		if err != nil {
+			log.Error(r.Context(), "Failed to retrieve project", err)
+			ErrorJSON(w, r, err)
+			return
+		}
+		if project == nil {
+			ResponseJSON(w, r, http.StatusOK, domain.GetProjectResponse{})
+		}
+	}
 
-	var projectRoleId, projectRoleName string
 	requestUserInfo, ok := request.UserFrom(r.Context())
 	if !ok {
 		ErrorJSON(w, r, fmt.Errorf("failed to retrieve user info from request"))
 	}
-	userProjectRole := requestUserInfo.GetRoleProjectMapping()
-	if userProjectRole != nil {
-		projectRoleName = userProjectRole[project.ID]
-	}
-	projectRoles, err := p.usecase.GetProjectRoles(r.Context(), usecase.ProjectAll)
+	myUserId := requestUserInfo.GetUserId().String()
+
+	var projectRoleId, projectRoleName string
+	//userProjectRole := requestUserInfo.GetRoleProjectMapping()
+	//if userProjectRole != nil {
+	//	projectRoleName = userProjectRole[project.ID]
+	//}
+	//projectRoles, err := p.usecase.GetProjectRoles(r.Context(), usecase.ProjectAll)
+	//if err != nil {
+	//	ErrorJSON(w, r, fmt.Errorf("failed to retrieve project role"))
+	//}
+	//for _, projectRole := range projectRoles {
+	//	if projectRoleName == projectRole.Name {
+	//		projectRoleId = projectRole.ID
+	//		break
+	//	}
+	//}
+
+	pm, err := p.usecase.GetProjectMemberByUserId(r.Context(), project.ID, myUserId)
 	if err != nil {
-		ErrorJSON(w, r, fmt.Errorf("failed to retrieve project role"))
+		log.Warnf(r.Context(), "failed to retrieve project member %+v", err)
 	}
-	for _, projectRole := range projectRoles {
-		if projectRoleName == projectRole.Name {
-			projectRoleId = projectRole.ID
-			break
-		}
+	if pm != nil {
+		projectRoleId = pm.ProjectRole.ID
+		projectRoleName = pm.ProjectRole.Name
 	}
 
 	//appCount, err := p.usecase.GetAppCount(organizationId, projectId)
@@ -322,11 +343,6 @@ func (p ProjectHandler) GetProject(w http.ResponseWriter, r *http.Request) {
 	//}
 
 	var out domain.GetProjectResponse
-	if project == nil {
-		ResponseJSON(w, r, http.StatusNotFound, out)
-		return
-	}
-
 	var projectLeaderId, projectLeaderName, projectLeaderAccountId, projectLeaderDepartment string
 	for _, pu := range project.ProjectMembers {
 		projectLeaderId = pu.ProjectUser.ID.String()

@@ -14485,6 +14485,12 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
+                "projectLeaderId": {
+                    "type": "string"
+                },
+                "projectLeaderName": {
+                    "type": "string"
+                },
                 "projectRoleId": {
                     "type": "string"
                 },

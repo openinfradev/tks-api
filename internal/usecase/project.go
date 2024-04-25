@@ -40,6 +40,7 @@ type IProjectUsecase interface {
 	AddProjectMember(ctx context.Context, organizationId string, pm *model.ProjectMember) (string, error)
 	GetProjectUser(ctx context.Context, projectUserId string) (*model.ProjectUser, error)
 	GetProjectMember(ctx context.Context, projectMemberId string) (*model.ProjectMember, error)
+	GetProjectMemberByUserId(ctx context.Context, projectId string, userId string) (*model.ProjectMember, error)
 	GetProjectMembers(ctx context.Context, projectId string, query int, pg *pagination.Pagination) ([]model.ProjectMember, error)
 	GetProjectMemberCount(ctx context.Context, projectMemberId string) (*domain.GetProjectMemberCountResponse, error)
 	RemoveProjectMember(ctx context.Context, organizationId string, projectMemberId string) error
@@ -318,6 +319,16 @@ func (u *ProjectUsecase) GetProjectUser(ctx context.Context, projectUserId strin
 
 func (u *ProjectUsecase) GetProjectMember(ctx context.Context, projectMemberId string) (pm *model.ProjectMember, err error) {
 	pm, err = u.projectRepo.GetProjectMemberById(ctx, projectMemberId)
+	if err != nil {
+		log.Error(ctx, err)
+		return pm, errors.Wrap(err, "Failed to get project member.")
+	}
+
+	return pm, nil
+}
+
+func (u *ProjectUsecase) GetProjectMemberByUserId(ctx context.Context, projectId string, userId string) (pm *model.ProjectMember, err error) {
+	pm, err = u.projectRepo.GetProjectMemberByUserId(ctx, projectId, userId)
 	if err != nil {
 		log.Error(ctx, err)
 		return pm, errors.Wrap(err, "Failed to get project member.")
