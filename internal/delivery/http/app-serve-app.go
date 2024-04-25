@@ -361,7 +361,7 @@ func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Reque
 	app.AppServeAppTasks = newTasks
 
 	var out domain.GetAppServeAppResponse
-	if err := serializer.Map(r.Context(), app, &out.AppServeApp); err != nil {
+	if err := serializer.Map(r.Context(), *app, &out.AppServeApp); err != nil {
 		log.Info(r.Context(), err)
 	}
 
@@ -846,6 +846,7 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// TODO: use new API instead of the legacy
 	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
