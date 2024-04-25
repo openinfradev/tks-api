@@ -254,6 +254,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 		out.PrimaryCluster = true
 	}
 
+	// Resources
 	stackResources, _ := u.dashbordUsecase.GetStacks(ctx, cluster.OrganizationId)
 	for _, resource := range stackResources {
 		if resource.ID == domain.StackId(cluster.ID) {
@@ -268,6 +269,7 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 		return out, err
 	}
 
+	// Grafana URL
 	for _, appGroup := range appGroupsInPrimaryCluster {
 		if appGroup.AppGroupType == domain.AppGroupType_LMA {
 			applications, err := u.appGroupRepo.GetApplications(ctx, appGroup.ID, domain.ApplicationType_GRAFANA)
@@ -279,6 +281,20 @@ func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out mod
 			}
 		}
 	}
+
+	// Favorited
+	if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+		out.Favorited = true
+	} else {
+		out.Favorited = false
+	}
+
+	// AppServeApps
+	appServeAppCnt, err := u.appServeAppRepo.GetNumOfAppsOnStack(ctx, cluster.OrganizationId, cluster.ID.String())
+	if err != nil {
+		log.Error(ctx, err)
+	}
+	out.AppServeAppCnt = int(appServeAppCnt)
 
 	return
 }
