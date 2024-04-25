@@ -265,13 +265,18 @@ func (h *CloudAccountHandler) DeleteCloudAccount(w http.ResponseWriter, r *http.
 	}
 	dto.ID = parsedId
 
-	err = h.usecase.Delete(r.Context(), dto)
+	cloudAccount, err := h.usecase.Delete(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	ResponseJSON(w, r, http.StatusOK, nil)
+	out := domain.DeleteCloudAccountResponse{
+		ID:   cloudAccount.ID.String(),
+		Name: cloudAccount.Name,
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // DeleteForceCloudAccount godoc
@@ -300,14 +305,15 @@ func (h *CloudAccountHandler) DeleteForceCloudAccount(w http.ResponseWriter, r *
 		return
 	}
 
-	err = h.usecase.DeleteForce(r.Context(), parsedId)
+	cloudAccount, err := h.usecase.DeleteForce(r.Context(), parsedId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	out := domain.DeleteCloudAccountResponse{
-		ID: cloudAccountId,
+		ID:   cloudAccount.ID.String(),
+		Name: cloudAccount.Name,
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

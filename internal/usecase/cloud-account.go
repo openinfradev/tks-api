@@ -39,8 +39,8 @@ type ICloudAccountUsecase interface {
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.CloudAccount, error)
 	Create(ctx context.Context, dto model.CloudAccount) (cloudAccountId uuid.UUID, err error)
 	Update(ctx context.Context, dto model.CloudAccount) error
-	Delete(ctx context.Context, dto model.CloudAccount) error
-	DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) error
+	Delete(ctx context.Context, dto model.CloudAccount) (model.CloudAccount, error)
+	DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) (model.CloudAccount, error)
 }
 
 type CloudAccountUsecase struct {
@@ -179,21 +179,21 @@ func (u *CloudAccountUsecase) Fetch(ctx context.Context, organizationId string, 
 	return
 }
 
-func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount) (err error) {
+func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount) (out model.CloudAccount, err error) {
 	user, ok := request.UserFrom(ctx)
 	if !ok {
-		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
+		return out, httpErrors.NewBadRequestError(fmt.Errorf("Invalid token"), "", "")
 	}
 	userId := user.GetUserId()
 
 	cloudAccount, err := u.Get(ctx, dto.ID)
 	if err != nil {
-		return httpErrors.NewNotFoundError(err, "", "")
+		return cloudAccount, httpErrors.NewNotFoundError(err, "", "")
 	}
 	dto.UpdatorId = &userId
 
 	if u.getClusterCnt(ctx, dto.ID) > 0 {
-		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
+		return cloudAccount, fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
 	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
@@ -211,38 +211,38 @@ func (u *CloudAccountUsecase) Delete(ctx context.Context, dto model.CloudAccount
 		})
 	if err != nil {
 		log.Error(ctx, "failed to submit argo workflow template. err : ", err)
-		return fmt.Errorf("Failed to call argo workflow : %s", err)
+		return cloudAccount, fmt.Errorf("Failed to call argo workflow : %s", err)
 	}
 	log.Info(ctx, "submited workflow :", workflowId)
 
 	if err := u.repo.InitWorkflow(ctx, dto.ID, workflowId, domain.CloudAccountStatus_DELETING); err != nil {
-		return errors.Wrap(err, "Failed to initialize status")
+		return cloudAccount, errors.Wrap(err, "Failed to initialize status")
 	}
 
-	return nil
+	return cloudAccount, nil
 }
 
-func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) (err error) {
+func (u *CloudAccountUsecase) DeleteForce(ctx context.Context, cloudAccountId uuid.UUID) (out model.CloudAccount, err error) {
 	cloudAccount, err := u.repo.Get(ctx, cloudAccountId)
 	if err != nil {
-		return err
+		return cloudAccount, err
 	}
 
 	if !strings.Contains(cloudAccount.Name, domain.CLOUD_ACCOUNT_INCLUSTER) &&
 		cloudAccount.Status != domain.CloudAccountStatus_CREATE_ERROR {
-		return fmt.Errorf("The status is not CREATE_ERROR. %s", cloudAccount.Status)
+		return cloudAccount, fmt.Errorf("The status is not CREATE_ERROR. %s", cloudAccount.Status)
 	}
 
 	if u.getClusterCnt(ctx, cloudAccountId) > 0 {
-		return fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
+		return cloudAccount, fmt.Errorf("사용 중인 클러스터가 있어 삭제할 수 없습니다.")
 	}
 
 	err = u.repo.Delete(ctx, cloudAccountId)
 	if err != nil {
-		return err
+		return cloudAccount, err
 	}
 
-	return nil
+	return cloudAccount, nil
 }
 
 func (u *CloudAccountUsecase) GetResourceQuota(ctx context.Context, cloudAccountId uuid.UUID) (available bool, out domain.ResourceQuota, err error) {

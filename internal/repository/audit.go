@@ -44,7 +44,8 @@ func (r *AuditRepository) Fetch(ctx context.Context, pg *pagination.Pagination) 
 		pg = pagination.NewPagination(nil)
 	}
 
-	db := r.db.WithContext(ctx).Model(&model.Audit{}).Preload(clause.Associations).Preload("User.Roles")
+	db := r.db.WithContext(ctx).Model(&model.Audit{}).Preload(clause.Associations).
+		Preload("User.Roles")
 
 	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {

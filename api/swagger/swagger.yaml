@@ -1479,9 +1479,21 @@ definitions:
           type: string
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.DeleteSystemNotificationRuleResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.DeleteUserRequest:
     properties:
       adminPassword:
+        type: string
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.DeleteUserResponse:
+    properties:
+      accountId:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.EndpointResponse:
@@ -3151,6 +3163,8 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.StackResponse:
     properties:
+      appServeAppCnt:
+        type: integer
       cloudAccount:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleCloudAccountResponse'
       conf:
@@ -6946,6 +6960,10 @@ paths:
         name: organizationId
         required: true
         type: string
+      - description: filledParameter
+        in: query
+        name: filledParameter
+        type: string
       - description: pageSize
         in: query
         name: pageSize
@@ -10139,6 +10157,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteSystemNotificationRuleResponse'
       security:
       - JWT: []
       summary: Delete SystemNotificationRule
@@ -10648,6 +10668,8 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteUserResponse'
       security:
       - JWT: []
       summary: Delete user

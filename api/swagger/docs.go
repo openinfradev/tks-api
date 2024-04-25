@@ -4146,6 +4146,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
+                        "description": "filledParameter",
+                        "name": "filledParameter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
                         "description": "pageSize",
                         "name": "pageSize",
                         "in": "query"
@@ -9256,7 +9262,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteSystemNotificationRuleResponse"
+                        }
                     }
                 }
             }
@@ -10060,7 +10069,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.DeleteUserResponse"
+                        }
                     }
                 }
             }
@@ -12416,10 +12428,29 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.DeleteSystemNotificationRuleResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.DeleteUserRequest": {
             "type": "object",
             "properties": {
                 "adminPassword": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.DeleteUserResponse": {
+            "type": "object",
+            "properties": {
+                "accountId": {
                     "type": "string"
                 }
             }
@@ -14950,6 +14981,9 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.StackResponse": {
             "type": "object",
             "properties": {
+                "appServeAppCnt": {
+                    "type": "integer"
+                },
                 "cloudAccount": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleCloudAccountResponse"
                 },

@@ -133,5 +133,6 @@ type GetCloudAccountResourceQuotaResponse struct {
 }
 
 type DeleteCloudAccountResponse struct {
-	ID string `json:"id"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }

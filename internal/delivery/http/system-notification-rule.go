@@ -256,7 +256,7 @@ func (h *SystemNotificationRuleHandler) UpdateSystemNotificationRule(w http.Resp
 //	@Produce		json
 //	@Param			organizationId				path		string	true	"organizationId"
 //	@Param			systemNotificationRuleId	path		string	true	"systemNotificationRuleId"
-//	@Success		200							{object}	nil
+//	@Success		200							{object}	domain.DeleteSystemNotificationRuleResponse
 //	@Router			/organizations/{organizationId}/system-notification-rules/{systemNotificationRuleId} [delete]
 //	@Security		JWT
 func (h *SystemNotificationRuleHandler) DeleteSystemNotificationRule(w http.ResponseWriter, r *http.Request) {
@@ -272,12 +272,18 @@ func (h *SystemNotificationRuleHandler) DeleteSystemNotificationRule(w http.Resp
 		return
 	}
 
-	err = h.usecase.Delete(r.Context(), systemNotificationRuleId)
+	systemNotificationRule, err := h.usecase.Delete(r.Context(), systemNotificationRuleId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
-	ResponseJSON(w, r, http.StatusOK, nil)
+
+	out := domain.DeleteSystemNotificationRuleResponse{
+		ID:   strId,
+		Name: systemNotificationRule.Name,
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // CheckSystemNotificationRuleName godoc

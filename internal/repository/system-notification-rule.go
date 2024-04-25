@@ -10,6 +10,7 @@ import (
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/pkg/domain"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
@@ -77,7 +78,7 @@ func (r *SystemNotificationRuleRepository) FetchWithOrganization(ctx context.Con
 		if filter.Relation == "TargetUsers" {
 			db = db.Joins("left outer join system_notification_rule_users on system_notification_rules.id = system_notification_rule_users.system_notification_rule_id").
 				Joins("left outer join users on system_notification_rule_users.user_id = users.id").
-				Where("users.name like ?", "%"+filter.Values[0]+"%")
+				Where("users.name ilike ?", "%"+filter.Values[0]+"%")
 			break
 		}
 	}
@@ -124,7 +125,10 @@ func (r *SystemNotificationRuleRepository) Update(ctx context.Context, dto model
 	m.MessageActionProposal = dto.MessageActionProposal
 	m.UpdatorId = dto.UpdatorId
 
-	res = r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(&m)
+	log.Info(ctx, "KTKFREE1 ", m.SystemNotificationCondition.EnableEmail)
+	log.Info(ctx, "KTKFREE2 ", m.SystemNotificationCondition.EnablePortal)
+
+	res = r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Save(&m)
 	if res.Error != nil {
 		return res.Error
 	}
