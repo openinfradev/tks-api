@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
@@ -16,6 +17,12 @@ import (
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
+)
+
+type ReservedAccountIdSuffix string
+
+const (
+	OPAGatekeeperReservedAccountIdSuffix ReservedAccountIdSuffix = "-opa-gatekeeper"
 )
 
 type IUserUsecase interface {
@@ -46,6 +53,7 @@ type IUserUsecase interface {
 	UpdateByAccountIdByAdmin(ctx context.Context, user *model.User) (*model.User, error)
 
 	ListUsersByRole(ctx context.Context, organizationId string, roleId string, pg *pagination.Pagination) (*[]model.User, error)
+	CreateReservedAccount(ctx context.Context, accountId string, password string) error
 }
 
 type UserUsecase struct {
@@ -448,7 +456,6 @@ func (u *UserUsecase) Create(ctx context.Context, user *model.User) (*model.User
 	if user.ID, err = uuid.Parse(userUuidStr); err != nil {
 		return nil, err
 	}
-
 	// Create user in DB
 	resUser, err := u.userRepository.Create(ctx, user)
 	//resUser, err := u.userRepository.Create(ctx, userUuid, user.AccountId, user.Name, user.Email,
@@ -536,4 +543,25 @@ func NewUserUsecase(r repository.Repository, kc keycloak.IKeycloak) IUserUsecase
 		kc:                     kc,
 		organizationRepository: r.Organization,
 	}
+}
+
+func (u *UserUsecase) CreateReservedAccount(ctx context.Context, accountId string, password string) error {
+	if strings.HasSuffix(accountId, string(OPAGatekeeperReservedAccountIdSuffix)) {
+		_, err := u.kc.CreateUser(ctx, accountId, &gocloak.User{
+			Username: gocloak.StringP(accountId),
+			Credentials: &[]gocloak.CredentialRepresentation{
+				{
+					Type:      gocloak.StringP("password"),
+					Value:     gocloak.StringP(password),
+					Temporary: gocloak.BoolP(false),
+				},
+			},
+		})
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

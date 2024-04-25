@@ -29,6 +29,16 @@ func GenerateRandomString(length int) string {
 	return string(b)
 }
 
+func GenerateRandomPassword(length int) string {
+	// generate a random password with string of letters, digits, and special characters
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()")
+	b := make([]rune, length)
+	for i := range b {
+		b[i] = randomRune(letters)
+	}
+	return string(b)
+}
+
 func randomRune(chars []rune) rune {
 	n, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
 	if err != nil {

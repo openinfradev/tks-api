@@ -199,6 +199,7 @@ func (u *ClusterUsecase) Create(ctx context.Context, dto model.Cluster) (cluster
 				"base_repo_branch=" + viper.GetString("revision"),
 				"keycloak_url=" + viper.GetString("keycloak-address"),
 				"policy_ids=" + strings.Join(dto.PolicyIds, ","),
+				"opa_gatekeeper_password=" + dto.OpaGatekeeperPassword,
 			},
 		})
 	if err != nil {
