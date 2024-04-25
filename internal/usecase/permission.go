@@ -125,18 +125,18 @@ func (p PermissionUsecase) MergePermissionWithOrOperator(ctx context.Context, pe
 			continue
 		}
 
-		out.Dashboard = p.mergePermission(out.Dashboard, ps.Dashboard)
-		out.Stack = p.mergePermission(out.Stack, ps.Stack)
-		out.Policy = p.mergePermission(out.Policy, ps.Policy)
-		out.ProjectManagement = p.mergePermission(out.ProjectManagement, ps.ProjectManagement)
-		out.Notification = p.mergePermission(out.Notification, ps.Notification)
-		out.Configuration = p.mergePermission(out.Configuration, ps.Configuration)
+		out.Dashboard = p.mergePermission(ctx, out.Dashboard, ps.Dashboard)
+		out.Stack = p.mergePermission(ctx, out.Stack, ps.Stack)
+		out.Policy = p.mergePermission(ctx, out.Policy, ps.Policy)
+		out.ProjectManagement = p.mergePermission(ctx, out.ProjectManagement, ps.ProjectManagement)
+		out.Notification = p.mergePermission(ctx, out.Notification, ps.Notification)
+		out.Configuration = p.mergePermission(ctx, out.Configuration, ps.Configuration)
 	}
 
 	return out
 }
 
-func (p PermissionUsecase) mergePermission(mergedPermission, permission *model.Permission) *model.Permission {
+func (p PermissionUsecase) mergePermission(ctx context.Context, mergedPermission, permission *model.Permission) *model.Permission {
 	var mergedEdgePermissions []*model.Permission
 	mergedEdgePermissions = model.GetEdgePermission(mergedPermission, mergedEdgePermissions, nil)
 

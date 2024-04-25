@@ -364,6 +364,7 @@ func (u *UserUsecase) UpdateByAccountId(ctx context.Context, user *model.User) (
 
 	if ((*users)[0].Email != user.Email) || ((*users)[0].Name != user.Name) {
 		err = u.kc.UpdateUser(ctx, user.Organization.ID, &gocloak.User{
+			ID:        gocloak.StringP(user.ID.String()),
 			Email:     gocloak.StringP(user.Email),
 			FirstName: gocloak.StringP(user.Name),
 		})

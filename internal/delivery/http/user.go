@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -540,6 +541,7 @@ func (u UserHandler) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, err)
 		return
 	}
+	user.ID = requestUserInfo.GetUserId()
 	user.Name = input.Name
 	user.Email = input.Email
 	user.Department = input.Department
@@ -781,19 +783,20 @@ func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Re
 		organizationId = v
 	}
 
+	// ToDo: admin portal에 대해서는 현재 permission 관련 로직을 적용하지 않아 임시로 빈 값을 리턴하도록 함
+	if organizationId == "master" {
+		ResponseJSON(w, r, http.StatusOK, domain.GetUsersPermissionsResponse{})
+		return
+	}
+
 	user, err := u.usecase.GetByAccountId(r.Context(), accountId, organizationId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 
-	var roles []*model.Role
-	for _, role := range user.Roles {
-		roles = append(roles, &role)
-	}
-
 	var permissionSets []*model.PermissionSet
-	for _, role := range roles {
+	for _, role := range user.Roles {
 		permissionSet, err := u.permissionUsecase.GetPermissionSetByRoleId(r.Context(), role.ID)
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -819,9 +822,38 @@ func (u UserHandler) GetPermissionsByAccountId(w http.ResponseWriter, r *http.Re
 func convertModelToMergedPermissionSetResponse(ctx context.Context, permission *model.Permission) *domain.MergePermissionResponse {
 	var permissionResponse domain.MergePermissionResponse
 
+	var sortOrder = map[string]int{
+		"READ":   0,
+		"CREATE": 1,
+		"UPDATE": 2,
+		"DELETE": 3,
+	}
+
 	permissionResponse.Key = permission.Key
 	if permission.IsAllowed != nil {
 		permissionResponse.IsAllowed = permission.IsAllowed
+	}
+
+	if len(permission.Children) > 0 {
+		if permission.Children[0].IsAllowed != nil {
+			sort.Slice(permission.Children, func(i, j int) bool {
+				key1 := permission.Children[i].Key
+				key2 := permission.Children[j].Key
+
+				order1, exists1 := sortOrder[key1]
+				order2, exists2 := sortOrder[key2]
+
+				if exists1 && exists2 {
+					return order1 < order2
+				} else if exists1 {
+					return true
+				} else if exists2 {
+					return false
+				}
+
+				return key1 < key2
+			})
+		}
 	}
 
 	for _, child := range permission.Children {
