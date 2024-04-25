@@ -502,6 +502,8 @@ definitions:
         type: string
       organizationId:
         type: string
+      organizationName:
+        type: string
       updatedAt:
         type: string
       userAccountId:

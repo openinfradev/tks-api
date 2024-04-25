@@ -5,18 +5,19 @@ import (
 )
 
 type AuditResponse struct {
-	ID             string    `json:"id"`
-	OrganizationId string    `json:"organizationId"`
-	Description    string    `json:"description"`
-	Group          string    `json:"group"`
-	Message        string    `json:"message"`
-	ClientIP       string    `json:"clientIP"`
-	UserId         string    `json:"userId"`
-	UserAccountId  string    `json:"userAccountId"`
-	UserName       string    `json:"userName"`
-	UserRoles      string    `json:"userRoles"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
+	ID               string    `json:"id"`
+	OrganizationId   string    `json:"organizationId"`
+	OrganizationName string    `json:"organizationName"`
+	Description      string    `json:"description"`
+	Group            string    `json:"group"`
+	Message          string    `json:"message"`
+	ClientIP         string    `json:"clientIP"`
+	UserId           string    `json:"userId"`
+	UserAccountId    string    `json:"userAccountId"`
+	UserName         string    `json:"userName"`
+	UserRoles        string    `json:"userRoles"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 type CreateAuditRequest struct {

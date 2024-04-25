@@ -53,23 +53,12 @@ func (r *AuditRepository) Fetch(ctx context.Context, pg *pagination.Pagination) 
 }
 
 func (r *AuditRepository) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
-	audit := model.Audit{
-		ID:             uuid.New(),
-		OrganizationId: dto.OrganizationId,
-		Group:          dto.Group,
-		Message:        dto.Message,
-		Description:    dto.Description,
-		ClientIP:       dto.ClientIP,
-		UserId:         dto.UserId,
-		UserAccountId:  dto.UserAccountId,
-		UserName:       dto.UserName,
-		UserRoles:      dto.UserRoles,
-	}
-	res := r.db.WithContext(ctx).Create(&audit)
+	dto.ID = uuid.New()
+	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
-	return audit.ID, nil
+	return dto.ID, nil
 }
 
 func (r *AuditRepository) Delete(ctx context.Context, auditId uuid.UUID) (err error) {
