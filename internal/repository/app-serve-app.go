@@ -14,13 +14,13 @@ import (
 )
 
 type IAppServeAppRepository interface {
-	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error)
+	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, err error)
 	GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
 
 	GetAppServeAppTasksByAppId(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
-	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
-	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, *model.AppServeApp, error)
+	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, error)
+	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
 
 	GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error)
 
@@ -42,14 +42,14 @@ func NewAppServeAppRepository(db *gorm.DB) IAppServeAppRepository {
 	}
 }
 
-func (r *AppServeAppRepository) CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error) {
+func (r *AppServeAppRepository) CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, err error) {
 	app.ID = uuid.New().String()
 	res := r.db.WithContext(ctx).Create(&app)
 	if res.Error != nil {
-		return "", "", res.Error
+		return "", res.Error
 	}
 
-	return app.ID, app.AppServeAppTasks[0].ID, nil
+	return app.ID, nil
 }
 
 // Update creates new appServeApp task for existing appServeApp.
@@ -100,10 +100,6 @@ func (r *AppServeAppRepository) GetAppServeApps(ctx context.Context, organizatio
 	return
 }
 
-// ////////////////////////////////////////////////////////////////////////////////////////
-// TODO: this API will'be deprecated soon once the new task-related API's are verified.
-// Until then, this is available (except for stage info) just for backward compatibility.
-// ////////////////////////////////////////////////////////////////////////////////////////
 func (r *AppServeAppRepository) GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error) {
 	var app model.AppServeApp
 	var cluster model.Cluster
@@ -115,12 +111,6 @@ func (r *AppServeAppRepository) GetAppServeAppById(ctx context.Context, appId st
 	}
 	if res.RowsAffected == 0 {
 		return nil, fmt.Errorf("No app with ID %s", appId)
-	}
-
-	// Populate tasks into app object
-	if err := r.db.WithContext(ctx).Model(&app).Order("created_at desc").Association("AppServeAppTasks").Find(&app.AppServeAppTasks); err != nil {
-		log.Debug(ctx, err)
-		return nil, err
 	}
 
 	// Add cluster name to app object
@@ -150,67 +140,35 @@ func (r *AppServeAppRepository) GetAppServeAppTasksByAppId(ctx context.Context, 
 }
 
 // Return single task info along with its parent app info
-func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
+func (r *AppServeAppRepository) GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, error) {
 	var task model.AppServeAppTask
-	var app model.AppServeApp
-	var cluster model.Cluster
 
 	// Retrieve task info
 	res := r.db.WithContext(ctx).Where("id = ?", taskId).First(&task)
 	if res.Error != nil {
 		log.Debug(ctx, res.Error)
-		return nil, nil, res.Error
+		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, nil, fmt.Errorf("No task with ID %s", taskId)
+		return nil, fmt.Errorf("No task with ID %s", taskId)
 	}
 
-	// Retrieve app info
-	res = r.db.WithContext(ctx).Where("id = ?", task.AppServeAppId).First(&app)
-	if res.Error != nil {
-		log.Debug(ctx, res.Error)
-		return nil, nil, res.Error
-	}
-	if res.RowsAffected == 0 {
-		return nil, nil, fmt.Errorf("Couldn't find app with ID %s associated with task %s", app.ID, taskId)
-	}
-
-	// Add cluster name to app object
-	r.db.WithContext(ctx).Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
-	app.TargetClusterName = cluster.Name
-
-	return &task, &app, nil
+	return &task, nil
 }
 
-func (r *AppServeAppRepository) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
+func (r *AppServeAppRepository) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error) {
 	var task model.AppServeAppTask
-	var app model.AppServeApp
-	var cluster model.Cluster
 
 	res := r.db.WithContext(ctx).Order("created_at desc").Where("app_serve_app_id = ?", appId).First(&task)
 	if res.Error != nil {
 		log.Debug(ctx, res.Error)
-		return nil, nil, res.Error
+		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, nil, fmt.Errorf("No task with App ID %s", appId)
+		return nil, fmt.Errorf("No task with App ID %s", appId)
 	}
 
-	// Retrieve app info
-	res = r.db.WithContext(ctx).Where("id = ?", appId).First(&app)
-	if res.Error != nil {
-		log.Debug(ctx, res.Error)
-		return nil, nil, res.Error
-	}
-	if res.RowsAffected == 0 {
-		return nil, nil, fmt.Errorf("Couldn't find app with ID %s", appId)
-	}
-
-	// Add cluster name to app object
-	r.db.WithContext(ctx).Select("name").Where("id = ?", app.TargetClusterId).First(&cluster)
-	app.TargetClusterName = cluster.Name
-
-	return &task, &app, nil
+	return &task, nil
 }
 
 func (r *AppServeAppRepository) GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error) {
