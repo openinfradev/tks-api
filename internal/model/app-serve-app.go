@@ -20,6 +20,7 @@ type AppServeApp struct {
 	TargetClusterName  string     `gorm:"-:all" json:"targetClusterName,omitempty"` // target cluster name
 	Status             string     `gorm:"index" json:"status,omitempty"`            // status is status of deployed app
 	GrafanaUrl         string     `json:"grafanaUrl,omitempty"`                     // grafana dashboard URL for deployed app
+	Description        string     `json:"description,omitempty"`                    // description for application
 	CreatedAt          time.Time  `gorm:"autoCreateTime:false" json:"createdAt" `
 	UpdatedAt          *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
 	DeletedAt          *time.Time `json:"deletedAt"`

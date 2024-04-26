@@ -16,6 +16,7 @@ type AppServeAppResponse struct {
 	TargetClusterName  string     `json:"targetClusterName,omitempty"`  // target cluster name
 	Status             string     `json:"status,omitempty"`             // status is status of deployed app
 	GrafanaUrl         string     `json:"grafanaUrl,omitempty"`         // grafana dashboard URL for deployed app
+	Description        string     `json:"description,omitempty"`        // description for application
 	CreatedAt          time.Time  `json:"createdAt" `
 	UpdatedAt          *time.Time `json:"updatedAt"`
 	DeletedAt          *time.Time `json:"deletedAt"`
