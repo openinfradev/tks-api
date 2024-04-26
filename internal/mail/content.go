@@ -98,9 +98,7 @@ func MakeGeneratingOrganizationMessage(
 	return m, nil
 }
 
-func MakeSystemNotificationMessage(ctx context.Context, organizationId string, title string, to []string) (*MessageInfo, error) {
-	subject := "[TKS] 시스템 알림이 발생하였습니다."
-
+func MakeSystemNotificationMessage(ctx context.Context, organizationId string, title string, content string, to []string) (*MessageInfo, error) {
 	tmpl, err := template.ParseFS(templateFS, "contents/system_notification.html")
 	if err != nil {
 		log.Errorf(ctx, "failed to parse template, %v", err)
@@ -109,6 +107,8 @@ func MakeSystemNotificationMessage(ctx context.Context, organizationId string, t
 
 	data := map[string]string{
 		"OrganizationId": organizationId,
+		"Title":          title,
+		"Content":        content,
 	}
 
 	var tpl bytes.Buffer
@@ -120,7 +120,7 @@ func MakeSystemNotificationMessage(ctx context.Context, organizationId string, t
 	m := &MessageInfo{
 		From:    from,
 		To:      to,
-		Subject: subject,
+		Subject: title,
 		Body:    tpl.String(),
 	}
 
