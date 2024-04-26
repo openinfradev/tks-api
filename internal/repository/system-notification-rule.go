@@ -75,8 +75,8 @@ func (r *SystemNotificationRuleRepository) FetchWithOrganization(ctx context.Con
 	// [TODO] more pretty!
 	for _, filter := range pg.Filters {
 		if filter.Relation == "TargetUsers" {
-			db = db.Joins("left outer join system_notification_rule_users on system_notification_rules.id = system_notification_rule_users.system_notification_rule_id").
-				Joins("left outer join users on system_notification_rule_users.user_id = users.id").
+			db = db.Joins("join system_notification_rule_users on system_notification_rules.id = system_notification_rule_users.system_notification_rule_id").
+				Joins("join users on system_notification_rule_users.user_id = users.id").
 				Where("users.name ilike ?", "%"+filter.Values[0]+"%")
 			break
 		}

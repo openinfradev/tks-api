@@ -38,6 +38,7 @@ type SystemNotification struct {
 	Status                    domain.SystemNotificationActionStatus `gorm:"index"`
 	Read                      bool                                  `gorm:"-:all"`
 	Readers                   []User                                `gorm:"many2many:system_notification_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
+	SystemNotificationRuleId  *uuid.UUID
 }
 
 type SystemNotificationAction struct {

@@ -85,17 +85,20 @@ var errorMap = map[ErrorCode]string{
 	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",
 
 	// SystemNotificationTemplate
-	"SNT_CREATE_ALREADY_EXISTED_NAME": "알림템플릿에 이미 존재하는 이름입니다.",
-	"SNT_FAILED_FETCH_ALERT_TEMPLATE": "알림템플릿을 가져오는데 실패했습니다.",
-	"SNT_FAILED_UPDATE_ORGANIZATION":  "알림템플릿에 조직을 설정하는데 실패했습니다.",
-	"SNT_NOT_EXISTED_ALERT_TEMPLATE":  "업데이트할 알림템플릿이 존재하지 않습니다.",
-	"SNT_FAILED_DELETE_EXIST_RULES":   "알림템플릿을 사용하고 있는 알림 설정이 있습니다. 알림 설정을 삭제하세요.",
+	"SNT_CREATE_ALREADY_EXISTED_NAME":   "알림템플릿에 이미 존재하는 이름입니다.",
+	"SNT_FAILED_FETCH_ALERT_TEMPLATE":   "알림템플릿을 가져오는데 실패했습니다.",
+	"SNT_FAILED_UPDATE_ORGANIZATION":    "알림템플릿에 조직을 설정하는데 실패했습니다.",
+	"SNT_NOT_EXISTED_ALERT_TEMPLATE":    "업데이트할 알림템플릿이 존재하지 않습니다.",
+	"SNT_FAILED_DELETE_EXIST_RULES":     "알림템플릿을 사용하고 있는 알림 설정이 있습니다. 알림 설정을 삭제하세요.",
+	"SNT_CANNOT_DELETE_SYSTEM_TEMPLATE": "시스템 알림템플릿은 삭제 할 수 없습니다.",
 
 	// SystemNotificationRule
 	"SNR_CREATE_ALREADY_EXISTED_NAME":           "알림 설정에 이미 존재하는 이름입니다.",
 	"SNR_FAILED_FETCH_SYSTEM_NOTIFICATION_RULE": "알림 설정을 가져오는데 실패했습니다.",
 	"SNR_FAILED_UPDATE_ORGANIZATION":            "알림 설정에 조직을 설정하는데 실패했습니다.",
 	"SNR_NOT_EXISTED_SYSTEM_NOTIFICATION_RULE":  "업데이트할 알림 설정이 존재하지 않습니다.",
+	"SNR_INVALID_ENABLE_PORTAL":                 "알림 방법의 포탈은 설정을 변경할 수 없습니다.",
+	"SNR_CANNOT_DELETE_SYSTEM_RULE":             "시스템 알림 설정은 삭제 할 수 없습니다.",
 
 	// AppGroup
 	"AG_NOT_FOUND_CLUSTER":         "지장한 클러스터가 존재하지 않습니다.",

@@ -107,18 +107,27 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			node = systemNotification.Labels.Instance
 		}
 
+		var systemNotificationRuleId *uuid.UUID
+		if systemNotification.Annotations.SystemNotificationRuleId != "" {
+			id, err := uuid.Parse(systemNotification.Annotations.SystemNotificationRuleId)
+			if err == nil {
+				systemNotificationRuleId = &id
+			}
+		}
+
 		dto := model.SystemNotification{
-			OrganizationId:        organizationId,
-			Name:                  systemNotification.Labels.AlertName,
-			Severity:              systemNotification.Labels.Severity,
-			Node:                  node,
-			MessageTitle:          systemNotification.Annotations.Message,
-			MessageContent:        systemNotification.Annotations.Description,
-			MessageActionProposal: systemNotification.Annotations.Checkpoint,
-			Summary:               systemNotification.Annotations.Summary,
-			ClusterId:             domain.ClusterId(clusterId),
-			GrafanaUrl:            u.makeGrafanaUrl(ctx, primaryCluster, systemNotification, domain.ClusterId(clusterId)),
-			RawData:               rawData,
+			OrganizationId:           organizationId,
+			Name:                     systemNotification.Labels.AlertName,
+			Severity:                 systemNotification.Labels.Severity,
+			Node:                     node,
+			MessageTitle:             systemNotification.Annotations.Message,
+			MessageContent:           systemNotification.Annotations.Description,
+			MessageActionProposal:    systemNotification.Annotations.Checkpoint,
+			Summary:                  systemNotification.Annotations.Summary,
+			ClusterId:                domain.ClusterId(clusterId),
+			GrafanaUrl:               u.makeGrafanaUrl(ctx, primaryCluster, systemNotification, domain.ClusterId(clusterId)),
+			RawData:                  rawData,
+			SystemNotificationRuleId: systemNotificationRuleId,
 		}
 
 		_, err = u.repo.Create(ctx, dto)
@@ -128,13 +137,8 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 		}
 
 		// 사용자가 생성한 알림
-		if systemNotification.Annotations.SystemNotificationRuleId != "" {
-			systemNotificationRuleId, err := uuid.Parse(systemNotification.Annotations.SystemNotificationRuleId)
-			if err != nil {
-				log.Error(ctx, "Failed to parse uuid ", err)
-				continue
-			}
-			rule, err := u.systemNotificationRuleRepo.Get(ctx, systemNotificationRuleId)
+		if systemNotificationRuleId != nil {
+			rule, err := u.systemNotificationRuleRepo.Get(ctx, *systemNotificationRuleId)
 			if err != nil {
 				log.Error(ctx, "Failed to get systemNotificationRule ", err)
 				continue

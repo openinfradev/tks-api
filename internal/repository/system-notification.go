@@ -75,6 +75,9 @@ func (r *SystemNotificationRepository) FetchSystemNotifications(ctx context.Cont
 		Preload("Cluster", "status = 2").
 		Preload("Organization").
 		Joins("join clusters on clusters.id = system_notifications.cluster_id AND clusters.status = 2").
+		Joins("left outer join system_notification_rules ON system_notification_rules.id = system_notifications.system_notification_rule_id").
+		Joins("left outer join system_notification_rule_users ON system_notification_rule_users.system_notification_rule_id = system_notifications.system_notification_rule_id").
+		Where("system_notification_rule_users.user_id is null OR system_notification_rule_users.user_id = ?", userInfo.GetUserId()).
 		Where("system_notifications.organization_id = ? AND system_notifications.notification_type = 'SYSTEM_NOTIFICATION'", organizationId)
 
 	readFilter := pg.GetFilter("read")
@@ -140,26 +143,14 @@ func (r *SystemNotificationRepository) FetchPodRestart(ctx context.Context, orga
 }
 
 func (r *SystemNotificationRepository) Create(ctx context.Context, dto model.SystemNotification) (systemNotificationId uuid.UUID, err error) {
-	systemNotification := model.SystemNotification{
-		ID:                    uuid.New(),
-		OrganizationId:        dto.OrganizationId,
-		Name:                  dto.Name,
-		Severity:              dto.Severity,
-		MessageTitle:          dto.MessageTitle,
-		MessageContent:        dto.MessageContent,
-		MessageActionProposal: dto.MessageActionProposal,
-		ClusterId:             dto.ClusterId,
-		Node:                  dto.Node,
-		GrafanaUrl:            dto.GrafanaUrl,
-		Summary:               dto.Summary,
-		RawData:               dto.RawData,
-		Status:                domain.SystemNotificationActionStatus_CREATED,
-	}
-	res := r.db.WithContext(ctx).Create(&systemNotification)
+
+	dto.ID = uuid.New()
+	dto.Status = domain.SystemNotificationActionStatus_CREATED
+	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		return uuid.Nil, res.Error
 	}
-	return systemNotification.ID, nil
+	return dto.ID, nil
 }
 
 func (r *SystemNotificationRepository) Update(ctx context.Context, dto model.SystemNotification) (err error) {
