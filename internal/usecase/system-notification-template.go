@@ -188,7 +188,7 @@ func (u *SystemNotificationTemplateUsecase) UpdateOrganizations(ctx context.Cont
 func (u *SystemNotificationTemplateUsecase) AddOrganizationSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplateIds []string) error {
 	_, err := u.organizationRepo.Get(ctx, organizationId)
 	if err != nil {
-		return httpErrors.NewBadRequestError(err, "O_NOT_EXISTED_NAME", "")
+		return httpErrors.NewBadRequestError(err, "ST_NOT_EXISTED_NAME", "")
 	}
 
 	systemNotificationTemplates := make([]model.SystemNotificationTemplate, 0)
