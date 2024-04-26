@@ -149,7 +149,7 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 				for _, user := range rule.TargetUsers {
 					to = append(to, user.Email)
 				}
-				message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, to)
+				message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, systemNotification.Annotations.Description, to)
 				if err != nil {
 					log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
 					continue
