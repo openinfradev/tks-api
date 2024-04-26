@@ -120,6 +120,7 @@ func extractInputExprFromModule(module *ast.Module) []string {
 	rules := module.Rules
 
 	passedInputMap := []string{}
+	globalAssignMap := map[string]string{}
 
 	violationRule := []*ast.Rule{}
 	nonViolatonRule := []*ast.Rule{}
@@ -129,13 +130,19 @@ func extractInputExprFromModule(module *ast.Module) []string {
 			violationRule = append(violationRule, rule)
 		} else {
 			nonViolatonRule = append(nonViolatonRule, rule)
+
+			if rule.Head.Assign && rule.Head.Value != nil {
+				if _, ok := rule.Head.Value.Value.(ast.Call); !ok {
+					globalAssignMap[string(rule.Head.Name)] = rule.Head.Value.String()
+				}
+			}
 		}
 	}
 
 	paramRefs := map[string]string{}
 
 	for _, rule := range violationRule {
-		processRule(rule, paramRefs, passedInputMap, nonViolatonRule)
+		processRule(rule, globalAssignMap, paramRefs, passedInputMap, nonViolatonRule)
 	}
 
 	// 중복제거를 위해 사용한 맵을 소팅하기 위해 키 리스트로 변환
@@ -155,9 +162,45 @@ func extractInputExprFromModule(module *ast.Module) []string {
 	return paramRefsList
 }
 
-func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []string, nonViolatonRule []*ast.Rule) {
-	exprs := rule.Body
+func processRule(rule *ast.Rule, globalAssignMap map[string]string, paramRefs map[string]string, passedParams []string, nonViolatonRule []*ast.Rule) map[string]string {
 	localAssignMap := map[string]string{}
+
+	// 규칙이 단순 assign이면 value의 정책 호출을 따라가 봐야 함
+	if rule.Head.Assign {
+		if call, ok := rule.Head.Value.Value.(ast.Call); ok {
+			ruleName := call[0].String()
+
+			args := call[1:]
+
+			argStrs := make([]string, len(args))
+
+			for i, arg := range args {
+				argStrs[i] = arg.String()
+			}
+
+			for _, nvrule := range nonViolatonRule {
+				if ruleName == nvrule.Head.Name.String() {
+					return processRule(nvrule, globalAssignMap, paramRefs, argStrs, nonViolatonRule)
+				}
+			}
+		} else {
+			value := rule.Head.Value.String()
+
+			if isSubstitutionRequired(value) {
+				paramRefs[value] = "1"
+
+				localAssignMap[string(rule.Head.Name)] = value
+
+				// fmt.Println("1818181818", rule.Head.Value)
+				return localAssignMap
+			}
+		}
+
+		// 더 처리할 건 없음
+		return nil
+	}
+
+	exprs := rule.Body
 
 	for i, param := range passedParams {
 		if isSubstitutionRequired(param) {
@@ -169,9 +212,17 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 	for _, expr := range exprs {
 		exprString := expr.String()
 
-		exprString = substituteWithLocalAssignMap(localAssignMap, exprString)
-		exprString = replaceAllObjectGet(exprString)
-		exprString = substituteWithLocalAssignMap(localAssignMap, exprString)
+		if len(localAssignMap) > 0 {
+			exprString = substituteWithAssignMap(localAssignMap, exprString)
+			exprString = replaceAllObjectGet(exprString)
+			exprString = substituteWithAssignMap(localAssignMap, exprString)
+		}
+
+		if len(globalAssignMap) > 0 {
+			exprString = substituteWithAssignMap(globalAssignMap, exprString)
+			exprString = replaceAllObjectGet(exprString)
+			exprString = substituteWithAssignMap(globalAssignMap, exprString)
+		}
 
 		matches := input_extract_regex.FindAllString(exprString, -1)
 
@@ -187,7 +238,6 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 			call, _ := expr.Terms.([]*ast.Term)
 			if len(call) > 1 {
 				ruleName := call[0].String()
-
 				args := call[1:]
 
 				inputPassed, passingParams := processingInputArgs(args, localAssignMap)
@@ -207,8 +257,12 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 
 					for _, nvrule := range nonViolatonRule {
 						if ruleName == nvrule.Head.Name.String() {
-
-							processRule(nvrule, paramRefs, passingParams, nonViolatonRule)
+							updateLocals := processRule(nvrule, globalAssignMap, paramRefs, passingParams, nonViolatonRule)
+							for k, v := range updateLocals {
+								if _, ok := localAssignMap[k]; !ok {
+									localAssignMap[k] = v
+								}
+							}
 						}
 					}
 				}
@@ -224,7 +278,13 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 
 					for _, nvrule := range nonViolatonRule {
 						if ruleName == nvrule.Head.Name.String() {
-							processRule(nvrule, paramRefs, []string{}, nonViolatonRule)
+							updateLocals := processRule(nvrule, globalAssignMap, paramRefs, []string{}, nonViolatonRule)
+
+							for k, v := range updateLocals {
+								if _, ok := localAssignMap[k]; !ok {
+									localAssignMap[k] = v
+								}
+							}
 						}
 					}
 				}
@@ -245,7 +305,13 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 				if inputPassed {
 					for _, nvrule := range nonViolatonRule {
 						if ruleName == nvrule.Head.Name.String() {
-							processRule(nvrule, paramRefs, passingParams, nonViolatonRule)
+							updateLocals := processRule(nvrule, globalAssignMap, paramRefs, passingParams, nonViolatonRule)
+
+							for k, v := range updateLocals {
+								if _, ok := localAssignMap[k]; !ok {
+									localAssignMap[k] = v
+								}
+							}
 						}
 					}
 				}
@@ -255,7 +321,13 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 				for _, nvrule := range nonViolatonRule {
 					ruleName := nvrule.Head.Name.String()
 					if t.Value.String() == ruleName {
-						processRule(nvrule, paramRefs, []string{}, nonViolatonRule)
+						updateLocals := processRule(nvrule, globalAssignMap, paramRefs, []string{}, nonViolatonRule)
+
+						for k, v := range updateLocals {
+							if _, ok := localAssignMap[k]; !ok {
+								localAssignMap[k] = v
+							}
+						}
 					}
 				}
 
@@ -272,10 +344,18 @@ func processRule(rule *ast.Rule, paramRefs map[string]string, passedParams []str
 		for _, nvrule := range nonViolatonRule {
 			ruleName := nvrule.Head.Name.String()
 			if strings.Contains(headKey.String(), ruleName) {
-				processRule(nvrule, paramRefs, []string{}, nonViolatonRule)
+				updateLocals := processRule(nvrule, globalAssignMap, paramRefs, []string{}, nonViolatonRule)
+
+				for k, v := range updateLocals {
+					if _, ok := localAssignMap[k]; !ok {
+						localAssignMap[k] = v
+					}
+				}
 			}
 		}
 	}
+
+	return nil
 }
 
 // object.get(object.get(input, "parameters", {}), "exemptImages", [])) -> input.parameters.exemptImages와 같은 패턴 변환
@@ -302,9 +382,12 @@ func processingInputArgs(args []*ast.Term, localAssignMap map[string]string) (bo
 	for i := 0; i < len(args); i++ {
 		if args[i] != nil {
 			arg := args[i].String()
-			arg = substituteWithLocalAssignMap(localAssignMap, arg)
-			arg = replaceAllObjectGet(arg)
-			arg = substituteWithLocalAssignMap(localAssignMap, arg)
+
+			if len(localAssignMap) > 0 {
+				arg = substituteWithAssignMap(localAssignMap, arg)
+				arg = replaceAllObjectGet(arg)
+				arg = substituteWithAssignMap(localAssignMap, arg)
+			}
 
 			if isSubstitutionRequired(arg) {
 				passingParams = append(passingParams, arg)
@@ -328,11 +411,8 @@ func updateLocalAssignMap(expr *ast.Expr, localAssignMap map[string]string) {
 	}
 }
 
-func substituteWithLocalAssignMap(localAssignMap map[string]string, exprString string) string {
-	for k, v := range localAssignMap {
-		//pattern := `([^\w\"])` + "parameters" + `([^\w\"])`
-		// pattern := `([ \[\]\(\)])` + k + `([ \[\]\(\)\.])`
-
+func substituteWithAssignMap(assignMap map[string]string, exprString string) string {
+	for k, v := range assignMap {
 		if strings.Contains(exprString, v) {
 			continue
 		} else if exprString == k {
@@ -386,23 +466,6 @@ func ExtractParameter(modules map[string]*ast.Module) []*domain.ParameterDef {
 	}
 
 	return defStore.store
-}
-
-func MergeRegoAndLibs(rego string, libs []string) string {
-	if len(libs) == 0 {
-		return rego
-	}
-
-	var re = regexp.MustCompile(import_regex)
-	var re2 = regexp.MustCompile(package_name_regex)
-
-	result := re.ReplaceAllString(rego, "")
-
-	for _, lib := range processLibs(libs) {
-		result += re2.ReplaceAllString(lib, "")
-	}
-
-	return result
 }
 
 type ParamDefStore struct {
@@ -543,6 +606,23 @@ func CompileRegoWithLibs(rego string, libs []string) (compiler *ast.Compiler, er
 	compiler.Compile(modules)
 
 	return compiler, nil
+}
+
+func MergeRegoAndLibs(rego string, libs []string) string {
+	if len(libs) == 0 {
+		return rego
+	}
+
+	var re = regexp.MustCompile(import_regex)
+	var re2 = regexp.MustCompile(package_name_regex)
+
+	result := re.ReplaceAllString(rego, "")
+
+	for _, lib := range processLibs(libs) {
+		result += re2.ReplaceAllString(lib, "")
+	}
+
+	return result
 }
 
 func MergeAndCompileRegoWithLibs(rego string, libs []string) (modules map[string]*ast.Module, err error) {
