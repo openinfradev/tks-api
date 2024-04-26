@@ -3,23 +3,22 @@ package domain
 import "time"
 
 type AppServeAppResponse struct {
-	ID                 string                    `json:"id,omitempty"`
-	Name               string                    `json:"name,omitempty"`               // application name
-	Namespace          string                    `json:"namespace,omitempty"`          // application namespace
-	OrganizationId     string                    `json:"organizationId,omitempty"`     // contractId is a contract ID which this app belongs to
-	ProjectId          string                    `json:"projectId,omitempty"`          // project ID which this app belongs to
-	Type               string                    `json:"type,omitempty"`               // type (build/deploy/all)
-	AppType            string                    `json:"appType,omitempty"`            // appType (spring/springboot)
-	EndpointUrl        string                    `json:"endpointUrl,omitempty"`        // endpoint URL of deployed app
-	PreviewEndpointUrl string                    `json:"previewEndpointUrl,omitempty"` // preview svc endpoint URL in B/G deployment
-	TargetClusterId    string                    `json:"targetClusterId,omitempty"`    // target cluster to which the app is deployed
-	TargetClusterName  string                    `json:"targetClusterName,omitempty"`  // target cluster name
-	Status             string                    `json:"status,omitempty"`             // status is status of deployed app
-	GrafanaUrl         string                    `json:"grafanaUrl,omitempty"`         // grafana dashboard URL for deployed app
-	CreatedAt          time.Time                 `json:"createdAt" `
-	UpdatedAt          *time.Time                `json:"updatedAt"`
-	DeletedAt          *time.Time                `json:"deletedAt"`
-	AppServeAppTasks   []AppServeAppTaskResponse `json:"appServeAppTasks"`
+	ID                 string     `json:"id,omitempty"`
+	Name               string     `json:"name,omitempty"`               // application name
+	Namespace          string     `json:"namespace,omitempty"`          // application namespace
+	OrganizationId     string     `json:"organizationId,omitempty"`     // contractId is a contract ID which this app belongs to
+	ProjectId          string     `json:"projectId,omitempty"`          // project ID which this app belongs to
+	Type               string     `json:"type,omitempty"`               // type (build/deploy/all)
+	AppType            string     `json:"appType,omitempty"`            // appType (spring/springboot)
+	EndpointUrl        string     `json:"endpointUrl,omitempty"`        // endpoint URL of deployed app
+	PreviewEndpointUrl string     `json:"previewEndpointUrl,omitempty"` // preview svc endpoint URL in B/G deployment
+	TargetClusterId    string     `json:"targetClusterId,omitempty"`    // target cluster to which the app is deployed
+	TargetClusterName  string     `json:"targetClusterName,omitempty"`  // target cluster name
+	Status             string     `json:"status,omitempty"`             // status is status of deployed app
+	GrafanaUrl         string     `json:"grafanaUrl,omitempty"`         // grafana dashboard URL for deployed app
+	CreatedAt          time.Time  `json:"createdAt" `
+	UpdatedAt          *time.Time `json:"updatedAt"`
+	DeletedAt          *time.Time `json:"deletedAt"`
 }
 
 type AppServeAppTaskResponse struct {
@@ -145,12 +144,6 @@ type RollbackAppServeAppRequest struct {
 type GetAppServeAppsResponse struct {
 	AppServeApps []AppServeAppResponse `json:"appServeApps"`
 	Pagination   PaginationResponse    `json:"pagination"`
-}
-
-// TODO: This will be deprecated later
-type GetAppServeAppResponse struct {
-	AppServeApp AppServeAppResponse `json:"appServeApp"`
-	Stages      []StageResponse     `json:"stages"`
 }
 
 type GetAppServeAppTasksResponse struct {
