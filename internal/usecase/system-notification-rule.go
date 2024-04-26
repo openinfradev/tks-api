@@ -154,6 +154,10 @@ func (u *SystemNotificationRuleUsecase) Delete(ctx context.Context, systemNotifi
 	userId := user.GetUserId()
 	systemNotificationRule.UpdatorId = &userId
 
+	if systemNotificationRule.IsSystem {
+		return out, httpErrors.NewBadRequestError(fmt.Errorf("cannot delete system rules"), "SNR_CANNOT_DELETE_SYSTEM_RULE", "")
+	}
+
 	err = u.repo.Delete(ctx, systemNotificationRule)
 	if err != nil {
 		return out, err
@@ -173,10 +177,13 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 		return err
 	}
 
-	organizationAdmin, err := u.userRepo.GetByUuid(ctx, *organization.AdminId)
-	if err != nil {
-		return err
-	}
+	/*
+		// 240426 : 기본 알림 설정은 "전체" 를 대상자로 한다.
+		organizationAdmin, err := u.userRepo.GetByUuid(ctx, *organization.AdminId)
+		if err != nil {
+			return err
+		}
+	*/
 
 	pg := pagination.NewPaginationWithFilter("is_system", "", "$eq", []string{"1"})
 	templates, err := u.systemNotificationTemplateRepo.Fetch(ctx, pg)
@@ -204,7 +211,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "CPU 사용량이 높습니다",
 				MessageContent:        "스택 (<<STACK>>)의 노드(<<INSTANCE>>)의 idle process의 cpu 점유율이 3분 동안 0% 입니다. (현재 사용률 {{$value}}). 워커 노드 CPU가 과부하 상태입니다. 일시적인 서비스 Traffic 증가, Workload의 SW 오류, Server HW Fan Fail등 다양한 원인으로 인해 발생할 수 있습니다.",
 				MessageActionProposal: "일시적인 Service Traffic의 증가가 관측되지 않았다면, Alert발생 노드에서 실행 되는 pod중 CPU 자원을 많이 점유하는 pod의 설정을 점검해 보시길 제안드립니다. 예를 들어 pod spec의 limit 설정으로 과도한 CPU자원 점유을 막을 수 있습니다.",
@@ -230,7 +237,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "메모리 사용량이 높습니다",
 				MessageContent:        "스택 (<<STACK>>)의 노드(<<INSTANCE>>)의 Memory 사용량이 3분동안 80% 를 넘어서고 있습니다. (현재 사용률 {{$value}}). 워커 노드의 Memory 사용량이 80%를 넘었습니다. 일시적인 서비스 증가 및 SW 오류등 다양한 원인으로 발생할 수 있습니다.",
 				MessageActionProposal: "일시적인 Service Traffic의 증가가 관측되지 않았다면, Alert발생 노드에서 실행되는 pod중 Memory 사용량이 높은 pod들에 대한 점검을 제안드립니다.",
@@ -256,7 +263,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "노드 디스크 사용량이 높습니다.",
 				MessageContent:        "지난 6시간동안의 추세로 봤을 때, 스택 (<<STACK>>)의 노드(<<INSTANCE>>)의 root 볼륨은 24시간 안에 Disk full이 예상됨. 현재 Disk 사용 추세기준 24시간 내에 Disk 용량이 꽉 찰 것으로 예상됩니다.",
 				MessageActionProposal: "Disk 용량 최적화(삭제 및 Backup)을 수행하시길 권고합니다. 삭제할 내역이 없으면 증설 계획을 수립해 주십시요.",
@@ -282,7 +289,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "PVC 사용량이 높습니다.",
 				MessageContent:        "지난 6시간동안의 추세로 봤을 때, 스택 (<<INSTANCE>>)의 파드(<<PVC>>)가 24시간 안에 Disk full이 예상됨. 현재 Disk 사용 추세기준 24시간 내에 Disk 용량이 꽉 찰것으로 예상됩니다. (<<STACK>> 스택, <<PVC>> PVC)",
 				MessageActionProposal: "Disk 용량 최적화(삭제 및 Backup)을 수행하시길 권고합니다. 삭제할 내역이 없으면 증설 계획을 수립해 주십시요.",
@@ -308,7 +315,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "스택의 Pod가 재기동되고 있습니다.",
 				MessageContent:        "스택 (<<STACK>>)의 파드(<<POD>>)가 30분 동안 5회 이상 재기동 ({{$value}} 회). 특정 Pod가 빈번하게 재기동 되고 있습니다. 점검이 필요합니다. (<<STACK>> 스택, <<POD>> 파드)",
 				MessageActionProposal: "pod spec. 에 대한 점검이 필요합니다. pod의 log 및 status를 확인해 주세요.",
@@ -334,7 +341,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "정책 위반(<<KIND>> / <<NAME>>)",
 				MessageContent:        "스택 (<<STACK>>)의 자원(<<VIOLATING_KIND>> - <<VIOLATING_NAMESPACE>> / <<VIOLATING_NAME>>)에서 정책(<<KIND>> / <<NAME>>)위반이 발생했습니다. 메시지 - <<VIOLATION_MSG>>",
 				MessageActionProposal: "정책위반이 발생하였습니다.(<<KIND>> / <<NAME>>)",
@@ -360,7 +367,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 					EnableEmail:              true,
 					EnablePortal:             true,
 				},
-				TargetUsers:           []model.User{organizationAdmin},
+				TargetUsers:           []model.User{},
 				MessageTitle:          "정책 위반(<<KIND>> / <<NAME>>) 시도",
 				MessageContent:        "스택 (<<STACK>>)의 자원(<<VIOLATING_KIND>> - <<VIOLATING_NAMESPACE>> / <<VIOLATING_NAME>>)에서 정책(<<KIND>> / <<NAME>>)위반 시도가 발생했습니다. 메시지 - <<VIOLATION_MSG>>",
 				MessageActionProposal: "정책위반이 시도가 발생하였습니다.(<<KIND>> / <<NAME>>)",

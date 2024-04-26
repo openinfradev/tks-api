@@ -61,6 +61,11 @@ func (h *SystemNotificationRuleHandler) CreateSystemNotificationRule(w http.Resp
 	}
 	dto.OrganizationId = organizationId
 
+	if !dto.SystemNotificationCondition.EnablePortal {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid EnablePortal"), "SNR_INVALID_ENABLE_PORTAL", ""))
+		return
+	}
+
 	id, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -239,6 +244,10 @@ func (h *SystemNotificationRuleHandler) UpdateSystemNotificationRule(w http.Resp
 	dto.OrganizationId = organizationId
 	dto.ID = systemNotificationRuleId
 
+	if !dto.SystemNotificationCondition.EnablePortal {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid EnablePortal"), "SNR_INVALID_ENABLE_PORTAL", ""))
+		return
+	}
 	err = h.usecase.Update(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)

@@ -140,6 +140,10 @@ func (u *SystemNotificationTemplateUsecase) Delete(ctx context.Context, systemNo
 	userId := user.GetUserId()
 	systemNotificationTemplate.UpdatorId = &userId
 
+	if systemNotificationTemplate.IsSystem {
+		return httpErrors.NewBadRequestError(fmt.Errorf("cannot delete systemNotificationTemplate"), "SNT_CANNOT_DELETE_SYSTEM_TEMPLATE", "")
+	}
+
 	// check if used
 	// system_notification_rules
 	pg := pagination.NewPaginationWithFilter("system_notification_template_id", "", "$eq", []string{systemNotificationTemplateId.String()})

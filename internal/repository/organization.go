@@ -90,7 +90,7 @@ func (r *OrganizationRepository) Fetch(ctx context.Context, pg *pagination.Pagin
 	// [TODO] more pretty!
 	for _, filter := range pg.Filters {
 		if filter.Relation == "Admin" {
-			db = db.Joins("left outer join users on users.id::text = organizations.admin_id::text").
+			db = db.Joins("join users on users.id::text = organizations.admin_id::text").
 				Where("users.name ilike ?", "%"+filter.Values[0]+"%")
 			break
 		}
