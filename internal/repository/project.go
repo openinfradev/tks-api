@@ -615,7 +615,7 @@ func (r *ProjectRepository) GetProjectNamespaceByPrimaryKey(ctx context.Context,
 }
 
 func (r *ProjectRepository) UpdateProjectNamespace(ctx context.Context, pn *model.ProjectNamespace) error {
-	res := r.db.WithContext(ctx).Model(&pn).Updates(model.ProjectNamespace{Description: pn.Description, UpdatedAt: pn.UpdatedAt})
+	res := r.db.WithContext(ctx).Model(&pn).Select("Description").Updates(model.ProjectNamespace{Description: pn.Description, UpdatedAt: pn.UpdatedAt})
 	if res.Error != nil {
 		return res.Error
 	}
