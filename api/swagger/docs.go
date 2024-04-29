@@ -5943,55 +5943,6 @@ const docTemplate = `{
             }
         },
         "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Get appServeApp by giving params",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "AppServeApps"
-                ],
-                "summary": "Get appServeApp",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Organization ID",
-                        "name": "organizationId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Project ID",
-                        "name": "projectId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "App ID",
-                        "name": "appId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -10272,12 +10223,6 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_internal_model.AppServeApp": {
             "type": "object",
             "properties": {
-                "appServeAppTasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeAppTask"
-                    }
-                },
                 "appType": {
                     "description": "appType (spring/springboot)",
                     "type": "string"
@@ -10286,6 +10231,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description for application",
                     "type": "string"
                 },
                 "endpointUrl": {
@@ -10336,106 +10285,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_internal_model.AppServeAppTask": {
-            "type": "object",
-            "properties": {
-                "appConfig": {
-                    "description": "java app config",
-                    "type": "string"
-                },
-                "appSecret": {
-                    "description": "java app secret",
-                    "type": "string"
-                },
-                "appServeAppId": {
-                    "description": "ID for appServeApp that this task belongs to",
-                    "type": "string"
-                },
-                "artifactUrl": {
-                    "description": "URL of java app artifact (Eg, Jar)",
-                    "type": "string"
-                },
-                "availableRollback": {
-                    "type": "boolean"
-                },
-                "createdAt": {
-                    "description": "createdAt is  a creation timestamp for the application",
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "executablePath": {
-                    "description": "Executable path of app image",
-                    "type": "string"
-                },
-                "extraEnv": {
-                    "description": "env variable list for java app",
-                    "type": "string"
-                },
-                "helmRevision": {
-                    "description": "revision of deployed helm release",
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "imageUrl": {
-                    "description": "URL of built image for app",
-                    "type": "string"
-                },
-                "output": {
-                    "description": "output for task result",
-                    "type": "string"
-                },
-                "port": {
-                    "description": "java app port",
-                    "type": "string"
-                },
-                "profile": {
-                    "description": "java app profile",
-                    "type": "string"
-                },
-                "pvAccessMode": {
-                    "type": "string"
-                },
-                "pvEnabled": {
-                    "type": "boolean"
-                },
-                "pvMountPath": {
-                    "type": "string"
-                },
-                "pvSize": {
-                    "type": "string"
-                },
-                "pvStorageClass": {
-                    "type": "string"
-                },
-                "resourceSpec": {
-                    "description": "resource spec of app pod",
-                    "type": "string"
-                },
-                "rollbackVersion": {
-                    "description": "rollback target version",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "status is app status",
-                    "type": "string"
-                },
-                "strategy": {
-                    "description": "deployment strategy (eg, rolling-update)",
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "version": {
-                    "description": "application version",
                     "type": "string"
                 }
             }
@@ -10716,12 +10565,6 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse": {
             "type": "object",
             "properties": {
-                "appServeAppTasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse"
-                    }
-                },
                 "appType": {
                     "description": "appType (spring/springboot)",
                     "type": "string"
@@ -10730,6 +10573,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "deletedAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description for application",
                     "type": "string"
                 },
                 "endpointUrl": {
@@ -12623,20 +12470,6 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse": {
-            "type": "object",
-            "properties": {
-                "appServeApp": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse"
-                },
-                "stages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StageResponse"
-                    }
                 }
             }
         },

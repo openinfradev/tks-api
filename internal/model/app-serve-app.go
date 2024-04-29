@@ -1,29 +1,29 @@
 package model
 
 import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"time"
-    "github.com/google/uuid"
-    "gorm.io/gorm"
 )
 
 type AppServeApp struct {
-	ID                 string            `gorm:"primarykey" json:"id,omitempty"`
-	Name               string            `gorm:"index" json:"name,omitempty"`              // application name
-	Namespace          string            `json:"namespace,omitempty"`                      // application namespace
-	OrganizationId     string            `json:"organizationId,omitempty"`                 // contractId is a contract ID which this app belongs to
-	ProjectId          string            `json:"projectId,omitempty"`                      // project ID which this app belongs to
-	Type               string            `json:"type,omitempty"`                           // type (build/deploy/all)
-	AppType            string            `json:"appType,omitempty"`                        // appType (spring/springboot)
-	EndpointUrl        string            `json:"endpointUrl,omitempty"`                    // endpoint URL of deployed app
-	PreviewEndpointUrl string            `json:"previewEndpointUrl,omitempty"`             // preview svc endpoint URL in B/G deployment
-	TargetClusterId    string            `json:"targetClusterId,omitempty"`                // target cluster to which the app is deployed
-	TargetClusterName  string            `gorm:"-:all" json:"targetClusterName,omitempty"` // target cluster name
-	Status             string            `gorm:"index" json:"status,omitempty"`            // status is status of deployed app
-	GrafanaUrl         string            `json:"grafanaUrl,omitempty"`                     // grafana dashboard URL for deployed app
-	CreatedAt          time.Time         `gorm:"autoCreateTime:false" json:"createdAt" `
-	UpdatedAt          *time.Time        `gorm:"autoUpdateTime:false" json:"updatedAt"`
-	DeletedAt          *time.Time        `json:"deletedAt"`
-	AppServeAppTasks   []AppServeAppTask `gorm:"foreignKey:AppServeAppId" json:"appServeAppTasks"`
+	ID                 string     `gorm:"primarykey" json:"id,omitempty"`
+	Name               string     `gorm:"index" json:"name,omitempty"`              // application name
+	Namespace          string     `json:"namespace,omitempty"`                      // application namespace
+	OrganizationId     string     `json:"organizationId,omitempty"`                 // contractId is a contract ID which this app belongs to
+	ProjectId          string     `json:"projectId,omitempty"`                      // project ID which this app belongs to
+	Type               string     `json:"type,omitempty"`                           // type (build/deploy/all)
+	AppType            string     `json:"appType,omitempty"`                        // appType (spring/springboot)
+	EndpointUrl        string     `json:"endpointUrl,omitempty"`                    // endpoint URL of deployed app
+	PreviewEndpointUrl string     `json:"previewEndpointUrl,omitempty"`             // preview svc endpoint URL in B/G deployment
+	TargetClusterId    string     `json:"targetClusterId,omitempty"`                // target cluster to which the app is deployed
+	TargetClusterName  string     `gorm:"-:all" json:"targetClusterName,omitempty"` // target cluster name
+	Status             string     `gorm:"index" json:"status,omitempty"`            // status is status of deployed app
+	GrafanaUrl         string     `json:"grafanaUrl,omitempty"`                     // grafana dashboard URL for deployed app
+	Description        string     `json:"description,omitempty"`                    // description for application
+	CreatedAt          time.Time  `gorm:"autoCreateTime:false" json:"createdAt" `
+	UpdatedAt          *time.Time `gorm:"autoUpdateTime:false" json:"updatedAt"`
+	DeletedAt          *time.Time `json:"deletedAt"`
 }
 
 type AppServeAppTask struct {

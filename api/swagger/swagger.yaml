@@ -2,16 +2,15 @@ basePath: /api/1.0/
 definitions:
   github_com_openinfradev_tks-api_internal_model.AppServeApp:
     properties:
-      appServeAppTasks:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_internal_model.AppServeAppTask'
-        type: array
       appType:
         description: appType (spring/springboot)
         type: string
       createdAt:
         type: string
       deletedAt:
+        type: string
+      description:
+        description: description for application
         type: string
       endpointUrl:
         description: endpoint URL of deployed app
@@ -49,78 +48,6 @@ definitions:
         description: type (build/deploy/all)
         type: string
       updatedAt:
-        type: string
-    type: object
-  github_com_openinfradev_tks-api_internal_model.AppServeAppTask:
-    properties:
-      appConfig:
-        description: java app config
-        type: string
-      appSecret:
-        description: java app secret
-        type: string
-      appServeAppId:
-        description: ID for appServeApp that this task belongs to
-        type: string
-      artifactUrl:
-        description: URL of java app artifact (Eg, Jar)
-        type: string
-      availableRollback:
-        type: boolean
-      createdAt:
-        description: createdAt is  a creation timestamp for the application
-        type: string
-      deletedAt:
-        type: string
-      executablePath:
-        description: Executable path of app image
-        type: string
-      extraEnv:
-        description: env variable list for java app
-        type: string
-      helmRevision:
-        description: revision of deployed helm release
-        type: integer
-      id:
-        type: string
-      imageUrl:
-        description: URL of built image for app
-        type: string
-      output:
-        description: output for task result
-        type: string
-      port:
-        description: java app port
-        type: string
-      profile:
-        description: java app profile
-        type: string
-      pvAccessMode:
-        type: string
-      pvEnabled:
-        type: boolean
-      pvMountPath:
-        type: string
-      pvSize:
-        type: string
-      pvStorageClass:
-        type: string
-      resourceSpec:
-        description: resource spec of app pod
-        type: string
-      rollbackVersion:
-        description: rollback target version
-        type: string
-      status:
-        description: status is app status
-        type: string
-      strategy:
-        description: deployment strategy (eg, rolling-update)
-        type: string
-      updatedAt:
-        type: string
-      version:
-        description: application version
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ActionResponse:
@@ -313,16 +240,15 @@ definitions:
     - AppGroupType_SERVICE_MESH
   github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse:
     properties:
-      appServeAppTasks:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppTaskResponse'
-        type: array
       appType:
         description: appType (spring/springboot)
         type: string
       createdAt:
         type: string
       deletedAt:
+        type: string
+      description:
+        description: description for application
         type: string
       endpointUrl:
         description: endpoint URL of deployed app
@@ -1608,15 +1534,6 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse:
-    properties:
-      appServeApp:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.AppServeAppResponse'
-      stages:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StageResponse'
-        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppTaskResponse:
     properties:
@@ -7993,38 +7910,6 @@ paths:
       security:
       - JWT: []
       summary: Uninstall appServeApp
-      tags:
-      - AppServeApps
-    get:
-      consumes:
-      - application/json
-      description: Get appServeApp by giving params
-      parameters:
-      - description: Organization ID
-        in: path
-        name: organizationId
-        required: true
-        type: string
-      - description: Project ID
-        in: path
-        name: projectId
-        required: true
-        type: string
-      - description: App ID
-        in: path
-        name: appId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppResponse'
-      security:
-      - JWT: []
-      summary: Get appServeApp
       tags:
       - AppServeApps
     put:

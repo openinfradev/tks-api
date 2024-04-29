@@ -24,11 +24,11 @@ import (
 )
 
 type IAppServeAppUsecase interface {
-	CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (appId string, taskId string, err error)
+	CreateAppServeApp(ctx context.Context, app *model.AppServeApp, task *model.AppServeAppTask) (appId string, taskId string, err error)
 	GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
 	GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
-	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error)
+	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, error)
 	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
 	GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error)
 	IsAppServeAppExist(ctx context.Context, appId string) (bool, error)
@@ -36,7 +36,7 @@ type IAppServeAppUsecase interface {
 	IsAppServeAppNamespaceExist(ctx context.Context, clusterId string, namespace string) (bool, error)
 	UpdateAppServeAppStatus(ctx context.Context, appId string, taskId string, status string, output string) (ret string, err error)
 	DeleteAppServeApp(ctx context.Context, appId string) (res string, err error)
-	UpdateAppServeApp(ctx context.Context, app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error)
+	UpdateAppServeApp(ctx context.Context, appId string, appTask *model.AppServeAppTask) (ret string, err error)
 	UpdateAppServeAppEndpoint(ctx context.Context, appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) (string, error)
 	PromoteAppServeApp(ctx context.Context, appId string) (ret string, err error)
 	AbortAppServeApp(ctx context.Context, appId string) (ret string, err error)
@@ -59,7 +59,7 @@ func NewAppServeAppUsecase(r repository.Repository, argoClient argowf.ArgoClient
 	}
 }
 
-func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.AppServeApp) (string, string, error) {
+func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.AppServeApp, task *model.AppServeAppTask) (string, string, error) {
 	if app == nil {
 		return "", "", fmt.Errorf("invalid app obj")
 	}
@@ -69,29 +69,29 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 	// (Refer to 'tks-appserve-template')
 	if app.Type != "deploy" {
 		// Validate param
-		if app.AppServeAppTasks[0].ArtifactUrl == "" {
+		if task.ArtifactUrl == "" {
 			return "", "", fmt.Errorf("error: For 'build'/'all' type task, 'artifact_url' is mandatory param")
 		}
 
 		// Construct imageUrl
-		imageUrl := viper.GetString("image-registry-url") + "/" + app.Name + "-" + app.TargetClusterId + ":" + app.AppServeAppTasks[0].Version
-		app.AppServeAppTasks[0].ImageUrl = imageUrl
+		imageUrl := viper.GetString("image-registry-url") + "/" + app.Name + "-" + app.TargetClusterId + ":" + task.Version
+		task.ImageUrl = imageUrl
 
 		if app.AppType == "springboot" {
 			// Construct executable_path
-			artiUrl := app.AppServeAppTasks[0].ArtifactUrl
+			artiUrl := task.ArtifactUrl
 			tempArr := strings.Split(artiUrl, "/")
 			exeFilename := tempArr[len(tempArr)-1]
 
 			executablePath := "/usr/src/myapp/" + exeFilename
-			app.AppServeAppTasks[0].ExecutablePath = executablePath
+			task.ExecutablePath = executablePath
 		}
 	} else {
 		// Validate param for 'deploy' type.
 		// TODO: check params for legacy spring app case
 		if app.AppType == "springboot" {
-			if app.AppServeAppTasks[0].ImageUrl == "" || app.AppServeAppTasks[0].ExecutablePath == "" ||
-				app.AppServeAppTasks[0].Profile == "" || app.AppServeAppTasks[0].ResourceSpec == "" {
+			if task.ImageUrl == "" || task.ExecutablePath == "" ||
+				task.Profile == "" || task.ResourceSpec == "" {
 				return "",
 					"",
 					fmt.Errorf("Error: For 'deploy' type task, the following params must be provided." +
@@ -100,7 +100,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 		}
 	}
 
-	extEnv := app.AppServeAppTasks[0].ExtraEnv
+	extEnv := task.ExtraEnv
 	if extEnv != "" {
 		/* Preprocess extraEnv param */
 		log.Debug(ctx, "extraEnv received: ", extEnv)
@@ -125,10 +125,16 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
-	appId, taskId, err := u.repo.CreateAppServeApp(ctx, app)
+	appId, err := u.repo.CreateAppServeApp(ctx, app)
 	if err != nil {
 		log.Error(ctx, err)
 		return "", "", errors.Wrap(err, "Failed to create app.")
+	}
+
+	taskId, err := u.repo.CreateTask(ctx, task)
+	if err != nil {
+		log.Error(ctx, err)
+		return "", "", errors.Wrap(err, "Failed to create task.")
 	}
 
 	fmt.Printf("appId = %s, taskId = %s", appId, taskId)
@@ -141,7 +147,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 	opts := argowf.SubmitOptions{}
 	opts.Parameters = []string{
 		"type=" + app.Type,
-		"strategy=" + app.AppServeAppTasks[0].Strategy,
+		"strategy=" + task.Strategy,
 		"app_type=" + app.AppType,
 		"organization_id=" + app.OrganizationId,
 		"project_id=" + app.ProjectId,
@@ -150,22 +156,22 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 		"namespace=" + app.Namespace,
 		"asa_id=" + appId,
 		"asa_task_id=" + taskId,
-		"artifact_url=" + app.AppServeAppTasks[0].ArtifactUrl,
-		"image_url=" + app.AppServeAppTasks[0].ImageUrl,
-		"port=" + app.AppServeAppTasks[0].Port,
-		"profile=" + app.AppServeAppTasks[0].Profile,
+		"artifact_url=" + task.ArtifactUrl,
+		"image_url=" + task.ImageUrl,
+		"port=" + task.Port,
+		"profile=" + task.Profile,
 		"extra_env=" + extEnv,
-		"app_config=" + app.AppServeAppTasks[0].AppConfig,
-		"app_secret=" + app.AppServeAppTasks[0].AppSecret,
-		"resource_spec=" + app.AppServeAppTasks[0].ResourceSpec,
-		"executable_path=" + app.AppServeAppTasks[0].ExecutablePath,
+		"app_config=" + task.AppConfig,
+		"app_secret=" + task.AppSecret,
+		"resource_spec=" + task.ResourceSpec,
+		"executable_path=" + task.ExecutablePath,
 		"git_repo_url=" + viper.GetString("git-repository-url"),
 		"harbor_pw_secret=" + viper.GetString("harbor-pw-secret"),
-		"pv_enabled=" + strconv.FormatBool(app.AppServeAppTasks[0].PvEnabled),
-		"pv_storage_class=" + app.AppServeAppTasks[0].PvStorageClass,
-		"pv_access_mode=" + app.AppServeAppTasks[0].PvAccessMode,
-		"pv_size=" + app.AppServeAppTasks[0].PvSize,
-		"pv_mount_path=" + app.AppServeAppTasks[0].PvMountPath,
+		"pv_enabled=" + strconv.FormatBool(task.PvEnabled),
+		"pv_storage_class=" + task.PvStorageClass,
+		"pv_access_mode=" + task.PvAccessMode,
+		"pv_size=" + task.PvSize,
+		"pv_mount_path=" + task.PvMountPath,
 		"tks_api_url=" + viper.GetString("external-address"),
 	}
 
@@ -204,6 +210,7 @@ func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId strin
 		return asa, httpErrors.NewInternalServerError(errors.Wrap(err, fmt.Sprintf("Failed to get organization for app %s", asa.Name)), "S_FAILED_FETCH_ORGANIZATION", "")
 	}
 
+	// Get app groups in primary clustser
 	appGroupsInPrimaryCluster, err := u.appGroupRepo.Fetch(ctx, domain.ClusterId(organization.PrimaryClusterId), nil)
 	if err != nil {
 		return asa, err
@@ -217,6 +224,7 @@ func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId strin
 			}
 			if len(applications) > 0 {
 				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_appserving_dashboard/tks-appserving-dashboard?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10"
+				log.Debugf(ctx, "Found grafanaURL: %s", asa.GrafanaUrl)
 			}
 		}
 	}
@@ -227,19 +235,20 @@ func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId strin
 func (u *AppServeAppUsecase) GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error) {
 	tasks, err := u.repo.GetAppServeAppTasksByAppId(ctx, appId, pg)
 	if err != nil {
-		log.Debugf(ctx, "Tasks: %v", tasks)
+		log.Debugf(ctx, "Error while getting task list. Tasks: %v", tasks)
+		return nil, err
 	}
 
 	return tasks, nil
 }
 
-func (u *AppServeAppUsecase) GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, *model.AppServeApp, error) {
-	task, app, err := u.repo.GetAppServeAppTaskById(ctx, taskId)
+func (u *AppServeAppUsecase) GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, error) {
+	task, err := u.repo.GetAppServeAppTaskById(ctx, taskId)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return task, app, nil
+	return task, nil
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error) {
@@ -360,14 +369,28 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string
 	/********************
 	 * Start delete task *
 	 ********************/
+	latestTask, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
+	if err != nil {
+		return "", err
+	}
+
+	verInt, err := strconv.Atoi(latestTask.Version)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to convert version to integer.")
+	}
+	newVerStr := strconv.Itoa(verInt + 1)
+
+	// Temp Debug
+	log.Debugf(ctx, "Old version: %s", latestTask.Version)
+	log.Debugf(ctx, "New version: %s", newVerStr)
 
 	appTask := &model.AppServeAppTask{
 		AppServeAppId: app.ID,
-		Version:       strconv.Itoa(len(app.AppServeAppTasks) + 1),
+		Version:       newVerStr,
 		ArtifactUrl:   "",
-		ImageUrl:      app.AppServeAppTasks[0].ImageUrl,
+		ImageUrl:      latestTask.ImageUrl,
 		Status:        "DELETING",
-		Profile:       app.AppServeAppTasks[0].Profile,
+		Profile:       "",
 		Output:        "",
 		CreatedAt:     time.Now(),
 	}
@@ -413,18 +436,18 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string
 		"Confirm result by checking the app status after a while.", app.Name), nil
 }
 
-func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, app *model.AppServeApp, appTask *model.AppServeAppTask) (ret string, err error) {
+func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, appId string, appTask *model.AppServeAppTask) (ret string, err error) {
 	if appTask == nil {
 		return "", errors.New("invalid parameters. appTask is nil")
 	}
 
-	app_, err := u.repo.GetAppServeAppById(ctx, app.ID)
+	app, err := u.repo.GetAppServeAppById(ctx, appId)
 	if err != nil {
 		return "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
 	}
 
 	// Block update if the app's current status is one of those.
-	if app_.Status == "PROMOTE_WAIT" || app_.Status == "PROMOTING" || app_.Status == "ABORTING" {
+	if app.Status == "PROMOTE_WAIT" || app.Status == "PROMOTING" || app.Status == "ABORTING" {
 		return "승인대기 또는 프로모트 작업 중에는 업그레이드를 수행할 수 없습니다", fmt.Errorf("Update not possible. The app is waiting for promote or in the middle of promote process.")
 	}
 
@@ -559,10 +582,15 @@ func (u *AppServeAppUsecase) PromoteAppServeApp(ctx context.Context, appId strin
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the promotion is done.
-	latestTaskId := app.AppServeAppTasks[0].ID
-	strategy := app.AppServeAppTasks[0].Strategy
-	log.Info(ctx, "latestTaskId = ", latestTaskId)
-	log.Info(ctx, "strategy = ", strategy)
+	latestTask, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
+	if err != nil {
+		return "", err
+	}
+
+	latestTaskId := latestTask.ID
+	strategy := latestTask.Strategy
+	log.Debug(ctx, "latestTaskId = ", latestTaskId)
+	log.Debug(ctx, "strategy = ", strategy)
 
 	log.Info(ctx, "Updating app status to 'PROMOTING'..")
 
@@ -612,8 +640,13 @@ func (u *AppServeAppUsecase) AbortAppServeApp(ctx context.Context, appId string)
 	}
 
 	// Get the latest task ID so that the task status can be modified inside workflow once the abort process is done.
-	latestTaskId := app.AppServeAppTasks[0].ID
-	log.Info(ctx, "latestTaskId = ", latestTaskId)
+	latestTask, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
+	if err != nil {
+		return "", err
+	}
+
+	latestTaskId := latestTask.ID
+	log.Debug(ctx, "latestTaskId = ", latestTaskId)
 	log.Info(ctx, "Updating app status to 'ABORTING'..")
 
 	err = u.repo.UpdateStatus(ctx, appId, latestTaskId, "ABORTING", "")
@@ -659,30 +692,43 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId stri
 	}
 
 	// Find target(dest) task
-	var task model.AppServeAppTask
-	for _, t := range app.AppServeAppTasks {
-		if t.ID == taskId {
-			task = t
-			break
-		}
+	task, err := u.repo.GetAppServeAppTaskById(ctx, taskId)
+	if err != nil {
+		return "", err
+	}
+
+	if task.AppServeAppId != appId {
+		return "", fmt.Errorf("Rollback target task doesn't belong to current app. It belongs to: %s", task.AppServeAppId)
+	}
+
+	// Find latest task for version info
+	latestTask, err := u.repo.GetAppServeAppLatestTask(ctx, appId)
+	if err != nil {
+		return "", err
 	}
 
 	// Save target version
 	targetVer := task.Version
 	targetRev := task.HelmRevision
 
+	verInt, err := strconv.Atoi(latestTask.Version)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to convert version to integer.")
+	}
+	newVerStr := strconv.Itoa(verInt + 1)
+
 	// Insert new values to the target task object
 	task.ID = ""
 	task.Output = ""
 	task.Status = "ROLLBACKING"
-	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
+	task.Version = newVerStr
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
 	task.HelmRevision = 0
 	task.RollbackVersion = targetVer
 
 	// Creates new task record from the target task
-	newTaskId, err := u.repo.CreateTask(ctx, &task)
+	newTaskId, err := u.repo.CreateTask(ctx, task)
 	if err != nil {
 		log.Info(ctx, "taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)
