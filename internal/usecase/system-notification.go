@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/mail"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -56,6 +57,8 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 	if input.SystemNotifications == nil || len(input.SystemNotifications) == 0 {
 		return fmt.Errorf("No data found")
 	}
+
+	log.Info(ctx, helper.ModelToJson(input))
 
 	allClusters, err := u.clusterRepo.Fetch(ctx, nil)
 	if err != nil {
