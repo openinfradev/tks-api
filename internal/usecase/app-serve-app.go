@@ -131,7 +131,7 @@ func (u *AppServeAppUsecase) CreateAppServeApp(ctx context.Context, app *model.A
 		return "", "", errors.Wrap(err, "Failed to create app.")
 	}
 
-	taskId, err := u.repo.CreateTask(ctx, task)
+	taskId, err := u.repo.CreateTask(ctx, task, appId)
 	if err != nil {
 		log.Error(ctx, err)
 		return "", "", errors.Wrap(err, "Failed to create task.")
@@ -395,7 +395,7 @@ func (u *AppServeAppUsecase) DeleteAppServeApp(ctx context.Context, appId string
 		CreatedAt:     time.Now(),
 	}
 
-	taskId, err := u.repo.CreateTask(ctx, appTask)
+	taskId, err := u.repo.CreateTask(ctx, appTask, "")
 	if err != nil {
 		log.Error(ctx, "taskId = ", taskId)
 		log.Error(ctx, "Failed to create delete task. Err:", err)
@@ -503,7 +503,8 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, appId string
 		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
-	taskId, err := u.repo.CreateTask(ctx, appTask)
+    // TODO: Check if appId is necessary here.
+	taskId, err := u.repo.CreateTask(ctx, appTask, appId)
 	if err != nil {
 		log.Info(ctx, "taskId = ", taskId)
 		return "", fmt.Errorf("failed to update app-serve application. Err: %s", err)
@@ -728,7 +729,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId stri
 	task.RollbackVersion = targetVer
 
 	// Creates new task record from the target task
-	newTaskId, err := u.repo.CreateTask(ctx, task)
+	newTaskId, err := u.repo.CreateTask(ctx, task, "")
 	if err != nil {
 		log.Info(ctx, "taskId = ", newTaskId)
 		return "", fmt.Errorf("failed to rollback app-serve application. Err: %s", err)

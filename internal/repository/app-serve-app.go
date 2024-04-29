@@ -26,7 +26,7 @@ type IAppServeAppRepository interface {
 
 	IsAppServeAppExist(ctx context.Context, appId string) (int64, error)
 	IsAppServeAppNameExist(ctx context.Context, orgId string, appName string) (int64, error)
-	CreateTask(ctx context.Context, task *model.AppServeAppTask) (taskId string, err error)
+	CreateTask(ctx context.Context, task *model.AppServeAppTask, appId string) (taskId string, err error)
 	UpdateStatus(ctx context.Context, appId string, taskId string, status string, output string) error
 	UpdateEndpoint(ctx context.Context, appId string, taskId string, endpoint string, previewEndpoint string, helmRevision int32) error
 	GetTaskCountById(ctx context.Context, appId string) (int64, error)
@@ -53,8 +53,11 @@ func (r *AppServeAppRepository) CreateAppServeApp(ctx context.Context, app *mode
 }
 
 // Update creates new appServeApp task for existing appServeApp.
-func (r *AppServeAppRepository) CreateTask(ctx context.Context, task *model.AppServeAppTask) (string, error) {
+func (r *AppServeAppRepository) CreateTask(ctx context.Context, task *model.AppServeAppTask, appId string) (string, error) {
 	task.ID = uuid.New().String()
+    if len(appId) > 0 {
+        task.AppServeAppId = appId
+    }
 	res := r.db.WithContext(ctx).Create(task)
 	if res.Error != nil {
 		return "", res.Error
