@@ -191,6 +191,11 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 		return err
 	}
 
+	err = u.organizationRepo.AddSystemNotificationTemplates(ctx, organizationId, templates)
+	if err != nil {
+		return httpErrors.NewBadRequestError(err, "ST_FAILED_ADD_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE", "")
+	}
+
 	rules := make([]model.SystemNotificationRule, 0)
 	for _, template := range templates {
 		if template.Name == domain.SN_TYPE_NODE_CPU_HIGH_LOAD {
