@@ -99,6 +99,15 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, err)
 			return
 		}
+	} else {
+		normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
+
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
+			return
+		}
+
+		input.Match.Kinds = normaized
 	}
 
 	if len(input.PolicyResourceName) > 0 {
@@ -191,6 +200,14 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, err)
 			return
 		}
+	} else {
+		normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
+			return
+		}
+
+		input.Match.Kinds = normaized
 	}
 
 	var templateId *uuid.UUID = nil
