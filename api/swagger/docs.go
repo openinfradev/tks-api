@@ -1332,6 +1332,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/stack-templates/template-ids": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get GetStackTemplateTemplateIds",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get GetStackTemplateTemplateIds",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateTemplateIdsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/stack-templates/{stackTemplateId}": {
             "get": {
                 "security": [
@@ -13140,6 +13168,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse"
+                    }
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateTemplateIdsResponse": {
+            "type": "object",
+            "properties": {
+                "templateIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

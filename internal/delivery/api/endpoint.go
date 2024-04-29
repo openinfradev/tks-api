@@ -99,6 +99,7 @@ const (
 	Admin_GetStackTemplates
 	Admin_GetStackTemplate
 	Admin_GetStackTemplateServices
+	Admin_GetStackTemplateTemplateIds
 	Admin_CreateStackTemplate
 	Admin_UpdateStackTemplate
 	Admin_DeleteStackTemplate

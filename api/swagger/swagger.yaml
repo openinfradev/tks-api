@@ -1967,6 +1967,13 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackTemplateServiceResponse'
         type: array
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateTemplateIdsResponse:
+    properties:
+      templateIds:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse:
     properties:
       pagination:
@@ -5196,6 +5203,23 @@ paths:
       security:
       - JWT: []
       summary: Get GetStackTemplateServices
+      tags:
+      - StackTemplates
+  /admin/stack-templates/template-ids:
+    get:
+      consumes:
+      - application/json
+      description: Get GetStackTemplateTemplateIds
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplateTemplateIdsResponse'
+      security:
+      - JWT: []
+      summary: Get GetStackTemplateTemplateIds
       tags:
       - StackTemplates
   /admin/system-notification-templates:

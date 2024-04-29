@@ -3,7 +3,10 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -11,9 +14,11 @@ import (
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
+	"github.com/openinfradev/tks-api/pkg/kubernetes"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type IStackTemplateUsecase interface {
@@ -27,6 +32,7 @@ type IStackTemplateUsecase interface {
 	GetByName(ctx context.Context, name string) (model.StackTemplate, error)
 	AddOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
 	RemoveOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
+	GetTemplateIds(ctx context.Context) ([]string, error)
 }
 
 type StackTemplateUsecase struct {
@@ -225,6 +231,51 @@ func (u *StackTemplateUsecase) RemoveOrganizationStackTemplates(ctx context.Cont
 	}
 
 	return nil
+}
+
+func (u *StackTemplateUsecase) GetTemplateIds(ctx context.Context) (out []string, err error) {
+	clientset_admin, err := kubernetes.GetClientAdminCluster(ctx)
+	if err != nil {
+		return out, errors.Wrap(err, "Failed to get client set for admin cluster")
+	}
+
+	secrets, err := clientset_admin.CoreV1().Secrets("argo").Get(context.TODO(), "git-svc-token", metav1.GetOptions{})
+	if err != nil {
+		log.Error(ctx, "cannot found git-svc-token. so use default hard-corded values")
+		return out, err
+	}
+
+	gitSvcUrl := string(secrets.Data["GIT_SVC_URL"])
+	username := string(secrets.Data["USERNAME"])
+	branch := string(secrets.Data["GIT_BASE_BRANCH"])
+	url := fmt.Sprintf("%s/%s/decapod-site/src/branch/%s", gitSvcUrl, username, branch)
+	log.Info(ctx, "git url : ", url)
+
+	rsp, err := http.Get(url)
+	if err != nil {
+		return out, err
+	}
+	defer rsp.Body.Close()
+
+	html, err := goquery.NewDocumentFromReader(rsp.Body)
+	if err != nil {
+		return out, err
+	}
+
+	wrapper := html.Find("#repo-files-table > tbody")
+	items := wrapper.Find("a.muted")
+	items.Each(func(idx int, sel *goquery.Selection) {
+		href, _ := sel.Attr("href")
+		if strings.Contains(href, "reference") {
+			arr := strings.Split(href, "/")
+			log.Info(ctx, arr[len(arr)-1])
+
+			out = append(out, arr[len(arr)-1])
+		}
+
+	})
+
+	return
 }
 
 func servicesFromIds(serviceIds []string) []byte {
