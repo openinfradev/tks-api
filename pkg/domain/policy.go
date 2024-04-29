@@ -73,11 +73,11 @@ type UpdatePolicyRequest struct {
 	TargetClusterIds *[]string `json:"targetClusterIds,omitempty" example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
 	Mandatory        *bool     `json:"mandatory,omitempty"`
 
-	PolicyName        *string `json:"policyName,omitempty" validate:"required,name" example:"label 정책"`
-	Description       *string `json:"description"`
+	PolicyName        *string `json:"policyName,omitempty" validate:"name" example:"label 정책"`
+	Description       *string `json:"description,omitempty"`
 	TemplateId        *string `json:"templateId,omitempty" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
-	EnforcementAction *string `json:"enforcementAction" validate:"required,oneof=deny dryrun warn" enum:"warn,deny,dryrun" example:"deny"`
-	Parameters        *string `json:"parameters" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
+	EnforcementAction *string `json:"enforcementAction" validate:"omitempty,oneof=deny dryrun warn" enum:"warn,deny,dryrun" example:"deny"`
+	Parameters        *string `json:"parameters,omitempty" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
 	Match             *Match  `json:"match,omitempty"`
 	MatchYaml         *string `json:"matchYaml,omitempty"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
