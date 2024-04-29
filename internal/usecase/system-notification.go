@@ -128,6 +128,7 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			GrafanaUrl:               u.makeGrafanaUrl(ctx, primaryCluster, systemNotification, domain.ClusterId(clusterId)),
 			RawData:                  rawData,
 			SystemNotificationRuleId: systemNotificationRuleId,
+			NotificationType:         systemNotification.Annotations.AlertType,
 		}
 
 		_, err = u.repo.Create(ctx, dto)

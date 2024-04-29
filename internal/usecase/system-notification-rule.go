@@ -203,7 +203,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_NODE_CPU_HIGH_LOAD + "-warning",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - CPU 사용량",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
@@ -229,7 +229,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_NODE_MEMORY_HIGH_UTILIZATION + "-warning",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - 메모리 사용량",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
@@ -255,7 +255,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_NODE_DISK_FULL + "-critical",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - 노드 디스크 사용량",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
@@ -281,7 +281,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_PVC_FULL + "-critical",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - PVC 사용량",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
@@ -307,7 +307,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_POD_RESTART_FREQUENTLY + "-critical",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - Pod 재기동",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
@@ -333,7 +333,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_POLICY_AUDITED + "-critical",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - 정책 위반",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
@@ -359,7 +359,7 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
 				Name:                         domain.SN_TYPE_POLICY_BLOCKED + "-critical",
-				Description:                  "",
+				Description:                  "기본 시스템 알림 - 정책 위반 시도",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
 				IsSystem:                     true,
