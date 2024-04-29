@@ -111,3 +111,7 @@ type AddOrganizationStackTemplatesRequest struct {
 type RemoveOrganizationStackTemplatesRequest struct {
 	StackTemplateIds []string `json:"stackTemplateIds" validate:"required"`
 }
+
+type GetStackTemplateTemplateIdsResponse struct {
+	TemplateIds []string `json:"templateIds"`
+}

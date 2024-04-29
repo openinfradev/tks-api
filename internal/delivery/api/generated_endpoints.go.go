@@ -291,6 +291,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "Admin_GetStackTemplateServices", 
 		Group: "StackTemplate",
 	},
+    Admin_GetStackTemplateTemplateIds: {
+		Name: "Admin_GetStackTemplateTemplateIds", 
+		Group: "StackTemplate",
+	},
     Admin_CreateStackTemplate: {
 		Name: "Admin_CreateStackTemplate", 
 		Group: "StackTemplate",
@@ -481,6 +485,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 	},
     GetPolicyNotifications: {
 		Name: "GetPolicyNotifications", 
+		Group: "PolicyNotification",
+	},
+    GetPolicyNotification: {
+		Name: "GetPolicyNotification", 
 		Group: "PolicyNotification",
 	},
     GetStacks: {
@@ -1070,6 +1078,8 @@ func (e Endpoint) String() string {
 		return "Admin_GetStackTemplate"
 	case Admin_GetStackTemplateServices:
 		return "Admin_GetStackTemplateServices"
+	case Admin_GetStackTemplateTemplateIds:
+		return "Admin_GetStackTemplateTemplateIds"
 	case Admin_CreateStackTemplate:
 		return "Admin_CreateStackTemplate"
 	case Admin_UpdateStackTemplate:
@@ -1166,6 +1176,8 @@ func (e Endpoint) String() string {
 		return "CreateSystemNotificationAction"
 	case GetPolicyNotifications:
 		return "GetPolicyNotifications"
+	case GetPolicyNotification:
+		return "GetPolicyNotification"
 	case GetStacks:
 		return "GetStacks"
 	case CreateStack:
@@ -1536,6 +1548,8 @@ func GetEndpoint(name string) Endpoint {
 		return Admin_GetStackTemplate
 	case "Admin_GetStackTemplateServices":
 		return Admin_GetStackTemplateServices
+	case "Admin_GetStackTemplateTemplateIds":
+		return Admin_GetStackTemplateTemplateIds
 	case "Admin_CreateStackTemplate":
 		return Admin_CreateStackTemplate
 	case "Admin_UpdateStackTemplate":
@@ -1632,6 +1646,8 @@ func GetEndpoint(name string) Endpoint {
 		return CreateSystemNotificationAction
 	case "GetPolicyNotifications":
 		return GetPolicyNotifications
+	case "GetPolicyNotification":
+		return GetPolicyNotification
 	case "GetStacks":
 		return GetStacks
 	case "CreateStack":

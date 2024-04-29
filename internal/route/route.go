@@ -188,6 +188,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	stackTemplateHandler := delivery.NewStackTemplateHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates", customMiddleware.Handle(internalApi.Admin_GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplates))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/services", customMiddleware.Handle(internalApi.Admin_GetStackTemplateServices, http.HandlerFunc(stackTemplateHandler.GetStackTemplateServices))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/template-ids", customMiddleware.Handle(internalApi.Admin_GetStackTemplateTemplateIds, http.HandlerFunc(stackTemplateHandler.GetStackTemplateTemplateIds))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/name/{name}/existence", customMiddleware.Handle(internalApi.Admin_CheckStackTemplateName, http.HandlerFunc(stackTemplateHandler.CheckStackTemplateName))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_GetStackTemplates, http.HandlerFunc(stackTemplateHandler.GetStackTemplate))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates", customMiddleware.Handle(internalApi.Admin_CreateStackTemplate, http.HandlerFunc(stackTemplateHandler.CreateStackTemplate))).Methods(http.MethodPost)

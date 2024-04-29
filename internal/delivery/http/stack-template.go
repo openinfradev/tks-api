@@ -274,6 +274,29 @@ func (h *StackTemplateHandler) GetStackTemplateServices(w http.ResponseWriter, r
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
+// GetStackTemplateTemplateIds godoc
+//
+//	@Tags			StackTemplates
+//	@Summary		Get GetStackTemplateTemplateIds
+//	@Description	Get GetStackTemplateTemplateIds
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.GetStackTemplateTemplateIdsResponse
+//	@Router			/admin/stack-templates/template-ids [get]
+//	@Security		JWT
+func (h *StackTemplateHandler) GetStackTemplateTemplateIds(w http.ResponseWriter, r *http.Request) {
+
+	var out domain.GetStackTemplateTemplateIdsResponse
+	templateIds, err := h.usecase.GetTemplateIds(r.Context())
+	if err != nil {
+		templateIds = []string{"aws-reference", "aws-msa-reference", "eks-reference", "eks-msa-reference", "byoh-reference"}
+	}
+
+	out.TemplateIds = templateIds
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
 // UpdateStackTemplateOrganizations godoc
 //
 //	@Tags			StackTemplates

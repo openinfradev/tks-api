@@ -59,6 +59,8 @@ require (
 	github.com/Code-Hex/uniseg v0.2.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
+	github.com/PuerkitoBio/goquery v1.9.1 // indirect
+	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.0 // indirect
