@@ -2,10 +2,11 @@ package http
 
 import (
 	"fmt"
-	"github.com/openinfradev/tks-api/internal/keycloak"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -59,14 +60,16 @@ type IProjectHandler interface {
 }
 
 type ProjectHandler struct {
-	usecase     usecase.IProjectUsecase
-	authUsecase usecase.IAuthUsecase
+	usecase          usecase.IProjectUsecase
+	authUsecase      usecase.IAuthUsecase
+	dashboardUsecase usecase.IDashboardUsecase
 }
 
 func NewProjectHandler(u usecase.Usecase) IProjectHandler {
 	return &ProjectHandler{
-		usecase:     u.Project,
-		authUsecase: u.Auth,
+		usecase:          u.Project,
+		authUsecase:      u.Auth,
+		dashboardUsecase: u.Dashboard,
 	}
 }
 
@@ -1829,7 +1832,13 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 		return
 	}
 
-	resourcesUsage, err := p.usecase.GetResourcesUsage(r.Context(), organizationId, projectId, projectNamespace, domain.StackId(stackId))
+	thanosClient, err := p.dashboardUsecase.GetThanosClient(r.Context(), organizationId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Failed to get thanos client"), "", ""))
+		return
+	}
+
+	resourcesUsage, err := p.usecase.GetResourcesUsage(r.Context(), thanosClient, organizationId, projectId, projectNamespace, domain.StackId(stackId))
 	if err != nil {
 		log.Error(r.Context(), "Failed to get project resources.", err)
 		ErrorJSON(w, r, err)

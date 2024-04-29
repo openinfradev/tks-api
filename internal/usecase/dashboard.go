@@ -41,6 +41,7 @@ type IDashboardUsecase interface {
 	GetPolicyViolationLog(ctx context.Context, organizationId string) (*domain.GetDashboardPolicyViolationLogResponse, error)
 	GetWorkload(ctx context.Context, organizationId string) (*domain.GetDashboardWorkloadResponse, error)
 	GetPolicyViolationTop5(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error)
+	GetThanosClient(ctx context.Context, organizationId string) (thanos.ThanosClient, error)
 }
 
 type DashboardUsecase struct {

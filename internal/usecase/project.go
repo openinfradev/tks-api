@@ -16,6 +16,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/kubernetes"
 	"github.com/openinfradev/tks-api/pkg/log"
+	thanos "github.com/openinfradev/tks-api/pkg/thanos-client"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,7 +61,7 @@ type IProjectUsecase interface {
 	GetProjectNamespaceKubeconfig(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (string, error)
 	GetProjectKubeconfig(ctx context.Context, organizationId string, projectId string) (string, error)
 	GetK8sResources(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceK8sResources, err error)
-	GetResourcesUsage(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceResourcesUsage, err error)
+	GetResourcesUsage(ctx context.Context, thanosClient thanos.ThanosClient, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceResourcesUsage, err error)
 	AssignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, clientId string, projectMemberId string) error
 	UnassignKeycloakClientRoleToMember(ctx context.Context, organizationId string, projectId string, clientId string, projectMemberId string) error
 }
@@ -905,11 +906,20 @@ func (u *ProjectUsecase) GetK8sResources(ctx context.Context, organizationId str
 	return
 }
 
-func (u *ProjectUsecase) GetResourcesUsage(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceResourcesUsage, err error) {
+func (u *ProjectUsecase) GetResourcesUsage(ctx context.Context, thanosClient thanos.ThanosClient, organizationId string, projectId string, namespace string, stackId domain.StackId) (out domain.ProjectNamespaceResourcesUsage, err error) {
 	_, err = u.clusterRepository.Get(ctx, domain.ClusterId(stackId))
 	if err != nil {
 		return out, errors.Wrap(err, fmt.Sprintf("Failed to get cluster : stackId %s", stackId))
 	}
+	/*
+		query := "sum(rate(container_cpu_usage_seconds_total{image!=\"\"}[10m]) ) by (taco_cluster, namespace)"
+		result, err := thanosClient.Get(ctx, query)
+		if err != nil {
+			return out, err
+		}
+		log.Info(ctx, helper.ModelToJson(result))
+
+	*/
 
 	out.Cpu = "1.0 %"
 	out.Memory = "2.0 %"
