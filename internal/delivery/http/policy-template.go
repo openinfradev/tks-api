@@ -1247,7 +1247,7 @@ func (h *PolicyTemplateHandler) ListPolicyTemplate(w http.ResponseWriter, r *htt
 	}
 
 	var out domain.ListPolicyTemplateResponse
-	out.PolicyTemplates = make([]domain.PolicyTemplateResponse, len(policyTemplates))
+	out.PolicyTemplates = make([]domain.PolicyTemplateTwoVersionResponse, len(policyTemplates))
 	for i, policyTemplate := range policyTemplates {
 		if err := serializer.Map(r.Context(), policyTemplate, &out.PolicyTemplates[i]); err != nil {
 			log.Info(r.Context(), err)

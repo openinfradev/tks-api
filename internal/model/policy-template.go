@@ -32,6 +32,8 @@ type PolicyTemplate struct {
 	TemplateName             string
 	Type                     string                           // Org or Tks
 	Version                  string                           `gorm:"-:all"` // 삭제 예정
+	CurrentVersion           string                           `gorm:"-:all"`
+	LatestVersion            string                           `gorm:"-:all"`
 	SupportedVersions        []PolicyTemplateSupportedVersion `gorm:"foreignKey:PolicyTemplateId"`
 	OrganizationId           *string                          // Org 인 경우에만 설정
 	Organization             Organization                     `gorm:"foreignKey:OrganizationId"`

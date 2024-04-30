@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/openinfradev/tks-api/pkg/log"
+	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
@@ -146,12 +147,44 @@ func (u *PolicyTemplateUsecase) Fetch(ctx context.Context, organizationId *strin
 		log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
 	}
 
+	var primaryClusterId string
+
+	if organizationId != nil {
+		org, err := u.organizationRepo.Get(ctx, *organizationId)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+		} else {
+			primaryClusterId = org.PrimaryClusterId
+		}
+	}
+
 	for i := range policyTemplates {
 		// 단순히 참조하면 업데이트가 안되므로 pointer derefrencing
 		policyTemplate := &policyTemplates[i]
 		if policyTemplate.IsTksTemplate() && len(policyTemplate.PermittedOrganizations) == 0 {
 			if organizations != nil {
 				(*policyTemplate).PermittedOrganizations = *organizations
+			}
+		}
+
+		if organizationId != nil {
+			(*policyTemplate).LatestVersion = policyTemplate.Version
+
+			// 에러 없이 primaryClusterId를 가져왔을 때만 처리
+			if len(primaryClusterId) > 0 {
+
+				templateCR, err := policytemplate.GetTksPolicyTemplateCR(ctx, primaryClusterId, policyTemplate.ResoureName())
+
+				if err == nil && templateCR != nil {
+					(*policyTemplate).CurrentVersion = templateCR.Spec.Version
+				} else if errors.IsNotFound(err) || templateCR == nil {
+					// 템플릿이 존재하지 않으면 최신 버전으로 배포되므로
+					(*policyTemplate).CurrentVersion = policyTemplate.LatestVersion
+				} else {
+					// 통신 실패 등 기타 에러, 버전을 세팅하지 않아 에러임을 알수 있도록 로그를 남김
+					log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+				}
 			}
 		}
 	}

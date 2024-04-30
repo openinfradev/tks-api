@@ -23,6 +23,26 @@ type PolicyTemplateResponse struct {
 	Libs             []string        `json:"libs" example:"rego 코드"`
 }
 
+type PolicyTemplateTwoVersionResponse struct {
+	ID        string             `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
+	Type      string             `json:"type" enums:"tks,organization" example:"tks"`
+	Creator   SimpleUserResponse `json:"creator"`
+	Updator   SimpleUserResponse `json:"updator"`
+	CreatedAt time.Time          `json:"createdAt"`
+	UpdatedAt time.Time          `json:"updatedAt"`
+
+	TemplateName     string          `json:"templateName" example:"필수 Label 검사"`
+	Kind             string          `json:"kind" example:"K8sRequiredLabels"`
+	Severity         string          `json:"severity" enums:"low,medium,high" example:"medium"`
+	Deprecated       bool            `json:"deprecated" example:"false"`
+	CurrentVersion   string          `json:"currentVersion,omitempty" example:"v1.0.1"`
+	LatestVersion    string          `json:"latestVersion,omitempty" example:"v1.0.1"`
+	Description      string          `json:"description,omitempty"  example:"이 정책은 ..."`
+	ParametersSchema []*ParameterDef `json:"parametersSchema,omitempty"`
+	Rego             string          `json:"rego" example:"rego 코드"`
+	Libs             []string        `json:"libs" example:"rego 코드"`
+}
+
 type SimplePolicyTemplateResponse struct {
 	ID          string `json:"id" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	Type        string `json:"type" enums:"tks,organization" example:"tks"`
@@ -91,8 +111,8 @@ type GetPolicyTemplateResponse struct {
 }
 
 type ListPolicyTemplateResponse struct {
-	PolicyTemplates []PolicyTemplateResponse `json:"policyTemplates"`
-	Pagination      PaginationResponse       `json:"pagination"`
+	PolicyTemplates []PolicyTemplateTwoVersionResponse `json:"policyTemplates"`
+	Pagination      PaginationResponse                 `json:"pagination"`
 }
 
 type PolicyTemplateStatistics struct {
