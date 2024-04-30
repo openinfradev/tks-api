@@ -1662,8 +1662,6 @@ definitions:
       updatedResources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.DashboardPolicyUpdate'
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationLogResponse:
-    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse:
     properties:
       chartData:
@@ -2457,6 +2455,8 @@ definitions:
       notificationType:
         type: string
       organizationId:
+        type: string
+      policyName:
         type: string
       rawData:
         type: string
@@ -6590,18 +6590,41 @@ paths:
       - application/json
       description: Get policy violation log
       parameters:
-      - description: Organization ID
+      - description: organizationId
         in: path
         name: organizationId
         required: true
         type: string
+      - description: pageSize
+        in: query
+        name: pageSize
+        type: string
+      - description: pageNumber
+        in: query
+        name: pageNumber
+        type: string
+      - description: sortColumn
+        in: query
+        name: soertColumn
+        type: string
+      - description: sortOrder
+        in: query
+        name: sortOrder
+        type: string
+      - collectionFormat: csv
+        description: filters
+        in: query
+        items:
+          type: string
+        name: filters
+        type: array
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationLogResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationsResponse'
       security:
       - JWT: []
       summary: Get policy violation log
