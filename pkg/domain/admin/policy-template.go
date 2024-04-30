@@ -67,7 +67,7 @@ type CreateOrganizationPolicyTemplateReponse struct {
 type UpdatePolicyTemplateRequest struct {
 	TemplateName             *string   `json:"templateName,omitempty" validate:"required,name" example:"필수 Label 검사"`
 	Description              *string   `json:"description,omitempty"`
-	Severity                 *string   `json:"severity,omitempty" validate:"oneof=low medium high" enums:"low,medium,high" example:"medium"`
+	Severity                 *string   `json:"severity,omitempty" validate:"omitempty,oneof=low medium high" enums:"low,medium,high" example:"medium"`
 	Deprecated               *bool     `json:"deprecated,omitempty" example:"false"`
 	PermittedOrganizationIds *[]string `json:"permittedOrganizationIds,omitempty"`
 }

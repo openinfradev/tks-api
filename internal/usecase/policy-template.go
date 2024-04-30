@@ -277,7 +277,8 @@ func (u *PolicyTemplateUsecase) Update(ctx context.Context, organizationId *stri
 
 	updateMap := make(map[string]interface{})
 
-	if templateName != nil {
+	// 기존 이름과 같은 경우면 체크 필요없으므로 다른 경우에만 처리하도록 추가
+	if templateName != nil && *templateName != policyTemplate.TemplateName {
 		if policyTemplate.IsTksTemplate() {
 			exists, err := u.repo.ExistByName(ctx, *templateName)
 			if err == nil && exists {
