@@ -12,6 +12,8 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
+const MAX_LOG_LEN = 1000
+
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -29,7 +31,8 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(lrw, r)
 
 		statusCode := lrw.GetStatusCode()
-		log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String())
+
+		log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String()[:MAX_LOG_LEN-1])
 		log.Infof(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }
