@@ -32,7 +32,11 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		statusCode := lrw.GetStatusCode()
 
-		log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String()[:MAX_LOG_LEN-1])
+		if len(lrw.GetBody().String()) > MAX_LOG_LEN {
+			log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String()[:MAX_LOG_LEN-1])
+		} else {
+			log.Infof(r.Context(), "[API_RESPONSE] [%d][%s][%s]", statusCode, http.StatusText(statusCode), lrw.GetBody().String())
+		}
 		log.Infof(r.Context(), "***** END [%s %s] *****", r.Method, r.RequestURI)
 	})
 }
