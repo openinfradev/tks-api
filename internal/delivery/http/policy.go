@@ -33,6 +33,7 @@ type IPolicyHandler interface {
 	GetMandatoryPolicies(w http.ResponseWriter, r *http.Request)
 	SetMandatoryPolicies(w http.ResponseWriter, r *http.Request)
 	ExistsPolicyName(w http.ResponseWriter, r *http.Request)
+	ExistsPolicyResourceName(w http.ResponseWriter, r *http.Request)
 	ListStackPolicyStatus(w http.ResponseWriter, r *http.Request)
 	GetStackPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
 	UpdateStackPolicyTemplateStatus(w http.ResponseWriter, r *http.Request)
@@ -618,7 +619,7 @@ func (h *PolicyHandler) SetMandatoryPolicies(w http.ResponseWriter, r *http.Requ
 // ExistsPolicyName godoc
 //
 //	@Tags			Policy
-//	@Summary		[ExistsPolicyName] 정책 아름 존재 여부 확인
+//	@Summary		[ExistsPolicyName] 정책 이름 존재 여부 확인
 //	@Description	해당 이름을 가진 정책이 이미 존재하는지 확인한다.
 //	@Accept			json
 //	@Produce		json
@@ -638,12 +639,52 @@ func (h *PolicyHandler) ExistsPolicyName(w http.ResponseWriter, r *http.Request)
 
 	policyName, ok := vars["policyName"]
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("policyTemplateName not found in path"),
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("policyName not found in path"),
 			"P_INVALID_POLICY_NAME", ""))
 		return
 	}
 
 	exist, err := h.usecase.IsPolicyNameExist(r.Context(), organizationId, policyName)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.CheckExistedResponse
+	out.Existed = exist
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// ExistsPolicyResourceName godoc
+//
+//	@Tags			Policy
+//	@Summary		[ExistsPolicyResourceName] 정책 자원 이름 존재 여부 확인
+//	@Description	해당 자원 이름을 가진 정책이 이미 존재하는지 확인한다.
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId		path		string	true	"조직 식별자(o로 시작)"
+//	@Param			policyResourceName	path		string	true	"정책 자원 이름(쿠버네티스 배포 시 자원 이름)"
+//	@Success		200					{object}	domain.CheckExistedResponse
+//	@Router			/organizations/{organizationId}/policies/resource-name/{policyResourceName}/existence [get]
+//	@Security		JWT
+func (h *PolicyHandler) ExistsPolicyResourceName(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"),
+			"C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	policyResourceName, ok := vars["policyResourceName"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("policyResourceName not found in path"),
+			"P_INVALID_POLICY_RESOURCE_NAME", ""))
+		return
+	}
+
+	exist, err := h.usecase.IsPolicyResourceNameExist(r.Context(), organizationId, policyResourceName)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return

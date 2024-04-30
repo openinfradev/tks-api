@@ -32,6 +32,7 @@ type IPolicyUsecase interface {
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination, filledParameter bool) (*[]model.Policy, error)
 	IsPolicyIdExist(ctx context.Context, organizationId string, policyId uuid.UUID) (exists bool, err error)
 	IsPolicyNameExist(ctx context.Context, organizationId string, policyName string) (exists bool, err error)
+	IsPolicyResourceNameExist(ctx context.Context, organizationId string, policyResourceName string) (exists bool, err error)
 	UpdatePolicyTargetClusters(ctx context.Context, organizationId string, policyId uuid.UUID, currentClusterIds []string, targetClusterIds []string) (err error)
 	SetMandatoryPolicies(ctx context.Context, organizationId string, mandatoryPolicyIds []uuid.UUID, nonMandatoryPolicyIds []uuid.UUID) (err error)
 	GetMandatoryPolicies(ctx context.Context, organizationId string) (response *domain.GetMandatoryPoliciesResponse, err error)
@@ -105,7 +106,7 @@ func (u *PolicyUsecase) Create(ctx context.Context, organizationId string, dto m
 	}
 
 	if exists {
-		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_CREATE_ALREADY_EXISTED_RESOURCE_NAME", "policy resource name already exists")
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY_RESOURCE_NAME", "policy resource name already exists")
 	}
 
 	dto.TargetClusters = make([]model.Cluster, len(dto.TargetClusterIds))
@@ -436,6 +437,10 @@ func (u *PolicyUsecase) Fetch(ctx context.Context, organizationId string, pg *pa
 
 func (u *PolicyUsecase) IsPolicyNameExist(ctx context.Context, organizationId string, policyName string) (exists bool, err error) {
 	return u.repo.ExistByName(ctx, organizationId, policyName)
+}
+
+func (u *PolicyUsecase) IsPolicyResourceNameExist(ctx context.Context, organizationId string, policyResoName string) (exists bool, err error) {
+	return u.repo.ExistByResourceName(ctx, organizationId, policyResoName)
 }
 
 func (u *PolicyUsecase) IsPolicyIdExist(ctx context.Context, organizationId string, policyId uuid.UUID) (exists bool, err error) {

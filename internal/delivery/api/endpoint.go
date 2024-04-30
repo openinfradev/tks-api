@@ -268,6 +268,7 @@ const (
 	UpdatePolicy
 	UpdatePolicyTargetClusters
 	ExistsPolicyName
+	ExistsPolicyResourceName
 	GetPolicyEdit
 	AddPoliciesForStack
 	DeletePoliciesForStack
