@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -47,19 +48,18 @@ func (h *SystemNotificationHandler) CreateSystemNotification(w http.ResponseWrit
 		INFO[2023-04-26 18:14:11] {"receiver":"webhook-systemNotification","status":"firing","systemNotifications":[{"status":"firing","labels":{"systemNotificationname":"TestSystemNotification1"},"annotations":{},"startsAt":"2023-04-26T09:14:01.489894015Z","endsAt":"0001-01-01T00:00:00Z","generatorURL":"","fingerprint":"0dafe30dffce9487"}],"groupLabels":{"systemNotificationname":"TestSystemNotification1"},"commonLabels":{"systemNotificationname":"TestSystemNotification1"},"commonAnnotations":{},"externalURL":"http://lma-systemNotificationmanager.lma:9093","version":"4","groupKey":"{}:{systemNotificationname=\"TestSystemNotification1\"}","truncatedSystemNotifications":0}
 	*/
 
-	/*
-		// webhook 으로 부터 받은 body parse
-		bodyBytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Error(r.Context(),err)
-		}
-		bodyString := string(bodyBytes)
-		log.Info(r.Context(),bodyString)
-	*/
+	// webhook 으로 부터 받은 body parse
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Error(r.Context(), err)
+	}
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	bodyString := string(bodyBytes)
+	log.Info(r.Context(), bodyString)
 
 	// 외부로부터(systemNotification manager) 오는 데이터이므로, dto 변환없이 by-pass 처리한다.
 	input := domain.CreateSystemNotificationRequest{}
-	err := UnmarshalRequestInput(r, &input)
+	err = UnmarshalRequestInput(r, &input)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return

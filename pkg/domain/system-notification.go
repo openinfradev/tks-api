@@ -60,6 +60,8 @@ type SystemNotificationRequest struct {
 		Discriminative           string `json:"discriminative"`
 		AlertType                string `json:"alertType"`
 		SystemNotificationRuleId string `json:"systemNotificationRuleId"`
+		PolicyName               string `json:"policyName"`
+		PolicyTemplate           string `json:"policyTemplate"`
 	} `json:"annotations"`
 }
 
