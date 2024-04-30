@@ -35,8 +35,8 @@ type PolicyTemplateTwoVersionResponse struct {
 	Kind             string          `json:"kind" example:"K8sRequiredLabels"`
 	Severity         string          `json:"severity" enums:"low,medium,high" example:"medium"`
 	Deprecated       bool            `json:"deprecated" example:"false"`
-	CurrentVersion   string          `json:"currentVersion,omitempty" example:"v1.0.1"`
-	LatestVersion    string          `json:"latestVersion,omitempty" example:"v1.0.1"`
+	CurrentVersion   string          `json:"currentVersion" example:"v1.0.1"`
+	LatestVersion    string          `json:"latestVersion" example:"v1.0.1"`
 	Description      string          `json:"description,omitempty"  example:"이 정책은 ..."`
 	ParametersSchema []*ParameterDef `json:"parametersSchema,omitempty"`
 	Rego             string          `json:"rego" example:"rego 코드"`
