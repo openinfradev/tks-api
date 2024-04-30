@@ -81,7 +81,7 @@ func recursiveMap(ctx context.Context, src interface{}, dst interface{}, convert
 						dstField.Set(reflect.ValueOf(converted))
 					}
 				} else {
-					log.Debugf(ctx, "no converter found for %s -> %s", srcField.Type(), dstField.Type())
+					//log.Debugf(ctx, "no converter found for %s -> %s", srcField.Type(), dstField.Type())
 					continue
 				}
 			}
