@@ -503,7 +503,7 @@ func (u *AppServeAppUsecase) UpdateAppServeApp(ctx context.Context, appId string
 		log.Debug(ctx, "After transform, extraEnv: ", extEnv)
 	}
 
-    // TODO: Check if appId is necessary here.
+	// TODO: Check if appId is necessary here.
 	taskId, err := u.repo.CreateTask(ctx, appTask, appId)
 	if err != nil {
 		log.Info(ctx, "taskId = ", taskId)
@@ -752,6 +752,7 @@ func (u *AppServeAppUsecase) RollbackAppServeApp(ctx context.Context, appId stri
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
 			"organization_id=" + app.OrganizationId,
+			"project_id=" + app.ProjectId,
 			"target_cluster_id=" + app.TargetClusterId,
 			"app_name=" + app.Name,
 			"namespace=" + app.Namespace,
