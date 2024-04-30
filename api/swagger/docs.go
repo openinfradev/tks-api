@@ -3600,17 +3600,51 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Organization ID",
+                        "description": "organizationId",
                         "name": "organizationId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageSize",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pageNumber",
+                        "name": "pageNumber",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortColumn",
+                        "name": "soertColumn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "sortOrder",
+                        "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "filters",
+                        "name": "filters",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationLogResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetPolicyNotificationsResponse"
                         }
                     }
                 }
@@ -12700,9 +12734,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationLogResponse": {
-            "type": "object"
-        },
         "github_com_openinfradev_tks-api_pkg_domain.GetDashboardPolicyViolationResponse": {
             "type": "object",
             "properties": {
@@ -13919,6 +13950,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "organizationId": {
+                    "type": "string"
+                },
+                "policyName": {
                     "type": "string"
                 },
                 "rawData": {

@@ -6,6 +6,7 @@ import (
 
 type PolicyNotificationResponse struct {
 	ID                    string                `json:"id"`
+	PolicyName            string                `json:"policyName"`
 	OrganizationId        string                `json:"organizationId"`
 	Severity              string                `json:"severity"`
 	MessageTitle          string                `json:"messageTitle"`
