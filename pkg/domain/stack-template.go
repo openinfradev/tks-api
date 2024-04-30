@@ -90,6 +90,7 @@ type UpdateStackTemplateRequest struct {
 	KubeType        string   `json:"kubeType" validate:"required"`
 	OrganizationIds []string `json:"organizationIds" validate:"required"`
 	ServiceIds      []string `json:"serviceIds" validate:"required"`
+	Name            string   `json:"name" validate:"required,name"`
 }
 
 type GetStackTemplateServicesResponse struct {
