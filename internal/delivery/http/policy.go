@@ -99,7 +99,7 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, err)
 			return
 		}
-	} else {
+	} else if input.Match != nil {
 		normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
 
 		if err != nil {
@@ -200,7 +200,7 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, err)
 			return
 		}
-	} else {
+	} else if input.Match != nil {
 		normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
