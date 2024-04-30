@@ -184,13 +184,8 @@ func (r *PolicyRepository) GetBy(ctx context.Context, organizationId string, key
 	res := r.db.WithContext(ctx).Preload(clause.Associations).
 		Where(query, organizationId, value).First(&policy)
 	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			log.Infof(ctx, "Not found policy %s='%v'", key, value)
-			return nil, nil
-		} else {
-			log.Error(ctx, res.Error)
-			return nil, res.Error
-		}
+		log.Error(ctx, res.Error)
+		return nil, res.Error
 	}
 
 	return &policy, nil
