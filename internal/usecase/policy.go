@@ -245,21 +245,21 @@ func (u *PolicyUsecase) Update(ctx context.Context, organizationId string, polic
 		updateMap["mandatory"] = mandatory
 	}
 
-	if policyName != nil {
-		policy, err := u.repo.GetByName(ctx, organizationId, *policyName)
-		if err != nil {
+	// 정책명을 업데이트하기로 설정하였고
+	if policyName != nil && policy.PolicyName != *policyName {
+		exists, err := u.repo.ExistByName(ctx, organizationId, *policyName)
+
+		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
 
 		// 이름이 같은 정책이 존재하지만 아이디가 서로 다른 경우, 즉 다른 정책이 해당 이름 사용 중임
-		if policy != nil && policyId != policy.ID {
+		if exists {
 			return httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "P_INVALID_POLICY_NAME", "policy name already exists")
 		}
 
 		// 해당 이름 사용중인 정책이 없으면 업데이트, 있으면 동일 정책이므로 업데이트 안 함
-		if policy == nil {
-			updateMap["policy_name"] = policyName
-		}
+		updateMap["policy_name"] = policyName
 	}
 
 	if description != nil {
