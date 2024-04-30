@@ -2,18 +2,20 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
+	"github.com/openinfradev/tks-api/internal/pagination"
 	policytemplate "github.com/openinfradev/tks-api/internal/policy-template"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type IDashboardHandler interface {
@@ -35,16 +37,18 @@ type IDashboardHandler interface {
 }
 
 type DashboardHandler struct {
-	usecase             usecase.IDashboardUsecase
-	organizationUsecase usecase.IOrganizationUsecase
-	policyUsecase       usecase.IPolicyUsecase
+	usecase                   usecase.IDashboardUsecase
+	organizationUsecase       usecase.IOrganizationUsecase
+	policyUsecase             usecase.IPolicyUsecase
+	systemNotificationUsecase usecase.ISystemNotificationUsecase
 }
 
 func NewDashboardHandler(h usecase.Usecase) IDashboardHandler {
 	return &DashboardHandler{
-		usecase:             h.Dashboard,
-		organizationUsecase: h.Organization,
-		policyUsecase:       h.Policy,
+		usecase:                   h.Dashboard,
+		organizationUsecase:       h.Organization,
+		policyUsecase:             h.Policy,
+		systemNotificationUsecase: h.SystemNotification,
 	}
 }
 
@@ -650,8 +654,13 @@ func (h *DashboardHandler) GetPolicyViolation(w http.ResponseWriter, r *http.Req
 //	@Description	Get policy violation log
 //	@Accept			json
 //	@Produce		json
-//	@Param			organizationId	path		string	true	"Organization ID"
-//	@Success		200				{object}	domain.GetDashboardPolicyViolationLogResponse
+//	@Param			organizationId	path		string		true	"organizationId"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.GetPolicyNotificationsResponse
 //	@Router			/organizations/{organizationId}/dashboards/widgets/policy-violation-log [get]
 //	@Security		JWT
 func (h *DashboardHandler) GetPolicyViolationLog(w http.ResponseWriter, r *http.Request) {
@@ -663,11 +672,25 @@ func (h *DashboardHandler) GetPolicyViolationLog(w http.ResponseWriter, r *http.
 		return
 	}
 
-	out, err := h.usecase.GetPolicyViolationLog(r.Context(), organizationId)
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+
+	policyNotifications, err := h.systemNotificationUsecase.FetchPolicyNotifications(r.Context(), organizationId, pg)
 	if err != nil {
-		log.Error(r.Context(), "Failed to make policy violation log", err)
 		ErrorJSON(w, r, err)
 		return
+	}
+
+	var out domain.GetPolicyNotificationsResponse
+	out.PolicyNotifications = make([]domain.PolicyNotificationResponse, len(policyNotifications))
+	for i, policyNotification := range policyNotifications {
+		if err := serializer.Map(r.Context(), policyNotification, &out.PolicyNotifications[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+	}
+
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
