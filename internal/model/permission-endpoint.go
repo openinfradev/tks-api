@@ -14,6 +14,10 @@ type PermissionEndpoint struct {
 	Endpoint   Endpoint   `gorm:"foreignKey:EndpointName;references:Name"`
 }
 
+func (PermissionEndpoint) TableName() string {
+	return "permission_endpoints"
+}
+
 var (
 	// map[EdgeKey][]Endpoints
 	edgeKeyEndpointMap = map[string][]Endpoint{
