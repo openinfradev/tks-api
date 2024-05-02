@@ -99,7 +99,8 @@ func (r *StackTemplateRepository) Update(ctx context.Context, dto model.StackTem
 			"KubeType":     dto.KubeType,
 			"Services":     dto.Services,
 			"Description":  dto.Description,
-			"UpdatorId":    dto.UpdatorId})
+			"UpdatorId":    dto.UpdatorId,
+			"Name":         dto.Name})
 	if res.Error != nil {
 		return res.Error
 	}
