@@ -161,14 +161,14 @@ const (
 	GetPolicyNotification
 
 	// Stack
-	CreateStack         // 스택관리/생성
 	GetStacks           // 스택관리/조회
+	CreateStack         // 스택관리/생성
+	CheckStackName      // 스택관리/조회
 	GetStack            // 스택관리/조회
 	UpdateStack         // 스택관리/수정
 	DeleteStack         // 스택관리/삭제
-	CheckStackName      // 스택관리/조회
-	GetStackStatus      // 스택관리/조회
 	GetStackKubeConfig  // 스택관리/조회
+	GetStackStatus      // 스택관리/조회
 	SetFavoriteStack    // 스택관리/조회
 	DeleteFavoriteStack // 스택관리/조회
 	InstallStack        // 스택관리 / 조회
@@ -219,10 +219,6 @@ const (
 
 	// Permission
 	GetPermissionTemplates
-	GetEndpointsByPermissionId
-
-	// Endpoint
-	Admin_GetEndpoints
 
 	// Admin_User
 	Admin_CreateUser

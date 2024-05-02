@@ -34,7 +34,7 @@ func NewOrganizationHandler(u usecase.Usecase) *OrganizationHandler {
 	}
 }
 
-// Admin_CreateOrganization CreateOrganization godoc
+// CreateOrganization godoc
 //
 //	@Tags			Organizations
 //	@Summary		Create organization in Admin portal

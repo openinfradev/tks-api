@@ -22,7 +22,6 @@ func NewDefaultAuthorization(repo repository.Repository) *defaultAuthorization {
 	//d.addFilters(RBACFilter)
 	//d.addFilters(RBACFilterWithEndpoint)
 	d.addFilters(AdminApiFilter)
-	d.addFilters(OrganizationFilter)
 
 	return d
 }

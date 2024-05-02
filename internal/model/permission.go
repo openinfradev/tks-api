@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/delivery/api"
 	"github.com/openinfradev/tks-api/internal/helper"
 	"gorm.io/gorm"
 )
@@ -53,22 +54,19 @@ const (
 	MiddleConfigurationUserKey               = "CONFIGURATION-USER"
 	MiddleConfigurationRoleKey               = "CONFIGURATION-ROLE"
 	MiddleConfigurationSystemNotificationKey = "CONFIGURATION-SYSTEM_NOTIFICATION"
-	CommonKey                                = "COMMON"
 )
 
 type Permission struct {
 	gorm.Model
 
-	ID      uuid.UUID `gorm:"primarykey;type:uuid;" json:"ID"`
-	Name    string    `json:"name"`
-	Key     string    `gorm:"type:text;" json:"key,omitempty"`
-	EdgeKey *string   `gorm:"type:text;"`
+	ID   uuid.UUID `gorm:"primarykey;type:uuid;" json:"ID"`
+	Name string    `json:"name"`
+	Key  string    `gorm:"type:text;" json:"key,omitempty"`
 
 	IsAllowed *bool       `gorm:"type:boolean;" json:"is_allowed,omitempty"`
 	RoleID    *string     `json:"role_id,omitempty"`
 	Role      *Role       `gorm:"foreignKey:RoleID;references:ID;" json:"role,omitempty"`
-	Endpoints []*Endpoint `gorm:"many2many:permission_endpoints;joinForeignKey:EdgeKey;joinReferences:EndpointName;" json:"endpoints,omitempty"`
-	//PermissionEndpoint []*PermissionEndpoint `gorm:"foreignKey:EdgeKey;references:EdgeKey;"`
+	Endpoints []*Endpoint `gorm:"many2many:permission_endpoints;" json:"endpoints,omitempty"`
 	// omit empty
 
 	ParentID *uuid.UUID    `json:"parent_id,omitempty"`
@@ -84,8 +82,7 @@ type PermissionSet struct {
 	Notification      *Permission `gorm:"-:all" json:"notification,omitempty"`
 	Configuration     *Permission `gorm:"-:all" json:"configuration,omitempty"`
 	Common            *Permission `gorm:"-:all" json:"common,omitempty"`
-	// ToDo: Need to consider  whether to use Admin Permission
-	//Admin             *Permission `gorm:"-:all" json:"admin,omitempty"`
+	Admin             *Permission `gorm:"-:all" json:"admin,omitempty"`
 }
 
 func NewDefaultPermissionSet() *PermissionSet {
@@ -97,13 +94,13 @@ func NewDefaultPermissionSet() *PermissionSet {
 		Notification:      newNotification(),
 		Configuration:     newConfiguration(),
 		Common:            newCommon(),
-		//Admin:             nil,
+		Admin:             nil,
 	}
 }
 
 func NewAdminPermissionSet() *PermissionSet {
 	return &PermissionSet{
-		//Admin:             newAdmin(),
+		Admin:             newAdmin(),
 		Dashboard:         newDashboard(),
 		Stack:             newStack(),
 		Policy:            newPolicy(),
@@ -129,6 +126,17 @@ func GetEdgePermission(root *Permission, edgePermissions []*Permission, f *func(
 	return edgePermissions
 }
 
+func endpointObjects(eps ...api.Endpoint) []*Endpoint {
+	var result []*Endpoint
+	for _, ep := range eps {
+		result = append(result, &Endpoint{
+			Name:  api.ApiMap[ep].Name,
+			Group: api.ApiMap[ep].Group,
+		})
+	}
+	return result
+}
+
 func newDashboard() *Permission {
 	dashboard := &Permission{
 		ID:   uuid.New(),
@@ -144,14 +152,18 @@ func newDashboard() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopDashboardKey + "-" + MiddleDashboardKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetChartsDashboard,
+							api.GetChartDashboard,
+							api.GetStacksDashboard,
+							api.GetResourcesDashboard,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopDashboardKey + "-" + MiddleDashboardKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
 					},
 				},
@@ -177,29 +189,74 @@ func newStack() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopStackKey + "-" + MiddleStackKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetStacks,
+							api.GetStack,
+							api.CheckStackName,
+							api.GetStackStatus,
+							api.GetStackKubeConfig,
+
+							api.SetFavoriteStack,
+							api.DeleteFavoriteStack,
+
+							// Cluster
+							api.GetCluster,
+							api.GetClusters,
+							api.GetClusterSiteValues,
+							api.GetBootstrapKubeconfig,
+							api.GetNodes,
+
+							// AppGroup
+							api.GetAppgroups,
+							api.GetAppgroup,
+							api.GetApplications,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopStackKey + "-" + MiddleStackKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateStack,
+							api.InstallStack,
+							api.CreateAppgroup,
+
+							// Cluster
+							api.CreateCluster,
+							api.ImportCluster,
+							api.InstallCluster,
+							api.CreateBootstrapKubeconfig,
+
+							// AppGroup
+							api.CreateAppgroup,
+							api.CreateApplication,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopStackKey + "-" + MiddleStackKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateStack,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopStackKey + "-" + MiddleStackKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteStack,
+
+							// Cluster
+							api.DeleteCluster,
+
+							// AppGroup
+							api.DeleteAppgroup,
+						),
 					},
 				},
 			},
@@ -224,29 +281,105 @@ func newPolicy() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopPolicyKey + "-" + MiddlePolicyKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							// PolicyTemplate
+							api.Admin_ListPolicyTemplate,
+							api.Admin_GetPolicyTemplate,
+							api.Admin_GetPolicyTemplateDeploy,
+							api.Admin_ListPolicyTemplateStatistics,
+							api.Admin_ListPolicyTemplateVersions,
+							api.Admin_GetPolicyTemplateVersion,
+							api.Admin_ExistsPolicyTemplateName,
+							api.Admin_ExistsPolicyTemplateKind,
+
+							// StackPolicyStatus
+							api.ListStackPolicyStatus,
+							api.GetStackPolicyTemplateStatus,
+
+							// Policy
+							api.GetMandatoryPolicies,
+							api.ListPolicy,
+							api.GetPolicy,
+							api.ExistsPolicyName,
+
+							// OrganizationPolicyTemplate
+							api.ListPolicyTemplate,
+							api.GetPolicyTemplate,
+							api.GetPolicyTemplateDeploy,
+							api.ListPolicyTemplateStatistics,
+							api.ListPolicyTemplateVersions,
+							api.GetPolicyTemplateVersion,
+							api.ExistsPolicyTemplateKind,
+							api.ExistsPolicyTemplateName,
+
+							// PolicyTemplateExample
+							api.ListPolicyTemplateExample,
+							api.GetPolicyTemplateExample,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopPolicyKey + "-" + MiddlePolicyKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							// PolicyTemplate
+							api.Admin_CreatePolicyTemplate,
+							api.Admin_CreatePolicyTemplateVersion,
+
+							// Policy
+							api.SetMandatoryPolicies,
+							api.CreatePolicy,
+
+							// OrganizationPolicyTemplate
+							api.CreatePolicyTemplate,
+							api.CreatePolicyTemplateVersion,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopPolicyKey + "-" + MiddlePolicyKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							// PolicyTemplate
+							api.Admin_UpdatePolicyTemplate,
+
+							// ClusterPolicyStatus
+							api.UpdateStackPolicyTemplateStatus,
+
+							// Policy
+							api.UpdatePolicy,
+							api.UpdatePolicyTargetClusters,
+
+							// OrganizationPolicyTemplate
+							api.UpdatePolicyTemplate,
+
+							// PolicyTemplateExample
+							api.UpdatePolicyTemplateExample,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopPolicyKey + "-" + MiddlePolicyKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							// PolicyTemplate
+							api.Admin_DeletePolicyTemplate,
+							api.Admin_DeletePolicyTemplateVersion,
+
+							// Policy
+							api.DeletePolicy,
+
+							// OrganizationPolicyTemplate
+							api.DeletePolicyTemplate,
+							api.DeletePolicyTemplateVersion,
+
+							// PolicyTemplateExample
+							api.DeletePolicyTemplateExample,
+						),
 					},
 				},
 			},
@@ -271,21 +404,26 @@ func newNotification() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopNotificationKey + "-" + MiddleNotificationKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetSystemNotification,
+							api.GetSystemNotifications,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopNotificationKey + "-" + MiddleNotificationKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateSystemNotification,
+							api.CreateSystemNotificationAction,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "다운로드",
 						Key:       OperationDownload,
-						EdgeKey:   helper.StringP(TopNotificationKey + "-" + MiddleNotificationKey + "-" + OperationDownload),
 						IsAllowed: helper.BoolP(false),
 						Children:  []*Permission{},
 					},
@@ -300,7 +438,6 @@ func newNotification() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopNotificationKey + "-" + MiddlePolicyNotificationKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
 						Children:  []*Permission{},
 					},
@@ -308,7 +445,6 @@ func newNotification() *Permission {
 						ID:        uuid.New(),
 						Name:      "다운로드",
 						Key:       OperationDownload,
-						EdgeKey:   helper.StringP(TopNotificationKey + "-" + MiddlePolicyNotificationKey + "-" + OperationDownload),
 						IsAllowed: helper.BoolP(false),
 						Children:  []*Permission{},
 					},
@@ -335,29 +471,39 @@ func newProject() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetProjects,
+							api.GetProject,
+							api.GetProjectKubeconfig,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateProject,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateProject,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteProject,
+						),
 					},
 				},
 			},
@@ -370,15 +516,23 @@ func newProject() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectCommonConfigurationKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetProjects,
+							api.GetProject,
+
+							api.GetProjectRoles,
+							api.GetProjectRole,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectCommonConfigurationKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateProject,
+						),
 					},
 				},
 			},
@@ -391,29 +545,40 @@ func newProject() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectMemberConfigurationKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetProjectMembers,
+							api.GetProjectMember,
+							api.GetProjectRoles,
+							api.GetProjectRole,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectMemberConfigurationKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.AddProjectMember,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectMemberConfigurationKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateProjectMemberRole,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectMemberConfigurationKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.RemoveProjectMember,
+						),
 					},
 				},
 			},
@@ -426,29 +591,39 @@ func newProject() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectNamespaceKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetProjectNamespaces,
+							api.GetProjectNamespace,
+							api.GetProjectNamespaceK8sResources,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectNamespaceKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateProjectNamespace,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectNamespaceKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateProjectNamespace,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectNamespaceKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteProjectNamespace,
+						),
 					},
 				},
 			},
@@ -461,29 +636,56 @@ func newProject() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectAppServeKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetAppServeApps,
+							api.GetAppServeApp,
+							api.GetNumOfAppsOnStack,
+							api.GetAppServeAppLatestTask,
+							api.IsAppServeAppExist,
+							api.IsAppServeAppNameExist,
+							api.GetAppServeAppTaskDetail,
+							api.GetAppServeAppTasksByAppId,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectAppServeKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateAppServeApp,
+							api.IsAppServeAppExist,
+							api.IsAppServeAppNameExist,
+							api.UpdateAppServeApp,
+							api.UpdateAppServeAppEndpoint,
+							api.UpdateAppServeAppStatus,
+							api.RollbackAppServeApp,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectAppServeKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateAppServeApp,
+							api.IsAppServeAppExist,
+							api.IsAppServeAppNameExist,
+							api.UpdateAppServeApp,
+							api.UpdateAppServeAppEndpoint,
+							api.UpdateAppServeAppStatus,
+							api.RollbackAppServeApp,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopProjectKey + "-" + MiddleProjectAppServeKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteAppServeApp,
+						),
 					},
 				},
 			},
@@ -508,14 +710,12 @@ func newConfiguration() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
 					},
 				},
@@ -529,29 +729,42 @@ func newConfiguration() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationCloudAccountKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetCloudAccounts,
+							api.GetCloudAccount,
+							api.CheckCloudAccountName,
+							api.CheckAwsAccountId,
+							api.GetResourceQuota,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationCloudAccountKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateCloudAccount,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationCloudAccountKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateCloudAccount,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationCloudAccountKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteCloudAccount,
+							api.DeleteForceCloudAccount,
+						),
 					},
 				},
 			},
@@ -564,14 +777,12 @@ func newConfiguration() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationProjectKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationProjectKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
 					},
 				},
@@ -585,29 +796,43 @@ func newConfiguration() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationUserKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.ListUser,
+							api.GetUser,
+							api.CheckId,
+							api.CheckEmail,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationUserKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateUser,
+							api.CheckId,
+							api.CheckEmail,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationUserKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateUser,
+							api.ResetPassword,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationUserKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteUser,
+						),
 					},
 				},
 			},
@@ -620,29 +845,41 @@ func newConfiguration() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationRoleKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.ListTksRoles,
+							api.GetTksRole,
+							api.GetPermissionsByRoleId,
+							api.GetPermissionTemplates,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationRoleKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateTksRole,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationRoleKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateTksRole,
+							api.UpdatePermissionsByRoleId,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationRoleKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteTksRole,
+						),
 					},
 				},
 			},
@@ -655,29 +892,38 @@ func newConfiguration() *Permission {
 						ID:        uuid.New(),
 						Name:      "조회",
 						Key:       OperationRead,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationSystemNotificationKey + "-" + OperationRead),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.GetSystemNotificationRules,
+							api.GetSystemNotificationRule,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "생성",
 						Key:       OperationCreate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationSystemNotificationKey + "-" + OperationCreate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.CreateSystemNotificationRule,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "수정",
 						Key:       OperationUpdate,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationSystemNotificationKey + "-" + OperationUpdate),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.UpdateSystemNotificationRule,
+						),
 					},
 					{
 						ID:        uuid.New(),
 						Name:      "삭제",
 						Key:       OperationDelete,
-						EdgeKey:   helper.StringP(TopConfigurationKey + "-" + MiddleConfigurationSystemNotificationKey + "-" + OperationDelete),
 						IsAllowed: helper.BoolP(false),
+						Endpoints: endpointObjects(
+							api.DeleteSystemNotificationRule,
+						),
 					},
 				},
 			},
@@ -692,72 +938,104 @@ func newCommon() *Permission {
 		ID:        uuid.New(),
 		Name:      "공통",
 		IsAllowed: helper.BoolP(true),
-		Key:       CommonKey,
-		EdgeKey:   helper.StringP(CommonKey),
+		Endpoints: endpointObjects(
+			// Auth
+			api.Login,
+			api.Logout,
+			api.RefreshToken,
+			api.FindId,
+			api.FindPassword,
+			api.VerifyIdentityForLostId,
+			api.VerifyIdentityForLostPassword,
+			api.VerifyToken,
+
+			// Stack
+			api.SetFavoriteStack,
+			api.DeleteFavoriteStack,
+
+			// Project
+			api.SetFavoriteProject,
+			api.SetFavoriteProjectNamespace,
+			api.UnSetFavoriteProject,
+			api.UnSetFavoriteProjectNamespace,
+
+			// MyProfile
+			api.GetMyProfile,
+			api.UpdateMyProfile,
+			api.UpdateMyPassword,
+			api.RenewPasswordExpiredDate,
+			api.DeleteMyProfile,
+
+			// StackTemplate
+			api.GetOrganizationStackTemplates,
+			api.GetOrganizationStackTemplate,
+
+			// Utiliy
+			api.CompileRego,
+		),
 	}
 
 	return common
 
 }
 
-//func newAdmin() *Permission {
-//	admin := &Permission{
-//		ID:        uuid.New(),
-//		Name:      "관리자",
-//		IsAllowed: helper.BoolP(true),
-//		EdgeKey:   helper.StringP("admin"),
-//		Endpoints: endpointObjects(
-//			// Organization
-//			api.Admin_CreateOrganization,
-//			api.Admin_DeleteOrganization,
-//			api.UpdateOrganization,
-//			api.GetOrganization,
-//			api.GetOrganizations,
-//			api.UpdatePrimaryCluster,
-//			api.CheckOrganizationName,
-//
-//			// User
-//			api.ResetPassword,
-//			api.CheckId,
-//			api.CheckEmail,
-//
-//			// StackTemplate
-//			api.Admin_GetStackTemplates,
-//			api.Admin_GetStackTemplate,
-//			api.Admin_GetStackTemplateServices,
-//			api.Admin_CreateStackTemplate,
-//			api.Admin_UpdateStackTemplate,
-//			api.Admin_DeleteStackTemplate,
-//			api.Admin_UpdateStackTemplateOrganizations,
-//			api.Admin_CheckStackTemplateName,
-//
-//			// Admin
-//			api.Admin_GetUser,
-//			api.Admin_ListUser,
-//			api.Admin_CreateUser,
-//			api.Admin_UpdateUser,
-//			api.Admin_DeleteUser,
-//			api.Admin_GetSystemNotificationTemplate,
-//			api.Admin_CreateSystemNotificationTemplate,
-//			api.Admin_ListUser,
-//			api.Admin_GetTksRole,
-//			api.Admin_GetProjects,
-//			api.Admin_UpdateSystemNotificationTemplate,
-//			api.Admin_ListTksRoles,
-//			api.Admin_GetSystemNotificationTemplates,
-//
-//			// Audit
-//			api.GetAudits,
-//			api.GetAudit,
-//			api.DeleteAudit,
-//
-//			api.CreateSystemNotification,
-//			api.DeleteSystemNotification,
-//		),
-//	}
-//
-//	return admin
-//}
+func newAdmin() *Permission {
+	admin := &Permission{
+		ID:        uuid.New(),
+		Name:      "관리자",
+		IsAllowed: helper.BoolP(true),
+		Endpoints: endpointObjects(
+			// Organization
+			api.Admin_CreateOrganization,
+			api.Admin_DeleteOrganization,
+			api.UpdateOrganization,
+			api.GetOrganization,
+			api.GetOrganizations,
+			api.UpdatePrimaryCluster,
+			api.CheckOrganizationName,
+
+			// User
+			api.ResetPassword,
+			api.CheckId,
+			api.CheckEmail,
+
+			// StackTemplate
+			api.Admin_GetStackTemplates,
+			api.Admin_GetStackTemplate,
+			api.Admin_GetStackTemplateServices,
+			api.Admin_CreateStackTemplate,
+			api.Admin_UpdateStackTemplate,
+			api.Admin_DeleteStackTemplate,
+			api.Admin_UpdateStackTemplateOrganizations,
+			api.Admin_CheckStackTemplateName,
+
+			// Admin
+			api.Admin_GetUser,
+			api.Admin_ListUser,
+			api.Admin_CreateUser,
+			api.Admin_UpdateUser,
+			api.Admin_DeleteUser,
+			api.Admin_GetSystemNotificationTemplate,
+			api.Admin_CreateSystemNotificationTemplate,
+			api.Admin_ListUser,
+			api.Admin_GetTksRole,
+			api.Admin_GetProjects,
+			api.Admin_UpdateSystemNotificationTemplate,
+			api.Admin_ListTksRoles,
+			api.Admin_GetSystemNotificationTemplates,
+
+			// Audit
+			api.GetAudits,
+			api.GetAudit,
+			api.DeleteAudit,
+
+			api.CreateSystemNotification,
+			api.DeleteSystemNotification,
+		),
+	}
+
+	return admin
+}
 
 func (p *PermissionSet) SetAllowedPermissionSet() {
 	edgePermissions := make([]*Permission, 0)

@@ -14,8 +14,6 @@ type IPermissionRepository interface {
 	Get(ctx context.Context, id uuid.UUID) (*model.Permission, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	Update(ctx context.Context, permission *model.Permission) error
-	EdgeKeyOverwrite(ctx context.Context, permission *model.Permission) error
-	GetEndpointsByPermissionId(ctx context.Context, permissionId uuid.UUID) (*model.Permission, error)
 }
 
 type PermissionRepository struct {
@@ -83,18 +81,4 @@ func (r PermissionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 func (r PermissionRepository) Update(ctx context.Context, p *model.Permission) error {
 	// update on is_allowed
 	return r.db.WithContext(ctx).Model(&model.Permission{}).Where("id = ?", p.ID).Updates(map[string]interface{}{"is_allowed": p.IsAllowed}).Error
-}
-
-func (r PermissionRepository) EdgeKeyOverwrite(ctx context.Context, p *model.Permission) error {
-	return r.db.WithContext(ctx).Model(&model.Permission{}).Where("id = ?", p.ID).Updates(map[string]interface{}{"edge_key": p.EdgeKey}).Error
-}
-
-func (r PermissionRepository) GetEndpointsByPermissionId(ctx context.Context, permissionId uuid.UUID) (*model.Permission, error) {
-	var permission *model.Permission
-	err := r.db.WithContext(ctx).Preload("Permission_endpoints").First(&permission, "id = ?", permissionId).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return permission, nil
 }

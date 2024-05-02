@@ -19,10 +19,10 @@ type GetPermissionTemplatesResponse struct {
 //}
 
 type TemplateResponse struct {
-	Name     string              `json:"name"`
-	Key      string              `json:"key"`
-	EdgeKey  *string             `json:"edgeKey,omitempty"`
-	Children []*TemplateResponse `json:"children,omitempty"`
+	Name      string              `json:"name"`
+	Key       string              `json:"key"`
+	IsAllowed *bool               `json:"isAllowed,omitempty"`
+	Children  []*TemplateResponse `json:"children,omitempty"`
 }
 
 type GetPermissionsByRoleIdResponse struct {
@@ -44,6 +44,7 @@ type PermissionResponse struct {
 	Name      string                `json:"name"`
 	Key       string                `json:"key"`
 	IsAllowed *bool                 `json:"isAllowed,omitempty"`
+	Endpoints []*EndpointResponse   `json:"endpoints,omitempty"`
 	Children  []*PermissionResponse `json:"children,omitempty"`
 }
 
@@ -74,11 +75,4 @@ type MergePermissionResponse struct {
 	Key       string                     `json:"key"`
 	IsAllowed *bool                      `json:"isAllowed,omitempty"`
 	Children  []*MergePermissionResponse `json:"children,omitempty"`
-}
-
-type GetPermissionEdgeKeysResponse struct {
-}
-
-type GetEndpointsResponse struct {
-	Endpoints []EndpointResponse `json:"endpoints"`
 }

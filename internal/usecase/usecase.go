@@ -17,7 +17,6 @@ type Usecase struct {
 	Project                    IProjectUsecase
 	Role                       IRoleUsecase
 	Permission                 IPermissionUsecase
-	Endpoint                   IEndpointUsecase
 	Audit                      IAuditUsecase
 	PolicyTemplate             IPolicyTemplateUsecase
 	Policy                     IPolicyUsecase

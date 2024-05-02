@@ -17,7 +17,6 @@ type IPermissionUsecase interface {
 	GetUserPermissionSet(ctx context.Context) *model.PermissionSet
 	UpdatePermission(ctx context.Context, permission *model.Permission) error
 	MergePermissionWithOrOperator(ctx context.Context, permissionSet ...*model.PermissionSet) *model.PermissionSet
-	GetEndpointsByPermissionId(ctx context.Context, permissionId uuid.UUID) ([]*model.Endpoint, error)
 }
 
 type PermissionUsecase struct {
@@ -132,20 +131,6 @@ func (p PermissionUsecase) GetUserPermissionSet(ctx context.Context) *model.Perm
 	permissionSet := model.NewDefaultPermissionSet()
 	permissionSet.SetUserPermissionSet()
 	return permissionSet
-}
-
-func (p PermissionUsecase) GetEndpointsByPermissionId(ctx context.Context, permissionId uuid.UUID) ([]*model.Endpoint, error) {
-	permission, err := p.repo.GetEndpointsByPermissionId(ctx, permissionId)
-	if err != nil {
-		return nil, err
-	}
-
-	endpoints := make([]*model.Endpoint, 0)
-	for _, e := range permission.Endpoints {
-		endpoints = append(endpoints, e)
-	}
-
-	return endpoints, nil
 }
 
 func (p PermissionUsecase) MergePermissionWithOrOperator(ctx context.Context, permissionSet ...*model.PermissionSet) *model.PermissionSet {
