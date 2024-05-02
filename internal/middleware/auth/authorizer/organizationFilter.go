@@ -29,11 +29,13 @@ func OrganizationFilter(handler http.Handler, repo repository.Repository) http.H
 		if !ok {
 			log.Warn(r.Context(), "OrganizationFilter: organizationId not found. Passing through unsafely.")
 			handler.ServeHTTP(w, r)
+			return
 		}
 
 		if requestedOrganization != requestUserInfo.GetOrganizationId() {
 			log.Debugf(r.Context(), "OrganizationFilter: requestedOrganization: %s, userOrganization: %s", requestedOrganization, requestUserInfo.GetOrganizationId())
 			internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+			return
 		}
 
 		handler.ServeHTTP(w, r)

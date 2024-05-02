@@ -78,7 +78,7 @@ func (a *defaultAudit) WithAudit(endpoint internalApi.Endpoint, handler http.Han
 				dto := model.Audit{
 					OrganizationId:   organizationId,
 					OrganizationName: u.Organization.Name,
-					Group:            internalApi.ApiMap[endpoint].Group,
+					Group:            internalApi.MapWithEndpoint[endpoint].Group,
 					Message:          message,
 					Description:      description,
 					ClientIP:         GetClientIpAddress(w, r),

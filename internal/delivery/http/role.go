@@ -348,10 +348,6 @@ func convertModelToPermissionResponse(ctx context.Context, permission *model.Per
 		permissionResponse.ID = &permission.ID
 	}
 
-	for _, endpoint := range permission.Endpoints {
-		permissionResponse.Endpoints = append(permissionResponse.Endpoints, convertModelToEndpointResponse(ctx, endpoint))
-	}
-
 	for _, child := range permission.Children {
 		permissionResponse.Children = append(permissionResponse.Children, convertModelToPermissionResponse(ctx, child))
 	}

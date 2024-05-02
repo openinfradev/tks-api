@@ -8,7 +8,7 @@ import (
 
 func TestEndpointsUsage(t *testing.T) {
 	var allEndpoints []string
-	for _, v := range api.ApiMap {
+	for _, v := range api.MapWithEndpoint {
 		allEndpoints = append(allEndpoints, v.Name)
 	}
 	//allEndpoints := []Endpoint{
@@ -26,7 +26,6 @@ func TestEndpointsUsage(t *testing.T) {
 		ps.Stack,
 		ps.Policy,
 		ps.Common,
-		ps.Admin,
 	}
 
 	leafPermissions := make([]*model.Permission, 0)

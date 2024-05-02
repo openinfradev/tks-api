@@ -220,6 +220,9 @@ const (
 	// Permission
 	GetPermissionTemplates
 
+	// Endpoint
+	GetEndpoints
+
 	// Admin_User
 	Admin_CreateUser
 	Admin_ListUser

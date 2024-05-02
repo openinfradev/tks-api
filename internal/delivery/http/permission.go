@@ -56,9 +56,7 @@ func convertModelToPermissionTemplateResponse(ctx context.Context, permission *m
 
 	permissionResponse.Key = permission.Key
 	permissionResponse.Name = permission.Name
-	if permission.IsAllowed != nil {
-		permissionResponse.IsAllowed = permission.IsAllowed
-	}
+	permissionResponse.EdgeKey = permission.EdgeKey
 
 	for _, child := range permission.Children {
 		permissionResponse.Children = append(permissionResponse.Children, convertModelToPermissionTemplateResponse(ctx, child))
