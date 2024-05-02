@@ -68,8 +68,6 @@ type Permission struct {
 	RoleID    *string     `json:"role_id,omitempty"`
 	Role      *Role       `gorm:"foreignKey:RoleID;references:ID;" json:"role,omitempty"`
 	Endpoints []*Endpoint `gorm:"many2many:permission_endpoints;joinForeignKey:EdgeKey;joinReferences:EndpointName;" json:"endpoints,omitempty"`
-	//PermissionEndpoint []*PermissionEndpoint `gorm:"foreignKey:EdgeKey;references:EdgeKey;"`
-	// omit empty
 
 	ParentID *uuid.UUID    `json:"parent_id,omitempty"`
 	Parent   *Permission   `gorm:"foreignKey:ParentID;references:ID;" json:"parent,omitempty"`
