@@ -355,15 +355,6 @@ func convertModelToPermissionResponse(ctx context.Context, permission *model.Per
 	return &permissionResponse
 }
 
-func convertModelToEndpointResponse(_ context.Context, endpoint *model.Endpoint) *domain.EndpointResponse {
-	var endpointResponse domain.EndpointResponse
-
-	endpointResponse.Name = endpoint.Name
-	endpointResponse.Group = endpoint.Group
-
-	return &endpointResponse
-}
-
 // UpdatePermissionsByRoleId godoc
 //
 //	@Tags			Roles
