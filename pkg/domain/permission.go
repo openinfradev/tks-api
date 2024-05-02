@@ -78,3 +78,7 @@ type MergePermissionResponse struct {
 
 type GetPermissionEdgeKeysResponse struct {
 }
+
+type GetEndpointsResponse struct {
+	Endpoints []EndpointResponse `json:"endpoints"`
+}

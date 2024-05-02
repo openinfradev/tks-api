@@ -26,7 +26,7 @@ func AdminApiFilter(handler http.Handler, repo repository.Repository) http.Handl
 
 		if strings.HasPrefix(endpointInfo.String(), "Admin_") {
 			if requestUserInfo.GetOrganizationId() != "master" {
-				internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "", ""))
+				internalHttp.ErrorJSON(w, r, httpErrors.NewForbiddenError(fmt.Errorf("permission denied"), "A_INVALID_TOKEN", "Not allowed access to admin api"))
 				return
 			}
 		}

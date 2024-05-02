@@ -219,9 +219,10 @@ const (
 
 	// Permission
 	GetPermissionTemplates
+	GetEndpointsByPermissionId
 
 	// Endpoint
-	GetEndpoints
+	Admin_GetEndpoints
 
 	// Admin_User
 	Admin_CreateUser

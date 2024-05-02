@@ -318,9 +318,10 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	permissionHandler := delivery.NewPermissionHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/permissions/templates", customMiddleware.Handle(internalApi.GetPermissionTemplates, http.HandlerFunc(permissionHandler.GetPermissionTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/permissions/{permissionId}/endpoints", customMiddleware.Handle(internalApi.GetEndpointsByPermissionId, http.HandlerFunc(permissionHandler.GetEndpoints))).Methods(http.MethodGet)
 
 	endpointHandler := delivery.NewEndpointHandler(usecaseFactory)
-	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/endpoints", customMiddleware.Handle(internalApi.GetEndpoints, http.HandlerFunc(endpointHandler.ListEndpoint))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/endpoints", customMiddleware.Handle(internalApi.Admin_GetEndpoints, http.HandlerFunc(endpointHandler.ListEndpoint))).Methods(http.MethodGet)
 
 	policyTemplateHandler := delivery.NewPolicyTemplateHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/policy-templates", customMiddleware.Handle(internalApi.Admin_ListPolicyTemplate, http.HandlerFunc(policyTemplateHandler.Admin_ListPolicyTemplate))).Methods(http.MethodGet)
