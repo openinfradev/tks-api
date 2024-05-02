@@ -348,24 +348,11 @@ func convertModelToPermissionResponse(ctx context.Context, permission *model.Per
 		permissionResponse.ID = &permission.ID
 	}
 
-	for _, endpoint := range permission.Endpoints {
-		permissionResponse.Endpoints = append(permissionResponse.Endpoints, convertModelToEndpointResponse(ctx, endpoint))
-	}
-
 	for _, child := range permission.Children {
 		permissionResponse.Children = append(permissionResponse.Children, convertModelToPermissionResponse(ctx, child))
 	}
 
 	return &permissionResponse
-}
-
-func convertModelToEndpointResponse(_ context.Context, endpoint *model.Endpoint) *domain.EndpointResponse {
-	var endpointResponse domain.EndpointResponse
-
-	endpointResponse.Name = endpoint.Name
-	endpointResponse.Group = endpoint.Group
-
-	return &endpointResponse
 }
 
 // UpdatePermissionsByRoleId godoc

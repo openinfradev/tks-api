@@ -63,6 +63,7 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&model.CacheEmailCode{},
 		&model.ExpiredTokenTime{},
 		&model.Role{},
+		&model.PermissionEndpoint{},
 		&model.CloudAccount{},
 		&model.StackTemplate{},
 		&model.Organization{},
@@ -131,7 +132,7 @@ func EnsureDefaultRows(db *gorm.DB) error {
 	for _, ep := range eps {
 		storedEps[ep.Name] = struct{}{}
 	}
-	for _, ep := range api.ApiMap {
+	for _, ep := range api.MapWithEndpoint {
 		if _, ok := storedEps[ep.Name]; !ok {
 			if err := repoFactory.Endpoint.Create(ctx, &model.Endpoint{
 				Name:  ep.Name,
