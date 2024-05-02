@@ -63,6 +63,7 @@ func migrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&model.CacheEmailCode{},
 		&model.ExpiredTokenTime{},
 		&model.Role{},
+		&model.PermissionEndpoint{},
 		&model.CloudAccount{},
 		&model.StackTemplate{},
 		&model.Organization{},
@@ -77,8 +78,10 @@ func migrateSchema(db *gorm.DB) error {
 		&model.SystemNotificationAction{},
 		&model.SystemNotificationMetricParameter{},
 		&model.SystemNotificationTemplate{},
-		&model.SystemNotificationRule{},
 		&model.SystemNotificationCondition{},
+		&model.SystemNotificationRule{},
+		&model.Permission{},
+		&model.Endpoint{},
 		&model.Project{},
 		&model.ProjectMember{},
 		&model.ProjectNamespace{},
@@ -89,16 +92,6 @@ func migrateSchema(db *gorm.DB) error {
 		&model.Policy{},
 		&model.Dashboard{},
 	); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&model.Permission{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.Endpoint{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&model.PermissionEndpoint{}); err != nil {
 		return err
 	}
 	return nil
