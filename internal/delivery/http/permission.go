@@ -2,10 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"net/http"
 
 	"github.com/openinfradev/tks-api/internal/model"
@@ -15,7 +11,6 @@ import (
 
 type IPermissionHandler interface {
 	GetPermissionTemplates(w http.ResponseWriter, r *http.Request)
-	GetEndpoints(w http.ResponseWriter, r *http.Request)
 }
 
 type PermissionHandler struct {
@@ -61,50 +56,13 @@ func convertModelToPermissionTemplateResponse(ctx context.Context, permission *m
 
 	permissionResponse.Key = permission.Key
 	permissionResponse.Name = permission.Name
-	permissionResponse.EdgeKey = permission.EdgeKey
+	if permission.IsAllowed != nil {
+		permissionResponse.IsAllowed = permission.IsAllowed
+	}
 
 	for _, child := range permission.Children {
 		permissionResponse.Children = append(permissionResponse.Children, convertModelToPermissionTemplateResponse(ctx, child))
 	}
 
 	return &permissionResponse
-}
-
-// GetEndpoints godoc
-//
-//	@Tags			Permission
-//	@Summary		Get Endpoints
-//	@Description	Get Endpoints
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	domain.GetEndpointsResponse
-//	@Router			/permissions/{permissionId}/endpoints [get]
-//	@Security		JWT
-func (h PermissionHandler) GetEndpoints(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	permissionId, ok := vars["permissionId"]
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("permissionId not found"), "PE_INVALID_PERMISSIONID", "permissionId not found"))
-		return
-	}
-
-	permissionUuid, err := uuid.Parse(permissionId)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("permissionId is invalid"), "PE_INVALID_PERMISSIONID", "permissionId is invalid"))
-		return
-	}
-
-	endpoints, err := h.permissionUsecase.GetEndpointsByPermissionId(r.Context(), permissionUuid)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "PE_GET_ENDPOINTS_FAILED", "Failed to get endpoints"))
-		return
-	}
-
-	var out domain.GetEndpointsResponse
-	out.Endpoints = make([]domain.EndpointResponse, 0)
-	for _, endpoint := range endpoints {
-		out.Endpoints = append(out.Endpoints, convertEndpointToDomain(endpoint))
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
 }

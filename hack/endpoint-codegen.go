@@ -36,7 +36,7 @@ package api
 //)
 //`
 
-const apiMapTemplateStr = `var MapWithEndpoint = map[Endpoint]EndpointInfo{
+const apiMapTemplateStr = `var ApiMap = map[Endpoint]EndpointInfo{
 {{- range .}}
     {{.Name}}: {
 		Name: "{{.Name}}", 
@@ -46,50 +46,29 @@ const apiMapTemplateStr = `var MapWithEndpoint = map[Endpoint]EndpointInfo{
 }
 `
 
-const restCodeTemplateStr = `var MapWithName = reverseApiMap()
-
-func reverseApiMap() map[string]Endpoint {
-	m := make(map[string]Endpoint)
-	for k, v := range MapWithEndpoint {
-		m[v.Name] = k
+const stringFunctionTemplateStr = `func (e Endpoint) String() string {
+	switch e {
+{{- range .}}
+	case {{.Name}}:
+		return "{{.Name}}"
+{{- end}}
+	default:
+		return ""
 	}
-	return m
 }
-
-func (e Endpoint) String() string {
-	return MapWithEndpoint[e].Name
-}
-
-func GetEndpoint(name string) Endpoint {
-	return MapWithName[name]
-}
-
 `
 
-//
-//const stringFunctionTemplateStr = `func (e Endpoint) String() string {
-//	switch e {
-//{{- range .}}
-//	case {{.Name}}:
-//		return "{{.Name}}"
-//{{- end}}
-//	default:
-//		return ""
-//	}
-//}
-//`
-//
-//const getEndpointFunctionTemplateStr = `func GetEndpoint(name string) Endpoint {
-//	switch name {
-//{{- range .}}
-//	case "{{.Name}}":
-//		return {{.Name}}
-//{{- end}}
-//	default:
-//		return -1
-//	}
-//}
-//`
+const getEndpointFunctionTemplateStr = `func GetEndpoint(name string) Endpoint {
+	switch name {
+{{- range .}}
+	case "{{.Name}}":
+		return {{.Name}}
+{{- end}}
+	default:
+		return -1
+	}
+}
+`
 
 func main() {
 	fset := token.NewFileSet()
@@ -178,42 +157,31 @@ func main() {
 		log.Fatalf("failed to execute template: %v", err)
 	}
 
-	restCodeTemplate := template.New("restCode")
-	restCodeTemplate, err = restCodeTemplate.Parse(restCodeTemplateStr)
+	// contents for stringFunction
+	stringFunctionTemplate := template.New("stringFunction")
+	stringFunctionTemplate, err = stringFunctionTemplate.Parse(stringFunctionTemplateStr)
 	if err != nil {
 		log.Fatalf("failed to parse template: %v", err)
 	}
-	var restCode bytes.Buffer
-	if err := restCodeTemplate.Execute(&restCode, nil); err != nil {
+	var stringFunctionCode bytes.Buffer
+	if err := stringFunctionTemplate.Execute(&stringFunctionCode, endpoints); err != nil {
 		log.Fatalf("failed to execute template: %v", err)
 	}
-	//
-	//// contents for stringFunction
-	//stringFunctionTemplate := template.New("stringFunction")
-	//stringFunctionTemplate, err = stringFunctionTemplate.Parse(stringFunctionTemplateStr)
-	//if err != nil {
-	//	log.Fatalf("failed to parse template: %v", err)
-	//}
-	//var stringFunctionCode bytes.Buffer
-	//if err := stringFunctionTemplate.Execute(&stringFunctionCode, endpoints); err != nil {
-	//	log.Fatalf("failed to execute template: %v", err)
-	//}
-	//
-	//// contents for getEndpointFunction
-	//getEndpointFunctionTemplate := template.New("getEndpointFunction")
-	//getEndpointFunctionTemplate, err = getEndpointFunctionTemplate.Parse(getEndpointFunctionTemplateStr)
-	//if err != nil {
-	//	log.Fatalf("failed to parse template: %v", err)
-	//}
-	//var getEndpointFunctionCode bytes.Buffer
-	//if err := getEndpointFunctionTemplate.Execute(&getEndpointFunctionCode, endpoints); err != nil {
-	//	log.Fatalf("failed to execute template: %v", err)
-	//}
+
+	// contents for getEndpointFunction
+	getEndpointFunctionTemplate := template.New("getEndpointFunction")
+	getEndpointFunctionTemplate, err = getEndpointFunctionTemplate.Parse(getEndpointFunctionTemplateStr)
+	if err != nil {
+		log.Fatalf("failed to parse template: %v", err)
+	}
+	var getEndpointFunctionCode bytes.Buffer
+	if err := getEndpointFunctionTemplate.Execute(&getEndpointFunctionCode, endpoints); err != nil {
+		log.Fatalf("failed to execute template: %v", err)
+	}
 
 	// replace original file(endpointFilePath) with new contents
 	//contents := indexCode.String() + endpointCode.String() + apiMapCode.String() + stringFunctionCode.String() + getEndpointFunctionCode.String()
-	//contents := indexCode.String() + apiMapCode.String() + stringFunctionCode.String() + getEndpointFunctionCode.String()
-	contents := indexCode.String() + apiMapCode.String() + restCode.String()
+	contents := indexCode.String() + apiMapCode.String() + stringFunctionCode.String() + getEndpointFunctionCode.String()
 	newFilePath := strings.Replace(endpointFilePath, "endpoint", "generated_endpoints.go", 1)
 
 	if err := ioutil.WriteFile(newFilePath, []byte(contents), 0644); err != nil {

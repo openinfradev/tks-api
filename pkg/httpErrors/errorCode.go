@@ -146,9 +146,6 @@ var errorMap = map[ErrorCode]string{
 	"P_CALL_TO_APPLY_KUBERNETES":     "쿠버네티스 클러스터 호출에 실패했습니다.",
 	"P_FAILED_TO_APPLY_KUBERNETES":   "쿠버네티스 클러스터 변경사항 적용에 실패했습니다.",
 	"P_INVALID_POLICY_PARAMETER":     "정책 파라미터가 템플릿의 파라미터 스키마에 유효하지 않습니다. 파라미터를 확인하세요.",
-
-	// Permission
-	"PE_INVALID_PERMISSIONID": "유효하지 않은 권한 아이디입니다. 권한 아이디를 확인하세요.",
 }
 
 func (m ErrorCode) GetText() string {
