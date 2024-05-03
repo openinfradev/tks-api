@@ -87,7 +87,7 @@ func (r *PolicyRepository) Update(ctx context.Context, organizationId string, po
 		}
 
 		if len(updateMap) > 0 {
-			err = tx.WithContext(ctx).Model(&policy).Limit(1).
+			err = tx.WithContext(ctx).Omit("TargetClusters").Model(&policy).Limit(1).
 				Where("id = ?", policyId).
 				Updates(updateMap).Error
 
