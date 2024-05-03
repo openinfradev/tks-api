@@ -481,6 +481,12 @@ func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r
 	var out domain.GetAppServeAppTasksResponse
 	out.AppServeAppTasks = make([]domain.AppServeAppTaskResponse, len(tasks))
 	for i, task := range tasks {
+		// Rollbacking to latest task should be blocked.
+		if i > 0 && strings.Contains(task.Status, "SUCCESS") && task.Status != "ABORT_SUCCESS" &&
+			task.Status != "ROLLBACK_SUCCESS" {
+			task.AvailableRollback = true
+		}
+
 		if err := serializer.Map(r.Context(), task, &out.AppServeAppTasks[i]); err != nil {
 			log.Info(r.Context(), err)
 			continue
