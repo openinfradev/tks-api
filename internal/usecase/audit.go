@@ -30,7 +30,7 @@ func NewAuditUsecase(r repository.Repository) IAuditUsecase {
 }
 
 func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
-	if dto.UserId != nil && *dto.UserId == uuid.Nil {
+	if dto.UserId != nil && *dto.UserId != uuid.Nil {
 		user, err := u.userRepo.GetByUuid(ctx, *dto.UserId)
 		if err != nil {
 			return auditId, err
