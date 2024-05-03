@@ -249,7 +249,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 
 	policyNotificationHandler := delivery.NewPolicyNotificationHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policy-notifications", customMiddleware.Handle(internalApi.GetSystemNotifications, http.HandlerFunc(policyNotificationHandler.GetPolicyNotifications))).Methods(http.MethodGet)
-	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policy-notification", customMiddleware.Handle(internalApi.GetSystemNotification, http.HandlerFunc(policyNotificationHandler.GetPolicyNotification))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/policy-notifications/{policyNotificationId}", customMiddleware.Handle(internalApi.GetSystemNotification, http.HandlerFunc(policyNotificationHandler.GetPolicyNotification))).Methods(http.MethodGet)
 
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)

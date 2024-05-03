@@ -2159,7 +2159,7 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
       policyTemplates:
         items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse'
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse'
         type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ListPolicyTemplateStatisticsResponse:
@@ -2615,6 +2615,64 @@ definitions:
         type: string
       usageCount:
         type: integer
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse:
+    properties:
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
+      currentVersion:
+        example: v1.0.1
+        type: string
+      deprecated:
+        example: false
+        type: boolean
+      description:
+        example: 이 정책은 ...
+        type: string
+      id:
+        example: d98ef5f1-4a68-4047-a446-2207787ce3ff
+        type: string
+      kind:
+        example: K8sRequiredLabels
+        type: string
+      latestVersion:
+        example: v1.0.1
+        type: string
+      libs:
+        example:
+        - rego 코드
+        items:
+          type: string
+        type: array
+      parametersSchema:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef'
+        type: array
+      rego:
+        example: rego 코드
+        type: string
+      severity:
+        enum:
+        - low
+        - medium
+        - high
+        example: medium
+        type: string
+      templateName:
+        example: 필수 Label 검사
+        type: string
+      type:
+        enum:
+        - tks
+        - organization
+        example: tks
+        type: string
+      updatedAt:
+        type: string
+      updator:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ProjectDetailResponse:
     properties:
@@ -3628,9 +3686,6 @@ definitions:
       templateId:
         example: d98ef5f1-4a68-4047-a446-2207787ce3ff
         type: string
-    required:
-    - enforcementAction
-    - policyName
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyTemplateRequest:
     properties:
@@ -3730,6 +3785,8 @@ definitions:
         type: string
       kubeVersion:
         type: string
+      name:
+        type: string
       organizationIds:
         items:
           type: string
@@ -3752,6 +3809,7 @@ definitions:
     required:
     - kubeType
     - kubeVersion
+    - name
     - organizationIds
     - platform
     - serviceIds
@@ -7155,7 +7213,35 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse'
       security:
       - JWT: []
-      summary: '[ExistsPolicyName] 정책 아름 존재 여부 확인'
+      summary: '[ExistsPolicyName] 정책 이름 존재 여부 확인'
+      tags:
+      - Policy
+  /organizations/{organizationId}/policies/resource-name/{policyResourceName}/existence:
+    get:
+      consumes:
+      - application/json
+      description: 해당 자원 이름을 가진 정책이 이미 존재하는지 확인한다.
+      parameters:
+      - description: 조직 식별자(o로 시작)
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: 정책 자원 이름(쿠버네티스 배포 시 자원 이름)
+        in: path
+        name: policyResourceName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse'
+      security:
+      - JWT: []
+      summary: '[ExistsPolicyResourceName] 정책 자원 이름 존재 여부 확인'
       tags:
       - Policy
   /organizations/{organizationId}/policy-notifications:

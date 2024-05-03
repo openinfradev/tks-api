@@ -4312,7 +4312,7 @@
                 "tags": [
                     "Policy"
                 ],
-                "summary": "[ExistsPolicyName] 정책 아름 존재 여부 확인",
+                "summary": "[ExistsPolicyName] 정책 이름 존재 여부 확인",
                 "parameters": [
                     {
                         "type": "string",
@@ -4325,6 +4325,50 @@
                         "type": "string",
                         "description": "정책 이름",
                         "name": "policyName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CheckExistedResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/policies/resource-name/{policyResourceName}/existence": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "해당 자원 이름을 가진 정책이 이미 존재하는지 확인한다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "[ExistsPolicyResourceName] 정책 자원 이름 존재 여부 확인",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "조직 식별자(o로 시작)",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "정책 자원 이름(쿠버네티스 배포 시 자원 이름)",
+                        "name": "policyResourceName",
                         "in": "path",
                         "required": true
                     }
@@ -13496,7 +13540,7 @@
                 "policyTemplates": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse"
                     }
                 }
             }
@@ -14173,6 +14217,87 @@
                 },
                 "usageCount": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "creator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
+                },
+                "currentVersion": {
+                    "type": "string",
+                    "example": "v1.0.1"
+                },
+                "deprecated": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "description": {
+                    "type": "string",
+                    "example": "이 정책은 ..."
+                },
+                "id": {
+                    "type": "string",
+                    "example": "d98ef5f1-4a68-4047-a446-2207787ce3ff"
+                },
+                "kind": {
+                    "type": "string",
+                    "example": "K8sRequiredLabels"
+                },
+                "latestVersion": {
+                    "type": "string",
+                    "example": "v1.0.1"
+                },
+                "libs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "rego 코드"
+                    ]
+                },
+                "parametersSchema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ParameterDef"
+                    }
+                },
+                "rego": {
+                    "type": "string",
+                    "example": "rego 코드"
+                },
+                "severity": {
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "example": "medium"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "필수 Label 검사"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "tks",
+                        "organization"
+                    ],
+                    "example": "tks"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updator": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse"
                 }
             }
         },
@@ -15650,10 +15775,6 @@
         },
         "github_com_openinfradev_tks-api_pkg_domain.UpdatePolicyRequest": {
             "type": "object",
-            "required": [
-                "enforcementAction",
-                "policyName"
-            ],
             "properties": {
                 "description": {
                     "type": "string"
@@ -15834,6 +15955,7 @@
             "required": [
                 "kubeType",
                 "kubeVersion",
+                "name",
                 "organizationIds",
                 "platform",
                 "serviceIds",
@@ -15855,6 +15977,9 @@
                     "type": "string"
                 },
                 "kubeVersion": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "organizationIds": {
