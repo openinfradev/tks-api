@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/repository"
@@ -31,31 +30,25 @@ func NewAuditUsecase(r repository.Repository) IAuditUsecase {
 }
 
 func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
-	if dto.UserId == nil || *dto.UserId == uuid.Nil {
-		userInfo, ok := request.UserFrom(ctx)
-		if ok {
-			id := userInfo.GetUserId()
-			dto.UserId = &id
+	if dto.UserId != nil && *dto.UserId == uuid.Nil {
+		user, err := u.userRepo.GetByUuid(ctx, *dto.UserId)
+		if err != nil {
+			return auditId, err
 		}
-	}
 
-	user, err := u.userRepo.GetByUuid(ctx, *dto.UserId)
-	if err != nil {
-		return auditId, err
-	}
-
-	userRoles := ""
-	for i, role := range user.Roles {
-		if i > 0 {
-			userRoles = userRoles + ","
+		userRoles := ""
+		for i, role := range user.Roles {
+			if i > 0 {
+				userRoles = userRoles + ","
+			}
+			userRoles = userRoles + role.Name
 		}
-		userRoles = userRoles + role.Name
+		dto.OrganizationId = user.Organization.ID
+		dto.OrganizationName = user.Organization.Name
+		dto.UserAccountId = user.AccountId
+		dto.UserName = user.Name
+		dto.UserRoles = userRoles
 	}
-	dto.OrganizationId = user.Organization.ID
-	dto.OrganizationName = user.Organization.Name
-	dto.UserAccountId = user.AccountId
-	dto.UserName = user.Name
-	dto.UserRoles = userRoles
 
 	auditId, err = u.repo.Create(ctx, dto)
 	if err != nil {
