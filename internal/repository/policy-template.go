@@ -37,6 +37,7 @@ type IPolicyTemplateRepository interface {
 	CountTksTemplateByOrganization(ctx context.Context, organizationId string) (count int64, err error)
 	CountOrganizationTemplate(ctx context.Context, organizationId string) (count int64, err error)
 	CountPolicyFromOrganizationTemplate(ctx context.Context, organizationId string) (count int64, err error)
+	GetPolicyTemplateByOrganizationIdOrTKS(ctx context.Context, organizationId string) ([]model.PolicyTemplate, error)
 }
 
 type PolicyTemplateRepository struct {
@@ -495,4 +496,22 @@ func (r *PolicyTemplateRepository) GetLatestTemplateVersion(ctx context.Context,
 	}
 
 	return policyTemplateVersion.Version, nil
+}
+
+func (r *PolicyTemplateRepository) GetPolicyTemplateByOrganizationIdOrTKS(ctx context.Context, organizationId string) (out []model.PolicyTemplate, err error) {
+	res := r.db.WithContext(ctx).
+		Select("id", "type", "template_name").
+		Where("organization_id = ? or type = ?", organizationId, "tks").
+		Find(&out)
+
+	if res.Error != nil {
+		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+			log.Info(ctx, "Cannot find policytemplate")
+			return nil, nil
+		} else {
+			log.Error(ctx, res.Error)
+			return nil, res.Error
+		}
+	}
+	return out, nil
 }
