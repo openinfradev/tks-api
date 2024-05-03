@@ -660,28 +660,59 @@ func (u *DashboardUsecase) GetPolicyEnforcement(ctx context.Context, organizatio
 		ClusterId      string
 		PolicyTemplate map[string]map[string]int
 	}
+	dashboardPolicyTemplates := make([]DashboardPolicyTemplate, 0)
 
+	// get clusters from db
+	dbClusters, err := u.clusterRepo.FetchByOrganizationId(ctx, organizationId, uuid.Nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	filteredClusters := funk.Filter(dbClusters, func(x model.Cluster) bool {
+		return x.Status == domain.ClusterStatus_RUNNING
+	})
+	if filteredClusters != nil {
+		dbPolicyTemplates, err := u.policyTemplateRepo.GetPolicyTemplateByOrganizationIdOrTKS(ctx, organizationId)
+		if err != nil {
+			return nil, err
+		}
+		for _, cluster := range filteredClusters.([]model.Cluster) {
+			policyTemplates := make(map[string]map[string]int)
+			// get policytemplates by cluster
+			// dbPolicyTemplates = {"K8sAllowedRepos": {"": 0}}
+			for _, dpt := range dbPolicyTemplates {
+				if _, ok := policyTemplates[dpt.TemplateName]; !ok {
+					policyTemplates[dpt.TemplateName] = map[string]int{"": 0}
+				}
+			}
+			dashboardPolicyTemplates = append(dashboardPolicyTemplates,
+				DashboardPolicyTemplate{ClusterId: cluster.Name, PolicyTemplate: policyTemplates})
+		}
+	}
+
+	// get clusters from cr
 	clusters, err := policytemplate.GetTksClusterCRs(ctx, primaryClusterId)
 	if err != nil {
 		log.Error(ctx, "Failed to retrieve policytemplate list ", err)
 		return nil, err
 	}
 
-	dashboardPolicyTemplates := make([]DashboardPolicyTemplate, 0)
 	for _, cluster := range clusters {
+		// policyTemplates = {"K8sAllowedRepos": {"members": 1}}
+		policyTemplates := make(map[string]map[string]int)
+
 		// If the cluster does not have a policytemplate, skip ahead
 		// cluster.Status.Templates = {"K8sAllowedRepos": ["members"]}
 		if cluster.Status.Templates == nil {
 			continue
 		}
-		// policyTemplates = {"K8sAllowedRepos": {"members": 1}}
-		policyTemplates := make(map[string]map[string]int)
+
 		for templateName, policies := range cluster.Status.Templates {
 			for _, policy := range policies {
 				policyTemplates[templateName] = make(map[string]int)
 				policyTemplates[templateName][policy] = 1
 			}
 		}
+
 		dashboardPolicyTemplates = append(dashboardPolicyTemplates,
 			DashboardPolicyTemplate{ClusterId: cluster.Name, PolicyTemplate: policyTemplates})
 	}
@@ -722,22 +753,39 @@ func (u *DashboardUsecase) GetPolicyEnforcement(ctx context.Context, organizatio
 		}
 	}
 
-	// Y축
-	var series []domain.UnitNumber
-	yRequiredData := make([]int, 0)
-	yOptionalData := make([]int, 0)
+	// desc sorting by value
+	type ChartData struct {
+		Name          string
+		OptionalCount int
+		RequiredCount int
+	}
+	chartData := make([]ChartData, 0)
+	for key, val := range totalTemplate {
+		data := ChartData{
+			Name:          key,
+			OptionalCount: val.OptionalPolicyCount,
+			RequiredCount: val.RequiredPolicyCount,
+		}
+		chartData = append(chartData, data)
+	}
+	sort.Slice(chartData, func(i, j int) bool {
+		return chartData[i].OptionalCount+chartData[i].RequiredCount >
+			chartData[j].OptionalCount+chartData[j].RequiredCount
+	})
 
 	// X축
 	var xAxis *domain.Axis
 	xData := make([]string, 0)
 
-	for key, val := range totalTemplate {
-		// X axis Data
-		xData = append(xData, key)
+	// Y축
+	var series []domain.UnitNumber
+	yOptionalData := make([]int, 0)
+	yRequiredData := make([]int, 0)
 
-		// Y axis Data
-		yOptionalData = append(yOptionalData, val.OptionalPolicyCount)
-		yRequiredData = append(yRequiredData, val.RequiredPolicyCount)
+	for _, v := range chartData {
+		xData = append(xData, v.Name)
+		yOptionalData = append(yOptionalData, v.OptionalCount)
+		yRequiredData = append(yRequiredData, v.RequiredCount)
 	}
 
 	xAxis = &domain.Axis{
@@ -787,25 +835,21 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 	// totalViolation: {"K8sRequiredLabels": {"violation_enforcement": 2}}
 	totalViolation := make(map[string]map[string]int)
 
-	// Y축
-	var series []domain.UnitNumber
-	yDenyData := make([]int, 0)
-	yWarnData := make([]int, 0)
-	yDryrunData := make([]int, 0)
-
-	// X축
-	var xAxis *domain.Axis
-	xData := make([]string, 0)
+	dbPolicyTemplates, err := u.policyTemplateRepo.GetPolicyTemplateByOrganizationIdOrTKS(ctx, organizationId)
+	if err != nil {
+		return nil, err
+	}
+	for _, dpt := range dbPolicyTemplates {
+		if _, ok := totalViolation[dpt.TemplateName]; !ok {
+			totalViolation[dpt.TemplateName] = map[string]int{"": 0}
+		}
+	}
 
 	for _, res := range pm.Data.Result {
 		policyTemplate := res.Metric.Kind
 		if len(res.Metric.Violation) == 0 {
 			continue
 		}
-		if !slices.Contains(xData, policyTemplate) {
-			xData = append(xData, policyTemplate)
-		}
-
 		count, err := strconv.Atoi(res.Value[1].(string))
 		if err != nil {
 			count = 0
@@ -819,10 +863,48 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 		}
 	}
 
-	for _, violations := range totalViolation {
-		yDenyData = append(yDenyData, violations["deny"])
-		yWarnData = append(yWarnData, violations["warn"])
-		yDryrunData = append(yDryrunData, violations["dryrun"])
+	// desc sorting by value
+	type ChartData struct {
+		Name        string
+		DenyCount   int
+		WarnCount   int
+		DryRunCount int
+	}
+	chartData := make([]ChartData, 0)
+	for pt, violations := range totalViolation {
+		data := ChartData{}
+		data.Name = pt
+		if val, ok := violations["deny"]; ok {
+			data.DenyCount = val
+		}
+		if val, ok := violations["warn"]; ok {
+			data.WarnCount = val
+		}
+		if val, ok := violations["dryrun"]; ok {
+			data.DryRunCount = val
+		}
+		chartData = append(chartData, data)
+	}
+	sort.Slice(chartData, func(i, j int) bool {
+		return chartData[i].DenyCount+chartData[i].WarnCount+chartData[i].DryRunCount >
+			chartData[j].DenyCount+chartData[j].WarnCount+chartData[j].DryRunCount
+	})
+
+	// X축
+	var xAxis *domain.Axis
+	xData := make([]string, 0)
+
+	// Y축
+	var series []domain.UnitNumber
+	yDenyData := make([]int, 0)
+	yWarnData := make([]int, 0)
+	yDryrunData := make([]int, 0)
+
+	for _, v := range chartData {
+		xData = append(xData, v.Name)
+		yDenyData = append(yDenyData, v.DenyCount)
+		yWarnData = append(yWarnData, v.WarnCount)
+		yDryrunData = append(yDryrunData, v.DryRunCount)
 	}
 
 	xAxis = &domain.Axis{
@@ -962,18 +1044,18 @@ func (u *DashboardUsecase) GetPolicyViolationTop5(ctx context.Context, organizat
 		templateNames = append(templateNames, result.Metric.Kind)
 	}
 
-	// X축
-	var xAxis *domain.Axis
-	xData := make([]string, 0)
-
-	// Y축
-	var series []domain.UnitNumber
-	yDenyData := make([]int, 0)
-	yWarnData := make([]int, 0)
-	yDryrunData := make([]int, 0)
-
+	// desc sorting by value
+	type ChartData struct {
+		Name        string
+		DenyCount   int
+		WarnCount   int
+		DryRunCount int
+	}
+	chartData := make([]ChartData, 0)
 	for _, templateName := range templateNames {
-		xData = append(xData, templateName)
+		//xData = append(xData, templateName)
+		data := ChartData{}
+		data.Name = templateName
 
 		query = fmt.Sprintf("sum by (violation_enforcement) "+
 			"(opa_scorecard_constraint_violations{taco_cluster='%s', kind='%s'})", clusterIdStr, templateName)
@@ -995,9 +1077,31 @@ func (u *DashboardUsecase) GetPolicyViolationTop5(ctx context.Context, organizat
 				dryrunCount, _ = strconv.Atoi(result.Value[1].(string))
 			}
 		}
-		yDenyData = append(yDenyData, denyCount)
-		yWarnData = append(yWarnData, warnCount)
-		yDryrunData = append(yDryrunData, dryrunCount)
+		data.DenyCount = denyCount
+		data.WarnCount = warnCount
+		data.DryRunCount = dryrunCount
+		chartData = append(chartData, data)
+	}
+	sort.Slice(chartData, func(i, j int) bool {
+		return chartData[i].DenyCount+chartData[i].WarnCount+chartData[i].DryRunCount >
+			chartData[j].DenyCount+chartData[j].WarnCount+chartData[j].DryRunCount
+	})
+
+	// X축
+	var xAxis *domain.Axis
+	xData := make([]string, 0)
+
+	// Y축
+	var series []domain.UnitNumber
+	yDenyData := make([]int, 0)
+	yWarnData := make([]int, 0)
+	yDryrunData := make([]int, 0)
+
+	for _, v := range chartData {
+		xData = append(xData, v.Name)
+		yDenyData = append(yDenyData, v.DenyCount)
+		yWarnData = append(yWarnData, v.WarnCount)
+		yDryrunData = append(yDryrunData, v.DryRunCount)
 	}
 
 	xAxis = &domain.Axis{
