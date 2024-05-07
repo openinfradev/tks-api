@@ -18,18 +18,27 @@ type IAuditUsecase interface {
 }
 
 type AuditUsecase struct {
-	repo     repository.IAuditRepository
-	userRepo repository.IUserRepository
+	repo             repository.IAuditRepository
+	userRepo         repository.IUserRepository
+	organizationRepo repository.IOrganizationRepository
 }
 
 func NewAuditUsecase(r repository.Repository) IAuditUsecase {
 	return &AuditUsecase{
-		repo:     r.Audit,
-		userRepo: r.User,
+		repo:             r.Audit,
+		userRepo:         r.User,
+		organizationRepo: r.Organization,
 	}
 }
 
 func (u *AuditUsecase) Create(ctx context.Context, dto model.Audit) (auditId uuid.UUID, err error) {
+	if dto.OrganizationId != "" {
+		organization, err := u.organizationRepo.Get(ctx, dto.OrganizationId)
+		if err == nil {
+			dto.OrganizationName = organization.Name
+		}
+	}
+
 	if dto.UserId != nil && *dto.UserId != uuid.Nil {
 		user, err := u.userRepo.GetByUuid(ctx, *dto.UserId)
 		if err != nil {

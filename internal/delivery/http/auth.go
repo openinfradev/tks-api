@@ -69,6 +69,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			Description:    errorResponse.Text(),
 			ClientIP:       audit.GetClientIpAddress(w, r),
 			UserId:         nil,
+			UserAccountId:  input.AccountId,
 		})
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 		ErrorJSON(w, r, err)
