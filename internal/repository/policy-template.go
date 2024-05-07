@@ -89,7 +89,7 @@ func (r *PolicyTemplateRepository) Update(ctx context.Context, policyTemplateId 
 		}
 
 		if len(updateMap) > 0 {
-			err = tx.WithContext(ctx).Model(&policyTemplate).Limit(1).
+			err = tx.WithContext(ctx).Omit("PermittedOrganizations").Model(&policyTemplate).Limit(1).
 				Where("id = ?", policyTemplateId).Where("type = ?", "tks").
 				Updates(updateMap).Error
 
