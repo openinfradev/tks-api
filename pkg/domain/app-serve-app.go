@@ -3,43 +3,43 @@ package domain
 import "time"
 
 type AppServeAppResponse struct {
-	ID                 string     `json:"id,omitempty"`
-	Name               string     `json:"name,omitempty"`               // application name
-	Namespace          string     `json:"namespace,omitempty"`          // application namespace
-	OrganizationId     string     `json:"organizationId,omitempty"`     // contractId is a contract ID which this app belongs to
-	ProjectId          string     `json:"projectId,omitempty"`          // project ID which this app belongs to
-	Type               string     `json:"type,omitempty"`               // type (build/deploy/all)
-	AppType            string     `json:"appType,omitempty"`            // appType (spring/springboot)
-	EndpointUrl        string     `json:"endpointUrl,omitempty"`        // endpoint URL of deployed app
-	PreviewEndpointUrl string     `json:"previewEndpointUrl,omitempty"` // preview svc endpoint URL in B/G deployment
-	TargetClusterId    string     `json:"targetClusterId,omitempty"`    // target cluster to which the app is deployed
-	TargetClusterName  string     `json:"targetClusterName,omitempty"`  // target cluster name
-	Status             string     `json:"status,omitempty"`             // status is status of deployed app
-	GrafanaUrl         string     `json:"grafanaUrl,omitempty"`         // grafana dashboard URL for deployed app
-	Description        string     `json:"description,omitempty"`        // description for application
+	ID                 string     `json:"id"`
+	Name               string     `json:"name"`               // application name
+	Namespace          string     `json:"namespace"`          // application namespace
+	OrganizationId     string     `json:"organizationId"`     // contractId is a contract ID which this app belongs to
+	ProjectId          string     `json:"projectId"`          // project ID which this app belongs to
+	Type               string     `json:"type"`               // type (build/deploy/all)
+	AppType            string     `json:"appType"`            // appType (spring/springboot)
+	EndpointUrl        string     `json:"endpointUrl"`        // endpoint URL of deployed app
+	PreviewEndpointUrl string     `json:"previewEndpointUrl"` // preview svc endpoint URL in B/G deployment
+	TargetClusterId    string     `json:"targetClusterId"`    // target cluster to which the app is deployed
+	TargetClusterName  string     `json:"targetClusterName"`  // target cluster name
+	Status             string     `json:"status"`             // status is status of deployed app
+	GrafanaUrl         string     `json:"grafanaUrl"`         // grafana dashboard URL for deployed app
+	Description        string     `json:"description"`        // description for application
 	CreatedAt          time.Time  `json:"createdAt" `
 	UpdatedAt          *time.Time `json:"updatedAt"`
 	DeletedAt          *time.Time `json:"deletedAt"`
 }
 
 type AppServeAppTaskResponse struct {
-	ID                string     `json:"id,omitempty"`
-	AppServeAppId     string     `json:"appServeAppId,omitempty"`   // ID for appServeApp that this task belongs to
-	Version           string     `json:"version,omitempty"`         // application version
-	Status            string     `json:"status,omitempty"`          // status is app status
-	Output            string     `json:"output,omitempty"`          // output for task result
-	ArtifactUrl       string     `json:"artifactUrl,omitempty"`     // URL of java app artifact (Eg, Jar)
-	ImageUrl          string     `json:"imageUrl,omitempty"`        // URL of built image for app
-	ExecutablePath    string     `json:"executablePath,omitempty"`  // Executable path of app image
-	Profile           string     `json:"profile,omitempty"`         // java app profile
-	AppConfig         string     `json:"appConfig,omitempty"`       // java app config
-	AppSecret         string     `json:"appSecret,omitempty"`       // java app secret
-	ExtraEnv          string     `json:"extraEnv,omitempty"`        // env variable list for java app
-	Port              string     `json:"port,omitempty"`            // java app port
-	ResourceSpec      string     `json:"resourceSpec,omitempty"`    // resource spec of app pod
-	HelmRevision      int32      `json:"helmRevision,omitempty"`    // revision of deployed helm release
-	Strategy          string     `json:"strategy,omitempty"`        // deployment strategy (eg, rolling-update)
-	RollbackVersion   string     `json:"rollbackVersion,omitempty"` // rollback target version
+	ID                string     `json:"id"`
+	AppServeAppId     string     `json:"appServeAppId"`   // ID for appServeApp that this task belongs to
+	Version           string     `json:"version"`         // application version
+	Status            string     `json:"status"`          // status is app status
+	Output            string     `json:"output"`          // output for task result
+	ArtifactUrl       string     `json:"artifactUrl"`     // URL of java app artifact (Eg, Jar)
+	ImageUrl          string     `json:"imageUrl"`        // URL of built image for app
+	ExecutablePath    string     `json:"executablePath"`  // Executable path of app image
+	Profile           string     `json:"profile"`         // java app profile
+	AppConfig         string     `json:"appConfig"`       // java app config
+	AppSecret         string     `json:"appSecret"`       // java app secret
+	ExtraEnv          string     `json:"extraEnv"`        // env variable list for java app
+	Port              string     `json:"port"`            // java app port
+	ResourceSpec      string     `json:"resourceSpec"`    // resource spec of app pod
+	HelmRevision      int32      `json:"helmRevision"`    // revision of deployed helm release
+	Strategy          string     `json:"strategy"`        // deployment strategy (eg, rolling-update)
+	RollbackVersion   string     `json:"rollbackVersion"` // rollback target version
 	PvEnabled         bool       `json:"pvEnabled"`
 	PvStorageClass    string     `json:"pvStorageClass"`
 	PvAccessMode      string     `json:"pvAccessMode"`
