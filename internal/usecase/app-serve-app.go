@@ -223,7 +223,8 @@ func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId strin
 				return asa, err
 			}
 			if len(applications) > 0 {
-				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_appserving_dashboard/tks-appserving-dashboard?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10"
+				// TODO: revert refresh param once the bug is resolved
+				asa.GrafanaUrl = applications[0].Endpoint + "/d/tks_appserving_dashboard/tks-appserving-dashboard?refresh=30s&var-cluster=" + asa.TargetClusterId + "&var-kubernetes_namespace_name=" + asa.Namespace + "&var-kubernetes_pod_name=All&var-kubernetes_container_name=main&var-TopK=10&refresh=30m"
 				log.Debugf(ctx, "Found grafanaURL: %s", asa.GrafanaUrl)
 			}
 		}
