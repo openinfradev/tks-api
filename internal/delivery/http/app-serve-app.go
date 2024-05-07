@@ -574,8 +574,16 @@ func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *
 		return
 	}
 
-	// TODO: this should be false for latest task
-	if strings.Contains(task.Status, "SUCCESS") && task.Status != "ABORT_SUCCESS" &&
+	// Workaround: Compare task ID with latest task ID
+	// Mark latest task with additional flag later
+	latestTask, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if taskId == latestTask.ID {
+		task.AvailableRollback = false
+	} else if strings.Contains(task.Status, "SUCCESS") && task.Status != "ABORT_SUCCESS" &&
 		task.Status != "ROLLBACK_SUCCESS" {
 		task.AvailableRollback = true
 	}
