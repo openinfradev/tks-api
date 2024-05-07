@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -10,7 +11,7 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/openinfradev/tks-api/pkg/domain"
-	"github.com/opentracing/opentracing-go/log"
+	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 const (
@@ -30,7 +31,7 @@ func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
 	v := validator.New()
 	err := en_translations.RegisterDefaultTranslations(v, trans)
 	if err != nil {
-		log.Error(err)
+		log.Error(context.TODO(), err)
 	}
 
 	// register custom validator

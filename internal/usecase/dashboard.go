@@ -1141,6 +1141,11 @@ func (u *DashboardUsecase) GetThanosClient(ctx context.Context, organizationId s
 		return nil, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 	address, port := helper.SplitAddress(ctx, thanosUrl)
+
+	// [TEST]
+	//address = "http://a93c60de70c794ef39b495976588c989-d7cd29ca75def693.elb.ap-northeast-2.amazonaws.com"
+	//port = 9090
+
 	client, err := thanos.New(address, port, false, "")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create thanos client")
