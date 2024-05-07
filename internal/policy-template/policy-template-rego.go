@@ -15,11 +15,13 @@ import (
 )
 
 const (
+	rego_var_name_pattern = `[[a-zA-Z_][a-zA-Z0-9_]*`
 	input_param_prefix    = "input.parameters"
-	input_extract_pattern = `input(\.parameters|\[\"parameters\"\])((\[\"[\w\-]+\"\])|(\[_\])|(\.\w+))*` //(\.\w+)*` //  (\.\w+\[\"\w+\"\])|(\.\w+\[\w+\])|(\.\w+))*`
+	input_extract_pattern = `input(\.parameters|\[\"parameters\"\])((\[\"[\w\-]+\"\])|(\[_\])|(\[` + rego_var_name_pattern + `\])|(\.\w+))*` //(\.\w+)*` //  (\.\w+\[\"\w+\"\])|(\.\w+\[\w+\])|(\.\w+))*`
 	//	input_extract_pattern = `input\.parameters((\[\".+\"\])?(\.\w+\[\"\w+\"\])|(\.\w+\[\w+\])|(\.\w+))+`
 	obj_get_list_pattern = `object\.get\((input|input\.parameters|input\.parameters\.[^,]+), \"([^\"]+)\", \[\]\)`
 	obj_get_pattern      = `object\.get\((input|input\.parameters|input\.parameters\.[^,]+), \"([^\"]+)\", [^\)]+\)`
+	ref_by_key_pattern   = `\[\"([\w-]+)\"\]`
 	package_name_regex   = `package ([\w\.]+)[\n\r]+`
 	import_regex         = `import ([\w\.]+)[\n\r]+`
 )
@@ -28,6 +30,8 @@ var (
 	input_extract_regex           = regexp.MustCompile(input_extract_pattern)
 	obj_get_list_regex            = regexp.MustCompile(obj_get_list_pattern)
 	obj_get_regex                 = regexp.MustCompile(obj_get_pattern)
+	ref_by_key_regex              = regexp.MustCompile(ref_by_key_pattern)
+	ref_by_var_regex              = regexp.MustCompile(`\[` + rego_var_name_pattern + `\]`)
 	array_param_map, capabilities = buildArrayParameterMap()
 )
 
@@ -451,8 +455,11 @@ func ExtractParameter(modules map[string]*ast.Module) []*domain.ParameterDef {
 			remainder := inputExpr[len(input_param_prefix):]
 
 			// 문법 변환: aa["a"]["B"][_]->aa.a.B[_]
-			regex := regexp.MustCompile(`\[\"([\w-]+)\"\]`)
-			remainder = regex.ReplaceAllString(remainder, ".${1}")
+			remainder = ref_by_key_regex.ReplaceAllString(remainder, ".${1}")
+
+			// 문법 변환2: input.parameters.aa[varname]에서 aa는 객체가 아닌 배열이라고 확신할 수 있으므로
+			// input.parameters.aa[_]로 변환해도 무방함
+			remainder = ref_by_var_regex.ReplaceAllString(remainder, "[_]")
 
 			params := strings.Split(remainder, ".")
 
