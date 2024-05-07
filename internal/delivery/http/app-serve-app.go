@@ -113,7 +113,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	appReq := domain.CreateAppServeAppRequest{}
 	err := UnmarshalRequestInput(r, &appReq)
 	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Error while unmarshalling request"), "C_INTERNAL_ERROR", ""))
+		ErrorJSON(w, r, err)
 		return
 	}
 

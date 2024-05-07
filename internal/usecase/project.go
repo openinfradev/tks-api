@@ -911,19 +911,39 @@ func (u *ProjectUsecase) GetResourcesUsage(ctx context.Context, thanosClient tha
 	if err != nil {
 		return out, errors.Wrap(err, fmt.Sprintf("Failed to get cluster : stackId %s", stackId))
 	}
-	/*
-		query := "sum(rate(container_cpu_usage_seconds_total{image!=\"\"}[10m]) ) by (taco_cluster, namespace)"
-		result, err := thanosClient.Get(ctx, query)
-		if err != nil {
-			return out, err
+
+	// sum(rate(container_cpu_usage_seconds_total{taco_cluster=\"$taco_cluster\",image!=\"\"}[$__rate_interval])) by (namespace)
+	query := fmt.Sprintf("sum(rate(container_cpu_usage_seconds_total{image!=\"\", namespace=\"%s\"}[10m]) ) by (taco_cluster, namespace)", namespace)
+	result, err := thanosClient.Get(ctx, query)
+	if err != nil {
+		return out, err
+	}
+	for _, val := range result.Data.Result {
+		if val.Metric.TacoCluster == stackId.String() {
+			if val.Metric.Namespace == namespace {
+				if s, err := strconv.ParseFloat(val.Value[1].(string), 32); err == nil {
+					out.Cpu = fmt.Sprintf("%0.2f %%", s*100)
+				}
+			}
 		}
-		log.Info(ctx, helper.ModelToJson(result))
+	}
 
-	*/
+	// sum(container_memory_working_set_bytes{taco_cluster=\"$taco_cluster\",image!=\"\"}) by (namespace)
+	query = fmt.Sprintf("sum(container_memory_working_set_bytes{image!=\"\", namespace=\"%s\"}) by (taco_cluster, namespace)", namespace)
+	result, err = thanosClient.Get(ctx, query)
+	if err != nil {
+		return out, err
+	}
+	for _, val := range result.Data.Result {
+		if val.Metric.TacoCluster == stackId.String() {
+			if val.Metric.Namespace == namespace {
+				memory, _ := strconv.Atoi(val.Value[1].(string))
+				out.Memory = fmt.Sprintf("%d MiB", memory/1024/1024)
+			}
+		}
+	}
 
-	out.Cpu = "1.0 %"
-	out.Memory = "2.0 %"
-	out.Storage = "3.0 %"
+	out.Storage = ""
 
 	return
 }
