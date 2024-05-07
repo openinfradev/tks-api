@@ -118,6 +118,8 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			}
 		}
 
+		// [TODO] policy 일 경우 처리
+
 		dto := model.SystemNotification{
 			OrganizationId:           organizationId,
 			Name:                     systemNotification.Labels.AlertName,
@@ -140,7 +142,6 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			continue
 		}
 
-		// 사용자가 생성한 알림
 		if systemNotificationRuleId != nil {
 			rule, err := u.systemNotificationRuleRepo.Get(ctx, *systemNotificationRuleId)
 			if err != nil {
@@ -150,9 +151,23 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 
 			if rule.SystemNotificationCondition.EnableEmail {
 				to := []string{}
-				for _, user := range rule.TargetUsers {
-					to = append(to, user.Email)
+
+				// 아무것도 지정되어 있지 않다면, organization 전체 대상으로 발송한다.
+				if rule.TargetUsers == nil || len(rule.TargetUsers) == 0 {
+					users, err := u.userRepo.List(ctx, u.userRepo.OrganizationFilter(organizationId))
+					if err != nil || users == nil {
+						log.Error(ctx, "Failed to get users ", err)
+						continue
+					}
+					for _, user := range *users {
+						to = append(to, user.Email)
+					}
+				} else {
+					for _, user := range rule.TargetUsers {
+						to = append(to, user.Email)
+					}
 				}
+
 				message, err := mail.MakeSystemNotificationMessage(ctx, organizationId, systemNotification.Annotations.Message, systemNotification.Annotations.Description, to)
 				if err != nil {
 					log.Error(ctx, fmt.Sprintf("Failed to make email content. err : %s", err.Error()))
