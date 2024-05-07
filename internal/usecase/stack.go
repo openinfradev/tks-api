@@ -419,6 +419,14 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 		return httpErrors.NewBadRequestError(errors.Wrap(err, "Failed to get cluster"), "S_FAILED_FETCH_CLUSTER", "")
 	}
 
+	// cluster 의 상태가 비정상 상태라면, DB 데이터만 삭제
+	if cluster.Status != domain.ClusterStatus_RUNNING &&
+		cluster.Status != domain.ClusterStatus_BOOTSTRAPPING &&
+		cluster.Status != domain.ClusterStatus_INSTALLING &&
+		cluster.Status != domain.ClusterStatus_DELETING {
+		return u.clusterRepo.Delete(ctx, domain.ClusterId(dto.ID))
+	}
+
 	// 지우려고 하는 stack 이 primary cluster 라면, organization 내에 cluster 가 자기 자신만 남아있을 경우이다.
 	organizations, err := u.organizationRepo.Fetch(ctx, nil)
 	if err != nil {
@@ -463,8 +471,6 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 	if appsCnt > 0 {
 		return httpErrors.NewBadRequestError(fmt.Errorf("existed appServeApps in %s", dto.OrganizationId), "S_FAILED_DELETE_EXISTED_ASA", "")
 	}
-
-	// Policy 삭제
 
 	workflow := "tks-stack-delete"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
