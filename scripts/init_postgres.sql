@@ -61,7 +61,7 @@ insert into project_roles ( id, name, description, created_at, updated_at ) valu
 insert into system_notification_templates ( id, name, description, is_system, notification_type, metric_query, creator_id, updator_id, created_at, updated_at )
 values ('d42d716f-dd2e-429b-897d-b602f6382790', 'node-cpu-high-load', 'node-cpu-high-load', true, 'SYSTEM_NOTIFICATION', '(avg by (taco_cluster, instance) (rate(node_cpu_seconds_total{mode="idle"}[60s])))', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, notification_type, metric_query, creator_id, updator_id, created_at, updated_at )
-values ('f11eefa4-5a16-44fc-8dae-4662e7fba023', 'node-memory-high-utilization', true, 'SYSTEM_NOTIFICATION', 'node-memory-high-utilization', '(node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes)', null, null, now(), now() );
+values ('f11eefa4-5a16-44fc-8dae-4662e7fba023', 'node-memory-high-utilization', 'node-memory-high-utilization', true, 'SYSTEM_NOTIFICATION', '(node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes)', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, notification_type, metric_query, creator_id, updator_id, created_at, updated_at )
 values ('1ec08b58-2fe1-49c5-bbab-3544ec8ce330', 'node-disk-full', 'node-disk-full', true, 'SYSTEM_NOTIFICATION', 'predict_linear(node_filesystem_free_bytes{mountpoint="/"}[6h], 24*3600)', null, null, now(), now() );
 insert into system_notification_templates ( id, name, description, is_system, notification_type, metric_query, creator_id, updator_id, created_at, updated_at )
