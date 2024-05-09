@@ -356,6 +356,20 @@ func (h *OrganizationHandler) UpdateOrganization(w http.ResponseWriter, r *http.
 		return
 	}
 
+	user, err := h.userUsecase.GetByAccountId(r.Context(), input.AdminAccountId, organizationId)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	err = h.usecase.ChangeAdminId(r.Context(), organizationId, user.ID)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var out domain.UpdateOrganizationResponse
 	out.ID = res.ID
 
