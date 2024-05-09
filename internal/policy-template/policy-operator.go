@@ -24,7 +24,7 @@ func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
 		return nil
 	}
 
-	var params *apiextensionsv1.JSON = nil
+	var params *apiextensionsv1.JSON = &apiextensionsv1.JSON{Raw: []byte("{}")}
 
 	var jsonResult map[string]interface{}
 
@@ -86,6 +86,14 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 	labels[PartOfKey] = PartOfVal
 	labels[TemplateIDLabel] = policyTemplate.ID.String()
 
+	var validation *Validation = nil
+
+	if len(policyTemplate.ParametersSchema) > 0 {
+		validation = &Validation{
+			OpenAPIV3Schema: ParamDefsToJSONSchemaProeprties(policyTemplate.ParametersSchema, false),
+		}
+	}
+
 	return &TKSPolicyTemplate{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "tkspolicy.openinfradev.github.io/v1",
@@ -103,9 +111,7 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 					Names: Names{
 						Kind: policyTemplate.Kind,
 					},
-					Validation: &Validation{
-						OpenAPIV3Schema: ParamDefsToJSONSchemaProeprties(policyTemplate.ParametersSchema, false),
-					},
+					Validation: validation,
 				},
 			},
 			Targets: []Target{{
