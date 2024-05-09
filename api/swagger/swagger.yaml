@@ -8418,7 +8418,7 @@ paths:
       summary: Check duplicate appServeAppName
       tags:
       - AppServeApps
-  /organizations/{organizationId}/projects/{projectId}/kubeconfig:
+  /organizations/{organizationId}/projects/{projectId}/kube-config:
     get:
       consumes:
       - application/json
@@ -8965,7 +8965,7 @@ paths:
       summary: Get k8s resources for project namespace
       tags:
       - Projects
-  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig:
+  /organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kube-config:
     get:
       consumes:
       - application/json
