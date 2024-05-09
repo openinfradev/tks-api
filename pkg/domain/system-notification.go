@@ -104,6 +104,7 @@ type SystemNotificationResponse struct {
 	Read                      bool                               `json:"read"`
 	CreatedAt                 time.Time                          `json:"createdAt"`
 	UpdatedAt                 time.Time                          `json:"updatedAt"`
+	PolicyName                string                             `json:"policyName"`
 }
 
 type SystemNotificationActionResponse struct {

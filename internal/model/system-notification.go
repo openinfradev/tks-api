@@ -39,6 +39,7 @@ type SystemNotification struct {
 	Read                      bool                                  `gorm:"-:all"`
 	Readers                   []User                                `gorm:"many2many:system_notification_users;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 	SystemNotificationRuleId  *uuid.UUID
+	PolicyName                string
 }
 
 type SystemNotificationAction struct {

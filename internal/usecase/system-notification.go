@@ -118,8 +118,6 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			}
 		}
 
-		// [TODO] policy 일 경우 처리
-
 		dto := model.SystemNotification{
 			OrganizationId:           organizationId,
 			Name:                     systemNotification.Labels.AlertName,
@@ -134,6 +132,10 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			RawData:                  rawData,
 			SystemNotificationRuleId: systemNotificationRuleId,
 			NotificationType:         systemNotification.Annotations.AlertType,
+		}
+
+		if systemNotification.Annotations.AlertType == "POLICY_NOTIFICATION" {
+			dto.PolicyName = systemNotification.Annotations.PolicyName
 		}
 
 		_, err = u.repo.Create(ctx, dto)
@@ -344,6 +346,8 @@ func (u *SystemNotificationUsecase) makeAdditionalInfo(systemNotification *model
 			break
 		}
 	}
+
+	log.Info(context.TODO(), systemNotification.RawData)
 }
 
 func (u *SystemNotificationUsecase) makeGrafanaUrl(ctx context.Context, primaryCluster model.Cluster, systemNotification domain.SystemNotificationRequest, clusterId domain.ClusterId) (url string) {
