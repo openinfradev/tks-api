@@ -134,7 +134,7 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 			NotificationType:         systemNotification.Annotations.AlertType,
 		}
 
-		if systemNotification.Annotations.AlertType != "POLICY_NOTIFICATION" {
+		if systemNotification.Annotations.AlertType == "POLICY_NOTIFICATION" {
 			dto.PolicyName = systemNotification.Annotations.PolicyName
 		}
 
