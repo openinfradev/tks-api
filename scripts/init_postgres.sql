@@ -96,6 +96,7 @@ insert into system_notification_metric_parameters ( "order", system_notification
 values ( 1, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'POD', '$labels.pod', now(), now() );
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
 values ( 2, '46e9e216-364a-4a3f-9182-85b2c4c34f77', 'NAMESPACE', '$labels.namespace', now(), now() );
+insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
 values ( 0, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'STACK', '$labels.taco_cluster', now(), now() );
 insert into system_notification_metric_parameters ( "order", system_notification_template_id, key, value, created_at, updated_at )
 values ( 1, '7355d0f9-7c14-4f70-92ea-a9868624ff82', 'NAME', '$labels.name', now(), now() );

@@ -15315,6 +15315,9 @@ const docTemplate = `{
                 "organizationId": {
                     "type": "string"
                 },
+                "policyName": {
+                    "type": "string"
+                },
                 "processingSec": {
                     "type": "integer"
                 },
@@ -15690,6 +15693,9 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "adminAccountId": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string",
                     "maxLength": 100,

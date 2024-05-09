@@ -91,8 +91,9 @@ type ListOrganizationResponse struct {
 }
 
 type UpdateOrganizationRequest struct {
-	Name        string `json:"name" validate:"required,min=1,max=30"`
-	Description string `json:"description" validate:"omitempty,min=0,max=100"`
+	Name           string `json:"name" validate:"required,min=1,max=30"`
+	Description    string `json:"description" validate:"omitempty,min=0,max=100"`
+	AdminAccountId string `json:"adminAccountId"`
 }
 
 type UpdateOrganizationResponse struct {

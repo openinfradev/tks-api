@@ -165,6 +165,26 @@ var auditMap = map[internalApi.Endpoint]fnAudit{
 		} else {
 			return "시스템알림설정을 삭제하는데 실패하였습니다. ", errorText(ctx, out)
 		}
+	}, internalApi.CreatePolicyTemplate: func(ctx context.Context, out []byte, in []byte, statusCode int) (message string, description string) {
+		input := domain.CreatePolicyTemplateRequest{}
+		if err := json.Unmarshal(in, &input); err != nil {
+			log.Error(ctx, err)
+		}
+		if isSuccess(statusCode) {
+			return fmt.Sprintf("정책템플릿 [%s]를 생성하였습니다.", input.TemplateName), ""
+		} else {
+			return fmt.Sprintf("정책템플릿 [%s]을 생성하는데 실패하였습니다.", input.TemplateName), errorText(ctx, out)
+		}
+	}, internalApi.CreatePolicy: func(ctx context.Context, out []byte, in []byte, statusCode int) (message string, description string) {
+		input := domain.CreatePolicyRequest{}
+		if err := json.Unmarshal(in, &input); err != nil {
+			log.Error(ctx, err)
+		}
+		if isSuccess(statusCode) {
+			return fmt.Sprintf("정책 [%s]를 생성하였습니다.", input.PolicyName), ""
+		} else {
+			return fmt.Sprintf("정책 [%s]을 생성하는데 실패하였습니다.", input.PolicyName), errorText(ctx, out)
+		}
 	},
 }
 

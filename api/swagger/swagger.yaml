@@ -3345,6 +3345,8 @@ definitions:
         type: string
       organizationId:
         type: string
+      policyName:
+        type: string
       processingSec:
         type: integer
       rawData:
@@ -3591,6 +3593,8 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.UpdateOrganizationRequest:
     properties:
+      adminAccountId:
+        type: string
       description:
         maxLength: 100
         minLength: 0
