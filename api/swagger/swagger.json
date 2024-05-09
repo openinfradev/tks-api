@@ -6565,7 +6565,7 @@
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
+        "/organizations/{organizationId}/projects/{projectId}/kube-config": {
             "get": {
                 "security": [
                     {
@@ -7406,7 +7406,7 @@
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
                     {

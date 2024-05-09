@@ -6571,7 +6571,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
+        "/organizations/{organizationId}/projects/{projectId}/kube-config": {
             "get": {
                 "security": [
                     {
@@ -7412,7 +7412,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
                     {

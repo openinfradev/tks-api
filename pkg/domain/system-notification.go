@@ -61,7 +61,7 @@ type SystemNotificationRequest struct {
 		AlertType                string `json:"alertType"`
 		SystemNotificationRuleId string `json:"systemNotificationRuleId"`
 		PolicyName               string `json:"policyName"`
-		PolicyTemplate           string `json:"policyTemplate"`
+		PolicyTemplateName       string `json:"policyTemplateName"`
 	} `json:"annotations"`
 }
 
