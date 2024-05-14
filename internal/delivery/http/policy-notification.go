@@ -58,6 +58,16 @@ func (h *PolicyNotificationHandler) GetPolicyNotifications(w http.ResponseWriter
 				var s domain.SystemNotificationRuleStatus
 				pg.GetFilters()[i].Values[j] = strconv.Itoa(int(s.FromString(value)))
 			}
+		} else if filter.Column == "message_action_proposal" {
+			for j, value := range filter.Values {
+				val := ""
+				if value == "dryrun" {
+					val = "감사"
+				} else {
+					val = "거부"
+				}
+				pg.GetFilters()[i].Values[j] = val
+			}
 		}
 	}
 
