@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	PartOfKey       = "app.kubernetes.io/part-of"
-	PartOfVal       = "tks-policy-operator"
-	TksLabelPrefix  = "tks/"
-	PolicyIDLabel   = TksLabelPrefix + "policy-id"
-	TemplateIDLabel = TksLabelPrefix + "policy-template-id"
+	PartOfKey                 = "app.kubernetes.io/part-of"
+	PartOfVal                 = "tks-policy-operator"
+	TksLabelPrefix            = "tks/"
+	PolicyIDLabel             = TksLabelPrefix + "policy-id"
+	TemplateIDLabel           = TksLabelPrefix + "policy-template-id"
+	RequireSyncDataAnnotation = "metadata.gatekeeper.sh/requires-sync-data"
 )
 
 func PolicyToTksPolicyCR(policy *model.Policy) *TKSPolicy {
@@ -86,6 +87,21 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 	labels[PartOfKey] = PartOfVal
 	labels[TemplateIDLabel] = policyTemplate.ID.String()
 
+	annotations := map[string]string{}
+
+	if policyTemplate.SyncJson != nil {
+		annotations[RequireSyncDataAnnotation] = "\"" + *policyTemplate.SyncJson + "\""
+	} else if policyTemplate.SyncKinds != nil {
+		sync, err := CheckAndConvertToSyncData(*policyTemplate.SyncKinds)
+
+		if err == nil {
+			syncVal, err := MarshalSyncData(sync)
+			if err == nil {
+				annotations[RequireSyncDataAnnotation] = "\"" + syncVal + "\""
+			}
+		}
+	}
+
 	var validation *Validation = nil
 
 	if len(policyTemplate.ParametersSchema) > 0 {
@@ -101,8 +117,9 @@ func PolicyTemplateToTksPolicyTemplateCR(policyTemplate *model.PolicyTemplate) *
 		},
 
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   strings.ToLower(policyTemplate.Kind),
-			Labels: labels,
+			Name:        strings.ToLower(policyTemplate.Kind),
+			Labels:      labels,
+			Annotations: annotations,
 		},
 
 		Spec: TKSPolicyTemplateSpec{

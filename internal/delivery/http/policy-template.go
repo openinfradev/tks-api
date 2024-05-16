@@ -650,7 +650,8 @@ func (h *PolicyTemplateHandler) Admin_CreatePolicyTemplateVersion(w http.Respons
 			input.ExpectedVersion, expectedVersion)))
 	}
 
-	createdVersion, err := h.usecase.CreatePolicyTemplateVersion(r.Context(), nil, id, expectedVersion, input.ParametersSchema, input.Rego, input.Libs)
+	createdVersion, err := h.usecase.CreatePolicyTemplateVersion(r.Context(), nil, id, expectedVersion, input.ParametersSchema,
+		input.Rego, input.Libs, input.SyncKinds, input.SyncJson)
 
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -1549,7 +1550,8 @@ func (h *PolicyTemplateHandler) CreatePolicyTemplateVersion(w http.ResponseWrite
 			input.ExpectedVersion, expectedVersion)))
 	}
 
-	createdVersion, err := h.usecase.CreatePolicyTemplateVersion(r.Context(), &organizationId, id, expectedVersion, input.ParametersSchema, input.Rego, input.Libs)
+	createdVersion, err := h.usecase.CreatePolicyTemplateVersion(r.Context(), &organizationId, id, expectedVersion, input.ParametersSchema,
+		input.Rego, input.Libs, input.SyncKinds, input.SyncJson)
 
 	if err != nil {
 		ErrorJSON(w, r, err)

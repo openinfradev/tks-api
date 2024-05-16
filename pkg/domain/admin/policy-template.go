@@ -29,6 +29,8 @@ type PolicyTemplateResponse struct {
 	ParametersSchema []*domain.ParameterDef `json:"parametersSchema,omitempty"`
 	Rego             string                 `json:"rego" example:"rego 코드"`
 	Libs             []string               `json:"libs" example:"rego 코드"`
+	SyncKinds        *[]string              `json:"syncKinds,omitempty" example:"Ingress"`
+	SyncJson         *string                `json:"SyncJson,omitempty" example:"[[]]"`
 
 	PermittedOrganizations []domain.SimpleOrganizationResponse `json:"permittedOrganizations"`
 }
@@ -50,8 +52,10 @@ type CreatePolicyTemplateRequest struct {
 	ParametersSchema []*domain.ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
-	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
-	Libs []string `json:"libs" example:"rego 코드"`
+	Rego      string    `json:"rego" example:"rego 코드" validate:"required"`
+	Libs      []string  `json:"libs" example:"rego 코드"`
+	SyncKinds *[]string `json:"syncKinds,omitempty" example:"Ingress"`
+	SyncJson  *string   `json:"SyncJson,omitempty" example:"[[]]"`
 
 	PermittedOrganizationIds []string `json:"permittedOrganizationIds"`
 }
@@ -100,8 +104,10 @@ type CreatePolicyTemplateVersionRequest struct {
 	ParametersSchema []*domain.ParameterDef `json:"parametersSchema,omitempty"`
 	// "type: object\nproperties:  message:\n    type: string\n  labels:\n    type: array\n    items:\n      type: object\n      properties:\n        key:\n          type: string\n        allowedRegex:\n          type: string"
 
-	Rego string   `json:"rego" example:"rego 코드" validate:"required"`
-	Libs []string `json:"libs" example:"rego 코드"`
+	Rego      string    `json:"rego" example:"rego 코드" validate:"required"`
+	Libs      []string  `json:"libs" example:"rego 코드"`
+	SyncKinds *[]string `json:"syncKinds,omitempty" example:"Ingress"`
+	SyncJson  *string   `json:"SyncJson,omitempty" example:"[[]]"`
 }
 
 type CreatePolicyTemplateVersionResponse struct {
