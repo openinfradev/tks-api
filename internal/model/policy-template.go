@@ -20,9 +20,11 @@ type PolicyTemplateSupportedVersion struct {
 	PolicyTemplateId uuid.UUID `gorm:"index:template_version,unique"`
 	Version          string    `gorm:"index:template_version,unique"`
 
-	ParameterSchema string `gorm:"type:text"`
-	Rego            string `gorm:"type:text"`
-	Libs            string `gorm:"type:text"`
+	ParameterSchema string  `gorm:"type:text"`
+	Rego            string  `gorm:"type:text"`
+	Libs            string  `gorm:"type:text"`
+	SyncKinds       *string `gorm:"type:text"`
+	SyncJson        *string `gorm:"type:text"`
 }
 
 type PolicyTemplate struct {
@@ -46,6 +48,8 @@ type PolicyTemplate struct {
 	ParametersSchema         []*domain.ParameterDef `gorm:"-:all"`
 	Rego                     string                 `gorm:"-:all"`
 	Libs                     []string               `gorm:"-:all"`
+	SyncKinds                *[]string              `gorm:"-:all"`
+	SyncJson                 *string                `gorm:"-:all"`
 	PermittedOrganizationIds []string               `gorm:"-:all"`
 	CreatorId                *uuid.UUID             `gorm:"type:uuid"`
 	Creator                  User                   `gorm:"foreignKey:CreatorId"`
@@ -94,12 +98,25 @@ func (pt *PolicyTemplate) BeforeCreate(tx *gorm.DB) (err error) {
 
 	pt.Version = "v1.0.0"
 
+	var syncKindsString *string = nil
+
+	if pt.SyncKinds != nil {
+		syncJsonBytes, err := json.Marshal(pt.SyncKinds)
+
+		if err == nil {
+			syncStr := string(syncJsonBytes)
+			syncKindsString = &syncStr
+		}
+	}
+
 	pt.SupportedVersions = []PolicyTemplateSupportedVersion{
 		{
 			Version:         "v1.0.0",
 			ParameterSchema: string(jsonByte),
 			Rego:            pt.Rego,
 			Libs:            libs,
+			SyncJson:        pt.SyncJson,
+			SyncKinds:       syncKindsString,
 		},
 	}
 
@@ -112,6 +129,7 @@ func (pt *PolicyTemplate) AfterFind(tx *gorm.DB) (err error) {
 		supportedVersion := pt.SupportedVersions[0]
 		pt.Version = supportedVersion.Version
 		pt.Rego = supportedVersion.Rego
+		pt.SyncJson = supportedVersion.SyncJson
 
 		if len(strings.TrimSpace(supportedVersion.Libs)) == 0 {
 			pt.Libs = []string{}
@@ -121,6 +139,12 @@ func (pt *PolicyTemplate) AfterFind(tx *gorm.DB) (err error) {
 
 		// 마찬가지로 에러 무시
 		_ = json.Unmarshal([]byte(supportedVersion.ParameterSchema), &pt.ParametersSchema)
+
+		if supportedVersion.SyncKinds != nil {
+			syncKinds := []string{}
+			_ = json.Unmarshal([]byte(*supportedVersion.SyncKinds), &syncKinds)
+			pt.SyncKinds = &syncKinds
+		}
 	}
 
 	pt.PermittedOrganizationIds = make([]string, len(pt.PermittedOrganizations))

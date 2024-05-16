@@ -30,7 +30,8 @@ type IPolicyTemplateUsecase interface {
 	GetPolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
 	ListPolicyTemplateVersions(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
 	DeletePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, version string) (err error)
-	CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error)
+	CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string,
+		syncKinds *[]string, syncJson *string) (version string, err error)
 
 	RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error)
 
@@ -69,6 +70,30 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 	user, ok := request.UserFrom(ctx)
 	if !ok {
 		return uuid.Nil, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	if dto.SyncKinds != nil && dto.SyncJson != nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_INVALID_SYNC", "both sync kinds and json specified")
+	}
+
+	if dto.SyncKinds != nil {
+		if _, err := policytemplate.CheckAndConvertToSyncData(*dto.SyncKinds); err != nil {
+			return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_INVALID_SYNC", "invalid sync kind")
+		}
+	}
+
+	if dto.SyncJson != nil {
+		result, err := policytemplate.ParseAndCheckSyncData(*dto.SyncJson)
+
+		if err != nil {
+			return uuid.Nil, httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_INVALID_SYNC", "invalid sync json")
+		}
+
+		formatted, err := policytemplate.MarshalSyncData(result)
+
+		if err == nil {
+			dto.SyncJson = &formatted
+		}
 	}
 
 	if dto.IsTksTemplate() {
@@ -485,11 +510,35 @@ func (u *PolicyTemplateUsecase) DeletePolicyTemplateVersion(ctx context.Context,
 	return u.repo.DeletePolicyTemplateVersion(ctx, policyTemplateId, version)
 }
 
-func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error) {
+func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context, organizationId *string, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string,
+	syncKinds *[]string, syncJson *string) (version string, err error) {
 	policyTemplate, err := u.repo.GetByID(ctx, policyTemplateId)
 
 	if err != nil {
 		return "", err
+	}
+
+	if syncKinds != nil && syncJson != nil {
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_INVALID_SYNC", "both sync kinds and json specified")
+	}
+
+	if syncKinds != nil {
+		if _, err := policytemplate.CheckAndConvertToSyncData(*syncKinds); err != nil {
+			return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_INVALID_SYNC", "invalid sync kind")
+		}
+	}
+
+	if syncJson != nil {
+		result, err := policytemplate.ParseAndCheckSyncData(*syncJson)
+		if err != nil {
+			return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "PT_INVALID_SYNC", "invalid sync json")
+		}
+
+		formatted, err := policytemplate.MarshalSyncData(result)
+
+		if err == nil {
+			syncJson = &formatted
+		}
 	}
 
 	if policyTemplate == nil {
@@ -518,7 +567,7 @@ func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context,
 	rego = policytemplate.FormatRegoCode(rego)
 	libs = policytemplate.FormatLibCode(libs)
 
-	return u.repo.CreatePolicyTemplateVersion(ctx, policyTemplateId, newVersion, schema, rego, libs)
+	return u.repo.CreatePolicyTemplateVersion(ctx, policyTemplateId, newVersion, schema, rego, libs, syncKinds, syncJson)
 }
 
 func (u *PolicyTemplateUsecase) RegoCompile(request *domain.RegoCompileRequest, parseParameter bool) (response *domain.RegoCompileResponse, err error) {

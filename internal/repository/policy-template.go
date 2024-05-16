@@ -32,7 +32,8 @@ type IPolicyTemplateRepository interface {
 	ListPolicyTemplateVersions(ctx context.Context, policyTemplateId uuid.UUID) (policyTemplateVersionsReponse *domain.ListPolicyTemplateVersionsResponse, err error)
 	GetPolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (policyTemplateVersionsReponse *model.PolicyTemplate, err error)
 	DeletePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, version string) (err error)
-	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error)
+	CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string,
+		schema []*domain.ParameterDef, rego string, libs []string, syncKinds *[]string, syncJson *string) (version string, err error)
 	GetLatestTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID) (version string, err error)
 	CountTksTemplateByOrganization(ctx context.Context, organizationId string) (count int64, err error)
 	CountOrganizationTemplate(ctx context.Context, organizationId string) (count int64, err error)
@@ -435,7 +436,8 @@ func (r *PolicyTemplateRepository) DeletePolicyTemplateVersion(ctx context.Conte
 	})
 }
 
-func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string, schema []*domain.ParameterDef, rego string, libs []string) (version string, err error) {
+func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Context, policyTemplateId uuid.UUID, newVersion string,
+	schema []*domain.ParameterDef, rego string, libs []string, syncKinds *[]string, syncJson *string) (version string, err error) {
 	var policyTemplateVersion model.PolicyTemplateSupportedVersion
 	res := r.db.WithContext(ctx).Limit(1).
 		Where("policy_template_id = ?", policyTemplateId).Where("version = ?", version).
@@ -469,12 +471,32 @@ func (r *PolicyTemplateRepository) CreatePolicyTemplateVersion(ctx context.Conte
 		return "", parseErr
 	}
 
+	var syncKindsString *string = nil
+
+	if syncKinds != nil {
+		syncJsonBytes, err := json.Marshal(syncKinds)
+
+		if err != nil {
+			parseErr := errors.Errorf("Unable to parse parameter schema: %v", err)
+
+			log.Error(ctx, parseErr)
+
+			return "", parseErr
+		}
+
+		syncStr := string(syncJsonBytes)
+
+		syncKindsString = &syncStr
+	}
+
 	newPolicyTemplateVersion := &model.PolicyTemplateSupportedVersion{
 		PolicyTemplateId: policyTemplateId,
 		Version:          newVersion,
 		Rego:             rego,
 		Libs:             libsString,
 		ParameterSchema:  string(jsonBytes),
+		SyncJson:         syncJson,
+		SyncKinds:        syncKindsString,
 	}
 
 	if err := r.db.WithContext(ctx).Create(newPolicyTemplateVersion).Error; err != nil {

@@ -1,6 +1,7 @@
 package policytemplate
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -91,4 +92,66 @@ func CheckAndNormalizeKinds(kinds []domain.Kinds) ([]domain.Kinds, error) {
 	}
 
 	return result, nil
+}
+
+func CheckAndConvertToSyncData(kinds []string) (*[][]domain.CompactGVKEquivalenceSet, error) {
+	invalid_kinds := []string{}
+	results := []domain.CompactGVKEquivalenceSet{}
+
+	for _, kind := range kinds {
+		gvk, ok := KindMap[kind]
+
+		if ok {
+			results = append(results, domain.CompactGVKEquivalenceSet{
+				Groups: []string{gvk.Group}, Versions: []string{gvk.Version}, Kinds: []string{gvk.Kind},
+			})
+		} else {
+			invalid_kinds = append(invalid_kinds, kind)
+		}
+	}
+
+	if len(invalid_kinds) > 0 {
+		return nil, fmt.Errorf("invalid kinds %v", invalid_kinds)
+	}
+
+	return &[][]domain.CompactGVKEquivalenceSet{
+		results,
+	}, nil
+}
+
+func MarshalSyncData(syncData *[][]domain.CompactGVKEquivalenceSet) (string, error) {
+	result, err := json.MarshalIndent(syncData, "", "  ")
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(result), nil
+}
+
+func ParseAndCheckSyncData(syncjson string) (*[][]domain.CompactGVKEquivalenceSet, error) {
+	result := [][]domain.CompactGVKEquivalenceSet{}
+	err := json.Unmarshal([]byte(syncjson), &result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	invalid_kinds := []string{}
+
+	for _, sets := range result {
+		for _, set := range sets {
+			for _, kind := range set.Kinds {
+				if _, ok := KindMap[kind]; !ok {
+					invalid_kinds = append(invalid_kinds, kind)
+				}
+			}
+		}
+	}
+
+	if len(invalid_kinds) > 0 {
+		return nil, fmt.Errorf("invalid kinds %v", invalid_kinds)
+	}
+
+	return &result, nil
 }
