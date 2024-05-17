@@ -1,9 +1,10 @@
 package helper
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
 )
 
@@ -36,4 +37,19 @@ func VerifyToken(tokenString string) (*jwt.Token, error) {
 		return nil, err
 	}
 	return token, err
+}
+
+func StringToTokenWithoutVerification(tokenString string) (*jwt.Token, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return nil, fmt.Errorf("invalid token")
+	}
+	return token, nil
+}
+func RetrieveClaims(token *jwt.Token) (map[string]interface{}, error) {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token")
+	}
+	return claims, nil
 }

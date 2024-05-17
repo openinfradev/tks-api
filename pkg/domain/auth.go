@@ -6,25 +6,16 @@ type LoginRequest struct {
 	OrganizationId string `json:"organizationId" validate:"required"`
 }
 
-type PingTokenRequest struct {
-	Token          string `json:"token" validate:"required"`
-	OrganizationId string `json:"organizationId" validate:"required"`
-}
-
 type LoginResponse struct {
 	User struct {
-		AccountId       string       `json:"accountId"`
-		Name            string       `json:"name"`
-		Token           string       `json:"token"`
-		Role            Role         `json:"role"`
-		Department      string       `json:"department"`
-		Organization    Organization `json:"organization"`
-		PasswordExpired bool         `json:"passwordExpired"`
+		AccountId       string               `json:"accountId"`
+		Name            string               `json:"name"`
+		Token           string               `json:"token"`
+		Roles           []SimpleRoleResponse `json:"roles"`
+		Department      string               `json:"department"`
+		Organization    OrganizationResponse `json:"organization"`
+		PasswordExpired bool                 `json:"passwordExpired"`
 	} `json:"user"`
-}
-
-type LogoutResponse struct {
-	SsoUrls map[string][]string `json:"ssoUrls"`
 }
 
 type VerifyIdentityForLostIdRequest struct {

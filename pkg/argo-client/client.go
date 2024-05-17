@@ -2,6 +2,7 @@ package argowf
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,11 +13,11 @@ import (
 )
 
 type ArgoClient interface {
-	GetWorkflowTemplates(namespace string) (*GetWorkflowTemplatesResponse, error)
-	GetWorkflow(namespace string, workflowName string) (*Workflow, error)
-	GetWorkflowLog(namespace string, container string, workflowName string) (logs string, err error)
-	GetWorkflows(namespace string) (*GetWorkflowsResponse, error)
-	SumbitWorkflowFromWftpl(wftplName string, opts SubmitOptions) (string, error)
+	GetWorkflowTemplates(ctx context.Context, namespace string) (*GetWorkflowTemplatesResponse, error)
+	GetWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error)
+	GetWorkflowLog(ctx context.Context, namespace string, container string, workflowName string) (logs string, err error)
+	GetWorkflows(ctx context.Context, namespace string) (*GetWorkflowsResponse, error)
+	SumbitWorkflowFromWftpl(ctx context.Context, wftplName string, opts SubmitOptions) (string, error)
 }
 
 type ArgoClientImpl struct {
@@ -46,7 +47,7 @@ func New(host string, port int, ssl bool, token string) (ArgoClient, error) {
 	}, nil
 }
 
-func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTemplatesResponse, error) {
+func (c *ArgoClientImpl) GetWorkflowTemplates(ctx context.Context, namespace string) (*GetWorkflowTemplatesResponse, error) {
 	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflow-templates/%s", c.url, namespace))
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTem
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Error("error closing http body")
+			log.Error(ctx, "error closing http body")
 		}
 	}()
 
@@ -71,13 +72,13 @@ func (c *ArgoClientImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTem
 
 	wftplRes := GetWorkflowTemplatesResponse{}
 	if err := json.Unmarshal(body, &wftplRes); err != nil {
-		log.Error("an error was unexpected while parsing response from api /workflow template.")
+		log.Error(ctx, "an error was unexpected while parsing response from api /workflow template.")
 		return nil, err
 	}
 	return &wftplRes, nil
 }
 
-func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Workflow, error) {
+func (c *ArgoClientImpl) GetWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error) {
 	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s", c.url, namespace, workflowName))
 	if err != nil {
 		return nil, err
@@ -91,7 +92,7 @@ func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Wo
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Error("error closing http body")
+			log.Error(ctx, "error closing http body")
 		}
 	}()
 
@@ -102,15 +103,15 @@ func (c *ArgoClientImpl) GetWorkflow(namespace string, workflowName string) (*Wo
 
 	workflowRes := Workflow{}
 	if err := json.Unmarshal(body, &workflowRes); err != nil {
-		log.Error("an error was unexpected while parsing response from api /workflow template.")
+		log.Error(ctx, "an error was unexpected while parsing response from api /workflow template.")
 		return nil, err
 	}
 
 	return &workflowRes, nil
 }
 
-func (c *ArgoClientImpl) GetWorkflowLog(namespace string, container string, workflowName string) (logs string, err error) {
-	log.Info(fmt.Sprintf("%s/api/v1/workflows/%s/%s/log?logOptions.container=%s", c.url, namespace, workflowName, container))
+func (c *ArgoClientImpl) GetWorkflowLog(ctx context.Context, namespace string, container string, workflowName string) (logs string, err error) {
+	log.Info(ctx, fmt.Sprintf("%s/api/v1/workflows/%s/%s/log?logOptions.container=%s", c.url, namespace, workflowName, container))
 	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s/log?logOptions.container=%s", c.url, namespace, workflowName, container))
 	if err != nil {
 		return logs, err
@@ -124,7 +125,7 @@ func (c *ArgoClientImpl) GetWorkflowLog(namespace string, container string, work
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Error("error closing http body")
+			log.Error(ctx, "error closing http body")
 		}
 	}()
 
@@ -136,7 +137,7 @@ func (c *ArgoClientImpl) GetWorkflowLog(namespace string, container string, work
 	return string(body[:]), nil
 }
 
-func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, error) {
+func (c *ArgoClientImpl) GetWorkflows(ctx context.Context, namespace string) (*GetWorkflowsResponse, error) {
 	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s", c.url, namespace))
 	if err != nil {
 		return nil, err
@@ -150,7 +151,7 @@ func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, 
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			log.Error("error closing http body")
+			log.Error(ctx, "error closing http body")
 		}
 	}()
 
@@ -161,21 +162,21 @@ func (c *ArgoClientImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, 
 
 	workflowsRes := GetWorkflowsResponse{}
 	if err := json.Unmarshal(body, &workflowsRes); err != nil {
-		log.Error("an error was unexpected while parsing response from api /workflow template.")
+		log.Error(ctx, "an error was unexpected while parsing response from api /workflow template.")
 		return nil, err
 	}
 
 	return &workflowsRes, nil
 }
 
-func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOptions) (string, error) {
+func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(ctx context.Context, wftplName string, opts SubmitOptions) (string, error) {
 	reqBody := submitWorkflowRequestBody{
 		Namespace:     "argo",
 		ResourceKind:  "WorkflowTemplate",
 		ResourceName:  wftplName,
 		SubmitOptions: opts,
 	}
-	log.Debug("SumbitWorkflowFromWftpl reqBody ", reqBody)
+	log.Debug(ctx, "SumbitWorkflowFromWftpl reqBody ", reqBody)
 
 	reqBodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
@@ -199,7 +200,7 @@ func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOp
 	defer func() {
 		if res != nil {
 			if err := res.Body.Close(); err != nil {
-				log.Error("error closing http body")
+				log.Error(ctx, "error closing http body")
 			}
 		}
 	}()
@@ -211,7 +212,7 @@ func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOp
 
 	submitRes := SubmitWorkflowResponse{}
 	if err := json.Unmarshal(body, &submitRes); err != nil {
-		log.Error("an error was unexpected while parsing response from api /submit.")
+		log.Error(ctx, "an error was unexpected while parsing response from api /submit.")
 		return "", err
 	}
 	return submitRes.Metadata.Name, nil

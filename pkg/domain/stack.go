@@ -3,7 +3,6 @@ package domain
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
@@ -66,53 +65,14 @@ func (m StackStatus) FromString(s string) StackStatus {
 	return StackStatus_PENDING
 }
 
-const MAX_STEP_CLUSTER_CREATE = 24
-const MAX_STEP_CLUSTER_REMOVE = 14
+const MAX_STEP_CLUSTER_CREATE = 26
+const MAX_STEP_CLUSTER_REMOVE = 16
 const MAX_STEP_LMA_CREATE_PRIMARY = 39
 const MAX_STEP_LMA_CREATE_MEMBER = 29
 const MAX_STEP_LMA_REMOVE = 12
 const MAX_STEP_SM_CREATE = 22
 const MAX_STEP_SM_REMOVE = 4
 
-// model
-type Stack = struct {
-	ID              StackId
-	Name            string
-	Description     string
-	ClusterId       string
-	OrganizationId  string
-	CloudService    string
-	CloudAccountId  uuid.UUID
-	CloudAccount    CloudAccount
-	StackTemplateId uuid.UUID
-	StackTemplate   StackTemplate
-	Status          StackStatus
-	StatusDesc      string
-	Conf            StackConf
-	PrimaryCluster  bool
-	GrafanaUrl      string
-	CreatorId       *uuid.UUID
-	Creator         User
-	UpdatorId       *uuid.UUID
-	Updator         User
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	Favorited       bool
-	ClusterEndpoint string
-	Resource        DashboardStackResponse
-}
-
-type StackConf struct {
-	TksCpNode        int
-	TksCpNodeMax     int
-	TksCpNodeType    string
-	TksInfraNode     int
-	TksInfraNodeMax  int
-	TksInfraNodeType string
-	TksUserNode      int
-	TksUserNodeMax   int
-	TksUserNodeType  string
-}
 type StackStepStatus struct {
 	Status  string `json:"status"`
 	Stage   string `json:"stage"`
@@ -121,22 +81,23 @@ type StackStepStatus struct {
 }
 
 type CreateStackRequest struct {
-	Name             string `json:"name" validate:"required,name,rfc1123"`
-	Description      string `json:"description"`
-	ClusterId        string `json:"clusterId"`
-	CloudService     string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId  string `json:"stackTemplateId" validate:"required"`
-	CloudAccountId   string `json:"cloudAccountId"`
-	ClusterEndpoint  string `json:"userClusterEndpoint,omitempty"`
-	TksCpNode        int    `json:"tksCpNode"`
-	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode     int    `json:"tksInfraNode"`
-	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode      int    `json:"tksUserNode"`
-	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+	Name             string   `json:"name" validate:"required,name,rfc1123"`
+	Description      string   `json:"description"`
+	ClusterId        string   `json:"clusterId"`
+	CloudService     string   `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId  string   `json:"stackTemplateId" validate:"required"`
+	CloudAccountId   string   `json:"cloudAccountId"`
+	ClusterEndpoint  string   `json:"userClusterEndpoint,omitempty"`
+	PolicyIds        []string `json:"policyIds,omitempty"`
+	TksCpNode        int      `json:"tksCpNode"`
+	TksCpNodeMax     int      `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string   `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int      `json:"tksInfraNode"`
+	TksInfraNodeMax  int      `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string   `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int      `json:"tksUserNode"`
+	TksUserNodeMax   int      `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string   `json:"tksUserNodeType,omitempty"`
 }
 
 type CreateStackResponse struct {
@@ -172,8 +133,22 @@ type StackResponse struct {
 	Favorited       bool                        `json:"favorited"`
 	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
 	Resource        DashboardStackResponse      `json:"resource,omitempty"`
+	AppServeAppCnt  int                         `json:"appServeAppCnt"`
 	CreatedAt       time.Time                   `json:"createdAt"`
 	UpdatedAt       time.Time                   `json:"updatedAt"`
+}
+
+type SimpleStackResponse struct {
+	ID             StackId                     `json:"id"`
+	Name           string                      `json:"name"`
+	Description    string                      `json:"description"`
+	OrganizationId string                      `json:"organizationId"`
+	StackTemplate  SimpleStackTemplateResponse `json:"stackTemplate,omitempty"`
+	CloudAccount   SimpleCloudAccountResponse  `json:"cloudAccount,omitempty"`
+	Status         string                      `json:"status"`
+	PrimaryCluster bool                        `json:"primaryCluster"`
+	CreatedAt      time.Time                   `json:"createdAt"`
+	UpdatedAt      time.Time                   `json:"updatedAt"`
 }
 
 type GetStacksResponse struct {

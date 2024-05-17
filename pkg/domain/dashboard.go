@@ -37,14 +37,6 @@ func (m ChartType) FromString(s string) ChartType {
 	return ChartType_ERROR
 }
 
-// [TODO]
-func (m ChartType) All() (out []string) {
-	for _, v := range chartType {
-		out = append(out, v)
-	}
-	return
-}
-
 // 내부
 type DashboardChart struct {
 	ChartType      ChartType
@@ -70,6 +62,14 @@ type DashboardStack struct {
 	Storage     string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+// [TODO]
+func (m ChartType) All() (out []string) {
+	for _, v := range chartType {
+		out = append(out, v)
+	}
+	return
 }
 
 type Unit struct {
@@ -115,7 +115,10 @@ type GetDashboardChartResponse struct {
 }
 
 type DashboardResource struct {
-	Stack   string `json:"stack"`
+	Stack struct {
+		Normal   string `json:"normal"`
+		Abnormal string `json:"abnormal"`
+	} `json:"stack"`
 	Cpu     string `json:"cpu"`
 	Memory  string `json:"memory"`
 	Storage string `json:"storage"`
@@ -140,4 +143,114 @@ type DashboardStackResponse struct {
 
 type GetDashboardStacksResponse struct {
 	Stacks []DashboardStackResponse `json:"stacks"`
+}
+
+type WidgetResponse struct {
+	Key    string `json:"widgetKey"`
+	StartX int    `json:"startX"`
+	StartY int    `json:"startY"`
+	SizeX  int    `json:"sizeX"`
+	SizeY  int    `json:"sizeY"`
+}
+
+type DashboardContents struct {
+	GroupName string           `json:"groupName"`
+	SizeX     int              `json:"sizeX"`
+	SizeY     int              `json:"sizeY"`
+	Widgets   []WidgetResponse `json:"widgets"`
+}
+
+type CreateDashboardRequest struct {
+	DashboardKey string              `json:"dashboardKey"`
+	Contents     []DashboardContents `json:"contents"`
+}
+
+type CreateDashboardResponse struct {
+	DashboardId string `json:"dashboardId"`
+}
+
+type GetDashboardResponse struct {
+	GroupName string           `json:"groupName"`
+	SizeX     int              `json:"sizeX"`
+	SizeY     int              `json:"sizeY"`
+	Widgets   []WidgetResponse `json:"widgets"`
+}
+
+type UpdateDashboardRequest struct {
+	DashboardContents
+}
+
+type CommonDashboardResponse struct {
+	Result string `json:"result"`
+}
+
+type DashboardPolicyStatus struct {
+	Normal  int `json:"normal"`
+	Warning int `json:"warning"`
+	Error   int `json:"error"`
+}
+
+type GetDashboardPolicyStatusResponse struct {
+	PolicyStatus DashboardPolicyStatus `json:"statuses"`
+}
+
+type DashboardPolicyUpdate struct {
+	PolicyTemplate int `json:"policyTemplate"`
+	Policy         int `json:"policy"`
+}
+
+type GetDashboardPolicyUpdateResponse struct {
+	PolicyUpdate DashboardPolicyUpdate `json:"updatedResources"`
+}
+
+type GetDashboardPolicyEnforcementResponse struct {
+	BarChart
+	ChartData BarChartData `json:"chartData"`
+	UpdatedAt time.Time    `json:"updatedAt"`
+}
+
+type GetDashboardPolicyViolationResponse struct {
+	BarChart
+	ChartData BarChartData `json:"chartData"`
+	UpdatedAt time.Time    `json:"updatedAt"`
+}
+
+type GetDashboardPolicyViolationLogResponse struct {
+	// TODO implement me
+}
+
+type GetDashboardPolicyStatisticsResponse struct {
+	PolicyStatisticsResponse
+}
+
+type WorkloadData struct {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+}
+type GetDashboardWorkloadResponse struct {
+	Title string         `json:"title"`
+	Data  []WorkloadData `json:"data"`
+}
+
+type GetDashboardPolicyViolationTop5Response struct {
+	GetDashboardPolicyViolationResponse
+}
+
+type BarChart struct {
+	ChartType      string `json:"chartType"`
+	OrganizationId string `json:"organizationId"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Duration       string `json:"duration"`
+	Interval       string `json:"interval"`
+}
+
+type BarChartData struct {
+	XAxis  *Axis        `json:"xAxis,omitempty"`
+	Series []UnitNumber `json:"series,omitempty"`
+}
+
+type UnitNumber struct {
+	Name string `json:"name"`
+	Data []int  `json:"data"`
 }

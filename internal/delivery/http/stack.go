@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -15,26 +16,29 @@ import (
 )
 
 type StackHandler struct {
-	usecase usecase.IStackUsecase
+	usecase       usecase.IStackUsecase
+	usecasePolicy usecase.IPolicyUsecase
 }
 
-func NewStackHandler(h usecase.IStackUsecase) *StackHandler {
+func NewStackHandler(h usecase.Usecase) *StackHandler {
 	return &StackHandler{
-		usecase: h,
+		usecase:       h.Stack,
+		usecasePolicy: h.Policy,
 	}
 }
 
 // CreateStack godoc
-// @Tags Stacks
-// @Summary Create Stack
-// @Description Create Stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param body body domain.CreateStackRequest true "create cloud setting request"
-// @Success 200 {object} domain.CreateStackResponse
-// @Router /organizations/{organizationId}/stacks [post]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Create Stack
+//	@Description	Create Stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string						true	"organizationId"
+//	@Param			body			body		domain.CreateStackRequest	true	"create cloud setting request"
+//	@Success		200				{object}	domain.CreateStackResponse
+//	@Router			/organizations/{organizationId}/stacks [post]
+//	@Security		JWT
 func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -50,13 +54,14 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Stack
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	var dto model.Stack
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
-	if err = serializer.Map(input, &dto.Conf); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err = serializer.Map(r.Context(), input, &dto.Conf); err != nil {
+		log.Info(r.Context(), err)
 	}
+
 	dto.OrganizationId = organizationId
 	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
@@ -88,21 +93,21 @@ func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
-// GetStack godoc
-// @Tags Stacks
-// @Summary Get Stacks
-// @Description Get Stacks
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param limit query string false "pageSize"
-// @Param page query string false "pageNumber"
-// @Param soertColumn query string false "sortColumn"
-// @Param sortOrder query string false "sortOrder"
-// @Param combinedFilter query string false "combinedFilter"
-// @Success 200 {object} domain.GetStacksResponse
-// @Router /organizations/{organizationId}/stacks [get]
-// @Security     JWT
+// GetStacks godoc
+//
+//	@Tags			Stacks
+//	@Summary		Get Stacks
+//	@Description	Get Stacks
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			limit			query		string	false	"pageSize"
+//	@Param			page			query		string	false	"pageNumber"
+//	@Param			soertColumn		query		string	false	"sortColumn"
+//	@Param			sortOrder		query		string	false	"sortOrder"
+//	@Success		200				{object}	domain.GetStacksResponse
+//	@Router			/organizations/{organizationId}/stacks [get]
+//	@Security		JWT
 func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -112,11 +117,7 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	urlParams := r.URL.Query()
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 	stacks, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -126,35 +127,39 @@ func (h *StackHandler) GetStacks(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStacksResponse
 	out.Stacks = make([]domain.StackResponse, len(stacks))
 	for i, stack := range stacks {
-		if err := serializer.Map(stack, &out.Stacks[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
-			continue
+		if err := serializer.Map(r.Context(), stack, &out.Stacks[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+
+		if err := serializer.Map(r.Context(), stack.CreatedAt, &out.Stacks[i].CreatedAt); err != nil {
+			log.Info(r.Context(), err)
 		}
 
 		err = json.Unmarshal(stack.StackTemplate.Services, &out.Stacks[i].StackTemplate.Services)
 		if err != nil {
-			log.InfoWithContext(r.Context(), err)
+			log.Info(r.Context(), err)
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetStack godoc
-// @Tags Stacks
-// @Summary Get Stack
-// @Description Get Stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} domain.GetStackResponse
-// @Router /organizations/{organizationId}/stacks/{stackId} [get]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Get Stack
+//	@Description	Get Stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Success		200				{object}	domain.GetStackResponse
+//	@Router			/organizations/{organizationId}/stacks/{stackId} [get]
+//	@Security		JWT
 func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["stackId"]
@@ -170,29 +175,30 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetStackResponse
-	if err := serializer.Map(stack, &out.Stack); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), stack, &out.Stack); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	err = json.Unmarshal(stack.StackTemplate.Services, &out.Stack.StackTemplate.Services)
 	if err != nil {
-		log.InfoWithContext(r.Context(), err)
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetStackStatus godoc
-// @Tags Stacks
-// @Summary Get Stack Status
-// @Description Get Stack Status
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} domain.GetStackStatusResponse
-// @Router /organizations/{organizationId}/stacks/{stackId}/status [get]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Get Stack Status
+//	@Description	Get Stack Status
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Success		200				{object}	domain.GetStackStatusResponse
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/status [get]
+//	@Security		JWT
 func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -211,8 +217,8 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStackStatusResponse
 	out.StepStatus = make([]domain.StackStepStatus, len(steps))
 	for i, step := range steps {
-		if err := serializer.Map(step, &out.StepStatus[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), step, &out.StepStatus[i]); err != nil {
+			log.Info(r.Context(), err)
 		}
 	}
 	out.StackStatus = status
@@ -221,17 +227,18 @@ func (h *StackHandler) GetStackStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateStack godoc
-// @Tags Stacks
-// @Summary Update Stack
-// @Description Update Stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Param body body domain.UpdateStackRequest true "Update cloud setting request"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/stacks/{stackId} [put]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Update Stack
+//	@Description	Update Stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string						true	"organizationId"
+//	@Param			stackId			path		string						true	"stackId"
+//	@Param			body			body		domain.UpdateStackRequest	true	"Update cloud setting request"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId} [put]
+//	@Security		JWT
 func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["stackId"]
@@ -258,9 +265,9 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Stack
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	var dto model.Stack
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 	dto.ID = stackId
 	dto.OrganizationId = organizationId
@@ -276,16 +283,17 @@ func (h *StackHandler) UpdateStack(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteStack godoc
-// @Tags Stacks
-// @Summary Delete Stack
-// @Description Delete Stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/stacks/{stackId} [delete]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Delete Stack
+//	@Description	Delete Stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId} [delete]
+//	@Security		JWT
 func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -300,11 +308,26 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Stack
+	var dto model.Stack
 	dto.ID = domain.StackId(strId)
 	dto.OrganizationId = organizationId
 
-	err := h.usecase.Delete(r.Context(), dto)
+	// Delete Policies
+	policyIds, err := h.usecasePolicy.GetPolicyIDsByClusterID(r.Context(), domain.ClusterId(dto.ID))
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "S_FAILED_DELETE_POLICIES", ""))
+		return
+	}
+
+	if policyIds != nil && len(*policyIds) > 0 {
+		err = h.usecasePolicy.DeletePoliciesForClusterID(r.Context(), organizationId, domain.ClusterId(dto.ID), *policyIds)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "S_FAILED_DELETE_POLICIES", ""))
+			return
+		}
+	}
+
+	err = h.usecase.Delete(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -314,17 +337,18 @@ func (h *StackHandler) DeleteStack(w http.ResponseWriter, r *http.Request) {
 }
 
 // CheckStackName godoc
-// @Tags Stacks
-// @Summary Check name for stack
-// @Description Check name for stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Param name path string true "name"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/stacks/name/{name}/existence [GET]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Check name for stack
+//	@Description	Check name for stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Param			name			path		string	true	"name"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/name/{name}/existence [GET]
+//	@Security		JWT
 func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -357,16 +381,17 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetStackKubeConfig godoc
-// @Tags Stacks
-// @Summary Get KubeConfig by stack
-// @Description Get KubeConfig by stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "organizationId"
-// @Success 200 {object} domain.GetStackKubeConfigResponse
-// @Router /organizations/{organizationId}/stacks/{stackId}/kube-config [get]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Get KubeConfig by stack
+//	@Description	Get KubeConfig by stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"organizationId"
+//	@Success		200				{object}	domain.GetStackKubeConfigResponse
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/kube-config [get]
+//	@Security		JWT
 func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_, ok := vars["organizationId"]
@@ -400,16 +425,17 @@ func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request
 }
 
 // SetFavorite godoc
-// @Tags Stacks
-// @Summary Set favorite stack
-// @Description Set favorite stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/stacks/{stackId}/favorite [post]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Set favorite stack
+//	@Description	Set favorite stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/favorite [post]
+//	@Security		JWT
 func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["stackId"]
@@ -427,16 +453,17 @@ func (h *StackHandler) SetFavorite(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteFavorite godoc
-// @Tags Stacks
-// @Summary Delete favorite stack
-// @Description Delete favorite stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "organizationId"
-// @Param stackId path string true "stackId"
-// @Success 200 {object} nil
-// @Router /organizations/{organizationId}/stacks/{stackId}/favorite [delete]
-// @Security     JWT
+//
+//	@Tags			Stacks
+//	@Summary		Delete favorite stack
+//	@Description	Delete favorite stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/favorite [delete]
+//	@Security		JWT
 func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["stackId"]

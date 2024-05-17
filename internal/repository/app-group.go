@@ -1,31 +1,31 @@
 package repository
 
 import (
+	"context"
 	"fmt"
-	"math"
 
-	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
+	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
 // Interfaces
 type IAppGroupRepository interface {
-	Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (res []domain.AppGroup, err error)
-	Get(id domain.AppGroupId) (domain.AppGroup, error)
-	Create(dto domain.AppGroup) (id domain.AppGroupId, err error)
-	Update(dto domain.AppGroup) (err error)
-	Delete(id domain.AppGroupId) error
-	GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (applications []domain.Application, err error)
-	UpsertApplication(dto domain.Application) error
-	InitWorkflow(appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error
-	InitWorkflowDescription(clusterId domain.ClusterId) error
+	Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (res []model.AppGroup, err error)
+	Get(ctx context.Context, id domain.AppGroupId) (model.AppGroup, error)
+	Create(ctx context.Context, dto model.AppGroup) (id domain.AppGroupId, err error)
+	Update(ctx context.Context, dto model.AppGroup) (err error)
+	Delete(ctx context.Context, id domain.AppGroupId) error
+	GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (applications []model.Application, err error)
+	UpsertApplication(ctx context.Context, dto model.Application) error
+	InitWorkflow(ctx context.Context, appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error
+	InitWorkflowDescription(ctx context.Context, clusterId domain.ClusterId) error
 }
 
 type AppGroupRepository struct {
@@ -38,85 +38,32 @@ func NewAppGroupRepository(db *gorm.DB) IAppGroupRepository {
 	}
 }
 
-// Models
-type AppGroup struct {
-	gorm.Model
-
-	ID           domain.AppGroupId `gorm:"primarykey"`
-	AppGroupType domain.AppGroupType
-	ClusterId    domain.ClusterId
-	Name         string
-	Description  string
-	WorkflowId   string
-	Status       domain.AppGroupStatus
-	StatusDesc   string
-	CreatorId    *uuid.UUID `gorm:"type:uuid"`
-	Creator      User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId    *uuid.UUID `gorm:"type:uuid"`
-	Updator      User       `gorm:"foreignKey:UpdatorId"`
-}
-
-func (c *AppGroup) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = domain.AppGroupId(helper.GenerateApplicaionGroupId())
-	return nil
-}
-
-type Application struct {
-	gorm.Model
-
-	ID         uuid.UUID `gorm:"primarykey;type:uuid"`
-	AppGroupId domain.AppGroupId
-	Endpoint   string
-	Metadata   datatypes.JSON
-	Type       domain.ApplicationType
-}
-
-func (c *Application) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-	return nil
-}
-
 // Logics
-func (r *AppGroupRepository) Fetch(clusterId domain.ClusterId, pg *pagination.Pagination) (out []domain.AppGroup, err error) {
-	var appGroups []AppGroup
+func (r *AppGroupRepository) Fetch(ctx context.Context, clusterId domain.ClusterId, pg *pagination.Pagination) (out []model.AppGroup, err error) {
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("app_groups", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&AppGroup{}).
-		Where("cluster_id = ?", clusterId))
-	db.Count(&pg.TotalRows)
-
-	r.db.Model(&AppGroup{}).
-		Where("cluster_id = ?", clusterId).Where("id").Where("app_groups.status").Where("app_groups.deleted")
-
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&appGroups)
+	_, res := pg.Fetch(r.db.WithContext(ctx).Model(&model.AppGroup{}).
+		Where("cluster_id = ?", clusterId), &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 
-	for _, appGroup := range appGroups {
-		outAppGroup := reflectAppGroup(appGroup)
-		out = append(out, outAppGroup)
+	return out, nil
+}
+
+func (r *AppGroupRepository) Get(ctx context.Context, id domain.AppGroupId) (out model.AppGroup, err error) {
+	res := r.db.WithContext(ctx).First(&out, "id = ?", id)
+	if res.RowsAffected == 0 || res.Error != nil {
+		return model.AppGroup{}, fmt.Errorf("Not found appGroup for %s", id)
 	}
 	return out, nil
 }
 
-func (r *AppGroupRepository) Get(id domain.AppGroupId) (domain.AppGroup, error) {
-	var appGroup AppGroup
-	res := r.db.First(&appGroup, "id = ?", id)
-	if res.RowsAffected == 0 || res.Error != nil {
-		return domain.AppGroup{}, fmt.Errorf("Not found appGroup for %s", id)
-	}
-	resAppGroup := reflectAppGroup(appGroup)
-	return resAppGroup, nil
-}
-
-func (r *AppGroupRepository) Create(dto domain.AppGroup) (appGroupId domain.AppGroupId, err error) {
-	appGroup := AppGroup{
+func (r *AppGroupRepository) Create(ctx context.Context, dto model.AppGroup) (appGroupId domain.AppGroupId, err error) {
+	appGroup := model.AppGroup{
+		ID:           domain.AppGroupId(helper.GenerateApplicaionGroupId()),
 		ClusterId:    dto.ClusterId,
 		AppGroupType: dto.AppGroupType,
 		Name:         dto.Name,
@@ -125,17 +72,17 @@ func (r *AppGroupRepository) Create(dto domain.AppGroup) (appGroupId domain.AppG
 		CreatorId:    dto.CreatorId,
 		UpdatorId:    nil,
 	}
-	res := r.db.Create(&appGroup)
+	res := r.db.WithContext(ctx).Create(&appGroup)
 	if res.Error != nil {
-		log.Error(res.Error)
+		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 
 	return appGroup.ID, nil
 }
 
-func (r *AppGroupRepository) Update(dto domain.AppGroup) (err error) {
-	res := r.db.Model(&AppGroup{}).
+func (r *AppGroupRepository) Update(ctx context.Context, dto model.AppGroup) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("id = ?", dto.ID).
 		Updates(map[string]interface{}{
 			"ClusterId":    dto.ClusterId,
@@ -150,36 +97,32 @@ func (r *AppGroupRepository) Update(dto domain.AppGroup) (err error) {
 	return nil
 }
 
-func (r *AppGroupRepository) Delete(id domain.AppGroupId) error {
-	res := r.db.Unscoped().Delete(&AppGroup{}, "id = ?", id)
+func (r *AppGroupRepository) Delete(ctx context.Context, id domain.AppGroupId) error {
+	res := r.db.WithContext(ctx).Unscoped().Delete(&model.AppGroup{}, "id = ?", id)
 	if res.Error != nil {
 		return fmt.Errorf("could not delete appGroup %s", id)
 	}
 	return nil
 }
 
-func (r *AppGroupRepository) GetApplications(id domain.AppGroupId, applicationType domain.ApplicationType) (out []domain.Application, err error) {
-	var applications []Application
-	res := r.db.Where("app_group_id = ? AND type = ?", id, applicationType).Find(&applications)
+func (r *AppGroupRepository) GetApplications(ctx context.Context, id domain.AppGroupId, applicationType domain.ApplicationType) (out []model.Application, err error) {
+	res := r.db.WithContext(ctx).Where("app_group_id = ? AND type = ?", id, applicationType).Find(&out)
 	if res.Error != nil {
 		return nil, res.Error
-	}
-	for _, application := range applications {
-		outApplication := reflectApplication(application)
-		out = append(out, outApplication)
 	}
 	return out, nil
 }
 
-func (r *AppGroupRepository) UpsertApplication(dto domain.Application) error {
-	res := r.db.Where(Application{
+func (r *AppGroupRepository) UpsertApplication(ctx context.Context, dto model.Application) error {
+	res := r.db.WithContext(ctx).Where(model.Application{
 		AppGroupId: dto.AppGroupId,
-		Type:       dto.ApplicationType,
+		Type:       dto.Type,
 	}).
-		Assign(Application{
+		Assign(model.Application{
+			ID:       uuid.New(),
 			Endpoint: dto.Endpoint,
 			Metadata: datatypes.JSON([]byte(dto.Metadata))}).
-		FirstOrCreate(&Application{})
+		FirstOrCreate(&model.Application{})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -187,8 +130,8 @@ func (r *AppGroupRepository) UpsertApplication(dto domain.Application) error {
 	return nil
 }
 
-func (r *AppGroupRepository) InitWorkflow(appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error {
-	res := r.db.Model(&AppGroup{}).
+func (r *AppGroupRepository) InitWorkflow(ctx context.Context, appGroupId domain.AppGroupId, workflowId string, status domain.AppGroupStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("ID = ?", appGroupId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId, "StatusDesc": ""})
 
@@ -199,8 +142,8 @@ func (r *AppGroupRepository) InitWorkflow(appGroupId domain.AppGroupId, workflow
 	return nil
 }
 
-func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId) error {
-	res := r.db.Model(&AppGroup{}).
+func (r *AppGroupRepository) InitWorkflowDescription(ctx context.Context, clusterId domain.ClusterId) error {
+	res := r.db.WithContext(ctx).Model(&model.AppGroup{}).
 		Where("cluster_id = ?", clusterId).
 		Updates(map[string]interface{}{"WorkflowId": "", "StatusDesc": ""})
 
@@ -209,23 +152,4 @@ func (r *AppGroupRepository) InitWorkflowDescription(clusterId domain.ClusterId)
 	}
 
 	return nil
-}
-
-func reflectAppGroup(appGroup AppGroup) (out domain.AppGroup) {
-	if err := serializer.Map(appGroup.Model, &out); err != nil {
-		log.Error(err)
-	}
-	if err := serializer.Map(appGroup, &out); err != nil {
-		log.Error(err)
-	}
-	return
-}
-
-func reflectApplication(application Application) (out domain.Application) {
-	if err := serializer.Map(application, &out); err != nil {
-		log.Error(err)
-	}
-	out.Metadata = application.Metadata.String()
-	return
-
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -18,22 +19,23 @@ type AppGroupHandler struct {
 	usecase usecase.IAppGroupUsecase
 }
 
-func NewAppGroupHandler(h usecase.IAppGroupUsecase) *AppGroupHandler {
+func NewAppGroupHandler(h usecase.Usecase) *AppGroupHandler {
 	return &AppGroupHandler{
-		usecase: h,
+		usecase: h.AppGroup,
 	}
 }
 
 // CreateAppGroup godoc
-// @Tags AppGroups
-// @Summary Install appGroup
-// @Description Install appGroup
-// @Accept json
-// @Produce json
-// @Param body body domain.CreateAppGroupRequest true "create appgroup request"
-// @Success 200 {object} domain.CreateAppGroupResponse
-// @Router /app-groups [post]
-// @Security     JWT
+//
+//	@Tags			AppGroups
+//	@Summary		Install appGroup
+//	@Description	Install appGroup
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.CreateAppGroupRequest	true	"create appgroup request"
+//	@Success		200		{object}	domain.CreateAppGroupResponse
+//	@Router			/app-groups [post]
+//	@Security		JWT
 func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateAppGroupRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -42,9 +44,9 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var dto domain.AppGroup
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	var dto model.AppGroup
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	appGroupId, err := h.usecase.Create(r.Context(), dto)
@@ -60,20 +62,21 @@ func (h *AppGroupHandler) CreateAppGroup(w http.ResponseWriter, r *http.Request)
 }
 
 // GetAppGroups godoc
-// @Tags AppGroups
-// @Summary Get appGroup list
-// @Description Get appGroup list by giving params
-// @Accept json
-// @Produce json
-// @Param clusterId query string false "clusterId"
-// @Param limit query string false "pageSize"
-// @Param page query string false "pageNumber"
-// @Param soertColumn query string false "sortColumn"
-// @Param sortOrder query string false "sortOrder"
-// @Param filters query []string false "filters"
-// @Success 200 {object} domain.GetAppGroupsResponse
-// @Router /app-groups [get]
-// @Security     JWT
+//
+//	@Tags			AppGroups
+//	@Summary		Get appGroup list
+//	@Description	Get appGroup list by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	query		string		false	"clusterId"
+//	@Param			pageSize	query		string		false	"pageSize"
+//	@Param			pageNumber	query		string		false	"pageNumber"
+//	@Param			soertColumn	query		string		false	"sortColumn"
+//	@Param			sortOrder	query		string		false	"sortOrder"
+//	@Param			filters		query		[]string	false	"filters"
+//	@Success		200			{object}	domain.GetAppGroupsResponse
+//	@Router			/app-groups [get]
+//	@Security		JWT
 func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
@@ -82,11 +85,7 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
 		return
 	}
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 
 	appGroups, err := h.usecase.Fetch(r.Context(), domain.ClusterId(clusterId), pg)
 	if err != nil {
@@ -97,29 +96,30 @@ func (h *AppGroupHandler) GetAppGroups(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetAppGroupsResponse
 	out.AppGroups = make([]domain.AppGroupResponse, len(appGroups))
 	for i, appGroup := range appGroups {
-		if err := serializer.Map(appGroup, &out.AppGroups[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), appGroup, &out.AppGroups[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetAppGroup godoc
-// @Tags AppGroups
-// @Summary Get appGroup detail
-// @Description Get appGroup detail by appGroupId
-// @Accept json
-// @Produce json
-// @Param appGroupId path string true "appGroupId"
-// @Success 200 {object} domain.GetAppGroupResponse
-// @Router /app-groups/{appGroupId} [get]
-// @Security     JWT
+//
+//	@Tags			AppGroups
+//	@Summary		Get appGroup detail
+//	@Description	Get appGroup detail by appGroupId
+//	@Accept			json
+//	@Produce		json
+//	@Param			appGroupId	path		string	true	"appGroupId"
+//	@Success		200			{object}	domain.GetAppGroupResponse
+//	@Router			/app-groups/{appGroupId} [get]
+//	@Security		JWT
 func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -139,23 +139,24 @@ func (h *AppGroupHandler) GetAppGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetAppGroupResponse
-	if err := serializer.Map(appGroup, &out.AppGroup); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), appGroup, &out.AppGroup); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // DeleteAppGroup godoc
-// @Tags AppGroups
-// @Summary Uninstall appGroup
-// @Description Uninstall appGroup
-// @Accept json
-// @Produce json
-// @Param object body string true "body"
-// @Success 200 {object} nil
-// @Router /app-groups [delete]
-// @Security     JWT
+//
+//	@Tags			AppGroups
+//	@Summary		Uninstall appGroup
+//	@Description	Uninstall appGroup
+//	@Accept			json
+//	@Produce		json
+//	@Param			object	body		string	true	"body"
+//	@Success		200		{object}	nil
+//	@Router			/app-groups [delete]
+//	@Security		JWT
 func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -172,7 +173,7 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 
 	err := h.usecase.Delete(r.Context(), appGroupId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to delete appGroup err : ", err)
+		log.Error(r.Context(), "Failed to delete appGroup err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -181,16 +182,17 @@ func (h *AppGroupHandler) DeleteAppGroup(w http.ResponseWriter, r *http.Request)
 }
 
 // GetApplications godoc
-// @Tags AppGroups
-// @Summary Get applications
-// @Description Get applications
-// @Accept json
-// @Produce json
-// @Param appGroupId path string true "appGroupId"
-// @Param applicationType query string true "applicationType"
-// @Success 200 {object} domain.GetApplicationsResponse
-// @Router /app-groups/{appGroupId}/applications [get]
-// @Security     JWT
+//
+//	@Tags			AppGroups
+//	@Summary		Get applications
+//	@Description	Get applications
+//	@Accept			json
+//	@Produce		json
+//	@Param			appGroupId		path		string	true	"appGroupId"
+//	@Param			applicationType	query		string	true	"applicationType"
+//	@Success		200				{object}	domain.GetApplicationsResponse
+//	@Router			/app-groups/{appGroupId}/applications [get]
+//	@Security		JWT
 func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -215,7 +217,7 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 
 	applications, err := h.usecase.GetApplications(r.Context(), appGroupId, applicationType)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get applications err : ", err)
+		log.Error(r.Context(), "Failed to get applications err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -223,8 +225,8 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 	var out domain.GetApplicationsResponse
 	out.Applications = make([]domain.ApplicationResponse, len(applications))
 	for i, application := range applications {
-		if err := serializer.Map(application, &out.Applications[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), application, &out.Applications[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
 	}
@@ -233,15 +235,16 @@ func (h *AppGroupHandler) GetApplications(w http.ResponseWriter, r *http.Request
 }
 
 // CreateApplication godoc
-// @Tags AppGroups
-// @Summary Create application
-// @Description Create application
-// @Accept json
-// @Produce json
-// @Param object body domain.CreateApplicationRequest true "body"
-// @Success 200 {object} nil
-// @Router /app-groups/{appGroupId}/applications [post]
-// @Security     JWT
+//
+//	@Tags			AppGroups
+//	@Summary		Create application
+//	@Description	Create application
+//	@Accept			json
+//	@Produce		json
+//	@Param			object	body		domain.CreateApplicationRequest	true	"body"
+//	@Success		200		{object}	nil
+//	@Router			/app-groups/{appGroupId}/applications [post]
+//	@Security		JWT
 func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["appGroupId"]
@@ -262,15 +265,15 @@ func (h *AppGroupHandler) CreateApplication(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var dto domain.Application
-	if err := serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	var dto model.Application
+	if err := serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
 	dto.AppGroupId = appGroupId
 
 	err = h.usecase.UpdateApplication(r.Context(), dto)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to update application err : ", err)
+		log.Error(r.Context(), "Failed to update application err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}

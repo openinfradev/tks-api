@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/openinfradev/tks-api/internal"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -68,32 +70,43 @@ var (
 )
 
 type AppServeAppHandler struct {
-	usecase usecase.IAppServeAppUsecase
+	usecase    usecase.IAppServeAppUsecase
+	prjUsecase usecase.IProjectUsecase
 }
 
-func NewAppServeAppHandler(h usecase.IAppServeAppUsecase) *AppServeAppHandler {
+func NewAppServeAppHandler(u usecase.Usecase) *AppServeAppHandler {
 	return &AppServeAppHandler{
-		usecase: h,
+		usecase:    u.AppServeApp,
+		prjUsecase: u.Project,
 	}
 }
 
 // CreateAppServeApp godoc
-// @Tags AppServeApps
-// @Summary Install appServeApp
-// @Description Install appServeApp
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param object body domain.CreateAppServeAppRequest true "Request body to create app"
-// @Success 200 {object} string
-// @Router /organizations/{organizationId}/app-serve-apps [post]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Install appServeApp
+//	@Description	Install appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string							true	"Organization ID"
+//	@Param			projectId		path		string							true	"Project ID"
+//	@Param			object			body		domain.CreateAppServeAppRequest	true	"Request body to create app"
+//	@Success		200				{object}	string
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps [post]
+//	@Security		JWT
 func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId"), "C_INVALID_PROJECT_ID", ""))
 		return
 	}
 
@@ -106,23 +119,36 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 
 	(appReq).SetDefaultValue()
 
-	var app domain.AppServeApp
-	if err = serializer.Map(appReq, &app); err != nil {
+	var app model.AppServeApp
+	if err = serializer.Map(r.Context(), appReq, &app); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	log.Infof("Processing CREATE request for app '%s'...", app.Name)
+	log.Infof(r.Context(), "Processing CREATE request for app '%s'...", app.Name)
+
+	// Namespace validation
+	exist, err := h.prjUsecase.IsProjectNamespaceExist(r.Context(), organizationId, projectId, app.TargetClusterId, app.Namespace)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking namespace record: %s", err), "", ""))
+		return
+	}
+
+	if !exist {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Namespace '%s' doesn't exist", app.Namespace), "", ""))
+		return
+	}
 
 	now := time.Now()
 	app.OrganizationId = organizationId
+	app.ProjectId = projectId
 	app.EndpointUrl = "N/A"
 	app.PreviewEndpointUrl = "N/A"
 	app.Status = "PREPARING"
 	app.CreatedAt = now
 
-	var task domain.AppServeAppTask
-	if err = serializer.Map(appReq, &task); err != nil {
+	var task model.AppServeAppTask
+	if err = serializer.Map(r.Context(), appReq, &task); err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
@@ -132,8 +158,6 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 	task.Output = ""
 	task.CreatedAt = now
 
-	app.AppServeAppTasks = append(app.AppServeAppTasks, task)
-
 	// Validate name param
 	re, _ := regexp.Compile("^[a-z][a-z0-9-]*$")
 	if !(re.MatchString(app.Name)) {
@@ -141,7 +165,7 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppNameExist(organizationId, app.Name)
+	exist, err = h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, app.Name)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -151,29 +175,29 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-  // Create namespace if it's not given by user
-  if len(strings.TrimSpace(app.Namespace)) == 0 {
-    // Check if the new namespace is already used in the target cluster
-    ns := ""
-    nsExist := true
-    for nsExist {
-      // Generate unique namespace based on name and random number
-      src := rand.NewSource(time.Now().UnixNano())
-      r1 := rand.New(src)
-      ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
+	// Create namespace if it's not given by user
+	if len(strings.TrimSpace(app.Namespace)) == 0 {
+		// Check if the new namespace is already used in the target cluster
+		ns := ""
+		nsExist := true
+		for nsExist {
+			// Generate unique namespace based on name and random number
+			src := rand.NewSource(time.Now().UnixNano())
+			r1 := rand.New(src)
+			ns = fmt.Sprintf("%s-%s", app.Name, strconv.Itoa(r1.Intn(10000)))
 
-      nsExist, err = h.usecase.IsAppServeAppNamespaceExist(app.TargetClusterId, ns)
-      if err != nil {
-        ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-        return
-      }
-    }
+			nsExist, err = h.usecase.IsAppServeAppNamespaceExist(r.Context(), app.TargetClusterId, ns)
+			if err != nil {
+				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+				return
+			}
+		}
 
-    log.Infof("Created new namespace: %s", ns)
-    app.Namespace = ns
-  } else {
-    log.Infof("Using existing namespace: %s", app.Namespace)
-  }
+		log.Infof(r.Context(), "Created new namespace: %s", ns)
+		app.Namespace = ns
+	} else {
+		log.Infof(r.Context(), "Using existing namespace: %s", app.Namespace)
+	}
 
 	// Validate port param for springboot app
 	if app.AppType == "springboot" {
@@ -190,14 +214,14 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	_, _, err = h.usecase.CreateAppServeApp(&app)
+	_, _, err = h.usecase.CreateAppServeApp(r.Context(), &app, &task)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.CreateAppServeAppResponse
-	if err = serializer.Map(app, &out); err != nil {
+	if err = serializer.Map(r.Context(), app, &out); err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -206,27 +230,37 @@ func (h *AppServeAppHandler) CreateAppServeApp(w http.ResponseWriter, r *http.Re
 }
 
 // GetAppServeApps godoc
-// @Tags AppServeApps
-// @Summary Get appServeApp list
-// @Description Get appServeApp list by giving params
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param showAll query boolean false "Show all apps including deleted apps"
-// @Param limit query string false "pageSize"
-// @Param page query string false "pageNumber"
-// @Param soertColumn query string false "sortColumn"
-// @Param sortOrder query string false "sortOrder"
-// @Param filters query []string false "filters"
-// @Success 200 {object} []domain.AppServeApp
-// @Router /organizations/{organizationId}/app-serve-apps [get]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Get appServeApp list
+//	@Description	Get appServeApp list by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string		true	"Organization ID"
+//	@Param			projectId		path		string		true	"Project ID"
+//	@Param			showAll			query		boolean		false	"Show all apps including deleted apps"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	[]model.AppServeApp
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps [get]
+//	@Security		JWT
 func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+
 	organizationId, ok := vars["organizationId"]
-	fmt.Printf("organizationId = [%v]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId"), "C_INVALID_PROJECT_ID", ""))
 		return
 	}
 
@@ -239,100 +273,48 @@ func (h *AppServeAppHandler) GetAppServeApps(w http.ResponseWriter, r *http.Requ
 
 	showAll, err := strconv.ParseBool(showAllParam)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to convert showAll params. Err: ", err)
+		log.Error(r.Context(), "Failed to convert showAll params. Err: ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
 
-	apps, err := h.usecase.GetAppServeApps(organizationId, showAll, pg)
+	pg := pagination.NewPagination(&urlParams)
+	apps, err := h.usecase.GetAppServeApps(r.Context(), organizationId, projectId, showAll, pg)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
+		log.Error(r.Context(), "Failed to get Failed to get app-serve-apps ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
 
 	var out domain.GetAppServeAppsResponse
-	out.AppServeApps = apps
-
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
-	ResponseJSON(w, r, http.StatusOK, out)
-}
-
-// GetAppServeApp godoc
-// @Tags AppServeApps
-// @Summary Get appServeApp
-// @Description Get appServeApp by giving params
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "App ID"
-// @Success 200 {object} domain.GetAppServeAppResponse
-// @Router /organizations/{organizationId}/app-serve-apps/{appId} [get]
-// @Security     JWT
-func (h *AppServeAppHandler) GetAppServeApp(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	organizationId, ok := vars["organizationId"]
-	fmt.Printf("organizationId = [%v]\n", organizationId)
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
-		return
-	}
-
-	appId, ok := vars["appId"]
-	fmt.Printf("appId = [%s]\n", appId)
-	if !ok {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "C_INVALID_ASA_ID", ""))
-		return
-	}
-	app, err := h.usecase.GetAppServeAppById(appId)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-		return
-	}
-	if app == nil {
-		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("no appId"), "D_NO_ASA", ""))
-		return
-	}
-
-	newTasks := make([]domain.AppServeAppTask, 0)
-
-	for idx, t := range app.AppServeAppTasks {
-		// Rollbacking to latest task should be blocked.
-		if idx > 0 && strings.Contains(t.Status, "SUCCESS") && t.Status != "ABORT_SUCCESS" &&
-			t.Status != "ROLLBACK_SUCCESS" {
-			t.AvailableRollback = true
+	out.AppServeApps = make([]domain.AppServeAppResponse, len(apps))
+	for i, app := range apps {
+		if err := serializer.Map(r.Context(), app, &out.AppServeApps[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
 		}
-		newTasks = append(newTasks, t)
 	}
-	app.AppServeAppTasks = newTasks
 
-	var out domain.GetAppServeAppResponse
-	out.AppServeApp = *app
-	out.Stages = makeStages(app)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetAppServeAppLatestTask godoc
-// @Tags AppServeApps
-// @Summary Get latest task from appServeApp
-// @Description Get latest task from appServeApp
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "App ID"
-// @Success 200 {object} domain.GetAppServeAppTaskResponse
-// @Router /organizations/{organizationId}/app-serve-apps/{appId}/latest-task [get]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Get latest task from appServeApp
+//	@Description	Get latest task from appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			appId			path		string	true	"App ID"
+//	@Success		200				{object}	domain.GetAppServeAppTaskResponse
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task [get]
+//	@Security		JWT
 func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -343,44 +325,82 @@ func (h *AppServeAppHandler) GetAppServeAppLatestTask(w http.ResponseWriter, r *
 		return
 	}
 
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
 	appId, ok := vars["appId"]
 	fmt.Printf("appId = [%s]\n", appId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
 		return
 	}
-	task, err := h.usecase.GetAppServeAppLatestTask(appId)
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %s", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+	}
+
+	task, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
 	if task == nil {
-		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("no task exists"), "", ""))
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No task exists"), "", ""))
+		return
+	}
+	// Rollbacking to latest task should be blocked.
+	task.AvailableRollback = false
+
+	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if app == nil {
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No app exists"), "D_NO_ASA", ""))
 		return
 	}
 
 	var out domain.GetAppServeAppTaskResponse
-	out.AppServeAppTask = *task
+	if err := serializer.Map(r.Context(), *app, &out.AppServeApp); err != nil {
+		log.Info(r.Context(), err)
+	}
+	if err := serializer.Map(r.Context(), *task, &out.AppServeAppTask); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	out.Stages = makeStages(r.Context(), task, app)
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetNumOfAppsOnStack godoc
-// @Tags AppServeApps
-// @Summary Get number of apps on given stack
-// @Description Get number of apps on given stack
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param stackId query string true "Stack ID"
-// @Success 200 {object} int64
-// @Router /organizations/{organizationId}/app-serve-apps/count [get]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Get number of apps on given stack
+//	@Description	Get number of apps on given stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			stackId			query		string	true	"Stack ID"
+//	@Success		200				{object}	int64
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/count [get]
+//	@Security		JWT
 func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	organizationId, ok := vars["organizationId"]
-	log.Debugf("organizationId = [%s]\n", organizationId)
+	log.Debugf(r.Context(), "organizationId = [%s]\n", organizationId)
 	if !ok {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
 		return
@@ -393,7 +413,7 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	}
 	fmt.Printf("stackId = [%s]\n", stackId)
 
-	numApps, err := h.usecase.GetNumOfAppsOnStack(organizationId, stackId)
+	numApps, err := h.usecase.GetNumOfAppsOnStack(r.Context(), organizationId, stackId)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
@@ -402,13 +422,192 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	ResponseJSON(w, r, http.StatusOK, numApps)
 }
 
-func makeStages(app *domain.AppServeApp) []domain.StageResponse {
+// GetAppServeAppTasksByAppId godoc
+//
+//	@Tags			AppServeApps
+//	@Summary		Get appServeAppTask list
+//	@Description	Get appServeAppTask list by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string		true	"Organization ID"
+//	@Param			projectId		path		string		true	"Project ID"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			sortColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	[]model.AppServeApp
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks [get]
+//	@Security		JWT
+func (h *AppServeAppHandler) GetAppServeAppTasksByAppId(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId: %s", organizationId), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: %s", appId), "C_INVALID_ASA_ID", ""))
+		return
+	}
+
+	urlParams := r.URL.Query()
+	pg := pagination.NewPagination(&urlParams)
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %v", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+	}
+
+	tasks, err := h.usecase.GetAppServeAppTasks(r.Context(), appId, pg)
+	if err != nil {
+		log.Error(r.Context(), "Failed to get app-serve-app-tasks ", err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var out domain.GetAppServeAppTasksResponse
+	out.AppServeAppTasks = make([]domain.AppServeAppTaskResponse, len(tasks))
+	for i, task := range tasks {
+		// Rollbacking to latest task should be blocked.
+		if i > 0 && strings.Contains(task.Status, "SUCCESS") && task.Status != "ABORT_SUCCESS" &&
+			task.Status != "ROLLBACK_SUCCESS" {
+			task.AvailableRollback = true
+		}
+
+		if err := serializer.Map(r.Context(), task, &out.AppServeAppTasks[i]); err != nil {
+			log.Info(r.Context(), err)
+			continue
+		}
+	}
+
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// GetAppServeAppTaskDetail godoc
+//
+//	@Tags			AppServeApps
+//	@Summary		Get task detail from appServeApp
+//	@Description	Get task detail from appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			appId			path		string	true	"App ID"
+//	@Param			taskId			path		string	true	"Task ID"
+//	@Success		200				{object}	domain.GetAppServeAppTaskResponse
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId} [get]
+//	@Security		JWT
+func (h *AppServeAppHandler) GetAppServeAppTaskDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	log.Debugf(r.Context(), "organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId: [%s]", organizationId), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	log.Debugf(r.Context(), "appId = [%s]\n", appId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid appId: [%s]", appId), "C_INVALID_ASA_ID", ""))
+		return
+	}
+
+	taskId, ok := vars["taskId"]
+	log.Debugf(r.Context(), "taskId = [%s]\n", taskId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid taskId: [%s]", taskId), "C_INVALID_ASA_TASK_ID", ""))
+		return
+	}
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %s", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+	}
+
+	task, err := h.usecase.GetAppServeAppTaskById(r.Context(), taskId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if task == nil {
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No task exists"), "", ""))
+		return
+	}
+
+	app, err := h.usecase.GetAppServeAppById(r.Context(), appId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if app == nil {
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No app exists"), "D_NO_ASA", ""))
+		return
+	}
+
+	// Workaround: Compare task ID with latest task ID
+	// Mark latest task with additional flag later
+	latestTask, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+	if taskId == latestTask.ID {
+		task.AvailableRollback = false
+	} else if strings.Contains(task.Status, "SUCCESS") && task.Status != "ABORT_SUCCESS" &&
+		task.Status != "ROLLBACK_SUCCESS" {
+		task.AvailableRollback = true
+	}
+
+	var out domain.GetAppServeAppTaskResponse
+	if err := serializer.Map(r.Context(), *app, &out.AppServeApp); err != nil {
+		log.Info(r.Context(), err)
+	}
+	if err := serializer.Map(r.Context(), *task, &out.AppServeAppTask); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	out.Stages = makeStages(r.Context(), task, app)
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+func makeStages(ctx context.Context, task *model.AppServeAppTask, app *model.AppServeApp) []domain.StageResponse {
 	stages := make([]domain.StageResponse, 0)
 
 	var stage domain.StageResponse
 	var pipelines []string
-	taskStatus := app.AppServeAppTasks[0].Status
-	strategy := app.AppServeAppTasks[0].Strategy
+	taskStatus := task.Status
+	strategy := task.Strategy
 
 	if taskStatus == "ROLLBACKING" ||
 		taskStatus == "ROLLBACK_SUCCESS" ||
@@ -431,27 +630,27 @@ func makeStages(app *domain.AppServeApp) []domain.StageResponse {
 			pipelines = []string{"deploy", "promote"}
 		}
 	} else {
-		log.Error("Unexpected case happened while making stages!")
+		log.Error(ctx, "Unexpected case happened while making stages!")
 	}
 
 	fmt.Printf("Pipeline stages: %v\n", pipelines)
 
 	for _, pl := range pipelines {
-		stage = makeStage(app, pl)
+		stage = makeStage(ctx, task, app, pl)
 		stages = append(stages, stage)
 	}
 
 	return stages
 }
 
-func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
-	taskStatus := app.AppServeAppTasks[0].Status
-	strategy := app.AppServeAppTasks[0].Strategy
+func makeStage(ctx context.Context, task *model.AppServeAppTask, app *model.AppServeApp, pl string) domain.StageResponse {
+	taskStatus := task.Status
+	strategy := task.Strategy
 
 	stage := domain.StageResponse{
 		Name:   pl,
-		Status: StatusStages[app.Status][pl],
-		Result: StatusResult[StatusStages[app.Status][pl]],
+		Status: StatusStages[taskStatus][pl],
+		Result: StatusResult[StatusStages[taskStatus][pl]],
 	}
 
 	var actions []domain.ActionResponse
@@ -472,15 +671,13 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 				}
 				actions = append(actions, action)
 			}
-		} else {
-			log.Error("Not supported strategy!")
 		}
 
 	} else if stage.Status == "PROMOTE_WAIT" && strategy == "blue-green" {
 		action := domain.ActionResponse{
 			Name: "ABORT",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
-				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+				"/organizations/%v/projects/%v/app-serve-apps/%v", app.OrganizationId, app.ProjectId, app.ID),
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "abort": "true"},
@@ -490,7 +687,7 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 		action = domain.ActionResponse{
 			Name: "PROMOTE",
 			Uri: fmt.Sprintf(internal.API_PREFIX+internal.API_VERSION+
-				"/organizations/%v/app-serve-apps/%v", app.OrganizationId, app.ID),
+				"/organizations/%v/projects/%v/app-serve-apps/%v", app.OrganizationId, app.ProjectId, app.ID),
 			Type:   "API",
 			Method: "PUT",
 			Body:   map[string]string{"strategy": "blue-green", "promote": "true"},
@@ -504,14 +701,17 @@ func makeStage(app *domain.AppServeApp, pl string) domain.StageResponse {
 }
 
 // IsAppServeAppExist godoc
-// @Tags AppServeApps
-// @Summary Get appServeApp
-// @Description Get appServeApp by giving params
-// @Accept json
-// @Produce json
-// @Success 200 {object} bool
-// @Router /organizations/{organizationId}/app-serve-apps/{appId}/exist [get]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Get appServeApp
+//	@Description	Get appServeApp by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Success		200				{object}	bool
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist [get]
+//	@Security		JWT
 func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -529,7 +729,7 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	exist, err := h.usecase.IsAppServeAppExist(appId)
+	exist, err := h.usecase.IsAppServeAppExist(r.Context(), appId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -543,16 +743,18 @@ func (h *AppServeAppHandler) IsAppServeAppExist(w http.ResponseWriter, r *http.R
 }
 
 // IsAppServeAppNameExist godoc
-// @Tags AppServeApps
-// @Summary Check duplicate appServeAppName
-// @Description Check duplicate appServeAppName by giving params
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param name path string true "name"
-// @Success 200 {object} bool
-// @Router /organizations/{organizationId}/app-serve-apps/name/{name}/existence [get]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Check duplicate appServeAppName
+//	@Description	Check duplicate appServeAppName by giving params
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			name			path		string	true	"name"
+//	@Success		200				{object}	bool
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence [get]
+//	@Security		JWT
 func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -568,7 +770,7 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 		return
 	}
 
-	existed, err := h.usecase.IsAppServeAppNameExist(organizationId, appName)
+	existed, err := h.usecase.IsAppServeAppNameExist(r.Context(), organizationId, appName)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
@@ -582,17 +784,19 @@ func (h *AppServeAppHandler) IsAppServeAppNameExist(w http.ResponseWriter, r *ht
 }
 
 // UpdateAppServeApp godoc
-// @Tags AppServeApps
-// @Summary Update appServeApp
-// @Description Update appServeApp
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "App ID"
-// @Param object body domain.UpdateAppServeAppRequest true "Request body to update app"
-// @Success 200 {object} string
-// @Router /organizations/{organizationId}/app-serve-apps/{appId} [put]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Update appServeApp
+//	@Description	Update appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string							true	"Organization ID"
+//	@Param			projectId		path		string							true	"Project ID"
+//	@Param			appId			path		string							true	"App ID"
+//	@Param			object			body		domain.UpdateAppServeAppRequest	true	"Request body to update app"
+//	@Success		200				{object}	string
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [put]
+//	@Security		JWT
 func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -608,13 +812,15 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	app, err := h.usecase.GetAppServeAppById(appId)
+	// Get latest task
+	latestTask, err := h.usecase.GetAppServeAppLatestTask(r.Context(), appId)
 	if err != nil {
-		ErrorJSON(w, r, err)
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
 		return
 	}
-	if len(app.AppServeAppTasks) < 1 {
-		ErrorJSON(w, r, err)
+	if latestTask == nil {
+		ErrorJSON(w, r, httpErrors.NewNoContentError(fmt.Errorf("No task exists"), "", ""))
+		return
 	}
 
 	// unmarshal request that only contains task-specific params
@@ -625,43 +831,26 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Instead of setting default value, some fields should be retrieved
-	// from existing app config.
-	//appReq.SetDefaultValue()
-
-	var task domain.AppServeAppTask
-	//tasks := app.AppServeAppTasks
-	//sort.Slice(tasks, func(i, j int) bool {
-	//	return tasks[i].CreatedAt.String() > tasks[j].CreatedAt.String()
-	//})
-	//for _, t := range tasks {
-	//	if t.Status == "DEPLOY_SUCCESS" {
-	//		latestTask = t
-	//		break
-	//	}
-	//}
-	//if err = serializer.Map(latestTask, &task); err != nil {
-	//	ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-	//	return
-	//}
-
-	var latestTask = app.AppServeAppTasks[0]
-	if err = serializer.Map(latestTask, &task); err != nil {
+	var task model.AppServeAppTask
+	if err = serializer.Map(r.Context(), *latestTask, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	if err = serializer.Map(appReq, &task); err != nil {
+	if err = serializer.Map(r.Context(), appReq, &task); err != nil {
 		//ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
 	}
 
-	//updateVersion, err := strconv.Atoi(latestTask.Version)
-	//if err != nil {
-	//	ErrorJSON(w, r, httpErrors.NewInternalServerError(err,""))
-	//}
-	//task.Version = strconv.Itoa(updateVersion + 1)
-	task.Version = strconv.Itoa(len(app.AppServeAppTasks) + 1)
+	// Set new version
+	verInt, err := strconv.Atoi(latestTask.Version)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	newVerStr := strconv.Itoa(verInt + 1)
+
+	task.Version = newVerStr
 	//task.AppServeAppId = app.ID
 	task.Status = "PREPARING"
 	task.RollbackVersion = ""
@@ -669,17 +858,15 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = nil
 
-	fmt.Println("===========================")
-	fmt.Printf("%v\n", task)
-	fmt.Println("===========================")
+	log.Debugf(r.Context(), "New task in update request: %v\n", task)
 
 	var res string
 	if appReq.Promote {
-		res, err = h.usecase.PromoteAppServeApp(appId)
+		res, err = h.usecase.PromoteAppServeApp(r.Context(), appId)
 	} else if appReq.Abort {
-		res, err = h.usecase.AbortAppServeApp(appId)
+		res, err = h.usecase.AbortAppServeApp(r.Context(), appId)
 	} else {
-		res, err = h.usecase.UpdateAppServeApp(app, &task)
+		res, err = h.usecase.UpdateAppServeApp(r.Context(), appId, &task)
 	}
 
 	if err != nil {
@@ -691,17 +878,19 @@ func (h *AppServeAppHandler) UpdateAppServeApp(w http.ResponseWriter, r *http.Re
 }
 
 // UpdateAppServeAppStatus godoc
-// @Tags AppServeApps
-// @Summary Update app status
-// @Description Update app status
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "App ID"
-// @Param body body domain.UpdateAppServeAppStatusRequest true "Request body to update app status"
-// @Success 200 {object} string
-// @Router /organizations/{organizationId}/app-serve-apps/{appId}/status [patch]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Update app status
+//	@Description	Update app status
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string									true	"Organization ID"
+//	@Param			projectId		path		string									true	"Project ID"
+//	@Param			appId			path		string									true	"App ID"
+//	@Param			body			body		domain.UpdateAppServeAppStatusRequest	true	"Request body to update app status"
+//	@Success		200				{object}	string
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/status [patch]
+//	@Security		JWT
 func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -724,7 +913,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 		return
 	}
 
-	res, err := h.usecase.UpdateAppServeAppStatus(appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
+	res, err := h.usecase.UpdateAppServeAppStatus(r.Context(), appId, appStatusReq.TaskID, appStatusReq.Status, appStatusReq.Output)
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
 		return
@@ -734,17 +923,19 @@ func (h *AppServeAppHandler) UpdateAppServeAppStatus(w http.ResponseWriter, r *h
 }
 
 // UpdateAppServeAppEndpoint godoc
-// @Tags AppServeApps
-// @Summary Update app endpoint
-// @Description Update app endpoint
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "appId"
-// @Param body body domain.UpdateAppServeAppEndpointRequest true "Request body to update app endpoint"
-// @Success 200 {object} string
-// @Router /organizations/{organizationId}/app-serve-apps/{appId}/endpoint [patch]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Update app endpoint
+//	@Description	Update app endpoint
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string									true	"Organization ID"
+//	@Param			projectId		path		string									true	"Project ID"
+//	@Param			appId			path		string									true	"appId"
+//	@Param			body			body		domain.UpdateAppServeAppEndpointRequest	true	"Request body to update app endpoint"
+//	@Success		200				{object}	string
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/endpoint [patch]
+//	@Security		JWT
 func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -768,6 +959,7 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 	}
 
 	res, err := h.usecase.UpdateAppServeAppEndpoint(
+		r.Context(),
 		appId,
 		appReq.TaskID,
 		appReq.EndpointUrl,
@@ -782,16 +974,18 @@ func (h *AppServeAppHandler) UpdateAppServeAppEndpoint(w http.ResponseWriter, r 
 }
 
 // DeleteAppServeApp godoc
-// @Tags AppServeApps
-// @Summary Uninstall appServeApp
-// @Description Uninstall appServeApp
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "App ID"
-// @Success 200 {object} string
-// @Router /organizations/{organizationId}/app-serve-apps/{appId} [delete]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Uninstall appServeApp
+//	@Description	Uninstall appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			appId			path		string	true	"App ID"
+//	@Success		200				{object}	string
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId} [delete]
+//	@Security		JWT
 func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -807,9 +1001,9 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	res, err := h.usecase.DeleteAppServeApp(appId)
+	res, err := h.usecase.DeleteAppServeApp(r.Context(), appId)
 	if err != nil {
-		log.ErrorWithContext(r.Context(), "Failed to delete appId err : ", err)
+		log.Error(r.Context(), "Failed to delete appId err : ", err)
 		ErrorJSON(w, r, err)
 		return
 	}
@@ -818,17 +1012,19 @@ func (h *AppServeAppHandler) DeleteAppServeApp(w http.ResponseWriter, r *http.Re
 }
 
 // RollbackAppServeApp godoc
-// @Tags AppServeApps
-// @Summary Rollback appServeApp
-// @Description Rollback appServeApp
-// @Accept json
-// @Produce json
-// @Param organizationId path string true "Organization ID"
-// @Param appId path string true "App ID"
-// @Param object body domain.RollbackAppServeAppRequest true "Request body to rollback app"
-// @Success 200 {object} string
-// @Router /organizations/{organizationId}/app-serve-apps/{appId}/rollback [post]
-// @Security     JWT
+//
+//	@Tags			AppServeApps
+//	@Summary		Rollback appServeApp
+//	@Description	Rollback appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string								true	"Organization ID"
+//	@Param			projectId		path		string								true	"Project ID"
+//	@Param			appId			path		string								true	"App ID"
+//	@Param			object			body		domain.RollbackAppServeAppRequest	true	"Request body to rollback app"
+//	@Success		200				{object}	string
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback [post]
+//	@Security		JWT
 func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	organizationId, ok := vars["organizationId"]
@@ -855,7 +1051,7 @@ func (h *AppServeAppHandler) RollbackAppServeApp(w http.ResponseWriter, r *http.
 		return
 	}
 
-	res, err := h.usecase.RollbackAppServeApp(appId, appReq.TaskId)
+	res, err := h.usecase.RollbackAppServeApp(r.Context(), appId, appReq.TaskId)
 
 	if err != nil {
 		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))

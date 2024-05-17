@@ -3,7 +3,6 @@ package domain
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
 )
 
@@ -83,34 +82,6 @@ func (m ClusterType) FromString(s string) ClusterType {
 	return ClusterType_USER
 }
 
-// model
-type Cluster struct {
-	ID                     ClusterId
-	CloudService           string
-	OrganizationId         string
-	Name                   string
-	Description            string
-	CloudAccountId         uuid.UUID
-	CloudAccount           CloudAccount
-	StackTemplateId        uuid.UUID
-	StackTemplate          StackTemplate
-	Status                 ClusterStatus
-	StatusDesc             string
-	Conf                   ClusterConf
-	Favorited              bool
-	CreatorId              *uuid.UUID
-	Creator                User
-	ClusterType            ClusterType
-	UpdatorId              *uuid.UUID
-	Updator                User
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
-	ByoClusterEndpointHost string
-	ByoClusterEndpointPort int
-	IsStack                bool
-	Kubeconfig             []byte
-}
-
 type ClusterConf struct {
 	TksCpNode        int
 	TksCpNodeMax     int
@@ -169,25 +140,26 @@ func (m *ClusterConf) SetDefault() {
 }
 
 type CreateClusterRequest struct {
-	OrganizationId         string `json:"organizationId" validate:"required"`
-	CloudService           string `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId        string `json:"stackTemplateId" validate:"required"`
-	Name                   string `json:"name" validate:"required,name"`
-	Description            string `json:"description"`
-	CloudAccountId         string `json:"cloudAccountId"`
-	ClusterType            string `json:"clusterType"`
-	ByoClusterEndpointHost string `json:"byoClusterEndpointHost,omitempty"`
-	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort,omitempty"`
-	IsStack                bool   `json:"isStack,omitempty"`
-	TksCpNode              int    `json:"tksCpNode"`
-	TksCpNodeMax           int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType          string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode           int    `json:"tksInfraNode"`
-	TksInfraNodeMax        int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType       string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode            int    `json:"tksUserNode"`
-	TksUserNodeMax         int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
+	OrganizationId         string   `json:"organizationId" validate:"required"`
+	CloudService           string   `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId        string   `json:"stackTemplateId" validate:"required"`
+	Name                   string   `json:"name" validate:"required,name"`
+	Description            string   `json:"description"`
+	CloudAccountId         string   `json:"cloudAccountId"`
+	ClusterType            string   `json:"clusterType"`
+	ByoClusterEndpointHost string   `json:"byoClusterEndpointHost,omitempty"`
+	ByoClusterEndpointPort int      `json:"byoClusterEndpointPort,omitempty"`
+	IsStack                bool     `json:"isStack,omitempty"`
+	PolicyIds              []string `json:"policyIds,omitempty"`
+	TksCpNode              int      `json:"tksCpNode"`
+	TksCpNodeMax           int      `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType          string   `json:"tksCpNodeType,omitempty"`
+	TksInfraNode           int      `json:"tksInfraNode"`
+	TksInfraNodeMax        int      `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType       string   `json:"tksInfraNodeType,omitempty"`
+	TksUserNode            int      `json:"tksUserNode"`
+	TksUserNodeMax         int      `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType        string   `json:"tksUserNodeType,omitempty"`
 }
 
 type ImportClusterRequest struct {
@@ -239,6 +211,7 @@ type ClusterResponse struct {
 	ByoClusterEndpointHost string                      `json:"byoClusterEndpointHost,omitempty"`
 	ByoClusterEndpointInt  int                         `json:"byoClusterEndpointPort,omitempty"`
 	IsStack                bool                        `json:"isStack,omitempty"`
+	Favorited              bool                        `json:"favorited,omitempty"`
 }
 
 type SimpleClusterResponse struct {
