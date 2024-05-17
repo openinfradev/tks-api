@@ -66,7 +66,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	usecaseFactory := usecase.Usecase{
 		Auth:                       usecase.NewAuthUsecase(repoFactory, kc),
 		User:                       usecase.NewUserUsecase(repoFactory, kc),
-		Cluster:                    usecase.NewClusterUsecase(repoFactory, argoClient, cache),
+		Cluster:                    usecase.NewClusterUsecase(repoFactory, argoClient, cache, kc),
 		Organization:               usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
 		AppGroup:                   usecase.NewAppGroupUsecase(repoFactory, argoClient),
 		AppServeApp:                usecase.NewAppServeAppUsecase(repoFactory, argoClient),
@@ -76,11 +76,11 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		SystemNotification:         usecase.NewSystemNotificationUsecase(repoFactory),
 		SystemNotificationTemplate: usecase.NewSystemNotificationTemplateUsecase(repoFactory),
 		SystemNotificationRule:     usecase.NewSystemNotificationRuleUsecase(repoFactory),
-		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
+		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache), kc),
 		Project:                    usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 		Audit:                      usecase.NewAuditUsecase(repoFactory),
 		Role:                       usecase.NewRoleUsecase(repoFactory, kc),
-		Permission:                 usecase.NewPermissionUsecase(repoFactory),
+		Permission:                 usecase.NewPermissionUsecase(repoFactory, kc),
 		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
 		Policy:                     usecase.NewPolicyUsecase(repoFactory),
 	}

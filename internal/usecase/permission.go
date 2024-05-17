@@ -11,6 +11,7 @@ import (
 
 type IPermissionUsecase interface {
 	CreatePermissionSet(ctx context.Context, permissionSet *model.PermissionSet) error
+	GetPermission(ctx context.Context, id uuid.UUID) (*model.Permission, error)
 	GetPermissionSetByRoleId(ctx context.Context, roleId string) (*model.PermissionSet, error)
 	ListPermissions(ctx context.Context, roleId string) ([]*model.Permission, error)
 	SetRoleIdToPermissionSet(ctx context.Context, roleId string, permissionSet *model.PermissionSet)

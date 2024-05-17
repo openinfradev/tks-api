@@ -884,6 +884,22 @@ func (k *Keycloak) createClientProtocolMapper(ctx context.Context, accessToken s
 
 func (k *Keycloak) createDefaultClient(ctx context.Context, accessToken string, realm string, clientId string,
 	clientSecret string, redirectURIs *[]string) (string, error) {
+	if clientSecret == "" {
+		id, err := k.client.CreateClient(context.Background(), accessToken, realm, gocloak.Client{
+			ClientID:                  gocloak.StringP(clientId),
+			DirectAccessGrantsEnabled: gocloak.BoolP(true),
+			Enabled:                   gocloak.BoolP(true),
+			RedirectURIs:              redirectURIs,
+			PublicClient:              gocloak.BoolP(true),
+		})
+		if err != nil {
+			log.Error(ctx, "Creating Client is failed", err)
+			return "", err
+		}
+
+		return id, nil
+	}
+
 	id, err := k.client.CreateClient(context.Background(), accessToken, realm, gocloak.Client{
 		ClientID:                  gocloak.StringP(clientId),
 		DirectAccessGrantsEnabled: gocloak.BoolP(true),
@@ -899,9 +915,6 @@ func (k *Keycloak) createDefaultClient(ctx context.Context, accessToken string, 
 	if err != nil {
 		log.Error(ctx, "Getting Client is failed", err)
 		return "", err
-	}
-	if clientSecret == "" {
-		return id, nil
 	}
 
 	client.Secret = gocloak.StringP(clientSecret)

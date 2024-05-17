@@ -113,9 +113,9 @@ func NewAdminPermissionSet() *PermissionSet {
 	}
 }
 
-func GetEdgePermission(root *Permission, edgePermissions []*Permission, f *func(permission Permission) bool) []*Permission {
+func GetEdgePermission(root *Permission, edgePermissions []*Permission, f func(permission Permission) bool) []*Permission {
 	if root.Children == nil || len(root.Children) == 0 {
-		if f != nil && !(*f)(*root) {
+		if f != nil && !f(*root) {
 			return edgePermissions
 		}
 		return append(edgePermissions, root)
@@ -1090,10 +1090,10 @@ func (p *PermissionSet) SetUserPermissionSet() {
 	}
 	edgePermissions := make([]*Permission, 0)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Dashboard, edgePermissions, nil)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.Policy, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, &f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Policy, edgePermissions, f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, f)...)
 
 	for _, permission := range edgePermissions {
 		permission.IsAllowed = helper.BoolP(true)

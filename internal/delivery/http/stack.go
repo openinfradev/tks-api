@@ -519,14 +519,14 @@ func (h StackHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context
 		// 2-step
 		// Then get the cluster admin permissions for the stack
 		var targetEdgePermissions []*model.Permission
-		// filter function
-		f := func(permission model.Permission) bool {
-			if permission.Parent != nil && permission.Parent.Key == model.MiddleClusterAccessControlKey {
-				return true
+
+		var targetPermission *model.Permission
+		for _, permission := range mergedPermissionSet.Stack.Children {
+			if permission.Key == model.MiddleClusterAccessControlKey {
+				targetPermission = permission
 			}
-			return false
 		}
-		edgePermissions := model.GetEdgePermission(mergedPermissionSet.Stack, targetEdgePermissions, &f)
+		edgePermissions := model.GetEdgePermission(targetPermission, targetEdgePermissions, nil)
 
 		// 3-step
 		//  sync the permissions with Keycloak

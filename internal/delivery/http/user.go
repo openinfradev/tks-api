@@ -119,6 +119,22 @@ func (u UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Sync ClusterAdmin Permission to Keycloak
+	stacks, err := u.stackUsecase.Fetch(r.Context(), organizationId, nil)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	stackIds := make([]string, 0)
+	for _, stack := range stacks {
+		stackIds = append(stackIds, stack.ID.String())
+	}
+	err = u.syncKeycloakWithClusterAdminPermission(ctx, organizationId, stackIds, []model.User{*resUser})
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var out domain.CreateUserResponse
 	if err = serializer.Map(r.Context(), *resUser, &out.User); err != nil {
 		log.Error(r.Context(), err)
@@ -941,6 +957,22 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Sync ClusterAdmin Permission to Keycloak
+	stacks, err := u.stackUsecase.Fetch(r.Context(), organizationId, nil)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	stackIds := make([]string, 0)
+	for _, stack := range stacks {
+		stackIds = append(stackIds, stack.ID.String())
+	}
+	err = u.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*resUser})
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	var out domain.Admin_CreateUserResponse
 
 	out.ID = resUser.ID.String()
@@ -1125,15 +1157,14 @@ func (u UserHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context,
 		// 2-step
 		// Then get the cluster admin permissions for the stack
 		var targetEdgePermissions []*model.Permission
-		// filter function
-		f := func(permission model.Permission) bool {
-			if permission.Parent != nil && permission.Parent.Key == model.MiddleClusterAccessControlKey {
-				return true
-			}
-			return false
-		}
-		edgePermissions := model.GetEdgePermission(mergedPermissionSet.Stack, targetEdgePermissions, &f)
 
+		var targetPermission *model.Permission
+		for _, permission := range mergedPermissionSet.Stack.Children {
+			if permission.Key == model.MiddleClusterAccessControlKey {
+				targetPermission = permission
+			}
+		}
+		edgePermissions := model.GetEdgePermission(targetPermission, targetEdgePermissions, nil)
 		// 3-step
 		//  sync the permissions with Keycloak
 		for _, clusterId := range clusterIds {

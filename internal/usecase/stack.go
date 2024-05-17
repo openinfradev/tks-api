@@ -188,13 +188,13 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 	}
 	// Create keycloak client protocol mapper
 	_, err = u.kc.CreateClientProtocolMapper(ctx, dto.OrganizationId, clientUUID, gocloak.ProtocolMapperRepresentation{
-		Name:            gocloak.StringP(dto.ID.String() + "k8s-api"),
+		Name:            gocloak.StringP("k8s-role-mapper"),
 		Protocol:        gocloak.StringP("openid-connect"),
 		ProtocolMapper:  gocloak.StringP("oidc-usermodel-client-role-mapper"),
 		ConsentRequired: gocloak.BoolP(false),
 		Config: &map[string]string{
-			"usermodel.clientRoleMapping.clientId": dto.ID.String(),
-			"claim.name":                           "k8s-role-mapper",
+			"usermodel.clientRoleMapping.clientId": dto.ID.String() + "-k8s-api",
+			"claim.name":                           "groups",
 			"access.token.claim":                   "false",
 			"id.token.claim":                       "true",
 			"userinfo.token.claim":                 "true",
@@ -566,6 +566,12 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 			time.Sleep(time.Second * 5) // Buffer
 			break
 		}
+	}
+
+	err = u.kc.DeleteClient(ctx, dto.OrganizationId, dto.ID.String()+"-k8s-api", true)
+	if err != nil {
+		log.Error(ctx, err)
+		return err
 	}
 
 	return nil

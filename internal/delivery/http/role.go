@@ -252,7 +252,13 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Sync ClusterAdmin Permission to Keycloak
-	for _, user := range *affectedUsers {
+	for _, affectedUser := range *affectedUsers {
+		// remove role from user object
+		user, err := h.userUsecase.Get(r.Context(), affectedUser.ID)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
 		stacks, err := h.stackUsecease.Fetch(r.Context(), organizationId, nil)
 		if err != nil {
 			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
@@ -262,7 +268,11 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 		for _, stack := range stacks {
 			stackIds = append(stackIds, stack.ID.String())
 		}
-		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{user})
+		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*user})
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
 	}
 
 	// response
@@ -443,7 +453,12 @@ func (h RoleHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Re
 			return
 		}
 
-		if permission.Parent != nil && permission.Parent.Key == model.MiddleClusterAccessControlKey {
+		updatedPermission, err := h.permissionUsecase.GetPermission(r.Context(), permission.ID)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
+		if updatedPermission.Parent != nil && updatedPermission.Parent.Key == model.MiddleClusterAccessControlKey {
 			clusterAdminPermissionChanged = true
 		}
 	}
@@ -466,6 +481,10 @@ func (h RoleHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Re
 				stackIds = append(stackIds, stack.ID.String())
 			}
 			err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{user})
+			if err != nil {
+				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+				return
+			}
 		}
 	}
 
@@ -687,6 +706,10 @@ func (h RoleHandler) AppendUsersToRole(w http.ResponseWriter, r *http.Request) {
 			stackIds = append(stackIds, stack.ID.String())
 		}
 		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*originUser})
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
 	}
 
 	// response
@@ -767,6 +790,10 @@ func (h RoleHandler) RemoveUsersFromRole(w http.ResponseWriter, r *http.Request)
 			stackIds = append(stackIds, stack.ID.String())
 		}
 		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*originUser})
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+			return
+		}
 	}
 
 	// response
@@ -854,14 +881,14 @@ func (h RoleHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context,
 		// 2-step
 		// Then get the cluster admin permissions for the stack
 		var targetEdgePermissions []*model.Permission
-		// filter function
-		f := func(permission model.Permission) bool {
-			if permission.Parent != nil && permission.Parent.Key == model.MiddleClusterAccessControlKey {
-				return true
+
+		var targetPermission *model.Permission
+		for _, permission := range mergedPermissionSet.Stack.Children {
+			if permission.Key == model.MiddleClusterAccessControlKey {
+				targetPermission = permission
 			}
-			return false
 		}
-		edgePermissions := model.GetEdgePermission(mergedPermissionSet.Stack, targetEdgePermissions, &f)
+		edgePermissions := model.GetEdgePermission(targetPermission, targetEdgePermissions, nil)
 
 		// 3-step
 		//  sync the permissions with Keycloak
