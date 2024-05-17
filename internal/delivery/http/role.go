@@ -262,9 +262,7 @@ func (h RoleHandler) DeleteTksRole(w http.ResponseWriter, r *http.Request) {
 		for _, stack := range stacks {
 			stackIds = append(stackIds, stack.ID.String())
 		}
-		u := make([]model.User, 0)
-		u = append(u, user)
-		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, u)
+		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{user})
 	}
 
 	// response
@@ -467,9 +465,7 @@ func (h RoleHandler) UpdatePermissionsByRoleId(w http.ResponseWriter, r *http.Re
 			for _, stack := range stacks {
 				stackIds = append(stackIds, stack.ID.String())
 			}
-			u := make([]model.User, 0)
-			u = append(u, user)
-			err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, u)
+			err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{user})
 		}
 	}
 
@@ -690,9 +686,7 @@ func (h RoleHandler) AppendUsersToRole(w http.ResponseWriter, r *http.Request) {
 		for _, stack := range stacks {
 			stackIds = append(stackIds, stack.ID.String())
 		}
-		users := make([]model.User, 0)
-		users = append(users, *originUser)
-		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, users)
+		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*originUser})
 	}
 
 	// response
@@ -772,9 +766,7 @@ func (h RoleHandler) RemoveUsersFromRole(w http.ResponseWriter, r *http.Request)
 		for _, stack := range stacks {
 			stackIds = append(stackIds, stack.ID.String())
 		}
-		users := make([]model.User, 0)
-		users = append(users, *originUser)
-		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, users)
+		err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*originUser})
 	}
 
 	// response
@@ -842,6 +834,9 @@ func (h RoleHandler) GetUsersInRoleId(w http.ResponseWriter, r *http.Request) {
 }
 
 // syncKeycloakWithClusterAdminPermission sync the permissions with Keycloak
+// 1. Get all roles assigned to the user and merge the permissions
+// 2. Then get the cluster admin permissions for the stack
+// 3. Finally, sync the permissions with Keycloak
 func (h RoleHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context, organizationId string, clusterIds []string, users []model.User) error {
 	for _, user := range users {
 		// 1-step

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -73,64 +74,17 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Binding Users for Stack according to their permissions
+	// Sync ClusterAdmin Permission to Keycloak
 	// First get all users in the organization
 	users, err := h.usecaseUser.List(r.Context(), organizationId)
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
-	// 1. Get all roles assigned to the user and merge the permissions
-	// 2. Then get the cluster admin permissions for the stack
-	// 3. Finally, sync the permissions with Keycloak
-	for _, user := range *users {
-		var permissionSets []*model.PermissionSet
-		// 1-step
-		for _, role := range user.Roles {
-			permissionSet, err := h.usecasePermission.GetPermissionSetByRoleId(r.Context(), role.ID)
-			if err != nil {
-				ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-				return
-			}
-			permissionSets = append(permissionSets, permissionSet)
-		}
-		mergedPermissionSet := h.usecasePermission.MergePermissionWithOrOperator(r.Context(), permissionSets...)
-
-		// 2-step
-		var targetEdgePermissions []*model.Permission
-		// filter function
-		f := func(permission model.Permission) bool {
-			if permission.Parent != nil && permission.Parent.Key == model.MiddleClusterAccessControlKey {
-				return true
-			}
-			return false
-		}
-		edgePermissions := model.GetEdgePermission(mergedPermissionSet.Stack, targetEdgePermissions, &f)
-
-		// 3-step
-		if len(edgePermissions) > 0 {
-			var err error
-			for _, edgePermission := range edgePermissions {
-				switch edgePermission.Key {
-				case model.OperationCreate:
-					err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(r.Context(), organizationId,
-						stackId.String()+"-k8s-api", user.ID.String(), "cluster-admin-create", *edgePermission.IsAllowed)
-				case model.OperationRead:
-					err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(r.Context(), organizationId,
-						stackId.String()+"-k8s-api", user.ID.String(), "cluster-admin-read", *edgePermission.IsAllowed)
-				case model.OperationUpdate:
-					err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(r.Context(), organizationId,
-						stackId.String()+"-k8s-api", user.ID.String(), "cluster-admin-update", *edgePermission.IsAllowed)
-				case model.OperationDelete:
-					err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(r.Context(), organizationId,
-						stackId.String()+"-k8s-api", user.ID.String(), "cluster-admin-delete", *edgePermission.IsAllowed)
-				}
-				if err != nil {
-					ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
-					return
-				}
-			}
-		}
+	err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, []string{stackId.String()}, *users)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
 	}
 
 	out := domain.CreateStackResponse{
@@ -542,4 +496,65 @@ func (h *StackHandler) DeleteFavorite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// syncKeycloakWithClusterAdminPermission sync the permissions with Keycloak
+// 1. Get all roles assigned to the user and merge the permissions
+// 2. Then get the cluster admin permissions for the stack
+// 3. Finally, sync the permissions with Keycloak
+func (h StackHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context, organizationId string, clusterIds []string, users []model.User) error {
+	for _, user := range users {
+		// 1-step
+		// Merge the permissions of the userUuid
+		var permissionSets []*model.PermissionSet
+		for _, role := range user.Roles {
+			permissionSet, err := h.usecasePermission.GetPermissionSetByRoleId(ctx, role.ID)
+			if err != nil {
+				return err
+			}
+			permissionSets = append(permissionSets, permissionSet)
+		}
+		mergedPermissionSet := h.usecasePermission.MergePermissionWithOrOperator(ctx, permissionSets...)
+
+		// 2-step
+		// Then get the cluster admin permissions for the stack
+		var targetEdgePermissions []*model.Permission
+		// filter function
+		f := func(permission model.Permission) bool {
+			if permission.Parent != nil && permission.Parent.Key == model.MiddleClusterAccessControlKey {
+				return true
+			}
+			return false
+		}
+		edgePermissions := model.GetEdgePermission(mergedPermissionSet.Stack, targetEdgePermissions, &f)
+
+		// 3-step
+		//  sync the permissions with Keycloak
+		for _, clusterId := range clusterIds {
+			if len(edgePermissions) > 0 {
+				var err error
+				for _, edgePermission := range edgePermissions {
+					switch edgePermission.Key {
+					case model.OperationCreate:
+						err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(ctx, organizationId,
+							clusterId+"-k8s-api", user.ID.String(), "cluster-admin-create", *edgePermission.IsAllowed)
+					case model.OperationRead:
+						err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(ctx, organizationId,
+							clusterId+"-k8s-api", user.ID.String(), "cluster-admin-read", *edgePermission.IsAllowed)
+					case model.OperationUpdate:
+						err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(ctx, organizationId,
+							clusterId+"-k8s-api", user.ID.String(), "cluster-admin-update", *edgePermission.IsAllowed)
+					case model.OperationDelete:
+						err = h.usecasePermission.SyncKeycloakWithClusterAdminPermission(ctx, organizationId,
+							clusterId+"-k8s-api", user.ID.String(), "cluster-admin-delete", *edgePermission.IsAllowed)
+					}
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
