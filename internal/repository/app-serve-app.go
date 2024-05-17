@@ -21,6 +21,7 @@ type IAppServeAppRepository interface {
 	GetAppServeAppTasksByAppId(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
 	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, error)
 	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
+	GetClusterIdByAppId(ctx context.Context, appId string) (string, error)
 
 	GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error)
 
@@ -55,9 +56,9 @@ func (r *AppServeAppRepository) CreateAppServeApp(ctx context.Context, app *mode
 // Update creates new appServeApp task for existing appServeApp.
 func (r *AppServeAppRepository) CreateTask(ctx context.Context, task *model.AppServeAppTask, appId string) (string, error) {
 	task.ID = uuid.New().String()
-    if len(appId) > 0 {
-        task.AppServeAppId = appId
-    }
+	if len(appId) > 0 {
+		task.AppServeAppId = appId
+	}
 	res := r.db.WithContext(ctx).Create(task)
 	if res.Error != nil {
 		return "", res.Error
@@ -172,6 +173,21 @@ func (r *AppServeAppRepository) GetAppServeAppLatestTask(ctx context.Context, ap
 	}
 
 	return &task, nil
+}
+
+func (r *AppServeAppRepository) GetClusterIdByAppId(ctx context.Context, appId string) (string, error) {
+	var app model.AppServeApp
+
+	res := r.db.WithContext(ctx).Where("id = ?", appId).First(&app)
+	if res.Error != nil {
+		log.Debug(ctx, res.Error)
+		return "", res.Error
+	}
+	if res.RowsAffected == 0 {
+		return "", fmt.Errorf("No app with ID %s", appId)
+	}
+
+	return app.TargetClusterId, nil
 }
 
 func (r *AppServeAppRepository) GetNumOfAppsOnStack(ctx context.Context, organizationId string, clusterId string) (int64, error) {
