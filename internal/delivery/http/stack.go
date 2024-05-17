@@ -85,7 +85,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	// 3. Finally, sync the permissions with Keycloak
 	for _, user := range *users {
 		var permissionSets []*model.PermissionSet
-		// 1 step
+		// 1-step
 		for _, role := range user.Roles {
 			permissionSet, err := h.usecasePermission.GetPermissionSetByRoleId(r.Context(), role.ID)
 			if err != nil {
@@ -96,7 +96,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		}
 		mergedPermissionSet := h.usecasePermission.MergePermissionWithOrOperator(r.Context(), permissionSets...)
 
-		// 2 step
+		// 2-step
 		var targetEdgePermissions []*model.Permission
 		// filter function
 		f := func(permission model.Permission) bool {
@@ -107,7 +107,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		}
 		edgePermissions := model.GetEdgePermission(mergedPermissionSet.Stack, targetEdgePermissions, &f)
 
-		// 3 step
+		// 3-step
 		if len(edgePermissions) > 0 {
 			var err error
 			for _, edgePermission := range edgePermissions {
