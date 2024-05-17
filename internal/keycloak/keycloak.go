@@ -27,6 +27,11 @@ type IKeycloak interface {
 	DeleteRealm(ctx context.Context, organizationId string) error
 	UpdateRealm(ctx context.Context, organizationId string, organizationConfig model.Organization) error
 
+	CreateClient(ctx context.Context, organizationId string, clientName string, clientSecret string, redirectURIs *[]string) (string, error)
+	CreateClientProtocolMapper(ctx context.Context, realm string, clientId string, mapper gocloak.ProtocolMapperRepresentation) (string, error)
+	CreateClientRole(ctx context.Context, organizationId string, clientId string, roleName string) error
+	DeleteClient(ctx context.Context, organizationId string, clientName string, ignoreNotFound bool) error
+
 	CreateUser(ctx context.Context, organizationId string, user *gocloak.User) (string, error)
 	GetUser(ctx context.Context, organizationId string, userAccountId string) (*gocloak.User, error)
 	GetUsers(ctx context.Context, organizationId string) ([]*gocloak.User, error)
@@ -330,6 +335,62 @@ func (k *Keycloak) UpdateRealm(ctx context.Context, organizationId string, organ
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (k *Keycloak) CreateClient(ctx context.Context, organizationId string, clientName string, clientSecret string, redirectURIs *[]string) (string, error) {
+	token := k.adminCliToken
+	clientUUID, err := k.createDefaultClient(ctx, token.AccessToken, organizationId, clientName, clientSecret, redirectURIs)
+	if err != nil {
+		return "", err
+	}
+
+	return clientUUID, nil
+}
+
+func (k *Keycloak) DeleteClient(ctx context.Context, organizationId string, clientName string, ignoreNotFound bool) error {
+	token := k.adminCliToken
+	clients, err := k.client.GetClients(context.Background(), token.AccessToken, organizationId, gocloak.GetClientsParams{
+		ClientID: &clientName,
+	})
+	if err != nil {
+		log.Error(ctx, err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+	if len(clients) == 0 {
+		if ignoreNotFound {
+			return nil
+		}
+		return httpErrors.NewNotFoundError(fmt.Errorf("client not found"), "", "")
+	}
+	err = k.client.DeleteClient(context.Background(), token.AccessToken, organizationId, *clients[0].ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k *Keycloak) CreateClientProtocolMapper(ctx context.Context, realm string, clientId string, mapper gocloak.ProtocolMapperRepresentation) (string, error) {
+	token := k.adminCliToken
+	mapperId, err := k.client.CreateClientProtocolMapper(context.Background(), token.AccessToken, realm, clientId, mapper)
+	if err != nil {
+		return "", err
+	}
+
+	return mapperId, nil
+}
+
+func (k *Keycloak) CreateClientRole(ctx context.Context, organizationId string, clientId string, roleName string) error {
+	token := k.adminCliToken
+	role := gocloak.Role{
+		Name: gocloak.StringP(roleName),
+	}
+	_, err := k.client.CreateClientRole(context.Background(), token.AccessToken, organizationId, clientId, role)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -839,6 +900,10 @@ func (k *Keycloak) createDefaultClient(ctx context.Context, accessToken string, 
 		log.Error(ctx, "Getting Client is failed", err)
 		return "", err
 	}
+	if clientSecret == "" {
+		return id, nil
+	}
+
 	client.Secret = gocloak.StringP(clientSecret)
 	err = k.client.UpdateClient(context.Background(), accessToken, realm, *client)
 	if err != nil {
