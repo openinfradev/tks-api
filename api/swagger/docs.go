@@ -6312,6 +6312,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/log": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get log and pod status of appServeApp",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AppServeApps"
+                ],
+                "summary": "Get log and pod status of appServeApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Organization ID",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App ID",
+                        "name": "appId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppLogResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback": {
             "post": {
                 "security": [
@@ -12576,6 +12627,17 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppLogResponse": {
+            "type": "object",
+            "properties": {
+                "log": {
+                    "type": "string"
+                },
+                "podStatus": {
+                    "type": "string"
                 }
             }
         },
