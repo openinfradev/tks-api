@@ -291,8 +291,8 @@ func (u *AppServeAppUsecase) GetAppServeAppLog(ctx context.Context, appId string
 
 		logStr = "`" + buf.String() + "`"
 
-		podStatus = fmt.Sprintf("%s", pod.Status.Phase)
-		log.Debugf(ctx, "Pod status: %s", pod.Status.Phase)
+		podStatus = string(pod.Status.Phase)
+		log.Debugf(ctx, "Pod status: %s", podStatus)
 	}
 
 	return logStr, podStatus, nil
