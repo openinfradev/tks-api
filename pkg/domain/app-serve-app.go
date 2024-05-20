@@ -159,7 +159,7 @@ type GetAppServeAppTaskResponse struct {
 }
 
 type GetAppServeAppLogResponse struct {
-	Log       string `json:"log"`
+	PodLog    string `json:"podLog"`
 	PodStatus string `json:"podStatus"`
 }
 

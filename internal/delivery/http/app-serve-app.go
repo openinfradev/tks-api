@@ -475,10 +475,10 @@ func (h *AppServeAppHandler) GetAppServeAppLog(w http.ResponseWriter, r *http.Re
 	}
 
 	var out domain.GetAppServeAppLogResponse
-	//	if err := serializer.Map(r.Context(), podLog, &out.Log); err != nil {
+	//	if err := serializer.Map(r.Context(), podLog, &out.PodLog); err != nil {
 	//		log.Info(r.Context(), err)
 	//	}
-	out.Log = podLog
+	out.PodLog = podLog
 
 	//	if err := serializer.Map(r.Context(), podStatus, &out.PodStatus); err != nil {
 	//		log.Info(r.Context(), err)

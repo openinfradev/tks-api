@@ -12633,7 +12633,7 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppLogResponse": {
             "type": "object",
             "properties": {
-                "log": {
+                "podLog": {
                     "type": "string"
                 },
                 "podStatus": {
