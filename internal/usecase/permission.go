@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
 	"sort"
@@ -10,6 +11,7 @@ import (
 
 type IPermissionUsecase interface {
 	CreatePermissionSet(ctx context.Context, permissionSet *model.PermissionSet) error
+	GetPermission(ctx context.Context, id uuid.UUID) (*model.Permission, error)
 	GetPermissionSetByRoleId(ctx context.Context, roleId string) (*model.PermissionSet, error)
 	ListPermissions(ctx context.Context, roleId string) ([]*model.Permission, error)
 	SetRoleIdToPermissionSet(ctx context.Context, roleId string, permissionSet *model.PermissionSet)
@@ -17,15 +19,18 @@ type IPermissionUsecase interface {
 	GetUserPermissionSet(ctx context.Context) *model.PermissionSet
 	UpdatePermission(ctx context.Context, permission *model.Permission) error
 	MergePermissionWithOrOperator(ctx context.Context, permissionSet ...*model.PermissionSet) *model.PermissionSet
+	SyncKeycloakWithClusterAdminPermission(ctx context.Context, organizationId string, clientName string, userId string, roleName string, boolean bool) error
 }
 
 type PermissionUsecase struct {
 	repo repository.IPermissionRepository
+	kc   keycloak.IKeycloak
 }
 
-func NewPermissionUsecase(repo repository.Repository) *PermissionUsecase {
+func NewPermissionUsecase(repo repository.Repository, kc keycloak.IKeycloak) *PermissionUsecase {
 	return &PermissionUsecase{
 		repo: repo.Permission,
+		kc:   kc,
 	}
 }
 
@@ -190,5 +195,13 @@ func (p PermissionUsecase) sortPermissionRecursive(permission *model.Permission)
 		for _, child := range permission.Children {
 			p.sortPermissionRecursive(child)
 		}
+	}
+}
+
+func (p PermissionUsecase) SyncKeycloakWithClusterAdminPermission(ctx context.Context, organizationId string, clientName string, userId string, roleName string, boolean bool) error {
+	if boolean {
+		return p.kc.AssignClientRoleToUser(ctx, organizationId, userId, clientName, roleName)
+	} else {
+		return p.kc.UnassignClientRoleToUser(ctx, organizationId, userId, clientName, roleName)
 	}
 }
