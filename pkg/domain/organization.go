@@ -73,7 +73,7 @@ type SimpleOrganizationResponse = struct {
 type CreateOrganizationRequest struct {
 	Name           string `json:"name" validate:"required,name"`
 	Description    string `json:"description" validate:"omitempty,min=0,max=100"`
-	AdminAccountId string `json:"adminAccountId" validate:"required"`
+	AdminAccountId string `json:"adminAccountId" validate:"required,min=0,max=20,alphanum"`
 	AdminName      string `json:"adminName" validate:"name"`
 	AdminEmail     string `json:"adminEmail" validate:"required,email"`
 }
