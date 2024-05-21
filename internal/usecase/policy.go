@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/request"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -508,8 +507,7 @@ func (u *PolicyUsecase) GetMandatoryPolicies(ctx context.Context, organizationId
 	for _, policyTemplate := range policyTemplates {
 		templateId := policyTemplate.ID.String()
 
-		if len(policyTemplate.PermittedOrganizationIds) == 0 ||
-			mapset.NewSet(policyTemplate.PermittedOrganizationIds...).Contains(organizationId) {
+		if slices.Contains(policyTemplate.PermittedOrganizationIds, organizationId) {
 			templateMaps[templateId] = &domain.MandatoryTemplateInfo{
 				TemplateName: policyTemplate.TemplateName,
 				TemplateId:   templateId,
