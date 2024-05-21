@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/model"
@@ -88,13 +89,25 @@ func (r *OrganizationRepository) Fetch(ctx context.Context, pg *pagination.Pagin
 	db := r.db.WithContext(ctx).Preload(clause.Associations).Model(&model.Organization{})
 
 	// [TODO] more pretty!
+	adminQuery := ""
 	for _, filter := range pg.Filters {
 		if filter.Relation == "Admin" {
-			db = db.Joins("join users on users.id::text = organizations.admin_id::text").
-				Where("users.name ilike ?", "%"+filter.Values[0]+"%")
-			break
+			if adminQuery != "" {
+				adminQuery = adminQuery + " OR "
+			}
+
+			switch filter.Column {
+			case "name":
+				adminQuery = adminQuery + fmt.Sprintf("users.name ilike '%%%s%%'", filter.Values[0])
+			case "account_id":
+				adminQuery = adminQuery + fmt.Sprintf("users.account_id ilike '%%%s%%'", filter.Values[0])
+			case "email":
+				adminQuery = adminQuery + fmt.Sprintf("users.email ilike '%%%s%%'", filter.Values[0])
+			}
 		}
 	}
+	db = db.Joins("join users on users.id::text = organizations.admin_id::text").
+		Where(adminQuery)
 
 	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
