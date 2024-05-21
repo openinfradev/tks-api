@@ -39,6 +39,7 @@ var errorMap = map[ErrorCode]string{
 	// Organization
 	"O_INVALID_ORGANIZATION_NAME":                   "조직에 이미 존재하는 이름입니다.",
 	"O_NOT_EXISTED_NAME":                            "조직이 존재하지 않습니다.",
+	"O_CREATE_ALREADY_EXISTED_NAME":                 "이미 존재하는 이름입니다.",
 	"O_FAILED_UPDATE_STACK_TEMPLATES":               "조직에 스택템플릿을 설정하는데 실패했습니다",
 	"O_FAILED_UPDATE_POLICY_TEMPLATES":              "조직에 정책템플릿을 설정하는데 실패했습니다",
 	"O_FAILED_UPDATE_SYSTEM_NOTIFICATION_TEMPLATES": "조직에 알림템플릿을 설정하는데 실패했습니다",
