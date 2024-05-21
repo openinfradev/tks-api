@@ -131,18 +131,6 @@ func (r *PolicyTemplateRepository) FetchForOrganization(ctx context.Context, org
 		pg = pagination.NewPagination(nil)
 	}
 
-	// 다음과 같은 쿼리를 생성해서 tks 템플릿에 대해선 PermittedOrganizations가 비거나, PermittedOrganizations에 해당 organizations이 속하는 템플릿을 찾음
-	// organization 템플릿은 organizationId가 매칭되는 것을 찾음, 이를 통해 해당 사용자가 사용할 수 있는 모든 템플릿을 fetch
-	// select id from policy_templates where
-	// 	(
-	// 		type = 'tks'
-	// 		and (
-	// 			id not in (select policy_template_id from policy_template_permitted_organizations) -- PermitedOrganizations이 빈 경우, 모두에게 허용
-	// 			or id in (select policy_template_id from policy_template_permitted_organizations organization where organization_id = 'orgid') -- PermitedOrganizations 허용된 경우
-	// 		)
-	// 	)
-	// 	or (type = 'organization' and organization_id='orgid')
-	subQueryAloowedAll := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id")
 	subQueryMatchId := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id").
 		Where("organization_id = ?", organizationId)
 
@@ -156,12 +144,7 @@ func (r *PolicyTemplateRepository) FetchForOrganization(ctx context.Context, org
 		Where(
 			// tks 템플릿인 경우
 			r.db.Where("type = ?", "tks").
-				Where(
-					// permitted_organizations이 비어있거나
-					r.db.Where("id not in (?)", subQueryAloowedAll).
-						Or("id in (?)", subQueryMatchId),
-					// permitted_organization에 매칭되는 템플릿 아이디가 있거나
-				),
+				Where("id in (?)", subQueryMatchId),
 		).
 		Or(
 			// organization 타입 템플릿이면서 organization_id가 매칭
@@ -178,7 +161,6 @@ func (r *PolicyTemplateRepository) FetchForOrganization(ctx context.Context, org
 }
 
 func (r *PolicyTemplateRepository) CountTksTemplateByOrganization(ctx context.Context, organizationId string) (count int64, err error) {
-	subQueryAloowedAll := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id")
 	subQueryMatchId := r.db.Table("policy_template_permitted_organizations").Select("policy_template_id").
 		Where("organization_id = ?", organizationId)
 
@@ -187,12 +169,7 @@ func (r *PolicyTemplateRepository) CountTksTemplateByOrganization(ctx context.Co
 		Where(
 			// tks 템플릿인 경우
 			r.db.Where("type = ?", "tks").
-				Where(
-					// permitted_organizations이 비어있거나
-					r.db.Where("id not in (?)", subQueryAloowedAll).
-						Or("id in (?)", subQueryMatchId),
-					// permitted_organization에 매칭되는 템플릿 아이디가 있거나
-				),
+				Where("id in (?)", subQueryMatchId),
 		).Count(&count).Error
 
 	return

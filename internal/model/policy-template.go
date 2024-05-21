@@ -76,8 +76,7 @@ func (pt *PolicyTemplate) IsPermittedToOrganization(organizationId *string) bool
 	}
 
 	if pt.IsTksTemplate() {
-		return len(pt.PermittedOrganizationIds) == 0 ||
-			slices.Contains(pt.PermittedOrganizationIds, *organizationId)
+		return slices.Contains(pt.PermittedOrganizationIds, *organizationId)
 	}
 
 	return pt.OrganizationId != nil && *organizationId == *pt.OrganizationId
