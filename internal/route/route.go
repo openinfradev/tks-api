@@ -66,7 +66,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	usecaseFactory := usecase.Usecase{
 		Auth:                       usecase.NewAuthUsecase(repoFactory, kc),
 		User:                       usecase.NewUserUsecase(repoFactory, kc),
-		Cluster:                    usecase.NewClusterUsecase(repoFactory, argoClient, cache),
+		Cluster:                    usecase.NewClusterUsecase(repoFactory, argoClient, cache, kc),
 		Organization:               usecase.NewOrganizationUsecase(repoFactory, argoClient, kc),
 		AppGroup:                   usecase.NewAppGroupUsecase(repoFactory, argoClient),
 		AppServeApp:                usecase.NewAppServeAppUsecase(repoFactory, argoClient),
@@ -76,11 +76,11 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 		SystemNotification:         usecase.NewSystemNotificationUsecase(repoFactory),
 		SystemNotificationTemplate: usecase.NewSystemNotificationTemplateUsecase(repoFactory),
 		SystemNotificationRule:     usecase.NewSystemNotificationRuleUsecase(repoFactory),
-		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache)),
+		Stack:                      usecase.NewStackUsecase(repoFactory, argoClient, usecase.NewDashboardUsecase(repoFactory, cache), kc),
 		Project:                    usecase.NewProjectUsecase(repoFactory, kc, argoClient),
 		Audit:                      usecase.NewAuditUsecase(repoFactory),
 		Role:                       usecase.NewRoleUsecase(repoFactory, kc),
-		Permission:                 usecase.NewPermissionUsecase(repoFactory),
+		Permission:                 usecase.NewPermissionUsecase(repoFactory, kc),
 		PolicyTemplate:             usecase.NewPolicyTemplateUsecase(repoFactory),
 		Policy:                     usecase.NewPolicyUsecase(repoFactory),
 	}
@@ -166,6 +166,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks", customMiddleware.Handle(internalApi.GetAppServeAppTasksByAppId, http.HandlerFunc(appServeAppHandler.GetAppServeAppTasksByAppId))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/tasks/{taskId}", customMiddleware.Handle(internalApi.GetAppServeAppTaskDetail, http.HandlerFunc(appServeAppHandler.GetAppServeAppTaskDetail))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/latest-task", customMiddleware.Handle(internalApi.GetAppServeAppLatestTask, http.HandlerFunc(appServeAppHandler.GetAppServeAppLatestTask))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/log", customMiddleware.Handle(internalApi.GetAppServeAppLog, http.HandlerFunc(appServeAppHandler.GetAppServeAppLog))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/exist", customMiddleware.Handle(internalApi.IsAppServeAppExist, http.HandlerFunc(appServeAppHandler.IsAppServeAppExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/name/{name}/existence", customMiddleware.Handle(internalApi.IsAppServeAppNameExist, http.HandlerFunc(appServeAppHandler.IsAppServeAppNameExist))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}", customMiddleware.Handle(internalApi.DeleteAppServeApp, http.HandlerFunc(appServeAppHandler.DeleteAppServeApp))).Methods(http.MethodDelete)

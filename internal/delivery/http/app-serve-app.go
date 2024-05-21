@@ -422,6 +422,72 @@ func (h *AppServeAppHandler) GetNumOfAppsOnStack(w http.ResponseWriter, r *http.
 	ResponseJSON(w, r, http.StatusOK, numApps)
 }
 
+// GetAppServeAppLog godoc
+//
+//	@Tags			AppServeApps
+//	@Summary		Get log and pod status of appServeApp
+//	@Description	Get log and pod status of appServeApp
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"Organization ID"
+//	@Param			projectId		path		string	true	"Project ID"
+//	@Param			appId			path		string	true	"App ID"
+//	@Success		200				{object}	domain.GetAppServeAppLogResponse
+//	@Router			/organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/log [get]
+//	@Security		JWT
+func (h *AppServeAppHandler) GetAppServeAppLog(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	organizationId, ok := vars["organizationId"]
+	fmt.Printf("organizationId = [%v]\n", organizationId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid organizationId"), "", ""))
+		return
+	}
+
+	projectId, ok := vars["projectId"]
+	log.Debugf(r.Context(), "projectId = [%v]\n", projectId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid projectId: [%s]", projectId), "C_INVALID_PROJECT_ID", ""))
+		return
+	}
+
+	appId, ok := vars["appId"]
+	fmt.Printf("appId = [%s]\n", appId)
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("invalid appId"), "", ""))
+		return
+	}
+
+	// Check if projectId exists
+	prj, err := h.prjUsecase.GetProject(r.Context(), organizationId, projectId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(fmt.Errorf("Error while checking project record: %s", err), "", ""))
+		return
+	} else if prj == nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("projectId not found: %s", projectId), "C_INVALID_PROJECT_ID", ""))
+	}
+
+	podLog, podStatus, err := h.usecase.GetAppServeAppLog(r.Context(), appId)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewInternalServerError(err, "", ""))
+		return
+	}
+
+	var out domain.GetAppServeAppLogResponse
+	//	if err := serializer.Map(r.Context(), podLog, &out.PodLog); err != nil {
+	//		log.Info(r.Context(), err)
+	//	}
+	out.PodLog = podLog
+
+	//	if err := serializer.Map(r.Context(), podStatus, &out.PodStatus); err != nil {
+	//		log.Info(r.Context(), err)
+	//	}
+	out.PodStatus = podStatus
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
 // GetAppServeAppTasksByAppId godoc
 //
 //	@Tags			AppServeApps

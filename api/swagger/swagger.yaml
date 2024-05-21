@@ -1535,6 +1535,13 @@ definitions:
       pagination:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PaginationResponse'
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppLogResponse:
+    properties:
+      podLog:
+        type: string
+      podStatus:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppTaskResponse:
     properties:
       appServeApp:
@@ -8185,6 +8192,39 @@ paths:
       security:
       - JWT: []
       summary: Get latest task from appServeApp
+      tags:
+      - AppServeApps
+  /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/log:
+    get:
+      consumes:
+      - application/json
+      description: Get log and pod status of appServeApp
+      parameters:
+      - description: Organization ID
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: Project ID
+        in: path
+        name: projectId
+        required: true
+        type: string
+      - description: App ID
+        in: path
+        name: appId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetAppServeAppLogResponse'
+      security:
+      - JWT: []
+      summary: Get log and pod status of appServeApp
       tags:
       - AppServeApps
   /organizations/{organizationId}/projects/{projectId}/app-serve-apps/{appId}/rollback:

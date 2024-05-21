@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"github.com/Nerzal/gocloak/v13"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 	"sort"
 	"strings"
 	"time"
@@ -47,9 +49,10 @@ type StackUsecase struct {
 	appServeAppRepo   repository.IAppServeAppRepository
 	argo              argowf.ArgoClient
 	dashbordUsecase   IDashboardUsecase
+	kc                keycloak.IKeycloak
 }
 
-func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient, dashbordUsecase IDashboardUsecase) IStackUsecase {
+func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient, dashbordUsecase IDashboardUsecase, kc keycloak.IKeycloak) IStackUsecase {
 	return &StackUsecase{
 		clusterRepo:       r.Cluster,
 		appGroupRepo:      r.AppGroup,
@@ -59,6 +62,7 @@ func NewStackUsecase(r repository.Repository, argoClient argowf.ArgoClient, dash
 		appServeAppRepo:   r.AppServeApp,
 		argo:              argoClient,
 		dashbordUsecase:   dashbordUsecase,
+		kc:                kc,
 	}
 }
 
@@ -172,6 +176,56 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 			dto.ID = domain.StackId(cluster.ID)
 			break
 		}
+	}
+
+	// keycloak setting
+	log.Debugf(ctx, "Create keycloak client for %s", dto.ID)
+	// Create keycloak client
+	clientUUID, err := u.kc.CreateClient(ctx, dto.OrganizationId, dto.ID.String()+"-k8s-api", "", nil)
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client for %s", dto.ID)
+		return "", err
+	}
+	// Create keycloak client protocol mapper
+	_, err = u.kc.CreateClientProtocolMapper(ctx, dto.OrganizationId, clientUUID, gocloak.ProtocolMapperRepresentation{
+		Name:            gocloak.StringP("k8s-role-mapper"),
+		Protocol:        gocloak.StringP("openid-connect"),
+		ProtocolMapper:  gocloak.StringP("oidc-usermodel-client-role-mapper"),
+		ConsentRequired: gocloak.BoolP(false),
+		Config: &map[string]string{
+			"usermodel.clientRoleMapping.clientId": dto.ID.String() + "-k8s-api",
+			"claim.name":                           "groups",
+			"access.token.claim":                   "false",
+			"id.token.claim":                       "true",
+			"userinfo.token.claim":                 "true",
+			"multivalued":                          "true",
+			"jsonType.label":                       "String",
+		},
+	})
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client protocol mapper for %s", dto.ID)
+		return "", err
+	}
+	// Create keycloak client role
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-create")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-create", dto.ID)
+		return "", err
+	}
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-read")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-read", dto.ID)
+		return "", err
+	}
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-update")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-update", dto.ID)
+		return "", err
+	}
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-delete")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-delete", dto.ID)
+		return "", err
 	}
 
 	return dto.ID, nil
@@ -512,6 +566,12 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 			time.Sleep(time.Second * 5) // Buffer
 			break
 		}
+	}
+
+	err = u.kc.DeleteClient(ctx, dto.OrganizationId, dto.ID.String()+"-k8s-api", true)
+	if err != nil {
+		log.Error(ctx, err)
+		return err
 	}
 
 	return nil

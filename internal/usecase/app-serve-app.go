@@ -1,9 +1,11 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"strconv"
 	"strings"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/openinfradev/tks-api/internal/model"
@@ -27,6 +30,7 @@ type IAppServeAppUsecase interface {
 	CreateAppServeApp(ctx context.Context, app *model.AppServeApp, task *model.AppServeAppTask) (appId string, taskId string, err error)
 	GetAppServeApps(ctx context.Context, organizationId string, projectId string, showAll bool, pg *pagination.Pagination) ([]model.AppServeApp, error)
 	GetAppServeAppById(ctx context.Context, appId string) (*model.AppServeApp, error)
+	GetAppServeAppLog(ctx context.Context, appId string) (string, string, error)
 	GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error)
 	GetAppServeAppTaskById(ctx context.Context, taskId string) (*model.AppServeAppTask, error)
 	GetAppServeAppLatestTask(ctx context.Context, appId string) (*model.AppServeAppTask, error)
@@ -231,6 +235,67 @@ func (u *AppServeAppUsecase) GetAppServeAppById(ctx context.Context, appId strin
 	}
 
 	return asa, nil
+}
+
+func (u *AppServeAppUsecase) GetAppServeAppLog(ctx context.Context, appId string) (string, string, error) {
+	var logStr string
+	var podStatus string
+
+	app, err := u.repo.GetAppServeAppById(ctx, appId)
+	if err != nil {
+		return "", "", fmt.Errorf("error while getting ASA Info from DB. Err: %s", err)
+	}
+	if app == nil {
+		return "", "", httpErrors.NewNoContentError(fmt.Errorf("the appId doesn't exist"), "", "")
+	}
+
+	clientset, err := kubernetes.GetClientFromClusterId(ctx, app.TargetClusterId)
+	if err != nil {
+		log.Error(ctx, err)
+		return "", "", err
+	}
+
+	// Reference: https://github.com/nwaizer/GetPodLogsEfficiently/blob/main/cmd/basicgetlogs/basic.go
+
+	labelStr := fmt.Sprintf("app=%s", app.Name)
+	pods, err := clientset.CoreV1().Pods(app.Namespace).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: labelStr})
+	if err != nil {
+		log.Error(ctx, err)
+		return "", "", err
+	}
+
+	for _, pod := range pods.Items {
+		log.Debugf(ctx, "Processing pod: %s", pod.Name)
+
+		tailLines := int64(50)
+
+		req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
+			// name should be "tomcat" for legacy spring app
+			Container: "main",
+			TailLines: &tailLines,
+		})
+
+		podLogs, err := req.Stream(context.TODO())
+		if err != nil {
+			return "", "", fmt.Errorf("Failed to open pod logs due to: %w", err)
+		}
+		defer podLogs.Close()
+
+		buf := new(bytes.Buffer)
+		_, err = io.Copy(buf, podLogs)
+
+		if err != nil {
+			return "", "", fmt.Errorf("Failed to decode logs binary input due to: %w", err)
+		}
+
+		logStr = "`" + buf.String() + "`"
+
+		podStatus = string(pod.Status.Phase)
+		log.Debugf(ctx, "Pod status: %s", podStatus)
+	}
+
+	return logStr, podStatus, nil
 }
 
 func (u *AppServeAppUsecase) GetAppServeAppTasks(ctx context.Context, appId string, pg *pagination.Pagination) ([]model.AppServeAppTask, error) {

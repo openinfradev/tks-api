@@ -24,6 +24,7 @@ const (
 	ProjectPermission       PermissionKind = "프로젝트"
 	NotificationPermission  PermissionKind = "알림"
 	ConfigurationPermission PermissionKind = "설정"
+	ClusterAccessControl    PermissionKind = "클러스터 접근 제어"
 
 	OperationRead     = "READ"
 	OperationCreate   = "CREATE"
@@ -36,6 +37,7 @@ const (
 	MiddleDashboardKey                       = "DASHBOARD-DASHBOARD"
 	TopStackKey                              = "STACK"
 	MiddleStackKey                           = "STACK-STACK"
+	MiddleClusterAccessControlKey            = "STACK-CLUSTER_ACCESS_CONTROL"
 	TopPolicyKey                             = "POLICY"
 	MiddlePolicyKey                          = "POLICY-POLICY"
 	TopNotificationKey                       = "NOTIFICATION"
@@ -111,9 +113,9 @@ func NewAdminPermissionSet() *PermissionSet {
 	}
 }
 
-func GetEdgePermission(root *Permission, edgePermissions []*Permission, f *func(permission Permission) bool) []*Permission {
+func GetEdgePermission(root *Permission, edgePermissions []*Permission, f func(permission Permission) bool) []*Permission {
 	if root.Children == nil || len(root.Children) == 0 {
-		if f != nil && !(*f)(*root) {
+		if f != nil && !f(*root) {
 			return edgePermissions
 		}
 		return append(edgePermissions, root)
@@ -257,6 +259,37 @@ func newStack() *Permission {
 							// AppGroup
 							api.DeleteAppgroup,
 						),
+					},
+				},
+			},
+			{
+				ID:   uuid.New(),
+				Name: "클러스터 접근 제어",
+				Key:  MiddleClusterAccessControlKey,
+				Children: []*Permission{
+					{
+						ID:        uuid.New(),
+						Name:      "조회",
+						Key:       OperationRead,
+						IsAllowed: helper.BoolP(false),
+					},
+					{
+						ID:        uuid.New(),
+						Name:      "생성",
+						Key:       OperationCreate,
+						IsAllowed: helper.BoolP(false),
+					},
+					{
+						ID:        uuid.New(),
+						Name:      "수정",
+						Key:       OperationUpdate,
+						IsAllowed: helper.BoolP(false),
+					},
+					{
+						ID:        uuid.New(),
+						Name:      "삭제",
+						Key:       OperationDelete,
+						IsAllowed: helper.BoolP(false),
 					},
 				},
 			},
@@ -1053,15 +1086,14 @@ func (p *PermissionSet) SetAllowedPermissionSet() {
 
 func (p *PermissionSet) SetUserPermissionSet() {
 	f := func(permission Permission) bool {
-		return permission.Name == "조회"
+		return permission.Key == OperationRead
 	}
 	edgePermissions := make([]*Permission, 0)
 	edgePermissions = append(edgePermissions, GetEdgePermission(p.Dashboard, edgePermissions, nil)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.Policy, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, &f)...)
-	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, &f)...)
-	//edgePermissions = append(edgePermissions, GetEdgePermission(p.Configuration, edgePermissions, &f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Stack, edgePermissions, f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Policy, edgePermissions, f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.ProjectManagement, edgePermissions, f)...)
+	edgePermissions = append(edgePermissions, GetEdgePermission(p.Notification, edgePermissions, f)...)
 
 	for _, permission := range edgePermissions {
 		permission.IsAllowed = helper.BoolP(true)
