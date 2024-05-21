@@ -158,6 +158,11 @@ type GetAppServeAppTaskResponse struct {
 	Stages          []StageResponse         `json:"stages"`
 }
 
+type GetAppServeAppLogResponse struct {
+	PodLog    string `json:"podLog"`
+	PodStatus string `json:"podStatus"`
+}
+
 type StageResponse struct {
 	Name    string            `json:"name"` // BUILD (빌드), DEPLOY (배포), PROMOTE (프로모트), ROLLBACK (롤백)
 	Status  string            `json:"status"`

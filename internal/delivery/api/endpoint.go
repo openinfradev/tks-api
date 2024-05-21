@@ -76,6 +76,7 @@ const (
 	GetNumOfAppsOnStack       // 프로젝트 관리/앱 서빙/조회
 	GetAppServeApp            // 프로젝트 관리/앱 서빙/조회
 	GetAppServeAppLatestTask  // 프로젝트 관리/앱 서빙/조회
+	GetAppServeAppLog         // 프로젝트 관리/앱 서빙/조회
 	IsAppServeAppExist        // 프로젝트 관리/앱 서빙/조회 // 프로젝트 관리/앱 서빙/배포 // 프로젝트 관리/앱 서빙/빌드
 	IsAppServeAppNameExist    // 프로젝트 관리/앱 서빙/조회 // 프로젝트 관리/앱 서빙/배포 // 프로젝트 관리/앱 서빙/빌드
 	DeleteAppServeApp         // 프로젝트 관리/앱 서빙/삭제
