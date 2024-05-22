@@ -62,7 +62,7 @@ func (h *PolicyNotificationHandler) GetPolicyNotifications(w http.ResponseWriter
 			for j, value := range filter.Values {
 				val := ""
 				if value == "dryrun" {
-					val = "감사"
+					val = "경고"
 				} else {
 					val = "거부"
 				}

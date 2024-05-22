@@ -136,8 +136,8 @@ func (u *SystemNotificationUsecase) Create(ctx context.Context, input domain.Cre
 
 		if systemNotification.Annotations.AlertType == "POLICY_NOTIFICATION" {
 			dto.PolicyName = systemNotification.Annotations.PolicyName
-			if strings.Contains(systemNotification.Labels.AlertName, "policy-audited") {
-				dto.MessageActionProposal = "감사"
+			if strings.Contains(systemNotification.Labels.AlertName, "policy-warning") {
+				dto.MessageActionProposal = "경고"
 			} else if strings.Contains(systemNotification.Labels.AlertName, "policy-blocked") {
 				dto.MessageActionProposal = "거부"
 			} else {
