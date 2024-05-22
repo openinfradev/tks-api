@@ -23,7 +23,7 @@ type User struct {
 	CreatedAt         time.Time    `json:"createdAt"`
 	UpdatedAt         time.Time    `json:"updatedAt"`
 	PasswordUpdatedAt time.Time    `json:"passwordUpdatedAt"`
-	PasswordExpired   bool         `json:"passwordExpired"`
+	PasswordExpired   bool         `gorm:"-:all" json:"passwordExpired"`
 
 	Email       string `json:"email"`
 	Department  string `json:"department"`
