@@ -328,11 +328,11 @@ func (u *SystemNotificationRuleUsecase) MakeDefaultSystemNotificationRules(ctx c
 				CreatorId:             organization.AdminId,
 				UpdatorId:             organization.AdminId,
 			})
-		} else if template.Name == domain.SN_TYPE_POLICY_AUDITED {
+		} else if template.Name == domain.SN_TYPE_POLICY_WARNING {
 			ruleId := uuid.New()
 			rules = append(rules, model.SystemNotificationRule{
 				ID:                           ruleId,
-				Name:                         domain.SN_TYPE_POLICY_AUDITED + "-critical",
+				Name:                         domain.SN_TYPE_POLICY_WARNING + "-critical",
 				Description:                  "기본 시스템 알림 - 정책 위반",
 				OrganizationId:               organizationId,
 				NotificationType:             template.NotificationType,
