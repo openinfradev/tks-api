@@ -140,6 +140,13 @@ func (h *OrganizationHandler) Admin_CreateOrganization(w http.ResponseWriter, r 
 		return
 	}
 
+	err = h.userUsecase.ExpirePassword(r.Context(), admin.ID)
+	if err != nil {
+		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
+		ErrorJSON(w, r, err)
+		return
+	}
+
 	err = h.usecase.ChangeAdminId(r.Context(), organizationId, admin.ID)
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)

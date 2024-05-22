@@ -967,10 +967,14 @@ func (u UserHandler) Admin_Create(w http.ResponseWriter, r *http.Request) {
 	for _, stack := range stacks {
 		stackIds = append(stackIds, stack.ID.String())
 	}
-	err = u.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*resUser})
-	if err != nil {
-		ErrorJSON(w, r, err)
-		return
+
+	// 현재 Master Org의 경우 ClusterAdmin 권한과 관련이 없으므로 Skip
+	if organizationId != "master" {
+		err = u.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, stackIds, []model.User{*resUser})
+		if err != nil {
+			ErrorJSON(w, r, err)
+			return
+		}
 	}
 
 	var out domain.Admin_CreateUserResponse
