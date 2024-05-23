@@ -1884,9 +1884,9 @@ definitions:
       k8sResources:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectNamespaceK8sResources'
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse:
+  github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse:
     properties:
-      kubeConfig:
+      kubeconfig:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceResourcesUsageResponse:
@@ -1932,9 +1932,9 @@ definitions:
           $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ProjectResponse'
         type: array
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse:
+  github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse:
     properties:
-      kubeConfig:
+      kubeconfig:
         type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetStackPolicyTemplateStatusResponse:
@@ -9108,7 +9108,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse'
       security:
       - JWT: []
       summary: Get project namespace kubeconfig
@@ -9869,7 +9869,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get KubeConfig by stack
+      description: Get Kubeconfig by stack
       parameters:
       - description: organizationId
         in: path
@@ -9887,10 +9887,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse'
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse'
       security:
       - JWT: []
-      summary: Get KubeConfig by stack
+      summary: Get Kubeconfig by stack
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/{stackId}/policies:

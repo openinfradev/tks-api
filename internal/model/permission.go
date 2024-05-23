@@ -197,7 +197,7 @@ func newStack() *Permission {
 							api.GetStack,
 							api.CheckStackName,
 							api.GetStackStatus,
-							api.GetStackKubeConfig,
+							api.GetStackKubeconfig,
 
 							api.SetFavoriteStack,
 							api.DeleteFavoriteStack,

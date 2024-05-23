@@ -398,19 +398,19 @@ func (h *StackHandler) CheckStackName(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
-// GetStackKubeConfig godoc
+// GetStackKubeconfig godoc
 //
 //	@Tags			Stacks
-//	@Summary		Get KubeConfig by stack
-//	@Description	Get KubeConfig by stack
+//	@Summary		Get Kubeconfig by stack
+//	@Description	Get Kubeconfig by stack
 //	@Accept			json
 //	@Produce		json
 //	@Param			organizationId	path		string	true	"organizationId"
 //	@Param			stackId			path		string	true	"organizationId"
-//	@Success		200				{object}	domain.GetStackKubeConfigResponse
+//	@Success		200				{object}	domain.GetStackKubeconfigResponse
 //	@Router			/organizations/{organizationId}/stacks/{stackId}/kube-config [get]
 //	@Security		JWT
-func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request) {
+func (h *StackHandler) GetStackKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_, ok := vars["organizationId"]
 	if !ok {
@@ -429,14 +429,14 @@ func (h *StackHandler) GetStackKubeConfig(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	kubeConfig, err := h.usecase.GetKubeConfig(r.Context(), domain.StackId(strId))
+	kubeconfig, err := h.usecase.GetKubeconfig(r.Context(), domain.StackId(strId))
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return
 	}
 
-	var out = domain.GetStackKubeConfigResponse{
-		KubeConfig: kubeConfig,
+	var out = domain.GetStackKubeconfigResponse{
+		Kubeconfig: kubeconfig,
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

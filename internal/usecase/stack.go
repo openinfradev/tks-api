@@ -34,7 +34,7 @@ type IStackUsecase interface {
 	Install(ctx context.Context, stackId domain.StackId) (err error)
 	Update(ctx context.Context, dto model.Stack) error
 	Delete(ctx context.Context, dto model.Stack) error
-	GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error)
+	GetKubeconfig(ctx context.Context, stackId domain.StackId) (kubeconfig string, err error)
 	GetStepStatus(ctx context.Context, stackId domain.StackId) (out []domain.StackStepStatus, stackStatus string, err error)
 	SetFavorite(ctx context.Context, stackId domain.StackId) error
 	DeleteFavorite(ctx context.Context, stackId domain.StackId) error
@@ -577,14 +577,13 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 	return nil
 }
 
-func (u *StackUsecase) GetKubeConfig(ctx context.Context, stackId domain.StackId) (kubeConfig string, err error) {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId.String(), kubernetes.KubeconfigForUser)
-	//kubeconfig, err := kubernetes.GetKubeConfig("cmsai5k5l")
+func (u *StackUsecase) GetKubeconfig(ctx context.Context, stackId domain.StackId) (kubeconfig string, err error) {
+	kubeconfigArr, err := kubernetes.GetKubeconfig(ctx, stackId.String(), kubernetes.KubeconfigForUser)
 	if err != nil {
 		return "", err
 	}
 
-	return string(kubeconfig[:]), nil
+	return string(kubeconfigArr[:]), nil
 }
 
 // [TODO] need more pretty...

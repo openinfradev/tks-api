@@ -128,7 +128,7 @@ func TestRemoveRoleBinding(t *testing.T) {
 }
 
 func TestMergeKubeconfigsWithSingleUser(t *testing.T) {
-	type kubeConfigType struct {
+	type kubeconfigType struct {
 		APIVersion string `yaml:"apiVersion"`
 		Kind       string `yaml:"kind"`
 		Clusters   []struct {
@@ -150,7 +150,7 @@ func TestMergeKubeconfigsWithSingleUser(t *testing.T) {
 		Users []interface{} `yaml:"users,omitempty"`
 	}
 
-	inputObjs := []kubeConfigType{
+	inputObjs := []kubeconfigType{
 		{
 			APIVersion: "v1",
 			Kind:       "Config",
@@ -280,7 +280,7 @@ func TestMergeKubeconfigsWithSingleUser(t *testing.T) {
 		},
 	}
 
-	expected := kubeConfigType{
+	expected := kubeconfigType{
 		APIVersion: "v1",
 		Kind:       "Config",
 		Clusters: []struct {
@@ -381,7 +381,7 @@ func TestMergeKubeconfigsWithSingleUser(t *testing.T) {
 		t.Error(err)
 	}
 
-	var result kubeConfigType
+	var result kubeconfigType
 	if err := yaml.Unmarshal([]byte(r), &result); err != nil {
 		t.Error(err)
 	}

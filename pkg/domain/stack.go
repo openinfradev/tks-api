@@ -168,8 +168,8 @@ type CheckStackNameResponse struct {
 	Existed bool `json:"existed"`
 }
 
-type GetStackKubeConfigResponse struct {
-	KubeConfig string `json:"kubeConfig"`
+type GetStackKubeconfigResponse struct {
+	Kubeconfig string `json:"kubeconfig"`
 }
 
 type GetStackStatusResponse struct {

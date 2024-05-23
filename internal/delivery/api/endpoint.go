@@ -168,7 +168,7 @@ const (
 	GetStack            // 스택관리/조회
 	UpdateStack         // 스택관리/수정
 	DeleteStack         // 스택관리/삭제
-	GetStackKubeConfig  // 스택관리/조회
+	GetStackKubeconfig  // 스택관리/조회
 	GetStackStatus      // 스택관리/조회
 	SetFavoriteStack    // 스택관리/조회
 	DeleteFavoriteStack // 스택관리/조회

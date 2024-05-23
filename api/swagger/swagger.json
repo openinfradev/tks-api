@@ -7509,7 +7509,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse"
                         }
                     }
                 }
@@ -8608,7 +8608,7 @@
                         "JWT": []
                     }
                 ],
-                "description": "Get KubeConfig by stack",
+                "description": "Get Kubeconfig by stack",
                 "consumes": [
                     "application/json"
                 ],
@@ -8618,7 +8618,7 @@
                 "tags": [
                     "Stacks"
                 ],
-                "summary": "Get KubeConfig by stack",
+                "summary": "Get Kubeconfig by stack",
                 "parameters": [
                     {
                         "type": "string",
@@ -8639,7 +8639,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse"
                         }
                     }
                 }
@@ -13164,10 +13164,10 @@
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "kubeConfig": {
+                "kubeconfig": {
                     "type": "string"
                 }
             }
@@ -13240,10 +13240,10 @@
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "kubeConfig": {
+                "kubeconfig": {
                     "type": "string"
                 }
             }

@@ -7515,7 +7515,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse"
                         }
                     }
                 }
@@ -8614,7 +8614,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Get KubeConfig by stack",
+                "description": "Get Kubeconfig by stack",
                 "consumes": [
                     "application/json"
                 ],
@@ -8624,7 +8624,7 @@ const docTemplate = `{
                 "tags": [
                     "Stacks"
                 ],
-                "summary": "Get KubeConfig by stack",
+                "summary": "Get Kubeconfig by stack",
                 "parameters": [
                     {
                         "type": "string",
@@ -8645,7 +8645,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse"
                         }
                     }
                 }
@@ -13170,10 +13170,10 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "kubeConfig": {
+                "kubeconfig": {
                     "type": "string"
                 }
             }
@@ -13246,10 +13246,10 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "kubeConfig": {
+                "kubeconfig": {
                     "type": "string"
                 }
             }
