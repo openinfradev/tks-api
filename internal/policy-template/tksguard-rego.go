@@ -23,7 +23,7 @@ const tks_guard_rego_rulename = `  # Do not delete following line, added by TKS
 const tks_guard_rego_rulelogic = `
 # Do not delete or edit following rule, managed by TKS
 ___not_tks_triggered_request___ {
-  not input.review.userInfo
+  not input.review.userInfo.username
 } {
   tks_users := {"kubernetes-admin","system:serviceaccount:kube-system:argocd-manager"}
   tks_groups := {"system:masters"}
