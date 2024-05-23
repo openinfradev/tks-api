@@ -189,7 +189,7 @@ func (c *ThanosClientImpl) fetchRange(ctx context.Context, query string, start i
 	query = url.QueryEscape(query) + rangeParam
 	requestUrl := c.url + "/api/v1/query_range?query=" + query
 
-	log.Info(ctx, requestUrl)
+	log.Info(ctx, "ferchRange : ", requestUrl)
 	res, err := c.client.Get(requestUrl)
 	if err != nil {
 		return nil, err

@@ -832,8 +832,6 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 		return nil, err
 	}
 
-	log.Info(ctx, helper.ModelToJson(pm))
-
 	// totalViolation: {"K8sRequiredLabels": {"violation_enforcement": 2}}
 	totalViolation := make(map[string]map[string]int)
 
@@ -852,10 +850,15 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 		if len(res.Metric.Violation) == 0 {
 			continue
 		}
-		count, err := strconv.Atoi(res.Value[1].(string))
-		if err != nil {
-			count = 0
+
+		count := 0
+		if res.Value != nil && len(res.Value) > 1 {
+			count, err = strconv.Atoi(res.Value[1].(string))
+			if err != nil {
+				count = 0
+			}
 		}
+
 		violation := res.Metric.Violation
 		if val, ok := totalViolation[policyTemplate][violation]; !ok {
 			totalViolation[policyTemplate] = make(map[string]int)
