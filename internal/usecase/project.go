@@ -590,7 +590,7 @@ func (u *ProjectUsecase) MayRemoveRequiredSetupForCluster(ctx context.Context, o
 	return nil
 }
 func (u *ProjectUsecase) createK8SInitialResource(ctx context.Context, organizationId string, projectId string, stackId string) error {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
+	kubeconfig, err := kubernetes.GetKubeconfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get kubeconfig.")
 	}
@@ -613,7 +613,7 @@ func (u *ProjectUsecase) createK8SInitialResource(ctx context.Context, organizat
 	return nil
 }
 func (u *ProjectUsecase) deleteK8SInitialResource(ctx context.Context, organizationId string, projectId string, stackId string) error {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
+	kubeconfig, err := kubernetes.GetKubeconfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
 		log.Error(ctx, err)
 		return errors.Wrap(err, "Failed to get kubeconfig.")
@@ -665,7 +665,7 @@ func (u *ProjectUsecase) deleteKeycloakClientRoles(ctx context.Context, organiza
 	return nil
 }
 func (u *ProjectUsecase) CreateK8SNSRoleBinding(ctx context.Context, organizationId string, projectId string, stackId string, namespace string) error {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
+	kubeconfig, err := kubernetes.GetKubeconfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
 		log.Error(ctx, err)
 		return errors.Wrap(err, "Failed to get kubeconfig.")
@@ -731,13 +731,13 @@ func (u *ProjectUsecase) unassignKeycloakClientRoleToMember(ctx context.Context,
 }
 
 func (u *ProjectUsecase) GetProjectNamespaceKubeconfig(ctx context.Context, organizationId string, projectId string, namespace string, stackId domain.StackId) (string, error) {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId.String(), kubernetes.KubeconfigForUser)
+	kubeconfig, err := kubernetes.GetKubeconfig(ctx, stackId.String(), kubernetes.KubeconfigForUser)
 	if err != nil {
 		log.Error(ctx, err)
 		return "", errors.Wrap(err, "Failed to get kubeconfig.")
 	}
 
-	type kubeConfigType struct {
+	type kubeconfigType struct {
 		APIVersion string `yaml:"apiVersion"`
 		Kind       string `yaml:"kind"`
 		Clusters   []struct {
@@ -759,7 +759,7 @@ func (u *ProjectUsecase) GetProjectNamespaceKubeconfig(ctx context.Context, orga
 		Users []interface{} `yaml:"users,omitempty"`
 	}
 
-	var config kubeConfigType
+	var config kubeconfigType
 	err = yaml.Unmarshal(kubeconfig, &config)
 	if err != nil {
 		log.Error(ctx, err)
@@ -784,7 +784,7 @@ func (u *ProjectUsecase) GetProjectKubeconfig(ctx context.Context, organizationI
 		return "", errors.Wrap(err, "Failed to retrieve project namespaces.")
 	}
 
-	type kubeConfigType struct {
+	type kubeconfigType struct {
 		APIVersion string `yaml:"apiVersion"`
 		Kind       string `yaml:"kind"`
 		Clusters   []struct {
@@ -808,13 +808,13 @@ func (u *ProjectUsecase) GetProjectKubeconfig(ctx context.Context, organizationI
 
 	kubeconfigs := make([]string, 0)
 	for _, pn := range projectNamespaces {
-		kubeconfig, err := kubernetes.GetKubeConfig(ctx, pn.StackId, kubernetes.KubeconfigForUser)
+		kubeconfig, err := kubernetes.GetKubeconfig(ctx, pn.StackId, kubernetes.KubeconfigForUser)
 		if err != nil {
 			log.Error(ctx, err)
 			return "", errors.Wrap(err, "Failed to retrieve kubeconfig.")
 		}
 
-		var config kubeConfigType
+		var config kubeconfigType
 		err = yaml.Unmarshal(kubeconfig, &config)
 		if err != nil {
 			log.Error(ctx, err)
@@ -949,7 +949,7 @@ func (u *ProjectUsecase) GetResourcesUsage(ctx context.Context, thanosClient tha
 }
 
 func (u *ProjectUsecase) EnsureNamespaceForCluster(ctx context.Context, organizationId string, stackId string, namespaceName string) error {
-	kubeconfig, err := kubernetes.GetKubeConfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
+	kubeconfig, err := kubernetes.GetKubeconfig(ctx, stackId, kubernetes.KubeconfigForAdmin)
 	if err != nil {
 		log.Error(ctx, err)
 		return errors.Wrap(err, "Failed to get kubeconfig.")

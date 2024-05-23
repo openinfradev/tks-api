@@ -198,6 +198,6 @@ type GetProjectNamespaceResourcesUsageResponse struct {
 	ResourcesUsage ProjectNamespaceResourcesUsage `json:"resourcesUsage"`
 }
 
-type GetProjectNamespaceKubeConfigResponse struct {
-	KubeConfig string `json:"kubeconfig"`
+type GetProjectNamespaceKubeconfigResponse struct {
+	Kubeconfig string `json:"kubeconfig"`
 }

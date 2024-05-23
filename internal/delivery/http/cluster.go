@@ -605,8 +605,8 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 	*/
 }
 
-func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Request) {
-	// GetClusterKubeConfig godoc
+func (h *ClusterHandler) GetClusterKubeconfig(w http.ResponseWriter, r *http.Request) {
+	// GetClusterKubeconfig godoc
 	//	@Tags			Clusters
 	//	@Summary		Get kubernetes kubeconfig
 	//	@Description	Get kubernetes kubeconfig for cluster
@@ -626,7 +626,7 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 
 		organizationId := r.Header.Get("OrganizationId")
 
-		kubeconfig, err := helper.GetKubeConfig(clusterId)
+		kubeconfig, err := helper.GetKubeconfig(clusterId)
 		if err != nil {
 			ErrorJSON(w, r, "failed to get admin cluster", http.StatusBadRequest)
 			return

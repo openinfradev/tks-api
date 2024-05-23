@@ -1708,7 +1708,7 @@ func (p ProjectHandler) UnSetFavoriteProjectNamespace(w http.ResponseWriter, r *
 //	@Param			organizationId	path		string	true	"Organization ID"
 //	@Param			projectId		path		string	true	"Project ID"
 //	@Success		200				{object}	domain.GetProjectKubeconfigResponse
-//	@Router			/organizations/{organizationId}/projects/{projectId}/kube-config [get]
+//	@Router			/organizations/{organizationId}/projects/{projectId}/kubeconfig [get]
 //	@Security		JWT
 func (p ProjectHandler) GetProjectKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -1863,8 +1863,8 @@ func (p ProjectHandler) GetProjectNamespaceResourcesUsage(w http.ResponseWriter,
 //	@Param			projectId			path		string	true	"Project ID"
 //	@Param			stackId				path		string	true	"Stack ID"
 //	@Param			projectNamespace	path		string	true	"Project Namespace"
-//	@Success		200					{object}	domain.GetProjectNamespaceKubeConfigResponse
-//	@Router			/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kube-config [get]
+//	@Success		200					{object}	domain.GetProjectNamespaceKubeconfigResponse
+//	@Router			/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig [get]
 //	@Security		JWT
 func (p ProjectHandler) GetProjectNamespaceKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -1898,8 +1898,8 @@ func (p ProjectHandler) GetProjectNamespaceKubeconfig(w http.ResponseWriter, r *
 		return
 	}
 
-	out := domain.GetProjectNamespaceKubeConfigResponse{
-		KubeConfig: kubeconfig,
+	out := domain.GetProjectNamespaceKubeconfigResponse{
+		Kubeconfig: kubeconfig,
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)

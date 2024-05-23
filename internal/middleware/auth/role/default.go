@@ -122,7 +122,7 @@ var defaultPermissionOfAdmin = defaultPermission{
 		internalApi.GetStack,
 		internalApi.UpdateStack,
 		internalApi.DeleteStack,
-		internalApi.GetStackKubeConfig,
+		internalApi.GetStackKubeconfig,
 		internalApi.GetStackStatus,
 		internalApi.SetFavoriteStack,
 		internalApi.DeleteFavoriteStack,
@@ -230,7 +230,7 @@ var defaultPermissionOfUser = defaultPermission{
 		// Stack
 		internalApi.GetStacks,
 		internalApi.GetStack,
-		internalApi.GetStackKubeConfig,
+		internalApi.GetStackKubeconfig,
 		internalApi.GetStackStatus,
 		internalApi.SetFavoriteStack,
 		internalApi.DeleteFavoriteStack,
