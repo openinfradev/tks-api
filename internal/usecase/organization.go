@@ -64,6 +64,15 @@ func (u *OrganizationUsecase) Create(ctx context.Context, in *model.Organization
 	userId := user.GetUserId()
 	in.CreatorId = &userId
 
+	pg := pagination.NewPaginationWithFilter("name", "", "$eq", []string{in.Name})
+	organizations, err := u.repo.Fetch(ctx, pg)
+	if err != nil {
+		return "", err
+	}
+	if organizations != nil && len(*organizations) > 0 {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("duplicate organization name"), "O_CREATE_ALREADY_EXISTED_NAME", "")
+	}
+
 	// Create realm in keycloak
 	if organizationId, err = u.kc.CreateRealm(ctx, helper.GenerateOrganizationId()); err != nil {
 		return "", err

@@ -815,7 +815,7 @@ func (u *DashboardUsecase) GetPolicyEnforcement(ctx context.Context, organizatio
 func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error) {
 	thanosClient, err := u.GetThanosClient(ctx, organizationId)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create thanos client")
+		return nil, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 
 	durationSec, intervalSec := getDurationAndIntervalSec(duration, interval)
@@ -850,10 +850,15 @@ func (u *DashboardUsecase) GetPolicyViolation(ctx context.Context, organizationI
 		if len(res.Metric.Violation) == 0 {
 			continue
 		}
-		count, err := strconv.Atoi(res.Value[1].(string))
-		if err != nil {
-			count = 0
+
+		count := 0
+		if res.Value != nil && len(res.Value) > 1 {
+			count, err = strconv.Atoi(res.Value[1].(string))
+			if err != nil {
+				count = 0
+			}
 		}
+
 		violation := res.Metric.Violation
 		if val, ok := totalViolation[policyTemplate][violation]; !ok {
 			totalViolation[policyTemplate] = make(map[string]int)
@@ -945,7 +950,7 @@ func (u *DashboardUsecase) GetPolicyViolationLog(ctx context.Context, organizati
 func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId string) (*domain.GetDashboardWorkloadResponse, error) {
 	thanosClient, err := u.GetThanosClient(ctx, organizationId)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create thanos client")
+		return nil, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 
 	clusterIdStr, err := u.GetFlatClusterIds(ctx, organizationId)
@@ -1022,7 +1027,7 @@ func (u *DashboardUsecase) GetWorkload(ctx context.Context, organizationId strin
 func (u *DashboardUsecase) GetPolicyViolationTop5(ctx context.Context, organizationId string, duration string, interval string) (*domain.BarChartData, error) {
 	thanosClient, err := u.GetThanosClient(ctx, organizationId)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create thanos client")
+		return nil, httpErrors.NewInternalServerError(err, "D_INVALID_PRIMARY_STACK", "")
 	}
 
 	durationSec, intervalSec := getDurationAndIntervalSec(duration, interval)
@@ -1068,6 +1073,10 @@ func (u *DashboardUsecase) GetPolicyViolationTop5(ctx context.Context, organizat
 		warnCount := 0
 		dryrunCount := 0
 		for _, result := range pvcm.Data.Result {
+			if result.Value == nil || len(result.Value) <= 1 {
+				continue
+			}
+
 			switch policy := result.Metric.ViolationEnforcement; policy {
 			case "":
 				denyCount, _ = strconv.Atoi(result.Value[1].(string))

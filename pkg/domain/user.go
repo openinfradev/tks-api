@@ -28,7 +28,7 @@ type UserResponse struct {
 }
 
 type CreateUserRequest struct {
-	AccountId   string             `json:"accountId" validate:"required"`
+	AccountId   string             `json:"accountId" validate:"required,min=0,max=20,alphanum"`
 	Password    string             `json:"password" validate:"required"`
 	Name        string             `json:"name" validate:"name"`
 	Email       string             `json:"email" validate:"required,email"`

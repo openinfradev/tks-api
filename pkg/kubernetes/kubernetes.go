@@ -25,11 +25,11 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
-type KubeConfigType string
+type KubeconfigType string
 
 const (
-	KubeconfigForAdmin KubeConfigType = "admin"
-	KubeconfigForUser  KubeConfigType = "user"
+	KubeconfigForAdmin KubeconfigType = "admin"
+	KubeconfigForUser  KubeconfigType = "user"
 )
 
 func getAdminConfig(ctx context.Context) (*rest.Config, error) {
@@ -123,7 +123,7 @@ func GetAwsAccountIdSecret(ctx context.Context) (awsAccountId string, err error)
 	return
 }
 
-func GetKubeConfig(ctx context.Context, clusterId string, configType KubeConfigType) ([]byte, error) {
+func GetKubeconfig(ctx context.Context, clusterId string, configType KubeconfigType) ([]byte, error) {
 	clientset, err := GetClientAdminCluster(ctx)
 	if err != nil {
 		return nil, err
@@ -624,7 +624,7 @@ func generateClusterRoleToRoleBinding(groupName, objName, roleName, namespace st
 }
 
 func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
-	type kubeConfigType struct {
+	type kubeconfigType struct {
 		APIVersion string `yaml:"apiVersion"`
 		Kind       string `yaml:"kind"`
 		Clusters   []struct {
@@ -652,8 +652,8 @@ func MergeKubeconfigsWithSingleUser(kubeconfigs []string) (string, error) {
 
 	encoder.SetIndent(2)
 
-	var config kubeConfigType
-	var combindConfig kubeConfigType
+	var config kubeconfigType
+	var combindConfig kubeconfigType
 	for _, kc := range kubeconfigs {
 		err := yaml.Unmarshal([]byte(kc), &config)
 		if err != nil {

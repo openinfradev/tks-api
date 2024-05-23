@@ -34,6 +34,7 @@ type IUserUsecase interface {
 	GetByAccountId(ctx context.Context, accountId string, organizationId string) (*model.User, error)
 	GetByEmail(ctx context.Context, email string, organizationId string) (*model.User, error)
 	SendEmailForTemporaryPassword(ctx context.Context, accountId string, organizationId string, password string) error
+	ExpirePassword(ctx context.Context, userId uuid.UUID) error
 
 	UpdateByAccountId(ctx context.Context, user *model.User) (*model.User, error)
 	UpdatePasswordByAccountId(ctx context.Context, accountId string, originPassword string, newPassword string, organizationId string) error
@@ -525,6 +526,25 @@ func (u *UserUsecase) ListUsersByRole(ctx context.Context, organizationId string
 	}
 
 	return users, nil
+
+}
+
+func (u *UserUsecase) ExpirePassword(ctx context.Context, userId uuid.UUID) error {
+	user, err := u.userRepository.GetByUuid(ctx, userId)
+	if err != nil {
+		if _, status := httpErrors.ErrorResponse(err); status == http.StatusNotFound {
+			return httpErrors.NewBadRequestError(fmt.Errorf("user not found"), "U_NO_USER", "")
+		}
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	err = u.userRepository.UpdatePasswordAt(ctx, userId, user.Organization.ID, true)
+	if err != nil {
+		log.Errorf(ctx, "failed to update password expired time: %v", err)
+		return httpErrors.NewInternalServerError(err, "", "")
+	}
+
+	return nil
 
 }
 

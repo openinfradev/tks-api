@@ -61,8 +61,8 @@ func (h *PolicyNotificationHandler) GetPolicyNotifications(w http.ResponseWriter
 		} else if filter.Column == "message_action_proposal" {
 			for j, value := range filter.Values {
 				val := ""
-				if value == "dryrun" {
-					val = "감사"
+				if value == "warn" {
+					val = "경고"
 				} else {
 					val = "거부"
 				}

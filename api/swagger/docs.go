@@ -6622,7 +6622,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/kube-config": {
+        "/organizations/{organizationId}/projects/{projectId}/kubeconfig": {
             "get": {
                 "security": [
                     {
@@ -7463,7 +7463,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kube-config": {
+        "/organizations/{organizationId}/projects/{projectId}/namespaces/{projectNamespace}/stacks/{stackId}/kubeconfig": {
             "get": {
                 "security": [
                     {
@@ -7515,7 +7515,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse"
                         }
                     }
                 }
@@ -8614,7 +8614,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Get KubeConfig by stack",
+                "description": "Get Kubeconfig by stack",
                 "consumes": [
                     "application/json"
                 ],
@@ -8624,7 +8624,7 @@ const docTemplate = `{
                 "tags": [
                     "Stacks"
                 ],
-                "summary": "Get KubeConfig by stack",
+                "summary": "Get Kubeconfig by stack",
                 "parameters": [
                     {
                         "type": "string",
@@ -8645,7 +8645,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse"
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse"
                         }
                     }
                 }
@@ -11668,7 +11668,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "adminAccountId": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
                 },
                 "adminEmail": {
                     "type": "string"
@@ -11769,6 +11771,10 @@ const docTemplate = `{
                 "templateName"
             ],
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "deprecated": {
                     "type": "boolean",
                     "example": false
@@ -11815,6 +11821,15 @@ const docTemplate = `{
                     ],
                     "example": "medium"
                 },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
+                },
                 "templateName": {
                     "type": "string",
                     "example": "필수 Label 검사"
@@ -11830,6 +11845,10 @@ const docTemplate = `{
                 "versionUpType"
             ],
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "currentVersion": {
                     "type": "string",
                     "example": "v1.0.0"
@@ -11856,6 +11875,15 @@ const docTemplate = `{
                 "rego": {
                     "type": "string",
                     "example": "rego 코드"
+                },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
                 },
                 "versionUpType": {
                     "type": "string",
@@ -12193,7 +12221,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "accountId": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 20,
+                    "minLength": 0
                 },
                 "department": {
                     "type": "string",
@@ -13140,10 +13170,10 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetProjectNamespaceKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "kubeConfig": {
+                "kubeconfig": {
                     "type": "string"
                 }
             }
@@ -13216,10 +13246,10 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeConfigResponse": {
+        "github_com_openinfradev_tks-api_pkg_domain.GetStackKubeconfigResponse": {
             "type": "object",
             "properties": {
-                "kubeConfig": {
+                "kubeconfig": {
                     "type": "string"
                 }
             }
@@ -14200,6 +14230,10 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse": {
             "type": "object",
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -14250,6 +14284,15 @@ const docTemplate = `{
                     ],
                     "example": "medium"
                 },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
+                },
                 "templateName": {
                     "type": "string",
                     "example": "필수 Label 검사"
@@ -14291,6 +14334,10 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse": {
             "type": "object",
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -14348,6 +14395,15 @@ const docTemplate = `{
                         "high"
                     ],
                     "example": "medium"
+                },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
                 },
                 "templateName": {
                     "type": "string",
@@ -16463,6 +16519,10 @@ const docTemplate = `{
                 "templateName"
             ],
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "deprecated": {
                     "type": "boolean",
                     "example": false
@@ -16509,6 +16569,15 @@ const docTemplate = `{
                     ],
                     "example": "medium"
                 },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
+                },
                 "templateName": {
                     "type": "string",
                     "example": "필수 Label 검사"
@@ -16524,6 +16593,10 @@ const docTemplate = `{
                 "versionUpType"
             ],
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "currentVersion": {
                     "type": "string",
                     "example": "v1.0.0"
@@ -16550,6 +16623,15 @@ const docTemplate = `{
                 "rego": {
                     "type": "string",
                     "example": "rego 코드"
+                },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
                 },
                 "versionUpType": {
                     "type": "string",
@@ -16704,6 +16786,10 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain_admin.PolicyTemplateResponse": {
             "type": "object",
             "properties": {
+                "SyncJson": {
+                    "type": "string",
+                    "example": "[[]]"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -16759,6 +16845,15 @@ const docTemplate = `{
                         "high"
                     ],
                     "example": "medium"
+                },
+                "syncKinds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Ingress"
+                    ]
                 },
                 "templateName": {
                     "type": "string",
