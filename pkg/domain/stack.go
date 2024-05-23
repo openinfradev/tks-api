@@ -169,7 +169,7 @@ type CheckStackNameResponse struct {
 }
 
 type GetStackKubeConfigResponse struct {
-	KubeConfig string `json:"kubeConfig"`
+	KubeConfig string `json:"kubeconfig"`
 }
 
 type GetStackStatusResponse struct {
