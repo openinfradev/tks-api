@@ -1,9 +1,13 @@
 package http
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -81,34 +85,40 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Match != nil && input.MatchYaml != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("both match and match yaml specified"), "P_INVALID_MATCH", ""))
+	// if input.Match != nil && input.MatchYaml != nil {
+	// 	ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("both match and match yaml specified"), "P_INVALID_MATCH", ""))
+	// 	return
+	// }
+
+	// if input.MatchYaml != nil {
+	// 	var match domain.Match
+
+	// 	err := yaml.Unmarshal([]byte(*input.MatchYaml), &match)
+
+	// 	if err != nil {
+	// 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
+	// 		return
+	// 	}
+
+	// 	if err := ValidateDomainObject(match); err != nil {
+	// 		ErrorJSON(w, r, err)
+	// 		return
+	// 	}
+	// } else if input.Match != nil {
+	// 	normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
+
+	// 	if err != nil {
+	// 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
+	// 		return
+	// 	}
+
+	// 	input.Match.Kinds = normaized
+	// }
+
+	match, matchYaml, err := ValidateAndGetMatch(input.Target)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_INVALID_MATCH", ""))
 		return
-	}
-
-	if input.MatchYaml != nil {
-		var match domain.Match
-
-		err := yaml.Unmarshal([]byte(*input.MatchYaml), &match)
-
-		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
-			return
-		}
-
-		if err := ValidateDomainObject(match); err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
-	} else if input.Match != nil {
-		normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
-
-		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
-			return
-		}
-
-		input.Match.Kinds = normaized
 	}
 
 	if len(input.PolicyResourceName) > 0 {
@@ -124,6 +134,9 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), input, &dto); err != nil {
 		log.Info(r.Context(), err)
 	}
+
+	dto.Match = match
+	dto.MatchYaml = matchYaml
 
 	policyId, err := h.usecase.Create(r.Context(), organizationId, dto)
 	if err != nil {
@@ -182,33 +195,39 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Match != nil && input.MatchYaml != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("both match and match yaml specified"), "P_INVALID_MATCH", ""))
+	// if input.Match != nil && input.MatchYaml != nil {
+	// 	ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("both match and match yaml specified"), "P_INVALID_MATCH", ""))
+	// 	return
+	// }
+
+	// if input.MatchYaml != nil {
+	// 	var match domain.Match
+
+	// 	err := yaml.Unmarshal([]byte(*input.MatchYaml), &match)
+
+	// 	if err != nil {
+	// 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
+	// 		return
+	// 	}
+
+	// 	if err := ValidateDomainObject(match); err != nil {
+	// 		ErrorJSON(w, r, err)
+	// 		return
+	// 	}
+	// } else if input.Match != nil {
+	// 	normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
+	// 	if err != nil {
+	// 		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
+	// 		return
+	// 	}
+
+	// 	input.Match.Kinds = normaized
+	// }
+
+	match, matchYaml, err := ValidateAndGetMatch(input.Target)
+	if err != nil {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_INVALID_MATCH", ""))
 		return
-	}
-
-	if input.MatchYaml != nil {
-		var match domain.Match
-
-		err := yaml.Unmarshal([]byte(*input.MatchYaml), &match)
-
-		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match yaml error: %s", err), "P_INVALID_MATCH", ""))
-			return
-		}
-
-		if err := ValidateDomainObject(match); err != nil {
-			ErrorJSON(w, r, err)
-			return
-		}
-	} else if input.Match != nil {
-		normaized, err := policytemplate.CheckAndNormalizeKinds(input.Match.Kinds)
-		if err != nil {
-			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("match error: %s", err), "P_INVALID_MATCH", ""))
-			return
-		}
-
-		input.Match.Kinds = normaized
 	}
 
 	var templateId *uuid.UUID = nil
@@ -225,7 +244,7 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 
 	err = h.usecase.Update(r.Context(), organizationId, id,
 		input.Mandatory, input.PolicyName, input.Description, templateId, input.EnforcementAction,
-		input.Parameters, input.Match, input.MatchYaml, input.TargetClusterIds)
+		input.Parameters, match, matchYaml, input.TargetClusterIds)
 
 	if err != nil {
 		log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
@@ -360,6 +379,8 @@ func (h *PolicyHandler) GetPolicy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	out.Policy.Target = MatchAndMatchYamlToTarget(policy.Match, policy.MatchYaml)
+
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
@@ -426,6 +447,8 @@ func (h *PolicyHandler) ListPolicy(w http.ResponseWriter, r *http.Request) {
 				log.Error(r.Context(), err)
 			}
 		}
+
+		out.Policies[i].Target = MatchAndMatchYamlToTarget(policy.Match, policy.MatchYaml)
 
 		if filledParameter {
 			parameterSchema := policy.PolicyTemplate.ParametersSchema
@@ -964,6 +987,8 @@ func (h *PolicyHandler) GetPolicyEdit(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	out.Policy.Target = MatchAndMatchYamlToTarget(policy.Match, policy.MatchYaml)
+
 	parameterSchema := policy.PolicyTemplate.ParametersSchema
 	parameters := policy.Parameters
 
@@ -1186,4 +1211,93 @@ func (h *PolicyHandler) DeletePoliciesForStack(w http.ResponseWriter, r *http.Re
 	}
 
 	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+func ValidateAndGetMatch(t *domain.Target) (match *domain.Match, matchYaml *string, err error) {
+	if t.Type != "simple" && t.Type != "yaml" {
+		return nil, nil, fmt.Errorf("invalid target type '%s'", t.Type)
+	}
+
+	if t.Type == "simple" {
+		var simpleMatch domain.SimpleMatch
+
+		jsonbytes := []byte(t.Value)
+		dec := json.NewDecoder(bytes.NewReader(jsonbytes))
+		dec.DisallowUnknownFields()
+		err = dec.Decode(&simpleMatch)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		kinds, err := policytemplate.CheckAndNormalizeKinds(simpleMatch.Kinds)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return &domain.Match{
+			Namespaces:         simpleMatch.Namespaces,
+			ExcludedNamespaces: simpleMatch.ExcludedNamespaces,
+			Kinds:              kinds,
+		}, nil, nil
+	} else {
+		var match domain.Match
+
+		stripped := strings.ReplaceAll(t.Value, "\r", "")
+		yamlbytes := []byte(stripped)
+
+		dec := yaml.NewDecoder(bytes.NewReader(yamlbytes))
+		dec.KnownFields(true)
+		err = dec.Decode(&match)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return nil, &t.Value, nil
+	}
+}
+
+func MatchAndMatchYamlToTarget(match *domain.Match, matchYaml *string) *domain.Target {
+	if match != nil {
+		flattenKinds := []string{}
+
+		for _, kind := range match.Kinds {
+			for _, kindkind := range kind.Kinds {
+				if !slices.Contains(flattenKinds, kindkind) {
+					flattenKinds = append(flattenKinds, kindkind)
+				}
+			}
+		}
+
+		simpleMatch := domain.SimpleMatch{
+			Namespaces:         match.Namespaces,
+			ExcludedNamespaces: match.ExcludedNamespaces,
+			Kinds:              flattenKinds,
+		}
+
+		var value string
+		bytes, err := json.Marshal(simpleMatch)
+
+		if err == nil {
+			value = string(bytes)
+		} else {
+			value = ""
+		}
+
+		return &domain.Target{
+			Type:  "simple",
+			Value: value,
+		}
+	}
+
+	if matchYaml != nil {
+		return &domain.Target{
+			Type:  "yaml",
+			Value: *matchYaml,
+		}
+	}
+
+	return nil
 }
