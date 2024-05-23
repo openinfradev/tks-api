@@ -1073,6 +1073,10 @@ func (u *DashboardUsecase) GetPolicyViolationTop5(ctx context.Context, organizat
 		warnCount := 0
 		dryrunCount := 0
 		for _, result := range pvcm.Data.Result {
+			if result.Value == nil || len(result.Value) <= 1 {
+				continue
+			}
+
 			switch policy := result.Metric.ViolationEnforcement; policy {
 			case "":
 				denyCount, _ = strconv.Atoi(result.Value[1].(string))
