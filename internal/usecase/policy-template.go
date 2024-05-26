@@ -98,6 +98,10 @@ func (u *PolicyTemplateUsecase) Create(ctx context.Context, dto model.PolicyTemp
 
 	compileResult, err := u.RegoCompile(&domain.RegoCompileRequest{Rego: dto.Rego, Libs: dto.Libs}, false)
 
+	if err != nil {
+		return uuid.Nil, httpErrors.NewBadRequestError(fmt.Errorf("rego compile error"), "PT_INVALID_REGO_SYNTAX", "")
+	}
+
 	if len(compileResult.Errors) > 0 {
 		compileErrors := []string{}
 
@@ -556,6 +560,10 @@ func (u *PolicyTemplateUsecase) CreatePolicyTemplateVersion(ctx context.Context,
 	}
 
 	compileResult, err := u.RegoCompile(&domain.RegoCompileRequest{Rego: rego, Libs: libs}, false)
+
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("rego compile error"), "PT_INVALID_REGO_SYNTAX", "")
+	}
 
 	if len(compileResult.Errors) > 0 {
 		compileErrors := []string{}
