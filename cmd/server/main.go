@@ -20,7 +20,7 @@ import (
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
-func init() {
+func parseCmd() {
 	flag.String("external-address", "http://tks-api.tks.svc:9110", "service address")
 	flag.Int("port", 8080, "service port")
 	flag.String("web-root", "../../web", "path of root path for web")
@@ -103,6 +103,8 @@ func init() {
 // @host		tks-api-dev.taco-cat.xyz
 // @BasePath	/api/1.0/
 func main() {
+	parseCmd()
+
 	ctx := context.Background()
 	log.Info(ctx, "*** Arguments *** ")
 	for i, s := range viper.AllSettings() {

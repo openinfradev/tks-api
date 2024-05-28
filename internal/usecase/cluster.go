@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/Nerzal/gocloak/v13"
-	"github.com/openinfradev/tks-api/internal/keycloak"
 	"strings"
 	"time"
+
+	"github.com/Nerzal/gocloak/v13"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
@@ -519,6 +520,8 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 		out.TksUserNode = cluster.TksUserNode / domain.MAX_AZ_NUM
 		out.TksUserNodeMax = cluster.TksUserNodeMax / domain.MAX_AZ_NUM
 	}
+
+	log.Info(ctx, "KTKFREE ", helper.ModelToJson(out))
 
 	if err := serializer.Map(ctx, cluster, &out); err != nil {
 		log.Error(ctx, err)

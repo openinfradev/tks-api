@@ -3,11 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/Nerzal/gocloak/v13"
-	"github.com/openinfradev/tks-api/internal/keycloak"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/Nerzal/gocloak/v13"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"

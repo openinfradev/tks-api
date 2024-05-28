@@ -51,7 +51,7 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	if viper.GetInt("migrate-db") == 1 {
-		if err := migrateSchema(db); err != nil {
+		if err := MigrateSchema(db); err != nil {
 			return nil, err
 		}
 	}
@@ -59,7 +59,7 @@ func InitDB() (*gorm.DB, error) {
 	return db, nil
 }
 
-func migrateSchema(db *gorm.DB) error {
+func MigrateSchema(db *gorm.DB) error {
 	if err := db.AutoMigrate(&model.CacheEmailCode{},
 		&model.ExpiredTokenTime{},
 		&model.Role{},

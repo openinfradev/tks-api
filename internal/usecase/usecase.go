@@ -1,5 +1,7 @@
 package usecase
 
+import "github.com/openinfradev/tks-api/internal/repository"
+
 type Usecase struct {
 	Auth                       IAuthUsecase
 	User                       IUserUsecase
@@ -20,4 +22,11 @@ type Usecase struct {
 	Audit                      IAuditUsecase
 	PolicyTemplate             IPolicyTemplateUsecase
 	Policy                     IPolicyUsecase
+}
+
+func NewUsecaseFactory(rf repository.Repository) *Usecase {
+	return &Usecase{
+		StackTemplate: NewStackTemplateUsecase(rf),
+	}
+
 }
