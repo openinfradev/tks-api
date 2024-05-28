@@ -5,15 +5,26 @@ import (
 	"time"
 )
 
+type Target struct {
+	Type  string `json:"type" enum:"simple,yaml"`
+	Value string `json:"value" example:"{\"kinds\":[\"Pod\",\"Deployment\"]}"`
+}
+
+type SimpleMatch struct {
+	Namespaces         []string `json:"namespaces,omitempty" validate:"matchnamespace"`
+	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty" validate:"matchnamespace"`
+	Kinds              []string `json:"kinds,omitempty"`
+}
+
 type Kinds struct {
-	APIGroups []string `json:"apiGroups,omitempty"`
-	Kinds     []string `json:"kinds,omitempty"`
+	APIGroups []string `json:"apiGroups,omitempty" yaml:"apiGroups,omitempty"`
+	Kinds     []string `json:"kinds,omitempty" yaml:"kinds,omitempty"`
 }
 
 type Match struct {
-	Namespaces         []string `json:"namespaces,omitempty" validate:"matchnamespace"`
-	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty" validate:"matchnamespace"`
-	Kinds              []Kinds  `json:"kinds,omitempty" validate:"matchkinds"`
+	Namespaces         []string `json:"namespaces,omitempty" yaml:"namespaces,omitempty" validate:"matchnamespace"`
+	ExcludedNamespaces []string `json:"excludedNamespaces,omitempty" yaml:"excludedNamespaces,omitempty" validate:"matchnamespace"`
+	Kinds              []Kinds  `json:"kinds,omitempty" yaml:"kinds,omitempty"`
 }
 
 func (m *Match) JSON() string {
@@ -45,8 +56,7 @@ type PolicyResponse struct {
 	EnforcementAction  string          `json:"enforcementAction" enum:"warn,deny,dryrun" example:"deny"`
 	Parameters         string          `json:"parameters" example:"{\"key\":\"value\"}"`
 	FilledParameters   []*ParameterDef `json:"filledParameters"`
-	Match              *Match          `json:"match,omitempty"`
-	MatchYaml          *string         `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
+	Target             *Target         `json:"target,omitempty"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
@@ -60,8 +70,7 @@ type CreatePolicyRequest struct {
 	TemplateId         string  `json:"templateId" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	EnforcementAction  string  `json:"enforcementAction" validate:"required,oneof=deny dryrun warn" enum:"warn,deny,dryrun" example:"deny"`
 	Parameters         string  `json:"parameters" example:"{\"key\":\"value\"}"`
-	Match              *Match  `json:"match,omitempty"`
-	MatchYaml          *string `json:"matchYaml,omitempty" example:"namespaces:\r\n- testns1"`
+	Target             *Target `json:"target,omitempty"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 
@@ -78,8 +87,7 @@ type UpdatePolicyRequest struct {
 	TemplateId        *string `json:"templateId,omitempty" example:"d98ef5f1-4a68-4047-a446-2207787ce3ff"`
 	EnforcementAction *string `json:"enforcementAction" validate:"omitempty,oneof=deny dryrun warn" enum:"warn,deny,dryrun" example:"deny"`
 	Parameters        *string `json:"parameters,omitempty" example:"{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"`
-	Match             *Match  `json:"match,omitempty"`
-	MatchYaml         *string `json:"matchYaml,omitempty"`
+	Target            *Target `json:"target,omitempty"`
 	//Tags              []string         `json:"tags,omitempty" example:"k8s,label"`
 }
 

@@ -54,7 +54,7 @@ var KindToApiGroup = map[string]string{
 	"PodDisruptionBudget":            "policy",
 }
 
-func CheckAndNormalizeKinds(kinds []domain.Kinds) ([]domain.Kinds, error) {
+func CheckAndNormalizeKinds(kinds []string) ([]domain.Kinds, error) {
 	if kinds == nil {
 		return nil, nil
 	}
@@ -64,22 +64,20 @@ func CheckAndNormalizeKinds(kinds []domain.Kinds) ([]domain.Kinds, error) {
 	var normalizedMap = map[string]domain.Kinds{}
 
 	for _, kind := range kinds {
-		for _, kinditem := range kind.Kinds {
-			if apiGroup, ok := KindToApiGroup[kinditem]; ok {
-				if ai, ok := normalizedMap[apiGroup]; ok {
-					if !slices.Contains(ai.Kinds, kinditem) {
-						ai.Kinds = append(ai.Kinds, kinditem)
-						normalizedMap[apiGroup] = ai
-					}
-				} else {
-					normalizedMap[apiGroup] = domain.Kinds{
-						APIGroups: []string{apiGroup},
-						Kinds:     []string{kinditem},
-					}
+		if apiGroup, ok := KindToApiGroup[kind]; ok {
+			if ai, ok := normalizedMap[apiGroup]; ok {
+				if !slices.Contains(ai.Kinds, kind) {
+					ai.Kinds = append(ai.Kinds, kind)
+					normalizedMap[apiGroup] = ai
 				}
 			} else {
-				invalidKinds = append(invalidKinds, kinditem)
+				normalizedMap[apiGroup] = domain.Kinds{
+					APIGroups: []string{apiGroup},
+					Kinds:     []string{kind},
+				}
 			}
+		} else {
+			invalidKinds = append(invalidKinds, kind)
 		}
 	}
 
