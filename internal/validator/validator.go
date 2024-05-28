@@ -21,6 +21,7 @@ const (
 	REGEX_RFC1123_DNS_LABEL = "[a-z0-9]([-a-z0-9]*[a-z0-9])?"
 	REGEX_RESOURCE_NAME     = `^` + REGEX_RFC1123_DNS_LABEL + "$"
 	REGEX_RFC1123_SUBDOMAIN = `^` + REGEX_RFC1123_DNS_LABEL + `(\.` + REGEX_RFC1123_DNS_LABEL + `)*$`
+	REGEX_TEMPLATE_KIND     = `^[A-Z][a-zA-Z0-9]+$`
 )
 
 func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
@@ -42,6 +43,7 @@ func NewValidator() (*validator.Validate, *ut.UniversalTranslator) {
 	_ = v.RegisterValidation("resourcename", validateResourceName)
 	_ = v.RegisterValidation("matchnamespace", validateMatchNamespace)
 	_ = v.RegisterValidation("matchkinds", validateMatchKinds)
+	_ = v.RegisterValidation("templatekind", validateTemplateKind)
 
 	// register custom error
 	_ = v.RegisterTranslation("required", trans, func(ut ut.Translator) error {
@@ -123,6 +125,15 @@ func validateMatchKinds(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+
+func validateTemplateKind(fl validator.FieldLevel) bool {
+	if fl.Field().String() == "" {
+		return false
+	}
+
+	r, _ := regexp.Compile(REGEX_TEMPLATE_KIND)
+	return r.MatchString(fl.Field().String())
 }
 
 func validateMatchKindAPIGroup(apigroups []string) bool {
