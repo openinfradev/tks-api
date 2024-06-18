@@ -137,7 +137,7 @@ func (r *PolicyTemplateRepository) FetchForOrganization(ctx context.Context, org
 	_, res := pg.Fetch(r.db.WithContext(ctx).
 		Preload("SupportedVersions", func(db *gorm.DB) *gorm.DB {
 			// 최신 버전만
-			return db.Order("policy_template_supported_versions.version DESC")
+			return db.Order("policy_template_supported_versions.created_at DESC")
 		}).
 		Preload("Creator").Preload("Updator"). // organization을 기준으로 조회할 때에는 PermittedOrganizations는 로딩하지 않아도 됨
 		Model(&model.PolicyTemplate{}).
@@ -274,7 +274,7 @@ func (r *PolicyTemplateRepository) GetBy(ctx context.Context, key string, value 
 	res := r.db.WithContext(ctx).
 		Preload("SupportedVersions", func(db *gorm.DB) *gorm.DB {
 			// 최신 버전만
-			return db.Order("policy_template_supported_versions.version DESC").Limit(1)
+			return db.Order("policy_template_supported_versions.created_at DESC").Limit(1)
 		}).
 		Preload("PermittedOrganizations").Preload("Creator").Preload("Updator").
 		Where(query, value).
