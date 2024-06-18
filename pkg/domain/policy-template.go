@@ -115,7 +115,7 @@ type CreatePolicyTemplateVersionResponse struct {
 }
 
 type GetPolicyTemplateResponse struct {
-	PolicyTemplate PolicyTemplateResponse `json:"policyTemplate"`
+	PolicyTemplate PolicyTemplateTwoVersionResponse `json:"policyTemplate"`
 }
 
 type ListPolicyTemplateResponse struct {

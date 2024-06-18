@@ -23,7 +23,7 @@ const (
 	obj_get_pattern      = `object\.get\((input|input\.parameters|input\.parameters\.[^,]+), \"([^\"]+)\", [^\)]+\)`
 	ref_by_key_pattern   = `\[\"([\w-]+)\"\]`
 	package_name_regex   = `package ([\w\.]+)[\n\r]+`
-	import_regex         = `import ([\w\.]+)[\n\r]+`
+	lib_import_regex     = `import data\.lib\.([\w\.]+)[\n\r]+`
 )
 
 var (
@@ -620,10 +620,27 @@ func MergeRegoAndLibs(rego string, libs []string) string {
 		return rego
 	}
 
-	var re = regexp.MustCompile(import_regex)
+	var re = regexp.MustCompile(lib_import_regex)
 	var re2 = regexp.MustCompile(package_name_regex)
 
+	// data.lib import 모두 제거
 	result := re.ReplaceAllString(rego, "")
+
+	lib_imports := re.FindAllStringSubmatch(rego, -1)
+
+	// data.lib import 시 data.lib.<라이브러리 이름>인 경우 소스에서 <라이브러리 이름>.<정책 이름>으로 참조됨
+	// 이 경우 임프로를 제거했으므로 <라이브러리 이름>.<정책 이름>을 <정책 이름>으로 바꾸기 위해 제거
+	// <라이브러리 이름>.<정책 이름>.<규칙 이름> 등의 형식은 <규칙 이름>으로 참조되기 때문에 처리할 필요 없음
+	for _, lib_import := range lib_imports {
+		lib_and_rule := lib_import[1]
+
+		if !strings.Contains(lib_and_rule, ".") {
+			remove_lib_prefix := lib_and_rule + "."
+			fmt.Printf("'%s'\n", remove_lib_prefix)
+			result = strings.ReplaceAll(result, remove_lib_prefix, "")
+		}
+	}
+	// "<라이브러리 이름>." 제거 로직 끝
 
 	for _, lib := range processLibs(libs) {
 		result += re2.ReplaceAllString(lib, "")
