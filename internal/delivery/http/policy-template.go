@@ -716,7 +716,7 @@ func (h *PolicyTemplateHandler) Admin_DeletePolicyTemplateVersion(w http.Respons
 // Admin_ExistsPolicyTemplateName godoc
 //
 //	@Tags			PolicyTemplate
-//	@Summary		[Admin_ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인
+//	@Summary		[Admin_ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인
 //	@Description	해당 이름을 가진 정책 템플릿이 이미 존재하는지 확인한다.
 //	@Accept			json
 //	@Produce		json
@@ -1624,7 +1624,7 @@ func (h *PolicyTemplateHandler) DeletePolicyTemplateVersion(w http.ResponseWrite
 // ExistsPolicyTemplateName godoc
 //
 //	@Tags			PolicyTemplate
-//	@Summary		[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인
+//	@Summary		[ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인
 //	@Description	해당 이름을 가진 정책 템플릿이 이미 존재하는지 확인한다.
 //	@Accept			json
 //	@Produce		json
