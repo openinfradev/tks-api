@@ -318,6 +318,33 @@ func (u *PolicyTemplateUsecase) Get(ctx context.Context, organizationId *string,
 		}
 	}
 
+	if organizationId != nil {
+		(*policyTemplate).LatestVersion = policyTemplate.Version
+
+		var primaryClusterId string
+
+		org, err := u.organizationRepo.Get(ctx, *organizationId)
+
+		if err != nil {
+			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+		} else {
+			// 에러 없이 primaryClusterId를 가져왔을 때만 처리
+			primaryClusterId = org.PrimaryClusterId
+
+			templateCR, err := policytemplate.GetTksPolicyTemplateCR(ctx, primaryClusterId, policyTemplate.ResoureName())
+
+			if err == nil && templateCR != nil {
+				(*policyTemplate).CurrentVersion = templateCR.Spec.Version
+			} else if errors.IsNotFound(err) || templateCR == nil {
+				// 템플릿이 존재하지 않으면 최신 버전으로 배포되므로
+				(*policyTemplate).CurrentVersion = policyTemplate.LatestVersion
+			} else {
+				// 통신 실패 등 기타 에러, 버전을 세팅하지 않아 에러임을 알수 있도록 로그를 남김
+				log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
+			}
+		}
+	}
+
 	return policyTemplate, nil
 }
 
