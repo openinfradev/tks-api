@@ -308,16 +308,6 @@ func (u *PolicyTemplateUsecase) Get(ctx context.Context, organizationId *string,
 			"PT_NOT_FOUND_POLICY_TEMPLATE", "")
 	}
 
-	if policyTemplate.IsTksTemplate() && len(policyTemplate.PermittedOrganizations) == 0 {
-		organizations, err := u.organizationRepo.Fetch(ctx, nil)
-
-		if err != nil {
-			log.Errorf(ctx, "error is :%s(%T)", err.Error(), err)
-		} else if organizations != nil {
-			policyTemplate.PermittedOrganizations = *organizations
-		}
-	}
-
 	if organizationId != nil {
 		(*policyTemplate).LatestVersion = policyTemplate.Version
 
