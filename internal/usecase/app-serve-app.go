@@ -268,7 +268,9 @@ func (u *AppServeAppUsecase) GetAppServeAppLog(ctx context.Context, appId string
 	for _, pod := range pods.Items {
 		log.Debugf(ctx, "Processing pod: %s", pod.Name)
 
-		tailLines := int64(50)
+		// NOTE: show last 300 lines of app pod log.
+		// temporary workaround to show error log in case of the app pod crash
+		tailLines := int64(300)
 
 		req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
 			// name should be "tomcat" for legacy spring app
