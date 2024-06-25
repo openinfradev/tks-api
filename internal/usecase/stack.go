@@ -3,11 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"github.com/Nerzal/gocloak/v13"
-	"github.com/openinfradev/tks-api/internal/keycloak"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/Nerzal/gocloak/v13"
+	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/helper"
@@ -476,6 +477,7 @@ func (u *StackUsecase) Delete(ctx context.Context, dto model.Stack) (err error) 
 	// cluster 의 상태가 비정상 상태라면, DB 데이터만 삭제
 	if cluster.Status != domain.ClusterStatus_RUNNING &&
 		cluster.Status != domain.ClusterStatus_BOOTSTRAPPING &&
+		cluster.Status != domain.ClusterStatus_STOPPED &&
 		cluster.Status != domain.ClusterStatus_INSTALLING &&
 		cluster.Status != domain.ClusterStatus_DELETING {
 		return u.clusterRepo.Delete(ctx, domain.ClusterId(dto.ID))
@@ -782,6 +784,9 @@ func getStackStatus(cluster model.Cluster, appGroups []model.AppGroup) (domain.S
 		}
 	}
 
+	if cluster.Status == domain.ClusterStatus_STOPPED {
+		return domain.StackStatus_CLUETER_STOPPED, cluster.StatusDesc
+	}
 	if cluster.Status == domain.ClusterStatus_BOOTSTRAPPING {
 		return domain.StackStatus_CLUSTER_BOOTSTRAPPING, cluster.StatusDesc
 	}
