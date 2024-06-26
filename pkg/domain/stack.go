@@ -54,7 +54,7 @@ var stackStatus = [...]string{
 	"RUNNING",
 	"BOOTSTRAPPING",
 	"BOOTSTRAPPED",
-	"CLUSTER_STOPPED",
+	"CLUSTER_INSTALL_STOPPED",
 }
 
 func (m StackStatus) String() string { return stackStatus[(m)] }
