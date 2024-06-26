@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/helper"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -16,12 +17,14 @@ import (
 )
 
 type ClusterHandler struct {
-	usecase usecase.IClusterUsecase
+	usecase     usecase.IClusterUsecase
+	userUsecase usecase.IUserUsecase
 }
 
 func NewClusterHandler(h usecase.Usecase) *ClusterHandler {
 	return &ClusterHandler{
-		usecase: h.Cluster,
+		usecase:     h.Cluster,
+		userUsecase: h.User,
 	}
 }
 
@@ -169,6 +172,7 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 
 	dto.ClusterType = domain.ClusterType_USER
 	dto.SetDefaultConf()
+	dto.OpaGatekeeperPassword = helper.GenerateRandomPassword(16)
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId := domain.ClusterId("")
@@ -188,7 +192,13 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, err)
 			return
 		}
+	}
 
+	// create OPA Gatekeeper account
+	err = h.userUsecase.CreateReservedAccount(r.Context(), clusterId.String()+string(usecase.OPAGatekeeperReservedAccountIdSuffix), dto.OpaGatekeeperPassword)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
 	}
 
 	var out domain.CreateClusterResponse
