@@ -150,6 +150,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/bootstrap-kubeconfig", customMiddleware.Handle(internalApi.CreateBootstrapKubeconfig, http.HandlerFunc(clusterHandler.CreateBootstrapKubeconfig))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/bootstrap-kubeconfig", customMiddleware.Handle(internalApi.GetBootstrapKubeconfig, http.HandlerFunc(clusterHandler.GetBootstrapKubeconfig))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/nodes", customMiddleware.Handle(internalApi.GetNodes, http.HandlerFunc(clusterHandler.GetNodes))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/resume", customMiddleware.Handle(internalApi.ResumeCluster, http.HandlerFunc(clusterHandler.ResumeCluster))).Methods(http.MethodPut)
 
 	appGroupHandler := delivery.NewAppGroupHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", customMiddleware.Handle(internalApi.CreateAppgroup, http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)

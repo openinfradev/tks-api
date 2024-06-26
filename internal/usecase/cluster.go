@@ -40,6 +40,7 @@ type IClusterUsecase interface {
 	Import(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
 	Bootstrap(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
 	Install(ctx context.Context, clusterId domain.ClusterId) (err error)
+	Resume(ctx context.Context, clusterId domain.ClusterId) (err error)
 	Get(ctx context.Context, clusterId domain.ClusterId) (out model.Cluster, err error)
 	GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
 	Delete(ctx context.Context, clusterId domain.ClusterId) (err error)
@@ -429,6 +430,33 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
+	return nil
+}
+
+func (u *ClusterUsecase) Resume(ctx context.Context, clusterId domain.ClusterId) (err error) {
+	cluster, err := u.Get(ctx, clusterId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", "")
+	}
+
+	if cluster.CloudService != domain.CloudService_BYOH {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid cloud service"), "S_INVALID_CLOUD_SERVICE", "")
+	}
+
+	if cluster.WorkflowId == "" {
+		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid workflow id"), "", "")
+	}
+
+	workflow, err := u.argo.ResumeWorkflow(ctx, "argo", cluster.WorkflowId)
+	if err != nil {
+		log.Error(ctx, err)
+		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
+	}
+	log.Debug(ctx, "Resume workflow: ", workflow)
+
+	if err := u.repo.InitWorkflow(ctx, cluster.ID, cluster.WorkflowId, domain.ClusterStatus_INSTALLING); err != nil {
+		return errors.Wrap(err, "Failed to initialize status")
+	}
 	return nil
 }
 

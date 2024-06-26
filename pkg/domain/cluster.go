@@ -35,6 +35,7 @@ const (
 	ClusterStatus_BOOTSTRAPPING
 	ClusterStatus_BOOTSTRAPPED
 	ClusterStatus_BOOTSTRAP_ERROR
+	ClusterStatus_STOPPED
 )
 
 var clusterStatus = [...]string{
@@ -48,6 +49,7 @@ var clusterStatus = [...]string{
 	"BOOTSTRAPPING",
 	"BOOTSTRAPPED",
 	"BOOTSTRAP_ERROR",
+	"STOPPED",
 }
 
 func (m ClusterStatus) String() string { return clusterStatus[(m)] }

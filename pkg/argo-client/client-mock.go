@@ -43,3 +43,7 @@ func (c *ArgoClientMockImpl) GetWorkflows(ctx context.Context, namespace string)
 func (c *ArgoClientMockImpl) SumbitWorkflowFromWftpl(ctx context.Context, wftplName string, opts SubmitOptions) (string, error) {
 	return "", nil
 }
+
+func (c *ArgoClientMockImpl) ResumeWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error) {
+	return nil, nil
+}

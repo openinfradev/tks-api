@@ -745,7 +745,7 @@ const docTemplate = `{
                 "tags": [
                     "PolicyTemplate"
                 ],
-                "summary": "[Admin_ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인",
+                "summary": "[Admin_ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인",
                 "parameters": [
                     {
                         "type": "string",
@@ -2480,7 +2480,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Install cluster on tks cluster",
+                "description": "Install cluster on tks cluster ( BYOH )",
                 "consumes": [
                     "application/json"
                 ],
@@ -2490,7 +2490,7 @@ const docTemplate = `{
                 "tags": [
                     "Clusters"
                 ],
-                "summary": "Install cluster on tks cluster",
+                "summary": "Install cluster on tks cluster ( BYOH )",
                 "parameters": [
                     {
                         "type": "string",
@@ -2540,6 +2540,40 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterNodesResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/resume": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Resume Cluster ( BYOH )",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Resume Cluster ( BYOH )",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -4942,7 +4976,7 @@ const docTemplate = `{
                 "tags": [
                     "PolicyTemplate"
                 ],
-                "summary": "[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인",
+                "summary": "[ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인",
                 "parameters": [
                     {
                         "type": "string",
@@ -8607,6 +8641,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/{stackId}/install": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Install Stack ( BYOH )",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Install Stack ( BYOH )",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks/{stackId}/kube-config": {
             "get": {
                 "security": [
@@ -11710,13 +11785,6 @@ const docTemplate = `{
                 "mandatory": {
                     "type": "boolean"
                 },
-                "match": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
-                },
-                "matchYaml": {
-                    "type": "string",
-                    "example": "namespaces:\r\n- testns1"
-                },
                 "parameters": {
                     "type": "string",
                     "example": "{\"key\":\"value\"}"
@@ -11728,6 +11796,9 @@ const docTemplate = `{
                 "policyResourceName": {
                     "type": "string",
                     "example": "labelpolicy"
+                },
+                "target": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target"
                 },
                 "targetClusterIds": {
                     "type": "array",
@@ -13103,7 +13174,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "policyTemplate": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse"
                 }
             }
         },
@@ -13584,23 +13655,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.Kinds": {
-            "type": "object",
-            "properties": {
-                "apiGroups": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "kinds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse": {
             "type": "object",
             "properties": {
@@ -13844,29 +13898,6 @@ const docTemplate = `{
                 "templateName": {
                     "type": "string",
                     "example": "레이블 요구"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.Match": {
-            "type": "object",
-            "properties": {
-                "excludedNamespaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "kinds": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Kinds"
-                    }
-                },
-                "namespaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -14155,13 +14186,6 @@ const docTemplate = `{
                 "mandatory": {
                     "type": "boolean"
                 },
-                "match": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
-                },
-                "matchYaml": {
-                    "type": "string",
-                    "example": "namespaces:\r\n- testns1"
-                },
                 "parameters": {
                     "type": "string",
                     "example": "{\"key\":\"value\"}"
@@ -14173,6 +14197,9 @@ const docTemplate = `{
                 "policyResourceName": {
                     "type": "string",
                     "example": "labelpolicy"
+                },
+                "target": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target"
                 },
                 "targetClusters": {
                     "description": "TargetClusterIds []string                ` + "`" + `json:\"targetClusterIds\" example:\"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90\"` + "`" + `",
@@ -15574,6 +15601,18 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.Target": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "{\"kinds\":[\"Pod\",\"Deployment\"]}"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.TemplateCount": {
             "type": "object",
             "properties": {
@@ -15921,12 +15960,6 @@ const docTemplate = `{
                 "mandatory": {
                     "type": "boolean"
                 },
-                "match": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
-                },
-                "matchYaml": {
-                    "type": "string"
-                },
                 "parameters": {
                     "type": "string",
                     "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
@@ -15934,6 +15967,9 @@ const docTemplate = `{
                 "policyName": {
                     "type": "string",
                     "example": "label 정책"
+                },
+                "target": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target"
                 },
                 "targetClusterIds": {
                     "type": "array",

@@ -56,6 +56,7 @@ const (
 	DeleteCluster
 	GetClusterSiteValues
 	InstallCluster
+	ResumeCluster
 	CreateBootstrapKubeconfig
 	GetBootstrapKubeconfig
 	GetNodes
@@ -172,7 +173,7 @@ const (
 	GetStackStatus      // 스택관리/조회
 	SetFavoriteStack    // 스택관리/조회
 	DeleteFavoriteStack // 스택관리/조회
-	InstallStack        // 스택관리 / 조회
+	InstallStack        // 스택관리/조회
 
 	// Project
 	CreateProject           // 프로젝트 관리/프로젝트/생성

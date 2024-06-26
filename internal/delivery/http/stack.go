@@ -94,6 +94,18 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
+// InstallStack godoc
+//
+//	@Tags			Stacks
+//	@Summary		Install Stack ( BYOH )
+//	@Description	Install Stack ( BYOH )
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackId			path		string	true	"stackId"
+//	@Success		200				{object}	nil
+//	@Router			/organizations/{organizationId}/stacks/{stackId}/install [post]
+//	@Security		JWT
 func (h *StackHandler) InstallStack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	stackId, ok := vars["stackId"]

@@ -37,6 +37,7 @@ const (
 
 	StackStatus_CLUSTER_BOOTSTRAPPING
 	StackStatus_CLUSTER_BOOTSTRAPPED
+	StackStatus_CLUETER_STOPPED
 )
 
 var stackStatus = [...]string{
@@ -53,6 +54,7 @@ var stackStatus = [...]string{
 	"RUNNING",
 	"BOOTSTRAPPING",
 	"BOOTSTRAPPED",
+	"STOPPED",
 }
 
 func (m StackStatus) String() string { return stackStatus[(m)] }
