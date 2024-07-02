@@ -95,6 +95,21 @@ func (mr *MockArgoClientMockRecorder) GetWorkflows(ctx, namespace interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflows", reflect.TypeOf((*MockArgoClient)(nil).GetWorkflows), ctx, namespace)
 }
 
+// IsPausedWorkflow mocks base method.
+func (m *MockArgoClient) IsPausedWorkflow(ctx context.Context, namespace, workflowName string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsPausedWorkflow", ctx, namespace, workflowName)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsPausedWorkflow indicates an expected call of IsPausedWorkflow.
+func (mr *MockArgoClientMockRecorder) IsPausedWorkflow(ctx, namespace, workflowName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsPausedWorkflow", reflect.TypeOf((*MockArgoClient)(nil).IsPausedWorkflow), ctx, namespace, workflowName)
+}
+
 // ResumeWorkflow mocks base method.
 func (m *MockArgoClient) ResumeWorkflow(ctx context.Context, namespace, workflowName string) (*argowf.Workflow, error) {
 	m.ctrl.T.Helper()
