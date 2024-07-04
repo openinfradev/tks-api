@@ -119,42 +119,26 @@ func (r *ClusterRepository) Create(ctx context.Context, dto model.Cluster) (clus
 	if dto.CloudService == domain.CloudService_BYOH || *dto.CloudAccountId == uuid.Nil {
 		cloudAccountId = nil
 	}
-	cluster := model.Cluster{
-		ID:                     domain.ClusterId(helper.GenerateClusterId()),
-		OrganizationId:         dto.OrganizationId,
-		Name:                   dto.Name,
-		Description:            dto.Description,
-		CloudAccountId:         cloudAccountId,
-		StackTemplateId:        dto.StackTemplateId,
-		CreatorId:              dto.CreatorId,
-		UpdatorId:              nil,
-		Status:                 domain.ClusterStatus_PENDING,
-		ClusterType:            dto.ClusterType,
-		CloudService:           dto.CloudService,
-		ByoClusterEndpointHost: dto.ByoClusterEndpointHost,
-		ByoClusterEndpointPort: dto.ByoClusterEndpointPort,
-		IsStack:                dto.IsStack,
-		TksCpNode:              dto.TksCpNode,
-		TksCpNodeMax:           dto.TksCpNodeMax,
-		TksCpNodeType:          dto.TksCpNodeType,
-		TksInfraNode:           dto.TksInfraNode,
-		TksInfraNodeMax:        dto.TksInfraNodeMax,
-		TksInfraNodeType:       dto.TksInfraNodeType,
-		TksUserNode:            dto.TksUserNode,
-		TksUserNodeMax:         dto.TksUserNodeMax,
-		TksUserNodeType:        dto.TksUserNodeType,
-	}
-	if dto.ID != "" {
-		cluster.ID = dto.ID
+	if dto.ID == "" {
+		dto.ID = domain.ClusterId(helper.GenerateClusterId())
 	}
 
-	res := r.db.WithContext(ctx).Create(&cluster)
+	dto.CloudAccountId = cloudAccountId
+	dto.UpdatorId = nil
+	dto.Status = domain.ClusterStatus_PENDING
+
+	res := r.db.WithContext(ctx).Create(&dto)
 	if res.Error != nil {
 		log.Error(ctx, res.Error)
 		return "", res.Error
 	}
 
-	return cluster.ID, nil
+	err = r.db.WithContext(ctx).Model(&dto).Association("Domains").Replace(dto.Domains)
+	if err != nil {
+		log.Error(ctx, err)
+	}
+
+	return dto.ID, nil
 }
 
 func (r *ClusterRepository) Delete(ctx context.Context, clusterId domain.ClusterId) error {

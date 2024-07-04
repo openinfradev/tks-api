@@ -66,6 +66,12 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), input, &dto.Conf); err != nil {
 		log.Info(r.Context(), err)
 	}
+	dto.Domains = make([]model.ClusterDomain, len(input.Domains))
+	for i, domain := range input.Domains {
+		if err = serializer.Map(r.Context(), domain, &dto.Domains[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+	}
 
 	dto.OrganizationId = organizationId
 	stackId, err := h.usecase.Create(r.Context(), dto)
@@ -207,6 +213,12 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetStackResponse
 	if err := serializer.Map(r.Context(), stack, &out.Stack); err != nil {
 		log.Info(r.Context(), err)
+	}
+	out.Stack.Domains = make([]domain.ClusterDomain, len(stack.Domains))
+	for i, domain := range stack.Domains {
+		if err = serializer.Map(r.Context(), domain, &out.Stack.Domains[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
 	}
 
 	err = json.Unmarshal(stack.StackTemplate.Services, &out.Stack.StackTemplate.Services)

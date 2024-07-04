@@ -7,6 +7,24 @@ import (
 )
 
 // Models
+type ClusterFavorite struct {
+	gorm.Model
+
+	ID        uuid.UUID `gorm:"primarykey;type:uuid"`
+	ClusterId domain.ClusterId
+	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
+	UserId    uuid.UUID `gorm:"type:uuid"`
+	User      User      `gorm:"foreignKey:UserId"`
+}
+
+type ClusterDomain struct {
+	gorm.Model
+
+	ClusterId  domain.ClusterId
+	DomainType string
+	Url        string
+}
+
 type Cluster struct {
 	gorm.Model
 
@@ -37,13 +55,14 @@ type Cluster struct {
 	TksUserNode            int
 	TksUserNodeMax         int
 	TksUserNodeType        string
-	Kubeconfig             []byte     `gorm:"-:all"`
-	PolicyIds              []string   `gorm:"-:all"`
-	CreatorId              *uuid.UUID `gorm:"type:uuid"`
-	Creator                User       `gorm:"foreignKey:CreatorId"`
-	UpdatorId              *uuid.UUID `gorm:"type:uuid"`
-	Updator                User       `gorm:"foreignKey:UpdatorId"`
-	Policies               []Policy   `gorm:"many2many:policy_target_clusters"`
+	Kubeconfig             []byte          `gorm:"-:all"`
+	PolicyIds              []string        `gorm:"-:all"`
+	CreatorId              *uuid.UUID      `gorm:"type:uuid"`
+	Creator                User            `gorm:"foreignKey:CreatorId"`
+	UpdatorId              *uuid.UUID      `gorm:"type:uuid"`
+	Updator                User            `gorm:"foreignKey:UpdatorId"`
+	Policies               []Policy        `gorm:"many2many:policy_target_clusters"`
+	Domains                []ClusterDomain `gorm:"foreignKey:ClusterId;constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT"`
 }
 
 func (m *Cluster) SetDefaultConf() {
@@ -68,14 +87,4 @@ func (m *Cluster) SetDefaultConf() {
 	if m.TksUserNodeType == "" {
 		m.TksUserNodeType = "t3.large"
 	}
-}
-
-type ClusterFavorite struct {
-	gorm.Model
-
-	ID        uuid.UUID `gorm:"primarykey;type:uuid"`
-	ClusterId domain.ClusterId
-	Cluster   Cluster   `gorm:"foreignKey:ClusterId"`
-	UserId    uuid.UUID `gorm:"type:uuid"`
-	User      User      `gorm:"foreignKey:UserId"`
 }

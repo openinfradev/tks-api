@@ -104,6 +104,12 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	if err := serializer.Map(r.Context(), cluster, &out.Cluster); err != nil {
 		log.Info(r.Context(), err)
 	}
+	out.Cluster.Domains = make([]domain.ClusterDomain, len(cluster.Domains))
+	for i, domain := range cluster.Domains {
+		if err = serializer.Map(r.Context(), domain, &out.Cluster.Domains[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -176,6 +182,13 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		if dto.ByoClusterEndpointHost == "" || dto.ByoClusterEndpointPort == 0 {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid byoh cluster endpoint"), "CL_INVALID_BYOH_CLUSTER_ENDPOINT", ""))
 			return
+		}
+
+		dto.Domains = make([]model.ClusterDomain, len(input.Domains))
+		for i, domain := range input.Domains {
+			if err = serializer.Map(r.Context(), domain, &dto.Domains[i]); err != nil {
+				log.Info(r.Context(), err)
+			}
 		}
 		clusterId, err = h.usecase.Bootstrap(r.Context(), dto)
 		if err != nil {

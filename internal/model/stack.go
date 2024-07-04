@@ -33,6 +33,7 @@ type Stack = struct {
 	PolicyIds       []string
 	Conf            StackConf
 	AppServeAppCnt  int
+	Domains         []ClusterDomain
 }
 
 type StackConf struct {

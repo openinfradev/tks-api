@@ -116,6 +116,11 @@ type BootstrapKubeconfig struct {
 	Expiration int `json:"expiration"`
 }
 
+type ClusterDomain struct {
+	DomainType string `json:"domainType" validate:"oneof=grafana loki minio thanos_sidecar jaeger kiali"`
+	Url        string `json:"url"`
+}
+
 // [TODO] annotaion 으로 가능하려나?
 func (m *ClusterConf) SetDefault() {
 	m.TksCpNodeMax = m.TksCpNode
@@ -142,26 +147,27 @@ func (m *ClusterConf) SetDefault() {
 }
 
 type CreateClusterRequest struct {
-	OrganizationId         string   `json:"organizationId" validate:"required"`
-	CloudService           string   `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId        string   `json:"stackTemplateId" validate:"required"`
-	Name                   string   `json:"name" validate:"required,name"`
-	Description            string   `json:"description"`
-	CloudAccountId         string   `json:"cloudAccountId"`
-	ClusterType            string   `json:"clusterType"`
-	ByoClusterEndpointHost string   `json:"byoClusterEndpointHost,omitempty"`
-	ByoClusterEndpointPort int      `json:"byoClusterEndpointPort,omitempty"`
-	IsStack                bool     `json:"isStack,omitempty"`
-	PolicyIds              []string `json:"policyIds,omitempty"`
-	TksCpNode              int      `json:"tksCpNode"`
-	TksCpNodeMax           int      `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType          string   `json:"tksCpNodeType,omitempty"`
-	TksInfraNode           int      `json:"tksInfraNode"`
-	TksInfraNodeMax        int      `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType       string   `json:"tksInfraNodeType,omitempty"`
-	TksUserNode            int      `json:"tksUserNode"`
-	TksUserNodeMax         int      `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType        string   `json:"tksUserNodeType,omitempty"`
+	OrganizationId         string          `json:"organizationId" validate:"required"`
+	CloudService           string          `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId        string          `json:"stackTemplateId" validate:"required"`
+	Name                   string          `json:"name" validate:"required,name"`
+	Description            string          `json:"description"`
+	CloudAccountId         string          `json:"cloudAccountId"`
+	ClusterType            string          `json:"clusterType"`
+	ByoClusterEndpointHost string          `json:"byoClusterEndpointHost,omitempty"`
+	ByoClusterEndpointPort int             `json:"byoClusterEndpointPort,omitempty"`
+	IsStack                bool            `json:"isStack,omitempty"`
+	PolicyIds              []string        `json:"policyIds,omitempty"`
+	TksCpNode              int             `json:"tksCpNode"`
+	TksCpNodeMax           int             `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType          string          `json:"tksCpNodeType,omitempty"`
+	TksInfraNode           int             `json:"tksInfraNode"`
+	TksInfraNodeMax        int             `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType       string          `json:"tksInfraNodeType,omitempty"`
+	TksUserNode            int             `json:"tksUserNode"`
+	TksUserNodeMax         int             `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType        string          `json:"tksUserNodeType,omitempty"`
+	Domains                []ClusterDomain `json:"domains,omitempty"`
 }
 
 type ImportClusterRequest struct {
@@ -214,6 +220,7 @@ type ClusterResponse struct {
 	ByoClusterEndpointInt  int                         `json:"byoClusterEndpointPort,omitempty"`
 	IsStack                bool                        `json:"isStack,omitempty"`
 	Favorited              bool                        `json:"favorited,omitempty"`
+	Domains                []ClusterDomain             `json:"domains"`
 }
 
 type SimpleClusterResponse struct {

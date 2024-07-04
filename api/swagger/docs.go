@@ -11267,6 +11267,25 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterDomain": {
+            "type": "object",
+            "properties": {
+                "domainType": {
+                    "type": "string",
+                    "enum": [
+                        "grafana",
+                        "loki",
+                        "minio",
+                        "thanos_sidecar",
+                        "jaeger",
+                        "kiali"
+                    ]
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.ClusterHost": {
             "type": "object",
             "properties": {
@@ -11339,6 +11358,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
                 },
                 "favorited": {
                     "type": "boolean"
@@ -11656,6 +11681,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
                 },
                 "isStack": {
                     "type": "boolean"
@@ -12038,6 +12069,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
                 },
                 "name": {
                     "type": "string"
@@ -15163,6 +15200,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
                 },
                 "favorited": {
                     "type": "boolean"
