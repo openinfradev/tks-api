@@ -564,6 +564,20 @@ definitions:
       tksUserNodeType:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ClusterDomain:
+    properties:
+      domainType:
+        enum:
+        - grafana
+        - loki
+        - minio
+        - thanos_sidecar
+        - jaeger
+        - kiali
+        type: string
+      url:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ClusterHost:
     properties:
       name:
@@ -612,6 +626,10 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       description:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       favorited:
         type: boolean
       id:
@@ -823,6 +841,10 @@ definitions:
         type: string
       description:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       isStack:
         type: boolean
       name:
@@ -1088,6 +1110,10 @@ definitions:
         type: string
       description:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       name:
         type: string
       policyIds:
@@ -3165,6 +3191,10 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       description:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       favorited:
         type: boolean
       grafanaUrl:
