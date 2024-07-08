@@ -230,20 +230,21 @@ type SimpleClusterResponse struct {
 }
 
 type ClusterSiteValuesResponse struct {
-	ClusterType            string `json:"clusterType"`
-	SshKeyName             string `json:"sshKeyName"`
-	ClusterRegion          string `json:"clusterRegion"`
-	TksCpNode              int    `json:"tksCpNode"`
-	TksCpNodeMax           int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType          string `json:"tksCpNodeType,omitempty"`
-	TksInfraNode           int    `json:"tksInfraNode"`
-	TksInfraNodeMax        int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType       string `json:"tksInfraNodeType,omitempty"`
-	TksUserNode            int    `json:"tksUserNode"`
-	TksUserNodeMax         int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType        string `json:"tksUserNodeType,omitempty"`
-	ByoClusterEndpointHost string `json:"byoClusterEndpointHost"`
-	ByoClusterEndpointPort int    `json:"byoClusterEndpointPort"`
+	ClusterType            string          `json:"clusterType"`
+	SshKeyName             string          `json:"sshKeyName"`
+	ClusterRegion          string          `json:"clusterRegion"`
+	TksCpNode              int             `json:"tksCpNode"`
+	TksCpNodeMax           int             `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType          string          `json:"tksCpNodeType,omitempty"`
+	TksInfraNode           int             `json:"tksInfraNode"`
+	TksInfraNodeMax        int             `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType       string          `json:"tksInfraNodeType,omitempty"`
+	TksUserNode            int             `json:"tksUserNode"`
+	TksUserNodeMax         int             `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType        string          `json:"tksUserNodeType,omitempty"`
+	ByoClusterEndpointHost string          `json:"byoClusterEndpointHost"`
+	ByoClusterEndpointPort int             `json:"byoClusterEndpointPort"`
+	Domains                []ClusterDomain `json:"domains,omitempty"`
 }
 
 type GetClustersResponse struct {

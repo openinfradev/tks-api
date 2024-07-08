@@ -543,6 +543,12 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 	if err := serializer.Map(ctx, cluster, &out); err != nil {
 		log.Error(ctx, err)
 	}
+	out.Domains = make([]domain.ClusterDomain, len(cluster.Domains))
+	for i, domain := range cluster.Domains {
+		if err = serializer.Map(ctx, domain, &out.Domains[i]); err != nil {
+			log.Info(ctx, err)
+		}
+	}
 
 	if cluster.StackTemplate.CloudService == "AWS" && cluster.StackTemplate.KubeType == "AWS" {
 		out.TksUserNode = cluster.TksUserNode / domain.MAX_AZ_NUM
