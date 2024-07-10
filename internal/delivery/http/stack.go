@@ -66,11 +66,31 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	if err = serializer.Map(r.Context(), input, &dto.Conf); err != nil {
 		log.Info(r.Context(), err)
 	}
-	dto.Domains = make([]model.ClusterDomain, len(input.Domains))
-	for i, domain := range input.Domains {
-		if err = serializer.Map(r.Context(), domain, &dto.Domains[i]); err != nil {
-			log.Info(r.Context(), err)
-		}
+
+	dto.Domains = make([]model.ClusterDomain, 6)
+	dto.Domains[0] = model.ClusterDomain{
+		DomainType: "grafana",
+		Url:        input.Domain.Grafana,
+	}
+	dto.Domains[1] = model.ClusterDomain{
+		DomainType: "loki",
+		Url:        input.Domain.Loki,
+	}
+	dto.Domains[2] = model.ClusterDomain{
+		DomainType: "minio",
+		Url:        input.Domain.Minio,
+	}
+	dto.Domains[3] = model.ClusterDomain{
+		DomainType: "thanos_sidecar",
+		Url:        input.Domain.ThanosSidecar,
+	}
+	dto.Domains[4] = model.ClusterDomain{
+		DomainType: "jaeger",
+		Url:        input.Domain.Jaeger,
+	}
+	dto.Domains[5] = model.ClusterDomain{
+		DomainType: "kiali",
+		Url:        input.Domain.Kiali,
 	}
 
 	dto.OrganizationId = organizationId
@@ -214,10 +234,20 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	if err := serializer.Map(r.Context(), stack, &out.Stack); err != nil {
 		log.Info(r.Context(), err)
 	}
-	out.Stack.Domains = make([]domain.ClusterDomain, len(stack.Domains))
-	for i, domain := range stack.Domains {
-		if err = serializer.Map(r.Context(), domain, &out.Stack.Domains[i]); err != nil {
-			log.Info(r.Context(), err)
+	for _, domain := range stack.Domains {
+		switch domain.DomainType {
+		case "grafana":
+			out.Stack.Domain.Grafana = domain.Url
+		case "loki":
+			out.Stack.Domain.Loki = domain.Url
+		case "minio":
+			out.Stack.Domain.Minio = domain.Url
+		case "thanos_sidecar":
+			out.Stack.Domain.ThanosSidecar = domain.Url
+		case "jaeger":
+			out.Stack.Domain.Jaeger = domain.Url
+		case "kiali":
+			out.Stack.Domain.Kiali = domain.Url
 		}
 	}
 
