@@ -83,24 +83,24 @@ type StackStepStatus struct {
 }
 
 type CreateStackRequest struct {
-	Name             string          `json:"name" validate:"required,name,rfc1123"`
-	Description      string          `json:"description"`
-	ClusterId        string          `json:"clusterId"`
-	CloudService     string          `json:"cloudService" validate:"required,oneof=AWS BYOH"`
-	StackTemplateId  string          `json:"stackTemplateId" validate:"required"`
-	CloudAccountId   string          `json:"cloudAccountId"`
-	ClusterEndpoint  string          `json:"userClusterEndpoint,omitempty"`
-	PolicyIds        []string        `json:"policyIds,omitempty"`
-	TksCpNode        int             `json:"tksCpNode"`
-	TksCpNodeMax     int             `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType    string          `json:"tksCpNodeType,omitempty"`
-	TksInfraNode     int             `json:"tksInfraNode"`
-	TksInfraNodeMax  int             `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType string          `json:"tksInfraNodeType,omitempty"`
-	TksUserNode      int             `json:"tksUserNode"`
-	TksUserNodeMax   int             `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType  string          `json:"tksUserNodeType,omitempty"`
-	Domains          []ClusterDomain `json:"domains,omitempty"`
+	Name             string      `json:"name" validate:"required,name,rfc1123"`
+	Description      string      `json:"description"`
+	ClusterId        string      `json:"clusterId"`
+	CloudService     string      `json:"cloudService" validate:"required,oneof=AWS BYOH"`
+	StackTemplateId  string      `json:"stackTemplateId" validate:"required"`
+	CloudAccountId   string      `json:"cloudAccountId"`
+	ClusterEndpoint  string      `json:"userClusterEndpoint,omitempty"`
+	PolicyIds        []string    `json:"policyIds,omitempty"`
+	TksCpNode        int         `json:"tksCpNode"`
+	TksCpNodeMax     int         `json:"tksCpNodeMax,omitempty"`
+	TksCpNodeType    string      `json:"tksCpNodeType,omitempty"`
+	TksInfraNode     int         `json:"tksInfraNode"`
+	TksInfraNodeMax  int         `json:"tksInfraNodeMax,omitempty"`
+	TksInfraNodeType string      `json:"tksInfraNodeType,omitempty"`
+	TksUserNode      int         `json:"tksUserNode"`
+	TksUserNodeMax   int         `json:"tksUserNodeMax,omitempty"`
+	TksUserNodeType  string      `json:"tksUserNodeType,omitempty"`
+	Domain           StackDomain `json:"domain,omitempty"`
 }
 
 type CreateStackResponse struct {
@@ -117,6 +117,15 @@ type StackConfResponse struct {
 	TksUserNode      int    `json:"tksUserNode" validate:"required,min=0,max=100"`
 	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
 	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+}
+
+type StackDomain struct {
+	Grafana       string `json:"grafana"`
+	Loki          string `json:"loki"`
+	Minio         string `json:"minio"`
+	ThanosSidecar string `json:"thanosSidecar"`
+	Jaeger        string `json:"jaeger"`
+	Kiali         string `json:"kiali"`
 }
 
 type StackResponse struct {
@@ -137,7 +146,7 @@ type StackResponse struct {
 	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
 	Resource        DashboardStackResponse      `json:"resource,omitempty"`
 	AppServeAppCnt  int                         `json:"appServeAppCnt"`
-	Domains         []ClusterDomain             `json:"domains"`
+	Domain          StackDomain                 `json:"domain"`
 	CreatedAt       time.Time                   `json:"createdAt"`
 	UpdatedAt       time.Time                   `json:"updatedAt"`
 }
