@@ -132,6 +132,11 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid node conf"), "", "")
 	}
 
+	domains := make([]string, len(dto.Domains))
+	for i, domain := range dto.Domains {
+		domains[i] = domain.DomainType + "_" + domain.Url
+	}
+
 	workflow := "tks-stack-create"
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
 		Parameters: []string{
@@ -147,6 +152,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 			"cloud_service=" + dto.CloudService,
 			"cluster_endpoint=" + dto.ClusterEndpoint,
 			"policy_ids=" + strings.Join(dto.PolicyIds, ","),
+			"cluster_domains=" + strings.Join(domains, ","),
 		},
 	})
 	if err != nil {
