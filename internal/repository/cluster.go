@@ -142,7 +142,7 @@ func (r *ClusterRepository) Create(ctx context.Context, dto model.Cluster) (clus
 }
 
 func (r *ClusterRepository) Delete(ctx context.Context, clusterId domain.ClusterId) error {
-	res := r.db.WithContext(ctx).Unscoped().Delete(&model.Cluster{}, "id = ?", clusterId)
+	res := r.db.WithContext(ctx).Delete(&model.Cluster{}, "id = ?", clusterId)
 	if res.Error != nil {
 		return fmt.Errorf("could not delete cluster for clusterId %s", clusterId)
 	}
