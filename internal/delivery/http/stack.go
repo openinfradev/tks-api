@@ -67,32 +67,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		log.Info(r.Context(), err)
 	}
 
-	dto.Domains = make([]model.ClusterDomain, 6)
-	dto.Domains[0] = model.ClusterDomain{
-		DomainType: "grafana",
-		Url:        input.Domain.Grafana,
-	}
-	dto.Domains[1] = model.ClusterDomain{
-		DomainType: "loki",
-		Url:        input.Domain.Loki,
-	}
-	dto.Domains[2] = model.ClusterDomain{
-		DomainType: "minio",
-		Url:        input.Domain.Minio,
-	}
-	dto.Domains[3] = model.ClusterDomain{
-		DomainType: "thanos_sidecar",
-		Url:        input.Domain.ThanosSidecar,
-	}
-	dto.Domains[4] = model.ClusterDomain{
-		DomainType: "jaeger",
-		Url:        input.Domain.Jaeger,
-	}
-	dto.Domains[5] = model.ClusterDomain{
-		DomainType: "kiali",
-		Url:        input.Domain.Kiali,
-	}
-
+	dto.Domains = clusterDomainFromRequest(input)
 	dto.OrganizationId = organizationId
 	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
@@ -234,22 +209,8 @@ func (h *StackHandler) GetStack(w http.ResponseWriter, r *http.Request) {
 	if err := serializer.Map(r.Context(), stack, &out.Stack); err != nil {
 		log.Info(r.Context(), err)
 	}
-	for _, domain := range stack.Domains {
-		switch domain.DomainType {
-		case "grafana":
-			out.Stack.Domain.Grafana = domain.Url
-		case "loki":
-			out.Stack.Domain.Loki = domain.Url
-		case "minio":
-			out.Stack.Domain.Minio = domain.Url
-		case "thanos_sidecar":
-			out.Stack.Domain.ThanosSidecar = domain.Url
-		case "jaeger":
-			out.Stack.Domain.Jaeger = domain.Url
-		case "kiali":
-			out.Stack.Domain.Kiali = domain.Url
-		}
-	}
+
+	out.Stack.Domain = clusterDomainFromResponse(stack.Domains)
 
 	err = json.Unmarshal(stack.StackTemplate.Services, &out.Stack.StackTemplate.Services)
 	if err != nil {
@@ -611,4 +572,66 @@ func (h StackHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context
 	}
 
 	return nil
+}
+
+func clusterDomainFromRequest(input domain.CreateStackRequest) []model.ClusterDomain {
+	domains := make([]model.ClusterDomain, 6)
+	domains[0] = model.ClusterDomain{
+		DomainType: "grafana",
+		Url:        input.Domain.Grafana,
+	}
+	domains[1] = model.ClusterDomain{
+		DomainType: "loki",
+		Url:        input.Domain.Loki,
+	}
+	domains[2] = model.ClusterDomain{
+		DomainType: "loki_user",
+		Url:        input.Domain.LokiUser,
+	}
+	domains[3] = model.ClusterDomain{
+		DomainType: "minio",
+		Url:        input.Domain.Minio,
+	}
+	domains[4] = model.ClusterDomain{
+		DomainType: "thanos_sidecar",
+		Url:        input.Domain.ThanosSidecar,
+	}
+	domains[5] = model.ClusterDomain{
+		DomainType: "thanos_ruler",
+		Url:        input.Domain.ThanosRuler,
+	}
+	domains[6] = model.ClusterDomain{
+		DomainType: "jaeger",
+		Url:        input.Domain.Jaeger,
+	}
+	domains[7] = model.ClusterDomain{
+		DomainType: "kiali",
+		Url:        input.Domain.Kiali,
+	}
+
+	return domains
+}
+
+func clusterDomainFromResponse(domains []model.ClusterDomain) (out domain.StackDomain) {
+	for _, domain := range domains {
+		switch domain.DomainType {
+		case "grafana":
+			out.Grafana = domain.Url
+		case "loki":
+			out.Loki = domain.Url
+		case "loki_user":
+			out.LokiUser = domain.Url
+		case "minio":
+			out.Minio = domain.Url
+		case "thanos_sidecar":
+			out.ThanosSidecar = domain.Url
+		case "thanos_ruler":
+			out.ThanosRuler = domain.Url
+		case "jaeger":
+			out.Jaeger = domain.Url
+		case "kiali":
+			out.Kiali = domain.Url
+		}
+	}
+	return out
 }

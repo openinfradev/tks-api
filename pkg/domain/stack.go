@@ -122,8 +122,10 @@ type StackConfResponse struct {
 type StackDomain struct {
 	Grafana       string `json:"grafana"`
 	Loki          string `json:"loki"`
+	LokiUser      string `json:"lokiUser"`
 	Minio         string `json:"minio"`
 	ThanosSidecar string `json:"thanosSidecar"`
+	ThanosRuler   string `json:"thanosRuler"`
 	Jaeger        string `json:"jaeger"`
 	Kiali         string `json:"kiali"`
 }
