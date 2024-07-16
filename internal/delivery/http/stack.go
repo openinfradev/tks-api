@@ -575,7 +575,7 @@ func (h StackHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context
 }
 
 func clusterDomainFromRequest(input domain.CreateStackRequest) []model.ClusterDomain {
-	domains := make([]model.ClusterDomain, 6)
+	domains := make([]model.ClusterDomain, 8)
 	domains[0] = model.ClusterDomain{
 		DomainType: "grafana",
 		Url:        input.Domain.Grafana,
