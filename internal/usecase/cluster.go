@@ -417,6 +417,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 				"cloud_account_id=NULL",
 				"base_repo_branch=" + viper.GetString("revision"),
 				"keycloak_url=" + viper.GetString("keycloak-address"),
+				"policy_ids=",
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
