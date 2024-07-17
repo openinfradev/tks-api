@@ -165,6 +165,7 @@ const (
 	// Stack
 	GetStacks           // 스택관리/조회
 	CreateStack         // 스택관리/생성
+	ImportStack         // 스택관리/생성
 	CheckStackName      // 스택관리/조회
 	GetStack            // 스택관리/조회
 	UpdateStack         // 스택관리/수정

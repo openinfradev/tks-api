@@ -256,6 +256,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.CreateStack, http.HandlerFunc(stackHandler.CreateStack))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/import", customMiddleware.Handle(internalApi.ImportStack, http.HandlerFunc(stackHandler.ImportStack))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/name/{name}/existence", customMiddleware.Handle(internalApi.CheckStackName, http.HandlerFunc(stackHandler.CheckStackName))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", customMiddleware.Handle(internalApi.GetStack, http.HandlerFunc(stackHandler.GetStack))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", customMiddleware.Handle(internalApi.UpdateStack, http.HandlerFunc(stackHandler.UpdateStack))).Methods(http.MethodPut)

@@ -661,6 +661,10 @@ definitions:
         type: string
       clusterType:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       sshKeyName:
         type: string
       tksCpNode:
@@ -1110,10 +1114,8 @@ definitions:
         type: string
       description:
         type: string
-      domains:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
-        type: array
+      domain:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
       name:
         type: string
       policyIds:
@@ -2176,6 +2178,59 @@ definitions:
       id:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest:
+    properties:
+      cloudAccountId:
+        type: string
+      cloudService:
+        enum:
+        - AWS
+        - BYOH
+        type: string
+      clusterId:
+        type: string
+      description:
+        type: string
+      domain:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
+      name:
+        type: string
+      policyIds:
+        items:
+          type: string
+        type: array
+      stackTemplateId:
+        type: string
+      tksCpNode:
+        type: integer
+      tksCpNodeMax:
+        type: integer
+      tksCpNodeType:
+        type: string
+      tksInfraNode:
+        type: integer
+      tksInfraNodeMax:
+        type: integer
+      tksInfraNodeType:
+        type: string
+      tksUserNode:
+        type: integer
+      tksUserNodeMax:
+        type: integer
+      tksUserNodeType:
+        type: string
+      userClusterEndpoint:
+        type: string
+    required:
+    - cloudService
+    - name
+    - stackTemplateId
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse:
+    properties:
+      id:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse:
     properties:
       organizations:
@@ -3133,6 +3188,25 @@ definitions:
     - tksInfraNode
     - tksUserNode
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.StackDomain:
+    properties:
+      grafana:
+        type: string
+      jaeger:
+        type: string
+      kiali:
+        type: string
+      loki:
+        type: string
+      lokiUser:
+        type: string
+      minio:
+        type: string
+      thanosRuler:
+        type: string
+      thanosSidecar:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics:
     properties:
       outofdatePolicyCount:
@@ -3191,10 +3265,8 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       description:
         type: string
-      domains:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
-        type: array
+      domain:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
       favorited:
         type: boolean
       grafanaUrl:
@@ -10202,6 +10274,35 @@ paths:
       security:
       - JWT: []
       summary: Get Stack Status
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/import:
+    post:
+      consumes:
+      - application/json
+      description: Import Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: import stack request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse'
+      security:
+      - JWT: []
+      summary: Import Stack
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/name/{name}/existence:

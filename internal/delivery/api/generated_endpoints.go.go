@@ -507,6 +507,10 @@ var ApiMap = map[Endpoint]EndpointInfo{
 		Name: "CreateStack", 
 		Group: "Stack",
 	},
+    ImportStack: {
+		Name: "ImportStack", 
+		Group: "Stack",
+	},
     CheckStackName: {
 		Name: "CheckStackName", 
 		Group: "Stack",
@@ -1198,6 +1202,8 @@ func (e Endpoint) String() string {
 		return "GetStacks"
 	case CreateStack:
 		return "CreateStack"
+	case ImportStack:
+		return "ImportStack"
 	case CheckStackName:
 		return "CheckStackName"
 	case GetStack:
@@ -1674,6 +1680,8 @@ func GetEndpoint(name string) Endpoint {
 		return GetStacks
 	case "CreateStack":
 		return CreateStack
+	case "ImportStack":
+		return ImportStack
 	case "CheckStackName":
 		return CheckStackName
 	case "GetStack":
