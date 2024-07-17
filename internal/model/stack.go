@@ -34,6 +34,7 @@ type Stack = struct {
 	Conf            StackConf
 	AppServeAppCnt  int
 	Domains         []ClusterDomain
+	Kubeconfig      string
 }
 
 type StackConf struct {

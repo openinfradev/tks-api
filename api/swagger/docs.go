@@ -8382,6 +8382,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/organizations/{organizationId}/stacks/import": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Import Stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Import Stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "import stack request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/organizations/{organizationId}/stacks/name/{name}/existence": {
             "get": {
                 "security": [
@@ -11412,6 +11458,12 @@ const docTemplate = `{
                 "clusterType": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
+                },
                 "sshKeyName": {
                     "type": "string"
                 },
@@ -12070,11 +12122,8 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domains": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
-                    }
+                "domain": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
                 },
                 "name": {
                     "type": "string"
@@ -13692,6 +13741,85 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest": {
+            "type": "object",
+            "required": [
+                "cloudService",
+                "name",
+                "stackTemplateId"
+            ],
+            "properties": {
+                "cloudAccountId": {
+                    "type": "string"
+                },
+                "cloudService": {
+                    "type": "string",
+                    "enum": [
+                        "AWS",
+                        "BYOH"
+                    ]
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "policyIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "stackTemplateId": {
+                    "type": "string"
+                },
+                "tksCpNode": {
+                    "type": "integer"
+                },
+                "tksCpNodeMax": {
+                    "type": "integer"
+                },
+                "tksCpNodeType": {
+                    "type": "string"
+                },
+                "tksInfraNode": {
+                    "type": "integer"
+                },
+                "tksInfraNodeMax": {
+                    "type": "integer"
+                },
+                "tksInfraNodeType": {
+                    "type": "string"
+                },
+                "tksUserNode": {
+                    "type": "integer"
+                },
+                "tksUserNodeMax": {
+                    "type": "integer"
+                },
+                "tksUserNodeType": {
+                    "type": "string"
+                },
+                "userClusterEndpoint": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse": {
             "type": "object",
             "properties": {
@@ -15117,6 +15245,35 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.StackDomain": {
+            "type": "object",
+            "properties": {
+                "grafana": {
+                    "type": "string"
+                },
+                "jaeger": {
+                    "type": "string"
+                },
+                "kiali": {
+                    "type": "string"
+                },
+                "loki": {
+                    "type": "string"
+                },
+                "lokiUser": {
+                    "type": "string"
+                },
+                "minio": {
+                    "type": "string"
+                },
+                "thanosRuler": {
+                    "type": "string"
+                },
+                "thanosSidecar": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics": {
             "type": "object",
             "properties": {
@@ -15201,11 +15358,8 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "domains": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
-                    }
+                "domain": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
                 },
                 "favorited": {
                     "type": "boolean"
