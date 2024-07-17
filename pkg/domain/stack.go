@@ -103,6 +103,19 @@ type CreateStackRequest struct {
 	Domain           StackDomain `json:"domain,omitempty"`
 }
 
+type ImportStackResponse struct {
+	ID string `json:"id"`
+}
+
+type ImportStackRequest struct {
+	Name            string      `json:"name" validate:"required,name,rfc1123"`
+	Description     string      `json:"description"`
+	StackTemplateId string      `json:"stackTemplateId" validate:"required"`
+	PolicyIds       []string    `json:"policyIds,omitempty"`
+	Domain          StackDomain `json:"domain,omitempty"`
+	Kubeconfig      string      `json:"kubeconfig" validate:"required"`
+}
+
 type CreateStackResponse struct {
 	ID string `json:"id"`
 }

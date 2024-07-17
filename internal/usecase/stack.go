@@ -32,6 +32,7 @@ type IStackUsecase interface {
 	GetByName(ctx context.Context, organizationId string, name string) (model.Stack, error)
 	Fetch(ctx context.Context, organizationId string, pg *pagination.Pagination) ([]model.Stack, error)
 	Create(ctx context.Context, dto model.Stack) (stackId domain.StackId, err error)
+	Import(ctx context.Context, dto model.Stack) (stackId domain.StackId, err error)
 	Install(ctx context.Context, stackId domain.StackId) (err error)
 	Update(ctx context.Context, dto model.Stack) error
 	Delete(ctx context.Context, dto model.Stack) error
@@ -288,6 +289,135 @@ func (u *StackUsecase) Install(ctx context.Context, stackId domain.StackId) (err
 	log.Debug(ctx, "Submitted workflow: ", workflowId)
 
 	return nil
+}
+
+func (u *StackUsecase) Import(ctx context.Context, dto model.Stack) (stackId domain.StackId, err error) {
+	user, ok := request.UserFrom(ctx)
+	if !ok {
+		return "", httpErrors.NewUnauthorizedError(fmt.Errorf("Invalid token"), "A_INVALID_TOKEN", "")
+	}
+
+	_, err = u.GetByName(ctx, dto.OrganizationId, dto.Name)
+	if err == nil {
+		return "", httpErrors.NewBadRequestError(httpErrors.DuplicateResource, "S_CREATE_ALREADY_EXISTED_NAME", "")
+	}
+
+	_, err = u.stackTemplateRepo.Get(ctx, dto.StackTemplateId)
+	if err != nil {
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Invalid stackTemplateId"), "S_INVALID_STACK_TEMPLATE", "")
+	}
+
+	clusters, err := u.clusterRepo.FetchByOrganizationId(ctx, dto.OrganizationId, user.GetUserId(), nil)
+	if err != nil {
+		return "", httpErrors.NewInternalServerError(errors.Wrap(err, "Failed to get clusters"), "S_FAILED_GET_CLUSTERS", "")
+	}
+	isPrimary := false
+	if len(clusters) == 0 {
+		isPrimary = true
+	}
+	log.Debug(ctx, "isPrimary ", isPrimary)
+
+	domains := make([]string, len(dto.Domains))
+	for i, domain := range dto.Domains {
+		domains[i] = domain.DomainType + "_" + domain.Url
+	}
+
+	workflow := "tks-stack-import"
+	workflowId, err := u.argo.SumbitWorkflowFromWftpl(ctx, workflow, argowf.SubmitOptions{
+		Parameters: []string{
+			fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
+			"cluster_name=" + dto.Name,
+			"description=" + dto.Description,
+			"organization_id=" + dto.OrganizationId,
+			"stack_template_id=" + dto.StackTemplateId.String(),
+			"creator=" + user.GetUserId().String(),
+			"base_repo_branch=" + viper.GetString("revision"),
+			"policy_ids=" + strings.Join(dto.PolicyIds, ","),
+			"cluster_domains=" + strings.Join(domains, ","),
+			"kubeconfig_string=" + dto.Kubeconfig,
+		},
+	})
+	if err != nil {
+		log.Error(ctx, err)
+		return "", httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
+	}
+	log.Debug(ctx, "Submitted workflow: ", workflowId)
+
+	// wait & get clusterId ( max 1min 	)
+	dto.ID = domain.StackId("")
+	for i := 0; i < 60; i++ {
+		time.Sleep(time.Second * 5)
+		workflow, err := u.argo.GetWorkflow(ctx, "argo", workflowId)
+		if err != nil {
+			return "", err
+		}
+
+		log.Debug(ctx, "workflow ", workflow)
+		if workflow.Status.Phase != "" && workflow.Status.Phase != "Running" {
+			return "", fmt.Errorf("Invalid workflow status [%s]", workflow.Status.Phase)
+		}
+
+		cluster, err := u.clusterRepo.GetByName(ctx, dto.OrganizationId, dto.Name)
+		if err != nil {
+			continue
+		}
+		if cluster.Name == dto.Name {
+			dto.ID = domain.StackId(cluster.ID)
+			break
+		}
+	}
+
+	// keycloak setting
+	log.Debugf(ctx, "Create keycloak client for %s", dto.ID)
+	// Create keycloak client
+	clientUUID, err := u.kc.CreateClient(ctx, dto.OrganizationId, dto.ID.String()+"-k8s-api", "", nil)
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client for %s", dto.ID)
+		return "", err
+	}
+	// Create keycloak client protocol mapper
+	_, err = u.kc.CreateClientProtocolMapper(ctx, dto.OrganizationId, clientUUID, gocloak.ProtocolMapperRepresentation{
+		Name:            gocloak.StringP("k8s-role-mapper"),
+		Protocol:        gocloak.StringP("openid-connect"),
+		ProtocolMapper:  gocloak.StringP("oidc-usermodel-client-role-mapper"),
+		ConsentRequired: gocloak.BoolP(false),
+		Config: &map[string]string{
+			"usermodel.clientRoleMapping.clientId": dto.ID.String() + "-k8s-api",
+			"claim.name":                           "groups",
+			"access.token.claim":                   "false",
+			"id.token.claim":                       "true",
+			"userinfo.token.claim":                 "true",
+			"multivalued":                          "true",
+			"jsonType.label":                       "String",
+		},
+	})
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client protocol mapper for %s", dto.ID)
+		return "", err
+	}
+	// Create keycloak client role
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-create")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-create", dto.ID)
+		return "", err
+	}
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-read")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-read", dto.ID)
+		return "", err
+	}
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-update")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-update", dto.ID)
+		return "", err
+	}
+	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-delete")
+	if err != nil {
+		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-delete", dto.ID)
+		return "", err
+	}
+
+	return dto.ID, nil
 }
 
 func (u *StackUsecase) Get(ctx context.Context, stackId domain.StackId) (out model.Stack, err error) {

@@ -67,7 +67,7 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 		log.Info(r.Context(), err)
 	}
 
-	dto.Domains = clusterDomainFromRequest(input)
+	dto.Domains = clusterDomainFromRequest(input.Domain)
 	dto.OrganizationId = organizationId
 	stackId, err := h.usecase.Create(r.Context(), dto)
 	if err != nil {
@@ -89,6 +89,69 @@ func (h *StackHandler) CreateStack(w http.ResponseWriter, r *http.Request) {
 	}
 
 	out := domain.CreateStackResponse{
+		ID: stackId.String(),
+	}
+
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
+// ImportStack godoc
+//
+//	@Tags			Stacks
+//	@Summary		Import Stack
+//	@Description	Import Stack
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string						true	"organizationId"
+//	@Param			body			body		domain.ImportStackRequest	true	"import stack request"
+//	@Success		200				{object}	domain.ImportStackResponse
+//	@Router			/organizations/{organizationId}/stacks/import [post]
+//	@Security		JWT
+func (h *StackHandler) ImportStack(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+
+	input := domain.ImportStackRequest{}
+	err := UnmarshalRequestInput(r, &input)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	var dto model.Stack
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
+	}
+	if err = serializer.Map(r.Context(), input, &dto.Conf); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	dto.Domains = clusterDomainFromRequest(input.Domain)
+	dto.OrganizationId = organizationId
+	stackId, err := h.usecase.Import(r.Context(), dto)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	// Sync ClusterAdmin Permission to Keycloak
+	// First get all users in the organization
+	users, err := h.usecaseUser.List(r.Context(), organizationId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	err = h.syncKeycloakWithClusterAdminPermission(r.Context(), organizationId, []string{stackId.String()}, *users)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	out := domain.ImportStackResponse{
 		ID: stackId.String(),
 	}
 
@@ -574,39 +637,39 @@ func (h StackHandler) syncKeycloakWithClusterAdminPermission(ctx context.Context
 	return nil
 }
 
-func clusterDomainFromRequest(input domain.CreateStackRequest) []model.ClusterDomain {
+func clusterDomainFromRequest(domain domain.StackDomain) []model.ClusterDomain {
 	domains := make([]model.ClusterDomain, 8)
 	domains[0] = model.ClusterDomain{
 		DomainType: "grafana",
-		Url:        input.Domain.Grafana,
+		Url:        domain.Grafana,
 	}
 	domains[1] = model.ClusterDomain{
 		DomainType: "loki",
-		Url:        input.Domain.Loki,
+		Url:        domain.Loki,
 	}
 	domains[2] = model.ClusterDomain{
 		DomainType: "loki_user",
-		Url:        input.Domain.LokiUser,
+		Url:        domain.LokiUser,
 	}
 	domains[3] = model.ClusterDomain{
 		DomainType: "minio",
-		Url:        input.Domain.Minio,
+		Url:        domain.Minio,
 	}
 	domains[4] = model.ClusterDomain{
-		DomainType: "thanos_sidecar",
-		Url:        input.Domain.ThanosSidecar,
+		DomainType: "prometheus",
+		Url:        domain.ThanosSidecar,
 	}
 	domains[5] = model.ClusterDomain{
 		DomainType: "thanos_ruler",
-		Url:        input.Domain.ThanosRuler,
+		Url:        domain.ThanosRuler,
 	}
 	domains[6] = model.ClusterDomain{
 		DomainType: "jaeger",
-		Url:        input.Domain.Jaeger,
+		Url:        domain.Jaeger,
 	}
 	domains[7] = model.ClusterDomain{
 		DomainType: "kiali",
-		Url:        input.Domain.Kiali,
+		Url:        domain.Kiali,
 	}
 
 	return domains
@@ -623,7 +686,7 @@ func clusterDomainFromResponse(domains []model.ClusterDomain) (out domain.StackD
 			out.LokiUser = domain.Url
 		case "minio":
 			out.Minio = domain.Url
-		case "thanos_sidecar":
+		case "prometheus":
 			out.ThanosSidecar = domain.Url
 		case "thanos_ruler":
 			out.ThanosRuler = domain.Url

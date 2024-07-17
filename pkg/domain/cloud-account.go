@@ -12,6 +12,7 @@ const (
 	CloudService_AZURE     = "AZZURE"
 	CloudService_GCP       = "GCP"
 	CloudService_BYOH      = "BYOH"
+	CloudService_BYOK      = "BYOK"
 )
 
 // enum

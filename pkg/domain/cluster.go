@@ -171,13 +171,15 @@ type CreateClusterRequest struct {
 }
 
 type ImportClusterRequest struct {
-	OrganizationId  string `json:"organizationId" validate:"required"`
-	StackTemplateId string `json:"stackTemplateId" validate:"required"`
-	Name            string `json:"name" validate:"required,name"`
-	Description     string `json:"description"`
-	ClusterType     string `json:"clusterType"`
-	Kubeconfig      []byte `json:"kubeconfig"`
-	CloudService    string `json:"cloudService"`
+	OrganizationId  string          `json:"organizationId" validate:"required"`
+	StackTemplateId string          `json:"stackTemplateId" validate:"required"`
+	Name            string          `json:"name" validate:"required,name"`
+	Description     string          `json:"description"`
+	ClusterType     string          `json:"clusterType"`
+	Kubeconfig      []byte          `json:"kubeconfig"`
+	CloudService    string          `json:"cloudService"`
+	PolicyIds       []string        `json:"policyIds,omitempty"`
+	Domains         []ClusterDomain `json:"domains,omitempty"`
 }
 
 type CreateClusterResponse struct {
@@ -244,7 +246,7 @@ type ClusterSiteValuesResponse struct {
 	TksUserNodeType        string          `json:"tksUserNodeType,omitempty"`
 	ByoClusterEndpointHost string          `json:"byoClusterEndpointHost"`
 	ByoClusterEndpointPort int             `json:"byoClusterEndpointPort"`
-	Domains                []ClusterDomain `json:"domains,omitempty"`
+	Domains                []ClusterDomain `json:"domains"`
 }
 
 type GetClustersResponse struct {
