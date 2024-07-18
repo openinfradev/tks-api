@@ -176,7 +176,7 @@ type ImportClusterRequest struct {
 	Name            string          `json:"name" validate:"required,name"`
 	Description     string          `json:"description"`
 	ClusterType     string          `json:"clusterType"`
-	Kubeconfig      []byte          `json:"kubeconfig"`
+	Kubeconfig      string          `json:"kubeconfig" validate:"required"`
 	CloudService    string          `json:"cloudService"`
 	PolicyIds       []string        `json:"policyIds,omitempty"`
 	Domains         []ClusterDomain `json:"domains,omitempty"`

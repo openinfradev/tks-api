@@ -253,7 +253,10 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
-	kubeconfigBase64 := base64.StdEncoding.EncodeToString([]byte(dto.Kubeconfig))
+	_, err = base64.StdEncoding.DecodeString(dto.Kubeconfig)
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid kubeconfig string"), "", "")
+	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		ctx,
@@ -264,7 +267,7 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 				"contract_id=" + dto.OrganizationId,
 				"cluster_id=" + clusterId.String(),
 				"template_name=" + stackTemplate.Template,
-				"kubeconfig=" + kubeconfigBase64,
+				"kubeconfig=" + dto.Kubeconfig,
 				"git_account=" + viper.GetString("git-account"),
 				"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 				"base_repo_branch=" + viper.GetString("revision"),
