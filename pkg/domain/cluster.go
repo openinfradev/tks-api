@@ -176,7 +176,7 @@ type ImportClusterRequest struct {
 	Name            string          `json:"name" validate:"required,name"`
 	Description     string          `json:"description"`
 	ClusterType     string          `json:"clusterType"`
-	Kubeconfig      []byte          `json:"kubeconfig"`
+	Kubeconfig      string          `json:"kubeconfig" validate:"required"`
 	CloudService    string          `json:"cloudService"`
 	PolicyIds       []string        `json:"policyIds,omitempty"`
 	Domains         []ClusterDomain `json:"domains,omitempty"`
@@ -192,14 +192,14 @@ type ImportClusterResponse struct {
 
 type ClusterConfResponse struct {
 	TksCpNode        int    `json:"tksCpNode"`
-	TksCpNodeMax     int    `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType    string `json:"tksCpNodeType,omitempty"`
+	TksCpNodeMax     int    `json:"tksCpNodeMax"`
+	TksCpNodeType    string `json:"tksCpNodeType"`
 	TksInfraNode     int    `json:"tksInfraNode"`
-	TksInfraNodeMax  int    `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType string `json:"tksInfraNodeType,omitempty"`
+	TksInfraNodeMax  int    `json:"tksInfraNodeMax"`
+	TksInfraNodeType string `json:"tksInfraNodeType"`
 	TksUserNode      int    `json:"tksUserNode"`
-	TksUserNodeMax   int    `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType  string `json:"tksUserNodeType,omitempty"`
+	TksUserNodeMax   int    `json:"tksUserNodeMax"`
+	TksUserNodeType  string `json:"tksUserNodeType"`
 }
 
 type ClusterResponse struct {
@@ -236,14 +236,14 @@ type ClusterSiteValuesResponse struct {
 	SshKeyName             string          `json:"sshKeyName"`
 	ClusterRegion          string          `json:"clusterRegion"`
 	TksCpNode              int             `json:"tksCpNode"`
-	TksCpNodeMax           int             `json:"tksCpNodeMax,omitempty"`
-	TksCpNodeType          string          `json:"tksCpNodeType,omitempty"`
+	TksCpNodeMax           int             `json:"tksCpNodeMax"`
+	TksCpNodeType          string          `json:"tksCpNodeType"`
 	TksInfraNode           int             `json:"tksInfraNode"`
-	TksInfraNodeMax        int             `json:"tksInfraNodeMax,omitempty"`
-	TksInfraNodeType       string          `json:"tksInfraNodeType,omitempty"`
+	TksInfraNodeMax        int             `json:"tksInfraNodeMax"`
+	TksInfraNodeType       string          `json:"tksInfraNodeType"`
 	TksUserNode            int             `json:"tksUserNode"`
-	TksUserNodeMax         int             `json:"tksUserNodeMax,omitempty"`
-	TksUserNodeType        string          `json:"tksUserNodeType,omitempty"`
+	TksUserNodeMax         int             `json:"tksUserNodeMax"`
+	TksUserNodeType        string          `json:"tksUserNodeType"`
 	ByoClusterEndpointHost string          `json:"byoClusterEndpointHost"`
 	ByoClusterEndpointPort int             `json:"byoClusterEndpointPort"`
 	Domains                []ClusterDomain `json:"domains"`
