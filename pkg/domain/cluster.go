@@ -246,7 +246,7 @@ type ClusterSiteValuesResponse struct {
 	TksUserNodeType        string          `json:"tksUserNodeType,omitempty"`
 	ByoClusterEndpointHost string          `json:"byoClusterEndpointHost"`
 	ByoClusterEndpointPort int             `json:"byoClusterEndpointPort"`
-	Domains                []ClusterDomain `json:"domains,omitempty"`
+	Domains                []ClusterDomain `json:"domains"`
 }
 
 type GetClustersResponse struct {

@@ -334,7 +334,7 @@ func (u *StackUsecase) Import(ctx context.Context, dto model.Stack) (stackId dom
 			"base_repo_branch=" + viper.GetString("revision"),
 			"policy_ids=" + strings.Join(dto.PolicyIds, ","),
 			"cluster_domains=" + strings.Join(domains, ","),
-			"kubeconfig=" + dto.Kubeconfig,
+			"kubeconfig_string=" + dto.Kubeconfig,
 		},
 	})
 	if err != nil {
