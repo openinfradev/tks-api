@@ -116,7 +116,7 @@ func (r *ClusterRepository) GetByName(ctx context.Context, organizationId string
 func (r *ClusterRepository) Create(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error) {
 	var cloudAccountId *uuid.UUID
 	cloudAccountId = dto.CloudAccountId
-	if dto.CloudService == domain.CloudService_BYOH || dto.CloudService == domain.CloudService_BYOK || *dto.CloudAccountId == uuid.Nil {
+	if dto.CloudService != domain.CloudService_AWS || *dto.CloudAccountId == uuid.Nil {
 		cloudAccountId = nil
 	}
 	if dto.ID == "" {
