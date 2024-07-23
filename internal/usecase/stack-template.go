@@ -33,6 +33,7 @@ type IStackTemplateUsecase interface {
 	AddOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
 	RemoveOrganizationStackTemplates(ctx context.Context, organizationId string, stackTemplateIds []string) error
 	GetTemplateIds(ctx context.Context) ([]string, error)
+	GetCloudServices(ctx context.Context, organizationId string) ([]string, error)
 }
 
 type StackTemplateUsecase struct {
@@ -275,6 +276,28 @@ func (u *StackTemplateUsecase) GetTemplateIds(ctx context.Context) (out []string
 
 	})
 
+	return
+}
+
+func (u *StackTemplateUsecase) GetCloudServices(ctx context.Context, organizationId string) (out []string, err error) {
+	stackTemplates, err := u.repo.FetchWithOrganization(ctx, organizationId, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, stackTemplate := range stackTemplates {
+		bExist := false
+		for _, val := range out {
+			if val == stackTemplate.CloudService {
+				bExist = true
+				break
+			}
+		}
+
+		if !bExist {
+			out = append(out, stackTemplate.CloudService)
+		}
+	}
 	return
 }
 

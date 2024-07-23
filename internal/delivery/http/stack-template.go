@@ -350,12 +350,13 @@ func (h *StackTemplateHandler) UpdateStackTemplateOrganizations(w http.ResponseW
 //	@Description	Get Organization StackTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			pageSize	query		string		false	"pageSize"
-//	@Param			pageNumber	query		string		false	"pageNumber"
-//	@Param			soertColumn	query		string		false	"sortColumn"
-//	@Param			sortOrder	query		string		false	"sortOrder"
-//	@Param			filters		query		[]string	false	"filters"
-//	@Success		200			{object}	domain.GetStackTemplatesResponse
+//	@Param			organizationId	path		string		true	"organizationId"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.GetStackTemplatesResponse
 //	@Router			/organizations/{organizationId}/stack-templates [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetOrganizationStackTemplates(w http.ResponseWriter, r *http.Request) {
@@ -401,6 +402,34 @@ func (h *StackTemplateHandler) GetOrganizationStackTemplates(w http.ResponseWrit
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
+// GetOrganizationCloudServices godoc
+//
+//	@Tags			StackTemplates
+//	@Summary		Get Organization CloudServices
+//	@Description	Get Organization CloudServices
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Success		200				{object}	domain.GetStackTemplatesResponse
+//	@Router			/organizations/{organizationId}/stack-templates/cloud-services [get]
+//	@Security		JWT
+func (h *StackTemplateHandler) GetOrganizationCloudServices(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	organizationId, ok := vars["organizationId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid organizationId"), "C_INVALID_ORGANIZATION_ID", ""))
+		return
+	}
+	cloudServices, err := h.usecase.GetCloudServices(r.Context(), organizationId)
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+	var out domain.GetCloudServicesResponse
+	out.CloudServices = cloudServices
+	ResponseJSON(w, r, http.StatusOK, out)
+}
+
 // GetOrganizationStackTemplate godoc
 //
 //	@Tags			StackTemplates
@@ -408,7 +437,9 @@ func (h *StackTemplateHandler) GetOrganizationStackTemplates(w http.ResponseWrit
 //	@Description	Get Organization StackTemplate
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{object}	domain.GetStackTemplateResponse
+//	@Param			organizationId	path		string	true	"organizationId"
+//	@Param			stackTemplateId	path		string	true	"stackTemplateId"
+//	@Success		200				{object}	domain.GetStackTemplateResponse
 //	@Router			/organizations/{organizationId}/stack-templates/{stackTemplateId} [get]
 //	@Security		JWT
 func (h *StackTemplateHandler) GetOrganizationStackTemplate(w http.ResponseWriter, r *http.Request) {
@@ -500,8 +531,9 @@ func (h *StackTemplateHandler) CheckStackTemplateName(w http.ResponseWriter, r *
 //	@Description	Add organization stackTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.AddOrganizationStackTemplatesRequest	true	"Add organization stack templates request"
-//	@Success		200		{object}	nil
+//	@Param			organizationId	path		string										true	"organizationId"
+//	@Param			body			body		domain.AddOrganizationStackTemplatesRequest	true	"Add organization stack templates request"
+//	@Success		200				{object}	nil
 //	@Router			/organizations/{organizationId}/stack-templates [post]
 //	@Security		JWT
 func (h *StackTemplateHandler) AddOrganizationStackTemplates(w http.ResponseWriter, r *http.Request) {
@@ -534,8 +566,9 @@ func (h *StackTemplateHandler) AddOrganizationStackTemplates(w http.ResponseWrit
 //	@Description	Remove organization stackTemplates
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		domain.RemoveOrganizationStackTemplatesRequest	true	"Remove organization stack templates request"
-//	@Success		200		{object}	nil
+//	@Param			organizationId	path		string											true	"organizationId"
+//	@Param			body			body		domain.RemoveOrganizationStackTemplatesRequest	true	"Remove organization stack templates request"
+//	@Success		200				{object}	nil
 //	@Router			/organizations/{organizationId}/stack-templates [put]
 //	@Security		JWT
 func (h *StackTemplateHandler) RemoveOrganizationStackTemplates(w http.ResponseWriter, r *http.Request) {
