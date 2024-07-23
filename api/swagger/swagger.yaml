@@ -2158,17 +2158,24 @@ definitions:
         type: string
       description:
         type: string
-      kubeconfig:
+      domains:
         items:
-          type: integer
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
         type: array
+      kubeconfig:
+        type: string
       name:
         type: string
       organizationId:
         type: string
+      policyIds:
+        items:
+          type: string
+        type: array
       stackTemplateId:
         type: string
     required:
+    - kubeconfig
     - name
     - organizationId
     - stackTemplateId
@@ -2180,19 +2187,12 @@ definitions:
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest:
     properties:
-      cloudAccountId:
-        type: string
-      cloudService:
-        enum:
-        - AWS
-        - BYOH
-        type: string
-      clusterId:
-        type: string
       description:
         type: string
       domain:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
+      kubeconfig:
+        type: string
       name:
         type: string
       policyIds:
@@ -2201,28 +2201,8 @@ definitions:
         type: array
       stackTemplateId:
         type: string
-      tksCpNode:
-        type: integer
-      tksCpNodeMax:
-        type: integer
-      tksCpNodeType:
-        type: string
-      tksInfraNode:
-        type: integer
-      tksInfraNodeMax:
-        type: integer
-      tksInfraNodeType:
-        type: string
-      tksUserNode:
-        type: integer
-      tksUserNodeMax:
-        type: integer
-      tksUserNodeType:
-        type: string
-      userClusterEndpoint:
-        type: string
     required:
-    - cloudService
+    - kubeconfig
     - name
     - stackTemplateId
     type: object
@@ -9666,6 +9646,11 @@ paths:
       - application/json
       description: Get Organization StackTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: pageSize
         in: query
         name: pageSize
@@ -9706,6 +9691,11 @@ paths:
       - application/json
       description: Add organization stackTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Add organization stack templates request
         in: body
         name: body
@@ -9727,6 +9717,11 @@ paths:
       - application/json
       description: Remove organization stackTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Remove organization stack templates request
         in: body
         name: body
@@ -9748,6 +9743,17 @@ paths:
       consumes:
       - application/json
       description: Get Organization StackTemplate
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -9758,6 +9764,29 @@ paths:
       security:
       - JWT: []
       summary: Get Organization StackTemplate
+      tags:
+      - StackTemplates
+  /organizations/{organizationId}/stack-templates/cloud-services:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization CloudServices
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get Organization CloudServices
       tags:
       - StackTemplates
   /organizations/{organizationId}/stacks:

@@ -8138,6 +8138,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "pageSize",
                         "name": "pageSize",
                         "in": "query"
@@ -8199,6 +8206,13 @@ const docTemplate = `{
                 "summary": "Remove organization stackTemplates",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Remove organization stack templates request",
                         "name": "body",
                         "in": "body",
@@ -8233,6 +8247,13 @@ const docTemplate = `{
                 "summary": "Add organization stackTemplates",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Add organization stack templates request",
                         "name": "body",
                         "in": "body",
@@ -8245,6 +8266,43 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/stack-templates/cloud-services": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Organization CloudServices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get Organization CloudServices",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse"
+                        }
                     }
                 }
             }
@@ -8267,6 +8325,22 @@ const docTemplate = `{
                     "StackTemplates"
                 ],
                 "summary": "Get Organization StackTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -13702,6 +13776,7 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest": {
             "type": "object",
             "required": [
+                "kubeconfig",
                 "name",
                 "organizationId",
                 "stackTemplateId"
@@ -13716,17 +13791,26 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "kubeconfig": {
+                "domains": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
                     }
+                },
+                "kubeconfig": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
                 "organizationId": {
                     "type": "string"
+                },
+                "policyIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "stackTemplateId": {
                     "type": "string"
@@ -13744,29 +13828,19 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest": {
             "type": "object",
             "required": [
-                "cloudService",
+                "kubeconfig",
                 "name",
                 "stackTemplateId"
             ],
             "properties": {
-                "cloudAccountId": {
-                    "type": "string"
-                },
-                "cloudService": {
-                    "type": "string",
-                    "enum": [
-                        "AWS",
-                        "BYOH"
-                    ]
-                },
-                "clusterId": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
                 "domain": {
                     "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
+                },
+                "kubeconfig": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -13778,36 +13852,6 @@ const docTemplate = `{
                     }
                 },
                 "stackTemplateId": {
-                    "type": "string"
-                },
-                "tksCpNode": {
-                    "type": "integer"
-                },
-                "tksCpNodeMax": {
-                    "type": "integer"
-                },
-                "tksCpNodeType": {
-                    "type": "string"
-                },
-                "tksInfraNode": {
-                    "type": "integer"
-                },
-                "tksInfraNodeMax": {
-                    "type": "integer"
-                },
-                "tksInfraNodeType": {
-                    "type": "string"
-                },
-                "tksUserNode": {
-                    "type": "integer"
-                },
-                "tksUserNodeMax": {
-                    "type": "integer"
-                },
-                "tksUserNodeType": {
-                    "type": "string"
-                },
-                "userClusterEndpoint": {
                     "type": "string"
                 }
             }

@@ -111,6 +111,7 @@ const (
 	GetOrganizationStackTemplate
 	AddOrganizationStackTemplates
 	RemoveOrganizationStackTemplates
+	GetOrganizationCloudServices
 
 	// Dashboard
 	CreateDashboard

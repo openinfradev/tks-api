@@ -116,3 +116,7 @@ type RemoveOrganizationStackTemplatesRequest struct {
 type GetStackTemplateTemplateIdsResponse struct {
 	TemplateIds []string `json:"templateIds"`
 }
+
+type GetCloudServicesResponse struct {
+	CloudServices []string `json:"cloudServices"`
+}
