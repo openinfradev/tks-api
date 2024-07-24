@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"strconv"
 	"strings"
 
@@ -109,6 +110,10 @@ func main() {
 		log.Info(ctx, fmt.Sprintf("%s : %v", i, s))
 	}
 	log.Info(ctx, "****************** ")
+
+	go func() {
+		http.ListenAndServe("0.0.0.0:6060", nil)
+	}()
 
 	// For web service
 	asset := route.NewAssetHandler(viper.GetString("web-root"))
