@@ -158,7 +158,7 @@ type StackResponse struct {
 	Creator         SimpleUserResponse          `json:"creator,omitempty"`
 	Updator         SimpleUserResponse          `json:"updator,omitempty"`
 	Favorited       bool                        `json:"favorited"`
-	ClusterEndpoint string                      `json:"userClusterEndpoint,omitempty"`
+	ClusterEndpoint string                      `json:"userClusterEndpoint"`
 	Resource        DashboardStackResponse      `json:"resource,omitempty"`
 	AppServeAppCnt  int                         `json:"appServeAppCnt"`
 	Domain          StackDomain                 `json:"domain"`
