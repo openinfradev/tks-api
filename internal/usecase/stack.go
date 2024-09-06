@@ -135,7 +135,7 @@ func (u *StackUsecase) Create(ctx context.Context, dto model.Stack) (stackId dom
 
 	domains := make([]string, len(dto.Domains))
 	for i, domain := range dto.Domains {
-		domains[i] = domain.DomainType + "_" + domain.Url
+		domains[i] = domain.DomainType + "|" + domain.Url
 	}
 
 	workflow := "tks-stack-create"
@@ -319,7 +319,7 @@ func (u *StackUsecase) Import(ctx context.Context, dto model.Stack) (stackId dom
 
 	domains := make([]string, len(dto.Domains))
 	for i, domain := range dto.Domains {
-		domains[i] = domain.DomainType + "_" + domain.Url
+		domains[i] = domain.DomainType + "|" + domain.Url
 	}
 
 	workflow := "tks-stack-import"
