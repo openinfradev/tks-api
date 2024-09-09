@@ -117,7 +117,7 @@ type BootstrapKubeconfig struct {
 }
 
 type ClusterDomain struct {
-	DomainType string `json:"domainType" validate:"oneof=grafana loki minio thanos_sidecar jaeger kiali"`
+	DomainType string `json:"domainType"`
 	Url        string `json:"url"`
 }
 
