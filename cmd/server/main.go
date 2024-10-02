@@ -112,7 +112,10 @@ func main() {
 	log.Info(ctx, "****************** ")
 
 	go func() {
-		http.ListenAndServe("0.0.0.0:6060", nil)
+		err := http.ListenAndServe("0.0.0.0:6060", nil)
+		if err != nil {
+			log.Error(ctx, "0.0.0.0:6060 failed to listen")
+		}
 	}()
 
 	// For web service
