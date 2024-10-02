@@ -745,7 +745,7 @@ const docTemplate = `{
                 "tags": [
                     "PolicyTemplate"
                 ],
-                "summary": "[Admin_ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인",
+                "summary": "[Admin_ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인",
                 "parameters": [
                     {
                         "type": "string",
@@ -2480,7 +2480,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Install cluster on tks cluster",
+                "description": "Install cluster on tks cluster ( BYOH )",
                 "consumes": [
                     "application/json"
                 ],
@@ -2490,7 +2490,7 @@ const docTemplate = `{
                 "tags": [
                     "Clusters"
                 ],
-                "summary": "Install cluster on tks cluster",
+                "summary": "Install cluster on tks cluster ( BYOH )",
                 "parameters": [
                     {
                         "type": "string",
@@ -2540,6 +2540,40 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetClusterNodesResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/clusters/{clusterId}/resume": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Resume Cluster ( BYOH )",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clusters"
+                ],
+                "summary": "Resume Cluster ( BYOH )",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterId",
+                        "name": "clusterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -4942,7 +4976,7 @@ const docTemplate = `{
                 "tags": [
                     "PolicyTemplate"
                 ],
-                "summary": "[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인",
+                "summary": "[ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인",
                 "parameters": [
                     {
                         "type": "string",
@@ -8104,6 +8138,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "pageSize",
                         "name": "pageSize",
                         "in": "query"
@@ -8165,6 +8206,13 @@ const docTemplate = `{
                 "summary": "Remove organization stackTemplates",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Remove organization stack templates request",
                         "name": "body",
                         "in": "body",
@@ -8199,6 +8247,13 @@ const docTemplate = `{
                 "summary": "Add organization stackTemplates",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Add organization stack templates request",
                         "name": "body",
                         "in": "body",
@@ -8211,6 +8266,43 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/stack-templates/cloud-services": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get Organization CloudServices",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StackTemplates"
+                ],
+                "summary": "Get Organization CloudServices",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse"
+                        }
                     }
                 }
             }
@@ -8233,6 +8325,22 @@ const docTemplate = `{
                     "StackTemplates"
                 ],
                 "summary": "Get Organization StackTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackTemplateId",
+                        "name": "stackTemplateId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -8343,6 +8451,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.CreateStackResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/stacks/import": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Import Stack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Import Stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "import stack request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse"
                         }
                     }
                 }
@@ -8584,6 +8738,47 @@ const docTemplate = `{
                     "Stacks"
                 ],
                 "summary": "Delete favorite stack",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "organizationId",
+                        "name": "organizationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "stackId",
+                        "name": "stackId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/stacks/{stackId}/install": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Install Stack ( BYOH )",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stacks"
+                ],
+                "summary": "Install Stack ( BYOH )",
                 "parameters": [
                     {
                         "type": "string",
@@ -11192,6 +11387,25 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.ClusterDomain": {
+            "type": "object",
+            "properties": {
+                "domainType": {
+                    "type": "string",
+                    "enum": [
+                        "grafana",
+                        "loki",
+                        "minio",
+                        "thanos_sidecar",
+                        "jaeger",
+                        "kiali"
+                    ]
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.ClusterHost": {
             "type": "object",
             "properties": {
@@ -11265,6 +11479,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
+                },
                 "favorited": {
                     "type": "boolean"
                 },
@@ -11311,6 +11531,12 @@ const docTemplate = `{
                 },
                 "clusterType": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
                 },
                 "sshKeyName": {
                     "type": "string"
@@ -11582,6 +11808,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
+                    }
+                },
                 "isStack": {
                     "type": "boolean"
                 },
@@ -11710,13 +11942,6 @@ const docTemplate = `{
                 "mandatory": {
                     "type": "boolean"
                 },
-                "match": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
-                },
-                "matchYaml": {
-                    "type": "string",
-                    "example": "namespaces:\r\n- testns1"
-                },
                 "parameters": {
                     "type": "string",
                     "example": "{\"key\":\"value\"}"
@@ -11728,6 +11953,9 @@ const docTemplate = `{
                 "policyResourceName": {
                     "type": "string",
                     "example": "labelpolicy"
+                },
+                "target": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target"
                 },
                 "targetClusterIds": {
                     "type": "array",
@@ -11967,6 +12195,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domain": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
                 },
                 "name": {
                     "type": "string"
@@ -13103,7 +13334,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "policyTemplate": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse"
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse"
                 }
             }
         },
@@ -13545,6 +13776,7 @@ const docTemplate = `{
         "github_com_openinfradev_tks-api_pkg_domain.ImportClusterRequest": {
             "type": "object",
             "required": [
+                "kubeconfig",
                 "name",
                 "organizationId",
                 "stackTemplateId"
@@ -13559,17 +13791,26 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "kubeconfig": {
+                "domains": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain"
                     }
+                },
+                "kubeconfig": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
                 },
                 "organizationId": {
                     "type": "string"
+                },
+                "policyIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "stackTemplateId": {
                     "type": "string"
@@ -13584,20 +13825,42 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_openinfradev_tks-api_pkg_domain.Kinds": {
+        "github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest": {
             "type": "object",
+            "required": [
+                "kubeconfig",
+                "name",
+                "stackTemplateId"
+            ],
             "properties": {
-                "apiGroups": {
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
+                },
+                "kubeconfig": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "policyIds": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "kinds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "stackTemplateId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
                 }
             }
         },
@@ -13844,29 +14107,6 @@ const docTemplate = `{
                 "templateName": {
                     "type": "string",
                     "example": "레이블 요구"
-                }
-            }
-        },
-        "github_com_openinfradev_tks-api_pkg_domain.Match": {
-            "type": "object",
-            "properties": {
-                "excludedNamespaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "kinds": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Kinds"
-                    }
-                },
-                "namespaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -14155,13 +14395,6 @@ const docTemplate = `{
                 "mandatory": {
                     "type": "boolean"
                 },
-                "match": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
-                },
-                "matchYaml": {
-                    "type": "string",
-                    "example": "namespaces:\r\n- testns1"
-                },
                 "parameters": {
                     "type": "string",
                     "example": "{\"key\":\"value\"}"
@@ -14173,6 +14406,9 @@ const docTemplate = `{
                 "policyResourceName": {
                     "type": "string",
                     "example": "labelpolicy"
+                },
+                "target": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target"
                 },
                 "targetClusters": {
                     "description": "TargetClusterIds []string                ` + "`" + `json:\"targetClusterIds\" example:\"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90\"` + "`" + `",
@@ -15053,6 +15289,35 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.StackDomain": {
+            "type": "object",
+            "properties": {
+                "grafana": {
+                    "type": "string"
+                },
+                "jaeger": {
+                    "type": "string"
+                },
+                "kiali": {
+                    "type": "string"
+                },
+                "loki": {
+                    "type": "string"
+                },
+                "lokiUser": {
+                    "type": "string"
+                },
+                "minio": {
+                    "type": "string"
+                },
+                "thanosRuler": {
+                    "type": "string"
+                },
+                "thanosSidecar": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics": {
             "type": "object",
             "properties": {
@@ -15136,6 +15401,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domain": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain"
                 },
                 "favorited": {
                     "type": "boolean"
@@ -15574,6 +15842,18 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_openinfradev_tks-api_pkg_domain.Target": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string",
+                    "example": "{\"kinds\":[\"Pod\",\"Deployment\"]}"
+                }
+            }
+        },
         "github_com_openinfradev_tks-api_pkg_domain.TemplateCount": {
             "type": "object",
             "properties": {
@@ -15921,12 +16201,6 @@ const docTemplate = `{
                 "mandatory": {
                     "type": "boolean"
                 },
-                "match": {
-                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match"
-                },
-                "matchYaml": {
-                    "type": "string"
-                },
                 "parameters": {
                     "type": "string",
                     "example": "{\"labels\":{\"key\":\"owner\",\"allowedRegex\":\"test*\"}"
@@ -15934,6 +16208,9 @@ const docTemplate = `{
                 "policyName": {
                     "type": "string",
                     "example": "label 정책"
+                },
+                "target": {
+                    "$ref": "#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target"
                 },
                 "targetClusterIds": {
                     "type": "array",

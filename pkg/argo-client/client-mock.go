@@ -32,6 +32,10 @@ func (c *ArgoClientMockImpl) GetWorkflow(ctx context.Context, namespace string, 
 	return nil, nil
 }
 
+func (c *ArgoClientMockImpl) IsPausedWorkflow(ctx context.Context, namespace string, workflowName string) (bool, error) {
+	return false, nil
+}
+
 func (c *ArgoClientMockImpl) GetWorkflowLog(ctx context.Context, namespace string, container string, workflowName string) (string, error) {
 	return "", nil
 }
@@ -42,4 +46,8 @@ func (c *ArgoClientMockImpl) GetWorkflows(ctx context.Context, namespace string)
 
 func (c *ArgoClientMockImpl) SumbitWorkflowFromWftpl(ctx context.Context, wftplName string, opts SubmitOptions) (string, error) {
 	return "", nil
+}
+
+func (c *ArgoClientMockImpl) ResumeWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error) {
+	return nil, nil
 }

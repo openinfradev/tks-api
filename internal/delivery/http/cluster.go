@@ -104,6 +104,12 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	if err := serializer.Map(r.Context(), cluster, &out.Cluster); err != nil {
 		log.Info(r.Context(), err)
 	}
+	out.Cluster.Domains = make([]domain.ClusterDomain, len(cluster.Domains))
+	for i, domain := range cluster.Domains {
+		if err = serializer.Map(r.Context(), domain, &out.Cluster.Domains[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
+	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
@@ -177,6 +183,13 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid byoh cluster endpoint"), "CL_INVALID_BYOH_CLUSTER_ENDPOINT", ""))
 			return
 		}
+
+		dto.Domains = make([]model.ClusterDomain, len(input.Domains))
+		for i, domain := range input.Domains {
+			if err = serializer.Map(r.Context(), domain, &dto.Domains[i]); err != nil {
+				log.Info(r.Context(), err)
+			}
+		}
 		clusterId, err = h.usecase.Bootstrap(r.Context(), dto)
 		if err != nil {
 			ErrorJSON(w, r, err)
@@ -238,8 +251,8 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 // InstallCluster godoc
 //
 //	@Tags			Clusters
-//	@Summary		Install cluster on tks cluster
-//	@Description	Install cluster on tks cluster
+//	@Summary		Install cluster on tks cluster ( BYOH )
+//	@Description	Install cluster on tks cluster ( BYOH )
 //	@Accept			json
 //	@Produce		json
 //	@Param			clusterId	path		string	true	"clusterId"
@@ -255,6 +268,34 @@ func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) 
 	}
 
 	err := h.usecase.Install(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
+// ResumeCluster godoc
+//
+//	@Tags			Clusters
+//	@Summary		Resume Cluster ( BYOH )
+//	@Description	Resume Cluster ( BYOH )
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	nil
+//	@Router			/clusters/{clusterId}/resume [put]
+//	@Security		JWT
+func (h *ClusterHandler) ResumeCluster(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	err := h.usecase.Resume(r.Context(), domain.ClusterId(clusterId))
 	if err != nil {
 		ErrorJSON(w, r, err)
 		return

@@ -15,9 +15,11 @@ import (
 type ArgoClient interface {
 	GetWorkflowTemplates(ctx context.Context, namespace string) (*GetWorkflowTemplatesResponse, error)
 	GetWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error)
+	IsPausedWorkflow(ctx context.Context, namespace string, workflowName string) (bool, error)
 	GetWorkflowLog(ctx context.Context, namespace string, container string, workflowName string) (logs string, err error)
 	GetWorkflows(ctx context.Context, namespace string) (*GetWorkflowsResponse, error)
 	SumbitWorkflowFromWftpl(ctx context.Context, wftplName string, opts SubmitOptions) (string, error)
+	ResumeWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error)
 }
 
 type ArgoClientImpl struct {
@@ -108,6 +110,60 @@ func (c *ArgoClientImpl) GetWorkflow(ctx context.Context, namespace string, work
 	}
 
 	return &workflowRes, nil
+}
+
+func (c *ArgoClientImpl) IsPausedWorkflow(ctx context.Context, namespace string, workflowName string) (bool, error) {
+	res, err := c.client.Get(fmt.Sprintf("%s/api/v1/workflows/%s/%s", c.url, namespace, workflowName))
+	if err != nil {
+		return false, err
+	}
+	if res == nil {
+		return false, fmt.Errorf("Failed to call argo workflow.")
+	}
+	if res.StatusCode != 200 {
+		return false, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
+	}
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Error(ctx, "error closing http body")
+		}
+	}()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return false, err
+	}
+
+	var workflowRes interface{}
+	if err := json.Unmarshal(body, &workflowRes); err != nil {
+		log.Error(ctx, "an error was unexpected while parsing response from api /workflow template.")
+		return false, err
+	}
+
+	dataMap, ok := workflowRes.(map[string]interface{})
+	if !ok {
+		fmt.Println("Invalid JSON structure")
+		return false, err
+	}
+
+	status, ok := dataMap["status"].(map[string]interface{})
+	if !ok {
+		return false, err
+	}
+	nodes, ok := status["nodes"].(map[string]interface{})
+	if !ok {
+		return false, err
+	}
+
+	for _, node := range nodes {
+		nodeJson, ok := node.(map[string]interface{})
+		if ok && nodeJson["displayName"] == "suspend" && nodeJson["phase"] == "Running" {
+			return true, err
+		}
+	}
+
+	return false, nil
 }
 
 func (c *ArgoClientImpl) GetWorkflowLog(ctx context.Context, namespace string, container string, workflowName string) (logs string, err error) {
@@ -216,4 +272,46 @@ func (c *ArgoClientImpl) SumbitWorkflowFromWftpl(ctx context.Context, wftplName 
 		return "", err
 	}
 	return submitRes.Metadata.Name, nil
+}
+
+func (c *ArgoClientImpl) ResumeWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error) {
+	/*
+	   {
+	     "name": "string",
+	     "namespace": "string",
+	     "nodeFieldSelector": "string"
+	   }
+	*/
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/workflows/%s/%s/resume", c.url, namespace, workflowName), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if res == nil {
+		return nil, fmt.Errorf("Failed to call resume argo workflow.")
+	}
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("Invalid http status. return code: %d", res.StatusCode)
+	}
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			log.Error(ctx, "error closing http body")
+		}
+	}()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	workflowRes := Workflow{}
+	if err := json.Unmarshal(body, &workflowRes); err != nil {
+		log.Error(ctx, "an error was unexpected while parsing response from api /workflow template.")
+		return nil, err
+	}
+	return &workflowRes, nil
 }

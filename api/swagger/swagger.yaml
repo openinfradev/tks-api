@@ -564,6 +564,20 @@ definitions:
       tksUserNodeType:
         type: string
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.ClusterDomain:
+    properties:
+      domainType:
+        enum:
+        - grafana
+        - loki
+        - minio
+        - thanos_sidecar
+        - jaeger
+        - kiali
+        type: string
+      url:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.ClusterHost:
     properties:
       name:
@@ -612,6 +626,10 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       description:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       favorited:
         type: boolean
       id:
@@ -643,6 +661,10 @@ definitions:
         type: string
       clusterType:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       sshKeyName:
         type: string
       tksCpNode:
@@ -823,6 +845,10 @@ definitions:
         type: string
       description:
         type: string
+      domains:
+        items:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
+        type: array
       isStack:
         type: boolean
       name:
@@ -912,11 +938,6 @@ definitions:
         type: string
       mandatory:
         type: boolean
-      match:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
-      matchYaml:
-        example: "namespaces:\r\n- testns1"
-        type: string
       parameters:
         example: '{"key":"value"}'
         type: string
@@ -926,6 +947,8 @@ definitions:
       policyResourceName:
         example: labelpolicy
         type: string
+      target:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target'
       targetClusterIds:
         example:
         - 83bf8081-f0c5-4b31-826d-23f6f366ec90
@@ -1091,6 +1114,8 @@ definitions:
         type: string
       description:
         type: string
+      domain:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
       name:
         type: string
       policyIds:
@@ -1842,7 +1867,7 @@ definitions:
   github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateResponse:
     properties:
       policyTemplate:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateResponse'
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.PolicyTemplateTwoVersionResponse'
     type: object
   github_com_openinfradev_tks-api_pkg_domain.GetPolicyTemplateVersionResponse:
     properties:
@@ -2133,17 +2158,24 @@ definitions:
         type: string
       description:
         type: string
-      kubeconfig:
+      domains:
         items:
-          type: integer
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ClusterDomain'
         type: array
+      kubeconfig:
+        type: string
       name:
         type: string
       organizationId:
         type: string
+      policyIds:
+        items:
+          type: string
+        type: array
       stackTemplateId:
         type: string
     required:
+    - kubeconfig
     - name
     - organizationId
     - stackTemplateId
@@ -2153,16 +2185,31 @@ definitions:
       id:
         type: string
     type: object
-  github_com_openinfradev_tks-api_pkg_domain.Kinds:
+  github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest:
     properties:
-      apiGroups:
+      description:
+        type: string
+      domain:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
+      kubeconfig:
+        type: string
+      name:
+        type: string
+      policyIds:
         items:
           type: string
         type: array
-      kinds:
-        items:
-          type: string
-        type: array
+      stackTemplateId:
+        type: string
+    required:
+    - kubeconfig
+    - name
+    - stackTemplateId
+    type: object
+  github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse:
+    properties:
+      id:
+        type: string
     type: object
   github_com_openinfradev_tks-api_pkg_domain.ListOrganizationResponse:
     properties:
@@ -2326,21 +2373,6 @@ definitions:
       templateName:
         example: 레이블 요구
         type: string
-    type: object
-  github_com_openinfradev_tks-api_pkg_domain.Match:
-    properties:
-      excludedNamespaces:
-        items:
-          type: string
-        type: array
-      kinds:
-        items:
-          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Kinds'
-        type: array
-      namespaces:
-        items:
-          type: string
-        type: array
     type: object
   github_com_openinfradev_tks-api_pkg_domain.MergePermissionResponse:
     properties:
@@ -2530,11 +2562,6 @@ definitions:
         type: string
       mandatory:
         type: boolean
-      match:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
-      matchYaml:
-        example: "namespaces:\r\n- testns1"
-        type: string
       parameters:
         example: '{"key":"value"}'
         type: string
@@ -2544,6 +2571,8 @@ definitions:
       policyResourceName:
         example: labelpolicy
         type: string
+      target:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target'
       targetClusters:
         description: TargetClusterIds []string                `json:"targetClusterIds"
           example:"83bf8081-f0c5-4b31-826d-23f6f366ec90,83bf8081-f0c5-4b31-826d-23f6f366ec90"`
@@ -3139,6 +3168,25 @@ definitions:
     - tksInfraNode
     - tksUserNode
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.StackDomain:
+    properties:
+      grafana:
+        type: string
+      jaeger:
+        type: string
+      kiali:
+        type: string
+      loki:
+        type: string
+      lokiUser:
+        type: string
+      minio:
+        type: string
+      thanosRuler:
+        type: string
+      thanosSidecar:
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.StackPolicyStatistics:
     properties:
       outofdatePolicyCount:
@@ -3197,6 +3245,8 @@ definitions:
         $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.SimpleUserResponse'
       description:
         type: string
+      domain:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.StackDomain'
       favorited:
         type: boolean
       grafanaUrl:
@@ -3485,6 +3535,14 @@ definitions:
     required:
     - metricQuery
     type: object
+  github_com_openinfradev_tks-api_pkg_domain.Target:
+    properties:
+      type:
+        type: string
+      value:
+        example: '{"kinds":["Pod","Deployment"]}'
+        type: string
+    type: object
   github_com_openinfradev_tks-api_pkg_domain.TemplateCount:
     properties:
       organizationTemplate:
@@ -3717,16 +3775,14 @@ definitions:
         type: string
       mandatory:
         type: boolean
-      match:
-        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Match'
-      matchYaml:
-        type: string
       parameters:
         example: '{"labels":{"key":"owner","allowedRegex":"test*"}'
         type: string
       policyName:
         example: label 정책
         type: string
+      target:
+        $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.Target'
       targetClusterIds:
         example:
         - 83bf8081-f0c5-4b31-826d-23f6f366ec90
@@ -5148,7 +5204,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain_admin.ExistsPolicyTemplateNameResponse'
       security:
       - JWT: []
-      summary: '[Admin_ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인'
+      summary: '[Admin_ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인'
       tags:
       - PolicyTemplate
   /admin/stack-templates:
@@ -5961,7 +6017,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Install cluster on tks cluster
+      description: Install cluster on tks cluster ( BYOH )
       parameters:
       - description: clusterId
         in: path
@@ -5975,7 +6031,7 @@ paths:
           description: OK
       security:
       - JWT: []
-      summary: Install cluster on tks cluster
+      summary: Install cluster on tks cluster ( BYOH )
       tags:
       - Clusters
   /clusters/{clusterId}/nodes:
@@ -5999,6 +6055,27 @@ paths:
       security:
       - JWT: []
       summary: Get nodes information for BYOH
+      tags:
+      - Clusters
+  /clusters/{clusterId}/resume:
+    put:
+      consumes:
+      - application/json
+      description: Resume Cluster ( BYOH )
+      parameters:
+      - description: clusterId
+        in: path
+        name: clusterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Resume Cluster ( BYOH )
       tags:
       - Clusters
   /clusters/{clusterId}/site-values:
@@ -7850,7 +7927,7 @@ paths:
             $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ExistsPolicyTemplateNameResponse'
       security:
       - JWT: []
-      summary: '[ExistsPolicyTemplateName] 정책 템플릿 아름 존재 여부 확인'
+      summary: '[ExistsPolicyTemplateName] 정책 템플릿 이름 존재 여부 확인'
       tags:
       - PolicyTemplate
   /organizations/{organizationId}/primary-cluster:
@@ -9569,6 +9646,11 @@ paths:
       - application/json
       description: Get Organization StackTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: pageSize
         in: query
         name: pageSize
@@ -9609,6 +9691,11 @@ paths:
       - application/json
       description: Add organization stackTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Add organization stack templates request
         in: body
         name: body
@@ -9630,6 +9717,11 @@ paths:
       - application/json
       description: Remove organization stackTemplates
       parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
       - description: Remove organization stack templates request
         in: body
         name: body
@@ -9651,6 +9743,17 @@ paths:
       consumes:
       - application/json
       description: Get Organization StackTemplate
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackTemplateId
+        in: path
+        name: stackTemplateId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -9661,6 +9764,29 @@ paths:
       security:
       - JWT: []
       summary: Get Organization StackTemplate
+      tags:
+      - StackTemplates
+  /organizations/{organizationId}/stack-templates/cloud-services:
+    get:
+      consumes:
+      - application/json
+      description: Get Organization CloudServices
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.GetStackTemplatesResponse'
+      security:
+      - JWT: []
+      summary: Get Organization CloudServices
       tags:
       - StackTemplates
   /organizations/{organizationId}/stacks:
@@ -9863,6 +9989,32 @@ paths:
       security:
       - JWT: []
       summary: Set favorite stack
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/{stackId}/install:
+    post:
+      consumes:
+      - application/json
+      description: Install Stack ( BYOH )
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: stackId
+        in: path
+        name: stackId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - JWT: []
+      summary: Install Stack ( BYOH )
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/{stackId}/kube-config:
@@ -10151,6 +10303,35 @@ paths:
       security:
       - JWT: []
       summary: Get Stack Status
+      tags:
+      - Stacks
+  /organizations/{organizationId}/stacks/import:
+    post:
+      consumes:
+      - application/json
+      description: Import Stack
+      parameters:
+      - description: organizationId
+        in: path
+        name: organizationId
+        required: true
+        type: string
+      - description: import stack request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_openinfradev_tks-api_pkg_domain.ImportStackResponse'
+      security:
+      - JWT: []
+      summary: Import Stack
       tags:
       - Stacks
   /organizations/{organizationId}/stacks/name/{name}/existence:

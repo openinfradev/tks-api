@@ -56,6 +56,7 @@ const (
 	DeleteCluster
 	GetClusterSiteValues
 	InstallCluster
+	ResumeCluster
 	CreateBootstrapKubeconfig
 	GetBootstrapKubeconfig
 	GetNodes
@@ -110,6 +111,7 @@ const (
 	GetOrganizationStackTemplate
 	AddOrganizationStackTemplates
 	RemoveOrganizationStackTemplates
+	GetOrganizationCloudServices
 
 	// Dashboard
 	CreateDashboard
@@ -164,6 +166,7 @@ const (
 	// Stack
 	GetStacks           // 스택관리/조회
 	CreateStack         // 스택관리/생성
+	ImportStack         // 스택관리/생성
 	CheckStackName      // 스택관리/조회
 	GetStack            // 스택관리/조회
 	UpdateStack         // 스택관리/수정
@@ -172,7 +175,7 @@ const (
 	GetStackStatus      // 스택관리/조회
 	SetFavoriteStack    // 스택관리/조회
 	DeleteFavoriteStack // 스택관리/조회
-	InstallStack        // 스택관리 / 조회
+	InstallStack        // 스택관리/조회
 
 	// Project
 	CreateProject           // 프로젝트 관리/프로젝트/생성

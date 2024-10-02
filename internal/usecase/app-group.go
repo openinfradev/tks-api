@@ -80,9 +80,8 @@ func (u *AppGroupUsecase) Create(ctx context.Context, dto model.AppGroup) (id do
 
 	// check cloudAccount
 	tksCloudAccountId := ""
-	//tksObjectStore := "minio"		// FOR TEST
-	tksObjectStore := "s3"
-	if cluster.CloudService != domain.CloudService_BYOH {
+	tksObjectStore := "minio"
+	if cluster.CloudService == domain.CloudService_AWS {
 		tksObjectStore = "s3"
 		cloudAccounts, err := u.cloudAccountRepo.Fetch(ctx, cluster.OrganizationId, nil)
 		if err != nil {
@@ -181,9 +180,8 @@ func (u *AppGroupUsecase) Delete(ctx context.Context, id domain.AppGroupId) (err
 
 	// check cloudAccount
 	tksCloudAccountId := ""
-	//tksObjectStore := "minio"		// FOR TEST
-	tksObjectStore := "s3"
-	if cluster.CloudService != domain.CloudService_BYOH {
+	tksObjectStore := "minio"
+	if cluster.CloudService == domain.CloudService_AWS {
 		tksObjectStore = "s3"
 		cloudAccounts, err := u.cloudAccountRepo.Fetch(ctx, cluster.OrganizationId, nil)
 		if err != nil {

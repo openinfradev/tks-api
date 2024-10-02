@@ -150,6 +150,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/bootstrap-kubeconfig", customMiddleware.Handle(internalApi.CreateBootstrapKubeconfig, http.HandlerFunc(clusterHandler.CreateBootstrapKubeconfig))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/bootstrap-kubeconfig", customMiddleware.Handle(internalApi.GetBootstrapKubeconfig, http.HandlerFunc(clusterHandler.GetBootstrapKubeconfig))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/nodes", customMiddleware.Handle(internalApi.GetNodes, http.HandlerFunc(clusterHandler.GetNodes))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/clusters/{clusterId}/resume", customMiddleware.Handle(internalApi.ResumeCluster, http.HandlerFunc(clusterHandler.ResumeCluster))).Methods(http.MethodPut)
 
 	appGroupHandler := delivery.NewAppGroupHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/app-groups", customMiddleware.Handle(internalApi.CreateAppgroup, http.HandlerFunc(appGroupHandler.CreateAppGroup))).Methods(http.MethodPost)
@@ -197,6 +198,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_UpdateStackTemplate, http.HandlerFunc(stackTemplateHandler.UpdateStackTemplate))).Methods(http.MethodPut)
 	r.Handle(API_PREFIX+API_VERSION+ADMINAPI_PREFIX+"/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.Admin_DeleteStackTemplate, http.HandlerFunc(stackTemplateHandler.DeleteStackTemplate))).Methods(http.MethodDelete)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates", customMiddleware.Handle(internalApi.GetOrganizationStackTemplates, http.HandlerFunc(stackTemplateHandler.GetOrganizationStackTemplates))).Methods(http.MethodGet)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates/cloud-services", customMiddleware.Handle(internalApi.GetOrganizationCloudServices, http.HandlerFunc(stackTemplateHandler.GetOrganizationCloudServices))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates/{stackTemplateId}", customMiddleware.Handle(internalApi.GetOrganizationStackTemplate, http.HandlerFunc(stackTemplateHandler.GetOrganizationStackTemplate))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates", customMiddleware.Handle(internalApi.AddOrganizationStackTemplates, http.HandlerFunc(stackTemplateHandler.AddOrganizationStackTemplates))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stack-templates", customMiddleware.Handle(internalApi.RemoveOrganizationStackTemplates, http.HandlerFunc(stackTemplateHandler.RemoveOrganizationStackTemplates))).Methods(http.MethodPut)
@@ -255,6 +257,7 @@ func SetupRouter(db *gorm.DB, argoClient argowf.ArgoClient, kc keycloak.IKeycloa
 	stackHandler := delivery.NewStackHandler(usecaseFactory)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.GetStacks, http.HandlerFunc(stackHandler.GetStacks))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks", customMiddleware.Handle(internalApi.CreateStack, http.HandlerFunc(stackHandler.CreateStack))).Methods(http.MethodPost)
+	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/import", customMiddleware.Handle(internalApi.ImportStack, http.HandlerFunc(stackHandler.ImportStack))).Methods(http.MethodPost)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/name/{name}/existence", customMiddleware.Handle(internalApi.CheckStackName, http.HandlerFunc(stackHandler.CheckStackName))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", customMiddleware.Handle(internalApi.GetStack, http.HandlerFunc(stackHandler.GetStack))).Methods(http.MethodGet)
 	r.Handle(API_PREFIX+API_VERSION+"/organizations/{organizationId}/stacks/{stackId}", customMiddleware.Handle(internalApi.UpdateStack, http.HandlerFunc(stackHandler.UpdateStack))).Methods(http.MethodPut)

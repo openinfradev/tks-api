@@ -69,6 +69,7 @@ func migrateSchema(db *gorm.DB) error {
 		&model.User{},
 		&model.Cluster{},
 		&model.ClusterFavorite{},
+		&model.ClusterDomain{},
 		&model.AppGroup{},
 		&model.Application{},
 		&model.AppServeApp{},

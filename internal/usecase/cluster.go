@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Nerzal/gocloak/v13"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 
 	"github.com/google/uuid"
@@ -40,6 +39,7 @@ type IClusterUsecase interface {
 	Import(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
 	Bootstrap(ctx context.Context, dto model.Cluster) (clusterId domain.ClusterId, err error)
 	Install(ctx context.Context, clusterId domain.ClusterId) (err error)
+	Resume(ctx context.Context, clusterId domain.ClusterId) (err error)
 	Get(ctx context.Context, clusterId domain.ClusterId) (out model.Cluster, err error)
 	GetClusterSiteValues(ctx context.Context, clusterId domain.ClusterId) (out domain.ClusterSiteValuesResponse, err error)
 	Delete(ctx context.Context, clusterId domain.ClusterId) (err error)
@@ -247,12 +247,24 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 		dto.ID = "tks-admin"
 		dto.Name = "tks-admin"
 	}
+
+	// [TODO] check nodes
+	dto.TksCpNode = 1
+	dto.TksCpNodeMax = 1
+	dto.TksInfraNode = 1
+	dto.TksInfraNodeMax = 1
+	dto.TksUserNode = 1
+	dto.TksUserNodeMax = 1
+
 	clusterId, err = u.repo.Create(ctx, dto)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to create cluster")
 	}
 
-	kubeconfigBase64 := base64.StdEncoding.EncodeToString([]byte(dto.Kubeconfig))
+	_, err = base64.StdEncoding.DecodeString(dto.Kubeconfig)
+	if err != nil {
+		return "", httpErrors.NewBadRequestError(fmt.Errorf("Invalid kubeconfig string"), "", "")
+	}
 
 	workflowId, err := u.argo.SumbitWorkflowFromWftpl(
 		ctx,
@@ -262,8 +274,9 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 				fmt.Sprintf("tks_api_url=%s", viper.GetString("external-address")),
 				"contract_id=" + dto.OrganizationId,
 				"cluster_id=" + clusterId.String(),
+				"site_name=" + clusterId.String(),
 				"template_name=" + stackTemplate.Template,
-				"kubeconfig=" + kubeconfigBase64,
+				"kubeconfig=" + dto.Kubeconfig,
 				"git_account=" + viper.GetString("git-account"),
 				"keycloak_url=" + strings.TrimSuffix(viper.GetString("keycloak-address"), "/auth"),
 				"base_repo_branch=" + viper.GetString("revision"),
@@ -277,56 +290,6 @@ func (u *ClusterUsecase) Import(ctx context.Context, dto model.Cluster) (cluster
 
 	if err := u.repo.InitWorkflow(ctx, clusterId, workflowId, domain.ClusterStatus_INSTALLING); err != nil {
 		return "", errors.Wrap(err, "Failed to initialize status")
-	}
-
-	// keycloak setting
-	log.Debugf(ctx, "Create keycloak client for %s", dto.ID)
-	// Create keycloak client
-	clientUUID, err := u.kc.CreateClient(ctx, dto.OrganizationId, dto.ID.String()+"-k8s-api", "", nil)
-	if err != nil {
-		log.Errorf(ctx, "Failed to create keycloak client for %s", dto.ID)
-		return "", err
-	}
-	// Create keycloak client protocol mapper
-	_, err = u.kc.CreateClientProtocolMapper(ctx, dto.OrganizationId, clientUUID, gocloak.ProtocolMapperRepresentation{
-		Name:            gocloak.StringP("k8s-role-mapper"),
-		Protocol:        gocloak.StringP("openid-connect"),
-		ProtocolMapper:  gocloak.StringP("oidc-usermodel-client-role-mapper"),
-		ConsentRequired: gocloak.BoolP(false),
-		Config: &map[string]string{
-			"usermodel.clientRoleMapping.clientId": dto.ID.String() + "-k8s-api",
-			"claim.name":                           "groups",
-			"access.token.claim":                   "false",
-			"id.token.claim":                       "true",
-			"userinfo.token.claim":                 "true",
-			"multivalued":                          "true",
-			"jsonType.label":                       "String",
-		},
-	})
-	if err != nil {
-		log.Errorf(ctx, "Failed to create keycloak client protocol mapper for %s", dto.ID)
-		return "", err
-	}
-	// Create keycloak client role
-	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-create")
-	if err != nil {
-		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-create", dto.ID)
-		return "", err
-	}
-	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-read")
-	if err != nil {
-		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-read", dto.ID)
-		return "", err
-	}
-	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-update")
-	if err != nil {
-		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-update", dto.ID)
-		return "", err
-	}
-	err = u.kc.CreateClientRole(ctx, dto.OrganizationId, clientUUID, "cluster-admin-delete")
-	if err != nil {
-		log.Errorf(ctx, "Failed to create keycloak client role named %s for %s", "cluster-admin-delete", dto.ID)
-		return "", err
 	}
 
 	return clusterId, nil
@@ -416,6 +379,7 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 				"cloud_account_id=NULL",
 				"base_repo_branch=" + viper.GetString("revision"),
 				"keycloak_url=" + viper.GetString("keycloak-address"),
+				"policy_ids=",
 				//"manifest_repo_url=" + viper.GetString("git-base-url") + "/" + viper.GetString("git-account") + "/" + clusterId + "-manifests",
 			},
 		})
@@ -429,6 +393,29 @@ func (u *ClusterUsecase) Install(ctx context.Context, clusterId domain.ClusterId
 		return errors.Wrap(err, "Failed to initialize status")
 	}
 
+	return nil
+}
+
+func (u *ClusterUsecase) Resume(ctx context.Context, clusterId domain.ClusterId) (err error) {
+	cluster, err := u.Get(ctx, clusterId)
+	if err != nil {
+		return httpErrors.NewBadRequestError(fmt.Errorf("Invalid stackId"), "S_INVALID_STACK_ID", "")
+	}
+
+	if cluster.WorkflowId == "" {
+		return httpErrors.NewInternalServerError(fmt.Errorf("Invalid workflow id"), "", "")
+	}
+
+	workflow, err := u.argo.ResumeWorkflow(ctx, "argo", cluster.WorkflowId)
+	if err != nil {
+		log.Error(ctx, err)
+		return httpErrors.NewInternalServerError(err, "S_FAILED_TO_CALL_WORKFLOW", "")
+	}
+	log.Debug(ctx, "Resume workflow: ", workflow)
+
+	if err := u.repo.InitWorkflow(ctx, cluster.ID, cluster.WorkflowId, domain.ClusterStatus_INSTALLING); err != nil {
+		return errors.Wrap(err, "Failed to initialize status")
+	}
 	return nil
 }
 
@@ -465,7 +452,7 @@ func (u *ClusterUsecase) Delete(ctx context.Context, clusterId domain.ClusterId)
 	// FOR TEST. ADD MAGIC KEYWORD
 	// check cloudAccount
 	tksCloudAccountId := "NULL"
-	if cluster.CloudService != domain.CloudService_BYOH {
+	if cluster.CloudService == domain.CloudService_AWS {
 		cloudAccount, err := u.cloudAccountRepo.Get(ctx, cluster.CloudAccount.ID)
 		if err != nil {
 			return httpErrors.NewInternalServerError(fmt.Errorf("Failed to get cloudAccount"), "", "")
@@ -514,6 +501,12 @@ func (u *ClusterUsecase) GetClusterSiteValues(ctx context.Context, clusterId dom
 
 	if err := serializer.Map(ctx, cluster, &out); err != nil {
 		log.Error(ctx, err)
+	}
+	out.Domains = make([]domain.ClusterDomain, len(cluster.Domains))
+	for i, domain := range cluster.Domains {
+		if err = serializer.Map(ctx, domain, &out.Domains[i]); err != nil {
+			log.Info(ctx, err)
+		}
 	}
 
 	if cluster.StackTemplate.CloudService == "AWS" && cluster.StackTemplate.KubeType == "AWS" {
