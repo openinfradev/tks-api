@@ -2,6 +2,7 @@ package mail
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"embed"
 	"errors"
@@ -27,12 +28,12 @@ var (
 )
 
 type Mailer interface {
-	SendMail() error
+	SendMail(ctx context.Context) error
 }
 
 type MessageInfo struct {
 	From    string
-	To      string
+	To      []string
 	Subject string
 	Body    string
 }
@@ -47,22 +48,25 @@ type SmtpMailer struct {
 	message *MessageInfo
 }
 
-func (s *SmtpMailer) SendMail() error {
+func (s *SmtpMailer) SendMail(ctx context.Context) error {
 	s.client.SetHeader("From", s.message.From)
-	s.client.SetHeader("To", s.message.To)
 	s.client.SetHeader("Subject", s.message.Subject)
 	s.client.SetBody("text/html", s.message.Body)
-
 	d := NewDialer(s.Host, s.Port, s.Username, s.Password)
-	if err := d.DialAndSend(s.client); err != nil {
-		log.Errorf("failed to send email, %v", err)
-		return err
+
+	for _, to := range s.message.To {
+		s.client.SetHeader("To", to)
+
+		if err := d.DialAndSend(s.client); err != nil {
+			log.Errorf(ctx, "failed to send email, %v", err)
+			continue
+		}
 	}
 
 	return nil
 }
 
-func Initialize() error {
+func Initialize(ctx context.Context) error {
 	mailProvider = viper.GetString("mail-provider")
 	if mailProvider != "smtp" {
 		mailProvider = "aws"
@@ -70,8 +74,8 @@ func Initialize() error {
 
 	switch mailProvider {
 	case "aws":
-		if err := initialize(); err != nil {
-			log.Errorf("aws config initialize error, %v", err)
+		if err := initialize(ctx); err != nil {
+			log.Errorf(ctx, "aws config initialize error, %v", err)
 			return err
 		}
 		from = "tks-dev@sktelecom.com"
@@ -83,23 +87,23 @@ func Initialize() error {
 		from = viper.GetString("smtp-from-email")
 
 		if host == "" {
-			log.Error("smtp-host is not set")
+			log.Error(ctx, "smtp-host is not set")
 			return fmt.Errorf("smtp-host is not set")
 		}
 		if port == 0 {
-			log.Error("smtp-port is not set")
+			log.Error(ctx, "smtp-port is not set")
 			return fmt.Errorf("smtp-port is not set")
 		}
 		if username == "" {
-			log.Error("smtp-username is not set")
+			log.Error(ctx, "smtp-username is not set")
 			return fmt.Errorf("smtp-username is not set")
 		}
 		if password == "" {
-			log.Error("smtp-password is not set")
+			log.Error(ctx, "smtp-password is not set")
 			return fmt.Errorf("smtp-password is not set")
 		}
 		if from == "" {
-			log.Error("smtp-from-email is not set")
+			log.Error(ctx, "smtp-from-email is not set")
 			return fmt.Errorf("smtp-from-email is not set")
 		}
 
@@ -115,11 +119,11 @@ func New(m *MessageInfo) Mailer {
 	switch mailProvider {
 	case "aws":
 		mailer = NewAwsMailer(m)
-		log.Infof("aws ses mailer, %v", mailer)
+		log.Infof(context.TODO(), "aws ses mailer, %v", mailer)
 
 	case "smtp":
 		mailer = NewSmtpMailer(m)
-		log.Infof("smtp mailer, %v", mailer)
+		log.Infof(context.TODO(), "smtp mailer, %v", mailer)
 	}
 
 	return mailer

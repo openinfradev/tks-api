@@ -48,24 +48,34 @@ func (m OrganizationStatus) FromString(s string) OrganizationStatus {
 	return OrganizationStatus_ERROR
 }
 
-type Organization = struct {
-	ID               string             `json:"id"`
-	Name             string             `json:"name"`
-	Description      string             `json:"description"`
-	Phone            string             `json:"phone"`
-	PrimaryClusterId string             `json:"primaryClusterId"`
-	Status           OrganizationStatus `json:"status"`
-	StatusDesc       string             `json:"statusDesc"`
-	Creator          string             `json:"creator"`
-	CreatedAt        time.Time          `json:"createdAt"`
-	UpdatedAt        time.Time          `json:"updatedAt"`
+type OrganizationResponse struct {
+	ID                          string                                     `json:"id"`
+	Name                        string                                     `json:"name"`
+	Description                 string                                     `json:"description"`
+	PrimaryClusterId            string                                     `json:"primaryClusterId"`
+	Status                      string                                     `json:"status"`
+	StatusDesc                  string                                     `json:"statusDesc"`
+	StackTemplates              []SimpleStackTemplateResponse              `json:"stackTemplates"`
+	PolicyTemplates             []SimplePolicyTemplateResponse             `json:"policyTemplates"`
+	SystemNotificationTemplates []SimpleSystemNotificationTemplateResponse `json:"systemNotificationTemplates"`
+	Admin                       SimpleUserResponse                         `json:"admin"`
+	ClusterCount                int                                        `json:"stackCount"`
+	CreatedAt                   time.Time                                  `json:"createdAt"`
+	UpdatedAt                   time.Time                                  `json:"updatedAt"`
+}
+
+type SimpleOrganizationResponse = struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type CreateOrganizationRequest struct {
-	Name        string `json:"name" validate:"required,name"`
-	Description string `json:"description" validate:"omitempty,min=0,max=100"`
-	Phone       string `json:"phone"`
-	Email       string `json:"Email" validate:"required,email"`
+	Name           string `json:"name" validate:"required,name"`
+	Description    string `json:"description" validate:"omitempty,min=0,max=100"`
+	AdminAccountId string `json:"adminAccountId" validate:"required,min=0,max=20,alphanum"`
+	AdminName      string `json:"adminName" validate:"name"`
+	AdminEmail     string `json:"adminEmail" validate:"required,email"`
 }
 
 type CreateOrganizationResponse struct {
@@ -73,48 +83,33 @@ type CreateOrganizationResponse struct {
 }
 
 type GetOrganizationResponse struct {
-	Organization struct {
-		ID               string    `json:"id"`
-		Name             string    `json:"name"`
-		Description      string    `json:"description"`
-		Phone            string    `json:"phone"`
-		PrimaryClusterId string    `json:"primaryClusterId"`
-		Status           string    `json:"status"`
-		StatusDesc       string    `json:"statusDesc"`
-		Creator          string    `json:"creator"`
-		CreatedAt        time.Time `json:"createdAt"`
-		UpdatedAt        time.Time `json:"updatedAt"`
-	} `json:"organization"`
+	Organization OrganizationResponse `json:"organization"`
 }
 type ListOrganizationResponse struct {
-	Organizations []ListOrganizationBody `json:"organizations"`
+	Organizations []OrganizationResponse `json:"organizations"`
 	Pagination    PaginationResponse     `json:"pagination"`
-}
-type ListOrganizationBody struct {
-	ID               string    `json:"id"`
-	Name             string    `json:"name"`
-	Description      string    `json:"description"`
-	Phone            string    `json:"phone"`
-	PrimaryClusterId string    `json:"primaryClusterId"`
-	Status           string    `json:"status"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
 type UpdateOrganizationRequest struct {
-	PrimaryClusterId string `json:"primaryClusterId"`
-	Name             string `json:"name" validate:"required,min=1,max=30"`
-	Description      string `json:"description" validate:"omitempty,min=0,max=100"`
-	Phone            string `json:"phone"`
+	Name           string `json:"name" validate:"required,min=1,max=30"`
+	Description    string `json:"description" validate:"omitempty,min=0,max=100"`
+	AdminAccountId string `json:"adminAccountId"`
 }
 
 type UpdateOrganizationResponse struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Phone       string `json:"phone"`
+	ID string `json:"id"`
 }
 
 type UpdatePrimaryClusterRequest struct {
 	PrimaryClusterId string `json:"primaryClusterId"`
+}
+
+type UpdateOrganizationTemplatesRequest struct {
+	StackTemplateIds              *[]string `json:"stackTemplateIds,omitempty"`
+	PolicyTemplateIds             *[]string `json:"policyTemplateIds,omitempty"`
+	SystemNotificationTemplateIds *[]string `json:"systemNotificationTemplateIds,omitempty"`
+}
+
+type DeleteOrganizationResponse struct {
+	ID string `json:"id"`
 }

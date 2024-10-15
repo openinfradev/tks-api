@@ -1,6 +1,7 @@
 package argowf
 
 import (
+	"context"
 	"net/http"
 	"time"
 )
@@ -23,22 +24,30 @@ func NewMock() (ArgoClient, error) {
 	}, nil
 }
 
-func (c *ArgoClientMockImpl) GetWorkflowTemplates(namespace string) (*GetWorkflowTemplatesResponse, error) {
+func (c *ArgoClientMockImpl) GetWorkflowTemplates(ctx context.Context, namespace string) (*GetWorkflowTemplatesResponse, error) {
 	return nil, nil
 }
 
-func (c *ArgoClientMockImpl) GetWorkflow(namespace string, workflowName string) (*Workflow, error) {
+func (c *ArgoClientMockImpl) GetWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error) {
 	return nil, nil
 }
 
-func (c *ArgoClientMockImpl) GetWorkflowLog(namespace string, container string, workflowName string) (string, error) {
+func (c *ArgoClientMockImpl) IsPausedWorkflow(ctx context.Context, namespace string, workflowName string) (bool, error) {
+	return false, nil
+}
+
+func (c *ArgoClientMockImpl) GetWorkflowLog(ctx context.Context, namespace string, container string, workflowName string) (string, error) {
 	return "", nil
 }
 
-func (c *ArgoClientMockImpl) GetWorkflows(namespace string) (*GetWorkflowsResponse, error) {
+func (c *ArgoClientMockImpl) GetWorkflows(ctx context.Context, namespace string) (*GetWorkflowsResponse, error) {
 	return nil, nil
 }
 
-func (c *ArgoClientMockImpl) SumbitWorkflowFromWftpl(wftplName string, opts SubmitOptions) (string, error) {
+func (c *ArgoClientMockImpl) SumbitWorkflowFromWftpl(ctx context.Context, wftplName string, opts SubmitOptions) (string, error) {
 	return "", nil
+}
+
+func (c *ArgoClientMockImpl) ResumeWorkflow(ctx context.Context, namespace string, workflowName string) (*Workflow, error) {
+	return nil, nil
 }

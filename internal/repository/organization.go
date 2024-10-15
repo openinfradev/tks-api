@@ -1,26 +1,35 @@
 package repository
 
 import (
+	"context"
 	"fmt"
-	"math"
 
 	"github.com/google/uuid"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
-	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/pkg/domain"
 	"github.com/openinfradev/tks-api/pkg/log"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Interfaces
 type IOrganizationRepository interface {
-	Create(organizationId string, name string, creator uuid.UUID, phone string, description string) (domain.Organization, error)
-	Fetch(pg *pagination.Pagination) (res *[]domain.Organization, err error)
-	Get(organizationId string) (res domain.Organization, err error)
-	Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error)
-	UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error
-	Delete(organizationId string) (err error)
-	InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error
+	Create(ctx context.Context, dto *model.Organization) (model.Organization, error)
+	Fetch(ctx context.Context, pg *pagination.Pagination) (res *[]model.Organization, err error)
+	Get(ctx context.Context, organizationId string) (res model.Organization, err error)
+	Update(ctx context.Context, organizationId string, in model.Organization) (model.Organization, error)
+	UpdatePrimaryClusterId(ctx context.Context, organizationId string, primaryClusterId string) error
+	UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) error
+	AddStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
+	RemoveStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error)
+	AddSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
+	RemoveSystemNotificationTemplates(ctx context.Context, organizationId string, systemNotificationTemplates []model.SystemNotificationTemplate) (err error)
+	Delete(ctx context.Context, organizationId string) (err error)
+	InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error
+	AddPermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
+	UpdatePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error)
+	DeletePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplateids []uuid.UUID) (err error)
 }
 
 type OrganizationRepository struct {
@@ -33,146 +42,242 @@ func NewOrganizationRepository(db *gorm.DB) IOrganizationRepository {
 	}
 }
 
-// Models
-type Organization struct {
-	gorm.Model
-
-	ID               string `gorm:"primarykey;type:varchar(36);not null"`
-	Name             string
-	Description      string
-	Phone            string
-	WorkflowId       string
-	Status           domain.OrganizationStatus
-	StatusDesc       string
-	Creator          uuid.UUID
-	PrimaryClusterId string // allow null
-}
+//
+//// Models
+//type Organization struct {
+//	gorm.Model
+//
+//	ID               string `gorm:"primarykey;type:varchar(36);not null"`
+//	Name             string
+//	Description      string
+//	Phone            string
+//	WorkflowId       string
+//	Status           model.OrganizationStatus
+//	StatusDesc       string
+//	Creator          uuid.UUID
+//	PrimaryClusterId string // allow null
+//}
 
 //func (c *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 //	c.ID = helper.GenerateOrganizationId()
 //	return nil
 //}
 
-func (r *OrganizationRepository) Create(organizationId string, name string, creator uuid.UUID, phone string,
-	description string) (domain.Organization, error) {
-	organization := Organization{
-		ID:          organizationId,
-		Name:        name,
-		Creator:     creator,
-		Phone:       phone,
-		Description: description,
+func (r *OrganizationRepository) Create(ctx context.Context, dto *model.Organization) (model.Organization, error) {
+	organization := model.Organization{
+		ID:          dto.ID,
+		Name:        dto.Name,
+		CreatorId:   dto.CreatorId,
+		Description: dto.Description,
 		Status:      domain.OrganizationStatus_PENDING,
+		Phone:       dto.Phone,
 	}
-	res := r.db.Create(&organization)
+	res := r.db.WithContext(ctx).Create(&organization)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
+		return model.Organization{}, res.Error
 	}
 
-	return r.reflect(organization), nil
+	return organization, nil
 }
 
-func (r *OrganizationRepository) Fetch(pg *pagination.Pagination) (*[]domain.Organization, error) {
-	var organizations []Organization
-	var out []domain.Organization
+func (r *OrganizationRepository) Fetch(ctx context.Context, pg *pagination.Pagination) (out *[]model.Organization, err error) {
 	if pg == nil {
-		pg = pagination.NewDefaultPagination()
+		pg = pagination.NewPagination(nil)
 	}
 
-	filterFunc := CombinedGormFilter("organizations", pg.GetFilters(), pg.CombinedFilter)
-	db := filterFunc(r.db.Model(&Organization{}))
-	db.Count(&pg.TotalRows)
+	db := r.db.WithContext(ctx).Preload(clause.Associations).Model(&model.Organization{})
 
-	pg.TotalPages = int(math.Ceil(float64(pg.TotalRows) / float64(pg.Limit)))
-	orderQuery := fmt.Sprintf("%s %s", pg.SortColumn, pg.SortOrder)
-	res := db.Offset(pg.GetOffset()).Limit(pg.GetLimit()).Order(orderQuery).Find(&organizations)
+	// [TODO] more pretty!
+	adminQuery := ""
+	for _, filter := range pg.Filters {
+		if filter.Relation == "Admin" {
+			if adminQuery != "" {
+				adminQuery = adminQuery + " OR "
+			}
+
+			switch filter.Column {
+			case "name":
+				adminQuery = adminQuery + fmt.Sprintf("users.name ilike '%%%s%%'", filter.Values[0])
+			case "account_id":
+				adminQuery = adminQuery + fmt.Sprintf("users.account_id ilike '%%%s%%'", filter.Values[0])
+			case "email":
+				adminQuery = adminQuery + fmt.Sprintf("users.email ilike '%%%s%%'", filter.Values[0])
+			}
+		}
+	}
+	db = db.Joins("join users on users.id::text = organizations.admin_id::text").
+		Where(adminQuery)
+
+	_, res := pg.Fetch(db, &out)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-	for _, organization := range organizations {
-		outOrganization := r.reflect(organization)
-		out = append(out, outOrganization)
-	}
-	return &out, nil
+	return
 }
 
-func (r *OrganizationRepository) Get(id string) (domain.Organization, error) {
-	var organization Organization
-	res := r.db.First(&organization, "id = ?", id)
+func (r *OrganizationRepository) Get(ctx context.Context, id string) (out model.Organization, err error) {
+	res := r.db.WithContext(ctx).Preload(clause.Associations).
+		First(&out, "id = ?", id)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
+		return model.Organization{}, res.Error
 	}
-
-	return r.reflect(organization), nil
+	return
 }
 
-func (r *OrganizationRepository) Update(organizationId string, in domain.UpdateOrganizationRequest) (domain.Organization, error) {
-	var organization Organization
-	res := r.db.Model(&Organization{}).
+func (r *OrganizationRepository) Update(ctx context.Context, organizationId string, in model.Organization) (out model.Organization, err error) {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"name":        in.Name,
 			"description": in.Description,
-			"phone":       in.Phone,
 		})
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
+		return model.Organization{}, res.Error
 	}
-	res = r.db.Model(&Organization{}).Where("id = ?", organizationId).Find(&organization)
+	res = r.db.Model(&model.Organization{}).Where("id = ?", organizationId).Find(&out)
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
-		return domain.Organization{}, res.Error
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
+		return model.Organization{}, res.Error
 	}
-
-	return r.reflect(organization), nil
+	return
 }
 
-func (r *OrganizationRepository) UpdatePrimaryClusterId(organizationId string, primaryClusterId string) error {
-	res := r.db.Model(&Organization{}).
+func (r *OrganizationRepository) UpdatePrimaryClusterId(ctx context.Context, organizationId string, primaryClusterId string) error {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("id = ?", organizationId).
 		Updates(map[string]interface{}{
 			"primary_cluster_id": primaryClusterId,
 		})
 
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
 }
 
-func (r *OrganizationRepository) Delete(organizationId string) error {
-	res := r.db.Delete(&Organization{}, "id = ?", organizationId)
+func (r *OrganizationRepository) UpdateAdminId(ctx context.Context, organizationId string, adminId uuid.UUID) (err error) {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
+		Where("id = ?", organizationId).
+		Updates(map[string]interface{}{
+			"admin_id": adminId,
+		})
+
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
+		return res.Error
+	}
+	return nil
+}
+
+func (r *OrganizationRepository) Delete(ctx context.Context, organizationId string) error {
+	res := r.db.WithContext(ctx).Delete(&model.Organization{}, "id = ?", organizationId)
+	if res.Error != nil {
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 
 	return nil
 }
 
-func (r *OrganizationRepository) InitWorkflow(organizationId string, workflowId string, status domain.OrganizationStatus) error {
-	res := r.db.Model(&Organization{}).
+func (r *OrganizationRepository) InitWorkflow(ctx context.Context, organizationId string, workflowId string, status domain.OrganizationStatus) error {
+	res := r.db.WithContext(ctx).Model(&model.Organization{}).
 		Where("ID = ?", organizationId).
 		Updates(map[string]interface{}{"Status": status, "WorkflowId": workflowId})
 	if res.Error != nil {
-		log.Errorf("error is :%s(%T)", res.Error.Error(), res.Error)
+		log.Errorf(ctx, "error is :%s(%T)", res.Error.Error(), res.Error)
 		return res.Error
 	}
 	return nil
 }
 
-func (r *OrganizationRepository) reflect(organization Organization) (out domain.Organization) {
-	if err := serializer.Map(organization.Model, &out); err != nil {
-		log.Error(err)
+func (r *OrganizationRepository) AddStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("StackTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
 	}
-	if err := serializer.Map(organization, &out); err != nil {
-		log.Error(err)
-	}
-	out.Creator = organization.Creator.String()
-	return
 
+	err = r.db.WithContext(ctx).Model(&organization).Association("StackTemplates").Append(stackTemplates)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrganizationRepository) RemoveStackTemplates(ctx context.Context, organizationId string, stackTemplates []model.StackTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("StackTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("StackTemplates").Delete(stackTemplates)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrganizationRepository) AddSystemNotificationTemplates(ctx context.Context, organizationId string, templates []model.SystemNotificationTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("SystemNotificationTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("SystemNotificationTemplates").Append(templates)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrganizationRepository) RemoveSystemNotificationTemplates(ctx context.Context, organizationId string, templates []model.SystemNotificationTemplate) (err error) {
+	var organization = model.Organization{}
+	res := r.db.WithContext(ctx).Preload("SystemNotificationTemplates").First(&organization, "id = ?", organizationId)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	err = r.db.WithContext(ctx).Model(&organization).Association("SystemNotificationTemplates").Delete(templates)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrganizationRepository) AddPermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
+	var organization model.Organization
+	organization.ID = organizationId
+
+	err = r.db.WithContext(ctx).Model(&organization).
+		Association("PolicyTemplates").Append(policyTemplates)
+
+	return err
+}
+
+func (r *OrganizationRepository) UpdatePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplates []model.PolicyTemplate) (err error) {
+	var organization model.Organization
+	organization.ID = organizationId
+
+	err = r.db.WithContext(ctx).Model(&organization).
+		Association("PolicyTemplates").Replace(policyTemplates)
+
+	return err
+}
+
+func (r *OrganizationRepository) DeletePermittedPolicyTemplatesByID(ctx context.Context, organizationId string, policyTemplateids []uuid.UUID) (err error) {
+	return r.db.WithContext(ctx).
+		Where("organization_id = ?", organizationId).
+		Where("policy_template_id in ?", policyTemplateids).
+		Delete(&model.PolicyTemplatePermittedOrganization{}).Error
 }

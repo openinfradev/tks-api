@@ -2,17 +2,18 @@ package mail
 
 import (
 	"bytes"
+	"context"
 	"html/template"
 
 	"github.com/openinfradev/tks-api/pkg/log"
 )
 
-func MakeVerityIdentityMessage(to, code string) (*MessageInfo, error) {
+func MakeVerityIdentityMessage(ctx context.Context, to, code string) (*MessageInfo, error) {
 	subject := "[TKS] [인증번호:" + code + "] 인증번호가 발급되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/authcode.html")
 	if err != nil {
-		log.Errorf("failed to parse template, %v", err)
+		log.Errorf(ctx, "failed to parse template, %v", err)
 		return nil, err
 	}
 
@@ -20,13 +21,13 @@ func MakeVerityIdentityMessage(to, code string) (*MessageInfo, error) {
 
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {
-		log.Errorf("failed to execute template, %v", err)
+		log.Errorf(ctx, "failed to execute template, %v", err)
 		return nil, err
 	}
 
 	m := &MessageInfo{
 		From:    from,
-		To:      to,
+		To:      []string{to},
 		Subject: subject,
 		Body:    tpl.String(),
 	}
@@ -34,12 +35,12 @@ func MakeVerityIdentityMessage(to, code string) (*MessageInfo, error) {
 	return m, nil
 }
 
-func MakeTemporaryPasswordMessage(to, organizationId, accountId, randomPassword string) (*MessageInfo, error) {
+func MakeTemporaryPasswordMessage(ctx context.Context, to, organizationId, accountId, randomPassword string) (*MessageInfo, error) {
 	subject := "[TKS] 임시 비밀번호가 발급되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/temporary_password.html")
 	if err != nil {
-		log.Errorf("failed to parse template, %v", err)
+		log.Errorf(ctx, "failed to parse template, %v", err)
 		return nil, err
 	}
 
@@ -47,13 +48,13 @@ func MakeTemporaryPasswordMessage(to, organizationId, accountId, randomPassword 
 
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {
-		log.Errorf("failed to execute template, %v", err)
+		log.Errorf(ctx, "failed to execute template, %v", err)
 		return nil, err
 	}
 
 	m := &MessageInfo{
 		From:    from,
-		To:      to,
+		To:      []string{to},
 		Subject: subject,
 		Body:    tpl.String(),
 	}
@@ -62,13 +63,14 @@ func MakeTemporaryPasswordMessage(to, organizationId, accountId, randomPassword 
 }
 
 func MakeGeneratingOrganizationMessage(
+	ctx context.Context,
 	organizationId string, organizationName string,
 	to string, userAccountId string, randomPassword string) (*MessageInfo, error) {
 	subject := "[TKS] 조직이 생성되었습니다."
 
 	tmpl, err := template.ParseFS(templateFS, "contents/organization_creation.html")
 	if err != nil {
-		log.Errorf("failed to parse template, %v", err)
+		log.Errorf(ctx, "failed to parse template, %v", err)
 		return nil, err
 	}
 
@@ -82,14 +84,43 @@ func MakeGeneratingOrganizationMessage(
 
 	var tpl bytes.Buffer
 	if err := tmpl.Execute(&tpl, data); err != nil {
-		log.Errorf("failed to execute template, %v", err)
+		log.Errorf(ctx, "failed to execute template, %v", err)
+		return nil, err
+	}
+
+	m := &MessageInfo{
+		From:    from,
+		To:      []string{to},
+		Subject: subject,
+		Body:    tpl.String(),
+	}
+
+	return m, nil
+}
+
+func MakeSystemNotificationMessage(ctx context.Context, organizationId string, title string, content string, to []string) (*MessageInfo, error) {
+	tmpl, err := template.ParseFS(templateFS, "contents/system_notification.html")
+	if err != nil {
+		log.Errorf(ctx, "failed to parse template, %v", err)
+		return nil, err
+	}
+
+	data := map[string]string{
+		"OrganizationId": organizationId,
+		"Title":          title,
+		"Content":        content,
+	}
+
+	var tpl bytes.Buffer
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Errorf(ctx, "failed to execute template, %v", err)
 		return nil, err
 	}
 
 	m := &MessageInfo{
 		From:    from,
 		To:      to,
-		Subject: subject,
+		Subject: title,
 		Body:    tpl.String(),
 	}
 

@@ -2,10 +2,11 @@ package keycloak
 
 import (
 	"fmt"
+	"github.com/openinfradev/tks-api/internal/helper"
+	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"net/http"
 	"strings"
 
-	jwtWithouKey "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/middleware/auth/authenticator"
@@ -39,7 +40,7 @@ func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authentic
 	if len(token) == 0 {
 		// The space before the token case
 		if len(parts) == 3 {
-			log.Warn("the provided Authorization header contains extra space before the bearer token, and is ignored")
+			log.Warn(r.Context(), "the provided Authorization header contains extra space before the bearer token, and is ignored")
 		}
 		return nil, false, fmt.Errorf("token is empty")
 	}
@@ -48,75 +49,89 @@ func (a *keycloakAuthenticator) AuthenticateRequest(r *http.Request) (*authentic
 }
 
 func (a *keycloakAuthenticator) AuthenticateToken(r *http.Request, token string) (*authenticator.Response, bool, error) {
-	parsedToken, _, err := new(jwtWithouKey.Parser).ParseUnverified(token, jwtWithouKey.MapClaims{})
+	parsedToken, err := helper.StringToTokenWithoutVerification(token)
 	if err != nil {
-		return nil, false, err
+		return nil, false, httpErrors.NewUnauthorizedError(err, "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	if parsedToken.Method.Alg() != "RS256" {
-		return nil, false, fmt.Errorf("invalid token")
+	claims, err := helper.RetrieveClaims(parsedToken)
+	if err != nil {
+		return nil, false, httpErrors.NewUnauthorizedError(err, "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	if parsedToken.Claims.Valid() != nil {
-		return nil, false, fmt.Errorf("invalid token")
-	}
-
-	organizationId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["organization"].(string)
+	organizationId, ok := claims["organization"].(string)
 	if !ok {
-		return nil, false, fmt.Errorf("organization is not found in token")
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("organization is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	if err := a.kc.VerifyAccessToken(token, organizationId); err != nil {
-		log.Errorf("failed to verify access token: %v", err)
-		return nil, false, err
+	isActive, err := a.kc.VerifyAccessToken(r.Context(), token, organizationId)
+	if err != nil {
+		log.Errorf(r.Context(), "failed to verify access token: %v", err)
+		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
+	}
+	if !isActive {
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("token is deactivated"), "A_EXPIRED_TOKEN", "토큰이 만료되었습니다.")
 	}
 
+	// tks role extraction
+	roleOrganizationMapping := make(map[string]string)
+	if roles, ok := claims["tks-role"]; !ok {
+		log.Errorf(r.Context(), "tks-role is not found in token")
+
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("tks-role is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+	} else {
+		for _, role := range roles.([]interface{}) {
+			slice := strings.Split(role.(string), "@")
+			if len(slice) != 2 {
+				log.Errorf(r.Context(), "invalid tks-role format: %v", role)
+
+				return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid tks-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+			}
+			// key is projectName and value is roleName
+			roleOrganizationMapping[slice[1]] = slice[0]
+		}
+
+	}
+	// project role extraction
+	projectIds := make([]string, 0)
 	roleProjectMapping := make(map[string]string)
-	for _, role := range parsedToken.Claims.(jwtWithouKey.MapClaims)["tks-role"].([]interface{}) {
-		slice := strings.Split(role.(string), "@")
-		if len(slice) != 2 {
-			log.Errorf("invalid tks-role format: %v", role)
+	if roles, ok := claims["project-role"]; ok {
+		for _, role := range roles.([]interface{}) {
+			slice := strings.Split(role.(string), "@")
+			if len(slice) != 2 {
+				log.Errorf(r.Context(), "invalid project-role format: %v", role)
 
-			return nil, false, fmt.Errorf("invalid tks-role format")
+				return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("invalid project-role format"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
+			}
+			// key is projectId and value is roleName
+			roleProjectMapping[slice[1]] = slice[0]
+			projectIds = append(projectIds, slice[1])
 		}
-		// key is projectName and value is roleName
-		roleProjectMapping[slice[1]] = slice[0]
 	}
-	userId, err := uuid.Parse(parsedToken.Claims.(jwtWithouKey.MapClaims)["sub"].(string))
-	if err != nil {
-		log.Errorf("failed to verify access token: %v", err)
 
-		return nil, false, err
+	userId, err := uuid.Parse(claims["sub"].(string))
+	if err != nil {
+		log.Errorf(r.Context(), "failed to verify access token: %v", err)
+
+		return nil, false, httpErrors.NewUnauthorizedError(err, "C_INTERNAL_ERROR", "")
 	}
-	requestSessionId, ok := parsedToken.Claims.(jwtWithouKey.MapClaims)["sid"].(string)
+	requestSessionId, ok := claims["sid"].(string)
 	if !ok {
-		return nil, false, fmt.Errorf("session id is not found in token")
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("session id is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
-	sessionIds, err := a.kc.GetSessions(userId.String(), organizationId)
-	if err != nil {
-		log.Errorf("failed to get sessions: %v", err)
-
-		return nil, false, err
-	}
-	if len(*sessionIds) == 0 {
-		return nil, false, fmt.Errorf("invalid session")
-	}
-	var matched bool = false
-	for _, id := range *sessionIds {
-		if id == requestSessionId {
-			matched = true
-			break
-		}
-	}
-	if !matched {
-		return nil, false, fmt.Errorf("invalid session")
+	userAccountId, ok := claims["preferred_username"].(string)
+	if !ok {
+		return nil, false, httpErrors.NewUnauthorizedError(fmt.Errorf("preferred_username is not found in token"), "A_INVALID_TOKEN", "토큰이 유효하지 않습니다.")
 	}
 
 	userInfo := &user.DefaultInfo{
-		UserId:             userId,
-		OrganizationId:     organizationId,
-		RoleProjectMapping: roleProjectMapping,
+		UserId:                  userId,
+		AccountId:               userAccountId,
+		OrganizationId:          organizationId,
+		ProjectIds:              projectIds,
+		RoleOrganizationMapping: roleOrganizationMapping,
+		RoleProjectMapping:      roleProjectMapping,
 	}
 	//r = r.WithContext(request.WithToken(r.Context(), token))
 	*r = *(r.WithContext(request.WithToken(r.Context(), token)))

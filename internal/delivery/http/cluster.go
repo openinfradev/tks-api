@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/pagination"
 	"github.com/openinfradev/tks-api/internal/serializer"
 	"github.com/openinfradev/tks-api/internal/usecase"
@@ -18,36 +19,33 @@ type ClusterHandler struct {
 	usecase usecase.IClusterUsecase
 }
 
-func NewClusterHandler(h usecase.IClusterUsecase) *ClusterHandler {
+func NewClusterHandler(h usecase.Usecase) *ClusterHandler {
 	return &ClusterHandler{
-		usecase: h,
+		usecase: h.Cluster,
 	}
 }
 
 // GetClusters godoc
-// @Tags Clusters
-// @Summary Get clusters
-// @Description Get cluster list
-// @Accept json
-// @Produce json
-// @Param organizationId query string false "organizationId"
-// @Param limit query string false "pageSize"
-// @Param page query string false "pageNumber"
-// @Param soertColumn query string false "sortColumn"
-// @Param sortOrder query string false "sortOrder"
-// @Param filters query []string false "filters"
-// @Success 200 {object} domain.GetClustersResponse
-// @Router /clusters [get]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Get clusters
+//	@Description	Get cluster list
+//	@Accept			json
+//	@Produce		json
+//	@Param			organizationId	query		string		false	"organizationId"
+//	@Param			pageSize		query		string		false	"pageSize"
+//	@Param			pageNumber		query		string		false	"pageNumber"
+//	@Param			soertColumn		query		string		false	"sortColumn"
+//	@Param			sortOrder		query		string		false	"sortOrder"
+//	@Param			filters			query		[]string	false	"filters"
+//	@Success		200				{object}	domain.GetClustersResponse
+//	@Router			/clusters [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	urlParams := r.URL.Query()
 
 	organizationId := urlParams.Get("organizationId")
-	pg, err := pagination.NewPagination(&urlParams)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "", ""))
-		return
-	}
+	pg := pagination.NewPagination(&urlParams)
 	clusters, err := h.usecase.Fetch(r.Context(), organizationId, pg)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -57,29 +55,37 @@ func (h *ClusterHandler) GetClusters(w http.ResponseWriter, r *http.Request) {
 	var out domain.GetClustersResponse
 	out.Clusters = make([]domain.ClusterResponse, len(clusters))
 	for i, cluster := range clusters {
-		if err := serializer.Map(cluster, &out.Clusters[i]); err != nil {
-			log.InfoWithContext(r.Context(), err)
+		if err := serializer.Map(r.Context(), cluster, &out.Clusters[i]); err != nil {
+			log.Info(r.Context(), err)
 			continue
 		}
+
+		if cluster.Favorites != nil && len(*cluster.Favorites) > 0 {
+			out.Clusters[i].Favorited = true
+		} else {
+			out.Clusters[i].Favorited = false
+		}
+
 	}
 
-	if err := serializer.Map(*pg, &out.Pagination); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if out.Pagination, err = pg.Response(r.Context()); err != nil {
+		log.Info(r.Context(), err)
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetCluster godoc
-// @Tags Clusters
-// @Summary Get cluster
-// @Description Get cluster detail
-// @Accept json
-// @Produce json
-// @Param clusterId path string true "clusterId"
-// @Success 200 {object} domain.Cluster
-// @Router /clusters/{clusterId} [get]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Get cluster
+//	@Description	Get cluster detail
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.GetClusterResponse
+//	@Router			/clusters/{clusterId} [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -95,23 +101,30 @@ func (h *ClusterHandler) GetCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var out domain.GetClusterResponse
-	if err := serializer.Map(cluster, &out.Cluster); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	if err := serializer.Map(r.Context(), cluster, &out.Cluster); err != nil {
+		log.Info(r.Context(), err)
+	}
+	out.Cluster.Domains = make([]domain.ClusterDomain, len(cluster.Domains))
+	for i, domain := range cluster.Domains {
+		if err = serializer.Map(r.Context(), domain, &out.Cluster.Domains[i]); err != nil {
+			log.Info(r.Context(), err)
+		}
 	}
 
 	ResponseJSON(w, r, http.StatusOK, out)
 }
 
 // GetClusterSiteValues godoc
-// @Tags Clusters
-// @Summary Get cluster site values for creating
-// @Description Get cluster site values for creating
-// @Accept json
-// @Produce json
-// @Param clusterId path string true "clusterId"
-// @Success 200 {object} domain.ClusterSiteValuesResponse
-// @Router /clusters/{clusterId}/site-values [get]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Get cluster site values for creating
+//	@Description	Get cluster site values for creating
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.ClusterSiteValuesResponse
+//	@Router			/clusters/{clusterId}/site-values [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -133,15 +146,16 @@ func (h *ClusterHandler) GetClusterSiteValues(w http.ResponseWriter, r *http.Req
 }
 
 // CreateCluster godoc
-// @Tags Clusters
-// @Summary Create cluster
-// @Description Create cluster
-// @Accept json
-// @Produce json
-// @Param body body domain.CreateClusterRequest true "create cluster request"
-// @Success 200 {object} domain.CreateClusterResponse
-// @Router /clusters [post]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Create cluster
+//	@Description	Create cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.CreateClusterRequest	true	"create cluster request"
+//	@Success		200		{object}	domain.CreateClusterResponse
+//	@Router			/clusters [post]
+//	@Security		JWT
 func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.CreateClusterRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -150,19 +164,17 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Cluster
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	var dto model.Cluster
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
+	}
+	cId, err := uuid.Parse(input.CloudAccountId)
+	if err == nil {
+		dto.CloudAccountId = &cId
 	}
 
-	if err = serializer.Map(input, &dto.Conf); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-
-	// [TODO] set default value
 	dto.ClusterType = domain.ClusterType_USER
-	dto.Conf.SetDefault()
-	log.InfoWithContext(r.Context(), dto.Conf)
+	dto.SetDefaultConf()
 
 	//txHandle := r.Context().Value("txHandle").(*gorm.DB)
 	clusterId := domain.ClusterId("")
@@ -170,6 +182,13 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 		if dto.ByoClusterEndpointHost == "" || dto.ByoClusterEndpointPort == 0 {
 			ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid byoh cluster endpoint"), "CL_INVALID_BYOH_CLUSTER_ENDPOINT", ""))
 			return
+		}
+
+		dto.Domains = make([]model.ClusterDomain, len(input.Domains))
+		for i, domain := range input.Domains {
+			if err = serializer.Map(r.Context(), domain, &dto.Domains[i]); err != nil {
+				log.Info(r.Context(), err)
+			}
 		}
 		clusterId, err = h.usecase.Bootstrap(r.Context(), dto)
 		if err != nil {
@@ -192,15 +211,16 @@ func (h *ClusterHandler) CreateCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // ImportCluster godoc
-// @Tags Clusters
-// @Summary Import cluster
-// @Description Import cluster
-// @Accept json
-// @Produce json
-// @Param body body domain.ImportClusterRequest true "import cluster request"
-// @Success 200 {object} domain.ImportClusterResponse
-// @Router /clusters/import [post]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Import cluster
+//	@Description	Import cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		domain.ImportClusterRequest	true	"import cluster request"
+//	@Success		200		{object}	domain.ImportClusterResponse
+//	@Router			/clusters/import [post]
+//	@Security		JWT
 func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 	input := domain.ImportClusterRequest{}
 	err := UnmarshalRequestInput(r, &input)
@@ -209,18 +229,13 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto domain.Cluster
-	if err = serializer.Map(input, &dto); err != nil {
-		log.InfoWithContext(r.Context(), err)
+	var dto model.Cluster
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
 	}
+	dto.SetDefaultConf()
 
-	if err = serializer.Map(input, &dto.Conf); err != nil {
-		log.InfoWithContext(r.Context(), err)
-	}
-	dto.Conf.SetDefault()
-	log.InfoWithContext(r.Context(), dto.Conf)
-
-	dto.CloudAccountId = uuid.Nil
+	dto.CloudAccountId = nil
 	clusterId, err := h.usecase.Import(r.Context(), dto)
 	if err != nil {
 		ErrorJSON(w, r, err)
@@ -234,15 +249,16 @@ func (h *ClusterHandler) ImportCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // InstallCluster godoc
-// @Tags Clusters
-// @Summary Install cluster on tks cluster
-// @Description Install cluster on tks cluster
-// @Accept json
-// @Produce json
-// @Param clusterId path string true "clusterId"
-// @Success 200 {object} nil
-// @Router /clusters/{clusterId}/install [post]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Install cluster on tks cluster ( BYOH )
+//	@Description	Install cluster on tks cluster ( BYOH )
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	nil
+//	@Router			/clusters/{clusterId}/install [post]
+//	@Security		JWT
 func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -260,16 +276,45 @@ func (h *ClusterHandler) InstallCluster(w http.ResponseWriter, r *http.Request) 
 	ResponseJSON(w, r, http.StatusOK, nil)
 }
 
+// ResumeCluster godoc
+//
+//	@Tags			Clusters
+//	@Summary		Resume Cluster ( BYOH )
+//	@Description	Resume Cluster ( BYOH )
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	nil
+//	@Router			/clusters/{clusterId}/resume [put]
+//	@Security		JWT
+func (h *ClusterHandler) ResumeCluster(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clusterId, ok := vars["clusterId"]
+	if !ok {
+		ErrorJSON(w, r, httpErrors.NewBadRequestError(fmt.Errorf("Invalid clusterId"), "C_INVALID_CLUSTER_ID", ""))
+		return
+	}
+
+	err := h.usecase.Resume(r.Context(), domain.ClusterId(clusterId))
+	if err != nil {
+		ErrorJSON(w, r, err)
+		return
+	}
+
+	ResponseJSON(w, r, http.StatusOK, nil)
+}
+
 // DeleteCluster godoc
-// @Tags Clusters
-// @Summary Delete cluster
-// @Description Delete cluster
-// @Accept json
-// @Produce json
-// @Param clusterId path string true "clusterId"
-// @Success 200 {object} domain.Cluster
-// @Router /clusters/{clusterId} [delete]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Delete cluster
+//	@Description	Delete cluster
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	nil
+//	@Router			/clusters/{clusterId} [delete]
+//	@Security		JWT
 func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -288,14 +333,15 @@ func (h *ClusterHandler) DeleteCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateBootstrapKubeconfig godoc
-// @Tags Clusters
-// @Summary Create bootstrap kubeconfig for BYOH
-// @Description Create bootstrap kubeconfig for BYOH
-// @Accept json
-// @Produce json
-// @Success 200 {object} domain.CreateBootstrapKubeconfigResponse
-// @Router /clusters/{clusterId}/bootstrap-kubeconfig [post]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Create bootstrap kubeconfig for BYOH
+//	@Description	Create bootstrap kubeconfig for BYOH
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.CreateBootstrapKubeconfigResponse
+//	@Router			/clusters/{clusterId}/bootstrap-kubeconfig [post]
+//	@Security		JWT
 func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -316,14 +362,15 @@ func (h *ClusterHandler) CreateBootstrapKubeconfig(w http.ResponseWriter, r *htt
 }
 
 // GetBootstrapKubeconfig godoc
-// @Tags Clusters
-// @Summary Get bootstrap kubeconfig for BYOH
-// @Description Get bootstrap kubeconfig for BYOH
-// @Accept json
-// @Produce json
-// @Success 200 {object} domain.GetBootstrapKubeconfigResponse
-// @Router /clusters/{clusterId}/bootstrap-kubeconfig [get]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Get bootstrap kubeconfig for BYOH
+//	@Description	Get bootstrap kubeconfig for BYOH
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	domain.GetBootstrapKubeconfigResponse
+//	@Router			/clusters/{clusterId}/bootstrap-kubeconfig [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	clusterId, ok := vars["clusterId"]
@@ -345,15 +392,16 @@ func (h *ClusterHandler) GetBootstrapKubeconfig(w http.ResponseWriter, r *http.R
 }
 
 // GetNodes godoc
-// @Tags Clusters
-// @Summary Get nodes information for BYOH
-// @Description Get nodes information for BYOH
-// @Accept json
-// @Produce json
-// @Param clusterId path string true "clusterId"
-// @Success 200 {object} domain.GetClusterNodesResponse
-// @Router /clusters/{clusterId}/nodes [get]
-// @Security     JWT
+//
+//	@Tags			Clusters
+//	@Summary		Get nodes information for BYOH
+//	@Description	Get nodes information for BYOH
+//	@Accept			json
+//	@Produce		json
+//	@Param			clusterId	path		string	true	"clusterId"
+//	@Success		200			{object}	domain.GetClusterNodesResponse
+//	@Router			/clusters/{clusterId}/nodes [get]
+//	@Security		JWT
 func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	strId, ok := vars["clusterId"]
@@ -381,24 +429,24 @@ func (h *ClusterHandler) GetNodes(w http.ResponseWriter, r *http.Request) {
 
 func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Request) {
 	// GetKubernetesInfo godoc
-	// @Tags Clusters
-	// @Summary Get kubernetes info
-	// @Description Get kubernetes info for cluster
-	// @Accept json
-	// @Produce json
-	// @Param clusterId path string true "clusterId"
-	// @Success 200 {object} ClusterKubeInfo
-	// @Router /clusters/{clusterId}/kubeInfo [get]
+	//	@Tags			Clusters
+	//	@Summary		Get kubernetes info
+	//	@Description	Get kubernetes info for cluster
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	ClusterKubeInfo
+	//	@Router			/clusters/{clusterId}/kubeInfo [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 		}
 
 		clientset_user, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId ", clusterId)
+			log.Error(r.Context(),"Failed to get clientset for clusterId ", clusterId)
 			InternalServerError(w)
 			return
 		}
@@ -412,21 +460,21 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		if err == nil {
 			out.KubeInfo.Pods = len(pods.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get pods. err : ", err)
+			log.Error(r.Context(),"Failed to get pods. err : ", err)
 		}
 
 		nodes, err := clientset_user.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		if err == nil {
 			out.KubeInfo.Nodes = len(nodes.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get nodes. err : ", err)
+			log.Error(r.Context(),"Failed to get nodes. err : ", err)
 		}
 
 		services, err := clientset_user.CoreV1().Services("").List(context.TODO(), metav1.ListOptions{})
 		if err == nil {
 			out.KubeInfo.Services = len(services.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get services. err : ", err)
+			log.Error(r.Context(),"Failed to get services. err : ", err)
 
 		}
 
@@ -434,7 +482,7 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		if err == nil {
 			out.KubeInfo.Namespaces = len(namespaces.Items)
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get namespaces. err : ", err)
+			log.Error(r.Context(),"Failed to get namespaces. err : ", err)
 
 		}
 
@@ -442,7 +490,7 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 		if err == nil {
 			out.KubeInfo.Version = version
 		} else {
-			log.ErrorWithContext(r.Context(),"Failed to get kubernetes version. err : ", err)
+			log.Error(r.Context(),"Failed to get kubernetes version. err : ", err)
 		}
 
 		ResponseJSON(w, r, http.StatusOK, out)
@@ -451,26 +499,26 @@ func (h *ClusterHandler) GetKubernetesInfo(w http.ResponseWriter, r *http.Reques
 
 func (h *ClusterHandler) GetClusterApplications(w http.ResponseWriter, r *http.Request) {
 	// GetClusterApplications godoc
-	// @Tags Clusters
-	// @Summary Get application list
-	// @Description Get application list by clusterId
-	// @Accept json
-	// @Produce json
-	// @Param clusterId path string false "clusterId"
-	// @Success 200 {object} []ApplicationJson
-	// @Router /clusters/{clusterId}/applications [get]
+	//	@Tags			Clusters
+	//	@Summary		Get application list
+	//	@Description	Get application list by clusterId
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	false	"clusterId"
+	//	@Success		200			{object}	[]ApplicationJson
+	//	@Router			/clusters/{clusterId}/applications [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 		}
 
 		var applications = []*pb.AppGroup{}
 		res, err := appInfoClient.GetAppGroupsByClusterID(context.TODO(), &pb.IDRequest{ID: clusterId})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get appgroups err : ", err)
+			log.Error(r.Context(),"Failed to get appgroups err : ", err)
 			InternalServerError(w)
 			return
 		}
@@ -495,7 +543,7 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 		}
 
@@ -506,7 +554,7 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 
 		res, err := appInfoClient.GetAppGroupsByClusterID(context.TODO(), &pb.IDRequest{Id: clusterId})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get appgroups err : ", err)
+			log.Error(r.Context(),"Failed to get appgroups err : ", err)
 			InternalServerError(w)
 			return
 		}
@@ -523,19 +571,19 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 
 			clientset, err := h.GetClientFromClusterId(appGroup.GetClusterId())
 			if err != nil {
-				log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId", appGroup.GetClusterId())
+				log.Error(r.Context(),"Failed to get clientset for clusterId", appGroup.GetClusterId())
 				continue
 			}
 
 			pods, err := clientset.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 			if err != nil {
-				log.ErrorWithContext(r.Context(),"Failed to get pods. ", err)
+				log.Error(r.Context(),"Failed to get pods. ", err)
 				continue
 			}
 
 			services, err := clientset.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
 			if err != nil {
-				log.ErrorWithContext(r.Context(),"Failed to get service. ", err)
+				log.Error(r.Context(),"Failed to get service. ", err)
 				continue
 			}
 
@@ -598,28 +646,28 @@ func (h *ClusterHandler) GetClusterApplicationsKubeInfo(w http.ResponseWriter, r
 	*/
 }
 
-func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Request) {
-	// GetClusterKubeConfig godoc
-	// @Tags Clusters
-	// @Summary Get kubernetes kubeconfig
-	// @Description Get kubernetes kubeconfig for cluster
-	// @Accept json
-	// @Produce json
-	// @Param clusterId path string true "clusterId"
-	// @Success 200 {object} object
-	// @Router /clusters/{clusterId}/kubeconfig [get]
+func (h *ClusterHandler) GetClusterKubeconfig(w http.ResponseWriter, r *http.Request) {
+	// GetClusterKubeconfig godoc
+	//	@Tags			Clusters
+	//	@Summary		Get kubernetes kubeconfig
+	//	@Description	Get kubernetes kubeconfig for cluster
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	object
+	//	@Router			/clusters/{clusterId}/kubeconfig [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 			return
 		}
 
 		organizationId := r.Header.Get("OrganizationId")
 
-		kubeconfig, err := helper.GetKubeConfig(clusterId)
+		kubeconfig, err := helper.GetKubeconfig(clusterId)
 		if err != nil {
 			ErrorJSON(w, r, "failed to get admin cluster", http.StatusBadRequest)
 			return
@@ -639,60 +687,60 @@ func (h *ClusterHandler) GetClusterKubeConfig(w http.ResponseWriter, r *http.Req
 
 func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.Request) {
 	// GetClusterKubeResources godoc
-	// @Tags Clusters
-	// @Summary Get kubernetes resources
-	// @Description Get kubernetes resources
-	// @Accept json
-	// @Produce json
-	// @Param clusterId path string true "clusterId"
-	// @Success 200 {object} ClusterJson
-	// @Router /clusters/{clusterId}/kube-resources [get]
+	//	@Tags			Clusters
+	//	@Summary		Get kubernetes resources
+	//	@Description	Get kubernetes resources
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	ClusterJson
+	//	@Router			/clusters/{clusterId}/kube-resources [get]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "Invalid clusterId", http.StatusBadRequest)
 		}
 
 		clientset, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId", clusterId)
+			log.Error(r.Context(),"Failed to get clientset for clusterId", clusterId)
 			InternalServerError(w)
 			return
 		}
 
 		pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get pods", err)
+			log.Error(r.Context(),"Failed to get pods", err)
 			InternalServerError(w)
 			return
 		}
 
 		services, err := clientset.CoreV1().Services("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get services", err)
+			log.Error(r.Context(),"Failed to get services", err)
 			InternalServerError(w)
 			return
 		}
 
 		namespaces, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get namespaces", err)
+			log.Error(r.Context(),"Failed to get namespaces", err)
 			InternalServerError(w)
 			return
 		}
 
 		events, err := clientset.CoreV1().Events("").List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get events", err)
+			log.Error(r.Context(),"Failed to get events", err)
 			InternalServerError(w)
 			return
 		}
 
 		nodes, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get events", err)
+			log.Error(r.Context(),"Failed to get events", err)
 			InternalServerError(w)
 			return
 		}
@@ -832,25 +880,25 @@ func (h *ClusterHandler) GetClusterKubeResources(w http.ResponseWriter, r *http.
 
 func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 	// SetIstioLabel godoc
-	// @Tags Clusters
-	// @Summary Set Istio label to namespace
-	// @Description Set istio label to namespace on kubernetes
-	// @Accept json
-	// @Produce json
-	// @Param clusterId path string true "clusterId"
-	// @Success 200 {object} object
-	// @Router /clusters/{clusterId}/kube-resources/{namespace}/istio-label [post]
+	//	@Tags			Clusters
+	//	@Summary		Set Istio label to namespace
+	//	@Description	Set istio label to namespace on kubernetes
+	//	@Accept			json
+	//	@Produce		json
+	//	@Param			clusterId	path		string	true	"clusterId"
+	//	@Success		200			{object}	object
+	//	@Router			/clusters/{clusterId}/kube-resources/{namespace}/istio-label [post]
 	/*
 		vars := mux.Vars(r)
 		clusterId, ok := vars["clusterId"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get clusterId")
+			log.Error(r.Context(),"Failed to get clusterId")
 			ErrorJSON(w, r, "invalid clusterId", http.StatusBadRequest)
 			return
 		}
 		namespace, ok := vars["namespace"]
 		if !ok {
-			log.ErrorWithContext(r.Context(),"Failed to get namespace")
+			log.Error(r.Context(),"Failed to get namespace")
 			ErrorJSON(w, r, "invalid namespace", http.StatusBadRequest)
 			return
 		}
@@ -860,17 +908,17 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 			return
 		}
 		err = json.Unmarshal(body, &input)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 			ErrorJSON(w, r, "invalid json", http.StatusBadRequest)
 			return
 		}
 
-		log.InfoWithContext(r.Context(),input)
+		log.Info(r.Context(),input)
 
 		if input.Value != "enabled" && input.Value != "disabled" {
 			ErrorJSON(w, r, "invalid value", http.StatusBadRequest)
@@ -881,7 +929,7 @@ func (h *ClusterHandler) SetIstioLabel(w http.ResponseWriter, r *http.Request) {
 
 		clientset, err := h.GetClientFromClusterId(clusterId)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),"Failed to get clientset for clusterId", clusterId)
+			log.Error(r.Context(),"Failed to get clientset for clusterId", clusterId)
 			InternalServerError(w)
 			return
 		}

@@ -2,8 +2,6 @@ package domain
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 const CLOUD_ACCOUNT_INCLUSTER = "INCLUSTER"
@@ -14,6 +12,7 @@ const (
 	CloudService_AZURE     = "AZZURE"
 	CloudService_GCP       = "GCP"
 	CloudService_BYOH      = "BYOH"
+	CloudService_BYOK      = "BYOK"
 )
 
 // enum
@@ -47,30 +46,6 @@ func (m CloudAccountStatus) FromString(s string) CloudAccountStatus {
 		}
 	}
 	return CloudAccountStatus_PENDING
-}
-
-// 내부
-type CloudAccount struct {
-	ID              uuid.UUID
-	OrganizationId  string
-	Name            string
-	Description     string
-	CloudService    string
-	Resource        string
-	Clusters        int
-	AwsAccountId    string
-	AccessKeyId     string
-	SecretAccessKey string
-	SessionToken    string
-	Status          CloudAccountStatus
-	StatusDesc      string
-	CreatedIAM      bool
-	CreatorId       uuid.UUID
-	Creator         User
-	UpdatorId       uuid.UUID
-	Updator         User
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
 }
 
 type ResourceQuotaAttr struct {
@@ -156,4 +131,9 @@ type CheckCloudAccountAwsAccountIdResponse struct {
 type GetCloudAccountResourceQuotaResponse struct {
 	Available     bool          `json:"available"`
 	ResourceQuota ResourceQuota `json:"resourceQuota"`
+}
+
+type DeleteCloudAccountResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }

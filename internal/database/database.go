@@ -1,17 +1,23 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/openinfradev/tks-api/internal/pagination"
+
+	"github.com/openinfradev/tks-api/internal/delivery/api"
+
+	internal_gorm "github.com/openinfradev/tks-api/internal/gorm"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	"github.com/openinfradev/tks-api/internal/model"
 	"github.com/openinfradev/tks-api/internal/repository"
-	"github.com/openinfradev/tks-api/pkg/domain"
 )
 
 func InitDB() (*gorm.DB, error) {
@@ -35,9 +41,10 @@ func InitDB() (*gorm.DB, error) {
 	default:
 		level = logger.Silent
 	}
+	newLogger := internal_gorm.NewGormLogger().LogMode(level)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(level),
+		Logger: newLogger,
 	})
 	if err != nil {
 		return nil, err
@@ -53,65 +60,87 @@ func InitDB() (*gorm.DB, error) {
 }
 
 func migrateSchema(db *gorm.DB) error {
-	// Auth
-	if err := db.AutoMigrate(&repository.CacheEmailCode{}); err != nil {
+	if err := db.AutoMigrate(&model.CacheEmailCode{},
+		&model.ExpiredTokenTime{},
+		&model.Role{},
+		&model.CloudAccount{},
+		&model.StackTemplate{},
+		&model.Organization{},
+		&model.User{},
+		&model.Cluster{},
+		&model.ClusterFavorite{},
+		&model.ClusterDomain{},
+		&model.AppGroup{},
+		&model.Application{},
+		&model.AppServeApp{},
+		&model.AppServeAppTask{},
+		&model.SystemNotification{},
+		&model.SystemNotificationAction{},
+		&model.SystemNotificationMetricParameter{},
+		&model.SystemNotificationTemplate{},
+		&model.SystemNotificationRule{},
+		&model.SystemNotificationCondition{},
+		&model.Permission{},
+		&model.Endpoint{},
+		&model.Project{},
+		&model.ProjectMember{},
+		&model.ProjectNamespace{},
+		&model.ProjectRole{},
+		&model.Audit{},
+		&model.PolicyTemplateSupportedVersion{},
+		&model.PolicyTemplate{},
+		&model.Policy{},
+		&model.Dashboard{},
+	); err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&repository.User{}); err != nil {
-		return err
+	return nil
+}
+
+func EnsureDefaultRows(db *gorm.DB) error {
+	// Create default rows
+	repoFactory := repository.Repository{
+		Auth:                       repository.NewAuthRepository(db),
+		User:                       repository.NewUserRepository(db),
+		Cluster:                    repository.NewClusterRepository(db),
+		Organization:               repository.NewOrganizationRepository(db),
+		AppGroup:                   repository.NewAppGroupRepository(db),
+		AppServeApp:                repository.NewAppServeAppRepository(db),
+		CloudAccount:               repository.NewCloudAccountRepository(db),
+		StackTemplate:              repository.NewStackTemplateRepository(db),
+		SystemNotification:         repository.NewSystemNotificationRepository(db),
+		SystemNotificationRule:     repository.NewSystemNotificationRuleRepository(db),
+		SystemNotificationTemplate: repository.NewSystemNotificationTemplateRepository(db),
+		Role:                       repository.NewRoleRepository(db),
+		Permission:                 repository.NewPermissionRepository(db),
+		Endpoint:                   repository.NewEndpointRepository(db),
+		Project:                    repository.NewProjectRepository(db),
+		Dashboard:                  repository.NewDashboardRepository(db),
 	}
-	if err := db.AutoMigrate(&repository.Role{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.Policy{}); err != nil {
+
+	//
+
+	ctx := context.Background()
+	pg := pagination.NewPagination(nil)
+	pg.Limit = 1000
+	eps, err := repoFactory.Endpoint.List(ctx, pg)
+	if err != nil {
 		return err
 	}
 
-	// Organization
-	if err := db.AutoMigrate(&repository.Organization{}); err != nil {
-		return err
+	var storedEps = make(map[string]struct{})
+	for _, ep := range eps {
+		storedEps[ep.Name] = struct{}{}
 	}
-
-	// CloudAccount
-	if err := db.AutoMigrate(&repository.CloudAccount{}); err != nil {
-		return err
-	}
-
-	// StackTemplate
-	if err := db.AutoMigrate(&repository.StackTemplate{}); err != nil {
-		return err
-	}
-
-	// Cluster
-	if err := db.AutoMigrate(&repository.Cluster{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.ClusterFavorite{}); err != nil {
-		return err
-	}
-
-	// Services
-	if err := db.AutoMigrate(&repository.AppGroup{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.Application{}); err != nil {
-		return err
-	}
-
-	// AppServe
-	if err := db.AutoMigrate(&domain.AppServeApp{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&domain.AppServeAppTask{}); err != nil {
-		return err
-	}
-
-	// Alert
-	if err := db.AutoMigrate(&repository.Alert{}); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(&repository.AlertAction{}); err != nil {
-		return err
+	for _, ep := range api.ApiMap {
+		if _, ok := storedEps[ep.Name]; !ok {
+			if err := repoFactory.Endpoint.Create(ctx, &model.Endpoint{
+				Name:  ep.Name,
+				Group: ep.Group,
+			}); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

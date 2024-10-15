@@ -1,15 +1,15 @@
 package http
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
 	ut "github.com/go-playground/universal-translator"
 	validator_ "github.com/go-playground/validator/v10"
-	"github.com/openinfradev/tks-api/internal/helper"
 	"github.com/openinfradev/tks-api/internal/validator"
 	"github.com/openinfradev/tks-api/pkg/httpErrors"
 	"github.com/openinfradev/tks-api/pkg/log"
@@ -28,7 +28,7 @@ func init() {
 }
 
 func ErrorJSON(w http.ResponseWriter, r *http.Request, err error) {
-	log.ErrorfWithContext(r.Context(), "error is :%s(%T)", err.Error(), err)
+	log.Errorf(r.Context(), "error is :%s(%T)", err.Error(), err)
 	errorResponse, status := httpErrors.ErrorResponse(err)
 	ResponseJSON(w, r, status, errorResponse)
 }
@@ -41,15 +41,8 @@ func ResponseJSON(w http.ResponseWriter, r *http.Request, httpStatus int, data i
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(httpStatus)
 
-	responseStr := helper.ModelToJson(out)
-	if len(responseStr) > MAX_LOG_LEN {
-		log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr[:MAX_LOG_LEN-1]))
-	} else {
-		log.InfoWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
-	}
-	log.DebugWithContext(r.Context(), fmt.Sprintf("[API_RESPONSE] [%s]", responseStr))
 	if err := json.NewEncoder(w).Encode(out); err != nil {
-		log.ErrorWithContext(r.Context(), err)
+		log.Error(r.Context(), err)
 	}
 }
 
@@ -58,6 +51,7 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 	if err != nil {
 		return err
 	}
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	err = json.Unmarshal(body, &in)
 	if err != nil {
@@ -65,6 +59,22 @@ func UnmarshalRequestInput(r *http.Request, in any) error {
 	}
 
 	err = validate.Struct(in)
+	if err != nil {
+		var valErrs validator_.ValidationErrors
+		if errors.As(err, &valErrs) {
+			for _, e := range valErrs {
+				return httpErrors.NewBadRequestError(err, "", e.Translate(trans))
+			}
+		}
+	}
+
+	return nil
+}
+
+// Http Request가 아닌 경우에도 domain 객체 validate가 필요한 경우 호출
+// 예를 들어 정책의 match를 RawYaml로 전달받았을 경우 이를 domain.Match 객체로 unmarshalling 한 후 domain.Match를 이용해서 validate 가능
+func ValidateDomainObject(in any) error {
+	err := validate.Struct(in)
 	if err != nil {
 		var valErrs validator_.ValidationErrors
 		if errors.As(err, &valErrs) {
@@ -117,10 +127,28 @@ func (h *APIHandler) AddHistory(r *http.Request, projectId string, historyType s
 
 		err := h.Repository.AddHistory(userId, projectId, historyType, description)
 		if err != nil {
-			log.ErrorWithContext(r.Context(),err)
+			log.Error(r.Context(),err)
 			return err
 		}
 
 	return nil
 }
 */
+
+func UnmarshalFromString(ctx context.Context, content string, in any) error {
+	err := json.Unmarshal([]byte(content), &in)
+	if err != nil {
+		log.Fatalf(ctx, "Unable to unmarshal JSON due to %s", err)
+		return err
+	}
+	return nil
+}
+
+func MarshalToString(ctx context.Context, in any) (string, error) {
+	b, err := json.Marshal(in)
+	if err != nil {
+		log.Fatalf(ctx, "Unable to marshal JSON due to %s", err)
+		return "", nil
+	}
+	return string(b), nil
+}

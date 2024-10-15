@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	_ "github.com/openinfradev/tks-api/api/swagger"
+	"github.com/openinfradev/tks-api/api/swagger"
 	"github.com/openinfradev/tks-api/internal/database"
 	"github.com/openinfradev/tks-api/internal/keycloak"
 	"github.com/openinfradev/tks-api/internal/mail"
@@ -42,7 +45,7 @@ func init() {
 	flag.String("console-address", "https://tks-console-dev.taco-cat.xyz", "service address for console")
 
 	// app-serve-apps
-	flag.String("image-registry-url", "harbor-dev.taco-cat.xyz/appserving", "URL of image registry")
+	flag.String("image-registry-url", "harbor.taco-cat.xyz/appserving", "URL of image registry")
 	flag.String("harbor-pw-secret", "harbor-core", "name of harbor password secret")
 	flag.String("git-repository-url", "github.com/openinfradev", "URL of git repository")
 
@@ -71,34 +74,49 @@ func init() {
 	flag.Parse()
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		log.Error(err)
+		log.Error(context.Background(), err)
 	}
 
+	address := viper.GetString("external-address")
+	arr := strings.Split(address, "//")
+	if len(arr) >= 2 {
+		address = arr[1]
+	}
+
+	swagger.SwaggerInfo.Host = address
 }
 
-// @title tks-api service
-// @version 1.0
-// @description This is backend api service for tks platform
+//	@title			tks-api service
+//	@version		1.0
+//	@description	This is backend api service for tks platform
 
-// @contact.name taekyu.kang@sk.com
-// @contact.url
-// @contact.email taekyu.kang@sk.com
+//	@contact.name	taekyu.kang@sk.com
+//	@contact.url
+//	@contact.email	taekyu.kang@sk.com
 
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @securitydefinitions.apikey  JWT
-// @in                          header
-// @name                        Authorization
+//	@securitydefinitions.apikey	JWT
+//	@in							header
+//	@name						Authorization
 
-// @host tks-api-ft.taco-cat.xyz
-// @BasePath /api/1.0/
+// @host		tks-api-dev.taco-cat.xyz
+// @BasePath	/api/1.0/
 func main() {
-	log.Info("*** Arguments *** ")
+	ctx := context.Background()
+	log.Info(ctx, "*** Arguments *** ")
 	for i, s := range viper.AllSettings() {
-		log.Info(fmt.Sprintf("%s : %v", i, s))
+		log.Info(ctx, fmt.Sprintf("%s : %v", i, s))
 	}
-	log.Info("****************** ")
+	log.Info(ctx, "****************** ")
+
+	go func() {
+		err := http.ListenAndServe("0.0.0.0:6060", nil)
+		if err != nil {
+			log.Error(ctx, "0.0.0.0:6060 failed to listen")
+		}
+	}()
 
 	// For web service
 	asset := route.NewAssetHandler(viper.GetString("web-root"))
@@ -106,7 +124,13 @@ func main() {
 	// Initialize database
 	db, err := database.InitDB()
 	if err != nil {
-		log.Fatal("cannot connect gormDB")
+		log.Fatal(ctx, "cannot connect gormDB")
+	}
+
+	// Ensure default rows in database
+	err = database.EnsureDefaultRows(db)
+	if err != nil {
+		log.Fatal(ctx, "cannot Initializing Default Rows in Database: ", err)
 	}
 
 	// Initialize external client
@@ -114,12 +138,12 @@ func main() {
 	if viper.GetString("argo-address") == "" || viper.GetInt("argo-port") == 0 {
 		argoClient, err = argowf.NewMock()
 		if err != nil {
-			log.Fatal("failed to create argowf client : ", err)
+			log.Fatal(ctx, "failed to create argowf client : ", err)
 		}
 	} else {
 		argoClient, err = argowf.New(viper.GetString("argo-address"), viper.GetInt("argo-port"), false, "")
 		if err != nil {
-			log.Fatal("failed to create argowf client : ", err)
+			log.Fatal(ctx, "failed to create argowf client : ", err)
 		}
 	}
 
@@ -130,20 +154,20 @@ func main() {
 		ClientSecret:  viper.GetString("keycloak-client-secret"),
 	})
 
-	err = keycloak.InitializeKeycloak()
+	err = keycloak.InitializeKeycloak(ctx)
 	if err != nil {
-		log.Fatal("failed to initialize keycloak : ", err)
+		log.Fatal(ctx, "failed to initialize keycloak : ", err)
 	}
-	err = mail.Initialize()
+	err = mail.Initialize(ctx)
 	if err != nil {
-		log.Fatal("failed to initialize ses : ", err)
+		log.Fatal(ctx, "failed to initialize ses : ", err)
 	}
 
 	route := route.SetupRouter(db, argoClient, keycloak, asset)
 
-	log.Info("Starting server on ", viper.GetInt("port"))
+	log.Info(ctx, "Starting server on ", viper.GetInt("port"))
 	err = http.ListenAndServe("0.0.0.0:"+strconv.Itoa(viper.GetInt("port")), route)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(ctx, err)
 	}
 }

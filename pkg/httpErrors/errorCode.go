@@ -4,29 +4,45 @@ type ErrorCode string
 
 var errorMap = map[ErrorCode]string{
 	// Common
-	"C_INTERNAL_ERROR":            "예상하지 못한 오류가 발생했습니다. 문제가 계속되면 관리자에게 문의해주세요.",
-	"C_INVALID_ACCOUNT_ID":        "유효하지 않은 어카운트 아이디입니다. 어카운트 아이디를 확인하세요.",
-	"C_INVALID_STACK_ID":          "유효하지 않은 스택 아이디입니다. 스택 아이디를 확인하세요.",
-	"C_INVALID_CLUSTER_ID":        "유효하지 않은 클러스터 아이디입니다. 클러스터 아이디를 확인하세요.",
-	"C_INVALID_APPGROUP_ID":       "유효하지 않은 앱그룹 아이디입니다. 앱그룹 아이디를 확인하세요.",
-	"C_INVALID_ORGANIZATION_ID":   "유효하지 않은 조직 아이디입니다. 조직 아이디를 확인하세요.",
-	"C_INVALID_CLOUD_ACCOUNT_ID":  "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
-	"C_INVALID_STACK_TEMPLATE_ID": "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
-	"C_INVALID_ASA_ID":            "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
-	"C_INVALID_ASA_TASK_ID":       "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
-	"C_INVALID_CLOUD_SERVICE":     "유효하지 않은 클라우드서비스입니다.",
-	"C_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패했습니다.",
+	"C_INTERNAL_ERROR":                          "예상하지 못한 오류가 발생했습니다. 문제가 계속되면 관리자에게 문의해주세요.",
+	"C_INVALID_ACCOUNT_ID":                      "유효하지 않은 어카운트 아이디입니다. 어카운트 아이디를 확인하세요.",
+	"C_INVALID_STACK_ID":                        "유효하지 않은 스택 아이디입니다. 스택 아이디를 확인하세요.",
+	"C_INVALID_CLUSTER_ID":                      "유효하지 않은 클러스터 아이디입니다. 클러스터 아이디를 확인하세요.",
+	"C_INVALID_APPGROUP_ID":                     "유효하지 않은 앱그룹 아이디입니다. 앱그룹 아이디를 확인하세요.",
+	"C_INVALID_ORGANIZATION_ID":                 "유효하지 않은 조직 아이디입니다. 조직 아이디를 확인하세요.",
+	"C_INVALID_PROJECT_ID":                      "유효하지 않은 프로젝트 아이디입니다. 아이디를 확인하세요.",
+	"C_INVALID_CLOUD_ACCOUNT_ID":                "유효하지 않은 클라우드어카운트 아이디입니다. 클라우드어카운트 아이디를 확인하세요.",
+	"C_INVALID_STACK_TEMPLATE_ID":               "유효하지 않은 스택템플릿 아이디입니다. 스택템플릿 아이디를 확인하세요.",
+	"C_INVALID_SYSTEM_NOTIFICATION_TEMPLATE_ID": "유효하지 않은 알림템플릿 아이디입니다. 알림템플릿 아이디를 확인하세요.",
+	"C_INVALID_SYSTEM_NOTIFICATION_RULE_ID":     "유효하지 않은 알림설정 아이디입니다. 알림설정 아이디를 확인하세요.",
+	"C_INVALID_ASA_ID":                          "유효하지 않은 앱서빙앱 아이디입니다. 앱서빙앱 아이디를 확인하세요.",
+	"C_INVALID_ASA_TASK_ID":                     "유효하지 않은 테스크 아이디입니다. 테스크 아이디를 확인하세요.",
+	"C_INVALID_CLOUD_SERVICE":                   "유효하지 않은 클라우드서비스입니다.",
+	"C_INVALID_AUDIT_ID":                        "유효하지 않은 로그 아이디입니다. 로그 아이디를 확인하세요.",
+	"C_INVALID_POLICY_TEMPLATE_ID":              "유효하지 않은 정책 템플릿 아이디입니다. 정책 템플릿 아이디를 확인하세요.",
+	"C_INVALID_POLICY_ID":                       "유효하지 않은 정책 아이디입니다. 정책 아이디를 확인하세요.",
+	"C_FAILED_TO_CALL_WORKFLOW":                 "워크플로우 호출에 실패했습니다.",
 
 	// Auth
 	"A_INVALID_ID":              "아이디가 존재하지 않습니다.",
 	"A_INVALID_PASSWORD":        "비밀번호가 일치하지 않습니다.",
 	"A_SAME_OLD_PASSWORD":       "기존 비밀번호와 동일합니다.",
 	"A_INVALID_TOKEN":           "사용자 토큰 오류",
+	"A_EXPIRED_TOKEN":           "사용자 토큰 만료",
 	"A_INVALID_USER_CREDENTIAL": "비밀번호가 일치하지 않습니다.",
 	"A_INVALID_ORIGIN_PASSWORD": "기존 비밀번호가 일치하지 않습니다.",
 	"A_INVALID_CODE":            "인증번호가 일치하지 않습니다.",
 	"A_NO_SESSION":              "세션 정보를 찾을 수 없습니다.",
 	"A_EXPIRED_CODE":            "인증번호가 만료되었습니다.",
+	"A_UNUSABLE_TOKEN":          "사용할 수 없는 토큰입니다.",
+
+	// Organization
+	"O_INVALID_ORGANIZATION_NAME":                   "조직에 이미 존재하는 이름입니다.",
+	"O_NOT_EXISTED_NAME":                            "조직이 존재하지 않습니다.",
+	"O_CREATE_ALREADY_EXISTED_NAME":                 "이미 존재하는 이름입니다.",
+	"O_FAILED_UPDATE_STACK_TEMPLATES":               "조직에 스택템플릿을 설정하는데 실패했습니다",
+	"O_FAILED_UPDATE_POLICY_TEMPLATES":              "조직에 정책템플릿을 설정하는데 실패했습니다",
+	"O_FAILED_UPDATE_SYSTEM_NOTIFICATION_TEMPLATES": "조직에 알림템플릿을 설정하는데 실패했습니다",
 
 	// User
 	"U_NO_USER": "해당 사용자 정보를 찾을 수 없습니다.",
@@ -64,15 +80,74 @@ var errorMap = map[ErrorCode]string{
 	"S_INVALID_CLUSTER_URL":         "BYOH 타입의 클러스터 생성은 반드시 userClusterEndpoint 값이 필요합니다.",
 	"S_INVALID_CLUSTER_ID":          "BYOH 타입의 클러스터 생성은 반드시 clusterId 값이 필요합니다.",
 	"S_INVALID_CLOUD_SERVICE":       "클라우드 서비스 타입이 잘못되었습니다.",
+	"S_FAILED_DELETE_POLICIES":      "스택의 폴리시들을 삭제하는 실패하였습니다",
 
 	// Alert
 	"AL_NOT_FOUND_ALERT": "지정한 앨럿이 존재하지 않습니다.",
+
+	// SystemNotificationTemplate
+	"SNT_CREATE_ALREADY_EXISTED_NAME":   "알림템플릿에 이미 존재하는 이름입니다.",
+	"SNT_FAILED_FETCH_ALERT_TEMPLATE":   "알림템플릿을 가져오는데 실패했습니다.",
+	"SNT_FAILED_UPDATE_ORGANIZATION":    "알림템플릿에 조직을 설정하는데 실패했습니다.",
+	"SNT_NOT_EXISTED_ALERT_TEMPLATE":    "업데이트할 알림템플릿이 존재하지 않습니다.",
+	"SNT_FAILED_DELETE_EXIST_RULES":     "알림템플릿을 사용하고 있는 알림 설정이 있습니다. 알림 설정을 삭제하세요.",
+	"SNT_CANNOT_DELETE_SYSTEM_TEMPLATE": "시스템 알림템플릿은 삭제 할 수 없습니다.",
+
+	// SystemNotificationRule
+	"SNR_CREATE_ALREADY_EXISTED_NAME":           "알림 설정에 이미 존재하는 이름입니다.",
+	"SNR_FAILED_FETCH_SYSTEM_NOTIFICATION_RULE": "알림 설정을 가져오는데 실패했습니다.",
+	"SNR_FAILED_UPDATE_ORGANIZATION":            "알림 설정에 조직을 설정하는데 실패했습니다.",
+	"SNR_NOT_EXISTED_SYSTEM_NOTIFICATION_RULE":  "업데이트할 알림 설정이 존재하지 않습니다.",
+	"SNR_INVALID_ENABLE_PORTAL":                 "알림 방법의 포탈은 설정을 변경할 수 없습니다.",
+	"SNR_CANNOT_DELETE_SYSTEM_RULE":             "시스템 알림 설정은 삭제 할 수 없습니다.",
 
 	// AppGroup
 	"AG_NOT_FOUND_CLUSTER":         "지장한 클러스터가 존재하지 않습니다.",
 	"AG_NOT_FOUND_APPGROUP":        "지장한 앱그룹이 존재하지 않습니다.",
 	"AG_FAILED_TO_CREATE_APPGROUP": "앱그룹 생성에 실패하였습니다.",
 	"AG_FAILED_TO_CALL_WORKFLOW":   "워크플로우 호출에 실패하였습니다.",
+
+	// StackTemplate
+	"ST_CREATE_ALREADY_EXISTED_NAME":                             "스택템플릿에 이미 존재하는 이름입니다.",
+	"ST_FAILED_UPDATE_ORGANIZATION":                              "스택템플릿에 조직을 설정하는데 실패했습니다.",
+	"ST_NOT_EXISTED_STACK_TEMPLATE":                              "업데이트할 스택템플릿이 존재하지 않습니다.",
+	"ST_INVALID_STACK_TEMAPLTE_NAME":                             "유효하지 않은 스택템플릿 이름입니다. 스택템플릿 이름을 확인하세요.",
+	"ST_FAILED_FETCH_STACK_TEMPLATE":                             "스택템플릿을 가져오는데 실패했습니다.",
+	"ST_FAILED_ADD_ORGANIZATION_STACK_TEMPLATE":                  "조직에 스택템플릿을 추가하는데 실패하였습니다.",
+	"ST_FAILED_REMOVE_ORGANIZATION_STACK_TEMPLATE":               "조직에서 스택템플릿을 삭제하는데 실패하였습니다.",
+	"ST_FAILED_ADD_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE":    "조직에 시스템알람템플릿을 추가하는데 실패하였습니다.",
+	"ST_FAILED_REMOVE_ORGANIZATION_SYSTEM_NOTIFICATION_TEMPLATE": "조직에서 시스템알람템플릿을 삭제하는데 실패하였습니다.",
+	"ST_FAILED_DELETE_EXIST_CLUSTERS":                            "스택템플릿을 사용하고 있는 스택이 있습니다. 스택을 삭제하세요.",
+	"C_INVALID_STACK_TEMPLATE_TEMPLATE_IDS":                      "템플릿아이디를 조회하는데 실패하였습니다.",
+
+	// PolicyTemplate
+	"PT_CREATE_ALREADY_EXISTED_NAME":          "정첵 템플릿에 이미 존재하는 이름입니다.",
+	"PT_CREATE_ALREADY_EXISTED_KIND":          "정책 템플릿에 이미 존재하는 유형입니다.",
+	"PT_NOT_FOUND_POLICY_TEMPLATE":            "정책 템플릿이 존재하지 않습니다.",
+	"PT_INVALID_KIND":                         "유효하지 않은 정책 템플릿 유형입니다. 정책 템플릿 유형을 확인하세요.",
+	"PT_FAILED_FETCH_POLICY_TEMPLATE":         "정책 템플릿 ID에 해당하는 정책 템플릿을 가져오는데 실패했습니다.",
+	"PT_INVALID_REGO_SYNTAX":                  "Rego 문법 오류입니다.",
+	"PT_INVALID_POLICY_TEMPLATE_VERSION":      "유효하지 않은 정책 템플릿 버전닙니다. 정책 템플릿 버전을 확인하세요.",
+	"PT_NOT_FOUND_POLICY_TEMPLATE_VERSION":    "정책 템플릿 버전이 존재하지 않습니다.",
+	"PT_INVALID_POLICY_TEMPLATE_NAME":         "유효하지 않은 정책 템플릿 이름입니다. 정책 템플릿 이름을 확인하세요.",
+	"PT_INVALID_POLICY_TEMPLATE_KIND":         "유효하지 않은 정책 템플릿 유형입니다. 정책 템플릿 유형을 확인하세요.",
+	"PT_INVALID_REGO_PARSEPARAMETER":          "유효하지 않은 Rego 파싱 설정입니다. Rego 파싱 설정을 확인하세요.",
+	"PT_NOT_PERMITTED_ON_TKS_POLICY_TEMPLATE": "tks 템플릿에 대해 해당 동작을 수행할 수 없습니다.",
+	"PT_INVALID_PARAMETER_SCHEMA":             "파라미터 스키마에 잘못된 타입이 지정되었습니다.",
+	"PT_INVALID_SYNC":                         "잘못된 데이터 동기화 설정입니다. 데이터 동기화 설정을 확인하세요.",
+
+	// Policy
+	"P_CREATE_ALREADY_EXISTED_NAME":  "정첵에 이미 존재하는 이름입니다.",
+	"P_NOT_FOUND_POLICY":             "정책이 존재하지 않습니다.",
+	"P_INVALID_POLICY_NAME":          "유효하지 않은 정책 이름입니다. 정책 이름을 확인하세요.",
+	"P_INVALID_POLICY_RESOURCE_NAME": "유효하지 않은 정책 자원 이름(k8s 자원 이름)입니다. 정책 자원 이름을 확인하세요.",
+	"P_INVALID_MATCH":                "유효하지 않은 match 설정입니다. match 설정을 확인하세요.",
+	"P_FAILED_FETCH_POLICY":          "정책 ID에 해당하는 정책을 가져오는데 실패했습니다.",
+	"P_FAILED_FETCH_CLUSTER":         "정책의 클러스터 정보를 가져오는데 실패했습니다.",
+	"P_FAILED_FETCH_TEMPLATE":        "정책의 템플릿 정보를 가져오는데 실패했습니다.",
+	"P_CALL_TO_APPLY_KUBERNETES":     "쿠버네티스 클러스터 호출에 실패했습니다.",
+	"P_FAILED_TO_APPLY_KUBERNETES":   "쿠버네티스 클러스터 변경사항 적용에 실패했습니다.",
+	"P_INVALID_POLICY_PARAMETER":     "정책 파라미터가 템플릿의 파라미터 스키마에 유효하지 않습니다. 파라미터를 확인하세요.",
 }
 
 func (m ErrorCode) GetText() string {

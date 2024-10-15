@@ -20,7 +20,7 @@ func PasswordFilter(handler http.Handler, repo repository.Repository) http.Handl
 			return
 		}
 
-		storedUser, err := repo.User.GetByUuid(requestUserInfo.GetUserId())
+		storedUser, err := repo.User.GetByUuid(r.Context(), requestUserInfo.GetUserId())
 		if err != nil {
 			internalHttp.ErrorJSON(w, r, err)
 			return
@@ -53,3 +53,17 @@ func urlContains(urls []string, url string) bool {
 	}
 	return false
 }
+
+//
+//func isBypassEndpoint(endpoint internalApi.Endpoint) bool {
+//	switch endpoint {
+//	case internalApi.Login:
+//	case internalApi.PingToken:
+//	case internalApi.FindId:
+//	case internalApi.FindPassword:
+//	case internalApi.VerifyIdentityForLostId:
+//	case internalApi.VerifyIdentityForLostPassword:
+//		return true
+//	}
+//	return false
+//}

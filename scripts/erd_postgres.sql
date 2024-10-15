@@ -387,4 +387,56 @@ ALTER TABLE IF EXISTS public.users
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
+
+-- Project table Start
+CREATE TABLE IF NOT EXISTS public.projects (
+    id text primary key not null,
+    organization_id text,
+    name text,
+    description text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone
+);
+CREATE INDEX idx_projects_name ON projects USING btree (name);
+
+CREATE TABLE IF NOT EXISTS public.project_members (
+    id text primary key not null,
+    project_id text not null,
+    user_id text,
+    project_role_id text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    foreign key (project_id) references public.projects (id)
+    match simple on update no action on delete no action,
+    foreign key (project_role_id) references public.project_roles (id)
+    match simple on update no action on delete no action
+);
+
+CREATE TABLE IF NOT EXISTS public.project_namespaces (
+    id text primary key not null,
+    project_id text not null,
+    stack_id text,
+    namespace text,
+    description text,
+    status text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    foreign key (project_id) references public.projects (id)
+    match simple on update no action on delete no action
+);
+CREATE UNIQUE INDEX idx_stackid_namespace ON project_namespaces USING btree (stack_id, namespace);
+
+CREATE TABLE IF NOT EXISTS public.project_roles (
+    id text primary key not null,
+    name text,
+    description text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone
+);
+-- Project table End
+
 END;

@@ -20,10 +20,10 @@ type AwsMailer struct {
 	message *MessageInfo
 }
 
-func (a *AwsMailer) SendMail() error {
+func (a *AwsMailer) SendMail(ctx context.Context) error {
 	input := &awsSes.SendEmailInput{
 		Destination: &types.Destination{
-			ToAddresses: []string{a.message.To},
+			ToAddresses: a.message.To,
 		},
 		Message: &types.Message{
 			Subject: &types.Content{
@@ -39,16 +39,16 @@ func (a *AwsMailer) SendMail() error {
 	}
 
 	if _, err := a.client.SendEmail(context.Background(), input); err != nil {
-		log.Errorf("failed to send email, %v", err)
+		log.Errorf(ctx, "failed to send email, %v", err)
 		return err
 	}
 
 	return nil
 }
 
-func initialize() error {
+func initialize(ctx context.Context) error {
 	if viper.GetString("aws-access-key-id") != "" || viper.GetString("aws-secret-access-key") != "" {
-		log.Warn("aws access key information is used on env. Be aware of security")
+		log.Warn(ctx, "aws access key information is used on env. Be aware of security")
 	}
 	if viper.GetString("aws-access-key-id") != "" {
 		err := os.Setenv("AWS_ACCESS_KEY_ID", viper.GetString("aws-access-key-id"))

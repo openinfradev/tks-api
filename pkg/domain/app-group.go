@@ -114,33 +114,6 @@ func (m AppGroupType) FromString(s string) AppGroupType {
 	return AppGroupType_UNSPECIFIED
 }
 
-type AppGroup = struct {
-	ID           AppGroupId
-	Name         string
-	ClusterId    ClusterId
-	AppGroupType AppGroupType
-	Description  string
-	WorkflowId   string
-	Status       AppGroupStatus
-	StatusDesc   string
-	CreatorId    *uuid.UUID
-	Creator      User
-	UpdatorId    *uuid.UUID
-	Updator      User
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
-
-type Application = struct {
-	ID              uuid.UUID
-	AppGroupId      AppGroupId
-	Endpoint        string
-	Metadata        string
-	ApplicationType ApplicationType
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-}
-
 type AppGroupResponse = struct {
 	ID           AppGroupId         `json:"id"`
 	Name         string             `json:"name"`
@@ -157,13 +130,13 @@ type AppGroupResponse = struct {
 }
 
 type ApplicationResponse = struct {
-	ID              uuid.UUID       `json:"id"`
-	AppGroupId      AppGroupId      `json:"appGroupId"`
-	Endpoint        string          `json:"endpoint"`
-	Metadata        string          `json:"metadata"`
-	ApplicationType ApplicationType `json:"applicationType"`
-	CreatedAt       time.Time       `json:"createdAt"`
-	UpdatedAt       time.Time       `json:"updatedAt"`
+	ID         uuid.UUID       `json:"id"`
+	AppGroupId AppGroupId      `json:"appGroupId"`
+	Endpoint   string          `json:"endpoint"`
+	Metadata   string          `json:"metadata"`
+	Type       ApplicationType `json:"applicationType"`
+	CreatedAt  time.Time       `json:"createdAt"`
+	UpdatedAt  time.Time       `json:"updatedAt"`
 }
 
 type CreateAppGroupRequest struct {
@@ -178,9 +151,9 @@ type CreateAppGroupResponse struct {
 }
 
 type CreateApplicationRequest struct {
-	ApplicationType string `json:"applicationType"`
-	Endpoint        string `json:"endpoint"`
-	Metadata        string `json:"metadata"`
+	Type     string `json:"applicationType"`
+	Endpoint string `json:"endpoint"`
+	Metadata string `json:"metadata"`
 }
 
 type GetAppGroupsResponse struct {
