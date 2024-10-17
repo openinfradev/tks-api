@@ -115,10 +115,19 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 	// 	input.Match.Kinds = normaized
 	// }
 
-	match, matchYaml, err := ValidateAndGetMatch(input.Target)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_INVALID_MATCH", ""))
-		return
+	var dto model.Policy
+	if err = serializer.Map(r.Context(), input, &dto); err != nil {
+		log.Info(r.Context(), err)
+	}
+
+	if input.Target != nil {
+		match, matchYaml, err := ValidateAndGetMatch(input.Target)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_INVALID_MATCH", ""))
+			return
+		}
+		dto.Match = match
+		dto.MatchYaml = matchYaml
 	}
 
 	if len(input.PolicyResourceName) > 0 {
@@ -129,14 +138,6 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	var dto model.Policy
-	if err = serializer.Map(r.Context(), input, &dto); err != nil {
-		log.Info(r.Context(), err)
-	}
-
-	dto.Match = match
-	dto.MatchYaml = matchYaml
 
 	policyId, err := h.usecase.Create(r.Context(), organizationId, dto)
 	if err != nil {
@@ -224,10 +225,15 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 	// 	input.Match.Kinds = normaized
 	// }
 
-	match, matchYaml, err := ValidateAndGetMatch(input.Target)
-	if err != nil {
-		ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_INVALID_MATCH", ""))
-		return
+	var match *domain.Match
+	var matchYaml *string
+	if input.Target != nil {
+		match, matchYaml, err = ValidateAndGetMatch(input.Target)
+		if err != nil {
+			ErrorJSON(w, r, httpErrors.NewBadRequestError(err, "P_INVALID_MATCH", ""))
+			return
+		}
+
 	}
 
 	var templateId *uuid.UUID = nil
