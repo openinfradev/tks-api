@@ -10,6 +10,7 @@ on:
 env:
   SERVICE: tks-api
   TAG: ${{github.sha}}
+  REGISTRY: harbor.taco-cat.xyz
 
 jobs:
   build-deploy:
@@ -24,6 +25,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
+          registry: ${{REGISTRY}}
           username: ${{secrets.HARBOR_USERNAME}}
           password: ${{secrets.HARBOR_SECRET}}
 
@@ -33,7 +35,7 @@ jobs:
         with:
           push: true
           tags: |
-            sktcloud/${{env.SERVICE}}:${{env.TAG}}
+            tks/${{env.SERVICE}}:${{env.TAG}}
 
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
@@ -46,12 +48,12 @@ jobs:
           git clone "https://${{secrets.BOT_GITHUB_TOKEN}}@github.com/openinfradev/cicd-manifests.git"
 
           if [[ ${{github.ref}} == *"develop"* ]]; then
-            ( cd cicd-manifests/${SERVICE}/overlay/development && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
+            ( cd cicd-manifests/${SERVICE}/overlay/development && kustomize edit set image ${REGISTRY}/tks/${SERVICE}:${TAG} && git add kustomization.yaml )
           elif [[ ${{github.ref}} == *"release"* ]]; then
-            ( cd cicd-manifests/${SERVICE}/overlay/ft && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
+            ( cd cicd-manifests/${SERVICE}/overlay/ft && kustomize edit set image ${REGISTRY}/tks/${SERVICE}:${TAG} && git add kustomization.yaml )
           elif [[ ${{github.ref}} == *"main"* ]]; then
-            ( cd cicd-manifests/${SERVICE}/overlay/cicd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
-            ( cd cicd-manifests/${SERVICE}/overlay/prd && kustomize edit set image docker.io/sktcloud/${SERVICE}:${TAG} && git add kustomization.yaml )
+            ( cd cicd-manifests/${SERVICE}/overlay/cicd && kustomize edit set image ${REGISTRY}/tks/${SERVICE}:${TAG} && git add kustomization.yaml )
+            ( cd cicd-manifests/${SERVICE}/overlay/prd && kustomize edit set image ${REGISTRY}/tks/${SERVICE}:${TAG} && git add kustomization.yaml )
           fi
 
           cd cicd-manifests
