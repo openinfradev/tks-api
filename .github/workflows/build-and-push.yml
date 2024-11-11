@@ -34,11 +34,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          registry: ${{env.REGISTRY}}
-          username: ${{secrets.HARBOR_USERNAME}}
-          password: ${{secrets.HARBOR_SECRET}}
           tags: |
-            tks/${{env.SERVICE}}:${{env.TAG}}
+            ${{env.REGISTRY}}/tks/${{env.SERVICE}}:${{env.TAG}}
 
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v1
