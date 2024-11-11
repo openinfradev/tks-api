@@ -9,6 +9,7 @@ on:
 env:
   SERVICE: tks-api
   TAG: ${{github.sha}}
+  REGISTRY: harbor.taco-cat.xyz
 
 jobs:
   build-image:
@@ -25,6 +26,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
+          registry: ${{REGISTRY}}
           username: ${{secrets.HARBOR_USERNAME}}
           password: ${{secrets.HARBOR_SECRET}}
 
@@ -34,4 +36,4 @@ jobs:
         with:
           push: false
           tags: |
-            sktcloud/${{env.SERVICE}}:${{env.TAG}}
+            tks/${{env.SERVICE}}:${{env.TAG}}
