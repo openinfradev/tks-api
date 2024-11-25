@@ -23,7 +23,8 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		body, err := io.ReadAll(r.Body)
 		if err == nil {
-			log.Infof(r.Context(), fmt.Sprintf("REQUEST BODY : %s", bytes.NewBuffer(body).String()))
+			log.Infof(r.Context(), fmt.Sprintf("REQUEST BODY : %v", bytes.NewBuffer(body)))
+			log.Infof(r.Context(), fmt.Sprintf("REQUEST BODY : %v", bytes.NewBuffer(body).String()))
 		}
 		r.Body = io.NopCloser(bytes.NewBuffer(body))
 		lrw := NewLoggingResponseWriter(w)
